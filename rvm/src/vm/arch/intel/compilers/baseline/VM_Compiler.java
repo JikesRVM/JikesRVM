@@ -439,12 +439,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
     genParameterRegisterLoad(2);                     // pass 2 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
     if (MM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
     else {
-      asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-      asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-      genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
       asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
       asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
     }
