@@ -1069,13 +1069,16 @@ public class BootImageWriter extends BootImageWriterMessages
 	      VM_Statics.setSlotContents(rvmFieldSlot, getAddressValue(addr, msg, true));  // int or long
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(null);
-              VM_Statics.setSlotContents(rvmFieldSlot, w.toInt());
+              int val = w == null ? 0 : w.toInt();
+              VM_Statics.setSlotContents(rvmFieldSlot, val);
             } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
               VM_Offset o = (VM_Offset) jdkFieldAcc.get(null);
-              VM_Statics.setSlotContents(rvmFieldSlot, o.toInt());
+              int val = o == null ? 0 : o.toInt();
+              VM_Statics.setSlotContents(rvmFieldSlot, val);
             } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
               VM_Extent ex = (VM_Extent) jdkFieldAcc.get(null);
-              VM_Statics.setSlotContents(rvmFieldSlot, ex.toInt());
+              int val = ex == null ? 0 : ex.toInt();
+              VM_Statics.setSlotContents(rvmFieldSlot, val);
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
 	    }
@@ -1415,13 +1418,16 @@ public class BootImageWriter extends BootImageWriterMessages
               bootImage.setAddressWord(rvmFieldOffset, getAddressValue(addr, msg, true));
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
-              VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());
+              int val = w == null ? 0 : w.toInt();
+              VM_Statics.setSlotContents(rvmFieldOffset, val);
             } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
               VM_Offset o = (VM_Offset) jdkFieldAcc.get(jdkObject);
-              VM_Statics.setSlotContents(rvmFieldOffset, o.toInt());
+              int val = o == null ? 0 : o.toInt();
+              VM_Statics.setSlotContents(rvmFieldOffset, val);
             } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
               VM_Extent e = (VM_Extent) jdkFieldAcc.get(jdkObject);
-              VM_Statics.setSlotContents(rvmFieldOffset, e.toInt());
+              int val = e == null ? 0 : e.toInt();
+              VM_Statics.setSlotContents(rvmFieldOffset, val);
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
 	    }
