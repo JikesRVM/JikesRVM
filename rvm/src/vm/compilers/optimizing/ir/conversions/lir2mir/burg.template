@@ -44,41 +44,6 @@ public final class OPT_BURS_STATE extends OPT_BURS_Helpers
    /* accessors used by BURS */
    private static OPT_BURS_TreeNode STATE(OPT_BURS_TreeNode a) { return a; }
 
-   /* node accessors */
-   private OPT_Instruction P(OPT_BURS_TreeNode p) {
-      return p.getInstruction();
-   }
-   private OPT_Instruction PL(OPT_BURS_TreeNode p) {
-      return p.child1.getInstruction();
-   }
-   private OPT_Instruction PR(OPT_BURS_TreeNode p) {
-      return p.child2.getInstruction();
-   }
-   private OPT_Instruction PLR(OPT_BURS_TreeNode p) {
-      return p.child1.child2.getInstruction();
-   }
-   private OPT_Instruction PRR(OPT_BURS_TreeNode p) {
-      return p.child2.child2.getInstruction();
-   }
-   private OPT_Instruction PLL(OPT_BURS_TreeNode p) {
-      return p.child1.child1.getInstruction();
-   }
-   private OPT_Instruction PRL(OPT_BURS_TreeNode p) {
-      return p.child2.child1.getInstruction();
-   }
-   private OPT_Instruction PLLL(OPT_BURS_TreeNode p) {
-      return p.child1.child1.child1.getInstruction();
-   }
-   private OPT_Instruction PLLR(OPT_BURS_TreeNode p) {
-      return p.child1.child1.child2.getInstruction();
-   }
-   private OPT_Instruction PRLL(OPT_BURS_TreeNode p) {
-      return p.child2.child1.child1.getInstruction();
-   }
-   private OPT_Instruction PRLR(OPT_BURS_TreeNode p) {
-      return p.child2.child1.child2.getInstruction();
-   }
-
    /***********************************************************************
     *
     *   This file contains BURG utilities

@@ -17,7 +17,7 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /** Infinte cost for a rule */
-  protected static final int INFINITE = 32767;
+  protected static final int INFINITE = 0x7fff;
 
   /**
    * The burs object
@@ -76,7 +76,7 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   }
 
   protected final int FITS(OPT_Operand op, int numBits, int trueCost) {
-    return FITS(op, numBits, trueCost, OPT_BURS_STATE.INFINITE);
+    return FITS(op, numBits, trueCost, INFINITE);
   }
   protected final int FITS(OPT_Operand op, int numBits, int trueCost, int falseCost) {
     if (op.isIntConstant() && OPT_Bits.fits(IV(op),numBits)) {
@@ -85,6 +85,21 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
       return falseCost;
     }
   }
+
+  protected final int isZERO(int x, int trueCost) {
+    return isZERO(x, trueCost, INFINITE);
+  }
+  protected final int isZERO(int x, int trueCost, int falseCost) {
+    return x == 0 ? trueCost : falseCost;
+  }
+
+  protected final int isONE(int x, int trueCost) {
+    return isONE(x, trueCost, INFINITE);
+  }
+  protected final int isONE(int x, int trueCost, int falseCost) {
+    return x == 1 ? trueCost : falseCost;
+  }
+
 
   // helper functions for condition operands
   protected final boolean EQ_NE(OPT_ConditionOperand c) {
@@ -121,4 +136,73 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
     }
     return ans;
   }
+
+   /* node accessors */
+   protected final OPT_Instruction P(OPT_BURS_TreeNode p) {
+      return p.getInstruction();
+   }
+   protected final OPT_Instruction PL(OPT_BURS_TreeNode p) {
+      return p.child1.getInstruction();
+   }
+   protected final OPT_Instruction PR(OPT_BURS_TreeNode p) {
+      return p.child2.getInstruction();
+   }
+   protected final OPT_Instruction PLR(OPT_BURS_TreeNode p) {
+      return p.child1.child2.getInstruction();
+   }
+   protected final OPT_Instruction PRR(OPT_BURS_TreeNode p) {
+      return p.child2.child2.getInstruction();
+   }
+   protected final OPT_Instruction PLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PRL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLR(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child2.getInstruction();
+   }
+   protected final OPT_Instruction PRLL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PRLR(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child2.getInstruction();
+   }
+
+   protected final int V(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p).value;
+   }
+   protected final int VL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1).value;
+   }
+   protected final int VR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2).value;
+   }
+   protected final int VLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2).value;
+   }
+   protected final int VRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child2).value;
+   }
+   protected final int VLL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1).value;
+   }
+   protected final int VRL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1).value;
+   }
+   protected final int VLLL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1).value;
+   }
+   protected final int VLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2).value;
+   }
+   protected final int VRLL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1).value;
+   }
+   protected final int VRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child2).value;
+   }
 }

@@ -21,7 +21,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 
   // can an IV be the scale in a LEA instruction?
   protected final int LEA_SHIFT(OPT_Operand op, int trueCost) {
-    return LEA_SHIFT(op, trueCost, OPT_BURS_STATE.INFINITE);
+    return LEA_SHIFT(op, trueCost, INFINITE);
   }
   protected final int LEA_SHIFT(OPT_Operand op, int trueCost, int falseCost) {
     if (op.isIntConstant()) {
@@ -44,7 +44,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
 
   protected final int isFPC_ONE(OPT_Instruction s, int trueCost) {
-    return isFPC_ONE(s, trueCost, OPT_BURS_STATE.INFINITE);
+    return isFPC_ONE(s, trueCost, INFINITE);
   }
   protected final int isFPC_ONE(OPT_Instruction s, int trueCost, int falseCost) {
     OPT_Operand val = Binary.getVal2(s);
@@ -57,7 +57,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     }
   }
   protected final int isFPC_ZERO(OPT_Instruction s, int trueCost) {
-    return isFPC_ZERO(s, trueCost, OPT_BURS_STATE.INFINITE);
+    return isFPC_ZERO(s, trueCost, INFINITE);
   }
   protected final int isFPC_ZERO(OPT_Instruction s, int trueCost, int falseCost) {
     OPT_Operand val = Binary.getVal2(s);

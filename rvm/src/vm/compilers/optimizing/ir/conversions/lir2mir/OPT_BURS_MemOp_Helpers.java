@@ -31,7 +31,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
 
   // Cost functions better suited to grammars with multiple non-termials
   protected final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
-    return ADDRESS_EQUAL(store, load, trueCost, OPT_BURS_STATE.INFINITE);
+    return ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
   protected final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
     if (Store.getAddress(store).similar(Load.getAddress(load)) &&
@@ -43,7 +43,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   }
 
   protected final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
-    return ARRAY_ADDRESS_EQUAL(store, load, trueCost, OPT_BURS_STATE.INFINITE);
+    return ARRAY_ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
   protected final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
     if (AStore.getArray(store).similar(ALoad.getArray(load)) &&

@@ -99,14 +99,7 @@ final class OPT_NormalBURS extends OPT_BURS {
             child = (OPT_BURS_TreeNode)e.fromNode().scratchObject;
 	  }
         } else if (op instanceof OPT_IntConstantOperand) {
-          child = IntConstant;                  // generic INT_CONSTANT
-	  //-#if RVM_FOR_IA32
-	  switch (((OPT_IntConstantOperand)op).value) {
-	  case -1: child = IntConstantMinusOne; break;
-	  case  0: child = IntConstantZero; break;
-	  case  1: child = IntConstantOne; break;
-	  }
-	  //-#endif
+	  child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
         } else if (op instanceof OPT_LongConstantOperand) {
           child = LongConstant;
         } else if (op instanceof OPT_BranchOperand && instr.isCall()) {

@@ -80,7 +80,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
 	if (op.asRegister().register.isValidation()) continue;
 	child = Register; 
       } else if (op instanceof OPT_IntConstantOperand) {
-	child = IntConstant;                  // generic INT_CONSTANT
+	child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
       } else if (op instanceof OPT_LongConstantOperand) {
 	child = LongConstant;
       } else if (op instanceof OPT_BranchOperand && s.isCall()) {

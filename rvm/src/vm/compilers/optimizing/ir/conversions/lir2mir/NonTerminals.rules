@@ -54,37 +54,13 @@ cz:	czr
 NOFLAGS
 // No code emitted
 
-# the terminal INT_CONSTANT maps to non-terminal iv
-iv:	INT_CONSTANT
-0
-NOFLAGS
-// No code emitted
-
-# the terminal ZERO can map to non-terminal iv
-iv:	ZERO
-0
-NOFLAGS
-// No code emitted
-
-# the terminal ONE can map to non-terminal iv
-iv:	ONE
-0
-NOFLAGS
-// No code emitted
-
-# the terminal LONG_CONSTANT maps to non-terminal lv
-lv:	LONG_CONSTANT
-0
-NOFLAGS
-// No code emitted
-
-# the non-terminal riv is either an r or an iv
+# the non-terminal riv is either an r or an INT_CONSTANT
 riv:	r
 0
 NOFLAGS
 // No code emitted
 
-riv:	iv
+riv:	INT_CONSTANT
 0
 NOFLAGS
 // No code emitted
@@ -95,28 +71,28 @@ rlv:	r
 NOFLAGS
 // No code emitted
 
-rlv:	lv
+rlv:	LONG_CONSTANT
 0
 NOFLAGS
 // No code emitted
 
-# calls can have any number of arguments and we don't care what they are.
-arg:	NULL
+# A non-terminal that can be anything
+any:	NULL
 0
 NOFLAGS
 // No code emitted
 
-arg:	riv
+any:	riv
 0
 NOFLAGS
 // No code emitted
 
-arg:	lv
+any:	LONG_CONSTANT
 0
 NOFLAGS
 // No code emitted
 
-arg:	OTHER_OPERAND(arg, arg)
+any:	OTHER_OPERAND(any, any)
 0
 NOFLAGS
 // No code emitted

@@ -23,19 +23,6 @@ public abstract class OPT_BURS implements OPT_Operators {
 
   protected static final OPT_BURS_TreeNode NullTreeNode = 
     new OPT_BURS_TreeNode(NULL_opcode);
-  protected static final OPT_BURS_TreeNode IntConstant = 
-    new OPT_BURS_TreeNode(INT_CONSTANT_opcode);
-  //-#if RVM_FOR_IA32
-  // TODO: The only reason these are in an IA32 ifdef is that the
-  // ppc grammar only uses one nonterminal.  Once that gets fixed,
-  // we could also use these on PPC to make the rules simpler.
-  protected static final OPT_BURS_TreeNode IntConstantMinusOne = 
-    new OPT_BURS_TreeNode(MINUS_ONE_opcode);
-  protected static final OPT_BURS_TreeNode IntConstantZero = 
-    new OPT_BURS_TreeNode(ZERO_opcode);
-  protected static final OPT_BURS_TreeNode IntConstantOne = 
-    new OPT_BURS_TreeNode(ONE_opcode);
-  //-#endif
   protected static final OPT_BURS_TreeNode LongConstant = 
     new OPT_BURS_TreeNode(LONG_CONSTANT_opcode);
   protected static final OPT_BURS_TreeNode Register = 
@@ -46,12 +33,6 @@ public abstract class OPT_BURS implements OPT_Operators {
   // initialize scratch field for expression tree labeling.
   static {
     NullTreeNode.setNumRegisters(0);
-    IntConstant.setNumRegisters(0);
-    //-#if RVM_FOR_IA32
-    IntConstantMinusOne.setNumRegisters(0);
-    IntConstantZero.setNumRegisters(0);
-    IntConstantOne.setNumRegisters(0);
-    //-#endif
     LongConstant.setNumRegisters(0);
     Register.setNumRegisters(1);
     BranchTarget.setNumRegisters(0);

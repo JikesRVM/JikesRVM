@@ -19,14 +19,17 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author David Grove
  * @author Vivek Sarkar
  */
-final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
+class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
 
   OPT_BURS_TreeNode child1;
   OPT_BURS_TreeNode child2;
 
-  OPT_DepGraphNode dg_node;    // Dependence graph node corresponding to 
-                               // interior node in BURS tree (set to null for
-                               //   leaf node or for OTHER_OPERAND node).
+  /** 
+   * Dependence graph node corresponding to 
+   * interior node in BURS tree (set to null for
+   * leaf node or for OTHER_OPERAND node).
+   */  
+  final OPT_DepGraphNode dg_node; 
 
   // oooo oooo oooo oooo nnnn nnnn trrr rrrr
   // o == opcode
@@ -36,11 +39,11 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   private int word; 
 
   final char getOpcode() {
-      return (char)((word & 0xffff0000) >>> 16);
+    return (char)((word & 0xffff0000) >>> 16);
   }
 
   final void setOpcode(char opcode) {
-      word = (word & 0x0000ffff) | (opcode << 16);
+    word = (word & 0x0000ffff) | (opcode << 16);
   }
 
   // OUTPUT FIELDS FOR BURS:
@@ -86,6 +89,7 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
    * Constructor for leaf/auxiliary node.
    */
   OPT_BURS_TreeNode(char Opcode) {
+    dg_node = null;
     setOpcode(Opcode);
   }
 
@@ -95,11 +99,11 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
     return node;
   }
 
-  public boolean isSuperNodeRoot() {
+  public final boolean isSuperNodeRoot() {
     return (getNonTerminal() > 0 );
   }
 
-  public boolean isREGISTERNode() {
+  public final boolean isREGISTERNode() {
     return getOpcode() == OPT_Operators.REGISTER_opcode;
   }
 

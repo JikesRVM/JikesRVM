@@ -1842,18 +1842,18 @@ RETURN(P(p), Return.getVal(P(p)));
 #####
 # CALL
 #####
-r:	CALL(r,arg)
+r:	CALL(r,any)
 10
 EMIT_INSTRUCTION
 CALL(P(p));
 
 # a recursive call that has been optimized to a branch to entry block
-r:	CALL(BRANCH_TARGET,arg)
+r:	CALL(BRANCH_TARGET,any)
 10
 EMIT_INSTRUCTION
 CALL(P(p));
 
-r:	SYSCALL(r,arg)
+r:	SYSCALL(r,any)
 10
 EMIT_INSTRUCTION
 SYSCALL(P(p));
@@ -1901,6 +1901,11 @@ EMIT_INSTRUCTION
 VM._assert(false, "why are we here?");
 
 stm: SET_CAUGHT_EXCEPTION(rlv)
+INFINITE
+EMIT_INSTRUCTION
+VM._assert(false, "why are we here?");
+
+stm: SET_CAUGHT_EXCEPTION(riv)
 INFINITE
 EMIT_INSTRUCTION
 VM._assert(false, "why are we here?");
