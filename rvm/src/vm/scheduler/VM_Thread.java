@@ -946,14 +946,24 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     if (terminateSystem) {
       if (myThread.dyingWithUncaughtException)
-        VM.sysExit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+        /* Use System.exit so that any shutdown hooks are run.  */
+        System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       else if (myThread.thread instanceof MainThread) {
         MainThread mt = (MainThread) myThread.thread;
         if (! mt.launched) {
-          VM.sysExit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
+          /* Use System.exit so that any shutdown hooks are run.  It is
+           * possible that shutdown hooks may be installed by static
+           * initializers which were run by classes initialized before we
+           * attempted to run the main thread.  (As of this writing, 24
+           * January 2005, the Classpath libraries do not do such a thing, but
+           * there is no reason why we should not support this.)   This was
+           * discussed on jikesrvm-researchers 
+           * on 23 Jan 2005 and 24 Jan 2005. */  
+          System.exit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
       }
-      VM.sysExit(0);
+      /* Use System.exit so that any shutdown hooks are run.  */
+      System.exit(0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
     
