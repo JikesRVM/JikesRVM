@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -49,11 +49,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintStream out) {
-    out.println("\tat <hardware trap>");
-  }
-
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintWriter out) {
+  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 
