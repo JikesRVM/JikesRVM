@@ -69,7 +69,7 @@ public class VM_Runtime implements VM_Constants {
    * implements target interface.
    * @param object object to be tested
    * @param targetID type reference id corresponding to target
-   * class/array/interface 
+   *                 class/array/interface 
    * @return true iff is object instance of target type?
    */ 
   static boolean instanceOf(Object object, int targetID)
@@ -83,15 +83,17 @@ public class VM_Runtime implements VM_Constants {
 	operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
     VM_Type lhsType = tRef.resolve(); // may throw CNF Exception
-    lhsType.resolve(); // forces loading/resolution of super class/interfaces
+    if (!lhsType.isResolved()) {
+      lhsType.resolve(); // forces loading/resolution of super class/interfaces
+    }
 
     /* Test for null only AFTER we have resolved the type of targetID. */
     if (object == null)
       return false; // null is not an instance of any type
 
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
-    /* RHS must already be resolved, since we have an object that is an
-       instance of RHS  */
+    /* RHS must already be resolved, since we have a non-null object that is 
+       an instance of RHS  */
     if (VM.VerifyAssertions)  VM._assert(rhsType.isResolved());
     if (VM.VerifyAssertions)  VM._assert(lhsType.isResolved());
 
