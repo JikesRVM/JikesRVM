@@ -1313,8 +1313,10 @@ function emitExpander () {
 	${GNU_MAKE_STR} \${SILENT_MAKE} -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
-	echo "\
-${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}\
+	echo "
+declare -a cmd=(${GNU_MAKE_STR} \${SILENT_MAKE} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/GNUmakefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
+! tracing make || echo \"\${cmd[@]}\"
+\"\${cmd[@]}\"
 "
     fi
 

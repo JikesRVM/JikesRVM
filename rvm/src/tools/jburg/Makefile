@@ -1,23 +1,56 @@
+# -*-Makefile-*-
+## EXPERIMENTAL makefile for jburg.
+## Normally run from inside $(SCRATCH_DIR).
+## Caller sets VPATH if needed.
+
+## Copyright © IBM Corporation, 2003
+## Or, for compatibility with rvm/bin/findDeviantFiles: 
+# (C) Copyright IBM Corp. 2003
 #
-# (C) Copyright IBM Corp. 2001
-#
-#$Id$
+# @author Steven Augart
+##
+## $Id$
+##
+
+
+ifdef VPATH
+    CPPFLAGS+=-I$(VPATH)
+endif
 
 include		$(RVM_BUILD)/Make.rules.host
 
+CFLAGS+="-Wno-unused -Wno-strict-prototypes"
+
 YFLAGS=
 
-tool:
-	@$(MAKE) $(SCRATCH_DIR)/jburg
+tool:	jburg
 
-$(SCRATCH_DIR)/jburg:	jburg.c gram.y jburg.h
-	$(CP) jburg.c $(SCRATCH_DIR)
-	$(CP) jburg.h $(SCRATCH_DIR)
-	$(CP) gram.y  $(SCRATCH_DIR)
+## We need to explicitly make the temporary files (the .o files) so that 
+## we can use the $^ Make target.
+jburg.o gram.o: jburg.h
+
+jburg:	jburg.o gram.o
 #	(cd $(SCRATCH_DIR) && (export TMPDIR=.; $(MAKE) gram.c; $(CC) -o jburg jburg.c gram.c))
-	$(MAKE) TMPDIR=. -C $(SCRATCH_DIR) gram.c
-	$(CC) -o $(SCRATCH_DIR)/jburg $(SCRATCH_DIR)/jburg.c $(SCRATCH_DIR)/gram.c
+#	$(MAKE) TMPDIR=. -C $(SCRATCH_DIR) gram.c
+#	$(CC) -o $(SCRATCH_DIR)/jburg $(SCRATCH_DIR)/jburg.c $(SCRATCH_DIR)/gram.c
+#	$(CC) -o $@ jburg.c gram.c
+	$(CC) -o $@ $^
 
-.PHONY:	tool
 
+## This is necessary because there is an ugly little bug in GNU Make 3.80
+## where the rule to run YACC is broken.
+##
+## It also modifies the error #file info for us that is written 
+## into y.tab.c, so that we do not face the same problem..
 
+gram.c: gram.y
+	$(YACC) $<
+	$(RM) $@
+	sed -e 's/"y\.tab\.c"/"gram.c"/' y.tab.c > $@
+	$(RM) y.tab.c
+	chmod -w $@
+
+clean:
+	$(RM) gram.c *.o jburg
+
+.PHONY:	tool clean

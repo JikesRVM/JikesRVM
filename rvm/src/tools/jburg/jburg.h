@@ -6,7 +6,7 @@
 
 /* $Id$ */
 /* iburg.c: */
-extern void *alloc(int nbytes);
+extern void *alloc(size_t nbytes);
 
 typedef enum { TERMINAL=1, NONTERMINAL } Kind;
 typedef struct rule *Rule;
@@ -22,7 +22,7 @@ struct term {		/* terminals: */
 
 typedef struct nonterm *Nonterm;
 struct nonterm {	/* nonterminals: */
-	char *name;		/* nonterminal name */
+	const char *name;	/* nonterminal name */
 	Kind kind;		/* NONTERMINAL */
 	int number;		/* identifying number */
         int word_number;        /* MAURICIO */
@@ -34,8 +34,8 @@ struct nonterm {	/* nonterminals: */
 	Rule chain;		/* chain rules w/nonterminal on rhs */
 	Nonterm link;		/* next terminal in number order */
 };
-extern Nonterm nonterm(char *id);
-extern Term term(char *id, int esn);
+extern Nonterm nonterm(const char *id);
+extern Term term(const char *id, int esn);
 
 typedef struct tree *Tree;
 struct tree {		/* tree patterns: */
@@ -43,7 +43,7 @@ struct tree {		/* tree patterns: */
 	Tree left, right;	/* operands */
 	int nterms;		/* number of terminal nodes in this tree */
 };
-extern Tree tree(char *op, Tree left, Tree right);
+extern Tree tree(const char *op, Tree left, Tree right);
 
 struct rule {		/* rules: */
 	Nonterm lhs;		/* lefthand side nonterminal */
@@ -51,21 +51,22 @@ struct rule {		/* rules: */
 	int ern;		/* external rule number */
 	int packed;		/* packed external rule number */
 	int cost;		/* cost, if a constant */
-	char *code;		/* cost, if an expression */
-	char *template;		/* assembler template */
+	const char *code;	/* cost, if an expression */
+	const char *template;	/* assembler template */
 	Rule link;		/* next rule in ern order */
 	Rule next;		/* next rule with same pattern root */
 	Rule chain;		/* next chain rule with same rhs */
 	Rule decode;		/* next rule with same lhs */
 	Rule kids;		/* next rule with same _kids pattern */
 };
-extern Rule rule(char *id, Tree pattern, char *template, char *code);
+extern Rule rule(const char *id, Tree pattern, const char *template, const char *code);
 
 /* gram.y: */
-void yyerror(char *fmt, ...);
-int yyparse(void);
-void yywarn(char *fmt, ...);
+extern void yyerror(const char *fmt, ...) __attribute__((format(printf,1,2)));
+extern int yyparse(void);
+extern void yywarn(const char *fmt, ...)  __attribute__((format(printf,1,2)));
 extern int errcnt;
+extern char *xstrdup(const char *src);
 extern FILE *infp;
 extern FILE *outfp;
 
