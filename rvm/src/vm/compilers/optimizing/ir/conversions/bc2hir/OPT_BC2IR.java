@@ -134,6 +134,14 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    * Index of next basic block.
    */
   private int runoff;
+
+  /**
+   *  Debugging with method_to_print. Switch following 2
+   *  to both be non-final. Set DBG_SELECTIVE to true
+   *  DBG_SELECTED will then be true when the method matches
+   */
+  private static final boolean DBG_SELECTIVE = false;
+  private static final boolean DBG_SELECTED = false;
   
   //////////
   // End of field declarations
@@ -165,6 +173,17 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
   private void start(OPT_GenerationContext context) {
     VM_Magic.pragmaNoInline();
     gc = context;
+    // To use the following you need to change the declarations
+    // in OPT_IRGenOption.java
+    if (DBG_SELECTIVE) {
+      if (gc.options.hasMETHOD_TO_PRINT() &&
+	  gc.options.fuzzyMatchMETHOD_TO_PRINT(gc.method.toString())) {
+	DBG_SELECTED = true;
+      } else {
+	DBG_SELECTED = false;
+      }
+      
+    }
     bcInfo = new OPT_BytecodeInfo(context.method);
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
@@ -178,7 +197,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     // Finish preparing to generate from bytecode 0
     currentBBLE = blocks.getEntry();
     gc.prologue.insertOut(currentBBLE.block);
-    if (DBG_CFG) 
+    if (DBG_CFG || DBG_SELECTED) 
       db("Added CFG edge from "+gc.prologue+" to "+currentBBLE.block);
     runoff = currentBBLE.max;
   }
@@ -190,7 +209,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
   private void generateHIR() {
     // Constructor initialized generation state to start 
     // generating from bytecode 0, so get the ball rolling.
-    if (DBG_BB) db("bbl: " + printBlocks());
+    if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
     generateFrom(0);
     // While there are more blocks that need it, pick one and generate it.
     for (currentBBLE = blocks.getNextEmptyBlock(currentBBLE); 
@@ -206,13 +225,13 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         stack = currentBBLE.stackState.copy();
       }
       _localState = currentBBLE.copyLocalState();
-      if (DBG_BB) db("bbl: " + printBlocks());
+      if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
       // Generate it!
       generateFrom(currentBBLE.low);
     }
     // Construct initial code order, commit to recursive inlines, 
     // insert any synthetic blocks.
-    if (DBG_BB) db("doing final pass over basic blocks: " + printBlocks());
+    if (DBG_BB || DBG_SELECTED) db("doing final pass over basic blocks: " + printBlocks());
     blocks.finalPass();
   }
 
@@ -223,7 +242,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param fromIndex bytecode index to start from
    */
   private void generateFrom(int fromIndex) {
-    if (DBG_BB) {
+    if (DBG_BB || DBG_SELECTED) {
       db("generating code into " + currentBBLE + " with runoff " + runoff);
     }
     currentBBLE.setGenerated();
@@ -2110,7 +2129,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       // check runoff
       if (VM.VerifyAssertions) VM.assert(bcInfo.bcIndex <= runoff);
       if (!endOfBasicBlock && bcInfo.bcIndex == runoff) {
-        if (DBG_BB)
+        if (DBG_BB || DBG_SELECTED)
           db("runoff occurred! current basic block: " + currentBBLE + 
 	     ", runoff = " + runoff);
         endOfBasicBlock = fallThrough = true;
@@ -2121,7 +2140,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
           // Through away all out edges from this block, they're out of date
           // because we're going to have to regenerate this block.
           currentBBLE.block.deleteOut();
-          if (DBG_CFG)
+          if (DBG_CFG || DBG_SELECTED)
 	    db("Deleted all out edges of " + currentBBLE.block);
           return;
         }
@@ -2361,7 +2380,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     appendInstruction(gc.epilogue.makeGOTO());
     currentBBLE.block.insertOut(gc.epilogue);
-    if (DBG_CFG)
+    if (DBG_CFG || DBG_SELECTED)
       db("Added CFG edge from " + currentBBLE.block + " to " + gc.epilogue);
     endOfBasicBlock = true;
   }
@@ -2377,7 +2396,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
     lastInstr = s;
-    if (DBG_INSTR) db("-> " + s.bcIndex + ":\t" + s);
+    if (DBG_INSTR || DBG_SELECTED) db("-> " + s.bcIndex + ":\t" + s);
   }
 
   /**
@@ -2820,7 +2839,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     // (2) generate a GOTO to the return site.
     currentBBLE.block.insertOut(rb.block);
     endOfBasicBlock = true;
-    if (DBG_CFG) db("Added CFG edge from "+currentBBLE.block+" to "+ rb.block);
+    if (DBG_CFG || DBG_SELECTED) db("Added CFG edge from "+currentBBLE.block+" to "+ rb.block);
     return Goto.create(GOTO, rb.block.makeJumpTarget());
   }
 
@@ -3267,7 +3286,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 					OperandStack simStack, 
 					OPT_Operand[] simLocals) {
     if ((target > bcInfo.bcIndex) && (target < runoff)) {
-      if (DBG_BB) db("updating runoff from " + runoff + " to " + target);
+      if (DBG_BB || DBG_SELECTED) db("updating runoff from " + runoff + " to " + target);
       runoff = target;
     }
     return blocks.getOrCreateBlock(target, from, simStack, simLocals);
@@ -3278,7 +3297,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     BasicBlockLE targetbble = getOrCreateBlock(offset + instrIndex);
     currentBBLE.block.insertOut(targetbble.block);
     endOfBasicBlock = true;
-    if (DBG_CFG)
+    if (DBG_CFG || DBG_SELECTED)
       db("Added CFG edge from "+currentBBLE.block+" to "+ targetbble.block);
     return targetbble.block.makeJumpTarget();
   }
@@ -3683,7 +3702,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         stack.replaceFromTop(i, t.copyD2U());
         s.position = gc.inlineSequence;
         s.bcIndex = instrIndex;
-        if (DBG_LOCAL)
+        if (DBG_LOCAL || DBG_SELECTED)
           db("replacing local "+index+" at "+i+" from tos with "+ t);
         appendInstruction(s);
       }
@@ -3756,7 +3775,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
           catchTargets++;
           blocks.rectifyLocals(_localState, xbble);
           currentBBLE.block.insertOut(xbble.entryBlock);
-          if (DBG_CFG)
+          if (DBG_CFG || DBG_SELECTED)
             db("Added CFG edge from " + currentBBLE.block + 
                " to " + xbble.entryBlock);
         }
@@ -3791,7 +3810,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
                " could be caught by enclosing handler " + xbb);
           catchTargets++;
           currentBBLE.block.insertOut(xbb);
-          if (DBG_CFG)
+          if (DBG_CFG || DBG_SELECTED)
             db("Added CFG edge from " + currentBBLE.block + " to " + xbb);
         }
         if (mustCatch == YES) {
@@ -3812,7 +3831,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       if (DBG_EX)
         db("added explicit edge from " + currentBBLE + " to outermost exit");
       currentBBLE.block.insertOut(gc.exit);
-      if (DBG_CFG)
+      if (DBG_CFG || DBG_SELECTED)
         db("Added CFG edge from " + currentBBLE.block + " to exit");
     }
     return null;
@@ -3831,7 +3850,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         db("PEI of unknown type caused edge from " + currentBBLE + 
            " to outermost exit");
       currentBBLE.block.insertOut(gc.exit);
-      if (DBG_CFG)
+      if (DBG_CFG || DBG_SELECTED)
         db("Added CFG edge from " + currentBBLE.block + " to exit");
     }
     if (currentBBLE.handlers != null) {
@@ -3842,7 +3861,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
              " rectifying locals");
         blocks.rectifyLocals(_localState, xbble);
         currentBBLE.block.insertOut(xbble.entryBlock);
-        if (DBG_CFG)
+        if (DBG_CFG || DBG_SELECTED)
           db("Added CFG edge from "+currentBBLE.block+" to "+xbble.entryBlock);
       }
     }
@@ -3855,7 +3874,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         if (DBG_EX)
           db("PEI of unknown type could be caught by enclosing handler "+xbb);
         currentBBLE.block.insertOut(xbb);
-        if (DBG_CFG)
+        if (DBG_CFG || DBG_SELECTED)
 	  db("Added CFG edge from "+currentBBLE.block+" to "+xbb);
       }
     }
@@ -4003,7 +4022,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Operand getLocal(int i) {
     OPT_Operand local = _localState[i];
-    if (DBG_LOCAL) db("getting local " + i + " for use: " + local);
+    if (DBG_LOCAL || DBG_SELECTED) db("getting local " + i + " for use: " + local);
     return local.copy();
   }
 
@@ -4017,7 +4036,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_Operand getLocalDual(int i) {
     if (VM.VerifyAssertions) VM.assert(_localState[i + 1] == DUMMY);
     OPT_Operand local = _localState[i];
-    if (DBG_LOCAL) db("getting local " + i + " for use: " + local);
+    if (DBG_LOCAL || DBG_SELECTED) db("getting local " + i + " for use: " + local);
     return local.copy();
   }
 
@@ -4028,7 +4047,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op OPT_Operand to store in the local
    */
   private void setLocal(int i, OPT_Operand op) {
-    if (DBG_LOCAL) db("setting local " + i + " with " + op);
+    if (DBG_LOCAL || DBG_SELECTED) db("setting local " + i + " with " + op);
     _localState[i] = op;
   }
 
@@ -4039,7 +4058,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op OPT_Operand to store in the local
    */
   private void setLocalDual(int i, OPT_Operand op) {
-    if (DBG_LOCAL) db("setting dual local " + i + " with " + op);
+    if (DBG_LOCAL || DBG_SELECTED) db("setting dual local " + i + " with " + op);
     _localState[i] = op;
     _localState[i + 1] = DUMMY;
   }
@@ -4199,7 +4218,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 				  BasicBlockLE from, 
 				  OperandStack simStack, 
 				  OPT_Operand[] simLocals) {
-      if (DBG_BB) {
+      if (DBG_BB || DBG_SELECTED) {
 	db("getting block " + target + ", match stack: " + 
 	   (simStack != null) + " match locals: " + (simLocals != null));
       }
@@ -4275,7 +4294,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	if (VM.VerifyAssertions) VM.assert(p.stackState == null);
 	if (!p.isStackKnown())
 	  p.setStackKnown();
-	if (DBG_STACK)
+	if (DBG_STACK || DBG_SELECTED)
 	  db("Rectified empty expression stack into "+p+"("+p.block+")");
 	return;
       }
@@ -4294,7 +4313,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  move.position = gc.inlineSequence;
 	  block.appendInstructionRespectingTerminalBranch(move);
 	  stack.replaceFromTop(i, rop.copyD2U());
-	  if (DBG_STACK)
+	  if (DBG_STACK || DBG_SELECTED)
 	    db("Inserted " + move + " into " + block + 
 	       " to remove constant from expression stack");
 	}
@@ -4306,7 +4325,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	// with possibly some register renaming.
 	// (We need to ensure that non-local registers appear at 
 	// most once on each expression stack).
-	if (DBG_STACK) {
+	if (DBG_STACK || DBG_SELECTED) {
 	  db("First stack rectifiction for " + p + "(" + 
 	     p.block + ") simply saving");
 	}
@@ -4331,7 +4350,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      move.position = gc.inlineSequence;
 	      block.appendInstructionRespectingTerminalBranch(move);
 	      p.stackState.push(temp.copy());
-	      if (DBG_STACK)
+	      if (DBG_STACK || DBG_SELECTED)
 		db("Inserted " + move + " into " + block + " to rename local");
 	    } else {
 	      p.stackState.push(rop.copy());
@@ -4344,7 +4363,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	// A real rectification.
 	// We need to update mergedStack such that 
 	// mergedStack[i] = meet(mergedStack[i], stack[i]).
-	if (DBG_STACK) db("rectifying stacks");
+	if (DBG_STACK || DBG_SELECTED) db("rectifying stacks");
 	if (VM.VerifyAssertions)
 	  VM.assert(stack.getSize() == p.stackState.getSize());
 	for (int i = 0; i < stack.getSize(); ++i) {
@@ -4365,20 +4384,20 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      move.bcIndex = RECTIFY_BCI;
 	      move.position = gc.inlineSequence;
 	      block.appendInstructionRespectingTerminalBranch(move);
-	      if (DBG_STACK)
+	      if (DBG_STACK || DBG_SELECTED)
 		db("Inserted "+move+" into "+block+" to rectify reg numbers");
 	    }
 	    OPT_Operand meet = OPT_Operand.meet(rmop, rsop, rmop.register);
-	    if (DBG_STACK) db("Meet of "+rmop+" and "+rsop+" is "+ meet);
+	    if (DBG_STACK || DBG_SELECTED) db("Meet of "+rmop+" and "+rsop+" is "+ meet);
 	    if (meet != rmop) {
 	      if (generated) {
-		if (DBG_STACK)
+		if (DBG_STACK || DBG_SELECTED)
 		  db("\t...forced to regenerate " + p + " (" + p.block + 
 		     ") because of this");
 		markBlockForRegeneration(p);
 		generated = false;
 		p.block.deleteOut();
-		if (DBG_CFG) db("Deleted all out edges of " + p.block);
+		if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + p.block);
 	      }
 	      p.stackState.replaceFromTop(i, meet);
 	    }
@@ -4396,12 +4415,12 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
      */
     void rectifyLocals(OPT_Operand[] localState, BasicBlockLE p) {
       if (!p.isLocalKnown()) {
-	if (DBG_LOCAL)
+	if (DBG_LOCAL || DBG_SELECTED)
 	  db("rectifying with heretofore unknown locals, changing to save");
 	p.copyIntoLocalState(localState);
 	return;
       }
-      if (DBG_LOCAL) db("rectifying current local state with " + p);
+      if (DBG_LOCAL || DBG_SELECTED) db("rectifying current local state with " + p);
       boolean generated = p.isGenerated();
       OPT_Operand[] incomingState = localState;
       OPT_Operand[] presentState = p.localState;
@@ -4411,7 +4430,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	OPT_Operand pOP = presentState[i];
 	OPT_Operand iOP = incomingState[i];
 	if (pOP == iOP) {
-	  if (DBG_LOCAL)
+	  if (DBG_LOCAL || DBG_SELECTED)
 	    db("local states have the exact same operand "+pOP+" for local "+i);
 	} else {
 	  boolean untyped = 
@@ -4419,16 +4438,16 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand mOP = 
 	    OPT_Operand.meet(pOP, iOP, 
 			     untyped?null:gc.localReg(i, pOP.getType()));
-	  if (DBG_LOCAL) db("Meet of " + pOP + " and " + iOP + " is " + mOP);
+	  if (DBG_LOCAL || DBG_SELECTED) db("Meet of " + pOP + " and " + iOP + " is " + mOP);
 	  if (mOP != pOP) {
 	    if (generated) {
-	      if (DBG_LOCAL)
+	      if (DBG_LOCAL || DBG_SELECTED)
 		db("\t...forced to regenerate " + p + " (" + p.block + 
 		   ") because of this");
 	      markBlockForRegeneration(p);
 	      generated = false;
 	      p.block.deleteOut();
-	      if (DBG_CFG) db("Deleted all out edges of " + p.block);
+	      if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + p.block);
 	    }
 	    presentState[i] = mOP;
 	  }
@@ -4534,7 +4553,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  gc.cfg.linkInCodeOrder(cop, icurr.gc.cfg.firstInCodeOrder());
 	  gc.cfg.linkInCodeOrder(icurr.gc.cfg.lastInCodeOrder(), forw);
 	  cop.insertOut(calleeEntry);
-	  if (DBG_CFG)
+	  if (DBG_CFG || DBG_SELECTED)
 	    db("Added CFG edge from " + cop + " to " + calleeEntry);
 	  if (icurr.epilogueBBLE != null) {
 	    if (DBG_FLATTEN)
@@ -4558,7 +4577,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	if (next != null) {
 	  // Add the CFG edge from currBBLE.block to nextBBLE.block
 	  curr.block.insertOut(next.block);
-	  if (DBG_CFG)
+	  if (DBG_CFG || DBG_SELECTED)
 	    db("Added CFG edge from " + curr.block + " to " + next.block);
 	  if (next.isInCodeOrder()) {
 	    if (DBG_FLATTEN)
@@ -4834,7 +4853,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  markBlockForRegeneration(x);
 	  x.high = x.low;
 	  x.block.deleteOut();
-	  if (DBG_CFG) db("Deleted all out edges of " + x.block);
+	  if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + x.block);
 	}
 	if (x.right == null) {
 	  return condCreateAndInit(x, shouldCreate, target, from, 
