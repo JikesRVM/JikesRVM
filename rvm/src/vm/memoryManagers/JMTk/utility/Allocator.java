@@ -50,12 +50,23 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
   Allocator () {
   }
 
-  abstract protected VM_Address allocSlowOnce (boolean isScalar, int bytes);
+  abstract protected VM_Address allocSlowOnce (boolean isScalar, int bytes,
+					       boolean inGC);
 
-  public VM_Address allocSlow (boolean isScalar, int bytes) throws VM_PragmaNoInline { 
+  public VM_Address allocSlow(boolean isScalar, int bytes) 
+    throws VM_PragmaNoInline { 
+    return allocSlowBody(isScalar, bytes, false);
+  }
+  public VM_Address allocSlow(boolean isScalar, int bytes, boolean inGC) 
+    throws VM_PragmaNoInline { 
+    return allocSlowBody(isScalar, bytes, inGC);
+  }
+  private VM_Address allocSlowBody(boolean isScalar, int bytes, boolean inGC) 
+    throws VM_PragmaInline { 
+
     Allocator current = this;
     for (int i=0; i<MAX_RETRY; i++) {
-      VM_Address result = current.allocSlowOnce(isScalar, bytes);
+      VM_Address result = current.allocSlowOnce(isScalar, bytes, inGC);
       if (!result.isZero())
 	return result;
       current = BasePlan.getOwnAllocator(current);

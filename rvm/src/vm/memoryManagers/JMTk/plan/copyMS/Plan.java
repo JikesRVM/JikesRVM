@@ -177,7 +177,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     } else {
       switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
-      case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
@@ -227,7 +227,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    return ms.alloc(isScalar, bytes);
+    return ms.alloc(isScalar, bytes, true);
   }
 
   /**  

@@ -158,7 +158,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       region = los.alloc(isScalar, bytes);
     } else {
       switch (allocator) {
-      case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); region = VM_Address.zero();

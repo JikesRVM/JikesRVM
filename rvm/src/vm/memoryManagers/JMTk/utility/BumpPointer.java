@@ -35,7 +35,8 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 
-final class BumpPointer extends Allocator implements Constants, VM_Uninterruptible {
+final class BumpPointer extends Allocator 
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /**
@@ -78,23 +79,25 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
    * @param bytes The number of bytes allocated
    * @return The address of the first byte of the allocated region
    */
-  final public VM_Address alloc (boolean isScalar, int bytes) throws VM_PragmaInline {
+  final public VM_Address alloc(boolean isScalar, int bytes) 
+    throws VM_PragmaInline {
     VM_Address oldCursor = cursor;
     VM_Address newCursor = oldCursor.add(bytes);
     if (useLimit) {
       if (newCursor.GT(limit))
-	return allocSlow (isScalar, bytes);
+	return allocSlow(isScalar, bytes);
     }
     else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
       if (tmp.GT(VM_Word.fromInt(TRIGGER)))
-	return allocSlow (isScalar, bytes);
+	return allocSlow(isScalar, bytes);
     }
     cursor = newCursor;
     return oldCursor;
   }
 
-  final protected VM_Address allocSlowOnce (boolean isScalar, int bytes) {
+  final protected VM_Address allocSlowOnce(boolean isScalar, int bytes, 
+					   boolean inGC) {
     int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
@@ -102,7 +105,7 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
     Memory.zero(start, chunkSize);
     cursor = start;
     limit = start.add(chunkSize);
-    return alloc (isScalar, bytes);
+    return alloc(isScalar, bytes);
   }
 
   public void show() {

@@ -65,6 +65,9 @@ final class RefCountLocal extends SegregatedFreeList
 
   private boolean cycleBufferAisOpen = true;
 
+  protected final boolean preserveFreeList() { return true; }
+  protected final boolean maintainInUse() { return true; }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Initialization
@@ -133,9 +136,11 @@ final class RefCountLocal extends SegregatedFreeList
   // Allocation
   //
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-			      int bytes) throws VM_PragmaInline {}
+			      int bytes, boolean inGC) throws VM_PragmaInline{}
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){}
-  protected final void advanceToBlock(VM_Address block, int sizeClass){}
+  protected final VM_Address advanceToBlock(VM_Address block, int sizeClass){
+    return getFreeList(block);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //

@@ -113,7 +113,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(isScalar, bytes, false);
   }
 
   /**
@@ -126,7 +126,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   protected final VM_Address matureCopy(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(isScalar, bytes, matureSpace.inMSCollection());
   }
 
   /**

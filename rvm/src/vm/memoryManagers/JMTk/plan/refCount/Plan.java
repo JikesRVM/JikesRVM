@@ -175,7 +175,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       return los.alloc(isScalar, bytes);
     } else {
       switch (allocator) {
-      case       RC_SPACE: return rc.alloc(isScalar, bytes);
+      case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
       case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
       case      LOS_SPACE: return los.alloc(isScalar, bytes);
       default:
@@ -417,7 +417,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // release each of the collected regions
     rcSpace.release();
     ImmortalSpace.release(immortalVM, null);
-    if (verbose == 2) rc.printStats();
+    if (verbose > 2) rc.printStats();
     lastRCPages = rcMR.committedPages();
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
