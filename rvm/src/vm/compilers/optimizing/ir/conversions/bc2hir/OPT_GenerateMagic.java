@@ -291,8 +291,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Instruction s = Call.create4(CALL, res, null, met, Code, gprs, 
 				       fprs, spills);
       bc2ir.appendInstruction(s);
-    //-#if RVM_FOR_IA32
-    //-#else
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
       OPT_MethodOperand mo = 
@@ -302,7 +300,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.saveThreadStateInstructionsOffset);
       bc2ir.appendInstruction(Call.create1(CALL, null, null, mo, p1));
-    //-#endif
     //-#if RVM_FOR_IA32
     //-#else
     } else if (methodName == VM_MagicNames.resumeThreadExecution) {
