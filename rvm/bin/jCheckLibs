@@ -77,7 +77,10 @@ if [[ x$WGET != x && ! -x $WGET ]] ; then
     WGET=""
 fi
 
+
+#
 # make sure we have the classpath jar file
+#
 if [[ ! -e $RVM_ROOT/support/lib/classpath.jar ]]; then
 cat <<EOF
 
@@ -108,6 +111,21 @@ fi
   fi
 fi
 
+
+#
+# make sure we have the GNU Classpath security properties file
+#
+if [[ ! -e $RVM_ROOT/lib/security/JikesRVM.security ]]; then
+  # install security properties file for classpath
+  print "$ME: Installing security properties file in $RVM_ROOT/lib/security"
+  mkdir -p $RVM_ROOT/lib/security
+  echo "security.provider.1=gnu.java.security.provider.Gnu" > $RVM_ROOT/lib/security/JikesRVM.security
+fi
+
+
+#
+# get rvmrt.jar
+#
 cd $rvm_ids
 
 license=""
