@@ -20,6 +20,9 @@ cd $RVM_ROOT
 WORKING_DIRS="rvm MMTk"
 SCRIPT=$RVM_ROOT/diffs.txt
 
+if [[ -f $SCRIPT ]]; then
+    rm -f $SCRIPT
+fi
 touch $SCRIPT
 
 for dir in $WORKING_DIRS; do
