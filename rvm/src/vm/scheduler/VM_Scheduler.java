@@ -296,7 +296,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+	// NOTE: it is critical that we acquire the tocPointer explicitly
+	//       before we start the SysCall sequence. This prevents 
+	//       the opt compiler from generating code that passes the AIX 
+	//       sys toc instead of the RVM jtoc. --dave
+	VM_Address toc = VM_Magic.getTocPointer();
+        VM_SysCall.sysVirtualProcessorCreate(toc,
 					     VM_Magic.objectAsAddress(processors[i]),
 					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
 					     target.contextRegisters.getInnermostFramePointer());
@@ -321,7 +326,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+	// NOTE: it is critical that we acquire the tocPointer explicitly
+	//       before we start the SysCall sequence. This prevents 
+	//       the opt compiler from generating code that passes the AIX 
+	//       sys toc instead of the RVM jtoc. --dave
+	VM_Address toc = VM_Magic.getTocPointer();
+        VM_SysCall.sysVirtualProcessorCreate(toc,
 					     VM_Magic.objectAsAddress(processors[nativeDPndx]),
 					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
 					     target.contextRegisters.getInnermostFramePointer());

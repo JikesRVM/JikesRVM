@@ -512,7 +512,12 @@ implements VM_Uninterruptible, VM_Constants {
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
     target.registerThread(); // let scheduler know that thread is active.
-    VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+    // NOTE: it is critical that we acquire the tocPointer explicitly
+    //       before we start the SysCall sequence. This prevents 
+    //       the opt compiler from generating code that passes the AIX 
+    //       sys toc instead of the RVM jtoc. --dave
+    VM_Address toc = VM_Magic.getTocPointer();
+    VM_SysCall.sysVirtualProcessorCreate(toc,
 					 VM_Magic.objectAsAddress(newProcessor),
 					 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toAddress(),
 					 target.contextRegisters.getInnermostFramePointer());
