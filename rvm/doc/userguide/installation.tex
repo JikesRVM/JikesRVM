@@ -110,24 +110,33 @@ C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 
 \subsection{Installation Overview}
 
-To install and build the Jikes\trademark RVM, you will need to acquire
-the following 
-items from the Jikes RVM
-\xlink{download}{\RVMDownloadURL} page.
+To install and build the Jikes\trademark RVM, three items are required
 \begin{itemize}
-\item The Jikes RVM source distribution.  This is available as a compressed tar
-file {\tt \RVMTarFile}.  You can also work with the contents of this repository with CVS from the
+\item The Jikes RVM source distribution.  This is available as a
+compressed tar file {\tt \RVMTarFile}.  You can also work with the
+contents of this repository with CVS from the 
 \xlink{public repository}{\RVMCVSURL}.
-\item The Jikes RVM standard libraries.  This is a file {\tt \LibTarFile}
-available from the download page. 
+
+\item The Jikes RVM standard libraries. This is a jar file {\tt \LibTarFile}.
+
+\item The Classpath jazzlib library, which implements java.util.zip
+and java.util.jar 
 \end{itemize}
 
-After downloading these files, you will set up 
-a working directory holding the Jikes RVM source files, standard
-library jar, and  
-tools needed to build Jikes RVM. 
+The first and second items are available  from the Jikes RVM
+\xlink{download}{\RVMDownloadURL} page. The third item is available at
+\xlink{jazzlib}{\jazzlibjarURL} page.  However, you do not need to
+explicitly download the 
+second and third items; the Jikes RVM build process will automatically
+check that these two items are present. If they are not present, the
+files will be automatically downloaded, after asking for your
+confirmation. 
 
-JIkes RVM can be configured in various ways. Multiple versions of the system,
+Once these files have been downloaded, you will set up 
+a working directory holding the Jikes RVM source files, standard
+library jar, and tools needed to build Jikes RVM. 
+
+Jikes RVM can be configured in various ways. Multiple versions of the system,
 corresponding to different configurations, can be generated from 
 one working directory. See Section~\ref{configs} for information about the 
 various 
@@ -170,12 +179,19 @@ directory such as
 % zcat jikesrvm-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-Next extract the Jikes RVM standard libraries.  The following installs the
+Next, extract the Jikes RVM standard libraries, or ignore this step and
+it will be performed automatically for you when you try to build a
+Jikes RVM configuration.  The following installs the
 standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \begin{verbatim}
 % cd $HOME/rvmRoot
 % zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
+
+If you downloaded the jazzlib library, place it also in 
+{\tt \$RVM\_ROOT/support/lib}.  If you did not download the library,
+it will also be automatically retrieved when you try to build a Jikes RVM
+configuration. 
 
 \index{environment variables}
 \index{RVM\_ROOT}
@@ -575,7 +591,7 @@ library sources in {\tt \$RVM\_ROOT/support/lib}, and build a new {\tt
 rvmrt.jar} in {\tt \$RVM\_BUILD}.
 
 You will find that some versions (including 1.13) of 
-\xlink{{\tt Jikes\trademark}}{ \jikesURL } fail to compile the
+\xlink{{\tt Jikes}}{ \jikesURL } fail to compile the
 libraries, dying with myriad errors.  You need to apply Jikes 
 patch 62 to
 the Jikes build to fix a problem with variable shadowing by inner classes. 
