@@ -10,10 +10,11 @@ import com.ibm.JikesRVM.classloader.*;
 /**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C
+ * <pre>
  * 2 cases:
  *  -from Java to C:  all user-defined native methods
  *  -C to Java:  all JNI functions in VM_JNIFunctions.java
- *
+ * </pre>
  * @author Ton Ngo
  * @author Steve Smith
  */
@@ -171,7 +172,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   }
 
   /**************************************************************
-   * Prepare the stack header for Java to C transition
+   * Prepare the stack header for Java to C transition.
+   * <pre>
    *         before               after
    *       high address         high address
    *       |          |         |          | Caller frame
@@ -187,8 +189,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *  -C   |          |         |saved EBX |    
    *  -10  |          |         |          |    
    *  
-   *  
-   *  
+   * </pre>
    */
   static void prepareStackHeader(VM_Assembler asm, VM_Method method, int compiledMethodId) {
 
@@ -216,7 +217,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   }
 
   /**************************************************************
-   * Process the arguments:
+   * Process the arguments.
+   *
+   * <pre>
    *   -insert the 2 JNI args
    *   -replace pointers
    *   -reverse the order of the args from Java to fit the C convention
@@ -247,6 +250,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *  -30  |          |         |          |    
    *       |          |         |          |    
    *        low address          low address
+   * </pre>
    */
   static void storeParametersForLintel(VM_Assembler asm, VM_Method method) {
     VM_Class klass           = method.getDeclaringClass();
@@ -443,7 +447,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   }
 
   /**************************************************************
-   * Generate code to convert a pointer value to a JREF index
+   * Generate code to convert a pointer value to a JREF index.
+   * 
+   * <pre>
    * This includes the following steps:
    *   (1) start by calling startJNIrefForProlog()
    *   (2) for each reference, put it in ebx and call pushJNIref() 
@@ -465,11 +471,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *   |       |
    *   |       |  <-JNIRefs
    *   +-------+
-   *
+   * </pre>
    */
 
   /**
-   * Start a new frame for this Java to C transition:
+   * Start a new frame for this Java to C transition.
+   * <pre>
    * Expect: 
    *    -S0 contains a pointer to the VM_Thread.jniEnv
    * Perform these steps:
@@ -487,6 +494,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *    .               .                    jniEnv.JNIRefsTop
    *    .               .                    address(JNIRefsTop)             
    *    .
+   * </pre>
    */
   static void startJNIrefForProlog(VM_Assembler asm, int numRefsExpected) {
 
@@ -517,7 +525,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   }
 
   /**
-   * Push a pointer value onto the JNIRefs array, 
+   * Push a pointer value onto the JNIRefs array.
+   *
+   * <pre>
    * Expect:
    *   -T0 pointing to the address of the valid top 
    *   -the pointer value in register ebx
@@ -527,8 +537,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *   -increment the JNIRefsTop index in ebx by 4
    *   -push a pointer value in ebx onto the top of the JNIRefs array
    *   -put the JNIRefsTop index into the sourceReg as the replacement for the pointer
+   * </pre>
    * Note:  jniEnv.JNIRefsTop is not updated yet
-   *
    */
   static void pushJNIref(VM_Assembler asm) {
     asm.emitADD_Reg_Imm (T0, WORDSIZE);                            // increment top address
@@ -538,7 +548,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   }
 
   /**
-   * Generate the code to pop the frame in JNIRefs array for this Java to C transition
+   * Generate the code to pop the frame in JNIRefs array for this Java to C transition.
+   * <pre>
    * Expect:
    *  -JTOC, PR registers are valid
    *  -S0 contains a pointer to the VM_Thread.jniEnv
@@ -546,7 +557,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    * Perform these steps:
    *  -jniEnv.JNIRefsTop <- jniEnv.JNIRefsSavedFP - 4
    *  -jniEnv.JNIRefsSavedFP <- (jniEnv.JNIRefs + jniEnv.JNIRefsSavedFP)
-   *
+   * </pre>
    */
   static void popJNIrefForEpilog(VM_Assembler asm) {
     // on entry, S0 contains a pointer to the VM_Thread.jniEnv
@@ -563,7 +574,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   
 
   /*****************************************************************
-   * Handle the C to Java transition:  JNI methods in VM_JNIFunctions.java
+   * Handle the C to Java transition:  JNI methods in VM_JNIFunctions.java.
+   * 
+   * <pre>
    * NOTE:
    *   -We need PR to access Java environment; we can get it from the 
    *    JNIEnv* (which is an interior pointer to the VM_JNIEnvironment)
@@ -596,7 +609,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *            |            |                   |            |
    *            |            |                   |            |
    *             low memory                        low memory
-   *
+   * </pre>
    */
   public static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_NormalMethod method, int methodID) {
     // set 2nd word of header = return address already pushed by CALL

@@ -97,32 +97,30 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   }
 
   /**
-   * This method supports var args passed from C
+   * This method supports var args passed from C.
    *
    * In the Linux Intel C convention, the caller places the args immediately above the
-   * saved return address, starting with the first arg
-   *
-   *
-   *
+   * saved return address, starting with the first arg. <br>
    *
    * For the JNI functions that takes var args, their prolog code will save the
    * var arg in the glue frame because the values in the register may be lost by 
-   * subsequent calls.
+   * subsequent calls. <br>
    *
    * This method copies the var arg values that were saved earlier in glue frame into
    * the spill area of the original caller, thereby doing the work that the callee
-   * normally performs in the AIX C convention.
+   * normally performs in the AIX C convention. <br>
    *
    * NOTE: This method contains internal stack pointer.
    * For now we assume that the stack will not be relocatable while native code is running
    * because native code can hold an address into the stack, so this code is OK,
-   * but this is an issue to be resolved later
+   * but this is an issue to be resolved later. <br>
    *
    * NOTE:  this method assumes that it is immediately above the 
    * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and 
    * the C caller frame in the respective order.  
-   * Therefore, this method will not work if called from anywhere else
+   * Therefore, this method will not work if called from anywhere else.
    *
+   * <pre>
    *  low address
    *
    *   |  fp  | <- VM_JNIEnvironment.getVarArgAddress
@@ -163,7 +161,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *
    *
    *   high address
-   *
+   * </pre>
    *
    * @param skip4Args if true, the calling JNI function has 4 args before the vararg
    *                  if false, the calling JNI function has 3 args before the vararg
