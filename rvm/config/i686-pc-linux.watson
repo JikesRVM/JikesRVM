@@ -21,15 +21,6 @@ export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
 
-# the JDK 1.1.8 java executable
-export HOST_1_1_8_JAVA="/opt/jdk118/bin/java"
-
-# the JDK 1.1.8 java executable
-export HOST_1_1_8_JAVAC="/opt/jdk118/bin/javac"
-
-# the JDK 1.1.8 standard library jar files
-export HOST_1_1_8_REPOSITORIES="/opt/jdk118/lib/classes.zip"
-
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
