@@ -129,6 +129,39 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   private static int NUM_EXTRA_PROCS = 0; // How many extra procs (not counting primordial) ?
 
+  //-#if RVM_WITH_HPM  
+  /**
+   * This call sets the processor affinity of the thread that is
+   * passed as the first parameter to a virtual processor that 
+   * is computed from the second parameter.
+   * ASSUMPTION: virtual processors are initialized before this is called.
+   * Kludge for IVME'03.  Binds SPECjbb warehouses to virtual processors.
+   * Called from JBBmain.java.
+   *
+   * @param t      thread as an object to fool jikes at compile time.
+   * @param value  valued used to determine which virtual processor to bind thread to.
+   *               Use mod of value to compute processor id.
+   *		   Assume value > 0.
+   */
+  static public void setProcessorAffinity(Object t, int value) 
+  {
+    if (VM.VerifyAssertions) VM._assert(value >= 0);
+    int pid = 0;
+    if (0 < value && value <= VM_Scheduler.numProcessors) {
+      pid = value;
+    } else {
+      pid = (value % VM_Scheduler.numProcessors) + 1;
+    }
+    //    if(VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWriteln("VM_Thread.setProcessorAffinity(",value,") assigned pid ",pid);
+      //    }
+    VM_Thread thread = (VM_Thread)t;
+    if (pid <= VM_Scheduler.numProcessors && pid > 0) {
+      thread.processorAffinity = VM_Scheduler.processors[pid];
+    }
+  }
+  //-#endif
+
   /**
    * Initialize boot image.
    */
