@@ -175,10 +175,16 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    */
   protected final void printMethodMessage () {
     String compilerName = getCompilerName();
-    
-    VM.sysWrite("-method" + Character.toUpperCase(compilerName.charAt(0))+
-                compilerName.substring(1));
-    VM.sysWrite(" "); 
+
+    // It's tempting to use Character.toUpperCase here, but Character
+    // isn't fully initialized early in booting, so don't do it!
+    if (compilerName.equals("baseline")) {
+      VM.sysWrite("-methodBaseline ");
+    } else if (compilerName.equals("quick")) {
+      VM.sysWrite("-methodQuick ");
+    } else if (VM.VerifyAssertions) {
+      VM._assert(false, "Unknown compiler");
+    }
     VM.sysWrite(method.getDeclaringClass().toString());
     VM.sysWrite(" "); 
     VM.sysWrite(method.getName());
