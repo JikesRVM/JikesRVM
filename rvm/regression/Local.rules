@@ -66,6 +66,17 @@ HTTPClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 JGF_HOME=/u/sfink/tmp/jgf_v2.0
 
 #
+# Xerces 2.0.2
+#
+Xerces_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xerces-2_0_2
+
+#
+# Shakespeare in XML obtained from
+# http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip
+#
+XML_DATA=/homes/fury5/jalapeno/contrib/benchmarks/xmlFiles
+
+#
 # rules
 #
 BENCH_HOME=$($(BENCH_NAME)_HOME)

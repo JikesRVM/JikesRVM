@@ -16,13 +16,12 @@ HEAPSIZE=150
 
 DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
 BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
-BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSamples.jar:$(BENCH_HOME)/build/xmlParserAPIs.jar
+BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSamples.jar:$(BENCH_HOME)/build/xmlParserAPIs.jar:$(XML_DATA)/shakespeare.1.10.xml.zip
 
-## TODO: find a better input file
-INPUT_FILE=$(BENCH_HOME)/build.xml
+INPUT_FILES=$(wildcard $(XML_DATA)/shakespeare.1.10.xml/*.xml)
 
 START_NAME=Driver
-START_ARGS=2 dom.Counter main $(INPUT_FILE)
+START_ARGS=2 dom.Counter main $(INPUT_FILES)
 
 sanity:		sanity-check-rule
 
@@ -32,4 +31,4 @@ do-gather-performance:
 	 @$(AWK) -f $(JAL_ROOT)/rvm/regression/tests/xerces/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:
-	@$(FGREP) -q "702 attrs" < $(OUT)
+	@$(FGREP) -q "136122 chars" < $(OUT)
