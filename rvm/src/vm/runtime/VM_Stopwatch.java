@@ -37,10 +37,9 @@ public class VM_Stopwatch {
 
   public final void report(double totalTime, String name) {
     if (count > 0) {
-      VM.sysWrite(name);
-      VM.sysWrite(count, false);
+      VM.sysWrite(name, count);
       VM.sysWrite("\t");
-      VM.sysWrite(VM_Time.toMilliSecs(elapsedTime),false);
+      VM.sysWrite(VM_Time.toMilliSecs(elapsedTime));
       VM.sysWrite("\t");
       VM.sysWrite(elapsedTime/totalTime*100, 2);
       VM.sysWrite("%\n");

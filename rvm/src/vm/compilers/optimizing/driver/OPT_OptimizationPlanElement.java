@@ -81,7 +81,7 @@ public abstract class OPT_OptimizationPlanElement {
       VM.sysWrite(" ");
     if (t < 10)
       VM.sysWrite(" ");
-    VM.sysWrite(t, false);
+    VM.sysWrite(t);
     if (time/totalTime > 0.10) {
       VM.sysWrite("    ");
     } else {

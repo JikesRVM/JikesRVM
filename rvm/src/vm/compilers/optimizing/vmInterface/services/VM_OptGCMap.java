@@ -251,10 +251,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
     for (int registerNumber = FIRST_GCMAP_REG; 
 	 registerNumber <= LAST_GCMAP_REG; 
 	 registerNumber++) {
-      if (registerIsSet(entry, registerNumber, gcMap)) {
-	VM.sysWrite(registerNumber, false);
-	VM.sysWrite(" ");
-      }
+      if (registerIsSet(entry, registerNumber, gcMap)) 
+	VM.sysWrite(registerNumber, " ");
     }
     VM.sysWrite("]");
     VM.sysWrite(" Spills [");

@@ -829,8 +829,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 
 	  if (DEBUG_CODE_PATCH) {
-	    VM.sysWrite("to be patched at ");
-	    VM.sysWrite(mi-1, false);
+	    VM.sysWrite("to be patched at ", mi-1);
 	    VM.sysWrite(" inst ");
 	    VM.sysWriteHex(machinecodes[mi-1]);
 	    VM.sysWrite("\n");
@@ -952,13 +951,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
     /* The expecting instruction at patchOffset should be a NOP.
      */    
     if (DEBUG_CODE_PATCH) {
-      VM.sysWrite("patching at ");
-      VM.sysWrite(patchOffset, false);
+      VM.sysWrite("patching at ", patchOffset);
       VM.sysWrite(" inst ");
       VM.sysWriteHex(code[patchOffset]);
-      VM.sysWrite(" offset ");
-      VM.sysWrite(rel32, false);
-      VM.sysWrite("\n");
+      VM.sysWriteln(" offset ", rel32);
     }
      
     // turn this into VM.VerifyAssertions later

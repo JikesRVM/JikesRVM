@@ -73,7 +73,7 @@ public class OPT_OptimizationPlanner {
       VM.sysWrite(" ");
     if (t < 10)
       VM.sysWrite(" ");
-    VM.sysWrite(t, false);
+    VM.sysWrite(t);
     VM.sysWrite("\n");
   }
 

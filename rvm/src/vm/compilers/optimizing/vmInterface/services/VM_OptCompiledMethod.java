@@ -540,11 +540,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	}
       }
 
-      if (DEBUG_CODE_PATCH) {
-	VM.sysWrite("processors to be synchronized : ");
-	VM.sysWrite(VM_Scheduler.toSyncProcessors, false);
-	VM.sysWrite("\n");
-      }
+      if (DEBUG_CODE_PATCH) 
+	VM.sysWriteln("processors to be synchronized : ", VM_Scheduler.toSyncProcessors);
 
       // do sync only when necessary 
       while (VM_Scheduler.toSyncProcessors > 0) {
