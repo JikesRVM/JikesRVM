@@ -320,6 +320,11 @@ sysMkDir(char *name)
 extern "C" int
 sysBytesAvailable(int fd)
    {
+#if __CYGWIN__
+   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
+   exit(-1);
+   return 0;
+#else
    int count = 0;
    if (ioctl(fd, FIONREAD, &count) == -1)
       {
@@ -328,6 +333,7 @@ sysBytesAvailable(int fd)
       }
 // fprintf(SysTraceFile, "sys: available fd=%d count=%d\n", fd, count);
    return count;
+#endif
    }
 
 extern "C" int sysSyncFile(int fd) {
@@ -1093,7 +1099,7 @@ sysSyncCache(int address, int size)
      ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(int address, int size)\n");
    #endif
    #else
-   fprintf(SysTraceFile, "\nskipping: sysSyncCache(int address, int size)\n");
+     ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(int address, int size)\n");
    #endif
    #endif
    }
@@ -1213,6 +1219,8 @@ sysMAdvise(char *start, char *length, int advice)
    {
 #ifdef __linux__
    return -1; // unimplemented in Linux
+#elif __CYGWIN__
+   return -1; // unimplemented in Cygwin
 #else
    return madvise(start, (size_t)(length), advice);
 #endif
@@ -1741,8 +1749,8 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
        }
 
        return 0;
-#endif
    }
+#endif
 }
 
 // Wait for connection to appear on a socket.
@@ -1885,6 +1893,10 @@ sysNetSocketNoDelay(int fd, int enable)
 extern "C" int
 sysNetSocketNoBlock(int fd, int enable)
    {
+#ifdef __CYGWIN__
+   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
+   exit(-1);
+#else
    int value = enable;
 
 // fprintf(SysTraceFile, "sys: noblock socket=%d value=%d\n", fd, value);
@@ -1895,6 +1907,7 @@ sysNetSocketNoBlock(int fd, int enable)
       return -1;
       }
    return 0;
+#endif
    }
 
 // Close a socket.
@@ -1906,6 +1919,10 @@ sysNetSocketNoBlock(int fd, int enable)
 extern "C" int
 sysNetSocketClose(int fd)
    {
+#ifdef __CYGWIN__
+   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
+   exit(-1);
+#else
 // fprintf(SysTraceFile, "sys: close socket=%d\n", fd);
 
    // shutdown (disable sends and receives on) socket then close it
@@ -1926,6 +1943,7 @@ sysNetSocketClose(int fd)
 
    sysClose(fd);
    return -2; // shutdown (and possibly close) error
+#endif
    }
 
 // Test list of sockets to see if an i/o operation would proceed without blocking.

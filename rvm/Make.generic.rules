@@ -11,7 +11,7 @@ SHELL:=ksh
   
 # Java compiler.
 HOST_JAVAC = $(HOST_JIKES) +E -g
-HOST_JAVAC_CLASSPATH = -classpath $(JAL_SHADOW)/lib/classes.zip:.:
+HOST_JAVAC_CLASSPATH = -classpath $(HOST_REPOSITORIES):.:
 
 # This is the name to use to compile "normal" (non-RVM) java files.
 JCOMPILE = $(HOST_JAVAC) $(HOST_JAVAC_CLASSPATH)

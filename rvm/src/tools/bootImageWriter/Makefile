@@ -35,7 +35,7 @@ UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
 $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
+	cd $(SCRATCH_DIR); $(HOST_JAR) cvf `$(HOST_JAVA_PATH_ADJUST) $@` $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
 	@print -n "(built workaround zip) "
 
 #
@@ -55,7 +55,7 @@ $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #
 $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter2.class $(UTIL_KLUDGE_JAR)
-	$(HOST_JAVA) -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
+	$(HOST_JAVA) -Xbootclasspath/p:`$(HOST_JAVA_PATH_ADJUST) $(UTIL_KLUDGE_JAR)` \
 	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
 	   -classpath `$(HOST_JAVA_PATH_ADJUST) \
 			$(SCRATCH_DIR):$(RVM_REPOSITORIES)` \

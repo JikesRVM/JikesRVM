@@ -1858,7 +1858,10 @@ function emitBooterLinker
    print 'cd $JAL_ROOT/rvm/src/tools/bootImageRunner/'
    if (( RVM_FOR_AIX )); then
       print '$GNU_MAKE -s -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a'
-    else
+   elif (( RVM_FOR_CYGWIN )); then
+      # skip this step
+      print
+   else
       print '$GNU_MAKE -s -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so'
    fi
 
