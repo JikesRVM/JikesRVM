@@ -152,24 +152,7 @@ public class VM_ClassLoader implements VM_Constants,
     int size = VM_TypeDictionary.size();
     total += size;
     VM.sysWriteln("\tVM_TypeDictionary\t\t\t", size);
-    size = VM_InterfaceMethodSignatureDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_InterfaceMethodSignatureDictionary\t", size);
-    total += VM_Statics.spaceReport();
-    VM.sysWriteln("Total backing store for dictionaries:\t\t", total);
-  }
-
-  /**
-   * Find an interface signature id, or create one if this is an 
-   * interface signature we haven't seen before.
-   * @param methRef method reference of the target interface method
-   * @return interface signature id
-   */ 
-  public static int findOrCreateInterfaceMethodSignatureId(VM_MemberReference methRef) {
-    VM_InterfaceMethodSignature key = 
-      new VM_InterfaceMethodSignature(methRef.getMemberName(), methRef.getDescriptor());
-    int id = VM_InterfaceMethodSignatureDictionary.findOrCreateId(key, UNRESOLVED_INTERFACE_METHOD_OFFSET);
-    return id;
+    VM.sysWriteln("\tTotal backing store for dictionaries\t", total);
   }
 
   /**

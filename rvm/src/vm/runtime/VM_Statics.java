@@ -5,6 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import java.util.HashMap;
+
 /**
  * The static fields and methods comprising a running virtual machine image.
  *
@@ -52,26 +54,23 @@ import com.ibm.JikesRVM.classloader.*;
  *                     +--------------------+
  *                   0:|      EMPTY         |  ( unused )
  *                     +--------------------+
- *                   1:|    NUMERIC_FIELD   |  ( A.i )
+ *                   1:|     INT_LITERAL    |  ( A.i )
  *                     +--------------------+
  *                   2:|   REFERENCE_FIELD  |  ( B.s )
  *                     +--------------------+
- *                   3:| WIDE_NUMERIC_FIELD |  ( C.d )
+ *                   3:|   DOUBLE_LITERAL   |  ( C.d )
  *                     +--------------------+
  *                     |     (unused)       |
  *                     +--------------------+
- *                   4:|      METHOD        |  ( D.m )
+ *                   5:|      METHOD        |  ( D.m )
  *                     +--------------------+
  * </pre>
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
 public class VM_Statics implements VM_Constants {
-  //-----------//
-  // interface //
-  //-----------//
-
   // Kinds of statics that can appear in slots of the jtoc.
   //
   public static final byte REFERENCE_TAG        = 0x40;
@@ -85,12 +84,53 @@ public class VM_Statics implements VM_Constants {
   public static final byte DOUBLE_LITERAL       = 0x04 | WIDE_TAG;
   public static final byte STRING_LITERAL       = 0x05 | REFERENCE_TAG;
 
-  public static final byte NUMERIC_FIELD        = 0x06;
-  public static final byte WIDE_NUMERIC_FIELD   = 0x07 | WIDE_TAG;
-  public static final byte REFERENCE_FIELD      = 0x08 | REFERENCE_TAG;
+  public static final byte REFERENCE_FIELD      = 0x06 | REFERENCE_TAG;
+  public static final byte NUMERIC_FIELD        = 0x07;
+  public static final byte WIDE_NUMERIC_FIELD   = 0x08 | WIDE_TAG;
 
   public static final byte METHOD               = 0x09 | REFERENCE_TAG;
   public static final byte TIB                  = 0x0a | REFERENCE_TAG;
+
+  /**
+   * static data values (pointed to by jtoc register)
+   */
+  private static int slots[] = new int[65536];
+
+  /**
+   * corresponding descriptions (see "kinds", above)
+   */
+  private static byte descriptions[] = new byte[slots.length];
+
+  /**
+   * next available slot number
+   */
+  private static int nextSlot = 1; // don't use slot 0.
+
+  /**
+   * Mapping from int literals to the jtoc slot that contains them.
+   */
+  private static HashMap intLiterals = new HashMap();
+
+  /**
+   * Mapping from float literals to the jtoc slot that contains them.
+   */
+  private static HashMap floatLiterals = new HashMap();
+
+  /**
+   * Mapping from long literals to the jtoc slot that contains them.
+   */
+  private static HashMap longLiterals = new HashMap();
+
+  /**
+   * Mapping from double literals to the jtoc slot that contains them.
+   */
+  private static HashMap doubleLiterals = new HashMap();
+
+  /**
+   * Mapping from string literals to the jtoc slot that contains them.
+   */
+  private static HashMap stringLiterals = new HashMap();
+
 
   /**
    * Find or allocate a slot in the jtoc for an int literal.
@@ -98,14 +138,13 @@ public class VM_Statics implements VM_Constants {
    * @return    slot number that was allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static int findOrCreateIntLiteral(int literal) {
-    int id   = VM_IntLiteralDictionary.findOrCreateId(literal, nextSlot);
-    int slot = VM_IntLiteralDictionary.getValue(id);
-    if (slot == nextSlot) { 
-      allocateSlot(INT_LITERAL);
-      slots[slot] = literal;
-    }
-    return slot;
+  public static synchronized int findOrCreateIntLiteral(int literal) {
+    Integer slot = (Integer)intLiterals.get(new Integer(literal));
+    if (slot != null) return slot.intValue();
+    int newSlot = allocateSlot(INT_LITERAL);
+    intLiterals.put(new Integer(literal), new Integer(newSlot));
+    slots[newSlot] = literal;
+    return newSlot;
   }
 
   /**
@@ -114,14 +153,13 @@ public class VM_Statics implements VM_Constants {
    * @return    slot number that was allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static int findOrCreateFloatLiteral(int literal) {
-    int id   = VM_FloatLiteralDictionary.findOrCreateId(literal, nextSlot);
-    int slot = VM_FloatLiteralDictionary.getValue(id);
-    if (slot == nextSlot) {
-      allocateSlot(FLOAT_LITERAL);
-      slots[slot] = literal;
-    }
-    return slot;
+  public static synchronized int findOrCreateFloatLiteral(int literal) {
+    Integer slot = (Integer)floatLiterals.get(new Integer(literal)); // NOTE: keep mapping in terms of int bits!
+    if (slot != null) return slot.intValue();
+    int newSlot = allocateSlot(FLOAT_LITERAL);
+    floatLiterals.put(new Integer(literal), new Integer(newSlot));
+    slots[newSlot] = literal;
+    return newSlot;
   }
 
   /**
@@ -130,14 +168,13 @@ public class VM_Statics implements VM_Constants {
    * @return    slot number of first of two slots that were allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static int findOrCreateLongLiteral(long literal) {
-    int id   = VM_LongLiteralDictionary.findOrCreateId(literal, nextSlot);
-    int slot = VM_LongLiteralDictionary.getValue(id);
-    if (slot == nextSlot) { 
-      allocateSlot(LONG_LITERAL);
-      setSlotContents(slot, literal);
-    }
-    return slot;
+  public static synchronized int findOrCreateLongLiteral(long literal) {
+    Integer slot = (Integer)longLiterals.get(new Long(literal));
+    if (slot != null) return slot.intValue();
+    int newSlot = allocateSlot(LONG_LITERAL);
+    longLiterals.put(new Long(literal), new Integer(newSlot));
+    setSlotContents(newSlot, literal);
+    return newSlot;
   }
 
   /**
@@ -146,14 +183,13 @@ public class VM_Statics implements VM_Constants {
    * @return    slot number of first of two slots that were allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static int findOrCreateDoubleLiteral(long literal) {
-    int id   = VM_DoubleLiteralDictionary.findOrCreateId(literal, nextSlot);
-    int slot = VM_DoubleLiteralDictionary.getValue(id);
-    if (slot == nextSlot) {
-      allocateSlot(DOUBLE_LITERAL);
-      setSlotContents(slot, literal);
-    }
-    return slot;
+  public static synchronized int findOrCreateDoubleLiteral(long literal) {
+    Integer slot = (Integer)doubleLiterals.get(new Long(literal)); // NOTE: keep mapping in terms of long bits
+    if (slot != null) return slot.intValue();
+    int newSlot = allocateSlot(DOUBLE_LITERAL);
+    doubleLiterals.put(new Long(literal), new Integer(newSlot));
+    setSlotContents(newSlot, literal);
+    return newSlot;
   }
 
   /**
@@ -162,15 +198,14 @@ public class VM_Statics implements VM_Constants {
    * @return    slot number that was allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
-    int id   = VM_StringLiteralDictionary.findOrCreateId(literal, nextSlot);
-    int slot = VM_StringLiteralDictionary.getValue(id);
-    if (slot == nextSlot) {
-      allocateSlot(STRING_LITERAL);
-      VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
-      slots[slot] = slotContent.toInt();
-    }
-    return slot;
+  public static synchronized int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
+    Integer slot = (Integer)stringLiterals.get(literal);
+    if (slot != null) return slot.intValue();
+    int newSlot = allocateSlot(STRING_LITERAL);
+    stringLiterals.put(literal, new Integer(newSlot));
+    VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
+    slots[newSlot] = slotContent.toInt();
+    return newSlot;
   }
 
   /**
@@ -179,12 +214,13 @@ public class VM_Statics implements VM_Constants {
    * @return slot number that was allocated 
    * (two slots are allocated for longs and doubles)
    */ 
-  public static int allocateSlot(byte description) {
+  public static synchronized int allocateSlot(byte description) {
     int slot = nextSlot;
 
     if (slot > descriptions.length - 2) {
       // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
       // point to newly enlarged slots[]
+      // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
       VM.sysFail("VM_Statics.allocateSlot: jtoc is full");
     }
 
@@ -246,9 +282,9 @@ public class VM_Statics implements VM_Constants {
       case LONG_LITERAL       : kind = "LONG_LITERAL";       break;
       case DOUBLE_LITERAL     : kind = "DOUBLE_LITERAL";     break;
       case STRING_LITERAL     : kind = "STRING_LITERAL";     break;
+      case REFERENCE_FIELD    : kind = "REFERENCE_FIELD";    break;
       case NUMERIC_FIELD      : kind = "NUMERIC_FIELD";      break;
       case WIDE_NUMERIC_FIELD : kind = "WIDE_NUMERIC_FIELD"; break;
-      case REFERENCE_FIELD    : kind = "REFERENCE_FIELD";    break;
       case METHOD             : kind = "METHOD";             break;
       case TIB                : kind = "TIB";                break;
       case EMPTY              : kind = "EMPTY SLOT";         break;
@@ -325,66 +361,4 @@ public class VM_Statics implements VM_Constants {
     VM_Address newContent = VM_Magic.objectAsAddress(object);
     slots[slot] = newContent.toInt();
   }
-
-  /**
-   * static data values (pointed to by jtoc register)
-   */
-  private static int  slots[];         
-  /**
-   * corresponding descriptions (see "kinds", above)
-   */
-  private static byte descriptions[];  
-  /**
-   * next available slot number
-   */
-  private static int  nextSlot;        
-  /**
-   * initial size of slots[] and descriptions[]
-   */
-  private static final int INITIAL_SLOTS = 65536; 
-
-  static void init() {
-    slots        = new int[INITIAL_SLOTS];
-    descriptions = new byte[INITIAL_SLOTS];
-    nextSlot     = 1; // slot 0 unused
-  }
-
-  /**
-   * Hash VM_Dictionary keys.
-   */ 
-  public static int dictionaryHash(int n) { return n; }
-  /**
-   * Hash VM_Dictionary keys.
-   */ 
-  public static int dictionaryHash(long n) { return (int)n; }
-
-  /**
-   * Compare VM_Dictionary keys.
-   */ 
-  public static int dictionaryCompare(long l, long r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
-  /**
-   * Compare VM_Dictionary keys.
-   */ 
-  public static int dictionaryCompare(int l, int r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
-
-  public static int spaceReport() {
-    int total = 0;
-    int size = VM_IntLiteralDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_IntLiteralDictionary\t\t\t", size);
-    size = VM_FloatLiteralDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_FloatLiteralDictionary\t\t", size);
-    size = VM_LongLiteralDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_LongLiteralDictionary\t\t", size);
-    size = VM_DoubleLiteralDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_DoubleLiteralDictionary\t\t", size);
-    size = VM_StringLiteralDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_StringLiteralDictionary\t\t", size);
-    return total;
-  }
-
 }

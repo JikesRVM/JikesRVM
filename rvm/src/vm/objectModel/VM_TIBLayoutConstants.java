@@ -118,10 +118,6 @@ public interface VM_TIBLayoutConstants {
    static final int TIB_FIRST_VIRTUAL_METHOD_INDEX = 
      TIB_FIRST_INTERFACE_METHOD_INDEX + TIB_INTERFACE_METHOD_SLOTS;
 
-   // Flag to mark interface methods that haven't yet been assigned a 
-   // slot in their interface method table.
-   static final int UNRESOLVED_INTERFACE_METHOD_OFFSET = -1;
-
    // Special value returned by VM_ClassLoader.getFieldOffset() or VM_ClassLoader.getMethodOffset()
    // to indicate fields or methods that must be accessed via dynamic linking code because their 
    // offset is not yet known or the class's static initializer has not yet been run.
@@ -134,5 +130,5 @@ public interface VM_TIBLayoutConstants {
    //      0 is a "free" (default) data initialization value
    //
    public static final int NEEDS_DYNAMIC_LINK = 0;
-   
 }
+

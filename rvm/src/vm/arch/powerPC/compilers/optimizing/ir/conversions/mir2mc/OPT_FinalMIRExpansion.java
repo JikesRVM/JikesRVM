@@ -88,7 +88,8 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	    if (MIR_Call.hasMethod(p)) {
 	      OPT_MethodOperand mo = MIR_Call.getMethod(p);
 	      if (mo.isInterface()) {
-		int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(mo.getMemberRef());
+		VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
+		int signatureId = sig.getId();
 		OPT_Instruction s;
 		if (OPT_Bits.fits(signatureId, 16)) {
 		  s = MIR_Unary.create(PPC_LDI, 

@@ -682,14 +682,15 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	// SEE ALSO: OPT_FinalMIRExpansion (for hidden parameter)
 	OPT_RegisterOperand RHStib = 
 	  getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-	int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methOp.getMemberRef());
+	VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methOp.getMemberRef());
+	int offset = sig.getIMTOffset();
 	OPT_RegisterOperand address = null;
 	if (VM.BuildForEmbeddedIMT) {
 	  address = InsertLoadOffset(v, ir, REF_LOAD, 
 				     OPT_ClassLoaderProxy.
 				     InstructionArrayType, 
 				     RHStib.copyD2U(), 
-				     VM_InterfaceInvocation.getIMTOffset(signatureId)); 
+				     offset);
 	} else {
 	  OPT_RegisterOperand IMT = InsertLoadOffset(v, ir, REF_LOAD,
 						     OPT_ClassLoaderProxy.JavaLangObjectArrayType,
@@ -698,7 +699,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  address = InsertLoadOffset(v, ir, REF_LOAD,
 				     OPT_ClassLoaderProxy.InstructionArrayType,
 				     IMT.copyD2U(),
-				     VM_InterfaceInvocation.getIMTOffset(signatureId)); 
+				     offset);
 
 	}
 	Call.setAddress(v, address);

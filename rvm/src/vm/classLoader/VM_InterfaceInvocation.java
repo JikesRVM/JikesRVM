@@ -234,7 +234,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	VM_Method im = interfaceMethods[j];
 	if (im.isClassInitializer()) continue; 
 	if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
-	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(im.getMemberRef());
+	VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(im.getMemberRef());
 	VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
 	// NOTE: if there is some error condition, then we are playing a dirty trick and
 	//       pretending that a static method of VM_Runtime is a virtual method.
@@ -244,7 +244,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	} else if (!vm.isPublic()) {
 	  vm = VM_Entrypoints.raiseIllegalAccessError;
 	}
-	d.addElement(id, vm);
+	d.addElement(sig, vm);
       }
     }
     return d;
@@ -356,33 +356,6 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    */
 
   /**
-   * If using embedded IMTs, Get offset of interface method slot in TIB.
-   * If using indirect IMTs, Get offset of interface method slot in IMT.
-   * Note that all methods with same name & descriptor map to the same slot.
-   * <p>
-   * TODO!! replace the simplistic hash algorithm with something more reasonable.
-   * 
-   * @param id an interface method signature if obtained from 
-   *           VM_ClassLoader.findOrCreateInterfaceMethodSignatureId
-   * @return offset in TIB/IMT
-   */ 
-  public static int getIMTOffset(int id) {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
-    int offset = VM_InterfaceMethodSignatureDictionary.getValue(id);
-    if (offset == UNRESOLVED_INTERFACE_METHOD_OFFSET) {
-      // we haven't assigned this signature an offset yet; do it now.
-      int slot = id % IMT_METHOD_SLOTS;
-      if (VM.BuildForEmbeddedIMT) {
-	slot += TIB_FIRST_INTERFACE_METHOD_INDEX;
-      }
-      offset = slot << 2;
-      VM_InterfaceMethodSignatureDictionary.setValue(id, offset);
-    }
-    return offset;
-  }
-
-
-  /**
    * Return the index of the interface method m in the itable
    */
   public static int getITableIndex(VM_Class klass, VM_Atom mname, VM_Atom mdesc) {
@@ -459,8 +432,8 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     
     // Convert from the internally visible IMTOffset to an index
     // into my internal data structure.
-    private int getIndex(int id) {
-      int idx = getIMTOffset(id) >> 2;
+    private int getIndex(VM_InterfaceMethodSignature sig) {
+      int idx = sig.getIMTOffset() >> 2;
       if (VM.BuildForEmbeddedIMT) {
 	idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
       }
@@ -484,19 +457,19 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     }
 
     // Add an element to the IMT dictionary (does nothing if already there)
-    public void addElement(int id, VM_Method m) {
-      int index = getIndex(id);
+    public void addElement(VM_InterfaceMethodSignature sig, VM_Method m) {
+      int index = getIndex(sig);
       Link p = links[index];
-      if (p == null || p.signatureId > id) {
-	links[index] = new Link(id, m, p);
+      if (p == null || p.signature.getId() > sig.getId()) {
+	links[index] = new Link(sig, m, p);
       } else {
 	Link q = p;
-	while (p != null && p.signatureId <= id) {
-	  if (p.signatureId == id) return; // already there so nothing to do.
+	while (p != null && p.signature.getId() <= sig.getId()) {
+	  if (p.signature.getId() == sig.getId()) return; // already there so nothing to do.
 	  q = p;
 	  p = p.next;
 	}
-	q.next = new Link(id, m, p);
+	q.next = new Link(sig, m, p);
       }
     }
 
@@ -527,7 +500,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	  int idx = 0;
 	  for (Link p = links[slot]; p != null; idx++, p = p.next) {
 	    targets[idx] = p.method;
-	    sigIds[idx] = p.signatureId;
+	    sigIds[idx] = p.signature.getId();
 	  }
 	  IMT[extSlot] = VM_InterfaceMethodConflictResolver.createStub(sigIds, targets);
 	}
@@ -535,13 +508,13 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     }
 
     private static class Link {
-      int       signatureId;
-      VM_Method method;
+      final VM_InterfaceMethodSignature signature;
+      final VM_Method method;
       Link      next;
-      Link (int sId, VM_Method m, Link n) {
-	signatureId = sId;
-	method      = m;
-	next        = n;
+      Link (VM_InterfaceMethodSignature sig, VM_Method m, Link n) {
+	signature = sig;
+	method    = m;
+	next      = n;
       }
     }
   }

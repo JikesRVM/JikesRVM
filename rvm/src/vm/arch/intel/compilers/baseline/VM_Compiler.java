@@ -2136,13 +2136,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     // (2) Emit interface invocation sequence.
     if (VM.BuildForIMTInterfaceInvocation) {
-      int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef);
-      int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
+      VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methodRef);
+      int offset = sig.getIMTOffset();
           
       // squirrel away signature ID
       VM_ProcessorLocalState.emitMoveImmToField(asm, 
 						VM_Entrypoints.hiddenSignatureIdField.getOffset(),
-						signatureId);
+						sig.getId());
 
       asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                  // "this" object
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);

@@ -2088,8 +2088,8 @@ public class VM_Compiler extends VM_BaselineCompiler
     }
     // (2) Emit interface invocation sequence.
     if (VM.BuildForIMTInterfaceInvocation) {
-      int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef);
-      int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
+      VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methodRef);
+      int offset = sig.getIMTOffset();
       genMoveParametersToRegisters(true, methodRef); // T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
       if (VM.BuildForIndirectIMT) {
@@ -2098,7 +2098,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
       asm.emitL   (S0, offset, S0);                  // the method address
       asm.emitMTCTR(S0);
-      asm.emitCallWithHiddenParameter(spSaveAreaOffset, signatureId);
+      asm.emitCallWithHiddenParameter(spSaveAreaOffset, sig.getId());
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
 	       methodRef.getDeclaringClass().isResolved()) {
