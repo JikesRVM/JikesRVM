@@ -496,31 +496,24 @@ public final class OPT_Instruction
    * @return number of operands
    */
   public int getNumberOfOperands() {
-    if (operator.hasVarUses()) {
-      return getNumberOfOperandsVarUses();
-    } else if (operator.hasVarDefs()) {
-      return getNumberOfOperandsVarDefs();
+    if (operator.hasVarUsesOrDefs()) {
+      return getNumberOfOperandsVarUsesOrDefs();
     } else {
       return operator.getNumberOfDefs() + operator.getNumberOfPureUses();
     }
   }
-  // isolate uncommon cases to enable common case of getNumberOfOperands to be inlined.
-  private int getNumberOfOperandsVarUses() {
-    int numOps = 
-      operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses();
-    for (; numOps < ops.length; numOps++) {
-      if (ops[numOps] == null) break;
-    }
-    return numOps;
+  // isolate uncommon cases to enable inlined common case of getNumberOfOperands
+  private int getNumberOfOperandsVarUsesOrDefs() {
+    int numOps = ops.length - 1;
+    int minOps;
+    if (operator().hasVarUses()) {
+      minOps = operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses() - 1;
+    } else {
+      minOps = operator.getNumberOfFixedPureDefs() - 1;
+    } 
+    while (numOps > minOps && ops[numOps] == null) numOps--;
+    return numOps + 1;
   }
-  private int getNumberOfOperandsVarDefs() {
-    int numOps = operator.getNumberOfFixedPureDefs();
-    for (; numOps < ops.length; numOps++) {
-      if (ops[numOps] == null) break;
-    }
-    return numOps;
-  }
-
 
   /**
    * Returns the number of operands that are defs
@@ -1833,7 +1826,6 @@ public final class OPT_Instruction
       ops = newOps;
     }
   }
-
 
   /**
    * For IR internal use only; general clients should use
