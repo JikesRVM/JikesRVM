@@ -553,7 +553,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled() && mth.getDeclaringClass().getName().equals(cls.getName()))
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         // System.out.println("... checking static method " + methods[i].getName().toString() +
         // ": offset " + offset);
         if (offset!=-1) {
@@ -573,7 +573,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled() && mth.getDeclaringClass().getName().equals(cls.getName()))
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         //System.out.println("... checking virtual method " + methods[i].getName().toString() +
         //": offset " + offset);
         if (offset!=-1) {
@@ -661,7 +661,7 @@ class BootMapExternal extends BootMap {
       int limit = VM_MethodDictionary.getNumValues();
       if (methodID > 0 && methodID < limit) {
 	VM_Method mth = mthArray[methodID];
-	return mth.getMostRecentlyGeneratedCompilerInfo();
+	return mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo();
       }
       else
 	return null;

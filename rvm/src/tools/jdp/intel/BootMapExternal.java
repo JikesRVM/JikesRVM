@@ -577,7 +577,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         if (offset!=-1) {
           startAddr = instructionAddressForClass(id, i, true);
           methodID = getCompiledMethodIDForInstruction(startAddr);
@@ -595,7 +595,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         //System.out.println("... checking virtual method " + methods[i].getName().toString() +
         // 			    ": offset " + offset);
         if (offset!=-1) {
@@ -721,7 +721,7 @@ class BootMapExternal extends BootMap {
       int limit = VM_MethodDictionary.getNumValues();
       if (methodID > 0 && methodID < limit) {
 	VM_Method mth = mthArray[methodID];
-	return mth.getMostRecentlyGeneratedCompilerInfo();
+	return mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo();
       }
       else
 	return null;
@@ -861,20 +861,10 @@ class BootMapExternal extends BootMap {
       bootStart = owner.mem.read(bootRecordAddress + field.getOffset()); 
       field = findVMField("VM_BootRecord", "freeAddress");
       bootEnd = owner.mem.read(bootRecordAddress + field.getOffset());
-      field = findVMField("VM_BootRecord", "endAddress");
-      vmEndAddress = bootRecordAddress + field.getOffset();
-      field = findVMField("VM_BootRecord", "largeStart");
-      largeStartAddress = bootRecordAddress + field.getOffset();
-      field = findVMField("VM_BootRecord", "largeSize");
-      largeSizeAddress = bootRecordAddress + field.getOffset();
 
-        System.out.println("Method table: " + methodArraySize + " entries, boot address " +
-       		    Integer.toHexString(bootStart) + " : " + 
-       		    Integer.toHexString(bootEnd) + " : @" +
-       		    Integer.toHexString(vmEndAddress));
-
-
-
+      System.out.println("Method table: " + methodArraySize + " entries, boot address " +
+			 Integer.toHexString(bootStart) + " : " + 
+			 Integer.toHexString(bootEnd));
     } catch (BmapNotFoundException e) {
       System.out.println("JDP ERROR: fillBootMethodTable , could not find class VM_BootRecord, VM_MethodDictionary or VM_Method, or one of their fields.");
       return;

@@ -309,14 +309,14 @@ class mapVM implements JDPServiceInterface {
       // bootstrap for the first time getJTOC is called,
       // assume we stop in a Java stack frame
       if (heapRanges==0) {
-        VM_Field field = (VM_Field) VM.getMember("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
+	VM_Field field = BootMap.findVMField("LVM_BootRecord;", "the_boot_record");
         int bootRecordAddress;
         if (cachedJTOC==0)
           bootRecordAddress = currentJTOC + field.getOffset();
         else
           bootRecordAddress = cachedJTOC + field.getOffset();
 
-        field = (VM_Field) VM.getMember("LVM_BootRecord;", "heapRanges", "[LVM_Address;");
+        field = BootMap.findVMField("LVM_BootRecord;", "heapRanges");
 	int heapRangesAddress = bootRecordAddress + field.getOffset();
 	heapRanges = Platform.readmem(heapRangesAddress);
 
@@ -633,7 +633,6 @@ class mapVM implements JDPServiceInterface {
   public void handleAbstractClass() {
     // get the pointer to the real VM_Type on the JVM side
     int typeAddress = VM_ObjectModel.getTIB(this,address);
-    // int typeAddress = JDPObjectModel.getTIBFromPlatform(address);
     typeAddress = Platform.readmem(typeAddress);           
 
     int descriptorAddress = Platform.readmem(typeAddress + VMTypeDescriptor_offset);
