@@ -32,7 +32,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
  */
 public final class SynchronizationBarrier {
 
-  private static final int trace = 0;
+  private static final int verbose = 0;
 
   // maximum processor id for rendezvous (possibly including the native daemon processor)
   private int maxProcessorId;
@@ -80,13 +80,13 @@ public final class SynchronizationBarrier {
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int myNumber = th.getGCOrdinal();
 
-    if (trace > 0)
+    if (verbose > 0)
       VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ", myProcessorId, " ordinal ", myNumber);
 
     if ( myNumber > 1 ) {   // non-designated guys just wait for designated guy to finish
       barrier.arrive(8888); // wait for designated guy to do his job
       VM_Magic.isync();     // so subsequent instructions won't see stale values
-      if (trace > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
+      if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
       return;               // leave barrier
     }
 
@@ -97,7 +97,7 @@ public final class SynchronizationBarrier {
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-	  if (trace > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+	  if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
 	  removeProcessor(i);
       }
       else
@@ -109,14 +109,14 @@ public final class SynchronizationBarrier {
       // just fall thru to end, to set our entryCount, sync & return. Else, decide
       // what to do with the NativeProcessor
       if ( myProcessorId == VM_Scheduler.nativeDPndx ) {
-	if (trace > 0) 
+	if (verbose > 0) 
 	    VM.sysWriteln("GC Message: startupRendezvous: NativeProcessor has ordinal 1, will participate");
       }
       else {
 	int loopCount = 1;
 	VM_Processor ndvp = VM_Scheduler.processors[VM_Scheduler.nativeDPndx];
 	if ( VM_Scheduler.processors[VM_Scheduler.nativeDPndx].blockInWaitIfInWait() ) {
-	    if (trace > 0) VM.sysWriteln("GC Message: startupRendezvous  excluding NATIVE DAEMON PROCESSOR");
+	    if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  excluding NATIVE DAEMON PROCESSOR");
 	    removeProcessor( VM_Scheduler.nativeDPndx );
 	}
       }
@@ -129,13 +129,13 @@ public final class SynchronizationBarrier {
       maxProcessorId = VM_Scheduler.numProcessors;
     }
 
-    if (trace > 0) 
+    if (verbose > 0) 
 	VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
     barrier.setTarget(numParticipating);
     barrier.arrive(8888);    // all setup now complete and we can proceed
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
-    if (trace > 0) 
+    if (verbose > 0) 
 	VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
 
   }  // startupRendezvous

@@ -66,7 +66,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
 public class VM_CollectorThread extends VM_Thread {
 					//  implements VM_GCConstants 
 
-  private final static int trace = 0;
+  private final static int verbose = 0;
 
   /** When true, causes RVM collectors to display heap configuration at startup */
   static final boolean DISPLAY_OPTIONS_AT_BOOT = false;
@@ -186,9 +186,9 @@ public class VM_CollectorThread extends VM_Thread {
       // the schedulers collectorQueue
       //
       VM_Scheduler.collectorMutex.lock();
-      if (trace >= 1) {
+      if (verbose >= 1) {
 	VM.sysWriteln("GC Message: VM_CT.run yielding");
-	VM_Interface.getPlan().show();
+	// VM_Interface.getPlan().show();
       }
       if (count > 0)
 	VM_Processor.getCurrentProcessor().enableThreadSwitching();  // resume normal scheduling
@@ -198,11 +198,11 @@ public class VM_CollectorThread extends VM_Thread {
       // block mutators from running on the current processor
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       
-      if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
+      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
       
-      if (trace > 2)
+      if (verbose > 2)
 	VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =",
 		      gcOrdinal);
 
@@ -210,15 +210,15 @@ public class VM_CollectorThread extends VM_Thread {
       // to reach a SIGWAIT state
       //
       if( gcOrdinal == 1) {
-        if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run quiescing native VPs");
+        if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run quiescing native VPs");
         for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
           if ( VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex] !=
 	       VM_Processor.BLOCKED_IN_NATIVE) {
-	    if (trace >= 2) VM.sysWriteln("GC Mesage: VM_CollectorThread.run found one not blocked in native");
+	    if (verbose >= 2) VM.sysWriteln("GC Mesage: VM_CollectorThread.run found one not blocked in native");
 					
 	    while ( VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex] !=
 		    VM_Processor.IN_SIGWAIT) {
-	      if (trace >= 2) 
+	      if (verbose >= 2) 
 		VM.sysWriteln("GC Message: VM_CT.run  WAITING FOR NATIVE PROCESSOR", i,
 			      " with vpstatus = ",
 			      VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex]);
@@ -245,13 +245,13 @@ public class VM_CollectorThread extends VM_Thread {
       }  // gcOrdinal==1
 
       // wait for other collector threads to arrive or be made non-participants
-      if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run  initializing rendezvous");
+      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  initializing rendezvous");
       gcBarrier.startupRendezvous();
 
-      if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
+      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
       if (isActive) 
 	VM_Interface.getPlan().collect();     // gc
-      if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
+      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       // wait for other collector threads to arrive here
       gcBarrier.rendezvous(5200);
@@ -281,20 +281,20 @@ public class VM_CollectorThread extends VM_Thread {
       
       // wait for other collector threads to arrive here
       gcBarrier.rendezvous(5210);
-      if (trace > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
+      if (verbose > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
 
       // final cleanup for initial collector thread
       if (gcOrdinal == 1) {
 	// unblock any native processors executing in native that were blocked
 	// in native at the start of GC
 	//
-	if (trace > 3) VM.sysWriteln("VM_CollectorThread: unblocking native procs");
+	if (verbose > 3) VM.sysWriteln("VM_CollectorThread: unblocking native procs");
 	for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
 	  VM_Processor vp = VM_Processor.nativeProcessors[i];
 	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
-	    if (trace >= 2)
+	    if (verbose >= 2)
 	      VM.sysWriteln("GC Message: VM_CT.run  unblocking Native Processor", vp.id);
 	  }
 	}
@@ -303,14 +303,14 @@ public class VM_CollectorThread extends VM_Thread {
 	// found in C, and were BLOCKED_IN_NATIVE, during the collection, and now
 	// need to be unblocked.
 	//
-	if (trace >= 2)
+	if (verbose >= 2)
 	  VM.sysWriteln("GC Message: VM_CT.run unblocking native procs blocked during GC");
 	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
 	  VM_Processor vp = VM_Scheduler.processors[i];
 	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
-	    if (trace >= 2)
+	    if (verbose >= 2)
 	      VM.sysWriteln("GC Message: VM_CT.run unblocking RVM Processor", vp.id);
 	  }
 	}
@@ -321,7 +321,7 @@ public class VM_CollectorThread extends VM_Thread {
 	  VM_Processor ndvp = VM_Scheduler.processors[VM_Scheduler.nativeDPndx];
 	  if ( ndvp!=null && VM_Processor.vpStatus[ndvp.vpStatusIndex] == VM_Processor.BLOCKED_IN_SIGWAIT ) {
 	    VM_Processor.vpStatus[ndvp.vpStatusIndex] = VM_Processor.IN_SIGWAIT;
-	    if (trace >= 2)
+	    if (verbose >= 2)
 	      VM.sysWriteln("GC Message: VM_CT.run unblocking Native Daemon Processor");
 	  }
 
@@ -331,7 +331,7 @@ public class VM_CollectorThread extends VM_Thread {
 	}
 
 	// clear the GC flag
-	if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run clearing lock out field");
+	if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run clearing lock out field");
 	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0);
       }
 
@@ -354,12 +354,12 @@ public class VM_CollectorThread extends VM_Thread {
 
     if (VM_Processor.numberAttachedProcessors == 0) return;
 
-    if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors  quiescing attached VPs");
+    if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors  quiescing attached VPs");
     
     for (int i = 1; i < VM_Processor.attachedProcessors.length; i++) {
       VM_Processor vp = VM_Processor.attachedProcessors[i];
       if (vp==null) continue;   // must have detached
-      if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors  quiescing attached VP", i);
+      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors  quiescing attached VP", i);
       
       int loopCount = 0;
       while ( true ) {
@@ -368,14 +368,14 @@ public class VM_CollectorThread extends VM_Thread {
 	  VM.sysVirtualProcessorYield();
 	
 	if ( vp.blockInWaitIfInWait() ) {
-	  if (trace >= 2)
+	  if (verbose >= 2)
 	    VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors  Attached Processor BLOCKED_IN_SIGWAIT", i);
 	  // Note: threads contextRegisters (ip & fp) are set by thread before
 	  // entering SIGWAIT, so nothing needs to be done here
 	  break;
 	}
 	if ( vp.lockInCIfInC() ) {
-	  if (trace >= 2)
+	  if (verbose >= 2)
 	    VM.sysWriteln("GC Message: VM_CT.quiesceAttachedProcessors Attached Processor BLOCKED_IN_NATIVE", i);
 	  
 	  // XXX SES TON XXX
@@ -390,7 +390,7 @@ public class VM_CollectorThread extends VM_Thread {
 	}
 	
 	loopCount++;
-	if (trace >= 2 && (loopCount%10 == 0)) {
+	if (verbose >= 2 && (loopCount%10 == 0)) {
 	  VM.sysWriteln("GC Message: VM_CollectorThread Waiting for Attached Processor", i,
 			" with vpstatus ", VM_Processor.vpStatus[vp.vpStatusIndex]);
 	}
@@ -410,18 +410,18 @@ public class VM_CollectorThread extends VM_Thread {
 
     if (VM_Processor.numberAttachedProcessors == 0) return;
 
-    if (trace >= 2) 
+    if (verbose >= 2) 
       VM.sysWriteln("GC Message: VM_CT.resumeAttachedProcessors  resuming attached VPs");
     
     for (int i = 1; i < VM_Processor.attachedProcessors.length; i++) {
       VM_Processor vp = VM_Processor.attachedProcessors[i];
       if (vp==null) continue;   // must have detached
-      if (trace >= 2)
+      if (verbose >= 2)
 	VM.sysWriteln("GC Message: VM_CT.resumeAttachedProcessors  resuming attached VP", i);
 
       if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
-	if (trace >= 2)
+	if (verbose >= 2)
 	  VM.sysWriteln("GC Message:  VM_CollectorThread.resumeAttachedProcessors resuming Processor IN_NATIVE", i);
 	continue;
       }
