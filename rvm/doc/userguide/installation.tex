@@ -12,7 +12,7 @@ You can download this from
 \xlink{{\tt \jikesURL}} {\jikesURL}.
 You can use any of the pre-compiled binaries, or build it yourself from the
 source. We recommend version 1.13; users have reported difficulties with 
-version 1.14.
+version 1.14.  We have not yet tried version 1.15.
 
 \item GNU tar is needed to extract the distribution tar file.  We have
 experienced problems with the AIX tar program truncating file names.
@@ -39,7 +39,10 @@ run RVM on a Linux Intel environment, you will need
 \item Linux  (we have run on RedHat 6.0 and 7.0)
 \item The system has run in 386MB; we have not established a lower bound.
 \item the IBM Developer Kit (at least version 2.1.3).  You can download this from
-\xlink{{\tt \LinuxJdkURL}} {\LinuxJdkURL}.
+\xlink{{\tt \LinuxJdkURL}} {\LinuxJdkURL}.  We did have problems on
+bleeding edge 2.4 kernels running on SMP machines with versions of the IBM
+Developer Kit built prior to May 2001.  We are currently using IBM
+build cx130-20010502; later builds should work as well.
 \item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
 \end{itemize}
 
@@ -74,13 +77,6 @@ Some issues with this platform include:
 \item We haven't managed to successfully install a handler for hardware traps,
 so the first hardware exception (eg a {\tt NullPointerException}) will cause
 an ugly core dump.
-\item Cygwin itself handles Samba-mounted DFS file
-systems and one can thus build from a DFS-mounted shadow
-directory. However, something about them (most likely the 
-$\backslash\backslash$ ) is
-still confusing RVM.  Therefore, your build directories and all class
-files for the programs you want to run must be on your local file
-system. Failure to do this will result in a class-not-found error.
 \item Spaces in directory names aren't handled by jconfigure and the
 other scripts.  Use cygwin's mount command to avoid them (in
 particular the config file assumes that
@@ -252,7 +248,7 @@ You must set the following variables in this file:
 \item {\tt HOST\_REPOSITORIES} the {\tt rt.jar} archive for the JDK  
 \item {\tt HOST\_TOOLS} the {\tt tools.jar} archive for the JDK  
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
-\item {\tt JIKES} the Jikes\trademark {\tt jikes} executable.
+\item {\tt JIKES} the Jikes\trademark compiler executable ({\tt jikes}).
 \item {\tt CC} how to invoke the C compiler.
 \item {\tt CPLUS} how to invoke the C++ compiler.
 \item {\tt LDSHARED} how to link a shared C++ library.
@@ -460,7 +456,7 @@ understands.
 
 The RVM build process consists of two major phases: the building of a
 RVM {\em boot image}, and the building of a RVM {\em boot loader}.
-The boot image is build using a Java executed within a host
+The boot image is built using a Java executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 
