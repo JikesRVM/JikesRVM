@@ -1525,7 +1525,7 @@ function emitImageLinker
     print "   print 'Ljava/util/WeakHashMap\$WeakBucket;'   >> $PRIMORDIAL_CLASSES_STR"
     print "   print '[Ljava/util/WeakHashMap\$WeakBucket;'  >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet;' >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet\$1;' >> $PRIMORDIAL_CLASSES_STR"
+#    print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet\$1;' >> $PRIMORDIAL_CLASSES_STR"
    else 
     print "   print 'Ljava/util/AbstractList\$SimpleListIterator;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/ArrayList;'                        >> $PRIMORDIAL_CLASSES_STR"
