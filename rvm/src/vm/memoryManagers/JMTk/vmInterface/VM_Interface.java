@@ -887,7 +887,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     Plan plan = getPlan();
     VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     VM_Address to = VM_Magic.objectAsAddress(toObj);
     plan.postCopy(to, tib, bytes);
     MMType mmType = (MMType) type.getMMType();
@@ -905,7 +905,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     Plan plan = getPlan();
     VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     VM_Address to = VM_Magic.objectAsAddress(toObj);
     plan.postCopy(to, tib, bytes);
     if (type == VM_Type.CodeArrayType) {
@@ -1017,11 +1017,31 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The size required to copy <code>obj</code>
    */
   public static int getSizeWhenCopied(VM_Address obj) {
-    VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
-    if (type.isClassType())
-      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asClass());
-    else
-      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
+    return VM_ObjectModel.bytesRequiredWhenCopied(obj);
+  }
+    
+  /**
+   * Return the size used by an object
+   *
+   * @param obj The object whose size is to be queried
+   * @return The size of <code>obj</code>
+   */
+  public static int getCurrentSize(VM_Address obj) {
+    return VM_ObjectModel.bytesUsed(obj);
+  }
+
+  /**
+   * Return the next object in the heap under contiguous allocation
+   */
+  public static VM_Address getNextObject(VM_Address obj) {
+    return VM_ObjectModel.getNextObject(obj);
+  }
+
+  /**
+   * Return an object reference from knowledge of the low order word
+   */
+  public static VM_Address getObjectFromStartAddress(VM_Address start) {
+    return VM_ObjectModel.getObjectFromStartAddress(start);
   }
   
   /***********************************************************************

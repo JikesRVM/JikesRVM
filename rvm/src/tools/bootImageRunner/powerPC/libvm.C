@@ -705,7 +705,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #elif defined RVM_FOR_64_ADDR
       uintptr_t faultMask = 0xffffffffffff0000;
 #endif
-      if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & ~faultMask) == 0))) {
+      if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
 	isNullPtrExn = 0;
       }
     }

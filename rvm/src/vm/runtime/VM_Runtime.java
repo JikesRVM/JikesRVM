@@ -332,7 +332,7 @@ public class VM_Runtime implements VM_Constants {
     }
 
     // Allocate the object and initialize its header
-    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, size);
+    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset);
 
     // Deal with finalization
     if (hasFinalizer) MM_Interface.addFinalizer(newObj);

@@ -187,19 +187,23 @@ class GenerateInterfaceDeclarations {
         fields[j++] = new SortableField(allFields[i]);
     Arrays.sort(fields);
 
+    // Emit field declarations
+    //
+    p("struct " + Cname + " {\n");
+
     // Set up cursor - scalars will waste 4 bytes on 64-bit arch
     //
     boolean needsAlign = VM.BuildFor64Addr;
     int addrSize = VM.BuildFor32Addr ? 4 : 8;
-    int current = fields[0].offset;
-    if (needsAlign && ((current & 7) != 0))
-        current -= 4;
-    if (current >= 0) 
-        pln("Are scalars no longer backwards?  If so, check this code.");
 
-    // Emit field declarations
-    //
-    p("struct " + Cname + " {\n");
+    // Header Space for objects
+    int startOffset = VM_ObjectModel.objectStartOffset(cls);
+    int current = startOffset;
+    for(int i = 0; current < fields[0].f.getOffset(); i++) {
+      pln("  uint32_t    headerPadding" + i + ";\n");
+      current += 4; 
+    }
+    
     for (int i = 0; i<fields.length; i++) {
       VM_Field field = fields[i].f;
       VM_TypeReference t = field.getType();

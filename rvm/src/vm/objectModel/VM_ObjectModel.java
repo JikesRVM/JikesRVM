@@ -31,24 +31,24 @@ import com.ibm.JikesRVM.opt.ir.*;
  *      fields in different ways is a todo item.
  * </ul>
  * 
- * For scalar objects, we lay out the fields right (hi mem) to left (lo mem).
- * For array objects, we lay out the elements left (lo mem) to right (hi mem).
  * Every object's header contains the three portions outlined above.
  *
  * <pre>
  * |<- lo memory                                        hi memory ->|
  *
- * scalar-object layout:
- * +------+------+------+------+------------+------------+----------+
- * |fldN-1| fldx | fld1 | fld0 | JavaHeader | MiscHeader | GCHeader |
- * +------+------+------+------+------------+------------+----------+
- *                             ^ JHOFF                              ^objref
- *                             .  <----------- header ----------->  .      
- *  array-object layout:       .                                    .
- *                       +-----+------------+------------+----------+------+------+------+------+
- *                       | len | JavaHeader | MiscHeader | GCHeader | elt0 | elt1 | ...  |eltN-1|
- *                       +-----+------------+------------+----------+------+------+------+------+
- *                             ^ JHOFF                              ^objref
+ *   SCALAR LAYOUT:
+ * |<---------- scalar header --------->|
+ * +----------+------------+------------+------+------+------+--------+
+ * | GCHeader | MiscHeader | JavaHeader | fldO | fld1 | fldx | fldN-1 |
+ * +----------+------------+------------+------+------+------+--------+
+ *                         ^ JHOFF             ^objref
+ *                                             .
+ *    ARRAY LAYOUT:                            . 
+ * |<---------- array header ----------------->|
+ * +----------+------------+------------+------+------+------+------+------+
+ * | GCHeader | MiscHeader | JavaHeader | len  | elt0 | elt1 | ...  |eltN-1|
+ * +----------+------------+------------+------+------+------+------+------+
+ *                         ^ JHOFF             ^objref
  * </pre>
  *
  * Assumptions: 
@@ -59,43 +59,38 @@ import com.ibm.JikesRVM.opt.ir.*;
  * <li> The JavaHeader exports k (>=0) unused contiguous bits that can be used
  *      by the GCHeader and MiscHeader.  The GCHeader gets first dibs on these bits.
  *      The GCHeader should use buts 0..i, MiscHeader should use bits i..k.
- * <li> In a given configuration, the GCHeader and MiscHeader are a fixed number of words for 
- *      all objects.
- * <li> JHEND is a constant for a given configuration.
+ * <li> JHOFF is a constant for a given configuration.
  * </ul>
  * 
  * This model allows efficient array access: the array pointer can be
  * used directly in the base+offset subscript calculation, with no
  * additional constant required.<p>
  *
- * This model allows free null pointer checking: since the 
- * first access to any object is via a negative offset 
- * (length field for an array, regular/header field for an object), 
- * that reference will wrap around to hi memory (address 0xffffxxxx)
- * in the case of a null pointer. As long as the high segment of memory is not 
+ * This model allows free null pointer checking for most reads: a small offset from 
+ * that reference will wrap around to either very high or very low unmapped memory 
+ * in the case of a null pointer. As long as these segments of memory are not 
  * mapped to the current process, loads/stores through such a pointer will cause a 
  * trap that we can catch with a unix signal handler.<p>
  * 
- * Note: On Linux (as opposed to AIX) we can actually protect low memory as well 
- * as high memory, so a future todo item would be to switch the Linux/IA32 object 
- * model to look like the following to simplify some GC implementations without 
- * losing any of the other advantages of the original JikesRVM object layout:
- * <pre>
- *         +------------+----------+------------+------+------+------+------+
- *         | JavaHeader | GCHeader | MiscHeader | fld0 | fld1 + .... | fldN |
- *         +------------+----------+------------+------+------+------+------+
- *                      ^ JHEND                 ^objref
- * 
- *  +------+------------+----------+------------+------+------+------+------+
- *  | len  | JavaHeader | GCHeader | MiscHeader | elt0 | elt1 | ...  |eltN-1|
- *  +------+------------+----------+------------+------+------+------+------+
- *                      ^ JHEND                 ^objref
- * </pre>
+ * Note that on AIX we are forced to perform explicit null checks on scalar field accesses 
+ * as we are unable to protect low memory.
  * 
  * Note the key invariant that all elements of the header are 
  * available at the same offset from an objref for both arrays and 
  * scalar objects.
  * 
+ * Note that this model allows for arbitrary growth of the GC header to the left of the object. 
+ * A possible TODO item is to modify the necessary interfaces within this class and JavaHeader 
+ * to allow moveObject, bytesUsed, bytesRequiredWhenCopied, etc. to tell this class how many
+ * GC header bytes have been allocated. As these calls would be constant within the constant of 
+ * the call the optimising compiler should be able to allow this at minimal cost.
+ *
+ * Another possible TODO item is to include support for linear scanning, where it is possible to 
+ * move from one object to the next under contiguous allocation. At the moment this is in conflict
+ * with object alignment code for objects with long/double fields. We could possibly include the 
+ * code anyway but require that the alignment code is switched off, or that all objects are aligned.
+ * Linear scanning is used in several GC algorithms including card-marking and compaction.
+ *  
  * @see VM_JavaHeader
  * @see VM_MiscHeader
  * @see VM_AllocatorHeader
@@ -103,6 +98,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Bowen Alpern
  * @author David Bacon
  * @author Stephen Fink
+ * @author Daniel Frampton
  * @author Dave Grove
  * @author Derek Lieber
  * @author Kris Venstermans
@@ -113,18 +109,21 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
-  /** count number of Object::hashCode() operations */
+  /** count number of Object.hashCode() operations */
   public static int hashRequests    = 0; 
-  /** count transitions from HASH_STATE_UNHASHED to HASH_STATE_HASHED */
+  /** count transitions from UNHASHED to HASHED */
   public static int hashTransition1 = 0; 
-  /** count transitions from HASH_STATE_HASHED to HASH_STATE_HASHED_AND_MOVED */
+  /** count transitions from HASHED to HASHED_AND_MOVED */
   public static int hashTransition2 = 0; 
 
   /**
    * Layout the instance fields declared in this class.
+   * TODO: If we allocate a 4-byte and then an 8-byte field on a 32 bit architecture
+   *       we can possibly waste 4 bytes.  
    */
   public static void layoutInstanceFields(VM_Class klass) throws VM_PragmaInterruptible {
     int fieldOffset = VM_JavaHeader.objectEndOffset(klass);
+    int doubleAlign = Math.abs(VM_JavaHeader.objectStartOffset(klass) % BYTES_IN_DOUBLE);
     VM_Field fields[] = klass.getDeclaredFields();
     for (int i = 0, n = fields.length; i < n; ++i) {
       VM_Field field = fields[i];
@@ -136,8 +135,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
             field.setOffset(emptySlot);
             klass.setEmptySlot(0);
           } else {
-            fieldOffset -= BYTES_IN_INT;
             field.setOffset(fieldOffset);
+            fieldOffset += BYTES_IN_INT;
             klass.increaseInstanceSize(BYTES_IN_INT);
           }
         } else {
@@ -145,16 +144,16 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
             VM._assert(fieldSize == BYTES_IN_DOUBLE); // (or ADDRESS in 64 bit mode)
           }
           klass.setAlignment(BYTES_IN_DOUBLE);
-          if ((fieldOffset % BYTES_IN_DOUBLE) == 0) {
-            fieldOffset -= BYTES_IN_DOUBLE;
+          if (Math.abs(fieldOffset % BYTES_IN_DOUBLE) == doubleAlign) {
             field.setOffset(fieldOffset);
+            fieldOffset += BYTES_IN_DOUBLE;
             klass.increaseInstanceSize(BYTES_IN_DOUBLE);
           } else {
             if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot() == 0);
-            fieldOffset -= BYTES_IN_INT;
             klass.setEmptySlot(fieldOffset);
-            fieldOffset -= BYTES_IN_DOUBLE;
+            fieldOffset += BYTES_IN_INT;
             field.setOffset(fieldOffset);
+            fieldOffset += BYTES_IN_DOUBLE;
             klass.increaseInstanceSize(BYTES_IN_INT+BYTES_IN_DOUBLE);
           }
         }
@@ -221,6 +220,87 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     VM_JavaHeader.gcProcessTIB(ref);
   }
 
+ /**
+   * Get an object reference from the address the lowest word of the object was allocated.
+   */
+  public static VM_Address getObjectFromStartAddress(VM_Address start) {
+    return VM_JavaHeader.getObjectFromStartAddress(start);
+  }
+
+  /**
+   * Get an object reference from the address the lowest word of the object was allocated.
+   */
+  public static VM_Address getScalarFromStartAddress(VM_Address start) {
+    return VM_JavaHeader.getScalarFromStartAddress(start);
+  }
+
+  /**
+   * Get an object reference from the address the lowest word of the object was allocated.
+   */
+  public static VM_Address getArrayFromStartAddress(VM_Address start) {
+    return VM_JavaHeader.getArrayFromStartAddress(start);
+  }
+
+  /**
+   * Get the next object in the heap under contiguous allocation. 
+   */
+  public static VM_Address getNextObject(VM_Address obj) {
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return getNextObject(obj, type.asClass());
+    } else {
+      int numElements = VM_Magic.getArrayLength(obj);
+      return getNextObject(obj, type.asArray(), numElements);
+    }
+  }
+
+  /**
+   * Get the next object after this scalar under contiguous allocation. 
+   */
+  public static VM_Address getNextObject(VM_Address obj, VM_Class type) {
+    return VM_JavaHeader.getNextObject(obj, type);
+  }
+
+  /**
+   * Get the next object after this array under contiguous allocation. 
+  */
+  public static VM_Address getNextObject(VM_Address obj, VM_Array type, int numElements) {
+    return VM_JavaHeader.getNextObject(obj, type, numElements);
+  }
+ 
+
+  /**       
+   * how many bytes are used by the object?
+   */       
+  public static int bytesUsed(Object obj) {
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return bytesUsed(obj, type.asClass());
+    } else {
+      int numElements = VM_Magic.getArrayLength(obj);
+      return bytesUsed(obj, type.asArray(), numElements);
+    }
+  }
+
+  /**
+   * how many bytes are used by the scalar?
+   */
+  public static int bytesUsed(Object obj, VM_Class type) {
+    return VM_JavaHeader.bytesUsed(obj, type);
+  }
+
+  /**
+   * how many bytes are used by the array? 
+  */
+  public static int bytesUsed(Object obj, VM_Array type, int numElements) {
+    return VM_JavaHeader.bytesUsed(obj, type, numElements);
+  }
+
+  /**       
+   * how many bytes are required when the object is copied by GC?
+   */
   public static int bytesRequiredWhenCopied(Object obj) {
     Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
@@ -257,16 +337,16 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Copy a scalar object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-                                  int numBytes, VM_Class type) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
+                                  int numBytes, boolean noGCHeader, VM_Class type) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-                                  int numBytes, VM_Array type) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
+                                  int numBytes, boolean noGCHeader, VM_Array type) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
 
   /**
@@ -469,10 +549,18 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 
   /**
    * For a reference to an object, what is the offset in bytes to the 
-   * bottom word of the header?
+   * last word of the header from an out-to-in perspective for the object?
    */
   public static int getHeaderEndOffset() {
-    return JAVA_HEADER_OFFSET;
+    return VM_JavaHeader.getHeaderEndOffset();
+  }
+
+  /**
+   * For a reference to an object, what is the offset in bytes to the bottom
+   * word of the object?
+   */
+  public static int objectStartOffset(VM_Class t) {
+    return VM_JavaHeader.objectStartOffset(t);
   }
 
   /**
