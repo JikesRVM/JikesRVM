@@ -1036,6 +1036,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   VM_Thread (int[] stack) {
     this.stack = stack;
 
+    chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
     suspendLock = new VM_ProcessorLock();
 
     contextRegisters           = new VM_Registers();
@@ -1383,8 +1384,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * The virtual machine terminates when the last non-daemon (user) 
    * thread terminates.
    */ 
-  protected boolean isDaemon;
-  
+ protected boolean isDaemon;
+       
+  /**
+   * id of processor to run this thread (cycles for load balance)
+   */
+  int chosenProcessorId; 
+
   VM_JNIEnvironment  jniEnv;
   
   // fields needed for RCGC reference counting collector

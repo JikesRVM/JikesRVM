@@ -163,7 +163,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // allocate initial processor list
     //
     processors = new VM_Processor[1 + PRIMORDIAL_PROCESSOR_ID];
-    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID);
+    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID, VM_Processor.RVM);
       
     // allocate lock structures
     //
@@ -196,7 +196,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; )
-      processors[i] = new VM_Processor(i);
+      processors[i] = new VM_Processor(i, VM_Processor.RVM);
 
     if (!VM.BuildForDedicatedNativeProcessors) {
       // setting of vpStatusAddress during JDK building of bootimage is not valid
