@@ -38,7 +38,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  * @author Mauricio J. Serrano
  */
-class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
+final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
 implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
 
   /**
