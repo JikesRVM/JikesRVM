@@ -2736,9 +2736,10 @@ EOF
 	    else
 	        status=\$?
 	        close_paren 'compilation FAILED'
-	        echo >&2 "\$ME: The Jikes compiler exited with status \${status} while we were building the source file(s): \$TOP_LEVEL_SOURCES"
-	        echo >&2 "\$ME: We invoked the Jikes compiler in the directory $CLASSES_DIRECTORY_STR"
-	        echo >&2 "\$ME: With the command-line: \$jikes_invocation"
+		## Now that we invoke Jikes with a longer list of TOP_LEVEL_SOURCES,
+		## this message has grown Much Too Long.
+	        echo >&2 "\$ME: The Jikes compiler exited with status \${status}"
+	        echo >&2 "     Run \$ME -trace if you need more information"
 	        exit \$status
 	    fi
 
