@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Finalizer;
 import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
@@ -20,62 +19,61 @@ import com.ibm.JikesRVM.classloader.VM_Method;
  * This thread comes out of wait state via notify from the garbage collector  
  *
  * @author Dick Attanasio
+ * @modified Perry Cheng
  * @date 10 Nov 1999 
  */
-public class FinalizerThread extends VM_Thread 
-   {
-   private final static boolean TRACE        = false; // emit trace messages?
-   private final static boolean TRACE_DETAIL = false; // emit detail messages?
-   public  static Object marker = new VM_Synchronizer(); 
+public class FinalizerThread extends VM_Thread {
 
+   private final static int verbose = 0; // currently goes up to 2
+   public  static Object marker = new VM_Synchronizer(); 
 
    // Run the finalizer thread (one per RVM)
    //
-   public void
-   run() //- overrides Thread
-      {
-      if (TRACE) {
-	VM_Scheduler.trace("FinalizerThread ", "run routine entered");
-      }
+   public void run() {
 
-      while (true)
-         {
-         // suspend this thread: it will resume when the garbage collector
-	 // places objects on the finalizer queue and notifies.
-         //
+     if (verbose >= 1)
+	 VM_Scheduler.trace("FinalizerThread ", "run routine entered");
 
-	 VM_Scheduler.finalizerMutex.lock();
-	 VM_Thread.getCurrentThread().yield(VM_Scheduler.finalizerQueue, 
-	   VM_Scheduler.finalizerMutex);
+     while (true) {
 
-          if (TRACE) 
-	    VM_Scheduler.trace("FinalizerThread", "starting finalization");
+       // suspend this thread: it will resume when the garbage collector
+       // places objects on the finalizer queue and notifies.
 
-  	 synchronized (marker) {
-	 Object o = VM_Finalizer.get();
-	 if (TRACE_DETAIL) VM_Scheduler.trace("FinalizerThread: ", "object at ",
-	   VM_Magic.objectAsAddress(o));
-	 while (o != null) {
+       VM_Scheduler.finalizerMutex.lock();
+       VM_Thread.getCurrentThread().yield(VM_Scheduler.finalizerQueue, 
+					  VM_Scheduler.finalizerMutex);
+
+       if (verbose >= 1)
+	   VM.sysWriteln("FinalizerThread starting finalization");
+
+       synchronized (marker) {
+	 while (true) {
+	   Object o = VM_Interface.getFinalizedObject();
+	   if (o == null) break;
+	   if (verbose >= 2) {
+	       VM.sysWrite("FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
+	       VM.sysWrite("of type ");
+	       VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
+	       VM.sysWriteln();
+	   }
 	   try {
-
-	     VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
-	     if (VM.VerifyAssertions) VM._assert(method != null);
-	     Object[]  none = new Object[0];
-	     Object    ret = VM_Reflection.invoke(method, o, none);
+	       VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
+	       if (VM.VerifyAssertions) VM._assert(method != null);
+	       Object[]  none = new Object[0];
+	       Object    ret = VM_Reflection.invoke(method, o, none);
 	   }
 	   catch (Exception e) {
-	     if (TRACE) VM.sysWrite("Throwable exception caught for finalize call\n");
+	       if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
 	   }
-	   o = VM_Finalizer.get();
-	   if (TRACE_DETAIL) VM_Scheduler.trace("FinalizerThread", "object at ",
-	      VM_Magic.objectAsAddress(o));
+	   if (verbose >= 2) VM.sysWriteln("FinalizerThread done with object at ",
+					   VM_Magic.objectAsAddress(o));
 	 }
-         if (TRACE) VM_Scheduler.trace("FinalizerThread", "finished finalization");
-	   
-  	 }	 	// synchronized (marker)
-	 }		// while (true)
-
-      }  // run
+	 if (verbose >= 1) VM.sysWriteln("FinalizerThread finished finalization");
+	 
+       }	// synchronized (marker)
+     }		// while (true)
+     
+   }  // run
 
 
 
