@@ -1360,7 +1360,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
       if (nextOSReg > LAST_OS_PARAMETER_GPR + 1) {
         VM.sysWrite("ERROR: "+meth+" has too many int or long parameters\n");
-        VM.sysExit(-1);
+        VM.sysExit(VM.EXIT_STATUS_JNI_COMPILER_FAILED);
       }
     }
   }

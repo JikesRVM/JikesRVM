@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hpm.h"
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
 
 #if (!defined COUNT_NOTHING)
 #define COUNT_NOTHING 0
@@ -84,21 +86,21 @@ hpm_init(int my_filter)
   if (rc = PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr, "***hpm.hpm_init() PAPI_library_init failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   if(!memset(&options,0x0,sizeof(options))){
     perror("***hpm.hpm_init() memset failed!***\n");
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if((hwinfo = PAPI_get_hardware_info()) == NULL){
     perror("***hpm.hpm_init() PAPI_get_hardware_info() failed!***\n");
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   if ((n_counters = PAPI_get_opt(PAPI_GET_MAX_HWCTRS,NULL)) <= 0) {
     fprintf(stderr,"***hpm_int() PAPI_get_opt(PAPI_GET_MAX_HWCTRS) failed!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>=1)printf("hpm.hpm_init() %d = PAPI_num_counters()\n",n_counters);
 
@@ -107,22 +109,22 @@ hpm_init(int my_filter)
   if ( (rc = PAPI_create_eventset(&EventSet) ) != PAPI_OK ){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_init() PAPI_create_eventset failed: $s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>=1)printf("hpm.hpm_init() eventSet = %d\n",EventSet);
 
   values = (long long*) malloc(sizeof(long long)*n_counters);
   if(!(set_program.events =(int *) malloc(sizeof(int)*n_counters))){
     perror("***hpm.hpm_init() malloc set_program.events failed!***\n");
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(!(set_program.short_names = (char **)malloc(sizeof(char *)*n_counters))){
     perror("***hpm.hpm_init() malloc set_program.short_names failed!***\n");
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(!(mydata =(long long *) malloc(sizeof(long long)*n_counters))){
     perror("***hpm.hpm_init() malloc mydata failed!***\n");
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   // Set counter to count nothing
@@ -152,11 +154,11 @@ hpm_get_processor_name()
   if(debug>1) printf("hpm.hpm_get_processor_name()\n");
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_get_processor_name() called before hpm_init()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(hwinfo == NULL) {
     fprintf(stderr,"***hpm.hpm_get_processor_name() PAPI_hw_info_t is NULL!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   // dump hardware information
   if (debug>=1) {
@@ -229,7 +231,7 @@ hpm_get_number_of_counters()
   if(debug>1)printf("hpm.hpm_number_of_counters() returns %d\n", n_counters);
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_get_number_of_counters() called before hpm_init()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   return n_counters;
 }
@@ -243,7 +245,7 @@ hpm_get_number_of_events()
 {
   if(set_event_enabled==0) {
     fprintf(stderr,"***hpm.hpm_get_number_of_events() called before set_program()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>1)printf("hpm.hpm_number_of_events() returns %d\n", set_program.n_events);
   return set_program.n_events;
@@ -272,7 +274,7 @@ hpm_set_event(int event1, int event2, int event3, int event4)
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_event(%d,%d,%d,%d)\n",event1,event2,event3,event4);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_set_event() called before hpm_init()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (n_counters > set_program.n_events && event1 >= 0) {
     set_event(event1, 1);
@@ -301,7 +303,7 @@ hpm_set_event_X(int event5, int event6, int event7, int event8)
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_event_X(%d,%d,%d,%d)\n",event5,event6,event7,event8);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_set_event_X() called before hpm_init()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (n_counters > set_program.n_events && event5 >= 0) {
     set_event(event5, 5);
@@ -332,7 +334,7 @@ set_event(int event_id, int event_number)
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_set_event%d(%d) PAPI_query_event(%x) failed: %s!***\n",
             event_number,event_id,event,errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   } else {
     if(debug>=1) printf("hpm.hpm_set_event1 = %x from %d\n",event,event_id);
     set_program.events[set_program.n_events]=event;
@@ -375,15 +377,15 @@ hpm_set_mode(int mode)
   }
   if ( mode & MODE_IS_GROUP ) {
     fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_IS_GROUP %d does not apply!***\n",mode, MODE_IS_GROUP);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if ( mode & MODE_PROCTREE ) {
     fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_PROCTREE %d does not apply!***\n",mode, MODE_PROCTREE);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if ( mode & MODE_COUNT ) {
     fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_COUNT %d does not apply!***\n",mode, MODE_PROCTREE);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>=1){ fprintf(stdout," has domain %d\n", domain); fflush(stdout); }
   options.domain.domain = domain;
@@ -406,12 +408,12 @@ hpm_set_program_mythread()
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_program_mythread()\n");fflush(stdout);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_set_program_mythread() called before hpm_init()!***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if((rc = PAPI_add_events(&EventSet,set_program.events,set_program.n_events)) != PAPI_OK){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_set_program_mythread() PAPI_add_events failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>=1)printf("hpm.hpm_set_program_mythread() print options: event set %d, domain %d\n",
                      options.domain.eventset,options.domain.domain);
@@ -427,7 +429,7 @@ int
 hpm_set_program_mygroup() 
 {
   if(debug>0) printf("hpm.hpm_set_program_mygroup() not implemented \n");
-  exit(ERROR_CODE);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   set_event_enabled = 1;
   return (OK_CODE);
 }
@@ -450,7 +452,7 @@ hpm_get_event_id(int counter)
     fprintf(stderr,
             "\n***hpm.hpm_get_event_id(%d) called with counter value %d > number of events %d!***\n",
 	    counter, counter, set_program.n_events);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   evid = set_program.events[counter];  // event number
   if(evid==0){
@@ -477,12 +479,12 @@ hpm_get_event_short_name(int counter)
   if (counter >= set_program.n_events) {
     fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) called with counter value %d > number of events %d!***\n",
 	    counter, counter, set_program.n_events);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (counter >= set_program.n_events) {
     fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) counter value %d > set_program.n_events %d!***\n",
 	    counter, counter, set_program.n_events);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   name = set_program.short_names[counter]; 
@@ -507,7 +509,7 @@ hpm_delete_program_mythread()
   if((rc = PAPI_cleanup_eventset(&EventSet)) != PAPI_OK){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_delete_program_mythread() PAPI_cleanup_eventset failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   set_event_enabled = 0;
   return (OK_CODE);
@@ -519,7 +521,7 @@ int
 hpm_delete_program_mygroup() 
 {
   printf("hpm.hpm_delete_program_mygroup() not implemented\n");
-  exit(ERROR_CODE);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   set_event_enabled = 0;
   return OK_CODE;
 }
@@ -539,7 +541,7 @@ hpm_get_program_mythread()
   if((rc = PAPI_get_opt(PAPI_GET_DOMAIN,&get_options)) != PAPI_OK){
       PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
       fprintf(stderr,"***hpm.hpm_get_program_mythread() PAPI_get_opt failed: %s!***\n",errstring);
-      exit(ERROR_CODE);
+      exit(EXIT_STATUS_HPM_TROUBLE);
   }
   return (OK_CODE);
  
@@ -551,7 +553,7 @@ int
 hpm_get_program_mygroup() 
 {
   fprintf(stderr,"hpm.hpm_get_program_mygroup() not implemented");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return (OK_CODE);
 }
 
@@ -567,7 +569,7 @@ hpm_start_mythread()
   if((rc = PAPI_start(EventSet)) != PAPI_OK){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_start_mythread() PAPI_start failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   get_data_enabled = 0;
   return(OK_CODE);
@@ -580,7 +582,7 @@ int
 hpm_start_mygroup() 
 {
   fprintf(stderr,"***hpm.hpm_start_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return OK_CODE;
 }
 
@@ -598,7 +600,7 @@ hpm_stop_mythread() {
   if ( (rc = PAPI_stop(EventSet,values)) != PAPI_OK) {
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_stop_mythread() PAPI_stop failed: %s!***\n",errstring);
-    //    exit(ERROR_CODE);
+    //    exit(EXIT_STATUS_HPM_TROUBLE);
     return(ERROR_CODE);
   }
   return OK_CODE;
@@ -614,7 +616,7 @@ int
 hpm_stop_mygroup() 
 {
   fprintf(stdout,"***hpm.hpm_stop_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return OK_CODE;
 }
 
@@ -632,7 +634,7 @@ hpm_reset_mythread()
   if ( (rc = PAPI_reset(EventSet)) != PAPI_OK) {
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_reset_mythread() PAPI_reset failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 	return OK_CODE;
 
@@ -645,7 +647,7 @@ int
 hpm_reset_mygroup()
 {
   fprintf(stderr,"***hpm.hpm_reset_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return(OK_CODE);
 }
 /*
@@ -662,7 +664,7 @@ hpm_get_mythread()
   if((rc = PAPI_read(EventSet,mydata)) != PAPI_OK){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_get_mythread() PAPI_read failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   get_data_enabled = 1;
   return n_counters; 
@@ -671,7 +673,7 @@ int
 hpm_get_mygroup()
 {
   fprintf(stderr,"***hpm.hpm_get_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return 0; 
 }
 int
@@ -683,7 +685,7 @@ hpm_get_counters()
   if((rc = PAPI_read(EventSet,mydata)) != PAPI_OK){
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_get_counters() PAPI_read failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   get_data_enabled = 1;
   return n_counters;
@@ -703,7 +705,7 @@ hpm_get_counter_mythread(int counter)
   long long value;
   if ( (counter < 0) || (counter > set_program.n_events) ) {
      fprintf(stderr, "\n***hpm.hpm_get_counter(%d): Invalid counter!***\n",counter);
-     exit(ERROR_CODE);
+     exit(EXIT_STATUS_HPM_TROUBLE);
   }
   /* eliminate caching for time experiment */
   if (get_data_enabled == 0) { 
@@ -722,7 +724,7 @@ long long
 hpm_get_counter_mygroup(int counter)
 {
   fprintf(stderr,"***hpm.hpm_get_counter_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return 0;
 }
 
@@ -784,7 +786,7 @@ hpm_print_mythread()
   /* print the results */
   if(hpm_get_program_mythread()==ERROR_CODE){
     perror("***hpm.hpm_print_mythread() hpm_get_program_mythread failed!  Never expect to be here***\n");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   hpm_print_header(get_options.domain.domain, 0);
   //print_header(options.domain.domain, 0);
@@ -800,7 +802,7 @@ int
 hpm_print_mygroup() 
 {
   fprintf(stderr,"***hpm.hpm_print_mygroup() not implemented!***\n");
-  exit(-1);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return(OK_CODE);	
 }
 
@@ -827,7 +829,7 @@ int*
 hpm_get_group_event_list(int group_num)
 {
   fprintf(stderr,"***hpm.hpm_get_group_event_list(%d) not implemented!***\n",group_num);
-  exit(ERROR_CODE);
+  exit(EXIT_STATUS_HPM_TROUBLE);
   return NULL;
 }
 
@@ -852,7 +854,7 @@ void
 hpm_print_group_events(int group_num)
 {
   fprintf(stderr,"hpm.hpm_print_group_events(%d) not implemeted~***\n",group_num);
-  exit(ERROR_CODE);
+  exit(EXIT_STATUS_HPM_TROUBLE);
 }
 
 int

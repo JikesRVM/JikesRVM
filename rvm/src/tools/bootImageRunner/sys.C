@@ -3603,7 +3603,7 @@ extern "C" void
 gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 //#ifndef __linux__
 //  printf("I am not Linux!");
-//  exit(1);
+//     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 //#endif __linux__
   if (GCSPY_TRACE)
     fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
@@ -3611,8 +3611,8 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
   int res = pthread_create(&tid, NULL, 
 		       (pthread_start_routine_t) loop,  server);
   if (res != 0) {
-    printf("Couldn't create thread.\n");
-    exit(1);
+      fprintf(SysErrorFile,"Couldn't create thread.\n");
+      exit(EXIT_STATUS_MISC_TROUBLE);
   }
 
   if(wait) {

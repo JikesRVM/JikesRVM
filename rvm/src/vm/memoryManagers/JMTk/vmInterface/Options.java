@@ -229,7 +229,7 @@ public final class Options {
       o = o.getNext();
     }
 
-    VM.sysExit(1);
+    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }    
 
   /**

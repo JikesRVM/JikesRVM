@@ -303,7 +303,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             if (ret < 0) {
                 fprintf(stderr, "%s: Internal error processing the argument"
                         " \"%s\"\n", Me, token);
-                exit(1);
+                exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
             }
             if ((unsigned) ret >= bufsiz) {
                 fprintf(SysTraceFile, "%s: \"%s\": %ld is too big a number"
@@ -591,9 +591,8 @@ main(int argc, const char **argv)
     int ret = createVM(0);
     assert(ret == 1);           // must be 1 (error status for this func.)
     
-  
     fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
-    exit(1);
+    exit(EXIT_STATUS_MISC_TROUBLE);
 }
 
 

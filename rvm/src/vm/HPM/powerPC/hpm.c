@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  *
  * $Id$
  *
@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hpm.h"
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
 
 pm_info_t Myinfo;	/* machine specific services */
 
@@ -94,7 +96,7 @@ hpm_get_number_of_counters()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_number_of_counters() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   return Myinfo.maxpmcs;
 }
@@ -107,7 +109,7 @@ hpm_get_number_of_events()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_number_of_events() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   return Myinfo.maxpmcs;
 }
@@ -120,7 +122,7 @@ hpm_get_processor_name()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_get_processor_name() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   return Myinfo.proc_name;
 }
@@ -140,7 +142,7 @@ hpm_isPower4()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.isPower4() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (strcmp(Myinfo.proc_name,"POWER4") == 0) {
     return 1;
@@ -155,7 +157,7 @@ hpm_isPower3II()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.isPower3II() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (strcmp(Myinfo.proc_name,"POWER3-II") == 0) {
     return 1;
@@ -170,7 +172,7 @@ hpm_isPower3()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.isPower3() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (strcmp(Myinfo.proc_name,"POWER3") == 0) {
     return 1;
@@ -185,7 +187,7 @@ hpm_isRS64III()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.isRS64-III() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if (strcmp(Myinfo.proc_name,"RS64-III") == 0) {
     return 1;
@@ -200,7 +202,7 @@ hpm_is604e()
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.is604e() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(strcmp(Myinfo.proc_name,"604e") == 0) {
     return 1;
@@ -237,7 +239,7 @@ hpm_set_event(int e1, int e2, int e3, int e4)
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_event(%d,%d,%d,%d)\n",e1,e2,e3,e4);fflush(stdout);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm_set_event() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   /* TODO: map enumeration to mnemonic and 
    * index mnemonic into Myinfo structure to 
@@ -406,7 +408,7 @@ hpm_set_program_mythread()
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_setting()\n");fflush(stdout);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_set_setting() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if ( (rc = pm_set_program_mythread(&set_program)) != OK_CODE) {
     pm_error("hpm_set_program_mythread: pm_set_program_mythread ", rc);
@@ -424,7 +426,7 @@ hpm_set_program_mygroup()
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_group_setting()\n");fflush(stdout);}
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_set_group_setting() called before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if ( (rc = pm_set_program_mygroup(&set_program)) != OK_CODE) {
     pm_error("hpm_set_program_mygroup: pm_set_program_mygroup ", rc);
@@ -449,13 +451,13 @@ hpm_get_event_id(int counter)
   /*
   //  if(set_event_enabled==0) {
   //    fprintf(stderr,"***hpm.hpm_get_event_id(%d) called before hpm_set_event()!***\n",counter);
-  //    exit(-1);
+  //    exit(EXIT_STATUS_HPM_TROUBLE);
   //  }
   */
   if (Myinfo.maxpmcs <= counter) {
     fprintf(stderr,"***hpm.hpm_get_event_id(%d) called with counter value %d > max counters %d!***",
 	    counter, counter, Myinfo.maxpmcs);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   evid = set_program.events[counter];  // event number
   return evid;
@@ -476,7 +478,7 @@ hpm_get_event_short_name(int counter)
   if (Myinfo.maxpmcs <= counter) {
     fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) called with counter value %d > max counters %d!***",
 	    counter, counter, Myinfo.maxpmcs);
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
   if(debug>=1)fprintf(stdout,"hpm.hpm_get_event_short_name(%d)\n",counter);
   if (set_program.mode.b.is_group) {
@@ -787,7 +789,7 @@ hpm_list_all_events()
 
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_list_all_events() called  before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   n_counters = Myinfo.maxpmcs;
@@ -939,7 +941,7 @@ hpm_list_selected_events()
 
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_list_selected_events() called  before hpm_init()!***");
-    exit(-1);
+    exit(EXIT_STATUS_HPM_TROUBLE);
   }
 
   if ( (rc = pm_get_program_mythread(&get_program)) != OK_CODE)
