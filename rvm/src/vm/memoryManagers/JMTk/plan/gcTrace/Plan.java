@@ -46,6 +46,37 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * for GC trace generation.  To maximize performance, it attempts to remain
  * as faithful as possible to semiSpace/Plan.java.
  *
+ * The generated trace format is as follows:
+ *    B 345678 12
+ *      (Object 345678 was created in the boot image with a size of 12 bytes)
+ *    U 59843 234 47298
+ *      (Update object 59843 at the slot at offset 234 to refer to 47298)
+ *    S 1233 12345
+ *      (Update static slot 1233 to refer to 12345)
+ *    T 4567 78924
+ *      (The TIB of 4567 is set to refer to 78924)
+ *    D 342789
+ *      (Object 342789 became unreachable)
+ *    A 6860 24 346648 3
+ *      (Object 6860 was allocated, requiring 24 bytes, with fp 346648 on
+ *        thread 3; this allocation has perfect knowledge)
+ *    a 6884 24 346640 5
+ *      (Object 6864 was allocated, requiring 24 bytes, with fp 346640 on
+ *        thread 5; this allocation DOES NOT have perfect knowledge)
+ *    I 6860 24 346648 3
+ *      (Object 6860 was allocated into immortal space, requiring 24 bytes,
+ *        with fp 346648 on thread 3; this allocation has perfect knowledge)
+ *    i 6884 24 346640 5
+ *      (Object 6864 was allocated into immortal space, requiring 24 bytes,
+ *        with fp 346640 on thread 5; this allocation DOES NOT have perfect
+ *        knowledge)
+ *    48954->[345]LObject;:blah()V:23   Ljava/lang/Foo;
+ *      (Citation for: a) where the was allocated, fp of 48954,
+ *         at the method with ID 345 -- or void Object.blah() -- and bytecode
+ *         with offset 23; b) the object allocated is of type java.lang.Foo)
+ *    D 342789 361460
+ *      (Object 342789 became unreachable after 361460 was allocated)
+ *
  * This class implements a simple semi-space collector. See the Jones
  * & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
@@ -175,7 +206,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
     addSpace(LOW_SS_SPACE, "Lower Semi-Space");
     addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
-    addSpace(TRACE_SPACE, "Trace space");
+    addSpace(LOS_SPACE, "LOS Space");
+    addSpace(TRACE_SPACE, "Trace Space");
     /* DEFAULT_SPACE is logical and does not actually exist */
   }
 
@@ -191,7 +223,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public static final void boot() throws VM_PragmaInterruptible {
+  public static final void boot() { 
     StopTheWorldGC.boot();
   }
 
@@ -217,7 +249,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param align The requested alignment.
    * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address alloc(int bytes, int align, int offset, int allocator)
@@ -287,7 +318,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes) {
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes) 
+    throws VM_PragmaInline {
     CopyingHeader.clearGCBits(ref);
   } // do nothing
 
@@ -684,12 +716,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int locationMetadata,
-                                 int context) 
+                                 VM_Address tgt, int metaDataA, 
+				 int metaDataB, int mode) 
     throws VM_PragmaInline {
     TraceGenerator.processPointerUpdate(context == PUTFIELD_WRITE_BARRIER,
                                         src, slot, tgt);
-    VM_Magic.setMemoryAddress(slot, tgt, locationMetadata);
+    VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB,
+				       mode);
   }
 
   /**
