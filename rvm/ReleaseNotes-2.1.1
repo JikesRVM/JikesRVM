@@ -1,0 +1,34 @@
+This is release 2.1.1 of the Jikes RVM. The main purpose of
+this release is bug fixes.
+
+IMPORTANT NOTE: We are aware of a bug in the IBM DK for 
+  Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
+  version v1.3.0 until this bug can be resolved.
+
+Highlights of this release include:
+ - Introduction of a new method-level runtime exception 
+   pragma mechanism, contributed by Chapman Flack.  The 
+   system now relies on this mechanism for method-level 
+   pragmas for uninterruptibility and inlining directives.
+ - Stricter enforcement of uninterruptibility rules.
+ - Improvements to SSA optimization package to reduce 
+   register pressure.  These changes make O2 profitable
+   for use by the adaptive system on IA32.
+
+NOTE: VM_Magic.pragmaInline and VM_Magic.pragmaNoInline 
+are deprecated, and will not be supported in the 2.1.2 
+release.  Migrate code to use the new runtime exception
+pragma mechanism.
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool and CVS 
+history.  The following bugs in version 2.1.0 are 
+fixed in 2.1.1: 
+  2094: PPC: frem and drem incorrect
+  2104: don't put <clinit> method for bootimage classes 
+        in bootimage
+  2916: Race condition: installing code and invalidation 
+        of speculative opts
+  2938: jazzlib documentation in userguide
+  2949: OptAdaptive hangs on SPECjbb2000
+  2988: VM_Lock.allocate can result in threadswitch
