@@ -19,37 +19,37 @@ Objects are logically composed of two primary sections: an object
 header (described in more detail below) and the object's instance
 fields (or array elements). 
 
-The Jikes RVM object model is governed by the following criteria:
-\begin{description}
-\item{}
+The following non-functional requirements govern the Jikes RVM object model:
+\begin{itemize}
+\item
 instance field and array accesses should be as fast as possible,
-\item{}
+\item
 null-pointer checks should be performed by the hardware if possible, 
-\item{}
+\item
 virtual method dispatch should be fast,
-\item{}
+\item
 other (less frequent) Java operations should not be prohibitively
 slow, and
-\item{}
-per object storage overhead (ie object header size) should be as small
+\item
+per-object storage overhead (ie object header size) should be as small
 as possible.
-\end{description}
+\end{itemize}
 
 \index{field access}
 \index{array access}
-Assuming the reference to an object is in a register, the object's
-fields can be accessed at a fixed displacement in a single
+Assuming the reference to an object resides in a register, compiled code can 
+access the object's fields at a fixed displacement in a single
 instruction.  To facilitate array access, the reference to an array
 points to the first (zeroth) element of an array and the remaining
 elements are laid out in ascending order.  The number of elements in
-an array, its {\em length}, is kept just before its first
-element. Thus, elements of the array can be easily accessed via base +
+an array, its {\em length}, resides just before its first
+element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
 \index{NullPointerException}
 The Java programming language requires that an attempt to access an
 object through a {\tt null} 
-object reference generate a NullPointerException.  In the Jikes RVM, references
+object reference generates a {\tt NullPointerException}.  In Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX\AIXTMFootnote\ operating system permits loads from low memory,
 but accesses 
@@ -113,17 +113,11 @@ and
 \xlink{{\tt VM\_MiscHeader.java}}{\VMMiscHeaderURL}, which supports
 adding additional fields to all objects. 
 
-As of Jikes RVM 2.1.0, there are four implementations of 
-\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL} that can be
-choosen at build time.  Not all implementions will work with all memory
-managers!  One (``default'') implementation defines a two word java
-header and works with all memory managers. The other three define one
-word java headers.  All three work with the markSweep allocator; two
-of the three ({\tt oneWordMaskTIB} and {\tt oneWordIndexTIB}) work
-with the semispace allocator.  Currently none of the one word java
-headers have been tested with any other memory manager, although it should
-be fairly straightforward to get either {\tt oneWordMaskTIB} or {\tt
-oneWordIndexTIB} to work with any of the Jikes RVM memory managers. 
+As of Jikes RVM 2.2.1, the system supports only one implementation
+\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL}; 
+defining a two-word header for scalar objects.  The source tree includes
+three other object models which are currently unsupported, but may be
+resurrected in a future release.
 
 \JavaTMFooter
 
@@ -134,11 +128,11 @@ oneWordIndexTIB} to work with any of the Jikes RVM memory managers.
 \index{JTOC}
 \index{TIB}
 A compiled method body is an array of machine instructions (stored as
-{\tt int}s). 
-While the pointers for static fields and methods are stored in the 
-{\em JikesRVM Table of Contents} (JTOC),
-pointers for instance fields and virtual methods are stored in the class's TIB.
-Consequently the dispatch mechanism is different for static and virtual 
+ints on PowerPC and bytes on IA32). 
+The {\em Jikes RVM Table of Contents} (JTOC),
+stores pointers to static fields and methods.  However, 
+pointers for instance fields and virtual methods are stored in the receiver 
+class's TIB.  Consequently the dispatch mechanism differs for static and virtual 
 methods.
 
 \paragraph{The JTOC}
@@ -155,9 +149,9 @@ methods.
 \index{literals}
 \index{constants}
 \index{dynamic type checking}
-All of Jikes\trademark RVM's global data structures are stored in the JTOC. 
-Literals, numeric
-constants and references to String constants, are also stored there.
+The JTOC holds pointers to 
+each of Jikes\trademark RVM's global data structures, as well as
+literals, numeric constants and references to String constants.
 The JTOC also
 contains references to the TIB for each class in the system.  
 Since these 
@@ -180,41 +174,40 @@ branch and link to it.
 
 \paragraph{Static Fields and Methods} 
 \index{static methods}
-Static fields and methods are stored in the JTOC. Static method dispatch is 
-simpler than virtual dispatch requiring only that the offset of method in the 
-JTOC be read to find the address of the method. 
+Static fields and pointers to static method bodies are stored in the JTOC. 
+Static method dispatch is simpler than virtual dispatch, since 
+a well-known JTOC entry method holds the address of the compiled method
+body. 
 
 \paragraph{Lazy Method Compilation}
 \index{lazy method compilation}
 \index{deferred compilation}
 \index{lazy method invocation stub}
-The slots in the TIB or the JTOC may be filled in with 
-a pointer to the compiled code for the method itself or if lazy method 
-compilation is enabled and the method has not yet been compiled 
-it may be filled in with
-a pointer to the compiled code of the {\em lazy method invocation stub}.
-If the lazy method invocation stub is invoked its action is to compile the 
-method, substitute a pointer to the compiled code of the method in the slot in
-the TIB or the JTOC from which it was invoked and then 
-cause execution to jump to the start of the compiled method. 
+Method slots in a TIB or the JTOC may hold either
+a pointer to the compiled code, 
+or a pointer to the compiled code of the {\em lazy method invocation stub}.
+When invoked, the lazy method invocation stub compiles the 
+method, installs a pointer to the compiled code in the appropriate
+TIB or the JTOC slot, then 
+jumps to the start of the compiled code. 
 
 \paragraph{Interface Methods}
 \index{interface methods}
 \index{IMT}
 \index{conflict resolution stub}
-Regardless of whether or not a method is overridden in a class that inherits it
-virtual method dispatch is still very simple since the method body will be at
-the same offset in the TIB in its defining class and in every class that 
-inherits from it. 
-However, where the method is an interface method, 
-that is where it is invoked through an {\tt invoke\_interface} call rather than
-an {\tt invoke\_virtual call}, its offset is not the same for every class that 
-implements its interface and dispatch is more difficult.
+Regardless of whether or not a virtual method is overridden,
+virtual method dispatch is still simple since the method will occupy 
+the same TIB offset its defining class and in every sub-class.
+However, a method invoked through an {\tt invokeinterface} call rather than
+an {\tt invokevirtual call}, will not occupy the same TIB offset in every class that 
+implements its interface.  This complicates dispatch for {\tt
+invokeinterface}.
+
 The simplest, and least efficient way, of locating an interface method 
-is to search all the virtual method entries in the TIB until a match is found.
-Another way uses an {\em Interface Method Table} (IMT) which is much like the 
-TIB. Any method that could be an interface method has a fixed offset into the 
-IMT just as with the TIB. However, unlike in the TIB, two different methods may
+is to search all the virtual method entries in the TIB finding a match.
+Instead, Jikes RVM uses an {\em Interface Method Table} (IMT) which resembles
+a virtual method table for interface methods. Any method that could be an interface method has 
+a fixed offset into the IMT just as with the TIB. However, unlike in the TIB, two different methods may
 share the same offset into the IMT. In this case, a {\em conflict resolution
 stub} is inserted in the IMT. Conflict resolution stubs are
 custom-generated machine code sequences that test the value of a
@@ -239,7 +232,7 @@ This section describes register, stack, and calling conventions that apply to
 Jikes RVM on PowerPC\PowerPCTMFootnote.
 
 Stackframe layout and calling conventions may evolve as our understanding
-of the Jikes RVM's performance improves.  Where possible API's should be used
+of Jikes RVM's performance improves.  Where possible API's should be used
 to protect code against such changes.  In particular, we may move to
 the AIX conventions at a later date.  Where code differs from the AIX
 conventions, it should be marked with a comment to that effect containing
@@ -258,7 +251,7 @@ categorized into four types:
 \item[Dedicated]
      Reserved registers with known contents:
 \begin{description}
-\item [JTOC - JikesRVM Table Of Contents]
+\item [JTOC - Jikes RVM Table Of Contents]
         Globally accessible data: constants, static fields and methods.
 
 \item [FP - Frame Pointer]
@@ -273,10 +266,10 @@ categorized into four types:
         An object representing the current virtual processor (the one
         executing on the CPU containing these registers).  A field in
         this object contains a reference to the object representing
-        the VM\_Thread being executed.
+        the {\tt VM\_Thread} being executed.
 \end{description}
 
-\item [volatile ("caller save", or "parameter")]
+\item [Volatile ("caller save", or "parameter")]
      Like scratch registers these can be used by the compiler as
      temporaries, but they are not preserved across calls.  (Volatile
      registers differ from scratch registers in that volatiles
@@ -316,12 +309,12 @@ The layout of the stackframe appears in a block comment in
     All parameters (that fit) are passed in VOLATILE registers.  Object
     reference and int parameters (or results) consume one GP register; long
     parameters, two gp registers (low-order half in the first);  float and
-    double parameters, one fp registers.  Parameters are 
+    double parameters, one fp register.  Parameters are 
     assigned to registers
     starting with the lowest volatile register through the highest volatile
-    register to the highest nonvolatile of the required kind (gp or fp).
+    register of the required kind (gp or fp).
 
-    Any additional parameters are passed on the stack in an parameter spill
+    Any additional parameters are passed on the stack in a parameter spill
     area of the caller's stack frame.  The first spilled parameter occupies
     the lowest memory slot.  Slots are filled in the order that parameters
     are spilled.
@@ -348,7 +341,7 @@ The layout of the stackframe appears in a block comment in
 
 \item Store callee's compiled method ID 
 
-\item Check to see if the Java\trademark thread must yield the VM\_Processor
+\item Check to see if the Java\trademark thread must yield the {\tt VM\_Processor}
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
@@ -372,9 +365,7 @@ ommitted for leaf methods):
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that
-apply to Jikes RVM on Linux/IA32.  {\em Linux/IA32 conventions are still
-changing; be sure to check the relevant files for the most accurate
-information!}
+apply to Jikes RVM on Linux/IA32.  
 
 \noindent{\bf Register conventions}
 
@@ -480,7 +471,7 @@ superinterfaces have been loaded as well.
 
 \paragraph{Resolved}
 In this state the superclass and superinterfaces of this class have
-resolved as well.  A list of the virtual methods and instance fields
+been resolved as well.  A list of the virtual methods and instance fields
 of this class, including the methods and fields inherited from its
 superclass has been constructed and the offsets for the instance
 fields have been calculated.  Space has been allocated in the JTOC for
@@ -489,10 +480,11 @@ appropriate offsets calculated.  The TIB has been initialized and
 offsets for the virtual methods have been calculated.
 
 \paragraph{Instantiated}
-In this state the superclass of this state has been instantiated.  The
-slots in the TIB are filled in with pointers to the compiled code for
+In this state the superclass has been instantiated.  The
+slots in the TIB are filled in with pointers to compiled code or lazy
+compilation stubs for
 the virtual methods.  The slots in the JTOC are filled in with
-pointers to the compiled code for the static methods.
+pointers to compiled code or lazy compilation stubs for the static methods.
 
 \paragraph{Initializing} 
 \index{class initializer}
