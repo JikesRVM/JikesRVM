@@ -109,7 +109,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	String methodName = mths[i].getName().toString();
 	int jniIndex = indexOf(methodName);
 	if (jniIndex!=-1) {
-	  JNIFunctions[jniIndex] = mths[i].getMostRecentlyGeneratedInstructions();
+	  JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
 	  // VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex]));
 	} 
       }

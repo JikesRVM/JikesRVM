@@ -24,8 +24,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  VM_Compiler(VM_Method m, int cmid) {
-    super(m, cmid);
+  VM_Compiler(VM_CompiledMethod cm) {
+    super(cm);
     if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
     if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
@@ -2720,7 +2720,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     
     // Fill in frame header.
     //
-    asm.emitLVAL(S0, compiledMethodId);
+    asm.emitLVAL(S0, compiledMethod.getId());
     asm.emitMFLR(0);
     asm.emitST  (S0, STACKFRAME_METHOD_ID_OFFSET, FP);                   // save compiled method id
     asm.emitST  (0, frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // save LR !!TODO: handle discontiguous stacks when saving return address

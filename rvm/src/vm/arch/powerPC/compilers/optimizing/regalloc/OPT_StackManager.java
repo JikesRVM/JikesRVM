@@ -512,7 +512,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     if (yp) {
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(S1), I(0))); // 6
     }
-    int cmid = ir.compiledMethodId;
+    int cmid = ir.compiledMethod.getId();
     if (cmid <= 0x7fff) {
       ptr.insertBefore(MIR_Unary.create(PPC_LDI, R(S1), I(cmid))); // 7
     } else {
@@ -601,7 +601,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 			I(frameSize+STACKFRAME_NEXT_INSTRUCTION_OFFSET))));
     
     // Store cmid
-    int cmid = ir.compiledMethodId;
+    int cmid = ir.compiledMethod.getId();
     if (cmid <= 0x7fff) {
       ptr.insertBefore(MIR_Unary.create(PPC_LDI, R(R0), I(cmid)));
     } else {

@@ -65,9 +65,9 @@ abstract class VM_BaselineCompiler {
   protected int biStart; 
 
   /**
-   * The compiledMethodId assigned to this compilation of method
+   * The compiledMethod assigned to this compilation of method
    */
-  protected int compiledMethodId;
+  protected VM_CompiledMethod compiledMethod;
 
   /** 
    * The height of the expression stack at the start of each bytecode.
@@ -94,9 +94,9 @@ abstract class VM_BaselineCompiler {
   /**
    * Construct a VM_Compiler
    */
-  protected VM_BaselineCompiler(VM_Method m, int cmid) {
-    method = m;
-    compiledMethodId = cmid;
+  protected VM_BaselineCompiler(VM_CompiledMethod cm) {
+    compiledMethod = cm;
+    method = cm.getMethod();
     shouldPrint  = ((options.PRINT_MACHINECODE) &&
 		    (!options.hasMETHOD_TO_PRINT() ||
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
@@ -167,15 +167,18 @@ abstract class VM_BaselineCompiler {
    * @return the generated VM_CompiledMethod for said VM_Method.
    */
   public static synchronized VM_CompiledMethod compile (VM_Method method) {
-    int cmid = VM_CompiledMethods.createCompiledMethodId();
     if (method.isNative()) {
-      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(cmid, method);
+      VM_CompiledMethod cm = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.JNI);
+      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(cm);
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
-      return new VM_CompiledMethod(cmid, method, machineCode.getInstructions(), info);
-    } else if (VM.runningAsJDPRemoteInterpreter) {
-      return new VM_CompiledMethod(cmid, method, null, null);
+      cm.compileComplete(info, machineCode.getInstructions());
+      return cm;
     } else {
-      return new VM_Compiler(method, cmid).compile();
+      VM_CompiledMethod cm = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.BASELINE);
+      if (!VM.runningAsJDPRemoteInterpreter) {
+	new VM_Compiler(cm).compile();
+      }
+      return cm;
     }
   }
 
@@ -183,7 +186,7 @@ abstract class VM_BaselineCompiler {
   /**
    * Top level driver for baseline compilation of a method.
    */
-  protected VM_CompiledMethod compile() {
+  protected void compile() {
     if (options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
     VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, stackHeights);
@@ -198,10 +201,8 @@ abstract class VM_BaselineCompiler {
     } else {
       info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length);
     }
-    return new VM_CompiledMethod(compiledMethodId, method, instructions, info);
+    compiledMethod.compileComplete(info, instructions);
   }
-
-
 
 
   /*

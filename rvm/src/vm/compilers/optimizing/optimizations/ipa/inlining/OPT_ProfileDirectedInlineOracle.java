@@ -41,11 +41,11 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       VM_Method callee = targets[0];
       VM_Method computedTarget = state.getComputedTarget();
       if (computedTarget != null && callee != computedTarget) {
-	recordRefusalToInlineHotEdge(state.getCompiledMethodId(), caller, bcX, callee);
+	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
       }
       if (!viableCandidate(caller, callee, state)) {
-	recordRefusalToInlineHotEdge(state.getCompiledMethodId(), caller, bcX, callee);
+	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
       }
       if (computedTarget != null) {
@@ -64,7 +64,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  return OPT_InlineDecision.guardedYES(callee, guard,
 					       "AI: guarded inline of hot edge");
 	} else {
-	  recordRefusalToInlineHotEdge(state.getCompiledMethodId(), caller, bcX, callee);
+	  recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	  return OPT_InlineDecision.NO("AI: guarded inlining disabled");
 	}
       } else {
@@ -82,7 +82,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  }
 	}
 	for (int i=0; i<targets.length; i++) {
-	  recordRefusalToInlineHotEdge(state.getCompiledMethodId(), caller, bcX, targets[i]);
+	  recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
 	}
 	return OPT_InlineDecision.NO("AI: multiple hot edges, but none match computed target");
       } else {
@@ -93,7 +93,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  if (viableCandidate(caller, targets[i], state)) {
 	    viable++;
 	  } else {
-	    recordRefusalToInlineHotEdge(state.getCompiledMethodId(), caller, bcX, targets[i]);
+	    recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
 	    targets[i] = null;
 	  }
 	}
@@ -164,7 +164,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 					    " into "+caller+"\n");
 	  }
 	  VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-					      state.getCompiledMethodId());
+					      state.getCompiledMethod());
 	  return false;
 	}
       }
@@ -189,7 +189,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     return null; // placate jikes.
   }
 
-  protected void recordRefusalToInlineHotEdge(int cmid, VM_Method caller, int bcX, VM_Method callee) {
+  protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
     // by default; nothing to do
   }
 

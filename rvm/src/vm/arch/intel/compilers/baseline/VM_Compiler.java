@@ -17,8 +17,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  VM_Compiler(VM_Method m, int cmid) {
-    super(m, cmid);
+  VM_Compiler(VM_CompiledMethod cm) {
+    super(cm);
     stackHeights = new int[bytecodes.length];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
   }
@@ -2376,7 +2376,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (shouldPrint) asm.comment("prologue for " + method);
     if (klass.isBridgeFromNative()) {
       // replace the normal prologue with a special prolog
-      VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method, compiledMethodId);
+      VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method, compiledMethod.getId());
       // set some constants for the code generation of the rest of the method
       // firstLocalOffset is shifted down because more registers are saved
       firstLocalOffset = STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE) ;
@@ -2405,7 +2405,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       /*
        * NOTE: until the end of the prologue SP holds the framepointer.
        */
-      asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId);	// 3rd word of header
+      asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethod.getId());	// 3rd word of header
       
       /*
        * save registers

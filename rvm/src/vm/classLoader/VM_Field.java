@@ -12,7 +12,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
+public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   //-----------//
   // Interface //
   //-----------//

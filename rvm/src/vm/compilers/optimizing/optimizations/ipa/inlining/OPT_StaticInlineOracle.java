@@ -55,7 +55,7 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 					  + callee + " into " + caller + "\n");
 	}
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-							    state.getCompiledMethodId());
+							    state.getCompiledMethod());
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
       } else 
 

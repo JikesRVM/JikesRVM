@@ -35,26 +35,25 @@ final class OPT_ClassLoadingDependencyManager {
   // Entrypoints for the opt compiler to record dependencies
   /////////////////////////
   /** 
-   * Record that the code currently being compiled (cmid) must be 
+   * Record that the code currently being compiled (cm) must be 
    * invalidated if source is overridden.
    */
-  public void addNotOverriddenDependency(VM_Method source, int cmid) {
-    if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
+  public synchronized void addNotOverriddenDependency(VM_Method source, VM_CompiledMethod cm) {
     if (VM.VerifyAssertions) VM.assert(VM.runningVM, "pre-existance not supported for boot image");
+    int cmid = cm.getId();
     if (TRACE || DEBUG)
-      report("CLDM: " + cmid + " is dependent on " + source + " not being overridden\n");
+      report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not being overridden\n");
     db.addNotOverriddenDependency(source, cmid);
   }
 
   /**
-   * Record that the code currently being compiled (cmid) must be 
+   * Record that the code currently being compiled (cm) must be 
    * invalidated if source ever has a subclass.
    */
-  public void addNoSubclassDependency(VM_Class source, int cmid) {
-    if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
+  public void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
+    int cmid = cm.getId();
     if (TRACE || DEBUG)
-      report("CLDM: " + cmid + " is dependent on " + source + 
-          " not having a subclass\n");
+      report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not having a subclass\n");
     db.addNoSubclassDependency(source, cmid);
   }
 
@@ -126,19 +125,29 @@ final class OPT_ClassLoadingDependencyManager {
     VM_Method m = cm.getMethod();
     if (TRACE || DEBUG)
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
-    // (1) Blow away information about this now invalid compiled 
-    //     method being held on the VM_Method
-    m.clearMostRecentCompilation();
 
-    // (2) Reset all jtoc or TIB entries that point to the 
-    //     now invalid compiled method.
-    m.getDeclaringClass().resetMethod(cm);
+    // (1) Mark the compiled method as invalid.
+    synchronized(cm) {
+      if (cm.isInvalid()) {
+	if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do\n");
+	return;
+      }
 
-    //-#if RVM_FOR_IA32
-    // (3) Apply any code patches
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
-    info.applyCodePatches(cm);
-    //-#endif
+      //-#if RVM_FOR_IA32
+      // (2) Apply any code patches to protect invocations already executing
+      //     in the soon to be invalid code.
+      VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
+      info.applyCodePatches(cm);
+      //-#endif
+
+      cm.setInvalid();
+    }
+
+    // (3) Inform its VM_Method that cm is invalid;
+    //     This will update all the dispatching entries (TIB, JTOC, IMTs)
+    //     so that no new invocations will reach the invalid compiled code.
+    //     It also marks cm as obsolete so it can eventually be reclaimed by GC.
+    m.invalidateCompiledMethod(cm);
   }
 
   static final boolean DEBUG = false;

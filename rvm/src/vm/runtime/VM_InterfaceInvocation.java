@@ -57,10 +57,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
       VM_Method found  = C.findVirtualMethod(sought.getName(), 
                                              sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
-      if (!found.isCompiled()) {
-	found.compile(); 
-      }
-      return found.getMostRecentlyGeneratedInstructions();
+      return found.getCurrentInstructions();
     }
   }
   
@@ -344,7 +341,8 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	vm = VM_Entrypoints.raiseIllegalAccessError;
       }
       if (vm.isStatic()) {
-	iTable[getITableIndex(I, im)] = vm.compile();
+	vm.compile();
+	iTable[getITableIndex(I, im)] = vm.getCurrentInstructions();
       } else {
 	iTable[getITableIndex(I, im)] = (INSTRUCTION []) tib[vm.getOffset()>>2];
       }
@@ -399,62 +397,14 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 
 
   /**
-   * If there is an an IMT or ITable entry that contains the 
-   * argument compiled method, then set it to contain code
+   * If there is an an IMT or ITable entry that contains 
+   * compiled code for the argument method, then update it to
+   * contain the current compiled code for the method.
    * 
    * @param klass the VM_Class who's IMT/ITable is being reset
-   * @param cm old VM_CompiledMethod that is being replaced.
-   * @param code new INSTRUCTION[] to put in the slot.
+   * @param m the method that needs to be updated.
    */
-  public static void resetTIBEntry(VM_Class klass, VM_CompiledMethod cm, INSTRUCTION[] code) {
-    INSTRUCTION[] old = cm.getInstructions();
-    if (VM.BuildForIMTInterfaceInvocation) {
-      if (VM.BuildForIndirectIMT) {
-	Object[] tib = klass.getTypeInformationBlock();
-        INSTRUCTION[][] IMT = (INSTRUCTION[][])tib[TIB_IMT_TIB_INDEX];
-        if (IMT != null) {
-          for (int i=0; i<IMT.length; i++) {
-            if (IMT[i] == old) {
-              IMT[i] = code;
-            }
-          }
-        }
-      } else {
-	Object[] tib = klass.getTypeInformationBlock();
-        for (int i = TIB_FIRST_INTERFACE_METHOD_INDEX; i < TIB_FIRST_VIRTUAL_METHOD_INDEX; i++) {
-          if (tib[i] == old) {
-            tib[i] = code;
-          }
-        }
-      } 
-    } else if (VM.BuildForITableInterfaceInvocation) {
-      Object[] tib = klass.getTypeInformationBlock();
-      Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
-      if (iTables != null) {
-        for (int i=0; i<iTables.length; i++) {
-          Object[] iTable = (Object[])iTables[i];
-          if (iTable != null) {
-            for (int j=0; j<iTable.length; j++) {
-              if (iTable[j] == old) {
-                iTable[j] = code;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  /**
-   * If there is an an IMT or ITable entry that contains the 
-   * argument compiled method, then set it to contain code
-   * 
-   * @param klass the VM_Class who's IMT/ITable is being reset
-   * @param cm old VM_CompiledMethod that is being replaced.
-   * @param code new INSTRUCTION[] to put in the slot.
-   */
-  public static void resetTIBEntry(VM_Class klass, VM_Method m, INSTRUCTION[] code) {
+  public static void updateTIBEntry(VM_Class klass, VM_Method m) {
     Object[] tib = klass.getTypeInformationBlock();
     if (VM.BuildForIMTInterfaceInvocation) {
       VM_Method[] map = klass.noIMTConflictMap;
@@ -463,9 +413,9 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	  if (map[i] == m) {
 	    if (VM.BuildForIndirectIMT) {
 	      INSTRUCTION[][] IMT = (INSTRUCTION[][])tib[TIB_IMT_TIB_INDEX];
-              IMT[i] = code;
+              IMT[i] = m.getCurrentInstructions();
             } else {
-	      tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = code;
+	      tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentInstructions();
 	    }
 	    return; // all done -- a method is in at most 1 IMT slot
 	  }
@@ -483,7 +433,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
               VM_Method im = interfaceMethods[j];
               if (im.getName() == m.getName() && 
                   im.getDescriptor() == m.getDescriptor()) {
-                iTable[getITableIndex(I, im)] = code;
+                iTable[getITableIndex(I, im)] = m.getCurrentInstructions();
               }
             }
           }
@@ -554,11 +504,13 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	int extSlot = slot + adjust;
 	int count = populationCount(slot);
 	if (count == 0) {
-	  IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.compile();
+	  VM_Entrypoints.raiseAbstractMethodError.compile();
+	  IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.getCurrentInstructions();
 	} else if (count == 1) {
 	  VM_Method target = getSoleTarget(slot);
 	  if (target.isStatic()) {
-	    IMT[extSlot] = target.compile();
+	    target.compile();
+	    IMT[extSlot] = target.getCurrentInstructions();
 	  } else {
 	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>2];
 	    if (klass.noIMTConflictMap == null) {

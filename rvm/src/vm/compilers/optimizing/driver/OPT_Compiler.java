@@ -141,7 +141,7 @@ public class OPT_Compiler {
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
-	  meth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().getCompilerType() != VM_CompilerInfo.OPT) {
+	  meth.getCurrentCompiledMethod().getCompilerInfo().getCompilerType() != VM_CompilerInfo.OPT) {
         OPT_CompilationPlan cp = 
 	  new OPT_CompilationPlan(meth, 
 				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
@@ -220,33 +220,20 @@ public class OPT_Compiler {
     checkSupported(method, options);
     try {
       printMethodMessage(method, options);
-      // Lock out class initialization while the opt compiler is compiling.
-      // This is an attempt to ensure that speculative optimizations don't
-      // get invalidated before the compilation is complete. 
-      // Actually, this doesn't really work, since there is a race condition
-      // after compilation completes, but before the method is installed.
-      // TODO: We'll fix this soon.
-      // This race condition already exisited in the old VM_ClassLoader.lock
-      // synchronization scheme, so we actually haven't made the situation much
-      // worse by pushing the synchronization down to here.  It's just a little more
-      // obvious that the race condition exists now!
-      // This is defect 2916.
-      synchronized (VM_Class.OptCLDepManager) {
-	OPT_IR ir = cp.execute();
-	// Temporary workaround memory retention problems
-	if (!cp.irGeneration) {
-	  cleanIR(ir);
-	}
-	// if doing analysis only, don't try to return an object
-	if (cp.analyzeOnly || cp.irGeneration)
-	  return null;
-	// now that we're done compiling, give the specialization
-	// system a chance to eagerly compile any specialized version
-	// that are pending.  TODO: use lazy compilation with specialization.
-	OPT_SpecializationDatabase.doDeferredSpecializations();
-	return new VM_CompiledMethod(ir.compiledMethodId, ir.method, 
-				     ir.MIRInfo.machinecode, ir.MIRInfo.info);
+      OPT_IR ir = cp.execute();
+      // Temporary workaround memory retention problems
+      if (!cp.irGeneration) {
+	cleanIR(ir);
       }
+      // if doing analysis only, don't try to return an object
+      if (cp.analyzeOnly || cp.irGeneration)
+	return null;
+      // now that we're done compiling, give the specialization
+      // system a chance to eagerly compile any specialized version
+      // that are pending.  TODO: use lazy compilation with specialization.
+      OPT_SpecializationDatabase.doDeferredSpecializations();
+      ir.compiledMethod.compileComplete(ir.MIRInfo.info, ir.MIRInfo.machinecode);
+      return ir.compiledMethod;
     } catch (OPT_OptimizingCompilerException e) {
       throw e;
     } catch (Throwable e) {

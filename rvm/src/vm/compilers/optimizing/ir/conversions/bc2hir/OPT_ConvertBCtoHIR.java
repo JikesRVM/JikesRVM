@@ -11,7 +11,7 @@
 final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
 
   final String getName () { 
-    return  "Generate HIR";
+    return "Generate HIR";
   }
 
   /**
@@ -22,7 +22,7 @@ final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
   final void perform (OPT_IR ir) {
     // Generate the cfg into gc
     OPT_GenerationContext gc = 
-      new OPT_GenerationContext(ir.method, ir.compiledMethodId, 
+      new OPT_GenerationContext(ir.method, ir.compiledMethod, 
 				ir.options, ir.inlinePlan);
     OPT_BC2IR.generateHIR(gc);
     // Transfer HIR and misc state from gc to the ir object
@@ -42,6 +42,6 @@ final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
 
   // This phase contains no instance fields.
   OPT_CompilerPhase newExecution (OPT_IR ir) {
-    return  this;
+    return this;
   }
 }

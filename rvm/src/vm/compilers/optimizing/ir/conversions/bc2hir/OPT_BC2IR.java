@@ -3916,7 +3916,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       new OPT_CompilationState(call, 
 			       gc.localMCSizeEstimate+gc.parentMCSizeEstimate,
 			       computedTarget, isExtant, gc.options, 
-			       gc.original_cmid);
+			       gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
     if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
       OPT_InlineReport.setValues(state);

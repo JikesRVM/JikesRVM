@@ -12,7 +12,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
+public final class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //-----------//
   // Interface //
   //-----------//
@@ -61,7 +61,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   final boolean isCompiled() {
     if (VM.VerifyAssertions) 
       VM.assert(!declaringClass.isLoaded() || isLoaded());
-    return mostRecentlyGeneratedInstructions != null;
+    return currentCompiledMethod != null;
   }
 
   /**
@@ -364,49 +364,67 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     return offset;
   }
 
+
   /**
-   * Generate machine code for this method's bytecodes if we 
-   * haven't already done so.
-   * @return copy of machine code that was generated
+   * Get the current instructions for the given method.
    */
-  final synchronized INSTRUCTION[] compile() {
+  public synchronized INSTRUCTION[] getCurrentInstructions() {
+    if (isCompiled()) {
+      return currentCompiledMethod.getInstructions();
+    } else if (VM.BuildForLazyCompilation && !VM.writingBootImage) {
+      return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+    } else {
+      compile(); 
+      return currentCompiledMethod.getInstructions();
+    }
+  }
+
+  /**
+   * Generate machine code for this method if valid
+   * machine code doesn't already exist. 
+   * Return the resulting VM_CompiledMethod object.
+   * 
+   * @return VM_CompiledMethod object representing the result of the compilation.
+   */
+  final synchronized void compile() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
-    if (isCompiled())
-      return mostRecentlyGeneratedInstructions;
+    if (isCompiled()) return;
 
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.VerifyAssertions)   VM.assert(declaringClass.isResolved());
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
-    if (isAbstract())
-      mostRecentlyGeneratedInstructions = getUnexpectedAbstractMethodInstructions();
-    else if (isNative()
-             && !resolveNativeMethod()
-            )
+    VM_CompiledMethod cm;
+    if (isAbstract()) {
+      VM_Entrypoints.unexpectedAbstractMethodCallMethod.compile();
+      cm = VM_Entrypoints.unexpectedAbstractMethodCallMethod.getCurrentCompiledMethod();
+    } else if (isNative() && !resolveNativeMethod()) {
       // if fail to resolve native, get code to throw unsatifiedLinkError
-      mostRecentlyGeneratedInstructions = getUnexpectedNativeMethodInstructions();
-    else
-    {
-      // generate machine code
+      VM_Entrypoints.unimplementedNativeMethodMethod.compile();
+      cm = VM_Entrypoints.unimplementedNativeMethodMethod.getCurrentCompiledMethod();
+    } else {
+      // Normal case. Compile the method.
       //
-      VM_CompiledMethod compiledMethod;
       if (VM.writingBootImage)
-        compiledMethod = VM_BootImageCompiler.compile(this); // use compiler specified by RVM_BOOT_IMAGE_COMPILER_PATH
+        cm = VM_BootImageCompiler.compile(this); // use compiler specified by RVM_BOOT_IMAGE_COMPILER_PATH
       else if (VM.runningVM)
-        compiledMethod = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
+        cm = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
       else
-        compiledMethod = VM_BaselineCompiler.compile(this);  // use baseline compiler (assumption: we're producing information for debugger)
+        cm = VM_BaselineCompiler.compile(this);  // use baseline compiler (assumption: we're producing information for debugger)
+    }
 
-      // save it away
-      //
-      VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
-      mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
-      mostRecentlyGeneratedCompiledMethod = compiledMethod;
+    // Ensure that cm wasn't invalidated while it was being compiled.
+    
+    synchronized(cm) {
+      if (cm.isInvalid()) {
+	VM_CompiledMethods.setCompiledMethodObsolete(cm);
+      } else {
+	currentCompiledMethod = cm;
+      }
     }
 
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
-    return mostRecentlyGeneratedInstructions;
   }
 
   //----------------------------------------------------------------//
@@ -416,34 +434,55 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //----------------------------------------------------------------//
 
   /**
-   * Get machine code for most recently compiled version of this method.
-   * @return machine instructions
-   */ 
-  public final INSTRUCTION[] getMostRecentlyGeneratedInstructions() {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isCompiled());
-    return mostRecentlyGeneratedInstructions;
-  }
-
-  /**
-   * Get compiled method for most recently compiled version of this method.
+   * Get the current compiled method for this method.
+   * Will return null if there is no current compiled method!
    * @return compiled method
    */ 
-  public final VM_CompiledMethod getMostRecentlyGeneratedCompiledMethod() {
+  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isCompiled());
-    return mostRecentlyGeneratedCompiledMethod;
+    return currentCompiledMethod;
+  }
+
+
+  /**
+   * Change machine code that will be used by future executions of this method 
+   * (ie. optimized <-> non-optimized)
+   * @param compiledMethod new machine code
+   * Side effect: updates jtoc or method dispatch tables 
+   * ("type information blocks")
+   *              for this class and its subclasses
+   */ 
+  public final synchronized void replaceCompiledMethod(VM_CompiledMethod compiledMethod) {
+    if (VM.VerifyAssertions) VM.assert(isLoaded());
+
+    // If we're replacing with a non-null compiledMethod, ensure that is still valid!
+    if (compiledMethod != null) {
+      synchronized(compiledMethod) {
+	if (compiledMethod.isInvalid()) return;
+      }
+    }
+      
+    // Grab version that is being replaced
+    VM_CompiledMethod oldCompiledMethod = currentCompiledMethod;
+    currentCompiledMethod = compiledMethod;
+
+    // Install the new method in jtoc/tib. If virtual, will also replace in
+    // all subclasses that inherited the method.
+    getDeclaringClass().updateMethod(this);
+
+    // Now that we've updated the jtoc/tib, old version is obsolete
+    if (oldCompiledMethod != null) {
+      VM_CompiledMethods.setCompiledMethodObsolete(oldCompiledMethod);
+    }
   }
 
   /**
-   * Side-effect: Erases information about most recent compilation.
+   * If CM is the current compiled code for this, then invaldiate it. 
    */
-  final void clearMostRecentCompilation() {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
-
-    VM_CompiledMethods.setCompiledMethodObsolete(mostRecentlyGeneratedCompiledMethod);
-    mostRecentlyGeneratedInstructions = null;
-    mostRecentlyGeneratedCompiledMethod = null;
+  public final synchronized void invalidateCompiledMethod(VM_CompiledMethod cm) {
+    if (currentCompiledMethod == cm) {
+      replaceCompiledMethod(null);
+    }
   }
 
   /**
@@ -460,7 +499,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    */ 
   final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-
     if (VM.VerifyAssertions) VM.assert(declaringClass.isInstantiated());
     if (VM.VerifyAssertions) VM.assert(exceptionType.isInstantiated());
 
@@ -470,33 +508,29 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     int[] startPCs = exceptionHandlerMap.startPCs;
     int[] endPCs   = exceptionHandlerMap.endPCs;
 
-    for (int i = 0, n = startPCs.length; i < n; ++i)
-    {
+    for (int i = 0, n = startPCs.length; i < n; ++i) {
       // note that "pc" points to a return site (not a call site)
       // so the range check here must be "pc <= beg || pc >  end"
       // and not                         "pc <  beg || pc >= end"
       //
-      if (pc <= startPCs[i] ||
-          pc >  endPCs[i])
+      if (pc <= startPCs[i] || pc >  endPCs[i])
         continue;
 
-      if (exceptionHandlerMap.exceptionTypes[i] == null)
-      { // catch block handles any exception
+      if (exceptionHandlerMap.exceptionTypes[i] == null) {
+	// catch block handles any exception
         return exceptionHandlerMap.handlerPCs[i];
       }
 
-      try
-      {
+      try {
         VM_Type lhs = exceptionHandlerMap.exceptionTypes[i];
         if ((lhs == exceptionType) ||
             (lhs.isInstantiated() &&
-             VM_Runtime.isAssignableWith(lhs, exceptionType)))
-        { // catch block handles specified exception
+             VM_Runtime.isAssignableWith(lhs, exceptionType))) { 
+	  // catch block handles specified exception
           return exceptionHandlerMap.handlerPCs[i];
         }
-      }
-      catch (VM_ResolutionException e)
-      { // "exceptionTypes[i]" (or one of its superclasses) doesn't exist
+      } catch (VM_ResolutionException e) { 
+	// "exceptionTypes[i]" (or one of its superclasses) doesn't exist
         // so it couldn't possibly be a match for "exceptionType"
       }
     }
@@ -504,44 +538,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     return -1;
   }
 
-  /**
-   * Change machine code that will be used by future executions of this method 
-   * (ie. optimized <-> non-optimized)
-   * @param compiledMethod new machine code
-   * Side effect: updates jtoc or method dispatch tables 
-   * ("type information blocks")
-   *              for this class and its subclasses
-   */ 
-  public final void replaceCompiledMethod(VM_CompiledMethod compiledMethod) throws VM_ResolutionException {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
-
-    VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
-
-    // Grab ahold of version that is being replaced
-    VM_CompiledMethod	previouslyGeneratedCompiledMethod =
-				this.mostRecentlyGeneratedCompiledMethod;
-    this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
-    this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
-
-
-    // Install the new method in jtoc/tib. If virtual, will also replace in
-    // all subclasses that inherited the method.
-    this.getDeclaringClass().resetMethod(this, true);
-
-    // Now that we've updated the jtoc/tib, old version is now obsolete
-    VM_CompiledMethods.setCompiledMethodObsolete( previouslyGeneratedCompiledMethod );
-
-  }
-
   //----------------//
   // Implementation //
   //----------------//
-
-  // machine instructions for methods that have no bodies
-  private static INSTRUCTION[] lazyMethodInvokerInstructions;
-  private static INSTRUCTION[] unexpectedAbstractMethodInstructions;
-  private static INSTRUCTION[] unexpectedNativeMethodInstructions;
-  private static INSTRUCTION[] nativeMethodInvokerInstructions;
 
   //
   // The following are set during "creation".
@@ -607,17 +606,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    */
   int                            offset;              
 
-  //
-  // The following are set during "compilation".
-  //
   /**
-   * machine code most recently generated for this method
+   * current compiled method for this method
    */
-  private INSTRUCTION[]          mostRecentlyGeneratedInstructions; 
-  /**
-   * compiled method associated with those machine instructions
-   */
-  private VM_CompiledMethod      mostRecentlyGeneratedCompiledMethod; 
+  private VM_CompiledMethod currentCompiledMethod;
 
   /**
    * the name of the native procedure in the native library
@@ -772,29 +764,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     }
   }
 
-  static INSTRUCTION[] getLazyMethodInvokerInstructions() {
-    if (lazyMethodInvokerInstructions == null) {
-      lazyMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
-    }
-    return VM_LazyCompilationTrampolineGenerator.getTrampoline();
-  }
-
-  private static INSTRUCTION[] getUnexpectedAbstractMethodInstructions() {
-    if (unexpectedAbstractMethodInstructions == null) {
-      unexpectedAbstractMethodInstructions = 
-	VM_Entrypoints.unexpectedAbstractMethodCallMethod.compile();
-    }
-    return unexpectedAbstractMethodInstructions;
-  }
-
-  static INSTRUCTION[] getNativeMethodInvokerInstructions() {
-    if (nativeMethodInvokerInstructions == null) {
-      nativeMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
-    }
-    return nativeMethodInvokerInstructions;
-  }
-
-
   //////////////////////////////////////////////////////////////
   // TODO: fix the following to work with dummy methods! (IP)
   //////////////////////////////////////////////////////////////
@@ -905,12 +874,5 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       return true;
     }
 
-  }
-
-  private static INSTRUCTION[] getUnexpectedNativeMethodInstructions() {
-    if (unexpectedNativeMethodInstructions == null) {
-      unexpectedNativeMethodInstructions = VM_Entrypoints.unimplementedNativeMethodMethod.compile();
-    }
-    return unexpectedNativeMethodInstructions;
   }
 }

@@ -15,12 +15,10 @@ import  java.util.*;
  *   The set of compiled method id's that depend on a VM_Class 
  *   having no subclasses
  *
- * <p> TODO: tracking things by cmid is somewhat ugly, but doing otherwise 
- *   would require changes in VM_CompiledMethod.
- *   In particular, we would need to be able to construct a partial 
- *   VM_CompiledMethod early in compilation 
- *   and fill in its instruction array and compiler info at the end of 
- *   compilation.
+ * <p> Note we track by compiled method ids instead of pointers to
+ *     compiled methods because we don't have weak pointers. 
+ *     We don't want the invalidaton database to keep code alive!
+ *     This would be an ideal use of weak references if we had them.
  * 
  * <p> TODO: In the future, we should think about implementing a general 
  *       dependency mechanism.  

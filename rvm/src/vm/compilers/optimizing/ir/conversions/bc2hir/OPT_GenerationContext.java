@@ -26,9 +26,9 @@ final class OPT_GenerationContext implements OPT_Constants,
   VM_Method original_method;
 
   /**
-   * The compiled method id assigned for this compilation of original_method
+   * The compiled method assigned for this compilation of original_method
    */
-  int original_cmid;
+  VM_CompiledMethod original_cm;
 
   /**
    * The method to be generated
@@ -181,11 +181,11 @@ final class OPT_GenerationContext implements OPT_Constants,
    * @param context the specialization context (null if none)
    */
   OPT_GenerationContext(VM_Method meth, 
-			int cmid, 
+			VM_CompiledMethod cm, 
 			OPT_Options opts, 
 			OPT_InlineOracle ip) {
     original_method = meth;
-    original_cmid = cmid;
+    original_cm = cm;
     method = meth;
     options = opts;
     inlinePlan = ip;
@@ -281,7 +281,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;
     child.original_method = parent.original_method;
-    child.original_cmid = parent.original_cmid;
+    child.original_cm = parent.original_cm;
 
     // Some state gets directly copied to the child
     child.options = parent.options;

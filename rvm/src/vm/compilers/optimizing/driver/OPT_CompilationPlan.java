@@ -21,7 +21,7 @@ final class OPT_CompilationPlan {
   public VM_Method method;
 
   VM_Method getMethod () {
-    return  method;
+    return method;
   }
   /**
    * The OPT_OptimizationPlanElements to be invoked during compilation.
@@ -150,7 +150,7 @@ final class OPT_CompilationPlan {
   public OPT_IR execute () {
     OPT_IR ir = new OPT_IR(method, this);
 
-    ir.compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
+    ir.compiledMethod = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.OPT);
 
     // If there is instrumentation to perform, do some initialization
     if (instrumentationPlan != null) {
@@ -173,6 +173,6 @@ final class OPT_CompilationPlan {
     if (ir.edgeCounts != null)
       ir.edgeCounts.compilationFinished();
 
-    return  ir;
+    return ir;
   }
 }

@@ -413,7 +413,7 @@ implements OPT_Operators {
       inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
 
       // 4. Store my compiled method id
-      int cmid = ir.compiledMethodId;
+      int cmid = ir.compiledMethod.getId();
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
     } else {
       // 1. Save caller's frame pointer
@@ -423,7 +423,7 @@ implements OPT_Operators {
       inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
 
       // 3. Store my compiled method id
-      int cmid = ir.compiledMethodId;
+      int cmid = ir.compiledMethod.getId();
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
 
       // 4. Insert Stack overflow check.  

@@ -22,16 +22,8 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
-
-    // We want to make sure that GC does not happen between getting code and
-    // invoking it. If it's not on a stack during GC, it can be marked
-    // obsolete and reclaimed.
-    VM.disableGC();
-    INSTRUCTION[] instructions =
-      targMethod.getMostRecentlyGeneratedInstructions();
-    VM.enableGC();
-
-    VM_Magic.dynamicBridgeTo(instructions);           // restore parameters and invoke
+    INSTRUCTION[] code = targMethod.getCurrentInstructions();
+    VM_Magic.dynamicBridgeTo(code);                   // restore parameters and invoke
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);  // does not return here
   }
 
@@ -128,39 +120,27 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       // if necessary, compile method
       //
       if (!targetMethod.isCompiled()) {
-	if (!targetClass.isInitialized()) {
-	  if (!targetClass.isInstantiated()) {
-	    VM.sysWrite("Attempted to compile a method of a uninstantiated class!\n");
-	    VM.sysWrite("  Class was"); VM.sysWrite(targetClass.getDescriptor()); VM.sysWrite("\n");
-	    VM.sysWrite("  Target was"); VM.sysWrite(targetMethod); VM.sysWrite("\n");
-	    VM.sysWrite("  Method was"); VM.sysWrite(dynamicLink.methodRef()); VM.sysWrite("\n");
-	  }
-	  targetClass.initialize();
-	}
-
 	targetMethod.compile();
 
-	// If targetMethod is a virtual method, then
-	// eagerly patch tib of declaring class
-	// (we need to do this to get the method test 
-	// used by opt to work with lazy compilation).
+	// If targetMethod is a virtual method, then eagerly patch tib of declaring class.
+	// (we need to do this to get the method test used by opt to work with lazy compilation).
 	if (!(targetMethod.isObjectInitializer() || targetMethod.isStatic())) {
-	  targetClass.resetTIBEntry(targetMethod);
+	  targetClass.updateTIBEntry(targetMethod);
 	}
       }
       
       // patch appropriate dispatch table
       //
       if (targetMethod.isObjectInitializer() || targetMethod.isStatic()) { 
-	targetClass.resetStaticMethod(targetMethod);
+	targetClass.updateJTOCEntry(targetMethod);
       } else if (dynamicLink.isInvokeSpecial()) { 
-	targetClass.resetTIBEntry(targetMethod);
+	targetClass.updateTIBEntry(targetMethod);
       } else {
 	VM.disableGC();
 	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
 	VM.enableGC();
 	VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
-	recvClass.resetTIBEntry(targetMethod);
+	recvClass.updateTIBEntry(targetMethod);
       }
 
       // check to see if we need to breakpoint for jdp

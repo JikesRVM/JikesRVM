@@ -1312,21 +1312,11 @@ public final class VM_Class extends VM_Type
     for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
 	   n = virtualMethods.length; i < n; ++i, ++slot) {
       VM_Method method = virtualMethods[i];
-      if (method.isCompiled()) {
-	if (method.isPrivate())
-	  // This must be the parents private method which we won't be
-	  // invoking directly
-	  typeInformationBlock[slot] = null;
-	else
-	  // inherited method already compiled, no point in going through 
-	  // lazy invoker
-	  typeInformationBlock[slot] = method.getMostRecentlyGeneratedInstructions();
+      if (method.isPrivate() && method.getDeclaringClass() != this) {
+	typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
+      } else {
+	typeInformationBlock[slot] = method.getCurrentInstructions();
       }
-      else if (method.isNative())
-	typeInformationBlock[slot] = VM_Method.getNativeMethodInvokerInstructions(); 
-      else
-	// new method
-	typeInformationBlock[slot] = getInitialInstructions(method);  
     }
 
     // compile static methods and put their addresses into jtoc
@@ -1337,12 +1327,7 @@ public final class VM_Class extends VM_Type
       // this would save us a precious jtoc slot.
 
       VM_Method method = staticMethods[i];
-      if (method.isNative())
-        VM_Statics.setSlotContents(method.getOffset() >> 2, 
-                                   VM_Method.getNativeMethodInvokerInstructions());
-      else
-        VM_Statics.setSlotContents(method.getOffset() >> 2, 
-                                   getInitialInstructions(method));
+      VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
     }
 
     VM_InterfaceInvocation.initializeDispatchStructures(this);
@@ -1369,7 +1354,7 @@ public final class VM_Class extends VM_Type
       VM_Callbacks.notifyClassInitialized(this);
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   instantiate " 
-                                          + descriptor + "\n");
+							  + descriptor + "\n");
   }
 
   /**
@@ -1425,15 +1410,20 @@ public final class VM_Class extends VM_Type
     // run <clinit>
     //
     if (classInitializerMethod != null) {
-      INSTRUCTION[] instructions;
-      instructions = classInitializerMethod.compile();
+      VM_CompiledMethod cm = classInitializerMethod.getCurrentCompiledMethod();
+      while (cm == null) {
+	classInitializerMethod.compile();
+	cm = classInitializerMethod.getCurrentCompiledMethod();
+      }
+
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "
 					      +descriptor.
 					      classNameFromDescriptor()+"]\n");
-      VM_Magic.invokeClassInitializer(instructions);
+
+      VM_Magic.invokeClassInitializer(cm.getInstructions());
 
       // <clinit> is no longer needed: reclaim space by removing references to it
-      classInitializerMethod.clearMostRecentCompilation();
+      classInitializerMethod.invalidateCompiledMethod(cm);
       classInitializerMethod               = null;
     }
 
@@ -1506,178 +1496,73 @@ public final class VM_Class extends VM_Type
   }
 
   /**
-   * return a newly-compiled version of the method (if lazy compilation
-   * is off) or the lazy compilation stub.
+   * Given a method declared by this class, update all
+   * dispatching tables to refer to the current compiled
+   * code for the method.
    */
-  private INSTRUCTION[] getInitialInstructions(VM_Method m) {
-    if (VM.BuildForLazyCompilation && !VM.writingBootImage)
-      return VM_Method.getLazyMethodInvokerInstructions();
-    else
-      return m.compile(); // must compile now
-  }
-
-  /**
-   * return a newly-compiled version of the method corresponding to the
-   * given compiled method (if lazy compilation is off) or the lazy
-   * compilation stub.
-   */
-  private INSTRUCTION[] getInitialInstructions(VM_CompiledMethod cm) {
-    return getInitialInstructions(cm.getMethod());
-  }
-
-  /**
-   * If cm is the current compiled version of a static method, then 
-   * reset its jtoc slot to point to a newly-compiled version of the
-   * method (if lazy compilation is off) or the lazy compilation stub.
-   */
-  void resetStaticMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
+  public void updateMethod(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
-    if (VM.VerifyAssertions)
-      VM.assert(m.isStatic() || m.isObjectInitializer() ||
-                m.isClassInitializer());
-    int slot = m.getOffset() >>> 2;
-    if (VM_Statics.getSlotContentsAsObject(slot) == cm.getInstructions())
-      VM_Statics.setSlotContents(slot, code);
-  }
+    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
 
-  /**
-   * Given a static method, reset its jtoc slot to point to the given
-   * instruction array
-   */
-  synchronized void resetStaticMethod(VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions)
-      VM.assert(m.isStatic() || m.isObjectInitializer() ||
-                m.isClassInitializer());
-    INSTRUCTION[] code = m.getMostRecentlyGeneratedInstructions();
-    int slot = m.getOffset() >>> 2;
-    VM_Statics.setSlotContents(slot, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a virtual method for this 
-   * class tib then reset its tib slot to point to a newly-compiled
-   * version of the method (if lazy compilation is off) or the lazy
-   * compilation stub.
-   */
-  void resetTIBEntry(VM_CompiledMethod cm) {
-    resetTIBEntry(cm, getInitialInstructions(cm));
-  }
-  synchronized void resetTIBEntry(VM_CompiledMethod cm, INSTRUCTION[] code) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
-    if (VM.VerifyAssertions)
-      VM.assert(!m.isStatic() && !m.isObjectInitializer() && 
-                !m.isClassInitializer());
-    int offset = m.getOffset() >>> 2;
-    if (typeInformationBlock[offset] == cm.getInstructions()) {
-      typeInformationBlock[offset] = code;
-    }
-    VM_InterfaceInvocation.resetTIBEntry(this, cm, code);
-  }
-
-  /**
-   * Given a virtual method, reset its TIB entry to point to the given
-   * instruction array
-   */
-  synchronized void resetTIBEntry(VM_Method m) {
-    resetTIBEntry(m, m.getMostRecentlyGeneratedInstructions());
-  }
-
-  synchronized void resetTIBEntry(VM_Method m, INSTRUCTION[] code) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions)
-      VM.assert(!m.isStatic() && !m.isObjectInitializer() &&
-                !m.isClassInitializer());
-    int offset = m.getOffset() >>> 2;
-    typeInformationBlock[offset] = code;
-    VM_InterfaceInvocation.resetTIBEntry(this, m, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a virtual method, then 
-   * reset its TIB slot in this class and all subclasses that don't
-   * override the method to point to a newly-compiled version of the
-   * method (if lazy compilation is off) or the lazy compilation stub.
-   */
-  private void resetVirtualMethod(VM_CompiledMethod cm) {
-    resetVirtualMethod(cm, getInitialInstructions(cm));
-  }
-
-  private void resetVirtualMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
-    if (!isResolved()) return;
-    VM_Method m = cm.getMethod();
-    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
-    if (dm != null && dm != m) return;  // this method got overridden
-    resetTIBEntry(cm, code);
-    if (m.isPrivate()) return; // can't override
-    VM_Class[] subClasses = getSubClasses(); 
-    for (int i = 0; i < subClasses.length; i++)
-      subClasses[i].resetVirtualMethod(cm, code);
-  }
-
-  synchronized void resetVirtualMethod(VM_Method m) {
-    resetVirtualMethod( m, m.getMostRecentlyGeneratedInstructions() );
-  }
-
-  void resetVirtualMethod(VM_Method m, INSTRUCTION[] code) {
-    if (!isResolved()) return;
-    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
-    if (dm != null && dm != m) return;  // this method got overridden
-    resetTIBEntry(m, code);
-    if (m.isPrivate()) return; // can't override
-    VM_Class[] subClasses = getSubClasses(); 
-    for (int i = 0; i < subClasses.length; i++)
-      subClasses[i].resetVirtualMethod(m, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a method, then 
-   * reset its TIB slot in this class (and all subclasses that don't
-   * override the method) if it's virtual or its jtoc slot if it's
-   * static to point to a newly-compiled version of the method (if lazy
-   * compilation is off) or the lazy compilation stub.
-   */
-  void resetMethod(VM_CompiledMethod cm) {
-    resetMethod(cm, getInitialInstructions(cm), true);
-  }
-
-  void resetMethod(VM_CompiledMethod cm, boolean recurse) {
-    resetMethod(cm, getInitialInstructions(cm), recurse);
-  }
-
-  void resetMethod(VM_CompiledMethod cm, INSTRUCTION[] code, boolean recurse) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
     if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
-      // invalidate jtoc slot
-      resetStaticMethod(cm, code);
+      updateJTOCEntry(m);
     } else {
-      // invalidate TIB entry
-      if (recurse)
-        resetVirtualMethod(cm, code);
-      else
-        resetTIBEntry(cm, code);
+      updateVirtualMethod(m);
     }
   }
 
   /**
-   * Given a method, reset its TIB slot in this class (and all
-   * subclasses that don't override the method) if it's virtual or its
-   * jtoc slot if it's static to point to the given instruction array.
+   * Update the JTOC slot for the given static method to point to
+   * the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
    */
-  void resetMethod(VM_Method m, boolean recurse) {
+  public void updateJTOCEntry(VM_Method m) {
+    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
-      // invalidate jtoc slot
-      resetStaticMethod(m);
-    } else {
-      // invalidate TIB entry
-      if (recurse)
-        resetVirtualMethod(m);
-      else
-        resetTIBEntry(m);
+    if (VM.VerifyAssertions) VM.assert(m.isStatic() || m.isObjectInitializer() || m.isClassInitializer());
+    int slot = m.getOffset() >>> 2;
+    VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
+  }
+
+
+  /**
+   * Update this class's TIB entry for the given method to point to
+   * the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
+   */
+  public void updateTIBEntry(VM_Method m) {
+    if (VM.VerifyAssertions) {
+      VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
+      VM.assert(vm == m);
+    }
+    int offset = m.getOffset() >>> 2;
+    typeInformationBlock[offset] = m.getCurrentInstructions();
+    VM_InterfaceInvocation.updateTIBEntry(this, m);
+  }
+
+
+  /**
+   * Update the TIB entry's for all classes that inherit the given method 
+   * to point to the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
+   */
+  public void updateVirtualMethod(VM_Method m) {
+    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
+    if (dm != null && dm != m) return;  // this method got overridden
+    updateTIBEntry(m);
+    if (m.isPrivate()) return; // can't override
+    VM_Class[] subClasses = getSubClasses(); 
+    for (int i = 0; i < subClasses.length; i++) {
+      VM_Class sc = subClasses[i];
+      if (sc.isResolved()) {
+	sc.updateVirtualMethod(m);
+      }
     }
   }
 

@@ -89,9 +89,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *   |----------|
    *   |       	  |
    */
-  static VM_MachineCode
-  generateGlueCodeForNative ( int compiledMethodId, VM_Method method )
-     {
+  static VM_MachineCode generateGlueCodeForNative (VM_CompiledMethod cm) {
+    int compiledMethodId = cm.getId();
+    VM_Method method     = cm.getMethod();
       VM_Assembler asm	= new VM_Assembler(0);
       int frameSize	= VM_Compiler.getFrameSize(method);
       VM_Class klass	= method.getDeclaringClass();

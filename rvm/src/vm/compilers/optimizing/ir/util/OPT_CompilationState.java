@@ -26,20 +26,20 @@ final class OPT_CompilationState {
    *	    not certain.)
    * @param isExtant is the receiver of a virtual call an extant object?
    * @param options controlling compiler options
-   * @@param cmid cmid of the method of the IR object being compiled
+   * @@param cm compiled method of the IR object being compiled
    */
   public OPT_CompilationState(OPT_Instruction call,
 			      int mcSizeEstimate, 
 			      VM_Method computedTarget, 
 			      boolean isExtant,
 			      OPT_Options options,
-			      int cmid) {
+			      VM_CompiledMethod cm) {
     this.call = call;
     this.mcSizeEstimate = mcSizeEstimate;
     this.computedTarget = computedTarget;
     this.isExtant = isExtant;
     this.options = options;
-    this.cmid = cmid;
+    this.cm = cm;
   }
 
   /**
@@ -134,10 +134,10 @@ final class OPT_CompilationState {
   }
   
   /**
-   * Return the cmid (compiled method id) 
+   * Return the compiled method
    */
-  public int getCompiledMethodId() {
-    return cmid;
+  public VM_CompiledMethod getCompiledMethod() {
+    return cm;
   }
 
   /*
@@ -148,5 +148,5 @@ final class OPT_CompilationState {
   private VM_Method computedTarget;
   private boolean isExtant;
   private OPT_Options options;
-  private int cmid;
+  private VM_CompiledMethod cm;
 }

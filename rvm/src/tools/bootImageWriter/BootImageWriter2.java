@@ -487,7 +487,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
     int[] startupStack = startupThread.stack;
-    INSTRUCTION[] startupCode  = VM_Entrypoints.bootMethod.getMostRecentlyGeneratedInstructions();
+    INSTRUCTION[] startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = bootImageAddress +
@@ -1752,6 +1752,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
           for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
             VM_CompiledMethod compiledMethod = compiledMethods[i];
             if (compiledMethod != null &&
+		compiledMethod.isCompiled() && 
                 compiledMethod.getInstructions() == instructions)
             {
               details = compiledMethod.getMethod().toString();
@@ -1797,14 +1798,12 @@ public class BootImageWriter2 extends BootImageWriterMessages
     out.println("                          address             method");
     out.println("                          -------             ------");
     out.println();
-    // If java crashes, replace the following with
-    //for (int i = 0, n = VM_MethodDictionary.getNumValues(); i < n; ++i)
     for (int i = 0; i < VM_MethodDictionary.getNumValues(); ++i) {
       VM_Method method = VM_MethodDictionary.getValue(i);
       if (method == null)       continue;
       if (!method.isLoaded()) continue; // bogus or unresolved
       if (!method.isCompiled()) continue;
-      Object instructions = method.getMostRecentlyGeneratedInstructions();
+      Object instructions = method.getCurrentInstructions();
       int code = BootImageMap.getImageAddress(bootImageAddress, instructions);
       out.println(".     .          code     " + VM.intAsHexString(code) +
                   "          " + method);

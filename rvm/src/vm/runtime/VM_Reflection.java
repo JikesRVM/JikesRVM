@@ -38,22 +38,6 @@ public class VM_Reflection implements VM_Constants {
       VM_Runtime.initializeClassForDynamicLink(klass);
     }
 
-    // choose actual method to be called
-    //
-    VM_Method targetMethod;
-    if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
-      targetMethod = method;
-    } else {
-      int tibIndex = method.getOffset() >>> 2;
-      targetMethod = VM_Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
-    }
-        
-    // make sure it's been compiled
-    //
-    if (!targetMethod.isCompiled()) {
-      targetMethod.compile();
-    }
-        
     // remember return type
     // Determine primitive type-ness early to avoid call (possible yield) 
     // later while refs are possibly being held in int arrays.
@@ -89,16 +73,38 @@ public class VM_Reflection implements VM_Constants {
       firstUse = false;
     }
 
-    // now for real...
-    VM.disableGC();
-    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
-                                           FPRs, Spills);
+    // choose actual method to be called
+    //
+    VM_Method targetMethod;
+    if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
+      targetMethod = method;
+    } else {
+      int tibIndex = method.getOffset() >>> 2;
+      targetMethod = VM_Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
+    }
 
-    // We want to make sure that GC does not happen between getting code and
-    // invoking it. If it's not on a stack during GC, it can be marked
-    // obsolete and reclaimed.
-    INSTRUCTION[] code = targetMethod.getMostRecentlyGeneratedInstructions();
-    VM.enableGC();
+    // There's a nasty race condition here that we just hope doesn't happen.
+    // The issue is that we can't get the CompiledMethod from targetMethod while
+    // GC is disabled because all accesses to it must be synchronized.  But,
+    // it's theoretically possible that we take the epilogue yieldpoint in getCurrentCompiledMethod
+    // and lose control before we can disable threadswitching and thus invoke an obsolete 
+    // and already GC'ed instruction array.
+    targetMethod.compile();
+    VM_CompiledMethod cm = targetMethod.getCurrentCompiledMethod();
+    while (cm == null) {
+      targetMethod.compile();
+      cm = targetMethod.getCurrentCompiledMethod();
+    }
+    
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+
+    INSTRUCTION[] code = cm.getInstructions();
+    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
+					   FPRs, Spills);
+    
+    // critical: no threadswitch/GCpoints between here and the invoke of code!
+    //           We may have references hidden as ints in the GPRs array!!!
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
 
     if (!returnIsPrimitive) {
       return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, Spills);

@@ -111,7 +111,7 @@ implements OPT_PhysicalRegisterConstants {
                        I(20), null);         // TODO: valid location?
       s.insertFront(s2);
       OPT_RegisterOperand temp = ir.regpool.makeTempInt();
-      s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethodId));
+      s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethod.getId()));
       OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
                                         ir.regpool.makeFPOp(), 
                                         I(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?

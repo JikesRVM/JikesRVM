@@ -262,7 +262,7 @@ public class VM extends VM_Properties implements VM_Constants,
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
-      VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
+      VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
   }

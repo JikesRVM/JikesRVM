@@ -52,7 +52,7 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
      VM_MethodInvocationCounterData data = 
        VM_AOSDatabase.methodInvocationCounterData;
 
-     int cmid = ir.compiledMethodId;
+     int cmid = ir.compiledMethod.getId();
 
      // Create a dummy instruction that is later converted into an
      // increment of the appropriate VM_CounterArray element.

@@ -14,27 +14,16 @@
 public class VM_CompiledMethods {
 
 
-  // Create an id that will uniquely identify a version of machine code generated for some method.
-  // Taken:    nothing
-  // Returned: id
-  // See also: setCompiledMethod(), getCompiledMethod()
-  //
-  static synchronized int createCompiledMethodId() {
+  // compilerType for future extension when we fold VM_CompilerInfo and VM_CompiledMethod
+  // into a single class
+  public synchronized static VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
     }
-    return id;
-  }
-
-  // Install a newly compiled method.
-  // Must be synchronized to avoid losing an update via a growArray in createCompiledMethodId
-  static synchronized void setCompiledMethod(int compiledMethodId,
-					     VM_CompiledMethod compiledMethod) {
-    // Slots are never reused even when a slot becomes obsolete. 
-    // This is because there can be parallel data structures indexed by cmid.
-    if (VM.VerifyAssertions) VM.assert(compiledMethods[compiledMethodId] == null);
-    compiledMethods[compiledMethodId] = compiledMethod;
+    VM_CompiledMethod cm = new VM_CompiledMethod(id, m);
+    compiledMethods[id] = cm;
+    return cm;
   }
 
   // Fetch a previously compiled method.
@@ -114,8 +103,7 @@ public class VM_CompiledMethods {
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
   static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
-    if (compiledMethod == null) return;
-
+    if (compiledMethod.isObsolete()) return; // someone else already marked it as obsolete.
     int	cmid = compiledMethod.getId();
 
     // Currently, we avoid setting methods of java.lang.Object obsolete.
@@ -126,15 +114,12 @@ public class VM_CompiledMethods {
     if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
       return;
 
-    if (VM.VerifyAssertions) {
-      // Any good reason this could happen?
-      VM.assert(compiledMethods[ cmid ] != null);
-    }
+    if (VM.VerifyAssertions) VM.assert(compiledMethods[cmid] != null);
 
     if (obsoleteMethods == null) {
       // This should tend not to get too big as it gets compressed as we
-      // snip obsollete code at GC time.
-      obsoleteMethods = new int[ 100 ];
+      // snip obsolete code at GC time.
+      obsoleteMethods = new int[100];
     } else if (obsoleteMethodCount >= obsoleteMethods.length) {
       int newArray[] = new int[obsoleteMethods.length*2];
       // Disable GC during array copy because GC can alter the source array
@@ -145,7 +130,7 @@ public class VM_CompiledMethods {
       VM.enableGC();
       obsoleteMethods = newArray;
     }
-    compiledMethod.setObsolete( true );
+    compiledMethod.setObsolete(true);
     obsoleteMethods[obsoleteMethodCount++] = cmid;
   }
 

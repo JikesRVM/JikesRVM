@@ -91,11 +91,9 @@ public final class OPT_IR implements OPT_Operators {
   }
 
   /**
-   * Every unit of compiled code in the system is assigned a unique id
-   * by the compiled method dictionary.
-   * compiledMethodId contains the id assigned to the current compilation.
+   * The compiled method created to hold the result of this compilation.
    */
-  public int compiledMethodId;
+  public VM_CompiledMethod compiledMethod;
 
   /**
    * The compiler {@link OPT_Options options} that apply
