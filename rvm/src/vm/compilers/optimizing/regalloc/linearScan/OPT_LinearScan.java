@@ -1836,7 +1836,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Initialize the interval for each register to null.
      */
     private void initializeRegisters() {
-      for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
            reg != null;
            reg = reg.getNext()) {
         setInterval(reg, null); 

@@ -608,7 +608,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     }
 
     // visit all guard registers, init union/find
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
+    for (OPT_Register r=ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       r.scratch = 1;
       r.scratchObject = r;
@@ -643,7 +643,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private void unSSAGuardsFinalize(OPT_IR ir) {
     OPT_DefUse.computeDU(ir);
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
+    for (OPT_Register r=ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       OPT_Register nreg = guardFind(r);
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(r);

@@ -647,7 +647,7 @@ implements OPT_Operators, OPT_Constants {
    */
   private OPT_Register[] getSymbolicRegisters() {
     OPT_Register[] map = new OPT_Register[ir.getNumberOfSymbolicRegisters()];
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
          reg = reg.getNext()) {
       int number = reg.getNumber();
       map[number] = reg;

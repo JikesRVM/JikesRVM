@@ -98,7 +98,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.computeDU(ir);
       OPT_DefUse.recomputeSSA(ir);
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
 	   reg != null; 
 	   reg = reg.getNext()) {
 	markDead(reg);

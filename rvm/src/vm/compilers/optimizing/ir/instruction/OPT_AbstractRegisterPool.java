@@ -17,7 +17,10 @@ public abstract class OPT_AbstractRegisterPool {
   /* inlined behavior of DoublyLinkedList */
   private OPT_Register start, end;
 
-  public OPT_Register getFirstRegister() {
+  /**
+   * Return the first symbolic register in this pool.
+   */
+  public OPT_Register getFirstSymbolicRegister() {
     return start;
   }
 

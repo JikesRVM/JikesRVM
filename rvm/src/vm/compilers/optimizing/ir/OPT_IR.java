@@ -871,7 +871,7 @@ public final class OPT_IR implements OPT_Operators {
   private void verifyRegisterDefs(String where) {
     OPT_DefUse.computeDU(this);
     //TODO: (SJF)I hate the register list interface.  Re-do it.
-    for (OPT_Register r = regpool.getFirstRegister(); 
+    for (OPT_Register r = regpool.getFirstSymbolicRegister(); 
 	 r != null; 
 	 r = r.getNext()) {
       if (r.isPhysical()) continue;
@@ -891,7 +891,7 @@ public final class OPT_IR implements OPT_Operators {
    * @param where    phrase identifying invoking  compilation phase
    */
   private void verifyRegisterTypes(String where) {
-    for (OPT_Register r = regpool.getFirstRegister(); 
+    for (OPT_Register r = regpool.getFirstSymbolicRegister(); 
 	 r != null;
 	 r = (OPT_Register)r.getNext()) {
       // don't worry about physical registers

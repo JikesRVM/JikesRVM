@@ -129,7 +129,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * @param ir the governing IR
    */
   private void addRegisterNodes(OPT_IR ir) {
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext())
       findOrCreateVertex(reg);
   }

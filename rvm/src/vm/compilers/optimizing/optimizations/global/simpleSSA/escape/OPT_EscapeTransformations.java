@@ -49,7 +49,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
     // pass through registers. look for registers that point
     // to objects that do not escape. When found,
     // perform the transformations
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = reg.getNext()) {
       // check if register is SSA
       if (!reg.isSSA())

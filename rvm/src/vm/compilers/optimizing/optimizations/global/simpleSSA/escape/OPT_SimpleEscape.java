@@ -63,7 +63,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
     // pass through registers, and mark escape information
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       // skip the following types of registers:
       if (reg.isFloat())

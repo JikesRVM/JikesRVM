@@ -811,7 +811,7 @@ public final class OPT_GenerationContext
   {
     HashSet regPool = new HashSet();
     
-    for (OPT_Register r = temps.getFirstRegister();
+    for (OPT_Register r = temps.getFirstSymbolicRegister();
 	 r != null;  r = r.next) regPool.add (r);
     
     Iterator i = _ncGuards.entrySet().iterator();

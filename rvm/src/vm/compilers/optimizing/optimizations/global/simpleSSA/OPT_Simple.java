@@ -145,7 +145,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
     boolean reiterate = true;
     while (reiterate) {         // /MT/ better think about proper ordering.
       reiterate = false;
-      instructions: for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+      instructions: for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
           reg != null; reg = elemNext) {
         elemNext = reg.getNext(); // we may remove reg, so get elemNext up front
         if (reg.useList == null ||   // Copy propagation not possible if reg 
@@ -243,7 +243,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
   static void typePropagation (OPT_IR ir) {
     // Use register list to enumerate register objects (FAST)
     OPT_Register elemNext;
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = elemNext) {
       elemNext = (OPT_Register)reg.getNext();
       // Type propagation not possible if reg has no uses
@@ -297,7 +297,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
   static void arrayPropagation (OPT_IR ir) {
     // Use register list to enumerate register objects (FAST)
     OPT_Register elemNext;
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = elemNext) {
       elemNext = (OPT_Register)reg.getNext();
       if (reg.useList == null)
