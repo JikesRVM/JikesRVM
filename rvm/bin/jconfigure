@@ -1949,6 +1949,7 @@ EOF
     [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"
     [[ ! ${CLASSPATH_SOURCE_DIR-} ]] || echo "export CLASSPATH_SOURCE_DIR=$CLASSPATH_SOURCE_DIR"
     [[ ! ${CLASSPATH_BUILD_DIR-} ]] || echo "export CLASSPATH_BUILD_DIR=$CLASSPATH_BUILD_DIR"
+    echo "declare -i RVM_WITH_GCSPY=${RVM_WITH_GCSPY}"
     echo ""
     # For self-booting with Jikes RVM (work in progress)
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
@@ -2027,9 +2028,11 @@ EOF
 	HOST_JAVA_REPOSITORIES = $HOST_REPOSITORIES # Deprecated
 	HOST_REPOSITORIES = $HOST_REPOSITORIES
 	
+	RVM_WITH_GCSPY:=${RVM_WITH_GCSPY}
 	CC = $CC
 	CPLUS = $CPLUS
 	CXX = $CPLUS
+
 	LDSHARED = $LDSHARED
 	
 	AWK = $AWK
@@ -3921,10 +3924,19 @@ EOF
     # Include GCspy libraries, if requested
     if (( $RVM_WITH_GCSPY )); then
 	if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR  )); then
-	    show_mesg >&2 "Warning: RVM_FOR_SINGLE_VIRTUAL_PROCESSOR is set, as is RVM_WITH_GCSPY.  Those two options are not compatible, since the GCspy server's C runtime support code spawns a pthread.  If you use the GCspy support in this build, Jikes RVM may freeze up or crash."
+	    warning="WARNING: RVM_FOR_SINGLE_VIRTUAL_PROCESSOR is set, as is RVM_WITH_GCSPY.  Those two options are not compatible, since the GCspy server's C runtime support code spawns a pthread.  This build may fail.  If your system has a libc that needs RVM_FOR_SINGLE_VIRTUAL_PROCESSOR, then this build will crash when you try to use the GCspy support."
+	    show_mesg >&2 "$warning"
+	    echo "show_mesg  >&2 \"$warning\" # Show it again at build time."
 	fi 
+	echo "# GCSPY also needs -lpthread, but we link with that in any case, in any build that isn't a single-virtual-processor build."
         echo "GCSPY_LIBS=\"-L$GCSPY_LIB_DIR -lgcspy\""
         echo "GCSPY_INCLUDES=\"-I$GCSPY_INCLUDE_DIR\""
+
+	## And set -Wno-endif-labels, if the compiler supports it.
+	echo "## It's OK if we can not get the CPLUS_NO_ENDIF_LABELS_WARNING definition -- it's just there for convenience.  So do not make it fatal."
+	echo "f=\${CONFIG_H_DIR}/config.sh"
+	echo ". \$f || echo >&2 \"CAUTION: unable to load \$f\" " 
+	CC_DEFINES="${CC_DEFINES} \${CPLUS_NO_ENDIF_LABELS_WARNING-} -DRVM_WITH_GCSPY"
     else
         echo "GCSPY_LIBS="
         echo "GCSPY_INCLUDES="
@@ -3940,10 +3952,6 @@ EOF
 		CCLIBS="-lpthread -lm"
 		IMAGE=
 EOF
-	if (( $RVM_WITH_GCSPY )); then
-	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
-	fi
-
     elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
@@ -3983,9 +3991,6 @@ gnu_compiler_flags=(-rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DE
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
-	if (( $RVM_WITH_GCSPY )); then
-	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
-	fi
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
 gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
@@ -3993,10 +3998,6 @@ gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
-	if (( $RVM_WITH_GCSPY )); then
-            echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
-	    echo "CCLIBS=\$CCLIBS -lpthread"
-        fi
     else
 	show_mesg_raw >&2 "$ME:$LINENO: I do not know how to interpret the current configuration.  I give up (see line # $LINENO of $ME)"
 	trap '' EXIT
