@@ -106,11 +106,16 @@ $Id$
           depends="build.src"
           description="compiles source code">
     <mkdir dir="${build.classes}"/>
+       <!-- had the following as one of the attributes for the "javac" tag, 
+	    works with Ant 1.5.3, does not work with
+            Ant 1.4.1.  Can we put 1.4.1 in a mode where it won't
+            treat attributes it doesn't understand as fatal errors? -->
+	<!--  listfiles="${build.trace}" -->
+
     <javac destdir="${build.classes}"
 	   classpathref="project.classpath"
 	   failonerror="true"
 	   deprecation="true"
-	   listfiles="${build.trace}"
 	   debug="${build.config.debug}">
       <src path="${src.dir}"/>
       <src path="${build.src}"/>
