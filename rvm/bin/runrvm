@@ -39,8 +39,22 @@ function usage() {
     exit $exitstatus;
 }
 
+function croak_nonusage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
+    trap '' EXIT
+    exit 1
+}
+
+
 # Just to be sure we're being run properly.
-[[ $# -lt 3 ]] && usage 1 "Too few arguments.  This program is designed to be run indirectly by the 'rvm' command."
+(( $# < 3 )) && usage 1 "Too few arguments.  This program is designed to be run indirectly by the 'rvm' command."
     
 
 ## These have already been err-checked for us by "rvm".
@@ -49,14 +63,20 @@ rvm_root=$1;  shift;  # Used to be $RVM_ROOT
 rvm_build=$1; shift;  # Used to be $RVM_BUILD
 
 
-# TODO: This portion of the gdbrvm should be consolidated with the originally-identical part of runrvm.
-# Where the RVM bootimage, booter, and runtime support files reside.
-. $rvm_build/environment
+# TODO: This portion of the gdbrvm program should be consolidated with
+# the originally-identical part of the runrvm program.
+
+# Load up where the RVM bootimage, booter, and runtime support files reside:
+env="$rvm_build/environment"
+[[ -f $env ]] || croak_nonusage "Cannot find a file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
+[[ -r $env ]] || croak_nonusage "Cannot read the file named \"$env\"; some sort of permissions problem."
+. $env
+unset env
 
 declare -a user_args=("$@")
 for arg in "${user_args[@]}"; do
-    if   [[ $arg = --   ]]; then
-	print "$ME: the command line option \"--\" is no longer used!"
+    if [[ $arg = -- ]]; then
+	print "$ME: the command line option \"--\" is no longer used; ignoring it."
     fi
 done
 
@@ -68,7 +88,6 @@ done
 ## set these before checking user args, for some odd reason).
 
 declare -a sys_args=("-X:i=$rvm_build/RVM.image" "-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
-		    \
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
 		"-Djava.home=$rvm_root"					\
@@ -77,4 +96,7 @@ declare -a sys_args=("-X:i=$rvm_build/RVM.image" "-X:vmClasses=$rvm_build/RVM.cl
 		"-Duser.home=$home" "-Duser.dir=$(pwd)" "-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)" "-Dos.arch=$(uname -m)" )
 
 # Now execute the VM
-exec "$rvm_build/JikesRVM" "${sys_args[@]}" "${user_args[@]}" 
+prog="$rvm_build/JikesRVM"
+[[ -f $prog ]] || croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
+[[ -x $prog ]] || croak_nonusage "Cannot execute the file named \"$prog\"; some sort of permissions problem.  Something weird is happening.  Maybe somebody with a highly restrictive \"umask\" compiled Jikes RVM?"
+exec "$prog" "${sys_args[@]}" "${user_args[@]}" 
