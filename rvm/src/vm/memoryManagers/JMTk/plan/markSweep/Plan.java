@@ -23,6 +23,18 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 /**
  * This class implements a simple mark-sweep collector.
  *
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  Instances of Plan map 1:1 to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods allow fast, unsychronized access to Plan utilities such as
+ * allocation and collection.  Each instance rests on static resources
+ * (such as memory and virtual memory resources) which are "global"
+ * and therefore "static" members of Plan.  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance proprties of this plan.
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
  * @version $Revision$
@@ -83,7 +95,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).
+   * (i.e. at "build" time).  This is where key <i>global</i>
+   * instances are allocated.  These instances will be incorporated
+   * into the boot image by the build process.
    */
   static {
     msMR = new MemoryResource(POLL_FREQUENCY);
@@ -101,10 +115,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     immortal = new BumpPointer(immortalVM);
   }
 
+  /**
+   * The boot method is called early in the boot process before any
+   * allocation.
+   */
   public static final void boot()
     throws VM_PragmaInterruptible {
     StopTheWorldGC.boot();
   }
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -114,9 +133,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   /**
    * Allocate space (for an object)
    *
-   * @param allocator The allocator number to be used for this allocation
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
+   * @param allocator The allocator number to be used for this allocation
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
@@ -128,17 +147,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (allocator) {
       case       MS_ALLOCATOR: region = ms.alloc(isScalar, bytes); break;
       case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-      default:                 region = VM_Address.zero(); VM.sysFail("No such allocator");
+      default:                 region = VM_Address.zero();
+	                       VM.sysFail("No such allocator");
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
   }
   
+  /**
+   * Perform post-allocation actions.  For many allocators none are
+   * required.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param isScalar True if the object occupying this space will be a scalar
+   * @param allocator The allocator number to be used for this allocation
+   */
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {} // do nothing
-  public final void postCopy(Object ref, Object[] tib, int size,
-			     boolean isScalar) {} // do nothing
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
@@ -155,6 +183,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // return VM_Address.zero();  this trips some Intel assembler bug
     return VM_Address.max();
   }
+
+  /**  
+   * Perform any post-copy actions.  In this case nothing is required.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param isScalar True if the object occupying this space will be a scalar
+   */
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) {} // do nothing
 
   /**
    * Advise the compiler/runtime which allocator to use for a
@@ -193,6 +232,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return null;
   }
 
+  /**
+   * Return the initial header value for a newly allocated instance.
+   *
+   * @param bytes The size of the newly created instance in bytes.
+   * @return The inital header value for the new instance.
+   */
   public static final int getInitialHeaderValue(int size) {
     return msCollector.getInitialHeaderValue(size);
   }
@@ -222,15 +267,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = mr.reservedPages() - mr.committedPages();
-      VM_Interface.triggerCollection("GC triggered due to resource exhaustion");
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
   }
+
   
   ////////////////////////////////////////////////////////////////////////////
   //
   // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
   //
 
   /**
@@ -243,30 +299,56 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
-   * Prepare for a collection.  Called by BasePlan which will make
-   * sure only one thread executes this.
+   * Perform operations with <i>global</i> scope in preparation for a
+   * collection.  This is called by <code>StopTheWorld</code>, which will
+   * ensure that <i>only one thread</i> executes this.<p>
+   *
+   * In this case, it means preparing each of the collectors.
    */
   protected final void globalPrepare() {
     msCollector.prepare(msVM, msMR);
     Immortal.prepare(immortalVM, null);
   }
 
+  /**
+   * Perform operations with <i>thread-local</i> scope in preparation
+   * for a collection.  This is called by <code>StopTheWorld</code>, which
+   * will ensure that <i>all threads</i> execute this.<p>
+   *
+   * In this case, it means resetting mark sweep allocator.
+   */
   protected final void threadLocalPrepare(int count) {
     ms.prepare();
   }
 
-  /* We reset the state for a GC thread that is not participating in this GC
+  /**
+   * We reset the state for a GC thread that is not participating in
+   * this GC
    */
   public final void prepareNonParticipating() {
     threadLocalPrepare(NON_PARTICIPANT);
   }
 
+  /**
+   * Perform operations with <i>thread-local</i> scope to clean up at
+   * the end of a collection.  This is called by
+   * <code>StopTheWorld</code>, which will ensure that <i>all threads</i>
+   * execute this.<p>
+   *
+   * In this case, it means releasing the mark sweep space (which
+   * triggers the sweep phase of the mark-sweep collector).
+   */
   protected final void threadLocalRelease(int count) {
     ms.release();
   }
 
   /**
-   * Clean up after a collection.
+   * Perform operations with <i>global</i> scope to clean up at the
+   * end of a collection.  This is called by <code>StopTheWorld</code>,
+   * which will ensure that <i>only one</i> thread executes this.<p>
+   *
+   * In this case, it means releasing each of the spaces and checking
+   * whether the GC made progress.
    */
   protected final void globalRelease() {
     // release each of the collected regions
@@ -285,6 +367,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
   // Object processing and tracing
   //
+
   /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
@@ -305,14 +388,38 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return obj;
   }
 
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i>
+   * an interior pointer.
+   * @param root True if this reference to <code>obj</code> was held
+   * in a root.
+   * @return The possibly moved reference.
+   */
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+  /**
+   * Return true if the given reference will not move in this GC (in
+   * this collector <i>no</i> objects move, so we always return true.
+   *
+   * @param obj The object in question
+   * @return True.
+   */
   public final boolean willNotMove(VM_Address obj) {
     return true;  // this is a non-copying collector: nothing moves
   }
 
+  /**
+   * Return true if <code>obj</code> is a live object.
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a live object.
+   */
   public static final boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     if (addr.LE(HEAP_END)) {
@@ -324,6 +431,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
+  /**
+   * Reset the GC bits in the header word of an object that has just
+   * been copied.  This may, for example, involve clearing a write
+   * barrier bit.  <i>This is not a copying collector, so this method
+   * should never be called</i>.
+   *
+   * @param fromObj The original (uncopied) object
+   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * of the original object, and typically encodes some GC state as
+   * well as pointing to the copied object.
+   * @param bytes The size of the copied object in bytes.
+   * @return The updated GC word (in this case unchanged).
+   */
   public static final int resetGCBitsForCopy(VM_Address fromObj, 
 					     int forwardingPtr, int bytes) {
     if (VM.VerifyAssertions) VM._assert(false);  // not a copying collector!
@@ -337,9 +457,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
 
   /**
-   * Return the number of pages reserved for use.
+   * Return the number of pages reserved for use given the pending
+   * allocation.
    *
-   * @return The number of pages reserved given the pending allocation
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
     int pages = msMR.reservedPages();
@@ -348,6 +470,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return pages;
   }
 
+  /**
+   * Return the number of pages reserved for use given the pending
+   * allocation.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
+   */
   protected static final int getPagesUsed() {
     int pages = msMR.reservedPages();
     pages += immortalMR.reservedPages();
@@ -355,21 +484,31 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return pages;
   }
 
-  // Assuming all future allocation comes from mark-sweep
-  //
+  /**
+   * Return the number of pages available for allocation.
+   *
+   * @return The number of pages available for allocation.
+   */
   protected static final int getPagesAvail() {
     return getTotalPages() - msMR.reservedPages() - immortalMR.reservedPages();
   }
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous
   //
 
+  /**
+   * Show the status of each of the allocators.
+   */
   public final void show() {
     ms.show();
   }
 
+  /**
+   * Print out total memory usage and a breakdown by allocator.
+   */
   public static final void showUsage() {
       VM.sysWrite("used pages = ", getPagesUsed());
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");

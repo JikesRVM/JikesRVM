@@ -45,7 +45,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -67,7 +67,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MemoryResource losMR;
   private static MemoryResource immortalMR;
 
-  // LOS collector
+  // large object space (LOS) collector
   private static MarkSweepCollector losCollector;
 
   // GC state
@@ -104,8 +104,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private BumpPointer ss;
-  private BumpPointer immortal;
   private MarkSweepAllocator los;
+  private BumpPointer immortal;
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -139,11 +140,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
-   * The boot method is called early in the bootstrap process
+   * The boot method is called early in the boot process before any
+   * allocation.
    */
-  public static final void boot() throws VM_PragmaInterruptible {
+  public static final void boot()
+    throws VM_PragmaInterruptible {
     StopTheWorldGC.boot();
   }
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -269,7 +273,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int bytes) {
+  public static final int getInitialHeaderValue(EXTENT bytes)
+    throws VM_PragmaInline {
     return losCollector.getInitialHeaderValue(bytes);
   }
 
@@ -302,15 +307,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR)
 	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection(" memory resource exhaustion");
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
   }
+
   
   ////////////////////////////////////////////////////////////////////////////
   //
   // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
   //
 
   /**
@@ -323,9 +339,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
-   * Perform operations with <i>global</i> scope in perparation for a
-   * collection.  This is called by <code>BasePlan</code>, which will
-   * ensure that <i>only one</i> thread executes this.<p>
+   * Perform operations with <i>global</i> scope in preparation for a
+   * collection.  This is called by <code>StopTheWorld</code>, which will
+   * ensure that <i>only one thread</i> executes this.<p>
    *
    * In this case, it means flipping semi-spaces, resetting the
    * semi-space memory resource, and preparing each of the collectors.
@@ -341,8 +357,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   /**
    * Perform operations with <i>thread-local</i> scope in preparation
-   * for a collection.  This is called by <code>BasePlan</code>, which
-   * will ensure that <i>all</i> threads execute this.<p>
+   * for a collection.  This is called by <code>StopTheWorld</code>, which
+   * will ensure that <i>all threads</i> execute this.<p>
    *
    * In this case, it means resetting the semi-space and large object
    * space allocators.
@@ -364,7 +380,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   /**
    * Perform operations with <i>thread-local</i> scope to clean up at
    * the end of a collection.  This is called by
-   * <code>BasePlan</code>, which will ensure that <i>all</i> threads
+   * <code>StopTheWorld</code>, which will ensure that <i>all threads</i>
    * execute this.<p>
    *
    * In this case, it means releasing the large object space (which
@@ -377,7 +393,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   /**
    * Perform operations with <i>global</i> scope to clean up at the
-   * end of a collection.  This is called by <code>BasePlan</code>,
+   * end of a collection.  This is called by <code>StopTheWorld</code>,
    * which will ensure that <i>only one</i> thread executes this.<p>
    *
    * In this case, it means releasing each of the spaces and checking
@@ -402,6 +418,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
   // Object processing and tracing
   //
+
   /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
@@ -429,10 +446,28 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return obj;
   }
 
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i>
+   * an interior pointer.
+   * @param root True if this reference to <code>obj</code> was held
+   * in a root.
+   * @return The possibly moved reference.
+   */
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+  /**
+   * Return true if the given reference will not move in this GC (it
+   * is either in a non-copying space, or it has already been copied).
+   *
+   * @param obj The object in question
+   * @return True if the given reference will not move in this GC.
+   */
   public final boolean willNotMove(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
@@ -446,11 +481,25 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return true;
   }
 
-  public static final boolean isSemiSpaceObject(Object base) {
-    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
+  /**
+   * Return true if the given reference is to an object that is within
+   * one of the semi-spaces.
+   *
+   * @param ref The object in question
+   * @return True if the given reference is to an object that is within
+   * one of the semi-spaces.
+   */
+  public static final boolean isSemiSpaceObject(Object ref) {
+    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
     return (addr.GE(SS_START) && addr.LE(HEAP_END));
   }
 
+  /**
+   * Return true if <code>obj</code> is a live object.
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a live object.
+   */
   public static final boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     if (addr.LE(HEAP_END)) {
@@ -464,6 +513,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
+  /**
+   * Reset the GC bits in the header word of an object that has just
+   * been copied.  This may, for example, involve clearing a write
+   * barrier bit.  In this case nothing is required, so the header
+   * word is returned unmodified.
+   *
+   * @param fromObj The original (uncopied) object
+   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * of the original object, and typically encodes some GC state as
+   * well as pointing to the copied object.
+   * @param bytes The size of the copied object in bytes.
+   * @return The updated GC word (in this case unchanged).
+   */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
 					     int forwardingPtr, int bytes) {
     return forwardingPtr; // a no-op for this collector
@@ -476,23 +538,31 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
 
   /**
-   * Return the number of pages reserved for use.
+   * Return the number of pages reserved for use given the pending
+   * allocation.  This <i>includes</i> space reserved for copying.
    *
-   * @return The number of pages reserved given the pending allocation
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
     int pages = ssMR.reservedPages();
-    // we must account for the worst case number of pages required
-    // for copying, which equals the number of semi-space pages in
-    // use
+    // we must account for the number of pages required for copying,
+    // which equals the number of semi-space pages in use
     pages += pages;
-    
     pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
     pages += metaDataMR.reservedPages();
     return pages;
   }
 
+  /**
+   * Return the number of pages reserved for use given the pending
+   * allocation.  This is <i>exclusive of</i> space reserved for
+   * copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
+   */
   protected static final int getPagesUsed() {
     int pages = ssMR.reservedPages();
     pages += losMR.reservedPages();
@@ -501,30 +571,42 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return pages;
   }
 
-  // Assuming all future allocation comes from semispace
-  //
+  /**
+   * Return the number of pages available for allocation, <i>assuming
+   * all future allocation is to the semi-space</i>.
+   *
+   * @return The number of pages available for allocation, <i>assuming
+   * all future allocation is to the semi-space</i>.
+   */
   protected static final int getPagesAvail() {
     int semispaceTotal = getTotalPages() - losMR.reservedPages() 
       - immortalMR.reservedPages();
     return (semispaceTotal>>1) - ssMR.reservedPages();
   }
 
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous
   //
 
+  /**
+   * Show the status of each of the allocators.
+   */
   public final void show() {
     ss.show();
     los.show();
     immortal.show();
   }
 
+  /**
+   * Print out total memory usage and a breakdown by allocator.
+   */
   public static final void showUsage() {
-      VM.sysWrite("used pages = ", getPagesUsed());
-      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
-      VM.sysWrite("= (ss) ", ssMR.reservedPages());  
-      VM.sysWrite(" + (los) ", losMR.reservedPages());
-      VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
+    VM.sysWrite("used pages = ", getPagesUsed());
+    VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
+    VM.sysWrite("= (ss) ", ssMR.reservedPages());  
+    VM.sysWrite(" + (los) ", losMR.reservedPages());
+    VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
   }
 }

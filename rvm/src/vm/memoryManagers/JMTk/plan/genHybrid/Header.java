@@ -38,7 +38,7 @@ public class Header extends HybridHeader {
   //
   public static boolean isBeingForwarded(Object base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (Plan.isNurseryObject(base))
+    if (Plan.isCopyObject(base))
       return CopyingHeader.isBeingForwarded(base);
     else
       return false;
@@ -46,7 +46,7 @@ public class Header extends HybridHeader {
 
   public static boolean isForwarded(Object base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (Plan.isNurseryObject(base))
+    if (Plan.isCopyObject(base))
       return CopyingHeader.isForwarded(base);
     else
       return false;

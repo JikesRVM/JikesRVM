@@ -285,15 +285,27 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
-    triggerCollection("external trigger");
+    triggerCollection(EXTERNALLY_TRIGGERED_GC);
   }
 
-  public static final void triggerCollection(String why) throws VM_PragmaInterruptible {
+  public static final int EXTERNALLY_TRIGGERED_GC = 0;
+  public static final int RESOURCE_TRIGGERED_GC = 1;
+  public static final int TRIGGER_REASONS = 2;
+  private static final String[] triggerReasons = {
+    "external request",
+    "resource exhaustion"
+  };
+  public static final void triggerCollection(int why)
+    throws VM_PragmaInterruptible {
+    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     // VM_Scheduler.dumpStack();
-    if (Plan.verbose > 0) VM.sysWriteln("Collection triggered due to ", why);
+    if ((Plan.verbose == 1) && (why == EXTERNALLY_TRIGGERED_GC)) {
+      VM.sysWrite("[Forced GC]");
+    }
+    if (Plan.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
-    if (Plan.verbose > 0) VM.sysWriteln("Collection finished (ms): ", 
+    if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
 					System.currentTimeMillis() - start);
   }
 

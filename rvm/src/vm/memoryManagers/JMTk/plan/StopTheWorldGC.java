@@ -2,7 +2,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
@@ -21,7 +20,22 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 
 /**
+ * This abstract class implments the core functionality for
+ * stop-the-world collectors.  Stop-the-world collectors should
+ * inherit from this class.<p>
  *
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  Instances of Plan map 1:1 to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods allow fast, unsychronized access to Plan utilities such as
+ * allocation and collection.  Each instance rests on static resources
+ * (such as memory and virtual memory resources) which are "global"
+ * and therefore "static" members of Plan.  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance proprties of this plan.
+ * 
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -62,6 +76,13 @@ public abstract class StopTheWorldGC extends BasePlan
   //
   // Initialization
   //
+
+  /**
+   * Class initializer.  This is executed <i>prior</i> to bootstrap
+   * (i.e. at "build" time).  This is where key <i>global</i>
+   * instances are allocated.  These instances will be incorporated
+   * into the boot image by the build process.
+   */
   static {
     valuePool = new SharedQueue(metaDataRPA, 1);
     locationPool = new SharedQueue(metaDataRPA, 1);
@@ -69,6 +90,9 @@ public abstract class StopTheWorldGC extends BasePlan
     interiorRootPool = new SharedQueue(metaDataRPA, 2);
   }
 
+  /**
+   * Constructor
+   */
   StopTheWorldGC() {
     values = new AddressQueue("value", valuePool);
     valuePool.newClient();
@@ -84,18 +108,28 @@ public abstract class StopTheWorldGC extends BasePlan
   //
   // Collection
   //
-  protected void collect() {
-    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
-    processAllWork();
-  }
-
-  // These abstract methods are called in the order globalPrepare,
-  // threadLocalPrepare, threadLocalRelease, and globalRelease.  They
-  // are all separated by a barrier.
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
+  //
   abstract protected void globalPrepare();
   abstract protected void threadLocalPrepare(int order);
   abstract protected void threadLocalRelease(int order);
   abstract protected void globalRelease();
+
+  /**
+   * Perform a collection.
+   */
+  protected void collect() {
+    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
+    processAllWork();
+  }
 
   /**
    * Prepare for a collection.
@@ -109,6 +143,17 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_CollectorThread.gcBarrier.rendezvous();
   }
 
+  /**
+   * Perform operations with <i>global</i> scope in preparation for a
+   * collection.  This is called by <code>prepare()</code>, which will
+   * ensure that <i>only one thread</i> executes this.<p>
+   *
+   * In this case, it means performing generic operations and calling
+   * <code>globalPrepare()</code>, which performs plan-specific
+   * operations.
+   *
+   * @param start The time that this GC started
+   */
   private final void baseGlobalPrepare(double start) {
     gcInProgress = true;
     gcCount++;
@@ -135,13 +180,28 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_Interface.prepareNonParticipating(); // The will fix collector threads that are not participating in thie GC.
   }
 
+  /**
+   * Perform operations with <i>thread-local</i> scope in preparation
+   * for a collection.  This is called by <code>prepare()</code> which
+   * will ensure that <i>all threads</i> execute this.<p>
+   *
+   * After performing generic operations,
+   * <code>threadLocalPrepare()</code> is called to perform
+   * subclass-specific operations.
+   *
+   * @param order A unique ordering placed on the threads by the
+   * caller's use of <code>rendezvous</code>.
+   */
   private final void baseThreadLocalPrepare(int order) {
-    VM_Interface.prepareParticipating();      // Every participating thread needs to adjust its context registers.
+    VM_Interface.prepareParticipating();  // Every participating thread needs to adjust its context registers.
     VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
 
+  /**
+   * Clean up after a collection
+   */
   protected final void release() {
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for termination");
@@ -149,10 +209,19 @@ public abstract class StopTheWorldGC extends BasePlan
     order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalRelease();
-    threadLocalReset();
     VM_CollectorThread.gcBarrier.rendezvous();
+    threadLocalReset();
   }
 
+  /**
+   * Perform operations with <i>global</i> scope to clean up after a
+   * collection.  This is called by <code>release()</code>, which will
+   * ensure that <i>only one thread</i> executes this.<p>
+   *
+   * In this case, it means performing generic operations and calling
+   * <code>globalRelease()</code>, which performs plan-specific
+   * operations.
+   */
   private final void baseGlobalRelease() {
     globalRelease();
     if (verbose == 1) {
@@ -180,10 +249,18 @@ public abstract class StopTheWorldGC extends BasePlan
       VM.sysWrite("    Collection time: ", (gcStopTime - gcStartTime));
       VM.sysWriteln(" seconds");
     }
+    valuePool.reset();
     locationPool.reset();
-    // FIXME ** what about resetting other pools??
+    rootLocationPool.reset();
+    interiorRootPool.reset();
   }
 
+  /**
+   * Perform operations with <i>thread-local</i> scope to release
+   * resources after a collection.  This is called by
+   * <code>release()</code> which will ensure that <i>all threads</i>
+   * execute this.
+   */
   private final void threadLocalReset() {
     values.reset();
     locations.reset();
@@ -191,7 +268,12 @@ public abstract class StopTheWorldGC extends BasePlan
     interiorRootLocations.reset();
   }
 
-  private void processAllWork() throws VM_PragmaNoInline {
+  /**
+   * Process all GC work.  This method iterates until all work queues
+   * are empty.
+   */
+  private final void processAllWork()
+    throws VM_PragmaNoInline {
 
     if (verbose >= 4) VM.sysWriteln("  Working on GC in parallel");
     do {

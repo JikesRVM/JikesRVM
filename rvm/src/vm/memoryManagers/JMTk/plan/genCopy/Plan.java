@@ -90,7 +90,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).
+   * (i.e. at "build" time).  This is where key <i>global</i>
+   * instances are allocated.  These instances will be incorporated
+   * into the boot image by the build process.
    */
   static {
     mature0VM  = new MonotoneVMResource("Higher gen lo", matureMR, MATURE_LO_START, MATURE_SS_SIZE, VMResource.MOVABLE);
@@ -110,17 +112,42 @@ public class Plan extends Generational implements VM_Uninterruptible {
   //
   // Allocation
   //
+
+  /**
+   * Allocate space (for an object) in the mature space
+   *
+   * @param isScalar True if the object occupying this space will be a scalar
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @return The address of the first byte of the allocated region
+   */
   protected final VM_Address matureAlloc(boolean isScalar, EXTENT bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
+
+  /**
+   * Allocate space for copying an object in the mature space (this
+   * method <i>does not</i> copy the object, it only allocates space)
+   *
+   * @param isScalar True if the object occupying this space will be a scalar
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @return The address of the first byte of the allocated region
+   */
   protected final VM_Address matureCopy(boolean isScalar, EXTENT bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
 
-  public static final int getInitialHeaderValue(int size) {
-    return losCollector.getInitialHeaderValue(size);
+  /**
+   * Return the initial header value for a newly allocated LOS
+   * instance.
+   *
+   * @param bytes The size of the newly created instance in bytes.
+   * @return The inital header value for the new instance.
+   */
+  public static final int getInitialHeaderValue(EXTENT bytes)
+    throws VM_PragmaInline {
+    return losCollector.getInitialHeaderValue(bytes);
   }
   
   ////////////////////////////////////////////////////////////////////////////
@@ -128,20 +155,42 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // Collection
   //
 
+  /**
+   * Perform operations pertaining to the mature space with
+   * <i>global</i> scope in preparation for a collection.  This is
+   * called by <code>Generational</code>, which will ensure that
+   * <i>only one thread</i> executes this.
+   */
   protected final void globalMaturePrepare() {
     matureMR.reset(); // reset the nursery semispace memory resource
-    hi = !hi;          // flip the semi-spaces
+    hi = !hi;         // flip the semi-spaces
   }
+
+  /**
+   * Perform operations pertaining to the mature space with
+   * <i>thread-local</i> scope in preparation for a collection.  This
+   * is called by <code>Generational</code>, which will ensure that
+   * <i>all threads</i> execute this.
+   */
   protected final void threadLocalMaturePrepare(int count) {
     mature.rebind(((hi) ? mature1VM : mature0VM)); 
   }
 
   /**
-   * Clean up after a collection.
+   * Perform operations pertaining to the mature space with
+   * <i>thread-local</i> scope to clean up at the end of a collection.
+   * This is called by <code>Generational</code>, which will ensure
+   * that <i>all threads</i> execute this.<p>
    */
   protected final void threadLocalMatureRelease(int count) {
   } // do nothing
 
+  /**
+   * Perform operations pertaining to the mature space with
+   * <i>global</i> scope to clean up at the end of a collection.  This
+   * is called by <code>Generational</code>, which will ensure that
+   * <i>only one</i> thread executes this.<p>
+   */
   protected final void globalMatureRelease() {
     ((hi) ? mature0VM : mature1VM).release();
   }
@@ -151,6 +200,16 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // Object processing and tracing
   //
 
+  /**
+   * Trace a reference into the mature space during GC.  This involves
+   * determining whether the instance is in from space, and if so,
+   * calling the <code>traceObject</code> method of the Copy
+   * collector.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
+   */
   protected static final VM_Address traceMatureObject(VM_Address obj,
 						      VM_Address addr) {
     if ((hi && addr.LT(MATURE_HI_START)) ||
@@ -160,16 +219,37 @@ public class Plan extends Generational implements VM_Uninterruptible {
       return obj;
   }
 
+  /**
+   * Return true if the given reference to a mature object will not
+   * move in this GC (if in from space it will move, if in to space it
+   * has already moved).
+   *
+   * @param obj The object in question
+   * @return True if the given reference will not move in this GC.
+   */
   protected final boolean willNotMoveMature(VM_Address addr) 
     throws VM_PragmaInline {
     return (hi ? mature1VM : mature0VM).inRange(addr);
   }
 
+  /**
+   * Return true if the object resides in a copying space (in this
+   * case mature and nursery objects are in a copying space).
+   *
+   * @param obj The object in question
+   * @return True if the object resides in a copying space.
+   */
   public static final boolean isCopyObject(Object base) {
     VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
     return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
   }
 
+  /**
+   * Return true if <code>obj</code> is a live object.
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a live object.
+   */
   public static final boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     if (addr.LE(HEAP_END)) {
@@ -183,6 +263,19 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return false;
   }
 
+  /**
+   * Reset the GC bits in the header word of an object that has just
+   * been copied.  This may, for example, involve clearing a write
+   * barrier bit.  In this case nothing is required, so the header word
+   * is returned unmodified.
+   *
+   * @param fromObj The original (uncopied) object
+   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * of the original object, and typically encodes some GC state as
+   * well as pointing to the copied object.
+   * @param bytes The size of the copied object in bytes.
+   * @return The updated GC word (in this case unchanged).
+   */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
 					     int forwardingPtr, int bytes) {
     return forwardingPtr; // a no-op for this collector
@@ -192,6 +285,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
   //
   // Miscellaneous
   //
+
+  /**
+   * Show the status of the mature allocator.
+   */
   protected final void showMature() {
     mature.show();
   }
