@@ -2716,9 +2716,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return;
     }
 
-    // TODO: the add below should work; why doesn't it?? (tField).
-    // asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
-    asm.emitMOV_Reg_Reg(SP, FP); // SP becomes frame pointer
+    asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
 
     if (klass.isDynamicBridge()) {
       // Restore non-volatile registers. 
@@ -3462,6 +3460,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
       asm.emitMOV_Reg_RegDisp(T0, SP, +4 );	// value low
       asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+      asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
       return;
     }
     
@@ -3812,5 +3811,4 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private int[]        stackHeights;
   
           int          lockOffset;
-
 }
