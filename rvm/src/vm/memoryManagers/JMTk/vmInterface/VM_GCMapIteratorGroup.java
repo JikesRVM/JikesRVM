@@ -8,7 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
+//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
 import com.ibm.JikesRVM.VM_JNIGCMapIterator;
