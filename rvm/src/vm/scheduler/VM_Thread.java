@@ -630,7 +630,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     q.enqueue(this);
   }
 
- 
   /**
    * Terminate execution of current thread by abandoning all 
    * references to it and
@@ -638,7 +637,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   static void terminate () throws VM_PragmaInterruptible {
     boolean terminateSystem = false;
-
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -659,8 +657,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	// in particular, see java.lang.Thread.join()
 	myThread.isAlive = false;
 	myThread.notifyAll();
-
-	myThread.releaseThreadSlot();
+	
+	// we need to do this, but it does not work for now
+	// myThread.releaseThreadSlot();
     }
 	
     //
