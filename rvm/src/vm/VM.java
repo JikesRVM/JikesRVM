@@ -12,7 +12,7 @@
  * @date 21 Nov 1997 
  */
 public class VM extends VM_Properties implements VM_Constants, 
-						 VM_Uninterruptible { 
+VM_Uninterruptible { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -23,9 +23,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
   static void initForBootImageWriter(String classPath, 
-				     String[] bootCompilerArgs) 
+                                     String[] bootCompilerArgs) 
     throws VM_ResolutionException,
-	   VM_PragmaInterruptible {
+  VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -93,7 +93,7 @@ public class VM extends VM_Properties implements VM_Constants,
         VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
 
     VM.TraceClassLoading = (VM_BootRecord.the_boot_record.traceClassLoading == 1);   
-    
+
     // Initialize memory manager's write barrier.
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.
@@ -102,7 +102,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
     }
-     
+
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
@@ -113,13 +113,13 @@ public class VM extends VM_Properties implements VM_Constants,
     // bootimage writing time.
     // 
     VM_BaselineCompiler.initOptions();
-    
+
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any bootimage static synchronized methods 
     // can be invoked.
     if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
-    
+
     // Fetch arguments from program command line.
     //
     if (verbose >= 1) VM.sysWriteln("Fetching command-line arguments");
@@ -149,21 +149,46 @@ public class VM extends VM_Properties implements VM_Constants,
     //
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    java.lang.ref.Reference.lock = new Object();
+    //-#else
     runClassInitializer("java.io.FileDescriptor");
+    //-#endif
+
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     System.boot();
+    //-#if RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("java.io.FileDescriptor");
+    //-#endif
     runClassInitializer("java.io.File");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("java.lang.Number");
+    //-#endif
     runClassInitializer("java.lang.Integer");
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.Character");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    //-#else
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
+    //-#endif
     runClassInitializer("java.util.Hashtable");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("java.lang.Class");
+    runClassInitializer("gnu.java.io.EncodingManager");
+    runClassInitializer("java.lang.Thread");
+    runClassInitializer("java.lang.ThreadGroup");
+    runClassInitializer("java.io.PrintWriter");
+    System.makeStandardStreams();
+    runClassInitializer("gnu.java.lang.SystemClassLoader");
+    if( gnu.java.lang.SystemClassLoader.NO_SUCH_ARCHIVE == null)
+      gnu.java.lang.SystemClassLoader.NO_SUCH_ARCHIVE = new Object();
+    //-#endif
     runClassInitializer("java.lang.String");
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
@@ -186,7 +211,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
     VM_RuntimeCompiler.boot();
 
-    
+
     // Process virtual machine directives.
     //
     if (verbose >= 1) VM.sysWriteln("Processing VM directives");
@@ -210,6 +235,10 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
     VM_Collector.postBoot();
 
+    //-#if RVM_WITH_GNU_CLASSPATH
+    VM_SystemClassLoader.getVMClassLoader().jarCache = null;
+    //-#endif
+
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
     if (verbose >= 1) VM.sysWriteln("Constructing mainThread");
@@ -225,6 +254,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Begin multiprocessing.
     //
+
     VM_Scheduler.boot(mainThread);
     if (VM.VerifyAssertions) 
       VM.assert(VM.NOT_REACHED);
@@ -269,12 +299,13 @@ public class VM extends VM_Properties implements VM_Constants,
       VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
+
   }
-   
+
   //----------------------------------------------------------------------//
   //                         Execution environment.                       //
   //----------------------------------------------------------------------//
-   
+
   /**
    * Verify a runtime assertion (die w/traceback if assertion fails).
    * Note: code your assertion checks as 
@@ -298,7 +329,7 @@ public class VM extends VM_Properties implements VM_Constants,
       // "if (VM.VerifyAssertions)"
       _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions");
     }
-    
+
     if (!b) _assertionFailure(message);
   }
 
@@ -392,7 +423,7 @@ public class VM extends VM_Properties implements VM_Constants,
       sysWrite(ones, false); 
       sysWrite(".");
       if (hundredths < 10)
-	  sysWrite("0");
+        sysWrite("0");
       sysWrite(hundredths, false);
     }
     else
@@ -414,9 +445,9 @@ public class VM extends VM_Properties implements VM_Constants,
 
 
   public static void sysWriteField(int fieldWidth, String s) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-      sysWrite(s);
-      int len = s.length();
-      while (fieldWidth > len++) sysWrite(" ");
+    sysWrite(s);
+    int len = s.length();
+    while (fieldWidth > len++) sysWrite(" ");
   }
 
   /**
@@ -424,14 +455,14 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void sysWriteField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-      int len = 1, temp = value;
-      if (temp < 0) { len++; temp = -temp; }
-      while (temp >= 10) { len++; temp /= 10; }
-      while (fieldWidth > len++) sysWrite(" ");
-      if (runningVM) 
-	  sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
-      else 
-	  System.err.print(value);
+    int len = 1, temp = value;
+    if (temp < 0) { len++; temp = -temp; }
+    while (temp >= 10) { len++; temp /= 10; }
+    while (fieldWidth > len++) sysWrite(" ");
+    if (runningVM) 
+      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+    else 
+      System.err.print(value);
   }
 
   /**
@@ -454,7 +485,7 @@ public class VM extends VM_Properties implements VM_Constants,
     else
       System.err.print(value);
   }
-   
+
   /**
    * Low level print to console.
    * @param value   what is printed
@@ -535,7 +566,7 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Scheduler.traceback(message);
     VM.shutdown(1);
   }
-   
+
   /**
    * Exit virtual machine.
    * @param value  value to pass to host o/s
@@ -577,9 +608,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @return virtual processor's o/s handle
    */
   static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-				       int ti, VM_Address fp) {
+                                       int ti, VM_Address fp) {
     return sysCall4(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
-		    jtoc.toInt(), pr.toInt(), ti, fp.toInt());
+                    jtoc.toInt(), pr.toInt(), ti, fp.toInt());
   }
 
   /**
@@ -589,16 +620,16 @@ public class VM extends VM_Properties implements VM_Constants,
   static void sysVirtualProcessorBind(int cpuId) {
     sysCall1(VM_BootRecord.the_boot_record.sysVirtualProcessorBindIP, cpuId);
   }
-      
+
   /**
    * Yield execution of current virtual processor back to o/s.
    */
   static void sysVirtualProcessorYield() {
-      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      return;
-      //-#else
-      sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
-      //-#endif
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    return;
+    //-#else
+    sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    //-#endif
   }
 
   /**
@@ -609,19 +640,19 @@ public class VM extends VM_Properties implements VM_Constants,
   static void sysVirtualProcessorEnableTimeSlicing() {
     sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP);
   }
-   
+
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   //-#else
   static void sysWaitForVirtualProcessorInitialization() {
-      sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
+    sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
   }
 
   static void sysWaitForMultithreadingStart() {
-      sysCall0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
+    sysCall0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
   }
 
   static void sysInitializeStartupLocks(int howMany) {
-      sysCall1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
+    sysCall1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
   }
   //-#endif
 
@@ -800,10 +831,10 @@ public class VM extends VM_Properties implements VM_Constants,
 
   //-#endif
 
-   //----------------//
-   // implementation //
-   //----------------//
-   
+  //----------------//
+  // implementation //
+  //----------------//
+
   /**
    * Create class instances needed for boot image or initialize classes 
    * needed by tools.
@@ -813,53 +844,53 @@ public class VM extends VM_Properties implements VM_Constants,
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
     throws VM_ResolutionException, VM_PragmaInterruptible {
-    // create dummy boot record
-    //
-    VM_BootRecord.the_boot_record = new VM_BootRecord();
-      
-    // initialize type subsystem - create type descriptions for java.lang.Object 
-    // and the classes whose methods it calls. we do this in an order chosen to 
-    // ensure that offset and size information needed by the compiler to 
-    // perform "direct" (non-dynamically linked) calls is ready before any 
-    // method calls are compiled.
-    //
-    VM_Statics.init();
-    VM_MagicNames.init();
-    VM_ClassLoader.init(vmClassPath);
-    VM_Class object       = VM_Type.JavaLangObjectType.asClass();
-    VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-    VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-    VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-    VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-     
-    // initialize JNI environment
-    VM_JNIEnvironment.init();
+      // create dummy boot record
+      //
+      VM_BootRecord.the_boot_record = new VM_BootRecord();
 
-    // load class descriptions
-    //
-    object.load();
-    string.load();
-    stringBuffer.load();
-    vm.load();
-    runtime.load();
-      
-    // generate size and offset information needed for compiling methods of java.lang.Object
-    //
-    object.resolve();
-    string.resolve();
-    stringBuffer.resolve();
-    vm.resolve();
-    runtime.resolve();
-    // initialize remaining subsystems needed for compilation
-    //
-    VM_Entrypoints.init();
-    VM_OutOfLineMachineCode.init();
-    if (writingBootImage) // initialize compiler that builds boot image
-      VM_BootImageCompiler.init(bootCompilerArgs);
-    VM_Runtime.init();
-    VM_Scheduler.init();
-    VM_Collector.init();
-  }
+      // initialize type subsystem - create type descriptions for java.lang.Object 
+      // and the classes whose methods it calls. we do this in an order chosen to 
+      // ensure that offset and size information needed by the compiler to 
+      // perform "direct" (non-dynamically linked) calls is ready before any 
+      // method calls are compiled.
+      //
+      VM_Statics.init();
+      VM_MagicNames.init();
+      VM_ClassLoader.init(vmClassPath);
+      VM_Class object       = VM_Type.JavaLangObjectType.asClass();
+      VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+      VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+      VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+      VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+
+      // initialize JNI environment
+      VM_JNIEnvironment.init();
+
+      // load class descriptions
+      //
+      object.load();
+      string.load();
+      stringBuffer.load();
+      vm.load();
+      runtime.load();
+
+      // generate size and offset information needed for compiling methods of java.lang.Object
+      //
+      object.resolve();
+      string.resolve();
+      stringBuffer.resolve();
+      vm.resolve();
+      runtime.resolve();
+      // initialize remaining subsystems needed for compilation
+      //
+      VM_Entrypoints.init();
+      VM_OutOfLineMachineCode.init();
+      if (writingBootImage) // initialize compiler that builds boot image
+        VM_BootImageCompiler.init(bootCompilerArgs);
+      VM_Runtime.init();
+      VM_Scheduler.init();
+      VM_Collector.init();
+    }
 
   /**
    * The following two methods are for use as guards to protect code that 
@@ -905,16 +936,16 @@ public class VM extends VM_Properties implements VM_Constants,
     //
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
-      
+
     // 1.
     //
     if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit))
-       VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
+      VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
 
     // 2.
     //
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      
+
     // 3.
     //
     if (VM.VerifyAssertions) {
@@ -935,7 +966,7 @@ public class VM extends VM_Properties implements VM_Constants,
     }
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
-   
+
   private static String _mainApplicationClassName;
   private static VM_Thread _mainThread;
 

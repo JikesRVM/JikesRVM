@@ -431,13 +431,15 @@ class GenerateInterfaceDeclarations {
 
     // fields in java.net.InetAddress
     //
+    //-#if RVM_WITH_GNU_CLASSPATH
+    //-#else
     offset = VM_Entrypoints.inetAddressAddressField.getOffset();
     System.out.print("static const int java_net_InetAddress_address_offset = "
 		     + offset + ";\n");
     offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
     System.out.print("static const int java_net_InetAddress_family_offset = "
 		     + offset + ";\n");
-
+    //-#endif
     // fields in java.net.SocketImpl
     //
     offset = VM_Entrypoints.socketImplAddressField.getOffset();

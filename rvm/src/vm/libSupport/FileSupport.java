@@ -93,12 +93,14 @@ public class FileSupport {
     return VM_FileSystem.close(fd);
   }
 
+//-#if RVM_WITH_GNU_CLASSPATH
+//-#else
   /**
    * Close a FileInputStream.
    *
    * @exception 	java.io.IOException	If an error occurs attempting to close this FileInputStream.
    */
-  public static void close(FileInputStream f) throws IOException {    
+    public static void close(FileInputStream f) throws IOException {    
     FileDescriptor fd = f.fd;
     f.fd = null;
     if (fd != null) {
@@ -110,7 +112,7 @@ public class FileSupport {
           throw new IOException(); 
       }
     }
-  }
+    }
 
   /**
    * Close a FileOutputStream.  This implementation closes the underlying OS resources allocated
@@ -118,6 +120,7 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException	If an error occurs attempting to close this FileOutputStream.
    */
+    
   public static void close(FileOutputStream f) throws IOException {
     FileDescriptor fd = f.fd;
     f.fd = null;
@@ -132,20 +135,21 @@ public class FileSupport {
         FileSupport.sync(fd.fd);
       }
     }  
-  }
+    }
+
   /**
    * Frees any resources allocated to represent a FileOutputStream before it is garbage collected.
    *
    * @exception 	java.io.IOException	If an error occurs attempting to finalize this FileOutputStream.
    */
-  public static void finalize(FileOutputStream f) throws IOException {
+     public static void finalize(FileOutputStream f) throws IOException {
     // in UNIX, fds 0, 1 and 2 tend to be special
     if (f.fd != null)
       if (f.fd.fd > 2) 
         close(f);
       else
         FileSupport.sync( f.fd.fd );
-  }
+	}
 
   /**
    * Writes <code>count</code> <code>bytes</code> from the byte array
@@ -160,22 +164,27 @@ public class FileSupport {
    * @throws	java.lang.IndexOutOfBoundsException If offset or count are outside of bounds.
    * @throws	java.lang.NullPointerException If buffer is <code>null</code>.
    */
+    
   public static void write(FileOutputStream f, byte[] buffer, int offset, int count) throws IOException {
     int rc = FileSupport.writeBytes(f.fd.fd, buffer, offset, count);
     if (rc != count)
       throw new IOException();
-  }
+      }
 
 
 
-
+    //-#endif
   /**
    * Get file status.
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
    * @return desired info (-1 -> error)
    */ 
+//-#if RVM_WITH_GNU_CLASSPATH
+  public static int stat(String fileName, int kind) {
+//-#else
   private static int stat(String fileName, int kind) {
+//-#endif
     return VM_FileSystem.stat(fileName,kind);
   }
 
@@ -421,11 +430,16 @@ public class FileSupport {
   public static int writeByte(int fd, int b) {
     return VM_FileSystem.writeByte(fd,b);
   }
+
+
+//-#if RVM_WITH_GNU_CLASSPATH
+//-#else
   /**
    * Close a RandomAccessFile.
    *
    * @exception 	java.io.IOException	If an error occurs attempting to close this RandomAccessFile.
    */
+
   public static void close(RandomAccessFile f) throws IOException {
     FileDescriptor fd = f.fd;
     f.fd = null;
@@ -441,6 +455,7 @@ public class FileSupport {
       }
     }  
   }
+
   /**
    * Answers the current position within a RandomAccessFile.  All reads and writes
    * take place at the current file pointer position.
@@ -450,6 +465,7 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to get the file pointer position
    *									of this RandomAccessFile.
    */
+
   public static long getFilePointer(RandomAccessFile f) throws IOException {
     int curpos = seek(f.fd.fd, 0, SEEK_CUR);
     if (curpos == -1)
@@ -465,6 +481,7 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to get the file length
    *									of this RandomAccessFile.
    */
+
   public static long length(RandomAccessFile f) throws IOException {
     //!!TODO - probably an fstat() would be faster than three lseeks()...
     //!!TODO - also, this computation is not thread safe if
@@ -478,6 +495,7 @@ public class FileSupport {
 
     return endpos;
   }
+
   /**
    * Reads a single byte from a RandomAccessFile and returns the result as
    * an int.  The low-order byte is returned or -1 of the end of file was
@@ -490,6 +508,7 @@ public class FileSupport {
    * @see 		#write(RandomAccessFile,byte[], int, int)
    * @see 		#write(RandomAccessFile,int)
    */
+
   public static int read(RandomAccessFile f) throws IOException {
     if (f.fd != null) {
       int rc = readByte(f.fd.fd);
@@ -497,7 +516,7 @@ public class FileSupport {
       else		return rc;
     }
     throw new IOException();
-  }
+    }
 
   /**
    * Seeks to the position <code>pos</code> in a RandomAccessFile.  All read/write/skip
@@ -507,10 +526,12 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException 	If the stream is already closed or another IOException occurs.
    */
+    
   public static void seek(RandomAccessFile f, long pos) throws IOException {
     if (seek(f.fd.fd, (int)pos, SEEK_SET) == -1)
       throw new IOException();
   }
+    
   /**
    * Writes <code>count</code> bytes from the byte array
    * <code>buffer</code> starting at <code>offset</code> to this
@@ -526,6 +547,7 @@ public class FileSupport {
    *
    * @exception	java.lang.ArrayIndexOutOfBoundsException If offset or count are outside of bounds.
    */
+    
   public static void write(RandomAccessFile f, byte[] buffer, int offset, int count) throws IOException {
     if (f.fd != null) {
       int rc = writeBytes(f.fd.fd, buffer, offset, count);
@@ -533,7 +555,7 @@ public class FileSupport {
       return;
     }
     else throw new IOException();
-  }
+    }
 
   /**
    * Writes the specified byte <code>oneByte</code> to this RandomAccessFile
@@ -546,6 +568,7 @@ public class FileSupport {
    *
    * @see 		#read(RandomAccessFile)
    */
+    
   public static void write(RandomAccessFile f, int oneByte) throws IOException {
     if (f.fd != null)
     {
@@ -554,5 +577,6 @@ public class FileSupport {
       return;
     }
     else throw new IOException();
-  }
+    }
+//-#endif
 }

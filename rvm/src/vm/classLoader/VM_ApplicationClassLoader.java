@@ -9,14 +9,21 @@
  */
 
 import java.security.ProtectionDomain;
-import com.ibm.oti.vm.AppClassLoader;
+//-#if RVM_WITH_GNU_CLASSPATH
+//-#else
+ import com.ibm.oti.vm.AppClassLoader;
+//-#endif
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import java.net.URL;
 
+//-#if RVM_WITH_GNU_CLASSPATH
+class VM_ApplicationClassLoader extends ClassLoader {
+//-#else
 class VM_ApplicationClassLoader extends AppClassLoader {
+//-#endif
 
     VM_ApplicationClassLoader(ClassLoader parent) {
 	super( parent );
@@ -66,9 +73,14 @@ class VM_ApplicationClassLoader extends AppClassLoader {
       VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
 	
       try {
-	URL x = findResource(classDescriptor.classFileNameFromDescriptor());
-	InputStream is = x.openConnection().getInputStream();
-	VM_ClassLoader.defineClassInternal(className, is, this, (ProtectionDomain)getFilePD(findRepository(x.getFile())));
+        URL x = findResource(classDescriptor.classFileNameFromDescriptor());
+        InputStream is = x.openConnection().getInputStream();
+        //-#if RVM_WITH_GNU_CLASSPATH
+        VM_ClassLoader.defineClassInternal(className, is, this, null /*(ProtectionDomain)getFilePD(findRepository(x.getFile())));*/ );
+        //-#else
+        VM_ClassLoader.defineClassInternal(className, is, this, (ProtectionDomain)getFilePD(findRepository(x.getFile())));
+        //-#endif
+
       } catch (Throwable e) {
 	throw new ClassNotFoundException(className);
       }

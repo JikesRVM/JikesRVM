@@ -1443,7 +1443,10 @@ public class ReflectionSupport {
    * @exception	IOException		If an IO exception happened when creating internal streams to hold primitive data
    */
   public static void initPrimitiveTypes(ObjectInputStream ois, byte[] data) throws IOException {
-    ois.primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
+//-#if RVM_WITH_GNU_CLASSPATH
+//-#else
+      ois.primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
+//-#endif
   }
   /**
    * Reads a collection of field descriptors (name, type name, etc) for the class descriptor
@@ -1455,6 +1458,8 @@ public class ReflectionSupport {
    * @exception	ClassNotFoundException	If a class for one of the field types could not be found
    */
   public static void readFieldDescriptors(ObjectInputStream ois, ObjectStreamClass cDesc) throws ClassNotFoundException, IOException {
+//-#if RVM_WITH_GNU_CLASSPATH
+//-#else
     ObjectStreamField f;
     short numFields = ois.input.readShort();
     ObjectStreamField[] fields = new ObjectStreamField [numFields];
@@ -1518,7 +1523,8 @@ public class ReflectionSupport {
       }
 
       fields [i] = f;
-    }
+      }
+//-#endif
   }
   /**
    * Set a given declared field named <code>fieldName</code> of <code>instance</code> to

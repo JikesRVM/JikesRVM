@@ -3,9 +3,6 @@
  */
 //$Id$
 
-import java.net.URL;
-import java.net.URLClassLoader;
-
 /**
  * Thread in which user's "main" program runs.
  *

@@ -551,9 +551,9 @@ public final class VM_Array extends VM_Type
     if (!elementType.isLoaded()) {
       // JVM spec says anewarray forces instantiation of base class
       try {
-	elementType.load(); 
+        elementType.load(); 
       }	catch (VM_ResolutionException e) {
-	System.err.println("VM_Array.load: cannot load element type::: " + elementType); // TODO: we should throw e
+        System.err.println("VM_Array.load: cannot load element type::: " + elementType); // TODO: we should throw e
       }
     }
     state = CLASS_LOADED;
