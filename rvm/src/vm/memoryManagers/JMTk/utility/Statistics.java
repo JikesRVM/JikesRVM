@@ -45,7 +45,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
 
   // Number and types of GC
-  static int gcExternalCount = 0;   // number of calls from System.gc
+  public static int gcExternalCount = 0;   // number of calls from System.gc
   static int gcCount = 0;           // number of minor collections
   static int gcMajorCount = 0;      // number of major collections
 
@@ -55,7 +55,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
-  static final VM_TimeStatistic startTime = new VM_TimeStatistic();
   static final VM_TimeStatistic initTime = new VM_TimeStatistic();
   static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
   static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
@@ -137,7 +136,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     // if invoked with -verbose:gc print output line for this last GC
     VM.sysWrite("<GC ", gcCount, "> ");
-    VM.sysWrite("startTime ", (int)(startTime.last()*1000000.0), "(us) ");
     VM.sysWrite("init ", (int)(initTime.last()*1000000.0), "(us) ");
     VM.sysWrite("stacks & statics ", (int)(rootTime.last()*1000000.0), "(us) ");
     VM.sysWrite("scanning ", (int)(scanTime.last()*1000.0), "(ms) ");
@@ -219,13 +217,13 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (VM_Interface.verbose() >= 1 && gcCount>0) {
-      VM.sysWrite("Average Time in Phases of Collection:\n");
-      VM.sysWrite("startTime ", startTime.avgUs(), "(us) init ");
-      VM.sysWrite( initTime.avgUs(), "(us) stacks & statics ");
-      VM.sysWrite( rootTime.avgUs(), "(us) scanning ");
-      VM.sysWrite( scanTime.avgMs(), "(ms) finalize ");
-      VM.sysWrite( finalizeTime.avgUs(), "(us) finish ");
-      VM.sysWrite( finishTime.avgUs(), "(us)>\n\n");
+      VM.sysWrite("GC Summary: Average Phase Time:");
+      VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  scan ", scanTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  finish ", finishTime.avg() * 1000.0, " ms");
+      VM.sysWriteln();
     }
 
     if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
