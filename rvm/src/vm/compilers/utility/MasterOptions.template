@@ -131,7 +131,6 @@ $$$$ END LOOP
     }
     // Make sure only process O? option if initial runtime compiler!
     if ((prefix.indexOf("irc")!=-1 || 
-	 prefix.indexOf("rc")!=-1 ||
 	 prefix.indexOf("bc")!=-1 ||
          prefix.indexOf("eoc")!=-1) && 
 	instanceProcessAsOption(arg)) {
@@ -242,7 +241,7 @@ $$$$ END LOOP
     instancePrintHelpHeader(prefix);
 
     //Begin generated help messages
-    VM.sysWrite("Boolean Options ("+prefix+":<option>=true or "+prefix+":<option>=false)\n");
+    VM.sysWrite("Boolean Options ("+prefix+"<option>=true or "+prefix+":<option>=false)\n");
 $$$$ IF USE_OPT_LEVELS == "YES"
     VM.sysWrite("Option                        OptLevel Description\n");
 $$$$ ELSE

@@ -289,14 +289,14 @@ abstract class VM_RecompilationStrategy {
     for (int j=0; j<optCompilerOptions.length; j++) {
       if (optCompilerOptions[j].startsWith("opt:")) {
         String option = optCompilerOptions[j].substring(4);
-        if (!options.processAsOption("-X:opt:", option)) {
+        if (!options.processAsOption("-X:recomp:", option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
                       +option+"\" passed in as "
                       +optCompilerOptions[j]+"\n");
         }
       } else if (optCompilerOptions[j].startsWith(prefix)) {
         String option = optCompilerOptions[j].substring(5);
-        if (!options.processAsOption("-X:opt:"+prefix, option)) {
+        if (!options.processAsOption("-X:recomp:"+prefix, option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
                       +option+"\" passed in as "
                       +optCompilerOptions[j]+"\n");

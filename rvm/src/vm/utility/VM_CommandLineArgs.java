@@ -445,10 +445,10 @@ public class VM_CommandLineArgs {
         // Access initial runtime compiler (may be baseline or optimizing).
         // ----------------------------------------------------
       case IRC_HELP_ARG:
-        VM_RuntimeCompiler.processCommandLineArg("help");
+        VM_RuntimeCompiler.processCommandLineArg("-X:irc:", "help");
         break;
       case IRC_ARG: // "-X:irc:arg"; pass 'arg' as an option
-        VM_RuntimeCompiler.processCommandLineArg(arg);
+        VM_RuntimeCompiler.processCommandLineArg("-X:irc:", arg);
         break;
 
         // --------------------------------------------------------------------
@@ -511,7 +511,7 @@ public class VM_CommandLineArgs {
         // ----------------------------------------------------
       case OPT_HELP_ARG:
         //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_RuntimeCompiler.processOptCommandLineArg("help");
+        VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:","help");
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
@@ -520,7 +520,7 @@ public class VM_CommandLineArgs {
         break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
         //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_RuntimeCompiler.processOptCommandLineArg(arg);
+        VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:", arg);
         VM_Controller.addOptCompilerOption("opt:"+arg);
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
