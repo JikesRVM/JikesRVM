@@ -2,7 +2,8 @@ This section provides some information on various
 implementation details for the RVM runtime system.
 
 \subsection{Object Layout} \label{sssec:objects}
-Values in Java\trademark are either {\em primitive} (e.g. {\tt int},
+Values in the Java\trademark programm language are either {\em
+primitive} (e.g. {\tt int}, 
 {\tt double}, etc.)  or they are {\em references} (that is, pointers) to
 objects.  Objects are either {\em arrays} having components or {\em
 simple objects} having fields.  RVM's object model is governed by four
@@ -15,7 +16,7 @@ null-pointer checks should be performed by the hardware if possible,
 \item{}
 virtual method dispatch should be fast, and 
 \item{}
-other (less frequent) Java\trademark operations  should not be prohibitively slow.
+other (less frequent) Java operations  should not be prohibitively slow.
 \end{itemize}
 
 Assuming the reference to an object is in a register, the object's
@@ -27,7 +28,8 @@ in an array, its {\em length}, is kept just before its first
 component.
 
 \index{NullPointerException}
-Java\trademark requires that an attempt to access an object through a {\tt null}
+The Java programming language requires that an attempt to access an
+object through a {\tt null} 
 object reference generate a NullPointerException.  In the RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX operating system permits loads from low memory, but accesses
@@ -68,6 +70,8 @@ verifies that the index is within the bounds of the array.  Except for
 {\tt byte} (and {\tt boolean}) arrays, the component index must then
 be shifted to get a byte index.  The access itself is accomplished
 using base-index addressing.
+
+\JavaTMFooter
 
 \subsection{Object headers} \label{sssec:headers}
 \index{object header}
@@ -309,7 +313,7 @@ The layout of the stackframe appears in a block comment in
 
 \item Store callee's compiled method ID (eventually, this may not be needed).
 
-\item Check to see if the Java thread must yield the VM\_Processor
+\item Check to see if the Java\trademark thread must yield the VM\_Processor
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
@@ -400,10 +404,13 @@ The first two areas of the callee's stackframe (see above) have been
 
 \end{description}
 
+\JavaTMFooter
+
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-RVM implements Java's dynamic class loading. While a class is being loaded it
+RVM implements the Java\trademark programming language's dynamic class
+loading. While a class is being loaded it 
 can be in one of five states. These are
 \begin{description}
 \item[vacant] a forward reference exists to the class but loading has not yet 
@@ -461,6 +468,8 @@ initializer is being run.
 \index{class initializer}
 In this state the superclass has been initialized. The class initializer has 
 been run. 
+
+\JavaTMFooter
 
 \subsection{Thread System}\label{sec:threads}
 

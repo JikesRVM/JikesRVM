@@ -114,7 +114,7 @@ directories for each optimization level specified.
 
 \item{\tt{-numprocs}} {\em n}
 
- This command line option specifies how many processors (i.e. Jikes\trademark
+ This command line option specifies how many processors (i.e.\ Jikes\trademark
 RVM virtual processors) are to be used for each test run.  For every
 test that is run, the desired number of processors will be given to
 Jikes RVM as a boot time command line option.  This option is ignored
@@ -213,6 +213,7 @@ RunSanityTests command line.  You can use files from other places as
 control files, but those require an absolute path (i.e. one beginning
 with a /) on the command line.
 
+
 \subsubsection{Individual Test Programs}
 
  The {\tt tests} subdirectory of the {\tt{\$RVM\_ROOT/rvm/regression}}
@@ -276,7 +277,7 @@ sizes needed by the benchmark and any extra boot time arguments to
 RVM.  These variables are as follows:
 \begin{description}
 \item[BENCH\_SOURCE\_PATH] is a list of directories in which to find
-java source files that are used by this benchmark.  This is not a
+Java\trademark source files that are used by this benchmark.  This is not a
 colon-separated classpath, but a normal whitespace-separated makefile
 list.  
 \item[BENCH\_CLASS\_PATH] is a list of directories and jar files in
@@ -497,3 +498,8 @@ NightSanityDriver invocation in a crontab; we actually use a more
 involved setup, which we distribute in the night-sanity-build and
 night-sanity-run scripts.  These are somewhat specific to what we want
 to test, but they will hopefully make a good model.
+
+\JikesTMFooter
+
+\JavaTMFooter
+
