@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
  *
- * This abstrace class describes the interface of a generic counter.
+ * This abstract class describes the interface of a generic counter.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -25,7 +25,7 @@ public abstract class Counter implements VM_Uninterruptible {
 
   private String name;
   private boolean start;
-  private boolean gconly;
+  private boolean mergephases;
 
   /****************************************************************************
    *
@@ -45,8 +45,9 @@ public abstract class Counter implements VM_Uninterruptible {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   Counter(String name, boolean start) {
     this(name, start, false);
@@ -56,15 +57,16 @@ public abstract class Counter implements VM_Uninterruptible {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start  True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  Counter(String name, boolean start, boolean gconly) {
+  Counter(String name, boolean start, boolean mergephases) {
     this.name = name;
     this.start = start;
-    this.gconly = gconly;
+    this.mergephases = mergephases;
     Stats.newCounter(this);
   }
 
@@ -155,8 +157,8 @@ public abstract class Counter implements VM_Uninterruptible {
   boolean getStart() { return start; }
 
   /**
-   * Return true if this counter only pertains to GC phases.
-   * @return True if this counter only pertains to GC phases.
+   * Return true if this counter will merge stats for GC and mutator phases.
+   * @return True if this counter will merge stats for GC and mutator phases.
    */
-  boolean gcOnly() { return gconly; }
+  boolean mergePhases() { return mergephases; }
 }

@@ -50,8 +50,9 @@ public class BooleanCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   public BooleanCounter(String name, boolean start) {
     this(name, start, false);
@@ -61,17 +62,17 @@ public class BooleanCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  public BooleanCounter(String name, boolean start, boolean gconly) {
-    super(name, start, gconly);
+  public BooleanCounter(String name, boolean start, boolean mergephases) {
+    super(name, start, mergephases);
     state = new boolean[Stats.MAX_PHASES];
-    for (int i = 0; i < Stats.MAX_PHASES; i++) {
+    for (int i = 0; i < Stats.MAX_PHASES; i++) 
       state[i] = false;
-    }
   }
 
   /****************************************************************************
@@ -128,7 +129,12 @@ public class BooleanCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    printValue((state[phase]) ? 1 : 0);
+    if (VM_Interface.VerifyAssertions && mergePhases()) 
+      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (mergePhases()) 
+      printValue((state[phase] || state[phase+1]) ? 1 : 0);
+    else
+      printValue((state[phase]) ? 1 : 0);
   }
 
   /**

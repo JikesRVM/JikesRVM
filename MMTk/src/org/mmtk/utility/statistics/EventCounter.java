@@ -50,8 +50,9 @@ public class EventCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   public EventCounter(String name, boolean start) {
     this(name, start, false);
@@ -61,13 +62,14 @@ public class EventCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  public EventCounter(String name, boolean start, boolean gconly) {
-    super(name, start, gconly);
+  public EventCounter(String name, boolean start, boolean mergephases) {
+    super(name, start, mergephases);
     count = new long[Stats.MAX_PHASES];
   }
 
@@ -124,8 +126,8 @@ public class EventCounter extends Counter
    */
   void phaseChange(int oldPhase) {
     if (running) {
-      long old = (oldPhase > 0) ? count[oldPhase - 1] : 0;
-      count[oldPhase] = totalCount - old;
+      count[oldPhase] = totalCount;
+      totalCount = 0;
     }
   }
 
@@ -136,14 +138,23 @@ public class EventCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    printValue(count[phase]);
+    if (VM_Interface.VerifyAssertions && mergePhases()) 
+      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (mergePhases()) 
+      printValue(count[phase] + count[phase+1]);
+    else
+      printValue(count[phase]);
   }
 
   /**
    * Print the current total for this counter
    */
   final public void printTotal() {
-    printValue(totalCount);
+    long total = 0;
+    for (int p = 0; p < Stats.phase; p++) {
+      total += count[p];
+    }
+    printValue(total);
   }
 
   /**

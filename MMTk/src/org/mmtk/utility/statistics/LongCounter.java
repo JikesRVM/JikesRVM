@@ -53,8 +53,9 @@ public abstract class LongCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   LongCounter(String name, boolean start) {
     this(name, start, false);
@@ -64,13 +65,14 @@ public abstract class LongCounter extends Counter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  LongCounter(String name, boolean start, boolean gconly) {
-    super(name, start, gconly);
+  LongCounter(String name, boolean start, boolean mergephases) {
+    super(name, start, mergephases);
     count = new long[Stats.MAX_PHASES];
   }
 
@@ -131,7 +133,12 @@ public abstract class LongCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    printValue(count[phase]);
+    if (VM_Interface.VerifyAssertions && mergePhases()) 
+      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (mergePhases()) 
+      printValue(count[phase] + count[phase+1]);
+    else
+      printValue(count[phase]);
   }
 
   /**

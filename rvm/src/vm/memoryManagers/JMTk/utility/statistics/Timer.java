@@ -40,8 +40,9 @@ public class Timer extends LongCounter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   public Timer(String name, boolean start) {
     this(name, start, false);
@@ -51,13 +52,14 @@ public class Timer extends LongCounter
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  public Timer(String name, boolean start, boolean gconly) {
-    super(name, start, gconly);
+  public Timer(String name, boolean start, boolean mergephases) {
+    super(name, start, mergephases);
   }
 
   /****************************************************************************

@@ -48,8 +48,9 @@ public class SizeCounter implements VM_Uninterruptible {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   public SizeCounter(String name, boolean start) {
     this(name, start, false);
@@ -59,14 +60,15 @@ public class SizeCounter implements VM_Uninterruptible {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started at
-   * boot time (otherwise the counter must be explicitly started).
-   * @param gconly True if this counter only pertains to (and
-   * therefore functions during) GC phases.
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
-  public SizeCounter(String name, boolean start, boolean gconly) {
-    units = new EventCounter(name);
-    volume = new EventCounter(name+"Volume");
+  public SizeCounter(String name, boolean start, boolean mergephases) {
+    units = new EventCounter(name, start, mergephases);
+    volume = new EventCounter(name+"Volume", start, mergephases);
   }
 
   /****************************************************************************

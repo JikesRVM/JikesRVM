@@ -167,8 +167,8 @@ public abstract class BasePlan
 
     totalTime = new Timer("time");
     if (GATHER_MARK_CONS_STATS) {
-      mark = new SizeCounter("mark");
-      cons = new SizeCounter("cons");
+      mark = new SizeCounter("mark", true, true);
+      cons = new SizeCounter("cons", true, true);
     }
     
   }

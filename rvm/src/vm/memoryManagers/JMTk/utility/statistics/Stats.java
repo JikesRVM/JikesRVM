@@ -135,41 +135,40 @@ public class Stats implements VM_Uninterruptible {
     for (int p = 0; p <= phase; p += 2) {
       Log.write((p/2)+1); Log.write("\t");
       for (int c = 0; c < counters; c++) {
-	if (!counter[c].gcOnly()) {
-	  counter[c].printCount(p);
-	  Log.write("\t");
-	}
-	counter[c].printCount(p+1); Log.write("\t");
+        if (counter[c].mergePhases()) {
+	  counter[c].printCount(p); Log.write("\t");
+        } else {
+	  counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p+1); Log.write("\t");
+        }
       }
       Log.writeln();
     }
     // print totals
-    printFooter("================");
+    Log.writeln("============================ MMTk Statistics Totals ============================");
     Log.write((phase/2)+1); Log.write("\t");
     for (int c = 0; c < counters; c++) {
-      if (!counter[c].gcOnly()) {
-	counter[c].printTotal(true);
-	Log.write("\t");
+      if (counter[c].mergePhases()) {
+	counter[c].printTotal(); Log.write("\t");
+      } else {
+	counter[c].printTotal(true); Log.write("\t");
+        counter[c].printTotal(false); Log.write("\t");
       }
-      counter[c].printTotal(false); Log.write("\t");
     }
     Log.writeln();
     Log.write("Total time: "); 
     Plan.totalTime.printTotal(); Log.writeln(" ms");
-    printFooter("----------------");
+    Log.writeln("------------------------------ End MMTk Statistics -----------------------------");
   }
   
   /**
    * Print out statistics header
    */
   private static void printHeader() {
-    for (int c = 0; c <= counters; c++) {
-      Log.write("----------------");
-    }
-    Log.writeln();
+    Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
     Log.write("GC\t");
     for (int c = 0; c < counters; c++) {
-      if (counter[c].gcOnly()) {
+      if (counter[c].mergePhases()) {
 	Log.write(counter[c].getName());
 	Log.write("\t");
       } else {
@@ -178,16 +177,6 @@ public class Stats implements VM_Uninterruptible {
 	Log.write(counter[c].getName());
 	Log.write(".gc\t");
       }
-    }
-    Log.writeln();
-  }
-
-  /**
-   * Print out statistics footer
-   */
-  private static void printFooter(String s) {
-    for (int c = 0; c <= counters; c++) {
-      Log.write(s);
     }
     Log.writeln();
   }

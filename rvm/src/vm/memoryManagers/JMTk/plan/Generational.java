@@ -151,8 +151,8 @@ public abstract class Generational extends StopTheWorldGC
       wbSlow = new EventCounter("wbSlow");
     }
     if (GATHER_MARK_CONS_STATS) {
-      nurseryMark = new SizeCounter("nurseryMark");
-      nurseryCons = new SizeCounter("nurseryCons");
+      nurseryMark = new SizeCounter("nurseryMark", true, true);
+      nurseryCons = new SizeCounter("nurseryCons", true, true);
     }
   }
   

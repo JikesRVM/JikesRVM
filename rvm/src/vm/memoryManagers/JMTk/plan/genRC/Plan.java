@@ -925,7 +925,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (addr.GE(NURSERY_START)) {
         if (VM_Interface.VerifyAssertions)
           VM_Interface._assert(addr.LE(NURSERY_END));
-        locations.push(objLoc);
+        remset.push(objLoc);
       } else if (addr.GE(RC_START))
         RCBaseHeader.incRC(object);
     }
