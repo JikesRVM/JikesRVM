@@ -58,6 +58,8 @@ of priority.
     assembler fragment. Ideally the fragment could be recognized at the
     time of entry to it. But a more fault-tolerate response (and not 
     switching to jid mode) would be an improvement.
+  - documentation: The help text for where and whereframe are not very clear.
+    What are from and to, for example?
 
 6) listm command:
   - proposed syntax: <listm> | <lm> < [[*]classname[*].][*]methodname[*]>
@@ -77,6 +79,16 @@ of priority.
   - expansion: Allow an argument of the number of instructions to step over.
     step 1 is the same as step. Because of varying length instructions this
     is a bit trickier to support for Intel
+  - bug: On Lintel sometimes see a message about a scanCompiledMethodIdTable
+    error
+  - bug: With a BaseOpt or OptOpt build, step often seems to execute a lot
+    more than one instruction
+  - expansion: Currently setting a break point for a method defaults to 
+    after the prologue of the method (if no line number is given). But 
+    single stepping into a call means stepping through the instructions of
+    the prologue. Add a preference (see pref command) to allow users to 
+    indicate that step show jump to the end of the prologue. Note the
+    placement of skip_prolog (never currently used) would need to be fixed.
 
 10) method lookup:
   - performance: Commands such as where, and break sometimes take a while
@@ -91,3 +103,25 @@ of priority.
      lately. It would be preferable to indicate to the user that the method
      is opt compiled and stepline is not possible or at least not recommended.
 
+12) rawmem command:
+   - bug: on AIX if the address is not a multiple of 4, output is bad. If
+     multiple of 4 is required, it should be checked for and reported.
+
+13) reg command:
+   - documentation:  The purpose of <count> is not described
+
+14) README file
+   - documentation: This file tends to get out of date. It needs to be
+     either updated or deleted.
+
+15) Support of BaseOpt on Lintel
+   - bug: There seem to be more segmentation faults with the opt compiler as IRC
+     Not clear what the source of these faults are. Are the yieldpoints?
+
+16) clearbreak command:
+   -expansion: It would be nice if the clearbreak command could take a number
+    to indicate clear the nth breakpoint. This would need to be coordinated
+    with the break command which is used to display the existing break points.
+
+
+  
