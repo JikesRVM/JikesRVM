@@ -159,10 +159,6 @@ bool undefined_constants_in_conditions = true; /* Historical behavior */
 //bool undefined_constants_in_conditions = false; /* Strict behavior */
 bool exit_with_status_1_if_files_modified = true; /* Historical behavior */
 bool keep_going = false;
-int keep_going_xitstatus = 0;	// what status to exit the program with.
-
-
-
 
 
 
@@ -233,9 +229,9 @@ void reviseState(void);
 #if DEBUG
 void printState(FILE *fout, char *constant, char *line);
 #endif
-bool eval(char *p);
-const char *evalReplace(char *cursor);
-char *getToken(char **c);
+bool eval(char *p, int &trouble);
+const char *evalReplace(char *cursor, int &trouble);
+char *getToken(char **c, int &trouble);
 bool getBoolean(char **c);
 
 // Types of tokens returned by scan().
@@ -255,7 +251,8 @@ union scan_arg {
     const char *Replace;
 };
 
-enum scan_token scan(const char *srcFile, char *line, union scan_arg *argp);
+enum scan_token scan(const char *srcFile, char *line, union scan_arg *argp,
+		     int &trouble);
 
 #define UNUSED_DECL_ARG __attribute__((__unused__))
 #define UNUSED_DEF_ARG __attribute__((__unused__))
@@ -287,6 +284,9 @@ static void shorthelp(FILE *out);
 const char *DeleteOnTrouble = NULL;
 static void delete_on_trouble(void) SIGNAL_ATTRIBUTE;
 
+enum Trouble { TROUBLE = -1,  OK = 0 };
+
+
 int
 main(int argc, char **argv) 
 {
@@ -302,7 +302,7 @@ main(int argc, char **argv)
 	char *arg   = *argv;
 	
 	if (streql(arg, "--")) {
-	    ++argv;
+	    ++argv, --argc;
 	    break;
 	}
 	
@@ -424,6 +424,7 @@ main(int argc, char **argv)
 	/* We'll consider multiple -package declarations benign, and let
 	 * the last one win.. */
 	if (streql(arg, "-package")) {
+	    --argc;
 	    if (! *++argv ) {
 		fprintf(stderr, "%s: The -package flag requires an argument\n", Me);
 		shorthelp(stderr);
@@ -448,9 +449,9 @@ main(int argc, char **argv)
     //
     int examined     = 0;
     int preprocessed = 0;
-    assert(argc >= 0);
+    int failed = 0;
 
-    if (argc == 0 && trace) {
+    if (argc == 0 && (trace || verbose)) {
 	fprintf(stderr, "%s: I won't preprocess any files, since you didn't\n"
 		"    specify any on the command line.", Me);
     }
@@ -466,10 +467,10 @@ main(int argc, char **argv)
 	time_t      destinationTime;
 	
 	if (stat(source, &info) < 0) {
-	    fprintf(stderr, "%s: a source file (%s) doesn't exist\n",
-		    Me, source);
+	    fprintf(stderr, "%s: Trouble looking at the file \"%s\": %s\n",
+		    Me, source, strerror(errno));
 	    if (keep_going) {
-		keep_going_xitstatus = 2;
+		++failed;
 		continue;
 	    }
 	    fprintf(stderr, "%s: Aborting Execution.\n", Me);
@@ -500,8 +501,8 @@ main(int argc, char **argv)
 	  
 	    if (preprocess(source, DeleteOnTrouble = destination) < 0) {
 		if (keep_going) {
+		    ++failed;
 		    delete_on_trouble();
-		    keep_going_xitstatus = 2;
 		    continue;
 		}
 		fprintf(stderr, "%s: Aborting Execution.\n", Me);
@@ -546,8 +547,11 @@ main(int argc, char **argv)
     if (verbose)
 	fprintf(stdout, "\n%s: %d of %d files required preprocessing\n", Me, preprocessed, examined);
     // SHOW_PROGRESS("\n");
-    if (keep_going_xitstatus)
-	exit(keep_going_xitstatus);
+    if (failed > 0) {
+	if (verbose)
+	    fprintf(stdout, "\n%s: %d additional files had trouble and weren't preprocessed\n", Me, failed);
+	exit(2);
+    }
     if (exit_with_status_1_if_files_modified && preprocessed)
 	exit(1);
     exit(0);
@@ -558,32 +562,33 @@ main(int argc, char **argv)
 // Takes:    name of file to be read
 //           name of file to be written
 // Returns: 0 --> success
-//          -1 --> trouble (which leads to immediate aborting by the caller)
+//          -1 --> trouble
+// Whether trouble leads to immediate aborting by the caller depends upon the
+// value of keep_going.
 int
 preprocess(const char *srcFile, const char *dstFile)
 {
-    const int Trouble = -1;
-    const int OK = 0;
-    int trouble = OK;
+    int trouble = OK;		// have we encountered any trouble yet?
     
     *package = 0;
     FILE *fin = fopen(srcFile, "r");
     if (!fin) {
 	fprintf(stderr, "%s: can't find `%s'\n", Me, srcFile);
-	return Trouble;
+	return TROUBLE;
     }
 
     FILE *fout = fopen(dstFile, "w");
     if (!fout) {
 	fprintf(stderr, "%s: can't create `%s':", Me, dstFile);
 	perror("");
-	return Trouble;
+	(void) fclose(fin);	// in case keep_going is set.
+	return TROUBLE;
     }
 
 #if DEBUG
     for (int i = 0; i < Constants; ++i) {
 	struct def *dp = Constant + i;
-	fprintf(fout, "[%s=%s]\n", dp->Name, 
+	fprintf(fout, "// [%s=%s]\n", dp->Name, 
 		dp->Value ? : 
 		( dp->isset == membof(dp->) SET ? "1 (*SET*)" : "0 (*UNSET*)"));
     }
@@ -602,31 +607,35 @@ preprocess(const char *srcFile, const char *dstFile)
 	char line[MAXLINE];
 	size_t linelen;
 
+	if (ferror(fout)) {
+	    fprintf(stderr, "%s: Trouble while writing to output file: ", Me);
+	    perror(dstFile);
+	    /* Let's not keep going on this file in the face of I/O
+	     * trouble. */ 
+	    (void) fclose(fin);
+	    (void) fclose(fout);
+	    return TROUBLE;
+	}
+	
+
 	if (!fgets(line, sizeof line, fin)) { 
 	    if (feof(fin)) {
-	    cleanup:
 		if (fclose(fin)) {
-		    fputs("Trouble while closing the input file ", stderr);
-		    perror(SourceName);
+		    fprintf(stderr, 
+			    "%s Trouble while closing an input file: ", Me);
+		    perror(srcFile);
 		    if (!keep_going)
-			return Trouble;
-		    trouble = Trouble;
+			return TROUBLE;
+		    trouble = TROUBLE;
 		}; 
 
-		if (ferror(fout)) {
-		    fputs("Trouble while writing the file ", stderr);
-		    perror(dstFile);
-		    if (!keep_going)
-			return Trouble;
-		    trouble = Trouble;
-		}
-
 		if (fclose(fout)) {
-		    fputs("Trouble while closing the file ", stderr);
+		    fprintf(stderr,
+			    "%s: Trouble while closing an output file: ");
 		    perror(dstFile);
 		    if (!keep_going)
-			return Trouble;
-		    trouble = Trouble;
+			return TROUBLE;
+		    trouble = TROUBLE;
 		}
 
 		if (Nesting) {
@@ -636,27 +645,27 @@ preprocess(const char *srcFile, const char *dstFile)
 		    } while (Nesting > 0);
 		    
 		    if (!keep_going)
-			return Trouble;
-		    trouble = Trouble;
+			return TROUBLE;
+		    trouble = TROUBLE;
 		}
+		// Done preprocessing the file!
 		return trouble;
-	    } else if (ferror(fin)) {
-		fprintf(stderr, "%s: Trouble while reading the file \"%s\": ",
-			Me, SourceName);
-		perror("");
-		// take advantage of the fact that the caller will abort.; no
-		// need to close files.
-		if (!keep_going)
-		    return Trouble;
-		trouble = Trouble;
-		goto cleanup;
-	    } else {
-		fprintf(stderr, 
-			"%s: Internal error: fgets() returned NULL, but"
-			" neither feof() nor ferror() are true!  This should never happen.\n"
-			"%s: Aborting execution.\n", Me, Me);
-		exit(13);
 	    }
+	    if (ferror(fin)) {
+		fprintf(stderr, "%s: Trouble while reading the file \"%s\": ",
+			Me, srcFile);
+		perror("");
+		/* Let's not keep going on this file in the face of I/O
+		 * trouble. */ 
+		(void) fclose(fin);
+		(void) fclose(fout);
+		return TROUBLE;
+	    } 
+	    fprintf(stderr, "%s: Internal error: fgets() returned NULL, but\n"
+		    "     neither feof() nor ferror() are true!\n"
+		    "     This should never happen.\n"
+		    "%s: Aborting execution.\n", Me, Me);
+	    exit(13);
 	}
 	linelen = strlen(line);
 	assert(linelen > 0);	// otherwise we'd have gotten feof().
@@ -672,11 +681,14 @@ preprocess(const char *srcFile, const char *dstFile)
 	enum scan_token token_type;
 	union scan_arg scanned;
 
-	switch (token_type = scan(srcFile, line, &scanned)) {
+	switch (token_type = scan(srcFile, line, &scanned, trouble)) {
 	case TT_TEXT:
 #if DEBUG
 	    printState(fout, "TEXT ", line);
 #endif
+	    // Note: We could do error checking on each write, but we'll check
+	    // at fclose() time instead, since ferror() is persistent until
+	    // cleared. 
 	    fputs(PassLines ? line : "\n", fout);
 	    continue;
 
@@ -768,7 +780,10 @@ preprocess(const char *srcFile, const char *dstFile)
 	    fprintf(stderr, "%s: %s:%d: Internal error: scan() should never return token type %d\n", Me, SourceName, SourceLineNo, token_type);
 	    exit(13);
 	}
+	assert(false);
+	/* NOTREACHED */
     }
+    assert(false);
     /* NOTREACHED */
 }
 
@@ -823,7 +838,7 @@ printState(FILE *fout, char *constant, char *line)
 // In some cases, value is modified.
 
 enum scan_token
-scan(const char *srcFile, char *line, union scan_arg *argp) 
+scan(const char *srcFile, char *line, union scan_arg *argp, int &trouble) 
 {
     // skip whitespace
     //
@@ -862,7 +877,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp)
 	while (isspace(*p))
 	    ++p;
        
-	argp->Replace = evalReplace(p);
+	argp->Replace = evalReplace(p, trouble);
 	
 	return TT_REPLACE;
     }
@@ -873,7 +888,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp)
 	p +=3;
 	while (isspace(*p))
 	    ++p;
-	argp->If = eval(p);
+	argp->If = eval(p, trouble);
 	return TT_IF;
     }
      
@@ -884,7 +899,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp)
 	while (isspace(*p))
 	    ++p;
 
-	argp->If = eval(p);
+	argp->If = eval(p, trouble );
 	return TT_ELIF;
     }
      
@@ -903,6 +918,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp)
     return TT_UNRECOGNIZED;
 }
 
+
 // Evaluate <name> appearing in an `if' or `elif' directive.
 // Taken:    `//-#if <condition>'
 //                  ^cursor
@@ -917,7 +933,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp)
 //  
 //    The only characters forbidden to a token are '&', '|', and whitespace.
 char *
-getToken(char **cursorp)
+getToken(char **cursorp, int __attribute__((unused)) &trouble)
 {
     char *start, *cursor;
     cursor = *cursorp;
@@ -948,42 +964,44 @@ bool getBoolean(char **cursorp)
 
 /* Returns a pointer to the replacement token for a //-#value directive. */
 const char *
-evalReplace(char *cursor) 
+evalReplace(char *cursor, int &trouble) 
 {
-    char *name = getToken( &cursor );
+    char *name = getToken( &cursor, trouble );
     assert( ( cursor == name ) ? ( *name == '\0' ) : *name);
     size_t len = cursor - name;
     if (len == 0) {
 	inputErr("The //-#value <name> preprocessor construct needs a <name>");
+	trouble = TROUBLE;
 	return "BOGUS #value";
     }
     for (int i = 0; i < Constants; ++i) {
 	struct def *dp = Constant + i;
 	
-	if (strlen(dp->Name) == len && strneql(name, dp->Name, len))
-	{
+	if (strlen(dp->Name) == len && strneql(name, dp->Name, len)) {
 	    if (! dp->Value) {
 		inputErr(
 		    "//-#value used on non-value (true/false) constant '%s'", 
 		    dp->Name);
+		trouble = TROUBLE;
 		return dp->Name;	// Error return
 	    }
 	    return dp->Value;
 	}
     }
     inputErr("//-#value used on undefined constant '%*.*s'", (int) len, (int) len, name);
+    trouble = TROUBLE;
     return name;
 }
 
 
 bool
-eval(char *cursor) 
+eval(char *cursor, int &trouble) 
 {
     int match;			// -1 if not found, 1 if defined true (1), 
 				// 0 if defined 0 (false).
     for (;;) {
 	match = -1;
-	char *name = getToken( &cursor );
+	char *name = getToken( &cursor, trouble );
 	int toggle = 0;
 	if ( name[0] == '!' ) {
 	    toggle = 1;
@@ -991,20 +1009,25 @@ eval(char *cursor)
 	}
 	assert(cursor >= name);
 	size_t len = cursor - name;
-	if (len == 0)
+	if (len == 0) {
 	    inputErr("missing <name> in preprocessor condition");
-	for (int i = 0; i < Constants; ++i)
-	{
+	    trouble = TROUBLE;
+	    return false;	// did not match.
+	}
+	
+	for (int i = 0; i < Constants; ++i) {
 	    struct def *dp = Constant + i;
-	    if (strlen(dp->Name) == len && memcmp(dp->Name, name, len) == 0) 
-	    {
+	    if (strlen(dp->Name) == len && memcmp(dp->Name, name, len) == 0) {
 		/* Matched the token.  Now evaluate. */
 		if (dp->Value) {
-		    if (only_boolean_constants_in_conditions)
+		    if (only_boolean_constants_in_conditions) {
 			inputErr(
 			    "The constant '%*.*s' is a Value constant;\n"
 			    "     //-#if and //-#elif require a"
 			    " Boolean (1 or 0) constant.", (int) len, (int) len, dp->Name);
+			trouble = TROUBLE;
+			return false; // So we will assume false.
+		    }
 		    match = 1;
 		} else {
 		    assert(!dp->Value);
@@ -1016,9 +1039,11 @@ eval(char *cursor)
 	    }
 	}
 	if (match < 0) {
-	    if (! undefined_constants_in_conditions)
+	    if (! undefined_constants_in_conditions) {
 		inputErr("Undefined constant named \"%*.*s\""
 			 " in preprocessor condition", (int) len, (int) len, name);
+		trouble = TROUBLE;
+	    }
 	    match = 0;
 	}
 	
@@ -1041,7 +1066,8 @@ eval(char *cursor)
 	++cursor;
     if (*cursor) {
 	inputErr("Garbage characters (\"%s\") are at the"
-		 "end of a preprocessor condition.", cursor);
+		 " end of a preprocessor condition.", cursor);
+	trouble = TROUBLE;
     }
     return match;
 }
@@ -1168,7 +1194,6 @@ inputErr(const char msg[], ...)
 
     if (keep_going) {
 	delete_on_trouble();
-	keep_going_xitstatus = 2;
 	return;
     }
     fprintf(stderr, "%s: Aborting Execution.\n", Me);
@@ -1217,7 +1242,9 @@ xsignal_sigaction(int signum, void (*handler)(int))
  		Me, signum);
 	perror((char *) NULL);
 	fprintf(stderr, "%s: ...going on as best we can\n", Me);
-    } else if ( ! (oldact.sa_flags | SA_SIGINFO) && (oldact.sa_handler == SIG_IGN)) {
+	return;
+    } 
+    if (oldact.sa_handler == SIG_IGN) {
 	/* Don't interfere with shells that turn off the handling of certain
 	   signals; reset it, instead. */
 	r = sigaction(signum, &oldact, (struct sigaction *) NULL);
@@ -1258,6 +1285,5 @@ set_up_trouble_handlers(void)
     xsignal(SIGEMT, cleanup_and_die);
 #endif
     xsignal(SIGSYS, cleanup_and_die);
-    
 }
 
