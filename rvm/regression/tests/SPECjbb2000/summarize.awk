@@ -1,3 +1,7 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+
 BEGIN {
     no = "no";
     yes = "yes";
