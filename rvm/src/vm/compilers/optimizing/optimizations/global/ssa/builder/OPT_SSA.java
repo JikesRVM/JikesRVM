@@ -234,7 +234,7 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
       }
       for (int i=dst; i<numPairs; i++) {
 	Phi.setValue(s, i, null);
-	Phi.setValue(s, i, null);
+	Phi.setPred(s, i, null);
       }
     }
   }
