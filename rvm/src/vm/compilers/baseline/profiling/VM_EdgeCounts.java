@@ -19,8 +19,17 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   static final int NOT_TAKEN = 1;
 
   private static boolean registered = false;
-  
+  private static String inputFile = null;
+
+  public static void setProfileFile(String fn) { inputFile = fn; }
+
   public void notifyExit(int value) { dumpCounts(); }
+
+  public static void boot() {
+    if (inputFile != null) {
+      readCounts(inputFile);
+    }
+  }
 
   public static int findOrCreateId(VM_Method m) {
     if (!VM.BuildForAdaptiveSystem && !registered) {

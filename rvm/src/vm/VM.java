@@ -247,6 +247,9 @@ public class VM extends VM_Properties
     runClassInitializer("com.ibm.oti.util.Msg");
     //-#endif
 
+    // Allow profile information to be read in from a file
+    VM_EdgeCounts.boot();
+
     // Initialize compiler that compiles dynamically loaded classes.
     //
     if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");

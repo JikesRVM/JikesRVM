@@ -706,7 +706,7 @@ public class VM_CommandLineArgs {
 	  String name = arg.substring(0,split);
 	  String value = arg.substring(split+1);
 	  if (name.equals("edge_counter_file")) {
-	    VM_EdgeCounts.readCounts(value);
+	    VM_EdgeCounts.setProfileFile(value);
 	  } else {
 	    VM.sysWriteln("Unrecognized profile argument "+p.value+arg);
 	    VM.sysExit(1);
