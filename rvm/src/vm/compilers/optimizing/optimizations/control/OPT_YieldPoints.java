@@ -113,7 +113,14 @@ class OPT_YieldPoints extends OPT_CompilerPhase
 			    OPT_Operator yp, 
 			    int bcIndex,
 			    OPT_InlineSequence position) { 
-    OPT_Instruction insertionPoint = bb.firstRealInstruction();
+    OPT_Instruction insertionPoint = null;
+
+    if (bb.isEmpty()) {
+      insertionPoint = bb.lastInstruction();
+    } else {
+      insertionPoint = bb.firstRealInstruction();
+    }
+
     if (yp == YIELDPOINT_PROLOGUE) {
       if (VM.VerifyAssertions) {
 	VM.assert((insertionPoint != null) && 
