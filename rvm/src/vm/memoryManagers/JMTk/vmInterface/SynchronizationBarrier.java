@@ -171,9 +171,10 @@ public final class SynchronizationBarrier {
       for ( int i = 0; i < (x*100); i++)
 	sum = sum + i;
       return sum;
-    }
-    else {
-      VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
+    } else {
+      if (!VM.BuildForSingleVirtualProcessor) {
+	VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
+      }
       return 0;
     }
   }
