@@ -51,7 +51,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 
     private boolean streaming;
     private int receiveTimeout = 0;
-    private int native_fd;
+    private int native_fd = -1;
 
     private int acceptInternal(JikesRVMSocketImpl newSocket) 
 	throws SocketException, SocketTimeoutException 
