@@ -99,6 +99,9 @@ copy_intel:
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
 	@cp -f $(RVM_BUILD)/RVM.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
+# BootMapExternal needs preprocessing for compiler-dependency and was placed in scratch dir
+	@rm -f $(TOOLS_DIR)/BootMapExternal.java
+	@cp -f $(RVM_BUILD)/RVM.scratch/BootMapExternal.java $(TOOLS_DIR)/BootMapExternal.java
 
 copy_powerPC:
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
@@ -110,7 +113,9 @@ copy_powerPC:
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
 	@cp -f $(RVM_BUILD)/RVM.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
-
+# BootMapExternal needs preprocessing for compiler-dependency and was placed in scratch dir
+	@rm -f $(TOOLS_DIR)/BootMapExternal.java
+	@cp -f $(RVM_BUILD)/RVM.scratch/BootMapExternal.java $(TOOLS_DIR)/BootMapExternal.java
 
 compile:  $(CLASSES) $(NATIVECLASSES) lib_$(ARCH)
 
