@@ -56,23 +56,9 @@ hereinafter call the location of the RVM distribution {\tt \$RVM\_ROOT/rvm}.
 
 \index{GNU Classpath libraries}
 \index{classpath libraries, GNU}
-\item Download version \classpathversion\ of the GNU Classpath
-libraries from 
-\xlink{{\tt \classpathftp}}{\classpathftp}. 
-Unpack the tar file and rename the
-directory to {\tt classpath} (instead of {\tt
-classpath-\classpathversion}). Don't 
-configure or install the package; the Jikes RVM build process will
-handle this automatically.  Note, you can skip this step and have the
-Jikes RVM build process download classpath for you automatically,
-however this requires that you have a number of RPMs installed
-on your machine that aren't part of the default Red Hat install (but
-are part of the SuSE Linux Developer install).
-Unless you regularly build the GNU classpath libraries from their CVS
-tree, we recommend that you download a classpath release tar ball
-instead.  When editing the configuration file (next step), you will set
-the {\tt CLASSPATH\_ROOT} variable to be the directory that contains the
-classpath directory you just created.  
+\item You will need version \classpathversion\ of the GNU Classpath
+libraries. The Jikes RVM build process will automatically download, 
+configure, and build  the appropriate version of classpath for you.
 
 \item Edit a configuration file so that it fits your machine.  One of
 the {\tt i686-pc-linux} files in {\tt \$RVM\_ROOT/rvm/config} will probably be
@@ -177,7 +163,7 @@ insist, look in {\tt jconfigure} for details.
 
 \JavaTMFooter
 
-\subsubsection{Installation Overview}
+\subsubsection{Installation Overview}\label{sec:installDetails}
 
 To install and build Jikes\trademark RVM, two items are required
 \begin{itemize}
@@ -201,9 +187,7 @@ The first item is available  from the Jikes RVM
 You can either explicitly download the appropriate version of the GNU
 Classpath libraries and set {\tt CLASSPATH\_ROOT} in your config file or let
 the Jikes RVM build process download the right version for you
-automatically. If you do not regularly build the classpath libraries
-from their CVS tree, then you probably should download the appropriate
-classpath release manually and set {\tt CLASSPATH\_ROOT}. 
+automatically.
 
 Once these files have been downloaded, you will set up 
 a working directory holding the Jikes RVM source files, standard
@@ -348,18 +332,22 @@ find tools that Jikes RVM needs. You must set the following variables:
 have a nonstandard JDK, you may have to define a number of variables
 whose default values are defined with reference to {\tt HOST\_JAVA\_HOME}.
 
+\index{CLASSPATH\_ROOT}
 \item {\tt CLASSPATH\_ROOT} the parent directory of the classpath src
 release, if you have decided to manually download the classpath
-libraries (which you will usually want to do). 
+libraries. 
 
 The setting of {\tt CLASSPATH\_ROOT} is a bit tricky, so we will go
-into some depth here.  For this example, we'll assume you downloaded {\tt classpath-0.06.tgz}.  Create a directory named something like {\tt
-\$RVM\_ROOT/classpath-0.06-build}.  
-A command like  {\tt /usr/gnu/tar -C \$\{RVM\_ROOT\}/classpath-0.06-build xzf classpath-0.06.tgz} will
-create the directory {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06}.  You should
-rename {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06} 
-to {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath}.  Now set your
-{\tt CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/classpath-0.06-build}.  
+into some depth here.  For this example, we'll assume you downloaded
+{\tt classpath-0.06.tgz}.  Create a directory named something like
+{\tt \$RVM\_ROOT/classpath-0.06-build}.  
+A command like {\tt /usr/gnu/tar -C
+\$\{RVM\_ROOT\}/classpath-0.06-build xzf classpath-0.06.tgz} will
+create the directory {\tt
+\$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06}.  You should
+rename {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06} to
+{\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath}.  Now set your
+{\tt CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/classpath-0.06-build}.
 
 The first time you run Jikes RVM's build process, it will
 automatically build the appropriate files in a directory named {\tt

@@ -40,6 +40,12 @@ These variables replace the former hardcoded "-nowarn", and can be set
 arbitrarily. They default to "-nowarn" for historical compatibility.
 It means you can now get helpful warnings from the Java compiler.
 
+**Improvements to automatic download of GNU Classpath libraries. 
+***We now use wget to download a classpath release instead of doing a 
+cvs checkout.  This avoids the problematic aclocal/autoconf/etc step
+and means that automatic downloading should work for all users and is
+now the recommended default. 
+
 *Other notes:
 
 ***We have fixed all C and C++ compiler warnings in the Linux/x86 source

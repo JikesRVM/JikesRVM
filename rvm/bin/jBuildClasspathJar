@@ -17,8 +17,6 @@ set -e
 ## constants
 ##
 TOP_LEVEL_PACKAGES="java javax gnu"
-CVS_SPIN_ATTEMPTS=5
-CVS_SLEEP_ATTEMPTS=5
 
 ##
 ## defaults
@@ -27,12 +25,7 @@ export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=$(uname -v)
 
-if [ $(uname) = Linux ]; then
-    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
-else
-    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
-fi
-CLASSPATH_CVS_DATESPEC_ARG=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
+CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
 if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
     export USE_LOCAL_CLASSPATH="yes"
@@ -47,14 +40,6 @@ fi
 ##
 while [[ $# > 0 ]] ; do
     case $1 in
-	--datespec) 
-	    CLASSPATH_CVS_DATESPEC_ARG="$2"
-	    shift ;;
-	
-	--root)
-	    CLASSPATH_CVS_ROOT=$2
-	    shift ;;
-	
 	--destination)
 	    DEST_DIR=$2
 	    shift ;;
@@ -105,46 +90,17 @@ if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     mkdir -p $DEST_DIR
     cd $DEST_DIR
     
-    if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
-	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co classpath"
-    else
-	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath"
-	
-        # ugh.  we sometimes have trouble with subversions.gnu.org, so we
-	# retry a few times.
-	done=false
-	sleep=0
-	while (( sleep++ < CVS_SLEEP_ATTEMPTS )) &&  [[ $done = "false" ]]
-	do
-	    spin=0
-	    while (( spin++ < CVS_SPIN_ATTEMPTS )) && [[ $done = "false" ]]
-	    do
-	        if $CVS_CMD; then
-		    done="true"
-	        fi
-	    done
-	done
-	cp $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp
-    fi 
+    $WGET $CLASSPATH_URL -Oclasspath.tar.gz
+    tar xzf classpath.tar.gz
+    rm classpath.tar.gz
+    mv classpath-* classpath
+    cp $RVM_ROOT/rvm/bin/classpath.stamp stamp
 else
     cd $DEST_DIR
 fi
 
 # stuff checked out into this dir
 cd classpath
-
-# set up the directory for building if needed
-if [[ ! -e $DEST_DIR/classpath/configure ]]; then
-    echo "Setting up source tree"
-    if [[ `uname -m` = i686 ]]; then
-	aclocal
-    else
-	aclocal -I $RVM_ROOT/rvm/config/m4
-    fi
-    autoheader
-    automake
-    autoconf
-fi
 
 # configure and build library
 system_type=$($DEST_DIR/classpath/config.guess)
