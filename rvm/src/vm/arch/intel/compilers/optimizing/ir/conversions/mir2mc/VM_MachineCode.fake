@@ -1,0 +1,10 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+/**
+ * @author Dave Grove 
+ */
+class VM_MachineCode {
+  VM_MachineCode(byte[] x, int[] y) {} 
+}
