@@ -17,6 +17,7 @@ DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
 
 (4) Check all command line options (section 3) and be sure that
     descriptions are up-to-date.
+    PETER
 
 DONE (5) Section 4 (runtime implementation details) needs to be almost
     completely rewriten, adding object model info
@@ -52,7 +53,7 @@ DONE (9) Check FAQ for accurarcy.  Some of these issues have been resolved
     VM_Magic operation.
     PERRY
 
-(12) Move brief subsection on AOS details out of optimizing compiler
+DONE (12) Move brief subsection on AOS details out of optimizing compiler
      section into its own section.  We've diverged enough from the
      system described in the OOPSLA paper that there is probably some
      things to say here that won't be redundant with the paper.
