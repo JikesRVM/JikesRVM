@@ -156,6 +156,18 @@ examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
 
+\subsubsection{Can I recompile the RVM classes without rebuilding the boot
+image?}
+
+Yes.  Use {\tt jbuild -nolink}. This will copy, preprocess, and compile
+the RVM source files, but will not re-link the boot image.  This is
+extremely useful for development, when the modified classes do not go in
+the boot image.
+
+\subsubsection{Can I monitor progress during jbuild?}
+
+Yes.  Use {\tt jbuild -trace} to see detailed progress. 
+
 \subsubsection{How can I include my own classes in the boot image?}
 
 The {\tt jconfigure} script defines which classes go in the boot image, by

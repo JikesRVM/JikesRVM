@@ -14,7 +14,10 @@ You can use any of the pre-compiled binaries, or build it yourself from the
 source. We recommend version 1.13; users have reported difficulties with 
 version 1.14.  We have not yet tried version 1.15.
 
-\item GNU tar is needed to extract the distribution tar file.  We have
+\item GNU tar is needed to extract the distribution tar file.  
+You can download this from
+\xlink{{\tt \gnuTarURL}} {\gnuTarURL}.
+We have
 experienced problems with the AIX tar program truncating file names.
 
 \end{itemize}
@@ -279,7 +282,7 @@ baseline compiler everywhere, with the semispace copying collector
 optimizing compiler everywhere, with the semispace copying collector
 \end{itemize}
 
-Depending on your purposes (See Section~\ref{sssec:choosinggc}.) you
+Depending on your purposes (See Section~\ref{ssec:choosinggc}.) you
 may want to choose another configuration, e.g.,
 \begin{itemize}
 \item {\tt OptOptMarkSweep}: a non-adaptive system that uses the
@@ -340,7 +343,7 @@ affect system viability.
 
 This section describes the RVM build configurations.  The various RVM
 build configurations are defined by files in {\tt
-\$RVM\_ROOT/config/build}.
+\$RVM\_ROOT/rvm/config/build}.
 
 Most standard RVM configuration files loosely follow the following naming scheme
 \begin{verbatim}
@@ -383,7 +386,7 @@ For example, to specify a compiler with a baseline-compiled boot image
 that will 
 compile classes loaded at runtime using the optimizing compiler and that uses
 a non-generational semi-space copying garbage collector use the name 
-{\em BaseOptSemisapce}.
+{\em BaseOptSemispace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
@@ -447,7 +450,7 @@ Section~\ref{section:running} describes how this image can be used in
 the manner mentioned above.
 
 To view a list of configurations see 
-{\tt \$RVM\_ROOT/rvm/config/builds}.  Follow the examples in this
+{\tt \$RVM\_ROOT/rvm/config/build}.  Follow the examples in this
 directory to define your own configurations with different options.  See
 the {\tt jconfigure} file for a list of all options the builder
 understands.
@@ -543,7 +546,7 @@ Should you decide to modify the library, you will need to rebuild the
 library sources in {\tt \$RVM\_ROOT/support/lib}, and build a new {\tt
 rvmrt.jar} in {\tt \$RVM\_BUILD}.
 
-You will find that all current versions of 
+You will find that some versions (including 1.13) of 
 \xlink{{\tt jikes}}{ \jikesURL } fail to compile the
 libraries, dying with myriad errors.  You need to apply jikes 
 patch 62 to

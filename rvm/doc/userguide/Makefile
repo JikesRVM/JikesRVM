@@ -90,7 +90,7 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 
 .INTERMEDIATE:	userguide.dvi ${GENERATOR}.java
 
-clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} $(HTML_GRAPHICS)
+clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} 
 
 dist-clean:	clean
 		rm -f userguide.ps
