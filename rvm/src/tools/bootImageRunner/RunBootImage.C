@@ -32,14 +32,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>             // strcpy()
+#include <string.h>
 #include <errno.h>
-#define __STDC_LIMIT_MACROS     /* Request that <stdint.h> include INT32_MAX,
-                                   even though we're C++ and not C. */
-#include <stdint.h>             // INT32_MAX
 #include <sys/signal.h>
 #include <ctype.h>              // isspace()
 #include <limits.h>             // INT_MAX
+#include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #if (defined __linux__)
   #include <asm/cache.h>
@@ -499,11 +497,7 @@ strnequal(const char *s1, const char *s2, size_t n)
 
 /** Return a # of bytes, rounded up to the next page size.  Setting fastExit
     means trouble or failure.  If we set fastExit we'll also return the value
-    0U.
-
-    Restricts us to a maximum heap size of INT_MAX - BYTES_IN_PAGE + 1 bytes.
-    This is pending a change to the MMTk memory managers, which represent heap
-    size in bytes as a Java "int". */
+    0U. */
 static unsigned int
 parse_heap_size(const char *sizeName, //  "initial" or "maximum"
                 const char *sizeFlag, // "ms" or "mx"
@@ -568,8 +562,7 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
         }
     } else {
     bad_strtold:
-        fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\""
-                " as a memory size\n", Me, token, subtoken);          
+        fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a memory size\n", Me, token, subtoken);          
         *fastExit = true;
     }
 
@@ -586,48 +579,40 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
 
     if (!*fastExit) {
         if (errno == ERANGE 
-            || heapsz 
-              > ((long double) (INT32_MAX - BYTES_IN_PAGE + 1)/ factor)) 
+            || heapsz > ((long double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
         {
         // If message not already printed, print it.
-            fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent"
-                    " internally -- Jikes RVM's\n"
-                    " possible heap sizes are limited to %d bytes"
-                    " (2 GB - %d bytes).\n", Me, subtoken, 
-                    (INT32_MAX - BYTES_IN_PAGE + 1), BYTES_IN_PAGE );
+            fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
             *fastExit = true;
         }
     }
 
     if (*fastExit) {
         size_t namelen = strlen(sizeName);
-        fprintf(SysTraceFile, " Please specify the %s heap size as follows:\n"
-                "   (in megabytes) using \"-X%s<positive number>M\",\n", 
+        fprintf(SysTraceFile, "\tPlease specify %s heap size "
+                "(in megabytes) using \"-X%s<positive number>M\",\n", 
                 sizeName, sizeFlag);
-        fprintf(SysTraceFile,
-                "or (in kilobytes) using \"-X%s<positive number>K\",\n", 
-                sizeFlag);
-        fprintf(SysTraceFile, 
-                "or (in bytes) using \"-X%s<positive number>b\"\n", sizeFlag);
-        fprintf(SysTraceFile, 
+        fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in kilobytes) using \"-X%s<positive number>K\",\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+        fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in bytes) using \"-X%s<positive number>b\"\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+        fprintf(SysTraceFile, "\t               %*.*s        "
                 "or (in gigabytes) using \"-X%s<positive number>G\",\n",
-                sizeFlag);
-#if 0                           // Commented out for now, since we don't
-                                // handle heaps greater than INT32_MAX yet!
+                (int) namelen, (int) namelen, " ", sizeFlag);
 #ifdef RVM_FOR_64_ADDR
-        fprintf(SysTraceFile,
+        fprintf(SysTraceFile, "\t               %*.*s        "
                 "or (in terabytes) using \"-X%s<positive number>t\"\n",
-                sizeFlag);
+                (int) namelen, (int) namelen, " ", sizeFlag);
 #endif // RVM_FOR_64_ADDR
-#endif
-        fprintf(SysTraceFile, 
-                " <positive number> can be a floating point value.\n"
-                " The # of bytes will be rounded up\n"
+        fprintf(SysTraceFile, "    If you specify floating point values,"
+                " the # of bytes will be rounded up\n"
                 " to a multiple of the virtual memory page size.\n");
         return 0U;              // Distinguished value meaning trouble.
     } 
     long double tot_d = heapsz * factor;
-    assert(tot_d <= (INT32_MAX - BYTES_IN_PAGE));
+    assert(tot_d <= (UINT_MAX - BYTES_IN_PAGE));
     assert(tot_d >= 1);
     
     unsigned tot = (unsigned) tot_d;
