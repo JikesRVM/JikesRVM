@@ -36,10 +36,14 @@ Boolean Options (-X:hpm:<option>=true or -X:hpm:<option>=false) default is false
 
 Value Options (-X:hpm:<option>=<value>)
  Option        Type    Description
- eventN        int     specify event for counter N where 1<=N<=UB and UB is processor specific
- filename      String  prefix for file names.  Concatenate virtual processor number.
- mode          int     specify mode: 1=GROUP, 2=PROCESS, 4=KERNEL, 8=USER, 16=COUNT, 32=PROCTREE
- trace_verbose int     write events for this PID to the console.  Used on a multiprocessor.
+ eventN        int     specify event for counter N where 1<=N<=UB \
+                                and UB is processor specific
+ filename      String  prefix for file names.  Concatenate \
+                                virtual processor number.
+ mode          int     specify mode: 1=GROUP, 2=PROCESS, 4=KERNEL, \
+                                8=USER, 16=COUNT, 32=PROCTREE
+ trace_verbose int     write events for this PID to the console.  \
+                                Used on a multiprocessor.
  verbose       int     print more information.
 \end{verbatim}
 
@@ -135,7 +139,7 @@ describes the details of how a new phase can be added.
 To instrument all dynamically compiled code, use the following command
 line arguments to force all dynamically compiled methods to be
 compiled by the optimizing compiler: {\tt
--X:aos:enable\_recompilation=false -X:aos:initial\_compiler=opt}
+-X:aos:en\-a\-ble\_re\-com\-pi\-la\-tion=false -X:aos:i\-ni\-tial\_com\-pi\-ler=opt}
 
 \subsubsection{Existing Instrumentation Phases}
 \label{existing_phases}
@@ -191,19 +195,19 @@ opt-compiler to help debugging of opt-compiler transformations.
 If you would like to know the dynamic frequency of a particular
 event, simply turn on this flag, and you can easily count dynamic
 frequencies of events by calling the method
-\xlink{{\tt VM\_AOSDatabase.debuggingCounterData.
-getCounterInstructionForEvent(String eventName);}}{\VMAOSDatabaseURL}.  This method
+\xlink{{\tt VM\_AOS\-Data\-base.de\-bug\-ging\-Coun\-ter\-Da\-ta.%
+get\-Coun\-ter\-In\-struc\-tion\-For\-E\-vent(String ev\-entName);}}{\VMAOSDatabaseURL}.  This method
 returns an 
-\xlink{{\tt OPT\_Instruction}}{\OPTInstructionURL} 
+\xlink{{\tt OPT\_\-In\-struc\-tion}}{\OPTInstructionURL} 
 that can be inserted into the
 code.  The instruction will increment a counter associated with
 the String name ``eventName'', and the counter will be printed at the
 end of execution.
 
 For an example, see 
-\xlink{{\tt OPT\_Inliner.java}}{\OPTInlinerURL}.  
+\xlink{{\tt OPT\_\-In\-li\-ner.java}}{\OPTInlinerURL}.  
 Look
-for the code guarded by the flag {\tt COUNT\_FAILED\_METHOD\_GUARDS}.
+for the code guarded by the flag {\tt COUNT\_\-FAILED\_\-ME\-THOD\_\-GUARDS}.
  
 Enabled by {\tt -X:aos:insert\_debugging\_counters=true}.
 

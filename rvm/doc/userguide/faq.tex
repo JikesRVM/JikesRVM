@@ -105,7 +105,7 @@ Section~\Ref{} for more details.]{section:debugging}
 
 
 \subsubsection{What's the right value to use for
-RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR?} 
+RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} 
 \label{singleProcessorQuestion}
 
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
@@ -247,13 +247,13 @@ question~\Ref]{singleProcessorQuestion}.
 \subsubsection{What is the list of operations that may cause a GC?}
 
 Any operation that allocates memory or causes memory to be allocated may
-force a GC.  Some cases to look out for include:
+force a GC.\@  Some cases to look out for include:
 \begin{itemize}
 \item any instruction that throws an exception,
 \item any call that may cause a stack overflow,
 \item any monitorenter on a contended lock,
 \item string concatenation, and
-\item any thread-switch point may allow another thread to force GC.
+\item any thread-switch point may allow another thread to force GC.\@
 \end{itemize}
 
 \subsubsection{How can I implement a new GC algorithm?}

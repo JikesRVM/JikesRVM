@@ -34,8 +34,8 @@ Jikes RVM has yet to implement this protocol.  (\link{It's on our TODO
   list, though}[--- see section~\Ref]{JDWP}.)
 
 \item Running Eclipse requires that you build Jikes RVM with
-RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0. \xlink{The
-select-interception mechanism (which is required to run Eclipse on
+RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equal to 0. \xlink{The
+select interception mechanism (which is required to run Eclipse on
 Jikes RVM) does not work if this variable is set to 1 }[(see defect \#
 3583)]{http://www-124.ibm.com/developerworks/bugs/?func=detailbug\&bug\_id=3583\&group\_id=95}.
 
@@ -71,9 +71,9 @@ that, there are just a few steps:
 \item \xlink{Install Ant.}[  You can get Ant from {\tt \antURL}.]{\antURL} 
 \item Add two variables to your Jikes RVM configuration file:
  \begin{description}
-  \cindex[ANT\_CMD]{\tt ANT\_CMD}
+  \cindex[ANT\_CMD]{\texttt{ANT\_CMD}}
  \item[\tt ANT\_CMD] is the full pathname of the executable Ant command
-  \cindex[ECLIPSE\_INSTALL\_DIR]{\tt ECLIPSE\_INSTALL\_DIR}
+  \cindex[ECLIPSE\_INSTALL\_DIR]{\texttt{ECLIPSE\_INSTALL\_DIR}}
  \item[\tt ECLIPSE\_INSTALL\_DIR] is the root of your Eclipse install
  \end{description}
 \item In a fresh build directory, run {\tt ./jbuild.plugin} to install
@@ -83,9 +83,9 @@ support for Eclipse to use Jikes RVM.
 \xname{rvmeclipse}
 \subsection{The {\tt rvmeclipse} command}
 
-\cindex[rvmeclipse]{\tt rvmeclipse}
+\cindex[rvmeclipse]{\texttt{rvmeclipse}}
 Once you have done this, you will be able to run Eclipse on Jikes RVM
-using the {\tt \$RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
+using the {\tt \$RVM\_\-ROOT/\-rvm/\-bin/\-rvmeclipse} command.  This wrapper
 calls the normal Eclipse command, instructing it to use Jikes RVM to
 run Eclipse.  Set RVM\_ROOT and RVM\_BUILD before you invoke {\tt
 rvmeclipse}.

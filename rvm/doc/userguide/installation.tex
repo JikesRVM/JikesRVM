@@ -24,7 +24,7 @@ already done so.  We currently recommend the Blackdown VM v1.4.1.
 For versions of Jikes RVM prior to 2.2.2, we recommend
 the Blackdown VM, v1.3.1.  You can download these VMs from 
 \xlink{{\tt \BlackdownURL}} {\BlackdownURL}, or, if you have SuSE
-Linux 8.2, install the two RPMs {\tt BlackdownJava2-JRE} and {\tt java2}. 
+Linux 8.2, install the two RPMs {\tt Black\-downJa\-va2-JRE} and {\tt java2}. 
 It is possible to use other 1.3 or 1.4 JVMs to build Jikes RVM,
 however building Jikes RVM is a good way to find bugs in a JVM.
 \index{IBM JVM on Linux}
@@ -354,9 +354,9 @@ For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_OSX,
 or RVM\_FOR\_AIX 
 to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
-RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
+RVM\_\-FOR\_\-SIN\-GLE\_VIR\-TU\-AL\_PRO\-CES\-SOR to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for
-RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR:
+RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR:
 \begin{description}
 \item[AIX/PowerPC] {\tt 0 }
 \item[Linux/PowerPC] {\tt 1}
@@ -393,11 +393,11 @@ will create the directory
  {\rm \it {\tt \$\{RVM\_ROOT\}}/\-classpath-0.06-build}{\tt /\-classpath-0.06}.  
 
 You {\bf must rename} {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/\-classpath-0.06} to {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/\-classpath}.  Now set your {\tt
-  CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/\-{\it classpath-0.06-build}}
-({\bf not} to {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/\-classpath}).
+    class\-path-0.06-build}/\-class\-path-0.06} to {\tt \$\{RVM\_\-ROOT\}/{\it
+    class\-path-0.06-build}/\-class\-path}.  Now set your {\tt
+  CLASS\-PATH\_ROOT} to {\tt \$\{RVM\_\-ROOT\}/\-{\it class\-path-0.06-build}}
+({\bf not} to {\tt \$\{RVM\_\-ROOT\}/\-{\it
+    class\-path-0.06-build}/\-class\-path}).
 
 
 The first time you run Jikes RVM's build process, it will
@@ -571,7 +571,7 @@ Most standard Jikes RVM configuration files loosely follow the
 following naming scheme:
 \begin{verse}
        \Mmeta{boot image compiler} 
-       \Mlbr{} \Mlitch{Base} \Mor \Mlitch{Adaptive} \Mrbr 
+       \Mlbr{} \Mlitch{Base} \Mor{} \Mlitch{Adaptive} \Mrbr{}
        \Mmeta{garbage collector}
 \end{verse}
 
@@ -582,7 +582,7 @@ where
 \item the \Mmeta{boot image compiler} is the compiler used to compile
 Jikes RVM's boot image. 
 \item
- \Mlbr{}~\Mlitch{Base}~\Mor~\Mlitch{Adaptive}~\Mrbr denotes whether or
+ \Mlbr{}~\Mlitch{Base}~\Mor~\Mlitch{Adaptive}~\Mrbr{} denotes whether or
  not the adaptive system and optimizing compiler are included in the
  build.  
 \item the {\em garbage collector} is the garbage collection scheme used.
@@ -608,7 +608,7 @@ The following garbage collection suffixes are available:
 For example, to specify a compiler with a baseline-compiled boot image
 that will compile classes loaded at runtime using the baseline 
 compiler and that uses a non-generational semi-space copying garbage
-collector, use the name {\em BaseBaseSemiSpace}.
+collector, use the name \Mlitch{BaseBaseSemiSpace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
@@ -618,10 +618,10 @@ configuration such that all the Jikes RVM classes are included in the
 boot image and are compiled by the optimizing compiler.  (By default
 only a small subset of these classes are included in the boot image.)
 \item The word \Mlitch{Fast} at the beginning of the configuration name identifies a
-Full configuration where all assertion checking has been turned off.
+\Mlitch{Full} configuration where all assertion checking has been turned off.
 \end{itemize}
-A boot image with either of these modifications will likely to run
-faster than without, but take longer to build.
+\Mlitch{Full} and \Mlitch{Fast} boot images run faster but take
+longer to build.
 
 \index{adaptive configurations}
 In configurations that include the adaptive system (denoted by

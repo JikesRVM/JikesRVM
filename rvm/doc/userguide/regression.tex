@@ -179,10 +179,11 @@ multiple options must be enclosed in quotations.
 
 \end{itemize}
 
-\paragraph{{\tt{Local.rules}} Configuration File}
+\paragraph{\texttt{\textbf{Local.rules}} Configuration File}
 
- The {\tt Local.rules} file is located in the {\tt \$RVM\_ROOT/regression/}
-directory and is used to customize the testing harness to your local
+ The {\tt Local.rules} file is located in the
+ {\tt \$RVM\_\-ROOT/\-re\-gres\-sion/} directory.
+It customizes the testing harness to your local
 setup.  Essentially, it contains the information needed to find test
 programs not provided as part of the Jikes RVM distribution, such as
 SPECjvm\Rweb{}98 and SPECjbb\Rboth{}2000.  Each test harness
@@ -192,7 +193,7 @@ the test harness where to find the program itself.  In order to use
 the test harness for those benchmarks, you must obtain the benchmark,
 install it at your site and edit your {\tt{Local.rules}} file to
 reflect the location of each benchmark.  {\tt{Local.rules}} defines
-the following variables for a benchmark.
+the following variables for a benchmark:
 \begin{description}
 \item[BENCH\_HOME] is the home directory where the benchmark is
 located.  This is used for benchmarks for which a test harness but not
@@ -205,7 +206,7 @@ classpath of compiles and runs of this benchmark.
 
  {\tt{RunSanityTests}} can be given two kinds of control files to make
 governing its behavior easier: lists of boot images and lists of
-tests.  With the {\tt -configuration-list} option, you can provide a
+tests.  With the {\tt -con\-fi\-gu\-ra\-tion-list} option, you can provide a
 file that lists the set of boot images to build.  This file is a plain
 text file, with one boot image name per line; each boot image name
 must be one that is understood by jconfigure.  With the {\tt
@@ -225,20 +226,21 @@ with a ``{\tt /}'') on the command line.
 directory contains a set of test programs, one in each directory.
 These directories do not contain the actual program, but rather the
 scripts and makefiles required to run it in the test harness.  The one
-essential file is {\tt{Makefile}}, which is makefile written with the
-GNU make syntax.  The structure of these files is as follows; the
-sections will be discussed below.  
+essential file will be named \texttt{GNUmakefile} (newer directories)
+or \texttt{Makefile} (older directories).  In both cases, that file is
+a Makefile written with the \xlink{GNU make}{\gnuMakeURL} syntax.  The structure of these
+files is as follows; the sections will be discussed below:  
 \begin{enumerate}
-\item Include the environment rules from the current build directory
-\item Set the benchmark name
-\item Include local configuration information, if needed
-\item Define benchmark-specific parameters
-\item Include the test harness makefile
-\item Define benchmark-specific rules
+\link{\item Include the environment rules from the current build directory}{make-include}
+\link{\item Set the benchmark name}{make-set}
+\link{\item Include local configuration information, if needed}{make-local}
+\link{\item Define benchmark-specific parameters}{make-benchmark-specific-params}
+\link{\item Include the test harness makefile}{make-test-harness}
+\link{\item Define benchmark-specific rules}{make-benchmark-specific-rules}
 \end{enumerate}
 
 \begin{description}
-\item[Include the environment rules from the current build directory]
+\item[Include the environment rules from the current build directory]\label{make-include}
 This is simply the include statement given below.  It is required so
 that subsequent portions of the makefile can find Jikes RVM itself
 and information needed from the boot image directory.  This section
@@ -247,7 +249,8 @@ is always the one line shown below:
 include         $(RVM_BUILD)/Make.rules.target
 \end{verbatim}
 
-\item[Set the benchmark name] This is the name by which the benchmark
+\item[Set the benchmark name]\label{make-benchmark-specific}
+This is the name by which the benchmark
 is identified in the local configuration file, and this name is also
 used in some situations by {\tt{RunSanityTests}} for identifying
 output.  It is also possible to specify inclusion of other benchmarks,
@@ -260,7 +263,8 @@ one.  This means, for instance, that extra jar files specified for
 these benchmarks will also be included in this one.
 \end{description}
 
-\item[Include local configuration information, if needed] This is
+\item[Include local configuration information, if needed]\label{make-local}
+This is
 where any information needed to customize the benchmark to your local
 configuration is read.  It must occur after {\tt{BENCH\_NAME}} is set
 because the information stored in the local configuration file is kept
@@ -270,7 +274,8 @@ following single line.
 include         $(JAL_ROOT)/rvm/regression/Local.rules
 \end{verbatim}
 
-\item[Define benchmark-specific parameters]  This defines essential
+\item[Define benchmark-specific parameters]\label{make-benchmark-specific-params}
+  This defines essential
 benchmark information such as the name of the class with which to
 start up, how much heap memory to use, what classpath to use, and the
 like.  There are many variables that the test harness understands, and
@@ -352,7 +357,8 @@ stopping the server program.
 that stops the server.
 \end{description}
 
-\item[Include the test harness makefile]  This section loads the rules
+\item[Include the test harness makefile]\label{make-test-harness}
+  This section loads the rules
 required to actually compile any Java files that need it, run the
 program, check the output for correctness and assess performance.
 This section must always have the following single line:
@@ -360,7 +366,8 @@ This section must always have the following single line:
 include         $(JAL_ROOT)/rvm/regression/Make.rules
 \end{verbatim}
 
-\item[Define benchmark-specific rules]  This section defines the rules
+\item[Define benchmark-specific rules]\label{make-benchmark-specific-rules}
+  This section defines the rules
 needed for the specific benchmark; these rules will utilize the rules
 from the test harness.  The benchmark needs to define at least the
 following rules:
@@ -428,7 +435,7 @@ discussed below.
 {\tt{RunSanityTests}} as instructed on each line of the config file,
 appending the common options, if any.
 
-\paragraph{The {\tt{NightSanityDriver}} Configuration File}
+\paragraph{The \texttt{\textbf{NightSanityDriver}} Configuration File}
 
  The config file for {\tt{NightSanityDriver}} specifies a series of
 invocations of {\tt{RunSanityTests}}, one per line of the file.  Each
@@ -504,20 +511,21 @@ BaseBaseGenMS                    -test-list nightly-tests
 FullAdaptiveGenCopy              -test-list nightly-tests
 ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
 BaseBaseCopyMSUP                 -test-list nightly-tests-short
-FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
+FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" \
+                                     -test-list nightly-tests-short
 FastAdaptiveCopyMS               -test-list nightly-tests-short
 FastAdaptiveMarkSweep            -test-list nightly-tests-short
 \end{verbatim}
 
  To make all of this run every night, it is necessary merely to put a
-{\tt NightSanityDriver} invocation in a {\tt crontab}; we actually use a more
+{\tt Night\-San\-i\-ty\-Dri\-ver} invocation in a {\tt crontab}; we actually use a more
 involved setup, which we distribute in the {\tt night-sanity-build} and
 {\tt night-sanity-run scripts}.  These are somewhat specific to what we want
 to test, but they will hopefully make a good model.
 
 \subsection{Mauve tests}
 Mauve is an open source test suite for class libraries.  The directory 
-{\tt{\$RVM\_ROOT/rvm/regression/tests/mauve}} contains a file
-{\tt mauve-jikesrvm} that contains the current KEYS used to run mauve tests
+{\tt{\$RVM\_\-ROOT/\-rvm/\-re\-gres\-sion/\-tests/\-mauve}} contains a file
+{\tt mauve-jikesrvm} that contains the current KEYS used to run Mauve tests
 on Jikes RVM. 
 

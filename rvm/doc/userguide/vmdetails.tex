@@ -294,8 +294,7 @@ registers when doing a JNI transition from C to Java code.
 
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
-\xlink{{\tt \$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
-{\PPCStackframeLayoutURL}.
+\texorhtml{\texttt{\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-powerpc/\-VM\_\-StackframeLay\-outCon\-stants.java}}{\xlink{\texttt{\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-powerpc/\-VM\_\-StackframeLay\-outCon\-stants.java}}{\PPCStackframeLayoutURL}}.
 
 %\noindent{\bf Calling Conventions}
 \paragraph{Calling Conventions}
@@ -403,7 +402,7 @@ apply to Jikes RVM on Linux\Rweb{}/IA32.
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
 \xlink{{\tt
-\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_StackframeLayoutConstants.java}}
+\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-in\-tel/\-VM\_\-Stack\-frame\-Lay\-out\-Con\-stants.java}}
 {\LintelStackframeLayoutURL}.
 
 %\noindent{\bf Calling Conventions}
@@ -415,8 +414,9 @@ The first two areas of the callee's stackframe (see above) have been
      established.  ESP points to caller's return address.
      Parameters from caller to callee are as mandated by 
 \xlink{{\tt
-\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_RegisterConstants.java}}
+\$RVM\_ROOT/\-rvm/\-src/\-vm/\-arch/\-in\-tel/\-VM\_\-Re\-gis\-terCon\-stants.java}}
 {\LintelRegisterConstantsURL}.
+
 \item[After callee's epilogue]
      Callee's stackframe has been removed.  ESP points to the word above where
      callee's frame was.  The framePointer field

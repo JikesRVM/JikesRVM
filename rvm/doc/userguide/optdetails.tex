@@ -31,7 +31,7 @@ An instance of this class includes, among other fields,
 the 
 \xlink{{\tt VM\_Method}}{\VMMethodURL} 
 to be compiled and the array of 
-\xlink{{\tt OPT\_OptimizationPlanElements}}{\OPTOptimizationPlanElementURL} 
+\xlink{{\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ments}}{\OPTOptimizationPlanElementURL} 
 which define the compilation steps.
 The {\tt execute} method of an
 \xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
@@ -45,7 +45,7 @@ The
 class defines the standard phases used in a compilation.
 This class
 contains a static field, called {\tt masterPlan}, which contains all
-possible {\tt OPT\_OptimizationPlanElement}s.
+possible {\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ment}s.
 The structure of the master plan is 
 a tree. Any element may either be an atomic element (a leaf of the 
 tree), or an aggregate element (an internal node of the tree).
@@ -70,7 +70,7 @@ The master plan has the following general structure:
 
 \index{optimization plan}
 A client (compiler driver) constructs a specific optimization plan by including all the 
-{\tt OPT\_OptimizationPlanElement}s contained in the master plan which are 
+{\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ment}s contained in the master plan which are 
 appropriate for this compilation instance. 
 Whether or not an element should be part of a compilation plan is determined 
 by its {\tt shouldPerform} method. For each atomic element, the values in the
@@ -86,10 +86,10 @@ perform methods of its elements.
 
 \index{OPT\_CompilerPhase class}
 Each atomic element is an object of the final class 
-{\tt OPT\_OptimizationPlanAtomicElement}. The main work of this class
+{\tt OPT\_Optimization\-Plan\-A\-to\-mic\-El\-e\-ment}. The main work of this class
 is performed by its {\em phase}, an object of type 
 \xlink{{\tt OPT\_CompilerPhase}}{\OPTCompilerPhaseURL}. The
-{\tt OPT\_CompilerPhase} class is not final; each phase overrides this class,
+{\tt OPT\_\-Com\-pi\-ler\-Phase} class is not final; each phase overrides this class,
 in particular it overrides the {\tt perform} method, which is invoked by its 
 enclosing element's {\tt perform} method. All the state associated with 
 the element
@@ -128,8 +128,8 @@ more operands.
 The IR operators are defined by the class {\tt OPT\_Operators}, which in
 turn is automatically generated from a template by a driver.  The input to the
 driver are two files, both called {\tt OperatorList.dat}.  One input
-file resides in {\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction} and defines machine-independent
-operators.  The other resides in {\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/instruction}
+file resides in {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struc\-tion} and defines machine-independent
+operators.  The other resides in {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-\$\{arch\}/com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struc\-tion}
 and defines machine-dependent operators, where \{arch\} is the
 specific architecture of interest, such as PowerPC\TMweb.
 
@@ -206,7 +206,7 @@ description of the API.
 
 \index{InstructionFormatList.dat}
 Each fixed-length instruction format is defined in the text file 
-{\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/InstructionFormatList.dat}.
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struction/InstructionFormatList.dat}.
 Each record in this file has four lines:
 \begin{itemize}
 \item {\tt NAME}: the name of the instruction format
@@ -297,7 +297,7 @@ Simple, Efficient Code-Generator Generator'' by Fraser, Hanson, and
 Proebsting, LOPLAS 1(3), Sept.\ 1992.)
 The instruction selection rules for each architecture are specified in an
 architecture-specific file called {\tt LIR2MIR.rules}, which resides in
-{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir}, where \{arch\} is the
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-\$\{arch\}/\-compilers/\-op\-ti\-mi\-zing/\-ir/\-con\-ver\-sions/\-lir\-2\-mir}, where \$\{arch\} is the
 specific architecture of interest, such as PowerPC\TMweb.
 The rules are 
 used in generating a parser, which transforms the IR.
@@ -309,9 +309,9 @@ consisting of:
 pattern is explained below.
 \item {\tt COST}: the cost of matching the pattern as opposed to skipping
 it.  It is a Java\TMweb{} expression that evaluates to an integer.
-\item {\tt FLAGS}: specifies whether the rule actually represents a sequence
-of instructions (EMIT\_INSTRUCTION) or a transformation of operands
-(NOFLAGS). Other flags can be used to control the order of code
+\item {\tt FLAGS}: specifies whe\-ther the rule actually represents a sequence
+of instructions (\texttt{E\-MIT\_\-IN\-STRUC\-TION}) or a transformation of operands
+(\texttt{NO\-FLAGS}). Other flags can be used to control the order of code
 generation of a node's children.
 \item {\tt TEMPLATE}: Java code to emit
 \end{itemize}
@@ -375,9 +375,9 @@ The rules file is used to generate a file called {\tt ir.brg}, which, in
 turn, is used to produce a file called {\tt OPT\_BURS\_STATE.java}.
 
 For more information on helper functions look at
-{\tt \$RVM\_ROOT/rvm/src/\-vm/\-arch/\-\{arch\}/com\-pi\-l\-ers/op\-ti\-mi\-z\-ing/ir/conver\-sions/lir2\-mir/OPT\_BURS\_Helpers.java}.
+{\tt \$RVM\_ROOT/rvm/src/\-vm/\-arch/\-\{arch\}/com\-pi\-l\-ers/op\-ti\-mi\-z\-ing/ir/\-con\-ver\-sions/\-lir\-2\-mir/OPT\_BURS\_Helpers.java}.
 For more information on the BURS algorithm see
-{\tt \$RVM\_ROOT/rvm/src/vm/compi\-l\-ers/op\-ti\-m\-i\-zing/ir/conver\-sions/lir2\-mir/OPT\_BURS.java}.
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-l\-ers/\-op\-ti\-m\-i\-zing/\-ir/\-con\-ver\-sions/\-lir\-2\-mir/OPT\_\-BURS.java}.
 
 \subsection{OptTestHarness}\label{opttestharness}
 
@@ -428,7 +428,7 @@ Another useful option to {\tt OptTestHarness} is {\tt -longcommandline
 from a file.
 
 The source to the {\tt OptTestHarness} resides in
-{\tt \$RVM\_ROOT/rvm/src/tools/optTestHarness}.  Consult the comments
+{\tt \$RVM\_ROOT/rvm/src/tools/\-opt\-Test\-Har\-ness}.  Consult the comments
 at the head of the file {\tt
 OptTestHarness.java} in that directory to read about other options,
 including how to use {\tt -er} to make {\tt OptTestHarness} 

@@ -26,7 +26,7 @@ using this preprocessor directive.
 
 Threads that are not executing are either placed on thead queues
 (deriving from 
-\xlink{{\tt VM\_AbstractThreadQueue}}{\VMAbstractThreadQueueURL}
+\xlink{\texttt{VM\_\-Ab\-stract\-Thread\-Queue}}{\VMAbstractThreadQueueURL}
 ) or are proxied (see below).
 Thread queues are either global or (virtual) processor local.  The
 latter do not require synchronized access but global queues do.
@@ -34,7 +34,7 @@ Unfortunately, we did not see how to use Java monitors to provide
 this synchronization.  (In part, because it is needed to implement
 monitors, see below.)  Instead this low-level synchronization is
 provided by 
-\xlink{{\tt VM\_ProcessorLock}}{\VMProcessorLockURL}s.
+\xlink{{\tt VM\_\-Pro\-ces\-sor\-Lock}}{\VMProcessorLockURL}s.
 
 Transferring execution from one thread (A) to another (B) is a complex
 operation negotiated by the {\tt yield} and {\tt morph} methods of
@@ -43,11 +43,11 @@ yield} places A on an indicated queue (releasing the lock on the
 queue, if it is global).  {\tt morph} does some additional
 housekeeping and transfers control to {\tt dispatch} which selects the
 next thread to execute. Dispatch then invokes {\tt
-VM\_Magic.threadSwitch} to save the hardware context of A and restore
+VM\_Ma\-gic.thread\-Switch} to save the hardware context of A and restore
 the hardware context of B.  It now appears as if B's previous call to
 {\tt dispatch} has just returned and it continues executing. While
 dispatching is proceeding (from the time A is enqueued until B's
-hardware context is restored), the {\tt beingDispatched} field of A is
+hardware context is restored), the {\tt be\-ing\-Dis\-patched} field of A is
 set to prevent it from being scheduled for execution on some other
 virtual processor while it is still executing in {\tt morph } or {\tt
 dispatch}. 
@@ -84,9 +84,9 @@ Currently, this mechanism does not work on Linux and is disabled there.
 
 Jikes RVM uses a light-weight locking scheme to implement Java monitors (see
 \xlink{{\tt VM\_Lock}}{\VMLockURL} and 
-\xlink{{\tt VM\_ThinLock}}{\VMThinLockURL}). The exact details of the
+\xlink{{\tt VM\_\-Thin\-Lock}}{\VMThinLockURL}). The exact details of the
 locking scheme are dependent on which variant of 
-\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL} is selected at
+\xlink{{\tt VM\_\-Ja\-va\-Hea\-der.java}}{\VMJavaHeaderURL} is selected at
 system build time.  If an object instance has a light weight lock,
 then some bits in the object header are used for locking.  
 If the top bit is set, the remainder of the bits 
@@ -108,7 +108,7 @@ queue.  Priority {\tt wakeupQueue}s are used to implement Java sleep
 semantics.  Logically, Java timed-wait semantics entail placing a
 thread on both a {\tt waitingQueue} and a {\tt wakeupQueue}.  However, our
 implementation only allows a thread to be on one thread queue at
-a time.  To accommodate timed-waits, both {\tt waitingQueue}s and
-{\tt wakeupQueue}s are queues of {\em proxies} rather than threads.
+a time.  To accommodate timed-waits, both {\tt wai\-ting\-Queue}s and
+{\tt wake\-up\-Queue}s are queues of {\em proxies} rather than threads.
 A \xlink{{\tt VM\_Proxy}}{\VMProxyURL} can represent the same thread
 on more than one proxy queue.

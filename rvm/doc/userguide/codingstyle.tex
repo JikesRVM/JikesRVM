@@ -215,8 +215,10 @@ set wrapmargin=0           " ditto
 augroup java
    autocmd!
    autocmd BufEnter *.java set cindent
-   autocmd BufEnter *.java set cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,ps,ts,c3,+s,(0,u0,)20,*30,gs,hs
-   autocmd BufEnter *.java set cinwords=if,else,while,do,for,switch,static,new
+   autocmd BufEnter *.java set cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,ps,ts,c3,+s,\
+(0,u0,)20,*30,gs,hs
+   autocmd BufEnter *.java set cinwords=if,else,while,do,for,switch,\
+static,new
    autocmd BufLeave *.java set nocindent
 augroup END
 \end{verbatim}
