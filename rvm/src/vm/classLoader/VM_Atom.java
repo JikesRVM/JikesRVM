@@ -543,7 +543,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
 
-  private static final byte[][] systemClasses = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
+  private static final byte[][] systemClassPrefixes 
+    = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
 
   /**
    * @return true if this is a class descriptor of a system class
@@ -551,10 +552,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public final boolean isSystemClassDescriptor() {
   outer:
-    for (int i=0; i<systemClasses.length; i++) {
-      byte[] test = systemClasses[i];
+    for (int i = 0; i < systemClassPrefixes.length; i++) {
+      byte[] test = systemClassPrefixes[i];
       if (test.length > val.length) continue outer;
-      for (int j=0; j<test.length; j++) {
+      for (int j = 0; j < test.length; j++) {
 	if (val[j] != test[j]) 
 	  continue outer;
       }
