@@ -377,8 +377,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
     try {
       env.deleteJNIRef(objJREF);
     } catch (ArrayIndexOutOfBoundsException e) {
-      VM.sysWrite("JNI refs array confused.  Fatal Error!\n");
-      VM.sysExit(VM.EXIT_STATUS_JNI_TROUBLE );
+      VM.sysFail("JNI refs array confused, or DeleteLocalRef gave us a bad JREF argument:", objJREF);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
