@@ -131,11 +131,7 @@ public class Throwable implements java.io.Serializable {
     //    static boolean ranOut = false;
     boolean useSysWrite = false;
     if (this instanceof OutOfMemoryError) {
-      if (++numOutOfMemoryErrors > maxOutOfMemoryErrors) {
-	/* We exit before printing, in case we're in some weird hell where
-	   everything is broken, even VM.sysWriteln().. */
-	VM.sysExit(exitStatusTooManyOutOfMemoryErrors);
-      }
+      tallyOutOfMemoryError();
       VM.sysWriteln("Throwable.printStackTrace(): We are trying to dump the stack of an OutOfMemoryError.");
       VM.sysWriteln("Throwable.printStackTrace():  We'll use the VM.sysWriteln() function,");
       VM.sysWriteln("Throwable.printStackTrace():  instead of the System.err stream, to avoid trouble.");
