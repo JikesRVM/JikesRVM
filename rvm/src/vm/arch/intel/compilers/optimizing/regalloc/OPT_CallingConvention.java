@@ -583,8 +583,8 @@ final class OPT_CallingConvention extends OPT_IRTools
       }
     }
 
-    if (VM.VerifyAssertions && paramByteOffset == 8)
-	VM._assert(false, "pb = " + paramByteOffset);
+    if (VM.VerifyAssertions && paramByteOffset != 8)
+      VM._assert(false, "pb = " + paramByteOffset);
     
     // Now that we've made the calling convention explicit in the prologue,
     // set IR_PROLOGUE to have no defs.
