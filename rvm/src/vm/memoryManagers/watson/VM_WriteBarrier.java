@@ -90,7 +90,7 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
 
       // (1) mark reference as being in the write buffer 
       statusWord = statusWord ^ OBJECT_BARRIER_MASK;
-      VM_Magic.setIntAtOffset(ref, OBJECT_STATUS_OFFSET, statusWord);
+      VM_Magic.setByteAtOffset(ref, OBJECT_STATUS_OFFSET+3, (byte)statusWord);
       
       // (2) add reference to write buffer
       VM_Processor p = VM_Processor.getCurrentProcessor();
