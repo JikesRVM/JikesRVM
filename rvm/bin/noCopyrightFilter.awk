@@ -9,6 +9,7 @@
 #
 # Files that don't have a copyright notice
 #
+/\/bin\/classpath.stamp/ { next }
 /\/bin\/ids\/rvmrt.stamp/ { next }
 /\/bin\/ids\/set\/R-/ { next }
 
