@@ -491,7 +491,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void prepareNonParticipating (Plan p) {
     VM_Processor vp = (VM_Processor) p;
     int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
-    VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
+    if (VM.VerifyAseertions)
+      VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
     if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 
       // processor & its running thread are blocked in C for this GC.  
       // Its stack needs to be scanned, starting from the "top" java frame, which has
@@ -511,7 +512,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     //
   public static void prepareParticipating (Plan p) {
     VM_Processor vp = (VM_Processor) p;
-    VM._assert(vp == VM_Processor.getCurrentProcessor());
+    if (VM.VerifyAseertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
     VM_Thread t = VM_Thread.getCurrentThread();
     VM_Address fp = VM_Magic.getFramePointer();
     while (true) {
