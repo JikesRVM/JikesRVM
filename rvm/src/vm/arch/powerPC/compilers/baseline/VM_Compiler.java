@@ -616,9 +616,7 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitLAddrToc(T0,  offset);
         pushAddr(T0);
         return;
-      } else { VM.write(offset); VM.write(':');VM.write(VM_Statics.getSlotDescription(offset >> LOG_BYTES_IN_INT));VM.write('\n');
-        //VM.write(offset); VM.write(':');VM.write(VM_Statics.getSlotDescription((offset >> LOG_BYTES_IN_INT)+1));VM.write('\n');
-        }
+      }
     }
     asm.emitLIntToc(T0, offset);
     pushInt(T0);
@@ -745,8 +743,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from an int array
    */
   protected final void emit_iaload() {
-    aloadSetup(LOG_BYTES_IN_INT);
-    asm.emitLIntX  (T2, T0, T1);  // load desired int array element
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_INT);  // convert index to offset
+    asm.emitLIntX(T2, T0, T1);  // load desired int array element
     pushInt(T2);
   }
 
@@ -754,7 +753,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a long array
    */
   protected final void emit_laload() {
-    aloadSetup(LOG_BYTES_IN_LONG);
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_LONG);  // convert index to offset
     asm.emitLFDX(F0, T0, T1);  // load desired (long) array element
     pushLongAsDouble(F0);
   }
@@ -763,8 +763,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a float array
    */
   protected final void emit_faload() {
-    aloadSetup(LOG_BYTES_IN_FLOAT);
-    asm.emitLWZX  (T2, T0, T1);  // load desired (float) array element
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_FLOAT);  // convert index to offset
+    asm.emitLWZX (T2, T0, T1);  // load desired (float) array element
     pushInt(T2);  //LFSX not implemented yet
 //    asm.emitLFSX  (F0, T0, T1);  // load desired (float) array element
 //    pushFloat(F0);
@@ -774,8 +775,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a double array
    */
   protected final void emit_daload() {
-    aloadSetup(LOG_BYTES_IN_DOUBLE);
-    asm.emitLFDX(F0, T0, T1);  // load desired (double) array element
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_DOUBLE);  // convert index to offset
+    asm.emitLFDX (F0, T0, T1);  // load desired (double) array element
     pushDouble(F0);  
   }
 
@@ -783,8 +785,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a reference array
    */
   protected final void emit_aaload() {
-    aloadSetup(LOG_BYTES_IN_ADDRESS);
-    asm.emitLAddrX  (T2, T0, T1);  // load desired (ref) array element
+    genBoundsCheck();
+    asm.emitSLWI  (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+    asm.emitLAddrX(T2, T0, T1);  // load desired (ref) array element
     pushAddr(T2);
   }
 
@@ -792,10 +795,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a byte/boolean array
    */
   protected final void emit_baload() {
-    aloadSetup();
+    genBoundsCheck();
     asm.emitLBZX(T2, T0, T1);  // no load byte algebraic ...
-    /*asm.emitSLWI (T2, T2, BITS_IN_INT - BITS_IN_BYTE);
-    asm.emitSRAWI(T2, T2, BITS_IN_INT - BITS_IN_BYTE);  // propogate the sign bit*/
     asm.emitEXTSB(T2,T2);
     pushInt(T2);  
   }
@@ -804,7 +805,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a char array
    */
   protected final void emit_caload() {
-    aloadSetup(LOG_BYTES_IN_CHAR);
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_CHAR);  // convert index to offset
     asm.emitLHZX(T2, T0, T1);  // load desired (char) array element
     pushInt(T2);  
   }
@@ -813,7 +815,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from a short array
    */
   protected final void emit_saload() {
-    aloadSetup(LOG_BYTES_IN_SHORT);
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_SHORT);  // convert index to offset
     asm.emitLHAX(T2, T0, T1);  // load desired (short) array element
     pushInt(T2);  
   }
@@ -828,30 +831,40 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to store to an int array
    */
   protected final void emit_iastore() {
-    astoreSetup(LOG_BYTES_IN_INT);
-    asm.emitSTWX (T3, T0, T1);  // store int value in array
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_INT);  // convert index to offset
+    asm.emitSTWX (T2, T0, T1);  // store int value in array
   }
 
   /**
    * Emit code to store to a long array
    */
   protected final void emit_lastore() {
-    astoreLong();
+    popLongAsDouble(F0);                    // F0 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_LONG);  // convert index to offset
+    asm.emitSTFDX(F0, T0, T1);  // store long value in array
   }
 
   /**
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
-    astoreSetup(LOG_BYTES_IN_FLOAT);
-    asm.emitSTWX (T3, T0, T1);  // store float value in array
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_FLOAT);  // convert index to offset
+    asm.emitSTWX (T2, T0, T1);  // store float value in array
   }
 
   /**
    * Emit code to store to a double array
    */
   protected final void emit_dastore() {
-    astoreLong();
+    popDouble(F0);         // F0 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_DOUBLE);  // convert index to offset
+    asm.emitSTFDX(F0, T0, T1);  // store double value in array
   }
 
   /**
@@ -860,14 +873,16 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_aastore() {
     asm.emitLAddrToc(T0,  VM_Entrypoints.checkstoreMethod.getOffset());
     asm.emitMTCTR(T0);
-    peekAddr(T1, 0);  // T1 is value to store
-    peekAddr(T0, 2);  // T0 is array ref 
+    peekAddr(T1, 0);    // T1 is value to store
+    peekAddr(T0, 2);    // T0 is array ref 
     asm.emitBCCTRL();   // checkstore(arrayref, value)
+    popAddr(T2);        // T2 is value to store
+    genBoundsCheck();
     if (MM_Interface.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(this);
     } else {
-      astoreSetup(LOG_BYTES_IN_ADDRESS);
-      asm.emitSTAddrX (T3, T0, T1);  // store ref value in array
+      asm.emitSLWI (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+      asm.emitSTAddrX (T2, T0, T1);  // store ref value in array
     }
   }
 
@@ -875,24 +890,29 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to store to a byte/boolean array
    */
   protected final void emit_bastore() {
-    astoreSetup();
-    asm.emitSTBX(T3, T0, T1);  // store byte value in array
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSTBX(T2, T0, T1);  // store byte value in array
   }
 
   /**
    * Emit code to store to a char array
    */
   protected final void emit_castore() {
-    astoreSetup(LOG_BYTES_IN_CHAR);
-    asm.emitSTHX(T3, T0, T1);  // store char value in array
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI(T1, T1,  LOG_BYTES_IN_CHAR);  // convert index to offset
+    asm.emitSTHX(T2, T0, T1);  // store char value in array
   }
 
   /**
    * Emit code to store to a short array
    */
   protected final void emit_sastore() {
-    astoreSetup(LOG_BYTES_IN_SHORT);
-    asm.emitSTHX(T3, T0, T1);  // store short value in array
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_SHORT);  // convert index to offset
+    asm.emitSTHX(T2, T0, T1);  // store short value in array
   }
 
 
@@ -2145,8 +2165,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_lreturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    if (VM.BuildFor64Addr) peekLong(T0,T0,0);
-    else peekLong(T0,T1,0);
+    peekLong(T0, VM.BuildFor64Addr?T0:T1, 0);
     genEpilogue();
   }
 
@@ -2843,35 +2862,17 @@ public class VM_Compiler extends VM_BaselineCompiler
     }
   }
 
-  // Load/Store assist
-  private void aloadSetup () {
-    popInt(T0);      // T0 is array index
-    popAddr(T1);     // T1 is array ref
-    asm.emitLInt  (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    asm.emitTWLLE(T2, T0);      // trap if index < 0 or index >= length
+  // Gen bounds check for array load/store bytecodes.
+  // Does null check (implicit) and array bounds check.
+  // Kills S0.
+  // on return: T0 => base, T1 => index. 
+  private void genBoundsCheck () {
+    popInt(T1);      // T1 is array index
+    popAddr(T0);     // T0 is array ref
+    asm.emitLInt (S0,  VM_ObjectModel.getArrayLengthOffset(), T0);  // T2 is array length
+    asm.emitTWLLE(S0, T1);      // trap if index < 0 or index >= length
   }
   
-  private void aloadSetup (int logSize) {
-    aloadSetup();
-    asm.emitSLWI (T0, T0,  logSize);  // convert word index to byte index
-  }
-  
-  private void astoreSetup () {
-    popInt(T3);      // T3 is value to store
-    aloadSetup();
-  }
-
-  private void astoreSetup (int logSize) {
-    popInt(T3);      // T3 is value to store
-    aloadSetup(logSize);
-  }
-
-  private void astoreLong () {
-    popLongAsDouble(F0);                    // F0 is value to store
-    aloadSetup(LOG_BYTES_IN_LONG);    
-    asm.emitSTFDX(F0, T0, T1);  // store double value in array
-  }
-
   // Emit code to buy a stackframe, store incoming parameters, 
   // and acquire method synchronization lock.
   //
@@ -3019,8 +3020,10 @@ public class VM_Compiler extends VM_BaselineCompiler
 
       // Load counter array for this method
       asm.emitLAddrToc (T0, VM_Entrypoints.edgeCountersField.getOffset());
-      if (VM.BuildFor64Addr) asm.emitLDoffset(T0, T0, getEdgeCounterOffset());
-      else asm.emitLWZoffset(T0, T0, getEdgeCounterOffset());
+      if (VM.BuildFor64Addr) 
+	asm.emitLDoffset(T0, T0, getEdgeCounterOffset());
+      else 
+	asm.emitLWZoffset(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
       VM_ForwardReference fr = asm.emitForwardBC(asm.flipCode(cc));
@@ -3435,8 +3438,9 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.setProcessorRegister) {
       popAddr(PROCESSOR_REGISTER);
     } else if (methodName == VM_MagicNames.getTimeBase) {
-      if (VM.BuildFor64Addr) asm.emitMFTB (T1);      // T1 := time base
-      else {
+      if (VM.BuildFor64Addr) {
+	asm.emitMFTB (T1);      // T1 := time base
+      } else {
         int label = asm.getMachineCodeIndex();
         asm.emitMFTBU(T0);                      // T0 := time base, upper
         asm.emitMFTB (T1);                      // T1 := time base, lower
@@ -3468,8 +3472,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushInt(T0);       // push result
     } else if (methodName == VM_MagicNames.invokeMethodReturningLong) {
       generateMethodInvocation(); // call method
-      if (VM.BuildFor64Addr) pushLong(T0,T0);       // push result
-      else  pushLong(T0,T1);       // push result
+      pushLong(T0, VM.BuildFor64Addr?T0:T1);       // push result
     } else if (methodName == VM_MagicNames.invokeMethodReturningFloat) {
       generateMethodInvocation(); // call method
       pushFloat(F0);     // push result
@@ -3493,19 +3496,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.addressArrayGet) {
       if (VM.BuildFor32Addr) {
 	emit_iaload();
-      } else if (VM.BuildFor64Addr) {
-	emit_laload();
       } else {
-	VM._assert(NOT_REACHED);
+	emit_laload();
       }
     } else if (methodName == VM_MagicNames.addressArraySet) {
       if (VM.BuildFor32Addr) {
         emit_iastore();  
-      } else if (VM.BuildFor64Addr) {
-	emit_lastore();
-        //VM._assert(false);  // not implemented
       } else {
-	VM._assert(NOT_REACHED);
+	emit_lastore();
       }
     } else if (methodName == VM_MagicNames.getIntAtOffset) { 
       popInt(T1); // pop offset
@@ -3545,9 +3543,9 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitLWZX (T0, T1, T2); // *(object+offset)
         asm.emitADDI(T2, BYTES_IN_INT, T2); // offset += 4
         asm.emitLWZX (T1, T1, T2); // *(object+offset+4)
-      } else if (VM.BuildFor64Addr) {
+      } else {
         asm.emitLDX(T1, T1, T2);
-      } else VM._assert(NOT_REACHED);
+      }
       pushLong(T0,T1);
     } else if ((methodName == VM_MagicNames.setLongAtOffset) 
 	       || (methodName == VM_MagicNames.setDoubleAtOffset)) {
@@ -3558,9 +3556,9 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitSTWX(T3, T1, T0); // *(object+offset) = newvalue low
         asm.emitADDI(T1, BYTES_IN_INT, T1); // offset += 4
         asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue high
-      } else if (VM.BuildFor64Addr) {
+      } else {
         asm.emitSTDX(T2, T1, T0); // *(object+offset) = newvalue 
-      } else VM._assert(NOT_REACHED);
+      } 
     } else if (methodName == VM_MagicNames.getMemoryInt){
       popAddr(T0); // address
       asm.emitLInt (T0,  0, T0); // *address
@@ -3597,9 +3595,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       } else {
         if (VM.BuildFor32Addr) {
 	  asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
-        } else if (VM.BuildFor64Addr) {
+        } else {
           asm.emitLDARX(T0, T1, T0);
-        } else VM._assert(NOT_REACHED);
+        } 
       }
       pushAddr(T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.attemptInt){
@@ -3632,9 +3630,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       } else {
         if (VM.BuildFor32Addr) {
 	  asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-        } else if (VM.BuildFor64Addr) {
+        } else {
 	  asm.emitSTDCXr(T2,  T1, T0); // store new value and set CR0
-        } else VM._assert(NOT_REACHED);
+        }
 	asm.emitLI   (T0,  0);  // T0 := false
 	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
 	asm.emitLI   (T0,  1);   // T0 := true
@@ -3839,9 +3837,9 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLI(T2,  1);
     if (VM.BuildFor32Addr) {
       asm.emitCMPL(T0, T1);    // unsigned comparison
-    } else if (VM.BuildFor64Addr) {
+    } else {
       asm.emitCMPLD(T0, T1);    // unsigned comparison
-    } else VM._assert(NOT_REACHED);
+    } 
     VM_ForwardReference fr = asm.emitForwardBC(cc);
     asm.emitLI(T2,  0);
     fr.resolve(asm);
@@ -4014,10 +4012,8 @@ public class VM_Compiler extends VM_BaselineCompiler
 
     if (VM.BuildFor32Addr) {
       asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
-    } else if (VM.BuildFor64Addr) {
-      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     } else {
-      VM._assert(NOT_REACHED);
+      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
 
@@ -4040,10 +4036,8 @@ public class VM_Compiler extends VM_BaselineCompiler
 
     if (VM.BuildFor32Addr) {
       asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
-    } else if (VM.BuildFor64Addr) {
-      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     } else {
-      VM._assert(NOT_REACHED);
+      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
 
