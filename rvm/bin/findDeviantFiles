@@ -72,6 +72,6 @@ find . $find_opts -exec grep -c "(C) Copyright" {} \; | $bin_dir/findMatchedFile
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
 echo "find all plain files with \$Id: tags"
-find . $find_opts -exec grep -c "\$Id$bin_dir/findMatchedFiles.perl | awk -f $bin_dir/noIdFilter.awk > $2/noId.$3
+find . $find_opts -exec grep -c "\$Id" {} \; $bin_dir/findMatchedFiles.perl | awk -f $bin_dir/noIdFilter.awk > $2/noId.$3
 
 
