@@ -56,8 +56,8 @@ cp -r $RVM_ROOT/../rvmSupport/lib/src/* $RVM_BUILD/Jalapeno.classes
 
 # Compile the library sources
 cd $RVM_BUILD/Jalapeno.classes
-$FIND com -name '*.java'  | $FGREP -v CVS | $XARGS $RVM_BUILD/jbuild.tool
-$FIND java -name '*.java'  | $FGREP -v CVS | $XARGS $RVM_BUILD/jbuild.tool
+$FIND com -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
+$FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 
 # Create the jar file
 cd $RVM_BUILD/Jalapeno.classes

@@ -2486,6 +2486,12 @@ fi
 
 print -n "(directories created) "
 
+if (( ! BUILD_RVMRT_JAR )); then
+  cp $RVM_ROOT/../rvmSupport/lib/rvmrt.jar $CLASSES_DIRECTORY
+fi
+
+print -n "(rvmrt.jar copied) "
+
 # Create control files and scripts.
 #
 PERM=+r+w

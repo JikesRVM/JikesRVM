@@ -7,7 +7,7 @@ HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
 HOST_MEM_MIN=300M
 
-JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/Jalapeno.classes:$(JAL_BUILD)/Jalapeno.classes/classes.zip
+JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/Jalapeno.classes:$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
 
 $SRCS=	BootImage.java \
 	BootImageChecker.java \
@@ -20,7 +20,7 @@ UTIL_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map*
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
 UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
-$(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/classes.zip
+$(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT)
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES)
 
@@ -32,7 +32,7 @@ $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/classes.zip
 #
 
 # Create a boot image.
-# Parameters frBooom 'make' command line are:
+# Parameters from 'make' command line are:
 #   RVM_INSTRUCTION_TYPE = datatype used for representing machine instructions
 #   RVM_BOOTIMAGE = place to put boot image
 #   RVM_REPOSITORIES = path to search for classes

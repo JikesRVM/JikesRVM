@@ -9,7 +9,7 @@
 #
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
-`
+
 export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable
@@ -19,7 +19,7 @@ export HOST_JAVA="/opt/IBMJava2-13/bin/java"
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 
 # the JDK jar executable
-export HOST_JAR="/opt/IBMJava2-13/bin/javac"
+export HOST_JAR="/opt/IBMJava2-13/bin/jar"
 
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
@@ -31,7 +31,7 @@ export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for jikes.
-export JIKES="/usr/bin/jikes"
+export JIKES="/homes/fury5/jalapeno/bin/jc-lintel"
 
 # what C compilers should be used?
 export CC='/usr/bin/gcc -w -O'
@@ -60,6 +60,8 @@ export BASH="/bin/bash"
 export SED="/bin/sed"
 export DIFF="/usr/bin/diff"
 export TAR="/bin/tar"
+export XARGS="/usr/bin/xargs"
 
 # where to find Jazzlib
 export JAZZLIBDIR=~dolby/stuff/jazzlib-0.02
+
