@@ -185,13 +185,15 @@ public abstract class StopTheWorldGC extends BasePlan
       if (designated) Finalizer.moveToFinalizable(); 
       VM_CollectorThread.gcBarrier.rendezvous();
       if (designated) Statistics.finalizeTime.stop();
+    }
       
-      if (!Options.noReferenceTypes) {
-	if (designated) Statistics.refTypeTime.start();
-	if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
-	if (designated) Statistics.refTypeTime.stop();
-      }
-      
+    if (!Options.noReferenceTypes) {
+      if (designated) Statistics.refTypeTime.start();
+      if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
+      if (designated) Statistics.refTypeTime.stop();
+    }
+
+    if (!Options.noReferenceTypes || !Options.noFinalizer) {
       if (designated) Statistics.scanTime.start();
       processAllWork();
       if (designated) Statistics.scanTime.stop();
