@@ -311,7 +311,7 @@ function cleanFileList() {
 
 ## Message reporting in general.
 declare -i midline=0;		# are we in the middle of a line?
-declare -i num_echos=0;
+declare -i num_echoes=0;
 function echo() {
     builtin echo "$@"
     if [[ ${1-} = -n ]]; then
@@ -319,8 +319,8 @@ function echo() {
     else
 	midline=0
     fi
-    : ${num_echos=0}		# Workaround Bash 2.05b bug.
-    let ++num_echos
+    : ${num_echoes=0}		# Workaround Bash 2.05b bug.
+    let ++num_echoes
 }
 
 declare -i opened_at=0;
@@ -330,11 +330,11 @@ function open_paren() {
     else
 	echo -n '('
     fi
-    opened_at=$num_echos;
+    opened_at=$num_echoes;
 }
 function close_paren() {
-    : ${num_echos=0} ${opened_at=0} # Work around bug in Bash 2.05b
-    if (( opened_at < num_echos )); then
+    : ${num_echoes=0} ${opened_at=0} # Work around bug in Bash 2.05b
+    if (( opened_at < num_echoes )); then
 	cleanline
 	echo -n "..."
     fi
