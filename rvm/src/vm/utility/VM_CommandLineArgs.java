@@ -595,7 +595,9 @@ public class VM_CommandLineArgs {
 	//-#endif
 	break;
       case LARGE_HEAP_ARG: 
-	// VM_Interface.processCommandLineArg("los=" + arg);
+	//-#if RVM_WITH_JMTK
+	VM_Interface.processCommandLineArg("los=" + arg);
+	//-#endif
 	break;
 
 
