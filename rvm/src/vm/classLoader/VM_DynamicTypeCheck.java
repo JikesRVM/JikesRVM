@@ -6,11 +6,17 @@
 /**
  * Data structures and code for fast dynamic type checking.
  * <p>
- * The question to be answered has the form:  LHS :?= RHS
+ * As a convention, we convert all dynamic type checking 
+ * operations into the following question: LHS :?= RHS
  * (i.e. can an instance of the RHS class be stored in a
  * variable of the LHS class or interface.)  This question
  * arises for four bytecodes: instanceof, checkcast, aastore
  * and invokeinterface and entry into catch blocks. 
+ * This gives us a uniform terminology, but in some cases 
+ * (instanceof) can be somewhat counter-intuitive since despite 
+ * the fact that the Java source code is written as 
+ * <code>x instanceof C</code>, for the purposes of dynamic type checking
+ * <code>x</code> is the RHS and <code>C</code> is the LHS!
  * <p>
  * The idea of the optimizations presented below is to treat
  * each context in which these queries arises as a special
@@ -40,8 +46,7 @@
  *        or, this dimensionality is k and the baseclass is NOT primitive
  * <p>
  * (3) Otherwise, is the LHS unresolved?
- *    If so, fall back to calling isAssignableWith (or some other helper
- *    method) at runtime.
+ *    If so, fall back to calling instanceOfUnresolved at runtime.
  * <p>
  * (4) Otherwise, is the LHS an interface?  
  *    If so, query the doesImplement array of the RHS's TIB at the entry 
@@ -63,7 +68,7 @@
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_DynamicTypeCheck implements VM_Constants {
+class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
   /**
    * Minimum length of the superclassIds array in TIB.
@@ -206,6 +211,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
     return instanceOfResolved(LHSclass, rhsTIB);
   }   
 
+
   /**
    * LHSclass is a fully loaded class or interface.  
    *   Is rhsTIB the TIB of an instanceof LHSclass?
@@ -235,7 +241,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *         or <code>false</code> if it is not
    */
   static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
-    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[VM.TIB_SUPERCLASS_IDS_INDEX]);
+    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getDictionaryId();
@@ -253,7 +259,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *         or <code>false</code> if it is not
    */
   static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
-    int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[VM.TIB_DOES_IMPLEMENT_INDEX]);
+    int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
     return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);
