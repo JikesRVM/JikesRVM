@@ -47,9 +47,8 @@ final class TreadmillThread extends LargeObjectAllocator
   // Instance variables
   //
   private TreadmillSpace space;
-  private Lock treadmillLock;
-  public VM_Address treadmillFromHead;
-  public VM_Address treadmillToHead;
+  private Treadmill fromSpace;
+  private Treadmill toSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -65,7 +64,8 @@ final class TreadmillThread extends LargeObjectAllocator
   TreadmillThread(TreadmillSpace space_) {
     super(space_.getVMResource(), space_.getMemoryResource());
     space = space_;
-    treadmillLock = new Lock("TreadmillThread.treadmillLock");
+    fromSpace = new Treadmill(VMResource.PAGE_SIZE, true, this);
+    toSpace = new Treadmill(VMResource.PAGE_SIZE, true, this);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ final class TreadmillThread extends LargeObjectAllocator
    *
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc(VM_Address cell) 
+  protected final void postAlloc (VM_Address cell) 
     throws VM_PragmaInline {
     space.postAlloc(cell,  this);
   };
@@ -101,7 +101,7 @@ final class TreadmillThread extends LargeObjectAllocator
   public final void prepare() {
 //     if (PARANOID)
 //       sanity();
-    treadmillToHead = VM_Address.zero();
+    if (VM.VerifyAssertions) VM._assert(toSpace.isEmpty());
   }
 
   /**
@@ -115,81 +115,29 @@ final class TreadmillThread extends LargeObjectAllocator
     sweepLargePages();
   }
 
+  public final Treadmill getFromSpace() {
+    return fromSpace;
+  }
+
+  public final Treadmill getToSpace() {
+    return toSpace;
+  }
+
   /**
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
   public final void sweepLargePages() {
-    VM_Address cell = treadmillFromHead;
-    while (!cell.isZero()) {
-      VM_Address next = TreadmillSpace.getNextTreadmill(cell);
+    while (true) {
+      VM_Address cell = fromSpace.pop();
+      if (cell.isZero()) break;
       free(cell);
-      cell = next;
     }
-    treadmillFromHead = treadmillToHead;
-    treadmillToHead = VM_Address.zero();
+    Treadmill tmp = fromSpace;
+    fromSpace = toSpace;
+    toSpace = tmp;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Treadmill
-  //
-
-  /**
-   * Set the head of the from-space threadmill
-   *
-   * @param cell The new head of the from-space treadmill
-   */
-  public final void setTreadmillFromHead(VM_Address cell)
-    throws VM_PragmaInline {
-    treadmillFromHead = cell;
-  }
-
-  /**
-   * Get the head of the from-space treadmill
-   *
-   * @return The head of the from-space treadmill
-   */
-  public final VM_Address getTreadmillFromHead()
-    throws VM_PragmaInline {
-    return treadmillFromHead;
-  }
-
-  /**
-   * Set the head of the to-space threadmill
-   *
-   * @param cell The new head of the to-space treadmill
-   */
-  public final void setTreadmillToHead(VM_Address cell)
-    throws VM_PragmaInline {
-    treadmillToHead = cell;
-  }
-
-  /**
-   * Get the head of the to-space treadmill
-   *
-   * @return The head of the to-space treadmill
-   */
-  public final VM_Address getTreadmillToHead()
-    throws VM_PragmaInline {
-    return treadmillToHead;
-  }
-
-  /**
-   * Lock the treadmills
-   */
-  public final void lockTreadmill()
-    throws VM_PragmaInline {
-    treadmillLock.acquire();
-  }
-
-  /**
-   * Unlock the treadmills
-   */
-  public final void unlockTreadmill()
-    throws VM_PragmaInline {
-    treadmillLock.release();
-  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -207,7 +155,7 @@ final class TreadmillThread extends LargeObjectAllocator
    */
   protected final int superPageHeaderSize()
     throws VM_PragmaInline {
-    return TreadmillSpace.TREADMILL_HEADER_SIZE;
+    return Treadmill.headerSize();
   }
 
   /**

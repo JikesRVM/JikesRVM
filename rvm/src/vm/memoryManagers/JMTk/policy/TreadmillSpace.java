@@ -40,10 +40,6 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
   //
   // Class variables
   //
-  private static final int   TREADMILL_PREV_OFFSET = -1 * WORD_SIZE;
-  private static final int   TREADMILL_NEXT_OFFSET = -2 * WORD_SIZE;
-  private static final int  TREADMILL_OWNER_OFFSET = -3 * WORD_SIZE;
-  public static final int    TREADMILL_HEADER_SIZE = 3 * WORD_SIZE;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -89,7 +85,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   public final void postAlloc(VM_Address cell, TreadmillThread thread)
     throws VM_PragmaInline {
-    addToTreadmill(cell, thread);
+    thread.getFromSpace().add(Treadmill.payloadToNode(cell));
   }
 
   /**
@@ -193,153 +189,20 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   private final void internalMarkObject(VM_Address object) 
     throws VM_PragmaInline {
-    VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
-    
+
+    // VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
     if (VM.VerifyAssertions) VM._assert(!MarkSweepHeader.isSmallObject(VM_Magic.addressAsObject(object)));
 	
     VM_Address cell = VM_JavaHeader.objectStartRef(object);
-    moveToTreadmill(cell, true, false);
+    VM_Address node = Treadmill.payloadToNode(cell);
+    Treadmill tm = Treadmill.getTreadmill(node);
+    TreadmillThread tt = (TreadmillThread) tm.getOwner();
+    if (VM.VerifyAssertions) 
+      VM._assert(VM_Magic.objectAsAddress(tt.getFromSpace()).EQ(VM_Magic.objectAsAddress(tm)));
+    tt.getFromSpace().remove(node);
+    tt.getToSpace().add(node);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Treadmill
-  //
-
-  /**
-   * Return true if a cell is on a given treadmill
-   *
-   * @param cell The cell being searched for
-   * @param head The head of the treadmill
-   * @return True if the cell is found on the treadmill
-   */
-  public final boolean isOnTreadmill(VM_Address cell, VM_Address head) {
-    VM_Address next = head;
-    while (!next.isZero()) {
-      if (next.EQ(cell)) 
-	return true;
-      next = getNextTreadmill(next);
-    }
-    return false;
-  }
-
-  public final void showTreadmill(TreadmillThread thread) {
-    VM_Address next = thread.getTreadmillFromHead();
-    VM.sysWrite("FROM: ");
-    VM.sysWrite(next);
-    while (!next.isZero()) {
-      next = getNextTreadmill(next);
-      VM.sysWrite(" -> ", next);
-    }
-    VM.sysWriteln();
-    next = thread.getTreadmillToHead();
-    VM.sysWrite("TO: ");
-    VM.sysWrite(next);
-    while (!next.isZero()) {
-      next = getNextTreadmill(next);
-      VM.sysWrite(" -> ", next);
-    }
-    VM.sysWriteln();
-  }
-  
-  /**
-   * Add a cell to the from-space treadmill
-   *
-   * @param cell The cell to be added to the treadmill
-   * @param thread The thread through which this cell was
-   * allocated.
-   */
-  public void addToTreadmill(VM_Address cell, TreadmillThread thread) 
-    throws VM_PragmaInline {
-    setTreadmillOwner(cell, VM_Magic.objectAsAddress((Object) thread));
-    moveToTreadmill(cell, inTreadmillCollection, true);
-  }
-
-  /**
-   * Move a cell to either the to or from space treadmills
-   * 
-   * @param cell The cell to be placed on the treadmill
-   * @param to If true the cell should be placed on the to-space
-   * treadmill.  Otherwise it should go on the from-space treadmill.
-   * @param fresh If true then this is a new allocation, and therefore
-   * is not already on the from-space treadmill.
-   */
-  private void moveToTreadmill(VM_Address cell, boolean to, boolean fresh) 
-    throws VM_PragmaInline {
-    TreadmillThread owner = (TreadmillThread) VM_Magic.addressAsObject(getTreadmillOwner(cell));
-    owner.lockTreadmill();
-    // If it is already on some other treadmill, remove it from there.
-    if (to && !fresh) { 
-      if (VM.VerifyAssertions)
-	VM._assert(isOnTreadmill(cell, owner.getTreadmillFromHead()));
-      // remove from "from" treadmill
-      VM_Address prev = getPrevTreadmill(cell);
-      VM_Address next = getNextTreadmill(cell);
-      if (!prev.EQ(VM_Address.zero()))
-	setNextTreadmill(prev, next);
-      else
-	owner.setTreadmillFromHead(next);
-      if (!next.EQ(VM_Address.zero()))
-	setPrevTreadmill(next, prev);
-    } else {
-      if (VM.VerifyAssertions)
-	VM._assert(!isOnTreadmill(cell, owner.getTreadmillFromHead()));
-    }
-
-    // add to treadmill
-    VM_Address head = (to ? owner.getTreadmillToHead() : owner.getTreadmillFromHead());
-    setNextTreadmill(cell, head);
-    setPrevTreadmill(cell, VM_Address.zero());
-    if (!head.EQ(VM_Address.zero()))
-      setPrevTreadmill(head, cell);
-    if (to)
-      owner.setTreadmillToHead(cell);
-    else
-      owner.setTreadmillFromHead(cell);
-
-    if (VM.VerifyAssertions) {
-      if (to)
-	VM._assert(isOnTreadmill(cell, owner.getTreadmillToHead()));
-      else
-	VM._assert(isOnTreadmill(cell, owner.getTreadmillFromHead()));
-    }
-    owner.unlockTreadmill();
-  }
-
-  private static void setTreadmillOwner(VM_Address cell, VM_Address owner)
-    throws VM_PragmaInline {
-    setTreadmillLink(cell, owner, TREADMILL_OWNER_OFFSET);
-  }
-  private static void setNextTreadmill(VM_Address cell, VM_Address value)
-    throws VM_PragmaInline {
-    setTreadmillLink(cell, value, TREADMILL_NEXT_OFFSET);
-  }
-  private static void setPrevTreadmill(VM_Address cell, VM_Address value)
-    throws VM_PragmaInline {
-    setTreadmillLink(cell, value, TREADMILL_PREV_OFFSET);
-  }
-  private static void setTreadmillLink(VM_Address cell, VM_Address value,
-				       int offset)
-    throws VM_PragmaInline {
-    VM_Magic.setMemoryAddress(cell.add(offset), value);
-  }
-  private static VM_Address getTreadmillOwner(VM_Address cell)
-    throws VM_PragmaInline {
-    return getTreadmillLink(cell, TREADMILL_OWNER_OFFSET);
-  }
-  public static VM_Address getNextTreadmill(VM_Address cell)
-    throws VM_PragmaInline {
-    return getTreadmillLink(cell, TREADMILL_NEXT_OFFSET);
-  }
-  private static VM_Address getPrevTreadmill(VM_Address cell)
-    throws VM_PragmaInline {
-    return getTreadmillLink(cell, TREADMILL_PREV_OFFSET);
-  }
-  private static VM_Address getTreadmillLink(VM_Address cell, int offset)
-    throws VM_PragmaInline {
-    return VM_Magic.getMemoryAddress(cell.add(offset));
-  }
-  
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous
