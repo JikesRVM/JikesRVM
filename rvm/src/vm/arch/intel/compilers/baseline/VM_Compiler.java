@@ -2666,6 +2666,9 @@ public class VM_Compiler implements VM_BaselineConstants {
      */
     asm.emitPUSH_Reg       (FP);			 // store caller's frame pointer
     asm.emitMOV_Reg_Reg    (FP, SP);			 // establish new frame
+    /*
+     * NOTE: until the end of the prologue SP holds the framepointer.
+     */
     asm.emitMOV_RegDisp_Imm(FP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
   
     // squirrel away FP in the procesoor object so a hardware trap handler can 
@@ -2916,12 +2919,12 @@ public class VM_Compiler implements VM_BaselineConstants {
     byte  T = T0; // next GPR to get a parameter
     if (!method.isStatic()) { // handle "this" parameter
       if (gpr < NUM_PARAMETER_GPRS) {
-	asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);
+	asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
 	T = T1; // at most 2 parameters can be passed in general purpose registers
 	gpr++;
       } else { // no parameters passed in registers
-	asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
       }
       srcOffset -= WORDSIZE;
       dstOffset -= WORDSIZE;
@@ -2933,25 +2936,25 @@ public class VM_Compiler implements VM_BaselineConstants {
       VM_Type t = types[i];
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);    // hi mem := lo register (== hi order word)
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
 	  T = T1;                                       // at most 2 parameters can be passed in general purpose registers
 	  gpr++;
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
 	  if (gpr < NUM_PARAMETER_GPRS) {
-	    asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);  // lo mem := hi register (== lo order word)
+	    asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
 	    gpr++;
 	  } else {
-	    asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset); // lo mem from caller's stackframe
-	    asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	    asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset); // lo mem from caller's stackframe
+	    asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  }
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // hi mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // lo mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2961,8 +2964,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  is32bit[fpr]   = true;
 	  fpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2974,23 +2977,23 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  is32bit[fpr]   = false;
 	  fpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // hi mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // lo mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
 	  T = T1; // at most 2 parameters can be passed in general purpose registers
 	  gpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2998,9 +3001,9 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     for (int i=fpr-1; 0<=i; i--) { // unload the floating point register stack (backwards)
       if (is32bit[i]) {
-	asm.emitFSTP_RegDisp_Reg(FP, fprOffset[i], FP0);
+	asm.emitFSTP_RegDisp_Reg(SP, fprOffset[i], FP0);
       } else {
-	asm.emitFSTP_RegDisp_Reg_Quad(FP, fprOffset[i], FP0);
+	asm.emitFSTP_RegDisp_Reg_Quad(SP, fprOffset[i], FP0);
       }
     }
   }
