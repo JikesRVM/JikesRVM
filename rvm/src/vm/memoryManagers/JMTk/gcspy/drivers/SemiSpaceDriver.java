@@ -10,6 +10,11 @@
 
 package org.mmtk.utility.gcspy;
 
+import org.mmtk.vm.gcspy.AbstractDriver;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+
+//-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.gcspy.Color;
 import org.mmtk.vm.gcspy.AbstractTile;
@@ -18,21 +23,19 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.classloader.VM_Type;  // FIXME => MMType !
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Offset;
+//-#endif
 
 
 /**
  * This class implements a simple driver for the JMTk SemiSpace copying collector.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
@@ -40,6 +43,7 @@ public class SemiSpaceDriver extends AbstractDriver
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
+//-#if RVM_WITH_GCSPY
   private static final int SS_SCALAR_USED_SPACE_STREAM = 0;	// stream IDs
   private static final int SS_ARRAY_USED_SPACE_STREAM = 1;
   private static final int SS_SCALAR_OBJECTS_STREAM   = 2;
@@ -316,6 +320,16 @@ public class SemiSpaceDriver extends AbstractDriver
    * @param addr The address of the current object
    */
   public void traceObject(VM_Address addr) {
+    traceObject(addr, true);
+  }
+  
+  /**
+   * Update the tile statistics
+   * 
+   * @param addr The address of the current object
+   * @param total Whether to total the statistics
+   */
+  public void traceObject(VM_Address addr, boolean total) {
     // get length of object and determine if it's an array
     Object obj = (Object) VM_Magic.addressAsObject(addr);
     VM_Type type = VM_Magic.getObjectType(obj);
@@ -323,8 +337,6 @@ public class SemiSpaceDriver extends AbstractDriver
     int length = getLength(obj, type, isArray);
     
     // Update the stats
-    // FIXME we should account for space better to handle the case that objects
-    // overlap tiles
     for (int a = 0; a < numSubspaces; a++) {
       if (subspace[a].addressInRange(addr)) {
         int index = subspace[a].getIndex(addr);
@@ -333,15 +345,19 @@ public class SemiSpaceDriver extends AbstractDriver
 	  tiles[index].arrayUsedSpace += length;
 	  if (VM_Interface.VerifyAssertions) 
 	    VM_Interface._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
-	  totalArrayObjects++;
-	  totalArrayUsedSpace += length;
+	  if (total) {
+	    totalArrayObjects++;
+	    totalArrayUsedSpace += length;
+	  }
 	} else {
 	  tiles[index].scalarObjects++;
 	  tiles[index].scalarUsedSpace += length;
 	  if (VM_Interface.VerifyAssertions) 
 	    VM_Interface._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
-	  totalScalarObjects++;
-	  totalScalarUsedSpace += length;
+	  if (total) {
+	    totalScalarObjects++;
+	    totalScalarUsedSpace += length;
+	  }
 	}
 	return;
       } 
@@ -424,7 +440,9 @@ public class SemiSpaceDriver extends AbstractDriver
 		  subspace[tospace].getBlockNum());
 
     // all of the other space is UNUSED
-    controlValues(tiles, AbstractTile.CONTROL_UNUSED,
+    //controlValues(tiles, AbstractTile.CONTROL_UNUSED,
+    // all of the other space is USED is we want to see garbage left over in fromspace
+    controlValues(tiles, AbstractTile.CONTROL_USED,
 		  subspace[1-tospace].getFirstIndex(),
 		  subspace[1-tospace].getBlockNum());
 
@@ -442,4 +460,18 @@ public class SemiSpaceDriver extends AbstractDriver
     VM_Offset size = subspace[tospace].getEnd().diff(subspace[tospace].getStart());
     sendSpaceInfoAndEndComm(size);
   }
+
+//-#else
+  public SemiSpaceDriver 
+                    (String name,
+		     int blockSize,
+		     VM_Address start0, 
+		     VM_Address end0,   
+		     VM_Address start1,
+		     VM_Address end1,
+		     int size,
+		     boolean mainSpace ) {}
+  public void traceObject(VM_Address addr, boolean total) {}
+  public void finish(int event, int semi) {}
+//-#endif
 }

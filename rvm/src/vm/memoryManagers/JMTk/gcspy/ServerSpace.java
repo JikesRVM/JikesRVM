@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_Address;
  * This class implements the GCspy Space abstraction.
  * Here, it largely to forward calls to the gcspy C library.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

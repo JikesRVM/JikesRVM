@@ -53,9 +53,7 @@ import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
-//-if RVM_WITH_GCSPY
 import org.mmtk.vm.gcspy.GCSpy;
-//-endif
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -467,14 +465,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      //-if RVM_WITH_GCSPY
       if (VM_Interface.GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
 	  return Plan.GCSPY_SPACE;
         }
       }
-      //-endif
       if (isPrefix("Lorg/mmtk/", clsBA) 
 	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.IMMORTAL_SPACE;
@@ -495,13 +491,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInterruptible {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
 	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
 	allocator = Plan.GCSPY_SPACE;
     }
-    //-endif
     if (isPrefix("Lorg/mmtk/", typeBA) ||
 	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
@@ -938,14 +932,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     return Plan.gcInProgress();
   }
 
- //-if RVM_WITH_GCSPY
   /**
    * Start the GCSpy server
    */
   public static void startGCSpyServer() throws VM_PragmaInterruptible {
     GCSpy.startGCSpyServer();
   }
-  //-endif
 
  /***********************************************************************
   *

@@ -5,21 +5,23 @@
 
 package org.mmtk.utility.gcspy;
 
+import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_Address;
+
+//-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
-
 import org.mmtk.vm.gcspy.Util;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_SizeConstants;
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_PragmaInline;
+//-#endif
 
 /**
  * THIS CLASS IS NOT A GCSPY COMPONENT
@@ -94,6 +96,7 @@ public class ObjectMap
   public final static String Id = "$Id$";
  
  
+//-#if RVM_WITH_GCSPY
   ////////////////////////////////////////////////////////////////////////////
   // Constants
   //
@@ -375,7 +378,8 @@ public class ObjectMap
    * @param slot the slot to check
    * @return true if a new bitmap is allocated
    */
-  private final boolean checkSlot(int page, int slot) throws VM_PragmaInline {
+  private final boolean checkSlot(int page, int slot) //throws VM_PragmaInline 
+  {
     boolean newpage = checkPage(page);
     
     VM_Address slotAddr = getSlotAddress(page, slot);
@@ -405,7 +409,8 @@ public class ObjectMap
    * @param page the index of pagemap  to check in the object table
    * @return true if new page allocated
    */
-  private final boolean checkPage(int page) throws VM_PragmaInline {
+  private final boolean checkPage(int page) //throws VM_PragmaInline 
+  {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
@@ -467,10 +472,23 @@ public class ObjectMap
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(addr == bitmapToAddress(page, slot, word, bit));
     
+    /*
     // Check that this slot is in use
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
-    setBit(page, slot, word, bit, false);
+      if (emptyBitmap(page, slot)) {
+        Log.write("ObjectMap slot not in use: ", page);
+        Log.writeln(": ", slot);
+        VM_Interface._assert(false);
+      }
+    */
+    // FIXME It seems that some objects are created without being processed by postAlloc
+    // (e.g. in semiSpace/Plan). Presumably these are primordial, hand-constructed objects ---
+    // they appear to be right at the start of the first semispace. 
+    // Thus, we'll not unset bits corresponding to these.
+    // Fortunately there are few of these objects and we do track them correctly as
+    // soon as they've been copied, for example.
+    if (!emptyBitmap(page, slot)) 
+      setBit(page, slot, word, bit, false);
   }
 
 
@@ -674,6 +692,8 @@ public class ObjectMap
         //VM_Interface._assert((wordValue & mask) == 0, "  ObjectMap bit already set");
       } else {
         if((wordValue & mask) == 0) {
+	  return; // Accept that the bit is not set - see comments in dealloc
+	  /*
           debug(0, "Bit not set for ", bitmapToAddress(page, slot, word, bit));
           debug(0, ", slot=", slot);
           debug(0, " word=", word);
@@ -684,6 +704,7 @@ public class ObjectMap
           debugln(0, "  Total allocated = ", allocCounter);
           debug(0, "  ");
           dbgObjectMap();
+	  */
         }
         //VM_Interface._assert((wordValue & mask) != 0, "  ObjectMap bit not set");
       }
@@ -1077,4 +1098,16 @@ public class ObjectMap
     Log.write('>');
   }
       
+//-#else
+  public ObjectMap() {}
+  public final void boot() {}
+  public final void release(VM_Address chunkAddr, int bytes) {}
+  public final void release(VM_Address chunkAddr) {}
+  public final void alloc(VM_Address addr) {}
+  public final void dealloc(VM_Address addr) {}
+  public void iterator(VM_Address start, VM_Address end) {}
+  public boolean hasNext() { return false; }
+  public VM_Address next() { return null; }
+  public boolean trapAllocation(boolean trap) { return false; }
+//-#endif
 }

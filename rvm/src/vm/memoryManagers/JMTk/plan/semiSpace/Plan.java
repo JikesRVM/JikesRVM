@@ -35,14 +35,12 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 
-//-if RVM_WITH_GCSPY
 import org.mmtk.utility.gcspy.ObjectMap;
 import org.mmtk.utility.gcspy.SemiSpaceDriver;
 import org.mmtk.utility.gcspy.ImmortalSpaceDriver;
 import org.mmtk.utility.gcspy.TreadmillDriver;
 import org.mmtk.vm.gcspy.GCSpy;
 import org.mmtk.vm.gcspy.ServerInterpreter;
-//-endif
 
 /**
  * This class implements a simple semi-space collector. See the Jones
@@ -64,6 +62,7 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Perry Cheng
+ * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  *
  * @version $Revision$
  * @date $Date$
@@ -116,11 +115,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address         SS_END = HIGH_SS_START.add(SS_SIZE);
   private static final VM_Address       HEAP_END = SS_END;
 
-  //-if RVM_WITH_GCSPY
 
   // The event, BEFORE_COLLECTION or AFTER_COLLECTION
   private static final int BEFORE_COLLECTION = 0;
-  private static final int AFTER_COLLECTION = BEFORE_COLLECTION + 1;
+  private static final int SEMISPACE_COPIED = BEFORE_COLLECTION + 1;
+  private static final int AFTER_COLLECTION = SEMISPACE_COPIED + 1;
   private static int gcspyEvent_ = BEFORE_COLLECTION;
 
   // The specific drivers for this collector
@@ -130,7 +129,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   private static int nextServerSpaceId = 0;	// ServerSpace IDs must be unique
 
-  //-endif  
 
   /****************************************************************************
    *
@@ -141,9 +139,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public BumpPointer ss;
   private TreadmillLocal los;
 
-  //-if RVM_WITH_GCSPY
+  // Largely for didactic reasons, we keep track of object allocation
+  // with an ObjectMap and then use it to sweep through the heap.
+  // However, for a semispace collector it would be better to measure
+  // space used by measuring the size of the VMResource used (in constant
+  // time).
   private static ObjectMap objectMap;
-  //-endif
   
   /****************************************************************************
    *
@@ -174,15 +175,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Constructor
    */
   public Plan() {
-    //-if RVM_WITH_GCSPY
-    // Largely for didactic reasons, we keep track of object allocation
-    // with an ObjectMap and then use it to sweep through the heap.
-    // However, for a semispace collector it would be better to measure
-    // space used by measuring the size of the VMResource used (in constant
-    // time).
     if (VM_Interface.GCSPY) 
       objectMap = new ObjectMap();
-    //-endif
+    
     ss = new BumpPointer(ss0VM);
     los = new TreadmillLocal(losSpace);
   }
@@ -193,14 +188,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final void boot()
     throws VM_PragmaInterruptible {
-    //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY) 
       objectMap.boot();
-    //-endif
+    
     StopTheWorldGC.boot();
   }
 
-  //-if RVM_WITH_GCSPY
+  /****************************************************************************
+   *
+   * GCSPY
+   */
+
   /**
    * Start the server and wait if necessary
    * 
@@ -211,6 +209,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final void startGCSpyServer(int port, boolean wait)
     throws VM_PragmaInterruptible {
     String eventNames[] = {"Before collection", 
+			   "Semispace copied",
                            "After collection"};
     String generalInfo = "SemiSpace Server Interpreter\n\nGeneral Info";
     
@@ -274,7 +273,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   /**
    * This is performed before thread local releases
    */
-  protected final void gcspyPreRelease() { }
+  protected final void gcspyPreRelease() { 
+    gcspyGatherData(SEMISPACE_COPIED);
+  }
 
   /**
    * This is performed after thread local releases
@@ -317,13 +318,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * not compacted).
    * The LOS is handled better.
    * 
-   * @param event The event, either BEFORE_COLLECTION or AFTER_COLLECTION
+   * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
     // Port = 0 means no gcspy
     if (GCSpy.getGCSpyPort() == 0)
       return;
-
+    
     // We should not allocate anything while transmitting
     //if (VM_Interface.VerifyAssertions)
     //  objectMap.trapAllocation(true);
@@ -332,36 +333,44 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       ServerInterpreter.startCompensationTimer();
       
       // -- Handle the semispace collector --
-      
       // iterate through toSpace
       // at this point, hi has been flipped by globalPrepare()
-      
       gcspyDriver.zero();
-      boolean useLowSpace = hi ^ (event == AFTER_COLLECTION);
-      if (useLowSpace) {
-	objectMap.iterator(ss0VM.getStart(), ss0VM.getCursor());	
-        gcspyDriver.setRange(0, ss0VM.getStart(), ss0VM.getCursor());
-      } else {
-	objectMap.iterator(ss1VM.getStart(), ss1VM.getCursor());
-        gcspyDriver.setRange(1, ss1VM.getStart(), ss1VM.getCursor());
+      boolean useLowSpace = hi ^ (event != BEFORE_COLLECTION);
+      switch (event) {
+      case BEFORE_COLLECTION:
+      case AFTER_COLLECTION:
+	/*
+	if (useLowSpace) 
+	  Log.write("\nExamining Lowspace (", event);
+	else
+	  Log.write("\nExamining Highspace (", event);
+	Log.write(")";
+	reportSpaces();
+        */
+	if (useLowSpace) 
+          gcspyGatherSemispacedata(0, ss0VM, true);
+        else 
+          gcspyGatherSemispacedata(1, ss1VM, true);
+	break;
+      case SEMISPACE_COPIED:
+	/*
+	if (hi) 
+	  Log.write("\nExamining Highspace (", event);
+	else
+	  Log.write("\nExamining Lowspace (", event);
+	Log.write(")";
+	reportSpaces();
+        */
+	gcspyGatherSemispacedata(0, ss0VM, !hi);
+	gcspyGatherSemispacedata(1, ss1VM,  hi);
+        break;
       }
       
-      VM_Address addr = VM_Address.zero();
-      int length = 0;
-      //int count = 0;
-      while (objectMap.hasNext()) {
-        addr = objectMap.next();
-	//count++;
-        if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(VMResource.refInVM(addr));
-	gcspyDriver.traceObject(addr);
-      }
-      //Log.writeln("Objects in semispace = ", count);
-      
-
       // -- Handle the Treadmill space --
       tmDriver.zero();
-      los.gcspyGatherData(event, tmDriver);
+      los.gcspyGatherData(event, tmDriver, false);
+      los.gcspyGatherData(event, tmDriver, true);
       
       // -- Handle the immortal space --
       immortalDriver.zero(); 
@@ -380,6 +389,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     //  objectMap.trapAllocation(false); 
   }
 
+  private void gcspyGatherSemispacedata(int semi, MonotoneVMResource ssVM, boolean total) {
+    objectMap.iterator(ssVM.getStart(), ssVM.getCursor());	
+    gcspyDriver.setRange(semi, ssVM.getStart(), ssVM.getCursor());
+    
+    VM_Address addr = VM_Address.zero();
+    while (objectMap.hasNext()) {
+      addr = objectMap.next();
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(VMResource.refInVM(addr));
+      gcspyDriver.traceObject(addr, total);
+    }
+  }
+
   private static void reportSpaces() {
     Log.write("  Low semispace:  ", ss0VM.getStart());
     Log.writeln("-", ss0VM.getCursor());
@@ -389,7 +411,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   public static int getNextServerSpaceId() { return nextServerSpaceId++; }
 
-  //-endif
 
   /****************************************************************************
    *
@@ -443,14 +464,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     } else {
       switch (allocator) {
       case  DEFAULT_SPACE:
-                           //-if RVM_WITH_GCSPY
 			   // In principle, taxing the allocator is undesirable
 			   // and only necessary because it is not possible to
 			   // sweep through the heap.
                            if (VM_Interface.GCSPY) 
                              if (GCSpy.getGCSpyPort() != 0)
 			       objectMap.alloc(VM_Magic.objectAsAddress(ref));
-			   //-endif
                            return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
@@ -478,6 +497,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       cons.inc(bytes);
       mark.inc(bytes);
     }
+    // Knock copied objects out of the object map so we can see what's left
+    // (i.e. garbage) in fromspace after the collection.
+    if (VM_Interface.GCSPY) 
+      if (GCSpy.getGCSpyPort() != 0) {
+        objectMap.dealloc(VM_Magic.objectAsAddress(original));
+      }
     VM_Address result = ss.alloc(isScalar, bytes);
     return result;
   }
@@ -493,14 +518,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
                              boolean isScalar)
          throws VM_PragmaInline {
-    //-if RVM_WITH_GCSPY
-    // In principle, taxing the collector is undesirable
-    // and only necessary because it is not possible to
-    // sweep through the heap.
     if (VM_Interface.GCSPY) 
       if (GCSpy.getGCSpyPort() != 0)
 	objectMap.alloc(VM_Magic.objectAsAddress(ref));
-    //-endif
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {

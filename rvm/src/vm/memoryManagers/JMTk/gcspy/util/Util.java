@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.VM_Magic;
 /**
  * This class provides generally useful methods.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

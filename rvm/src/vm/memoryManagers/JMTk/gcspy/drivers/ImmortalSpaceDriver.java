@@ -10,9 +10,15 @@
 
 package org.mmtk.utility.gcspy;
 
+import org.mmtk.vm.gcspy.AbstractDriver;
+import org.mmtk.utility.MonotoneVMResource;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+
+//-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MonotoneVMResource;
+
 import org.mmtk.vm.gcspy.Color;
 import org.mmtk.vm.gcspy.AbstractTile;
 import org.mmtk.vm.gcspy.Subspace;
@@ -20,17 +26,16 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.gcspy.AbstractDriver;
+
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
+//-#endif
 
 /**
  * This class implements a simple driver for the JMTk treadmill space.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
@@ -38,6 +43,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
+//-#if RVM_WITH_GCSPY
   private static final int IMMORTAL_USED_SPACE_STREAM = 0;	// stream IDs
   private static final int BUFSIZE = 128;		// scratch buffer size
 
@@ -302,4 +308,14 @@ public class ImmortalSpaceDriver extends AbstractDriver
     VM_Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);
   }
+
+//-#else
+  public ImmortalSpaceDriver(String name,
+		     MonotoneVMResource immVM,
+		     int blockSize,
+		     VM_Address start, 
+		     VM_Address end,
+		     int size,
+		     boolean mainSpace) {}
+//-#endif
 }

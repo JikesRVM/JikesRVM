@@ -99,10 +99,8 @@ public abstract class BasePlan
   public static MemoryResource bootMR;
   public static MonotoneVMResource immortalVM;
   protected static MemoryResource immortalMR;
-  //-if RVM_WITH_GCSPY
   public static MonotoneVMResource gcspyVM;
   protected static MemoryResource gcspyMR;
-  //-endif
   // 
   // Space constants
   private static final String[] spaceNames = new String[128];
@@ -110,12 +108,7 @@ public abstract class BasePlan
   public static final byte BOOT_SPACE = 126;
   public static final byte META_SPACE = 125;
   public static final byte IMMORTAL_SPACE = 124;
-  //-if RVM_WITH_GCSPY
-  // We might as well use immortal space for GCSpy stuff since there's a
-  // boot-strapping problem: objects are allocated in immortal space before
-  // GCspy is ready.
   public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
-  //-endif
 
   // Statistics
   public static Timer totalTime;
@@ -858,7 +851,6 @@ public abstract class BasePlan
     return log;
   }
 
-    //-if RVM_WITH_GCSPY
   /**
    * Start the GCSpy server
    *
@@ -913,6 +905,5 @@ public abstract class BasePlan
    * @param bytes the number of bytes acquired
    */
   public static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
-  //-endif
 
 }

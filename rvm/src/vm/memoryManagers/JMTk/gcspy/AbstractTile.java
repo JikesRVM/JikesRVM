@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * This abstract class is the super-class for all tiles. In particular, it
  * provides the control info for each tile.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

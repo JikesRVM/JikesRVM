@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * For example, a semispace collector might choose to model the heap as a single
  * Space, but within that Space it can model each semispace by a Subspace.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

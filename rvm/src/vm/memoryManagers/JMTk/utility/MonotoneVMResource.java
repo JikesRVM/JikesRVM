@@ -10,9 +10,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
-//-if RVM_WITH_GCSPY
 import org.mmtk.vm.gcspy.AbstractDriver;
-//-endif
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -84,10 +82,8 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
       Memory.zero(oldCursor, bytes);
       // Memory.zeroPages(oldCursor, bytes);
-      //-if RVM_WITH_GCSPY
       if (VM_Interface.GCSPY)
         Plan.acquireVMResource(start, cursor, bytes);
-      //-endif
       return oldCursor;
     }
   }
@@ -102,10 +98,8 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
-    //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY)
       Plan.releaseVMResource(start, bytes);
-    //-endif
   }
 
   /**
@@ -140,7 +134,6 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     return Conversions.bytesToPages(cursor.diff(start).toWord().toExtent());
   }
 
-  //-if RVM_WITH_GCSPY
   /**
    * Gather data for GCSpy
    * Until we can sweep through this space (either by laying out arrays and
@@ -152,7 +145,6 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   void gcspyGatherData(int event, AbstractDriver driver) {
     driver.setRange(event, getStart(), getCursor());
   }
-  //-endif
 
   /****************************************************************************
    *

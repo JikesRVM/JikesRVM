@@ -6,9 +6,7 @@ package org.mmtk.utility;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-//-if RVM_WITH_GCSPY
 import org.mmtk.utility.gcspy.TreadmillDriver;
-//-endif
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -195,7 +193,6 @@ final class DoublyLinkedList
   }
 
 
-  //-if RVM_WITH_GCSPY
   /**
    * Gather data for GCSpy
    * @param gcspyDriver the GCSpy space driver
@@ -208,7 +205,6 @@ final class DoublyLinkedList
       cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
     }
   }
-  //-endif
 
 
 }

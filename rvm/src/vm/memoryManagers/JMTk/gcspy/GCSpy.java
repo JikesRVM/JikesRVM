@@ -28,6 +28,7 @@ public class GCSpy
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
+//-#if RVM_WITH_GCSPY  
   ////////////////////////////////////////////////////////////////////////////
   //
   // Class variables
@@ -82,8 +83,10 @@ public class GCSpy
       Log.writeln("gcspy thread booted");
     }
   }
+//-#else
+  public static int getGCSpyPort() { return 0; }
+  public static boolean getGCSpyWait() { return false; }
+  public static void startGCSpyServer() {}
+//-#endif
 }
 
-
-
-  

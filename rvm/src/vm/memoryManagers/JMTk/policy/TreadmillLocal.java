@@ -9,10 +9,7 @@ import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
-//-if RVM_WITH_GCSPY
 import org.mmtk.utility.gcspy.TreadmillDriver;
-//-endif
-
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -162,14 +159,13 @@ public final class TreadmillLocal extends LargeObjectAllocator
     return 0;
   }
 
-  //-if RVM_WITH_GCSPY
   /**
    * Gather data for GCSpy
    * @param event the gc event
    * @param gcspyDriver the GCSpy space driver
+   * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
-    treadmill.gcspyGatherData(event, tmDriver);
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {
+    treadmill.gcspyGatherData(event, tmDriver, tospace);
   }
-  //-endif
 }

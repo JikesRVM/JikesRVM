@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * This class implements the GCspy server. 
  * Mostly it forwards calls to the C gcspy library.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
@@ -30,6 +30,7 @@ public class ServerInterpreter
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
   
+//-#if RVM_WITH_GCSPY
   private static final int MAX_LEN = 64 * 1024;	// Buffer size
   private static VM_Address server_;		// address of the c server, gcspy_main_server_t server
 
@@ -144,4 +145,17 @@ public class ServerInterpreter
   public static void serverSafepoint (int event) {
     VM_SysCall.gcspyMainServerSafepoint(server_, event);
   }
+  
+//-#else
+    public static void init (String name,
+                           int port,
+                           String[] eventNames,
+                           boolean verbose,
+                           String generalInfo) {}
+  public static void startServer(boolean wait) {}
+  public static boolean shouldTransmit(int event) { return false; }
+  public static void startCompensationTimer() {}
+  public static void stopCompensationTimer() {}
+  public static void serverSafepoint (int event) {}
+//-#endif
 }

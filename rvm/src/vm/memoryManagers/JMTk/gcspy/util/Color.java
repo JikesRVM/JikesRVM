@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours 
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

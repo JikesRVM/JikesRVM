@@ -1324,18 +1324,11 @@ EOF
     fi
 
     # GCSpy specific classes
-    if (( $RVM_WITH_GCSPY )); then
-        GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
-    else
-        GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel
-    fi
+    GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
     echo $GCSPY_ROOT
     echo $GCSPY_ROOT/util
+    # TODO Would be better to load only drivers needed rather than all
     echo $GCSPY_ROOT/drivers
-        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
-        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
-        # TODO Would be better to load only drivers needed rather than all
-        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers
 
     # standard library support
     #
@@ -3374,7 +3367,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
 	if (( $RVM_WITH_GCSPY )); then
-            echo "BOOTER_CXX=\$BOOTER_CXX -DRVM_WITH_GCSPY"
+            echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
 	    echo "CCLIBS=\$CCLIBS -lpthread"
         fi
     else

@@ -18,9 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
-//-if RVM_WITH_GCSPY
 import org.mmtk.vm.gcspy.AbstractDriver;
-//-endif
 
 /**
  * This class implements a simple bump pointer allocator.  The
@@ -112,7 +110,6 @@ public final class BumpPointer extends Allocator
     Log.write(" limit = "); Log.writeln(limit);
   }
 
-  //-if RVM_WITH_GCSPY
   /**
    * Gather data for GCSpy
    * @param event The GCSpy event
@@ -121,7 +118,6 @@ public final class BumpPointer extends Allocator
   public void gcspyGatherData(int event, AbstractDriver driver) {
     vmResource.gcspyGatherData(event, driver);
   }
-  //-endif
 
   /****************************************************************************
    *

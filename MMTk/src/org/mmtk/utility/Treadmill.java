@@ -101,18 +101,17 @@ public final class Treadmill
     toSpace = tmp;
   }
 
-  //-if RVM_WITH_GCSPY
   /**
    * Gather data for GCSpy
    * @param event the gc event
    * @param gcspyDriver the GCSpy space driver
+   * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
-    // for now, let's look through both spaces
-    // we might want to return something to help resize the GCSpy space
-    fromSpace.gcspyGatherData(tmDriver);
-    toSpace.gcspyGatherData(tmDriver);
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {
+    if (tospace) 
+      toSpace.gcspyGatherData(tmDriver);
+    else
+      fromSpace.gcspyGatherData(tmDriver);
   }
-  //-endif
 
 }

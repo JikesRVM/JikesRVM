@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_Magic;
 /**
  * This class implements a base driver for the JMTk.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
@@ -29,6 +29,7 @@ abstract public class AbstractDriver
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
+//-#if RVM_WITH_GCSPY
   // The tiles
   protected int blockSize;			// tile size
   protected int allTileNum;			// total number of tiles
@@ -154,4 +155,14 @@ abstract public class AbstractDriver
   }
 
   private static final int BUFSIZE = 128;
+
+//-#else
+  public int countTileNum (VM_Address start, VM_Address end, int tileSize) { return 0; }
+  public int jikesObjectsPerBlock (int blockSize) { return 0; }
+  public boolean shouldTransmit(int event) { return false; }
+  public void traceObject(VM_Address addr) {} 
+  public void setRange(int event, VM_Address start, VM_Address end) {}
+  public void zero() {}
+  public void finish(int event) {}
+//-#endif
 }

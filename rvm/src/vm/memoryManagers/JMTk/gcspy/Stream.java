@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  *
  * Set up a GCspy Stream, by forwarding calls to gcspy C library
  *VM_SysCall
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */

@@ -10,11 +10,17 @@
 
 package org.mmtk.utility.gcspy;
 
+import org.mmtk.vm.gcspy.AbstractDriver;
+import org.mmtk.utility.FreeListVMResource;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+
+//-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.TreadmillLocal;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.FreeListVMResource;
 import org.mmtk.utility.Treadmill;
+import org.mmtk.utility.Log;
 import org.mmtk.vm.gcspy.Color;
 import org.mmtk.vm.gcspy.AbstractTile;
 import org.mmtk.vm.gcspy.Subspace;
@@ -22,17 +28,14 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.vm.VM_Interface;
-
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
+//-#endif
 
 /**
  * This class implements a simple driver for the JMTk treadmill space.
  *
- * @author <a href="www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
@@ -40,6 +43,7 @@ public class TreadmillDriver extends AbstractDriver
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
+//-#if RVM_WITH_GCSPY
   private static final int LOS_USED_SPACE_STREAM = 0;	// stream IDs
   private static final int LOS_OBJECTS_STREAM   = 1;
   private static final int BUFSIZE = 128;		// scratch buffer size
@@ -87,6 +91,11 @@ public class TreadmillDriver extends AbstractDriver
   private FreeListVMResource losVM;	// The LOS' VM_Resource
 
   
+  /**
+   * Only used by sub-classes
+   */
+  TreadmillDriver () {}
+
   /**
    * Create a new driver for this collector
    * 
@@ -210,29 +219,52 @@ public class TreadmillDriver extends AbstractDriver
     totalUsedSpace = 0;
   }
   
-  private void checkspace(int index, String loc) {
+  /*
+   * Debugging method to check for errors in accounting space to tiles
+   * @param index the index of the tile
+   * @param length the number of bytes added
+   * @param err an error string
+   */
+  private void checkspace(int index, int length, String err) {
+    if (length > 0) {
+      Log.write("..added ", length);
+      Log.write(" to index ", index);
+      Log.writeln(", now ", tiles[index].usedSpace);
+    }
+
     int max =  usedSpaceStream.getMaxValue();
     if (tiles[index].usedSpace > max) {
-      /*
       Log.write("Treadmill.traceObject: usedSpace too high at ", index);
       Log.write(": ",tiles[index].usedSpace); 
       Log.write(", max=", max);
       Log.write(" in ");
-      Log.writeln(loc);
-      */
-      // FIXME temporary kludge
+      Log.writeln(err);
+      // kludge
       tiles[index].usedSpace = max;
     }
   }
   
   /**
    * Update the tile statistics
+   * In this case, we are accounting for super-page objects, rather than
+   * simply for the object they contain.
    * 
    * @param addr The address of the current object
    */
   public void traceObject(VM_Address addr) {
-    int index = subspace.getIndex(addr);
-    int length = getSuperPageLength(addr);
+    VM_Address sp = TreadmillLocal.getSuperPage(addr);
+    int index = subspace.getIndex(sp);
+    int length = Conversions.pagesToBytes(losVM.getSize(sp)).toInt();
+
+    /*
+    Log.write("TreadmillDriver: super=", sp);
+    Log.write(", index=", index);
+    int pp = losVM.getSize(sp);
+    Log.write(", pages=", pp);
+    int bb = Conversions.pagesToBytes(pp).toInt();
+    Log.write(", bytes=", bb);
+    Log.writeln(", max=", usedSpaceStream.getMaxValue());
+    */
 
     totalObjects++;
     tiles[index].objects++;
@@ -246,20 +278,20 @@ public class TreadmillDriver extends AbstractDriver
       VM_Interface._assert(remainder <= blockSize);
     if (length <= remainder) {  // fits in this tile
       tiles[index].usedSpace += length;
-      checkspace(index, "traceObject fits in first tile"); 
+      //checkspace(index, length, "traceObject fits in first tile"); 
     } else {
       tiles[index].usedSpace += remainder;
-      checkspace(index, "traceObject remainder put in first tile");  
+      //checkspace(index, remainder, "traceObject remainder put in first tile");  
       length -= remainder;
-      index ++;
+      index++;
       while (length >= blockSize) {
         tiles[index].usedSpace += blockSize;
-        checkspace(index, "traceObject subsequent tile");
+        //checkspace(index, blockSize, "traceObject subsequent tile");
         length -= blockSize;
         index++;
       }
-      tiles[index].usedSpace += remainder;
-      checkspace(index, "traceObject last tile"); 
+      tiles[index].usedSpace += length;
+      //checkspace(index, length, "traceObject last tile"); 
     }
     
     if (addr.GT(maxAddr)) maxAddr = addr;
@@ -341,7 +373,7 @@ public class TreadmillDriver extends AbstractDriver
    // send the stream data
     space.stream(LOS_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
-      checkspace(i, "send");
+      //checkspace(i, 0, "send");
       space.streamIntValue(tiles[i].usedSpace);
     }
     space.streamEnd();
@@ -373,4 +405,15 @@ public class TreadmillDriver extends AbstractDriver
     VM_Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);
   }
+
+//-#else
+  public TreadmillDriver(String name,
+		     FreeListVMResource losVM,
+		     int blockSize,
+		     VM_Address start, 
+		     VM_Address end,
+		     int size,
+		     int threshold,
+		     boolean mainSpace) {}
+//-#endif
 }
