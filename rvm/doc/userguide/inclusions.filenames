@@ -1,9 +1,13 @@
+userguide.tex
 intro.tex
 installation.tex
 running.tex
+regression.tex
 eclipse.tex
 componentOverview.tex
 vmdetails.tex
+threads.tex
+callbacks.tex
 basedetails.tex
 optdetails.tex
 JMTk.tex
