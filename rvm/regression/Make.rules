@@ -12,19 +12,6 @@ default:	sanity
 
 
 #
-# using classpath libraries
-#
-ifneq (x$(CLASSPATH_SRC),x)
-  CLASSPATH_LIBRARIES=YES
-else 
-ifneq (x$(CLASSPATH_LIB),x)
-  CLASSPATH_LIBRARIES=YES
-else
-  CLASSPATH_LIBRARIES=NO
-endif
-endif
-
-#
 # where to find source code
 #
 BENCH_SOURCE_CP = $(shell echo $(strip $(BENCH_SOURCE_PATH)) | sed s/\ /:/g)
@@ -53,24 +40,17 @@ vpath %.class		$(BENCH_CLASS_CP)
 #
 # how to compile
 #
-ifneq (x$(CLASSPATH_SRC),x)
+ifeq (x$(CLASSPATH_LIBRARIES),YES)
   ALL_PATH = $(BENCH_SOURCE_PATH) \
 	     $(BENCH_CLASS_PATH) \
 	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
-	     $(CLASSPATH_SRC)/lib/glibj.zip
-else 
-ifneq (x$(CLASSPATH_LIB),x)
-  ALL_PATH = $(BENCH_SOURCE_PATH) \
-	     $(BENCH_CLASS_PATH) \
-	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
-	     $(CLASSPATH_LIB)//glibj.zip
+	     $(JAL_BUILD)/RVM.classes/rvmrt.jar
 else
   ALL_PATH = $(BENCH_SOURCE_PATH) \
 	     $(BENCH_CLASS_PATH) \
 	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
 	     $(JAL_BUILD)/RVM.classes/rvmrt.jar \
 	     $(HOST_REPOSITORIES)
-endif
 endif
 
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)

@@ -86,8 +86,8 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase
 	if (op != null) {
 	  VM_Method target = op.method;
 	  if (target != null && 
-	      target.getDeclaringClass().isLoaded() &&
-	      target.hasNoInlinePragma()) {
+	      target.getDeclaringClass().isResolved() &&
+	      target.resolve().hasNoInlinePragma()) {
 	    return true;
 	  }
 	}

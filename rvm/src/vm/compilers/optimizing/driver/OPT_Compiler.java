@@ -83,7 +83,7 @@ public class OPT_Compiler {
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-	e.printStackTrace();
+	VM.sysWriteln( e.toString() );
 	throw new OPT_OptimizingCompilerException("OPT_Compiler", 
 						  "untrapped failure during init, "
 						  + " Converting to OPT_OptimizingCompilerException");

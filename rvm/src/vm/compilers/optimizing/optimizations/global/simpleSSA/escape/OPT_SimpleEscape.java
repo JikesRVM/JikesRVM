@@ -306,9 +306,10 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  true;
         if (m.getDeclaringClass() == null)
           return  true;
-        if (!m.getDeclaringClass().isLoaded()) {
+        if (!m.getDeclaringClass().isResolved()) {
           return  true;
         }
+	m = m.resolve();
         if (OPT_InlineTools.needsGuard(m)) {
           return  true;
         }

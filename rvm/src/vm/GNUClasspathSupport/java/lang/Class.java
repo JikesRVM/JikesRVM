@@ -10,7 +10,7 @@ import java.lang.reflect.*;
 import java.net.URL;
 import java.util.Vector;
 import java.util.HashMap;
-import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.librarySupport.UnimplementedError;

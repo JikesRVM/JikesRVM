@@ -64,7 +64,6 @@ done
 #
 # Need to make some more defines
 #
-ARGS="$ARGS -Djava.vm.name=JikesRVM"
 ARGS="$ARGS -Drvm.root=$rvm_root"
 ARGS="$ARGS -Drvm.build=$rvm_build"
 ARGS="$ARGS -Djava.home=$rvm_root"

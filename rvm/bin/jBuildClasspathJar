@@ -6,6 +6,14 @@
 # @author Julian Dolby
 #
 
+##
+## defaults
+##
+export FULL=0
+export CHECK=0
+export DEST_DIR=$RVM_ROOT/support/classpathBuildDir
+export OS_VER=`uname -v`
+
 if [ `uname` = Linux ]; then
   CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
 else
@@ -28,7 +36,6 @@ while [[ $# > 0 ]] ; do
   case $1 in
 
     --current) 
-
 	CLASSPATH_CVS_DATESPEC_ARG=;;
 
     --datespec) 
@@ -39,61 +46,135 @@ while [[ $# > 0 ]] ; do
 	CLASSPATH_CVS_ROOT=$2
 	shift ;;
 
+    --full-build)
+        FULL=1 ;;
+
+    --destination)
+        DEST_DIR=$2
+	shift ;;
+
+    --check)
+        CHECK=1 ;;
+
   esac	
   shift
 done
 
 ##
-## download classpath
+## check if requested
 ##
-echo "Downloading GNU Classpath"
-rm -rf $RVM_ROOT/support/classpathBuildDir
-mkdir $RVM_ROOT/support/classpathBuildDir
-cd $RVM_ROOT/support/classpathBuildDir
+if [[ $CHECK = 1 ]]; then
+  if [[ $FULL = 1 ]]; then
+    if [[ $RVM_FOR_IA32 = 1 ]]; then
+      if [[ -e $DEST_DIR/i686/lib/glibj.zip ]]; then
+       exit 0
+      fi
+    else
+      
+      if [[ -e $DEST_DIR/aix$OS_VER/lib/glibj.zip ]]; then
+        exit 0
+      fi
+    fi
+  else
+    if [[ -e $RVM_ROOT/support/lib/classpathsrc.jar ]]; then
+      exit 0
+    fi
+  fi
+fi
 
-if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
-  $CVS -Q -d $CLASSPATH_CVS_ROOT co classpath
+##
+## download classpath if needed
+##
+if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
+  echo "Downloading GNU Classpath"
+  rm -rf $DEST_DIR
+  mkdir $DEST_DIR
+  cd $DEST_DIR
+
+  if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
+    $CVS -Q -d $CLASSPATH_CVS_ROOT co classpath
+  else
+    $CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath
+  fi 
 else
-  $CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath
-fi 
+  cd $DEST_DIR
+fi
 
+if [[ $FULL = 1 ]]; then
+  ##
+  ## this branch configures and builds the classpath libraries normally
+  ##
 
-##
-## fix gnu.classpath.Configuration
-##
-cd classpath
-$SED s/@LIBDEBUG@/false/g gnu/classpath/Configuration.java.in |
-$SED s/@INIT_LOAD_LIBRARY@/true/g - > gnu/classpath/Configuration.java
+  # stuff checked out into this dir
+  cd classpath
 
-##
-## compile .java files
-##
-echo "Compiling the .java files"
-cd lib
-TOP_LEVEL_PACKAGES="java javax gnu"
-for p in $TOP_LEVEL_PACKAGES; do
-  $FIND ../$p -name '*.java' | $GREP -v -f standard.omit | $XARGS $JIKES -classpath ..:../vm/reference
-done
+  # setup directory for building if needed
+  if [[ ! -e $DEST_DIR/classpath/configure ]]; then
+    echo "Setting up source tree"
+    if [[ $RVM_FOR_IA32 = 1 ]]; then
+      aclocal
+    else
+      aclocal -I $RVM_ROOT/rvm/config/m4
+    fi
+    autoheader
+    automake
+    autoconf
+  fi
 
+  # configure and build library
+  if [[ $RVM_FOR_IA32 = 1 ]]; then
+    echo "Configuring for i686"
+    mkdir ../i686; cd ../i686
+    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES"
+    echo "Building the library"
+    $GNU_MAKE
+  else
+    echo "Configuring for aix$OS_VER (GTK AWT peer disabled)"
+    mkdir ../aix$OS_VER
+    cd ../aix$OS_VER
+    export FIND=$FIND
+    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
+    echo "Building the library"
+    $GNU_MAKE
+  fi   
 
-##
-## build classpath.jar
-##
-echo "Building $RVM_ROOT/support/lib/classpath.jar"
-cd ..
-rm -f $RVM_ROOT/support/lib/classpath.jar
-touch $RVM_ROOT/support/lib/classpath.jar
-$FIND . -name '*.class' | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar
+else
+  ##
+  ## this branch builds the classpath jar file needed for the mixed setups
+  ##
 
-##
-## build classpath source jar
-##
-echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
-rm -f $RVM_ROOT/support/lib/classpathsrc.jar
-touch $RVM_ROOT/support/lib/classpathsrc.jar
-for p in $TOP_LEVEL_PACKAGES; do
-  $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
-done
+  # fix gnu.classpath.Configuration
+  cd classpath
+  $SED s/@LIBDEBUG@/false/g gnu/classpath/Configuration.java.in |
+  $SED s/@INIT_LOAD_LIBRARY@/true/g - > gnu/classpath/Configuration.java
 
+  #
+  # compile .java files
+  #
+  echo "Compiling the .java files"
+  cd lib
+  TOP_LEVEL_PACKAGES="java javax gnu"
+  for p in $TOP_LEVEL_PACKAGES; do
+    $FIND ../$p -name '*.java' | $GREP -v -f standard.omit | $XARGS $JIKES -classpath ..:../vm/reference
+  done
 
+  #
+  # build classpath.jar
+  #
+  echo "Building $RVM_ROOT/support/lib/classpath.jar"
+  cd ..
+  rm -f $RVM_ROOT/support/lib/classpath.jar
+  touch $RVM_ROOT/support/lib/classpath.jar
+  $FIND . -name '*.class' | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar
 
+  #
+  # build classpath source jar
+  #
+  echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
+  rm -f $RVM_ROOT/support/lib/classpathsrc.jar
+  touch $RVM_ROOT/support/lib/classpathsrc.jar
+  for p in $TOP_LEVEL_PACKAGES; do
+    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
+  done
+
+fi

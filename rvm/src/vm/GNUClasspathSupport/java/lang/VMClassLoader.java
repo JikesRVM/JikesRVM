@@ -13,9 +13,9 @@ import java.util.HashMap;
 
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
+import com.ibm.JikesRVM.classloader.VM_ClassLoader;
+import com.ibm.JikesRVM.classloader.VM_Atom;
 
 /**
  * Library support interface of Jikes RVM

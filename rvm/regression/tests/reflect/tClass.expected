@@ -1,5 +1,5 @@
 class tClass
-java.lang.ClassNotFoundException: NotAClassSoThrowAnExceptionPlease
+caught ClassNotFoundException
 class tClass is not an array...good
 class tClass has 1 visible constructors
    0: public tClass(java.lang.String)

@@ -763,7 +763,7 @@ function emitEnvironmentKsh
    print "export UNZIP_CMD='$UNZIP_CMD'"
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
-       print "export CLASSPATH_SRC='$CLASSPATH_SRC'"
+       print "export CLASSPATH_LIBRARIES=YES"
    fi
    print ""
    }
@@ -824,7 +824,7 @@ function emitEnvironmentPerl
    print "\$ENV{NZIP_CMD} = '$UNZIP_CMD';"
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
-       print "\$ENV{LASSPATH_SRC} = '$CLASSPATH_SRC';"
+       print "\$ENV{LASSPATH_LIBRARIES} = 'YES';"
    fi
    print ""
 }
@@ -887,7 +887,7 @@ function emitMakefile
    print ""
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
-       print "CLASSPATH_SRC = $CLASSPATH_SRC"
+       print "CLASSPATH_LIBRARIES = YES"
    fi
    }
 
@@ -1198,10 +1198,24 @@ function emitCopier
    print 'fi'
    print ''
 
-   if test $RVM_WITH_GNU_CLASSPATH -eq 1 -a -d $CLASSPATH_SRC/; then
-     print "cp -f $CLASSPATH_SRC/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
-     print "\nprint -n '(classpath native libraries copied) '"
-     print "cp -f $CLASSPATH_SRC/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+   if test $RVM_WITH_GNU_CLASSPATH -eq 1; then
+     if [[ x$CLASSPATH_SRC = x ]]; then
+       CPS=$RVM_ROOT/classpath
+     else
+       CPS=$CLASSPATH_SRC
+     fi
+     if (( RVM_FOR_AIX )); then
+       OS_VER=`uname -v`
+       print 'for _library in' $CPS/aix$OS_VER'/native/jni/*/.libs/*.so.0; do'
+       print '  cp $_library' $BUILD_DIRECTORY_STR'/`basename $_library so.0`a'
+       print 'done'
+       print "\nprint -n '(classpath native libraries copied) '"
+       print "cp -f $CPS/aix$OS_VER/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+     else
+       print "cp -f $CPS/i686/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
+       print "\nprint -n '(classpath native libraries copied) '"
+       print "cp -f $CPS/i686/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+     fi
    else
      print "cp -f $ROOT_DIRECTORY_STR/support/lib/classpath.jar $CLASSES_DIRECTORY_STR/rvmrt.jar"
    fi
@@ -1424,10 +1438,11 @@ function emitImageLinker
    print "   print 'Ljava/lang/ThreadGroup;'     >> $PRIMORDIAL_CLASSES_STR"
 
    if (( RVM_WITH_GNU_CLASSPATH )); then
-    print "   print 'Ljava/lang/Cloneable;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/lang/String\$CaseInsensitiveComparator;'          >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/lang/VMObject;'        >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/lang/VMSystem;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/Cloneable;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/String\$CaseInsensitiveComparator;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/VMObject;'          >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/VMSystem;'          >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/classpath/Configuration;' >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    # reflection support
@@ -2190,6 +2205,11 @@ function emitToolCompiler
 if (( ! BUILD_RVMRT_JAR )); then
  if (( ! RVM_WITH_GNU_CLASSPATH )); then
   $RVM_ROOT/rvm/bin/jCheckLibs
+ else
+  . $RVM_HOST_CONFIG
+  if [[ x$CLASSPATH_SRC = x ]]; then
+    jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
+  fi
  fi
 fi
 

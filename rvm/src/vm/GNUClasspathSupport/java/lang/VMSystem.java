@@ -65,4 +65,11 @@ final class VMSystem
 	  throw new Error( e.toString() );
       }
   }
+
+    static InputStream makeStandardInputStream() { return null; }
+
+    static PrintStream makeStandardOutputStream() { return null; }
+
+    static PrintStream makeStandardErrorStream() { return null; }
+
 }

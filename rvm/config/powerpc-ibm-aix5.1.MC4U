@@ -87,3 +87,6 @@ export SED="/usr/gnu/bin/sed"
 export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 export UNZIP_CMD="/usr/contrib/bin/unzip"
+
+# The following is optional; only needed for fancy CVS scripts
+export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
