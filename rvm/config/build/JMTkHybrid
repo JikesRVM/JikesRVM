@@ -1,3 +1,4 @@
    export RVM_WITH_JMTK=1
+   export RVM_WITH_JMTK_INLINE_PLAN=1
    export RVM_WITH_HYBRID=1
 

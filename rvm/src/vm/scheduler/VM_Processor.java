@@ -23,7 +23,11 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
  * @author Bowen Alpern 
  * @author Derek Lieber
  */
-public final class VM_Processor implements VM_Uninterruptible,  VM_Constants {
+public final class VM_Processor 
+//-#if RVM_WITH_JMTK_INLINE_PLAN
+extends Plan 
+//-#endif
+implements VM_Uninterruptible, VM_Constants {
 
   // Processor modes
   //
@@ -654,7 +658,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants {
   //-#endif
 
   //-#if RVM_WITH_JMTK
+  //-#if RVM_WITH_JMTK_INLINE_PLAN
+  //-#else
   final public Plan mmPlan = new Plan();
+  //-#endif
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS

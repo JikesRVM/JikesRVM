@@ -54,6 +54,20 @@ import com.ibm.JikesRVM.VM_DynamicLibrary;
 public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   final public static boolean CHECK_MEMORY_IS_ZEROED = false;
+  private static int junk = 0;
+
+  // time in seconds
+  //
+  public static void busyWait(double time) {
+    double start = VM_Time.now();
+    do {
+      // Wait for abuot 50000 cycles (about 20 micro-seconds on a 1Ghz processor)
+      // to avoid too many system calls.
+      for (int i=0; i<10000; i++)
+	junk++;
+    } while ((VM_Time.now() - start) < time);
+  }
+
 
   public static void logGarbageCollection() throws VM_PragmaUninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
@@ -170,7 +184,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static Plan getPlan() throws VM_PragmaInline {
-    return VM_Processor.getCurrentProcessor().mmPlan;
+    return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
+  }
+
+  public static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
+    //-#if RVM_WITH_JMTK_INLINE_PLAN
+    return proc;
+    //-#else
+    return proc.mmPlan;
+    //-#endif
   }
 
   public static void resolvedPutfieldWriteBarrier(Object ref, int offset,
@@ -259,12 +281,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
-    if (Plan.verbose == 1) VM.sysWrite("[Forced GC]");
-    triggerCollection();
+    triggerCollection("external trigger");
   }
 
-  public static final void triggerCollection() throws VM_PragmaInterruptible {
+  public static final void triggerCollection(String why) throws VM_PragmaInterruptible {
     // VM_Scheduler.dumpStack();
+    if (Plan.verbose > 0) VM.sysWriteln("Collection triggered due to ");
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
   }
@@ -283,7 +305,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void setupProcessor(VM_Processor proc) throws VM_PragmaInterruptible {
     // if (proc.mmPlan == null) proc.mmPlan = new Plan();
-    if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
+    // if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
   }
 
   public static final boolean NEEDS_WRITE_BARRIER = Plan.needsWriteBarrier;
@@ -406,7 +428,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	  VM_Thread t = vp.activeThread;
 	  t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.JNITopJavaFP);
 	}
-	vp.mmPlan.prepareNonParticipating();
+	getPlanFromProcessor(vp).prepareNonParticipating();
       }
     }
   }
