@@ -381,9 +381,19 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     } else if (t.isIdleThread) {
       idleQueue.enqueue(t);
     } else {
+      //      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      if (t.beingDispatched && t != VM_Thread.getCurrentThread()) {
+	VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue BUG", t.getIndex());
+	VM.sysWrite("current thread: ");
+	VM_Thread.getCurrentThread().dump();
+	VM.sysWrite("offending thread: ");
+	t.dump();
+	VM.assert(this == getCurrentProcessor());
+	VM_Scheduler.dumpVirtualMachine();
+	VM.sysExit(555);
+      }
       readyQueue.enqueue(t);
     }
-
   }
 
   /**
@@ -411,7 +421,17 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     if (!readyQueue.isEmpty()) {
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
-      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      //      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      if (t.beingDispatched && t != VM_Thread.getCurrentThread()) {
+	VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue BUG", t.getIndex());
+	VM.sysWrite("current thread: ");
+	VM_Thread.getCurrentThread().dump();
+	VM.sysWrite("offending thread: ");
+	t.dump();
+	VM.assert(this == getCurrentProcessor());
+	VM_Scheduler.dumpVirtualMachine();
+	VM.sysExit(666);
+      }
       return t;
     }
 
