@@ -137,5 +137,5 @@ shopt -s execfail
 
 exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
 declare -r -i status=$?
-echo  "$ME: Failed to execute $prog; can't run Jikes RVM"
+echo >&2  "$ME: Failed to execute $prog; can't run Jikes RVM"
 exit $status
