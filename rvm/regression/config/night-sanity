@@ -1,6 +1,6 @@
-prototype                        -test-list nightly-tests
+prototype                        -test-list nightly-tests-extended
 prototype-opt                    -test-list nightly-tests
-development                      -test-list nightly-tests
+development                      -test-list nightly-tests-extended
 production                       -test-list nightly-tests
 BaseBaseMarkSweep                -test-list nightly-tests
 FullAdaptiveMarkSweep            -test-list nightly-tests
