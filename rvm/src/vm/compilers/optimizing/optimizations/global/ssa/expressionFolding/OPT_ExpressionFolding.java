@@ -35,7 +35,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
    *                    
    * @param ir the governing IR
    */
-  final public static void perform (OPT_IR ir) {
+  final public static void perform(OPT_IR ir) {
 
     
     // Create a set of potential computations to fold.
@@ -58,13 +58,25 @@ class OPT_ExpressionFolding implements OPT_Operators {
         OPT_Register r = (OPT_Register)i.next();
         OPT_Instruction s = r.getFirstDef();
         OPT_Operand val1 = Binary.getVal1(s);
-        if (VM.VerifyAssertions) VM.assert(val1.isRegister());
+        if (VM.VerifyAssertions) { 
+          if (!val1.isRegister()) 
+            VM.sysWrite("Expression folding trouble AAA" + s);
+          VM.assert(val1.isRegister());
+        }
         if (candidates.contains(val1.asRegister().register)) {
           OPT_Instruction def = val1.asRegister().register.getFirstDef();
           OPT_Operand def1 = Binary.getVal1(def);
-          if (VM.VerifyAssertions) VM.assert(def1.isRegister());
+          if (VM.VerifyAssertions) {
+            if (!def1.isRegister()) 
+              VM.sysWrite("Expression folding trouble BBB" + def);
+            VM.assert(def1.isRegister());
+          }
           OPT_Operand def2 = Binary.getVal2(def);
-          if (VM.VerifyAssertions) VM.assert(def2.isConstant());
+          if (VM.VerifyAssertions) {
+            if (!def2.isConstant()) 
+              VM.sysWrite("Expression folding trouble CCC" + def);
+            VM.assert(def2.isConstant());
+          }
 
           OPT_Instruction newS = transform(s,def);
           s.insertAfter(newS);
@@ -146,6 +158,10 @@ class OPT_ExpressionFolding implements OPT_Operators {
         s.operator == INT_SUB || s.operator == LONG_SUB ) {
       OPT_Operand val2 = Binary.getVal2(s);
       if (val2.isConstant()) {
+        OPT_Operand val1 = Binary.getVal1(s);
+        // if val1 is constant too, this should've been constant folded
+        // beforehand.  Give up.
+        if (val1.isConstant()) return null;
         return Binary.getResult(s).asRegister().register;
       }
     }
