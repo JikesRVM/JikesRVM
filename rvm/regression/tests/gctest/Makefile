@@ -17,11 +17,13 @@ HEAPSIZE = 300
 EXPECTED=Tests.expected
 START_NAME=FixedLive
 START_ARGS=100
-BENCH_RVM_ARGS=-X:gc:verbose=1
+BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 sanity: 	$(foreach NAME, $(ALL_TESTS), $(NAME).class)
-	$(MAKE) sanity-diff
+	$(MAKE) sanity-check-rule
 
+check:
+	@$(FGREP) -q "Overall Rate:" < $(OUT)
 
