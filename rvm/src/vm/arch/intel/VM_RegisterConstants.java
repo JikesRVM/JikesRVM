@@ -53,10 +53,15 @@ interface VM_RegisterConstants {
   // Register sets (``range'' is a misnomer for the alphabet soup of
   // of intel registers)
   //
-  static final byte[]  VOLATILE_GPRS = { EAX, EDX, ECX };
+
+  // Note: the order here is important.  The opt-compiler allocates
+  // the volatile registers in the order they appear here.
+  static final byte[]  VOLATILE_GPRS = { ECX, EDX, EAX };
   static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
     
-  static final byte[]  NONVOLATILE_GPRS = { EDI, EBX, /*, EBP */};
+  // Note: the order here is important.  The opt-compiler allocates
+  // the volatile registers in the reverse of order they appear here.
+  static final byte[]  NONVOLATILE_GPRS = { EDI, EBX /*, EBP */};
   static final int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
     
   static final byte[]  SCRATCH_GPRS = { ECX };
