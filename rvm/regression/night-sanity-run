@@ -16,8 +16,6 @@
 # Pick up defs of platform tools
 . $RVM_HOST_CONFIG
 
-echo $AWK
-
 # How often to look to see if the builds are done
 SLEEP_DURATION="120"
 
