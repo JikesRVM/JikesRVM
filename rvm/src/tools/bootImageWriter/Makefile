@@ -7,8 +7,8 @@
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
 HOST_JDK_FLAGS=
-HOST_MEM_MAX=500M
-HOST_MEM_MIN=500M
+HOST_MEM_MAX=400M
+HOST_MEM_MIN=400M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
