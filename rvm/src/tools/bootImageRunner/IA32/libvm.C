@@ -31,12 +31,6 @@
 #include <w32api/windows.h>
 #endif
 
-/*
- * internal check of the trap handler used to debug the
- * trap handler itself
- */
-#define DEBUG_TRAP_HANDLER	0
-
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
@@ -136,10 +130,6 @@ isVmSignal(unsigned int ip, unsigned int jtoc)
 	 && IN_RVM_ADDRESS_SPACE(jtoc);
 }
 
-#ifdef DEBUG_TRAP_HANDLER
-static int debug_in_use = 0;
-#endif
-
 void
 hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 {
@@ -152,15 +142,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 
   unsigned int instructionFollowing;
   char buf[100];
-
-
-  #ifdef DEBUG_TRAP_HANDLER
-  if (debug_in_use) {
-    write (SysErrorFd, buf, sprintf (buf, "single threaded recursive trap\n"));
-    exit (1);
-  }
-  debug_in_use = 1;
-  #endif
 
   /*
    * The "5" here was obtained by experiment.
@@ -359,10 +340,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
     sc->eip = dumpStack;
     *vmr_inuse = false;
-
-    #ifdef DEBUG_TRAP_HANDLER
-    debug_in_use = 0;
-    #endif
 
     return;
   }
