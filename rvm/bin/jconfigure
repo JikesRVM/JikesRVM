@@ -1516,6 +1516,12 @@ fi
    print "  mv -f \$f.tmp \$f"
    print "done"
 
+   if (( ! BUILD_RVMRT_JAR )); then
+     print "cp $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY"
+   fi
+
+   print "\nprint -n '(rvmrt.jar copied) \n'"
+
    # Remember if any new (or modified) source files were discovered.
    #
    print 'if [[ $FILES_HAVE_CHANGED = 1 ]]; then'
@@ -2363,12 +2369,6 @@ if (( RVM_WITH_JAZZLIB )); then
 fi
 
 print -n "(directories created) "
-
-if (( ! BUILD_RVMRT_JAR )); then
-  cp $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY
-fi
-
-print -n "(rvmrt.jar copied) "
 
 # Create control files and scripts.
 #
