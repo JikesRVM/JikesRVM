@@ -47,12 +47,15 @@ of the following plans:
 \item \texttt{GenMS} (generational with mark-sweep mature space), or
 \item \texttt{RefCount} (a reference counting collector with non-concurrent cycle collection)
 \item \texttt{NoGC} (allocation only, no garbage collection)
+\item \texttt{GCTrace} (copying collector used for heap trace generation)
 \end{itemize}
 The relative performance of these collectors is highly dependent on
 the application. 
 
 \texttt{NoGC} is provided for pedagogical and
 experimental purposes only; it is not suitable for general use.
+\texttt{GCTrace} is provided for generation of GC traces and is not 
+useful for collector comparisons.
 GC researchers will of course want to experiment with other GC choices.
 The \texttt{RefCount} collector is currently slightly less stable than
 the others and is not quite ready for heavy usage.
@@ -189,4 +192,36 @@ VM-dependent mechanisms include:
 \item \xlink{GC map iteration}{\VMGCMapIteratorURL}, and
 \item GC \xlink{initiation}{\VMCollectorThreadURL} and \xlink{synchronization}{\VMHandshakeURL}.
 \end{itemize}
+
+\subsection{\texttt{Generating GC Traces}} \label{sssec:gctrace}
+Builds using the \texttt{GCTrace} plan produce accurate heap traces of
+the running program.  These builds output records for every object
+creation (both objects in the boot image and heap allocations),
+reference update, and the last time each object is reachable.
+Generated traces are output as normal garbage collection information
+and can be captured similarly.
+
+To record the exact state of the heap, the trace format's object
+creation record differentiates objects created in the boot image,
+objects allocated into the immortal region of the heap, and the
+remaining object allocations.  To enable accurate garbage collection
+simulations, last reachable times are recorded for all these objects.
+
+Last reachable times for each object are recorded at a granularity
+measured in terms of bytes allocated.  The earliest an object can be
+reclaimed is at the next ``perfectly accurate'' allocation following
+this time.  To compute these times relatively quickly, JMTk uses the
+Merlin lifetime analysis algorithm.  For more information about trace
+granularity or the Merlin algorithm, see the SIGMETRICS 2002 paper by 
+Hertz, Blackburn, McKinley, Moss, and Stefanovic.
+
+Trace generation defaults to using the largest possible granularity,
+but finer traces can be specified by specifying the \textbf{logarithm}
+of the desired granularity with the \texttt{traceRate} command-line
+option.  Because garbage collection cannot occur at every allocation
+(i.e., before the Jikes RVM has finished booting), traces include
+``weak'' allocations no matter the granularity specified.  At the
+finest granularity, these ``weak'' allocations record only when
+garbage collection is prohibited and objects cannot therefore be
+reclaimed.
 
