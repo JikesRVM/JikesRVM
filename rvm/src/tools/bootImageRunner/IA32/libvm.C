@@ -520,9 +520,9 @@ processTimerTick(void)
     cnt = cnt - 1;
     // In fact, we have not yet (8/2003) gotten around to do this (creating
     // the native daemon processor) on Linux :(  So this will always be zero.
-//#ifdef __linuxsmp__
+#ifdef __linuxsmp__
     unsigned ndp_index = cnt;
-//#endif
+#endif
     
     // check for gc in progress: if so, return
     //
@@ -549,7 +549,7 @@ processTimerTick(void)
 	// some processor is "stuck in native"
 	// If we have a NativeDaemon Processor, (the last one) then we can
 	// use it to recover
-//#ifdef __linuxsmp__
+#ifdef __linuxsmp__
 	if (processors[ndp_index]) {  
 	    // have a NativeDaemon Processor (the last one) and can use it to recover
 	    int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
@@ -557,7 +557,7 @@ processTimerTick(void)
 //	    int i_thread = (int)thread;
 	    pthread_kill(thread, SIGCONT);
 	} else 
-//#endif
+#endif
 	{
 	    // After 500 timer intervals (often == 5 seconds), print a message
 	    // every 50 timer intervals (often == 1/2 second), so we don't

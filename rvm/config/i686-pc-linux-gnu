@@ -77,10 +77,10 @@ export JIKES=/usr/bin/jikes
 export CC='/usr/bin/gcc -w -g -O'
 
 # what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -g -O'
+export CPLUS='/usr/bin/g++ -w -g -O'
 
 # how to link a shared C++ library
-export LDSHARED="/usr/bin/g++ -shared"
+export LDSHARED="${CPLUS} -shared"
 
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"

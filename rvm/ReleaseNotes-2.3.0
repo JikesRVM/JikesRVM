@@ -22,6 +22,7 @@ Highlights of this release include:
    - Added 4 logical configs to help new users pick a 'good' one
    - All builds with opt compiler use adaptive system
  + Baseline compiler is re-entrant; parallel baseline compilation enabled
+ + includes Arnold and Ryder Instrumention Sampling Framework (PLDI'01)
  + Some progress on port to 64 bit PowerPC
     - Numerous code cleanups
     - More use of VM_Address, VM_Word, etc.
@@ -110,3 +111,9 @@ Expansions of some of the highlights listed above:
   Jikes RVM's build process is now entirely free of KSH.  This makes it
   more convenient for Linux users to install the system.  
 
++ The optimizing compiler now contains an implementation of the
+  Instrumentation Sampling Framework from the Arnold and Ryder PLDI'01
+  paper.    This infrastructure can be used to reduce the overhead of
+  collecting profiling information using instrumentation.   For details,
+  see the user guide section "Using the Jikes RVM to Profile an
+  Application -> Instrumentation Sampling Framework."
