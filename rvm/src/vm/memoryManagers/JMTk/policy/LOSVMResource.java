@@ -208,7 +208,6 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
       LOSunlock();
     } // for 
 
-    VM_Interface.getPlan().poll(true);
     return VM_Address.zero();
   }
 
