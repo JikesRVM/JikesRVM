@@ -26,13 +26,16 @@ other (less frequent) Java operations should not be prohibitively slow.
 per object storage overhead should be as small as possible
 \end{itemize}
 
+\index{field access}
+\index{array access}
 Assuming the reference to an object is in a register, the object's
 fields can be accessed at a fixed displacement in a single
 instruction.  To facilitate array access, the reference to an array
-points to the first (zeroth) component of an array and the remaining
-elements are laid out in ascending order.  The number of elements
-in an array, its {\em length}, is kept just before its first
-component.
+points to the first (zeroth) element of an array and the remaining
+elements are laid out in ascending order.  The number of elements in
+an array, its {\em length}, is kept just before its first
+element. Elements of the array can be easily accessed via base +
+scaled index addressing.
 
 \index{NullPointerException}
 The Java programming language requires that an attempt to access an
@@ -55,29 +58,6 @@ the hardware, because array accesses require loading the array length
 which is $-4$ bytes off the array reference.  A hardware null-pointer
 check for field accesses is effected by locating fields at negative
 offsets from the object reference.
-
-\begin{figure}[htb]
-\begin{gif}{object}
-\vbox{
-\hbox{\psfig{file=object.ps,height=3.5in}}
-}\hfil
-\end{gif}
-\caption{Layout of a scalar object and an array object in RVM.}
-\label{fig:objects}
-\end{figure}
-
-\index{field access}
-\index{array access}
-In summary, in RVM, arrays grow up from the object reference (with the
-array length at a fixed negative offset), while scalar objects grow
-down from the object reference with all fields at a negative offset
-(see figure~\ref{fig:objects}).  A field access is accomplished with a
-single instruction using base-displacement addressing.  Most array
-accesses require three instructions.  A single trap instruction
-verifies that the index is within the bounds of the array.  Except for
-{\tt byte} (and {\tt boolean}) arrays, the component index must then
-be shifted to get a byte index.  The access itself is accomplished
-using base-index addressing.
 
 \JavaTMFooter
 
