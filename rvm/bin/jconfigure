@@ -96,7 +96,7 @@ sanity_env="${bin_dir}/sanity-envars.bash"
 checkenv RVM_ROOT
 
 ## Place where RVM bootimage, booter, and runtime support files will be placed.
-checkenv RVM_BUILD
+checkenv --may-not-exist RVM_BUILD
 ## What configuration will host the build process?
 checkenv RVM_HOST_CONFIG
 ## What configuration will run the system?
