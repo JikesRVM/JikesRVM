@@ -206,15 +206,15 @@ public class VM extends VM_Properties implements VM_Constants,
     //-#if RVM_WITH_HPM
     if (BuildForHPM) {
       // assume only one Java thread is executing!
-      if(VM_HardwarePerformanceMonitors.verbose>=1)
+      if(VM_HardwarePerformanceMonitors.verbose>=2)
         VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
       VM_HardwarePerformanceMonitors.boot();
 
       // set hpm program for current pthread.  Inherited by other, to be created, pthreads.
       if (VM_HardwarePerformanceMonitors.enabled()) {
-        if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
-          if(VM_HardwarePerformanceMonitors.verbose>=1)
-            VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
+        if (! VM_HardwarePerformanceMonitors.thread_group) {
+          if(VM_HardwarePerformanceMonitors.verbose>=2)
+            VM.sysWriteln("VM.boot() call to sysHPMsetSettings() and sysHPMstartMyThread()");
           VM_SysCall.sysHPMsetProgramMyThread();
           VM_SysCall.sysHPMstartMyThread();
         }
@@ -323,8 +323,8 @@ public class VM extends VM_Properties implements VM_Constants,
     //-#if RVM_WITH_HPM
     if (VM_HardwarePerformanceMonitors.enabled()) {
       // IS THIS NEEDED?
-      if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
-        if(VM_HardwarePerformanceMonitors.verbose>=1)
+      if (!VM_HardwarePerformanceMonitors.thread_group) {
+        if(VM_HardwarePerformanceMonitors.verbose>=2)
           VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
         VM_SysCall.sysHPMresetMyThread();
       }
