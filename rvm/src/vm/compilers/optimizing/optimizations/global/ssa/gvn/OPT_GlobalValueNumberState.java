@@ -14,7 +14,7 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-class OPT_GlobalValueNumberState {
+final class OPT_GlobalValueNumberState {
   /**
    * Constant used to flag "unknown" value numbers
    */
@@ -78,7 +78,7 @@ class OPT_GlobalValueNumberState {
    * 	  int j = c+d;
    *  	  int k = e+f;
    * 	  int l = g+h;
-   *     int m = i * j;
+   *      int m = i * j;
    *	  int n = k * l;
    *	  int o = m/n;
    *	  return o;
@@ -119,7 +119,7 @@ class OPT_GlobalValueNumberState {
 
      while ( true ) {
        OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.elementAt(val2);
-       java.util.Iterator i = class2.iterator() ;  
+       Iterator i = class2.iterator() ;  
        if ( ! i.hasNext() ) break;
        OPT_ValueGraphVertex v = (OPT_ValueGraphVertex) i.next();
        if ( DEBUG) 
@@ -214,7 +214,6 @@ class OPT_GlobalValueNumberState {
   }
 
   /** 
-  /** 
    * Definitely-different relation.
    * Returns true for the following cases:
    * <ul>
@@ -233,6 +232,11 @@ class OPT_GlobalValueNumberState {
     OPT_ValueGraphVertex v1 = valueGraph.getVertex(name1);
     OPT_ValueGraphVertex v2 = valueGraph.getVertex(name2);
     return  DD(v1.getValueNumber(), v2.getValueNumber());
+  }
+
+  public OPT_GVCongruenceClass congruenceClass(Object name) {
+    OPT_ValueGraphVertex v = valueGraph.getVertex(name);
+    return ((OPT_GVCongruenceClass)B.elementAt(v.getValueNumber()));
   }
 
   /**
@@ -283,7 +287,7 @@ class OPT_GlobalValueNumberState {
    */
   private void initialize () {
     // store a map from label -> congruenceClass
-    java.util.HashMap labelMap = new java.util.HashMap(10);
+    HashMap labelMap = new HashMap(10);
     for (Enumeration e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       Object label = v.getLabel();
@@ -304,7 +308,7 @@ class OPT_GlobalValueNumberState {
    * @return the congruence class for the label.
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
-      java.util.HashMap labelMap) {
+      HashMap labelMap) {
     OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);
@@ -337,7 +341,7 @@ class OPT_GlobalValueNumberState {
       if (c.size() == 1)
         continue;
       // store a reference to the first node in c
-      java.util.Iterator i = c.iterator();
+      Iterator i = c.iterator();
       OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
       // now check that each other target matches the first element
       // if not, add this class to the work list
@@ -358,7 +362,7 @@ class OPT_GlobalValueNumberState {
   private void partitionClass (OPT_GVCongruenceClass partition) {
     // store a reference to the first node in c, which will serve
     // as a representative for this class
-    java.util.Iterator i = partition.iterator();
+    Iterator i = partition.iterator();
     OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
     Vector newClasses = new Vector();
     // now check each other node in c, to see if it matches the
@@ -417,7 +421,7 @@ class OPT_GlobalValueNumberState {
    */
   private void addDependentClassesToWorklist (OPT_GVCongruenceClass c) {
     // for each element of this congruence class:
-    for (java.util.Iterator elements = c.iterator(); elements.hasNext();) {
+    for (Iterator elements = c.iterator(); elements.hasNext();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)elements.next();
       // for each vertex which points to v in the value graph
       for (Enumeration e = v.inNodes(); e.hasMoreElements();) {
@@ -507,105 +511,4 @@ class OPT_GlobalValueNumberState {
   private static boolean isBornAtAllocation (Object label) {
     return  (label instanceof OPT_Instruction);
   }
-
-  /** 
-   * This class represents a congruence class for
-   * global value numbering.
-   */
-  class OPT_GVCongruenceClass {
-    /**
-     * A label representing a property of this congruence class.
-     */
-    Object label;
-    /**
-     * A value number representing this congruence class.
-     */
-    int valueNumber;
-    /**
-     * How many vertices in this congruence class represent parameters?
-     */
-    int nParameter;            
-    /**
-     * The set of vertices in this congruence class
-     */
-    java.util.HashSet vertices = new java.util.HashSet(1);
-
-    /**
-     * Create a congruence class with a given representative value number
-     * and label.
-     * @param     valueNumber the value number of the class
-     * @param     label the label of the class
-     */
-    OPT_GVCongruenceClass (int valueNumber, Object label) {
-      this.valueNumber = valueNumber;
-      this.label = label;
-    }
-
-    public Object getLabel () {
-      return  label;
-    }
-
-    public int getValueNumber () {
-      return  valueNumber;
-    }
-
-    /** 
-     * Do any of the vertices in this set represent a parameter? 
-     * <p> TODO: for efficiency, keep this information incrementally
-     * @return true or false
-     */
-    public boolean containsParameter () {
-      return  (nParameter > 0);
-    }
-
-    /** 
-     * Add a vertex to this congruence class.
-     * @param v the vertex to add
-     */
-    public void addVertex (OPT_ValueGraphVertex v) {
-      if (vertices.add(v)) {
-        if (v.representsParameter())
-          nParameter++;
-      }
-    }
-
-    /** 
-     * Remove a vertex from this congruence class.
-     * @param v the vertex to remove
-     */
-    public void removeVertex (OPT_ValueGraphVertex v) {
-      if (vertices.remove(v)) {
-        if (v.representsParameter())
-          nParameter--;
-      }
-      ;
-    }
-
-    /**
-     * Return a representative vertex for this congruence class.
-     * @return a representative vertex for this congruence class.
-     */
-    public OPT_ValueGraphVertex getRepresentative () {
-      return  (OPT_ValueGraphVertex)vertices.iterator().next();
-    }
-
-    /** 
-     * Return an iterator over the vertices in this congruence class
-     * @return an iterator over the vertices in this congruence class
-     */
-    public java.util.Iterator iterator () {
-      return  vertices.iterator();
-    }
-
-    /** 
-     * Return the number of vertices in this class
-     * @return the number of vertices in this class
-     */
-    public int size () {
-      return  vertices.size();
-    }
-  }
 }
-
-
-
