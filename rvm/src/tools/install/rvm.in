@@ -1,0 +1,22 @@
+#! /bin/bash
+# -*- coding: iso-8859-1 ; mode: shell-script ;-*-
+# (C) Copyright © IBM Corp. 2004
+#
+# $Id$
+#
+# This program will be macro-expanded and installed in as 
+# /usr/bin/rvm or /usr/local/bin/rvm or whatever @BIN_DIR@ expands to.
+#
+# @author Your Name Here
+# @date 23 April 2004
+[[ $RVM_ROOT ]] || export RVM_ROOT=@RVM_ROOT@
+[[ $RVM_BUILD ]] || export RVM_BUILD=@RVM_BUILD@
+cmd="$RVM_ROOT/rvm/bin/rvm"
+if [ "$0" = "$cmd" ]; then
+    echo >&2 "$0: I seem to be stuck in an infinite loop of invoking
+	myself.   Something is very wrong.  Aborting"
+    exit 113
+fi
+exec /bin/bash "$cmd" "$@"
+echo >&2 "$0: Failed to exec /bin/bash; serious trouble.  Aborting."
+exit 113

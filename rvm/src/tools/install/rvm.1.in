@@ -19,20 +19,42 @@
 ./
 ./ TODO: We need to use a macro-expansion process like that of 
 ./ GNU Configure so that we replace this with the proper version.
-.TH "COMMAND-NAME" "1" "April 2004" "Jikes RVM version 2.3.2+CVS" "User Commands"
+.TH "RVM" "1" "April 2004" "Jikes RVM version 2.3.2+CVS" "User Commands"
 .SH NAME
-command-name \- One-line description of command-name
+rvm \- execute Java programs on the Jikes RVM Virtual Machine
 
 .SH SYNOPSIS
 
-.B command-name
-[OPTIONS]
+.B rvm
+[OPTION] ClassName [ARGS...]
+
+.B rvm
+[OPTION] -jar jarfile [ARGS...]
 
 .SH DESCRIPTION
 
-This is a sample manual page for 
-.B command-name
-.
+With the 
+.B rvm 
+command you can run most Java programs.    
+Read the Jikes RVM User's 
+Guide to learn how to invoke it; look at the 
+.B "SEE ALSO"
+section below.
+
+
+.SH INTERNALS
+
+This version of the 
+.B rvm
+command is sensitive to whether or not the 
+.B RVM_BUILD
+and 
+.B RVM_ROOT
+command are set.  If RVM_BUILD is unset, it defaults to
+@RVM_BUILD@.  If RVM_ROOT is unset, it defaults to @RVM_ROOT@.
+Then we execute $RVM_ROOT/rvm/bin/rvm in place of this program, and
+matters proceed as they normally do.
+
 
 .SH "REPORTING BUGS"
 
@@ -43,10 +65,17 @@ bug tracking system is at
 
 
 .SH "SEE ALSO"
-.B http:://oss.software.ibm.com/jikesrvm
+.B http://oss.software.ibm.com/jikesrvm
 is the 
 .B "Jikes RVM"
 web site, including a complete user's manual.
-The user's manual is also included with the Jikes RVM distribution,
-and in a Jikes RVM installation will usually be found under
-/usr/share/doc/jikesrvm or at /usr/local/jikesrvm/doc.
+
+If the Jikes RVM user's manual is installed on the local machine,
+it will be in
+.B @USER_MANUAL@
+.
+
+Also see 
+.B @DOC_DIR@
+
+

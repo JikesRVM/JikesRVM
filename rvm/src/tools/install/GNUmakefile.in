@@ -1,0 +1,20 @@
+install:
+# RVM_ROOT
+	install -d @RVM_ROOT@/rvm/bin
+	cp ${RVM_ROOT}/rvm/bin/{sanity-envars.bash,rvm,runrvm} @RVM_ROOT@/rvm/bin
+# RVM_BUILD
+	install -d @RVM_BUILD@
+  # redirect jbuild.install's stdout to /dev/null; it's a bit too chatty
+	cd ${RVM_BUILD} && ./jbuild.install @RVM_BUILD@ > /dev/null
+# bin directory
+	./macro-expand.sh rvm.in @BIN_DIR@/rvm
+	chmod 555 @BIN_DIR@/rvm
+	./macro-expand.sh rvm.1.in @MAN_DIR@/man1/rvm.1
+	chmod 444 @MAN_DIR@/man1/rvm.1
+	install -d @DOC_DIR@
+	cp -a ${RVM_ROOT}/rvm/doc/userguide/HTML @DOC_DIR@
+	cp -a ${RVM_ROOT}/rvm/LICENSE @DOC_DIR@
+
+uninstall:
+	$(RM) @BIN_DIR@/rvm
+	$(RM) -r @RVM_ROOT@ @RVM_BUILD@ @DOC_DIR@ @MAN_DIR@/man1/rvm.1
