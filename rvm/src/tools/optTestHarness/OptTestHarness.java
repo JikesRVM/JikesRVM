@@ -169,7 +169,8 @@ class OptTestHarness {
     }
 
     s = s.replace('.','/');
-    return (VM_Class)cl.loadClass(s, true).getVMType();
+
+    return (VM_Class)java.lang.Class.forName(s, true, cl).getVMType();
   }
 
   static void printFormatString() {
@@ -408,7 +409,7 @@ class OptTestHarness {
 	   IllegalAccessException, 
 	   VM_ResolutionException {
 
-    cl = new VM_ApplicationClassLoader(VM_SystemClassLoader.getVMClassLoader());
+    cl = new ApplicationClassLoader(VM_ClassLoader.getApplicationRepositories());
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
     baselineMethodVector = new Vector(50);
