@@ -694,7 +694,6 @@ function emitSourceList
    # Add support for hardware performance monitors on PowerPC
    #
    if (( $RVM_WITH_HPM )); then
-      print $RVM_ROOT/rvm/src/tools/hardwarePerformanceMonitors
       print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
    fi
 
@@ -1809,6 +1808,10 @@ function emitImageLinker
           print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
+      if (( RVM_WITH_HPM )) ; then
+          print "   print 'Lcom/ibm/JikesRVM/HPM_counters;'       >> $PRIMORDIAL_CLASSES_STR"
+          print "   print 'Lcom/ibm/JikesRVM/HPM_info;'           >> $PRIMORDIAL_CLASSES_STR"
+      fi
    fi
 
    # For performance testing, a full opt base boot image should have all classes
@@ -2089,22 +2092,38 @@ function emitBooterLinker
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       if (( $RVM_WITH_HPM )); then
-        print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
- 		-DRVM_WITH_HPM=1 -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
-
-        print "\$BOOTER_CC -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o\
-                $ROOT_DIRECTORY_STR/rvm/src/tools/hardwarePerformanceMonitors/hpm.c"
+	print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
+	    \$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1\
+	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
+	
+	print 'print -n "(build libhpm.a library)"'
+        print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
+	    \$BOOTER_CC -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c"
         print "cd $SCRATCH_DIRECTORY_STR &&\
-                \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS\
-                hpm.o -L$RVM_HPM_DIR -lpmapi"
+                \$LDSHARED -o libhpm.a  hpm.o -L\"$RVM_HPM_DIR\" -lpmapi"
+
+        print "cd $SCRATCH_DIRECTORY_STR &&\
+	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS\
+	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"$SCRATCH_DIRECTORY_STR\" -lhpm"
+
+	print 'print -n "(build libJava2HPM.a JNI library)"'
+# name mangling by JikesRVM different than jdk.
+#	print "cd $CLASSES_DIRECTORY_STR &&\
+#		$HOST_JAVA_HOME/bin/javah -o $SCRATCH_DIRECTORY_STR/Java2HPM.h -jni\
+#		com/ibm/JikesRVM/Java2HPM"
+        print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
+  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
+ 		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.c"
+
+        print "cd $SCRATCH_DIRECTORY_STR &&\
+                \$LDSHARED -o libJava2HPM.a  Java2HPM.o\
+	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"$SCRATCH_DIRECTORY_STR\" -lhpm"
       else
-        print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
-        print "cd $SCRATCH_DIRECTORY_STR &&\
-		\$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS"
-
+	print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
+	    \$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
+	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
+	print "cd $SCRATCH_DIRECTORY_STR &&\
+	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS"
       fi
       print 'print -n "(booter linked)"'
 
