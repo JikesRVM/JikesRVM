@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -895,8 +895,8 @@ class OPT_GenerateMagic implements OPT_Operators,
    * <code>b</code>. String <code>b</code> is encoded as an ASCII byte
    * array.
    *
-   * @param a prefix atom
-   * @param b string which may contain prefix, encoded as an ASCII
+   * @param prefix  Prefix atom
+   * @param b       String which may contain prefix, encoded as an ASCII
    * byte array.
    * @return <code>true</code> if <code>a</code> is a prefix of
    * <code>b</code>
