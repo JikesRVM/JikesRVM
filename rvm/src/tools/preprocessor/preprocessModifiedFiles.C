@@ -20,78 +20,77 @@ Usage: %s [ --disable-modification-exit-status ] [--trace]\n\
 }
 
       
-const char long_help_msg[] = "\
-   Preprocess source files that are new or have changed.\n\
-\n\
-   The timestamp of each input file is compared with that of the corresponding\n\
-   file in the output directory. If the output file doesn't exist, or is older\n\
-   than the input file, then the input file is copied to the output directory,\n\
-   applying any preprocessor directives specified on the command line.\n\
-\n\
-   Invocation parameters:\n\
-      - zero or more preprocessor directives of the form \"-D<name>=1\", of the\n\
-          equivalent shorthand form \"-D<name>\", of the form \"-D<name>=0\",\n\
-	  and/or of the form \"-D<name>=<string-value>\".\n\
-      - name of directory to receive output files\n\
-      - names of zero or more input files\n\
-      - other flags
-\n\
-   Process exit status means:\n\
-           0 - no files changed\n\
-           1 - some files changed\n\
-       other - error\n\
-\n\
-\n\
-   -D<name>=0 is a no-op; equivalent to never defining <name>.\n\
-\n\
-   -D<name>=1 and -D<name> are equivalent.\n\
-\n\
-   -D<name>=<any-string-value-but-0-or-1> will define a constant that is\n\
-       usable in a //-#value dirctive.\n\
-\n\
-    -trace  tells the program to print a '.' for each file that did not
-	    need to be changed and a '+' for each file that needed
-	     preprocessing again.
-
-    -verbose directs the program to print a message for each file examined, 
-	     and to print a summary at the end
-
-   The following preprocessor directives are recognized in source files.  They\n\
-   must be the first non-whitespace characters on a line of input.\n\
-\n\
-      //-#if    <name>\n\
-	    It is not an error for <name> to be undefined.  Only checks\n\
-	    whether <name> is defined.\n\
-
-	    \"//-#if\" also supports the constructs '!' (invert the sense of
-	     the next test), '&&', and '||'.  However, it has no notion of
-	     precedence
-\n\
-      //-#elif  <name>\n\
-            Takes the same arguments that //-#if does.
-\n\
-      //-#else  <optional-comment>\n\
-\n\
-      //-#endif <optional-comment>\n\
-\n\
-      //-#value <preprocessor-symbol>\n\
-	    <-preprocessor-symbol> is the name of a constant defined on the\n\
-	    command line with -D; it will be replaced with the defined value.\n\
-\n\
-	    It is an error for <preprocessor-symbol> not to be defined.\n\
-\n\
-	    It is an error for <preprocessor-symbol> to have been defined with\n\
-	    -D<name>=1 or with -D<name>\n\
-\n\
-	(This is an odd restriction, but is the way the code was written\n\
-         when I found it.  You're free to rewrite it if you want it to act\n\
-         just like the C preprocessor does.)\n\
-\n\
-   @author Derek Lieber\n\
-   @date 13 Oct 1999\n\
-   @modified Steven Augart\n\
-   @date June, 2003\n\
-";
+const char long_help_msg[] = ""
+"   Preprocess source files that are new or have changed.\n"
+"\n"
+"   The timestamp of each input file is compared with that of the corresponding\n"
+"   file in the output directory. If the output file doesn't exist, or is older\n"
+"   than the input file, then the input file is copied to the output directory,\n"
+"   applying any preprocessor directives specified on the command line.\n"
+"\n"
+"   Invocation parameters:\n"
+"      - zero or more preprocessor directives of the form \"-D<name>=1\", of the\n"
+"          equivalent shorthand form \"-D<name>\", of the form \"-D<name>=0\",\n"
+"	  and/or of the form \"-D<name>=<string-value>\".\n"
+"      - name of directory to receive output files\n"
+"      - names of zero or more input files\n"
+"      - other flags\n"
+"\n"
+"   Process exit status means:\n"
+"           0 - no files changed\n"
+"           1 - some files changed\n"
+"       other - error\n"
+"\n"
+"\n"
+"   -D<name>=0 is a no-op; equivalent to never defining <name>.\n"
+"\n"
+"   -D<name>=1 and -D<name> are equivalent.\n"
+"\n"
+"   -D<name>=<any-string-value-but-0-or-1> will define a constant that is\n"
+"       usable in a //-#value dirctive.\n"
+"\n"
+"    -trace  tells the program to print a '.' for each file that did not\n"
+"	    need to be changed and a '+' for each file that needed\n"
+"	     preprocessing again.\n"
+"\n"
+"    -verbose directs the program to print a message for each file examined, \n"
+"	     and to print a summary at the end \n"
+"\n"
+"   The following preprocessor directives are recognized in source files.  They\n"
+"   must be the first non-whitespace characters on a line of input.\n"
+"\n"
+"      //-#if    <name>\n"
+"	    It is not an error for <name> to be undefined.  Only checks\n"
+"	    whether <name> is defined.\n"
+"\n"
+"	    \"//-#if\" also supports the constructs '!' (invert the sense of \n"
+"	     the next test), '&&', and '||'.  However, it has no notion of \n"
+"	     precedence \n"
+"\n"
+"      //-#elif  <name>\n"
+"            Takes the same arguments that //-#if does. \n"
+"\n"
+"      //-#else  <optional-comment>\n"
+"\n"
+"      //-#endif <optional-comment>\n"
+"\n"
+"      //-#value <preprocessor-symbol>\n"
+"	    <-preprocessor-symbol> is the name of a constant defined on the\n"
+"	    command line with -D; it will be replaced with the defined value.\n"
+"\n"
+"	    It is an error for <preprocessor-symbol> not to be defined.\n"
+"\n"
+"	    It is an error for <preprocessor-symbol> to have been defined with\n"
+"	    -D<name>=1 or with -D<name>\n"
+"\n"
+"	(This is an odd restriction, but is the way the code was written\n"
+"         when I found it.  You're free to rewrite it if you want it to act\n"
+"         just like the C preprocessor does.)\n"
+"\n"
+"   @author Derek Lieber\n"
+"   @date 13 Oct 1999\n"
+"   @modified Steven Augart\n"
+"   @date June, 2003\n";
 
 #include <errno.h>
 #include <string.h>     /* strcmp */
@@ -168,9 +167,12 @@ enum scan_token scan(const char *srcFile, char *line, int *value);
 // #ifdef __GNUC__
 // #define UNUSED __attribute__((unused)) 
 //#endif // __GNUC__
+// #define UNUSED_DEF_ARG __attribute__((unused))
+// // :#define UNUSED_DECL_ARG __attribute__((unused))
 #define UNUSED_DEF_ARG
-#define UNUSED_DECL_ARG __attribute__((unused))
+#define UNUSED_DECL_ARG
 //static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG);
+static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG) __attribute__((signal));
 
 
 // Values of tokens returned by scan() for IF and ELIF.
@@ -196,10 +198,13 @@ streql(const char *s, const char *t)
 
 
 /* snprintf(), but with our own built-in error checks. */
+// void xsnprintf(char *buf, size_t bufsize, const char *format, ...) __attribute__((format));
 void xsnprintf(char *buf, size_t bufsize, const char *format, ...);
+
 void xsystem(const char *command);
 
 const char *DeleteOnTrouble = NULL; // delete this file on trouble.
+
 static void 
 delete_on_trouble(int dummy_status UNUSED_DEF_ARG, void *dummy_arg UNUSED_DEF_ARG)
 {
@@ -502,8 +507,9 @@ preprocess(const char *srcFile, const char *dstFile)
 		// need to close files.
 		return Trouble;
 	    } else {
-		fprintf(stderr, "%s: Internal error: fgets() returned NULL, but neither feof() nor ferror() are true!\n\
-Aborting execution.\n", Me);
+		fprintf(stderr, "%s: Internal error: fgets() returned NULL, but"
+			" neither feof() nor ferror() are true!\n"
+			"%s: Aborting execution.\n", Me, Me);
 		exit(13);
 	    }
 	}
