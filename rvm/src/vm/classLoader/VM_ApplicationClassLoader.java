@@ -1,3 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ * @date May 20, 2002
+ */
+
 import java.security.ProtectionDomain;
 import com.ibm.oti.vm.AppClassLoader;
 import java.io.ByteArrayOutputStream;

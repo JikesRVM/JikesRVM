@@ -1,3 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ * @date May 20, 2002
+ */
+
 import java.io.*;
 
 public class VM_Process extends java.lang.Process {

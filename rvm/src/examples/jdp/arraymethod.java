@@ -1,3 +1,15 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+/**
+ * Minimal regression test of jdp
+ *
+ * @author Janice Shepherd
+ * @date April 15, 2002
+ */
+
 class arraymethod {
   static double[] f(double[] xx) {
     double fx[] = new double[xx.length];

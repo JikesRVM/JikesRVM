@@ -1,3 +1,14 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+/*****************************************************************
+ * JNI interface to manage processes.
+ *
+ * @author Julian Dolby
+ * @date May 20, 2002
+ */
+
 // Unix includes
 #include <sys/types.h>
 #include <sys/wait.h>
