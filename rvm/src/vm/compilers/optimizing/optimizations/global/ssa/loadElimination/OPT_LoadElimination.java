@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import  java.util.*;
 import instructionFormats.*;
+import OPT_IndexPropagation.*;
 
 /**
  * This class implements the redundant load elimination by
@@ -144,7 +145,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
           // for getStatic, always use the value number 0
           valueNumber = 0;
         }
-        OPT_IPObjectCell cell = (OPT_IPObjectCell)available.lookup(
+        ObjectCell cell = (ObjectCell)available.lookup(
                                                                    H[0].getHeapVariable());
         if (cell == null)
           continue;           // nothing available
@@ -162,7 +163,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       else {                  // ALoad.conforms(s)
         Object array = ALoad.getArray(s);
         Object index = ALoad.getIndex(s);
-        OPT_IPArrayCell cell = (OPT_IPArrayCell)available.lookup(
+        ArrayCell cell = (ArrayCell)available.lookup(
                                                                  H[0].getHeapVariable());
         if (cell == null)
           continue;           // nothing available
