@@ -16,16 +16,13 @@ CVS_SLEEP_ATTEMPTS=5
 ##
 ## read local config
 ##
-
 . $RVM_HOST_CONFIG
-
 
 ##
 ## defaults
 ##
-export FULL=0
 export CHECK=0
-export DEST_DIR=$RVM_ROOT/support/classpathBuildDir
+export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=`uname -v`
 
 if [ `uname` = Linux ]; then
@@ -46,13 +43,8 @@ fi
 ##
 ## process arguments
 ##
-
 while [[ $# > 0 ]] ; do
   case $1 in
-
-    --current) 
-	CLASSPATH_CVS_DATESPEC_ARG=;;
-
     --datespec) 
 	CLASSPATH_CVS_DATESPEC_ARG="$2"
 	shift ;;
@@ -61,16 +53,12 @@ while [[ $# > 0 ]] ; do
 	CLASSPATH_CVS_ROOT=$2
 	shift ;;
 
-    --full-build)
-        FULL=1 ;;
-
     --destination)
         DEST_DIR=$2
 	shift ;;
 
     --check)
         CHECK=1 ;;
-
   esac	
   shift
 done
@@ -96,16 +84,10 @@ fi
 ## check if requested
 ##
 if [[ $CHECK = 1 ]]; then
-  if [[ $FULL = 1 ]]; then
-    if [[ -e $DEST_DIR/classpath/config.guess ]]; then
-      system_type=`$DEST_DIR/classpath/config.guess`  
-      if [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
-       exit 0
-      fi
-    fi
-  else
-    if [[ -e $RVM_ROOT/support/lib/classpathsrc.jar ]]; then
-      exit 0
+  if [[ -e $DEST_DIR/classpath/config.guess ]]; then
+    system_type=`$DEST_DIR/classpath/config.guess`  
+    if [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
+     exit 0
     fi
   fi
 fi
@@ -153,88 +135,43 @@ else
   cd $DEST_DIR
 fi
 
-if [[ $FULL = 1 ]]; then
-  ##
-  ## this branch configures and builds the classpath libraries normally
-  ##
+# stuff checked out into this dir
+cd classpath
 
-  # stuff checked out into this dir
-  cd classpath
-
-  # setup directory for building if needed
-  if [[ ! -e $DEST_DIR/classpath/configure ]]; then
-    echo "Setting up source tree"
-    if [[ $RVM_FOR_IA32 = 1 ]]; then
-      aclocal
-    else
-      aclocal -I $RVM_ROOT/rvm/config/m4
-    fi
-    autoheader
-    automake
-    autoconf
+# setup directory for building if needed
+if [[ ! -e $DEST_DIR/classpath/configure ]]; then
+  echo "Setting up source tree"
+  if [[ $RVM_FOR_IA32 = 1 ]]; then
+    aclocal
+  else
+    aclocal -I $RVM_ROOT/rvm/config/m4
   fi
-
-  # configure and build library
-  system_type=`$DEST_DIR/classpath/config.guess`  
-  if [[ ! -e $DEST_DIR/$system_type/lib/glib.zip ]]; then
-    mkdir $DEST_DIR/$system_type
-    echo "Configuring for $system_type"
-    cd $DEST_DIR/$system_type
-    if [[ $RVM_FOR_IA32 = 1 ]]; then
-      ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
-    else
-      FIND=$FIND ZIP=$ZIP_CMD ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
-    fi   
-    echo "Building the library"
-    $GNU_MAKE
-  fi
-
-  # build classpath source jar
-  echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
-  rm -f $RVM_ROOT/support/lib/classpathsrc.jar
-  mkdir -p $RVM_ROOT/support/lib
-  touch $RVM_ROOT/support/lib/classpathsrc.jar
-  cd $DEST_DIR/classpath
-  for p in $TOP_LEVEL_PACKAGES; do
-    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
-  done
-
-else
-  ##
-  ## this branch builds the classpath jar file needed for the mixed setups
-  ##
-
-  # fix gnu.classpath.Configuration
-  cd classpath
-  $SED s/@LIBDEBUG@/false/g gnu/classpath/Configuration.java.in |
-  $SED s/@INIT_LOAD_LIBRARY@/true/g - > gnu/classpath/Configuration.java
-
-  #
-  # compile .java files
-  #
-  echo "Compiling the .java files"
-  cd lib
-  for p in $TOP_LEVEL_PACKAGES; do
-    $FIND ../$p -name '*.java' | $GREP -v -f standard.omit | $XARGS $JIKES -classpath ..:../vm/reference
-  done
-
-  #
-  # build classpath.jar
-  #
-  echo "Building $RVM_ROOT/support/lib/classpath.jar"
-  cd ..
-  rm -f $RVM_ROOT/support/lib/classpath.jar
-  touch $RVM_ROOT/support/lib/classpath.jar
-  $FIND . -name '*.class' | $GREP -v vm/reference/java/ | $GREP -v java/util/A | $GREP -v java/util/H | $GREP -v java/util/R | $GREP -v java/util/T | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar
-
-  #
-  # build classpath source jar
-  #
-  echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
-  rm -f $RVM_ROOT/support/lib/classpathsrc.jar
-  touch $RVM_ROOT/support/lib/classpathsrc.jar
-  for p in $TOP_LEVEL_PACKAGES; do
-    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
-  done
-
+  autoheader
+  automake
+  autoconf
 fi
+
+# configure and build library
+system_type=`$DEST_DIR/classpath/config.guess`  
+if [[ ! -e $DEST_DIR/$system_type/lib/glib.zip ]]; then
+  mkdir $DEST_DIR/$system_type
+  echo "Configuring for $system_type"
+  cd $DEST_DIR/$system_type
+  if [[ $RVM_FOR_IA32 = 1 ]]; then
+    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
+  else
+    FIND=$FIND ZIP=$ZIP_CMD ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
+  fi   
+  echo "Building the library"
+  $GNU_MAKE
+fi
+
+# build classpath source jar
+echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
+rm -f $RVM_ROOT/support/lib/classpathsrc.jar
+mkdir -p $RVM_ROOT/support/lib
+touch $RVM_ROOT/support/lib/classpathsrc.jar
+cd $DEST_DIR/classpath
+for p in $TOP_LEVEL_PACKAGES; do
+  $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
+done

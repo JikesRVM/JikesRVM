@@ -342,9 +342,6 @@ integer RVM_WITH_NOFLUSH=0	 # omit sync/isync in all cases
 # controls for diagnostic flags
 integer RVM_FOR_STRESSGC=0
 
-# Are we building the library source?
-integer BUILD_RVMRT_JAR=0
-
 # using on stack replacement 
 integer RVM_WITH_OSR=0
 
@@ -925,11 +922,7 @@ function emitController
    print 'fi'
    print ''
    print '# Ensure that we have the right version of the class libraries'
-   if [[ x$CLASSPATH_ROOT = x ]]; then
-     print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
-   else
-     print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
-   fi
+   print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --check'
    print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
@@ -1859,11 +1852,7 @@ function emitBooterLinker
    print ""
 
    if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
-     if [[ x$CLASSPATH_ROOT = x ]]; then
-       print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
-     else
-       print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
-     fi
+     print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --check'
    fi
 
    # copy native libraries
@@ -2133,11 +2122,7 @@ function emitToolCompiler
    print 'fi'
 
    print 'set -x'
-   if (( BUILD_RVMRT_JAR )); then 
-     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
-   else
-     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
-   fi
+   print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    }
   
 function emitPluginBuilder
