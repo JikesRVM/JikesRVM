@@ -73,12 +73,12 @@ static const char* nonStandardUsage[] = {
    "    -X                       print usage on nonstandard options", 
    "    -X:verbose               print out additional lowlevel information",
    "    -X:verboseBoot=<number>  print out messages while booting VM",
-   "    -Xms<number>[unit]      initial size of heap (default unit: MiB)",
-   "    -Xmx<number>[unit]      maximum size of heap (default unit: MiB)",
+   "    -Xms<number><unit>      initial size of heap,"
+   "    -Xmx<number><unit>      maximum size of heap,"
 #ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-   "    -Xss<number>[unit]      initial Java thread stack size (default unit: KiB)",
-   "    -Xsg<number>[unit]      Java thread stack growth increment (default unit: KiB)",
-   "    -Xsx<number>[unit]      maximum Java thread stack size (default unit: KiB)",
+   "    -Xss<number><unit>      initial Java thread stack size,"
+   "    -Xsg<number><unit>      Java thread stack growth increment,"
+   "    -Xsx<number><unit>      maximum Java thread stack size",
 #endif
    "    -X:sysLogfile=<filename> write standard error message to <filename>",
    "    -X:i=<filename>          read boot image from <filename>",
