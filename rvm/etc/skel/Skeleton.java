@@ -1,6 +1,6 @@
 /* -*-coding: iso-8859-1 -*-
  *
- * (C) Copyright © IBM Corp 2003
+ * Copyright © IBM Corp 2003
  *
  * $Id$
  */
