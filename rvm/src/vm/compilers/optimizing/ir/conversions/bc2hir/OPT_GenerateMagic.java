@@ -27,7 +27,7 @@ class OPT_GenerateMagic implements OPT_Operators,
   /**
    * "Semantic inlining" of methods of the VM_Magic class.
    * Based on the methodName, generate a sequence of opt instructions
-   * that implement the magic, updating the expression stack as neccessary.
+   * that implement the magic, updating the expression stack as necessary.
    *
    * @param bc2ir the bc2ir object that is generating the 
    *              ir containing this magic

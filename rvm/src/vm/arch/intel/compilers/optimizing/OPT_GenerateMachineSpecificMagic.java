@@ -21,7 +21,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
   /**
    * "Semantic inlining" of methods of the VM_Magic class.
    * Based on the methodName, generate a sequence of opt instructions
-   * that implement the magic, updating the stack as neccessary
+   * that implement the magic, updating the stack as necessary
    *
    * @param bc2ir the bc2ir object generating the ir containing this magic
    * @param gc == bc2ir.gc
