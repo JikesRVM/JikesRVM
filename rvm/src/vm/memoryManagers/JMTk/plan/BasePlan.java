@@ -649,6 +649,26 @@ public abstract class BasePlan
    */
 
   /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions prior to the commencement of a
+   * benchmark, such as a full heap collection, turning on
+   * instrumentation, etc.  By default do nothing.  Subclasses may
+   * override.
+   */
+  public static void harnessBegin() {
+  }
+
+  /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions after the completion of a
+   * benchmark, such as a full heap collection, turning off
+   * instrumentation, etc.  By default do nothing.  Subclasses may
+   * override.
+   */
+  public static void harnessEnd() {
+  }
+
+  /**
    * This method should be called whenever an error is encountered.
    *
    * @param str A string describing the error condition.

@@ -771,6 +771,26 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   */
 
   /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions prior to the commencement of a
+   * benchmark, such as a full heap collection, turning on
+   * instrumentation, etc.
+   */
+  public static void harnessBegin() {
+    Plan.harnessBegin();
+  }
+
+  /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions after the completion of a
+   * benchmark, such as a full heap collection, turning off
+   * instrumentation, etc.
+   */
+  public static void harnessEnd() {
+    Plan.harnessEnd();
+  }
+
+  /**
    * Check if object might be a TIB.
    *
    * @param obj address of object to check
