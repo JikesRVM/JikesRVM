@@ -1,12 +1,10 @@
  As of version 2.2.1, Jikes\JikesTMFootnote\ RVM has adopted the
 \xlink{GNU Classpath}{http://www.classpath.org} libraries.  GNU
 Classpath is an ongoing project working towards a complete set of
-Java\JavaTMFootnote\ libraries. 
-The GNU Classpath web site includes
-rough guides as to what portions of
-the libraries exist. 
-Jikes RVM runs with unmodified versions of GNU Classpath straight from its
-ftp site, and the Jikes RVM configuration process can check out
+Java\JavaTMFootnote\ libraries.  The GNU Classpath web site includes
+rough guides as to what portions of the libraries exist.  Jikes RVM
+runs with unmodified versions of GNU Classpath straight from its ftp
+site, and the Jikes RVM configuration process can check out
 appropriate versions of the library as needed.  Thus, the integration
 can be seamless from a user's perspective.
 
@@ -40,24 +38,11 @@ the easiest way to use GNU Classpath with Jikes RVM if you can do it.
 This won't work on default (non-full) Red Hat 7.3 and 8.0 images
 as the GNU classpath {\tt automake}/{\tt autoconf} step will fail.
 
-\item[Hybrid OTI-GNU Classpath] This is what was standard in
-the last release: a few core packages come from our old OTI-derived
-libraries and the rest is from GNU Classpath.  To use these libraries
-henceforth, you must give the RVM\_WITH\_GNU\_CLASSPATH=0 option to
-jconfigure.  This configuration is significantly less functional than
-the GNU Classpath-only version, and is provided in this release for
-migration purposes only.  {\em This configuration is deprecated and
-will be deleted in the future; you are STRONGLY DISCOURAGED from using
-it for ANY purpose save that of migrating code that currently depends
-upon it.}
 \end{description}
 
  Some library classes require special VM support.  This is provided by
 {\tt com.ibm.JikesRVM.librarySupport} and the classes found in
-{\tt rvm/src/vm/OTILibrarySupport} and {\tt
-rvm/src/vm/GNUClasspathSupport}.  With the impending demise of the
-hybrid-OTI libraries, we anticipate that this code will be
-restructured in a forthcoming release.
+{\tt rvm/src/vm/GNUClasspathSupport}. 
 
 \JavaTMFooter
 \JikesTMFooter
