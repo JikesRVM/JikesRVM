@@ -108,7 +108,19 @@ sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
 		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
 		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
-		"-Dos.arch=$(uname -m)" )
+		"-Dos.arch=\"$(uname -m)\""				\
+ )
+
+## This implementation is dependent upon subsequent uses of -cp and -classpath
+## overriding previous uses.  This allows us to maintain the semantics that
+## the CLASSPATH envar is overridden by any user-specified arguments.
+declare -a classpath_args
+
+if [[ ${CLASSPATH-UNSET} = UNSET ]]; then
+    classpath_arg=();
+else
+    classpath_arg=('-classpath' "${CLASSPATH}");
+fi
 
 # Now execute the VM
 prog="$rvm_build/JikesRVM"
@@ -117,7 +129,7 @@ prog="$rvm_build/JikesRVM"
 
 argf="$RVM_BUILD/gdb.commandlineArgs"
 echo -n "set args" > "$argf"
-for arg in "${sys_args[@]}" "${user_args[@]}"; do
+for arg in "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"; do
     echo -n " \"$arg\"" 
 done >> "$argf"
 echo "" >> "$argf"
