@@ -64,9 +64,9 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
-# sources for GNU Classpath 0.07 (current stable version of Classpath)
+# sources for GNU Classpath 0.08 (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
-# export CLASSPATH_ROOT=/opt/classpath-0.07
+# export CLASSPATH_ROOT=/opt/classpath-0.08
 
 # Path for GNU make
 export GNU_MAKE="/usr/bin/make"
