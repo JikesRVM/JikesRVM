@@ -191,7 +191,7 @@ class TraceFileReader
           System.out.println("***find_start_record_number() Specified application \""+options.application+
                              "\" on command line; however, no trace record found for startApplication!***");
           System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-          System.exit(-1);
+          System.exit(1);
         }
         if(debug>=1)System.out.println("First trace record for application \""+options.application+
                                          "\": "+Start+".");
@@ -200,13 +200,13 @@ class TraceFileReader
         int[] start_map = (int[])startApplicationRunMap.get(options.application);
         if (start_map == null) {
           System.out.println("***Start Run Map for \""+options.application+"\" is null!***");
-          System.exit(-1);
+          System.exit(1);
         } 
         if (options.run >= start_map.length) {
           System.out.println("***Specified a run \""+options.run+"\" for application "+
                              options.application+" that was never recorded!  -run must be specfied less than "+start_map.length+".***");
           System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-          System.exit(-1);
+          System.exit(1);
         }
         if(debug>=1)System.out.println("First trace record for run "+options.run+" of application "+
                                        options.application+": "+start_map[options.run]+".");
@@ -230,7 +230,7 @@ class TraceFileReader
           System.out.println("***find_complete_record_number() Specified application "+options.application+
                              " on command line; however, no trace record found for its completion!***");
           System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-          System.exit(-1);
+          System.exit(1);
         }
         if(debug>=1)System.out.println("Last trace record for application "+options.application+
                                          ": "+Complete+".");
@@ -239,13 +239,13 @@ class TraceFileReader
         int[] complete_map = (int[])completeApplicationRunMap.get(options.application);
         if (complete_map == null) {
           System.out.println("***Complete Run Map for \""+options.application+"\" is null!***");
-          System.exit(-1);
+          System.exit(1);
         } 
         if (options.run >= complete_map.length) {
           System.out.println("***Specified a run "+options.run+" for application "+
                              options.application+" that was never recorded!  -run must be specfied less than "+complete_map.length+".***");
           System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-          System.exit(-1);
+          System.exit(1);
         }
         if(debug>=1)System.out.println("Last trace record for run "+options.run+" of application "+
                                        options.application+": "+complete_map[options.run]+".");
@@ -269,7 +269,7 @@ class TraceFileReader
     if(options.debug>=2)System.out.println(" reads "+local_version);
     if (version != local_version) {
       System.out.println("***"+trace_filename+"'s version "+local_version+" != "+version+"!***");
-      System.exit(-1);
+      System.exit(1);
     }
   }
   /*
@@ -294,7 +294,7 @@ class TraceFileReader
     } else if (header_filename.compareTo(local_header_filename) != 0) {
       System.out.println("***"+trace_filename+"'s header filename \""+
                          local_header_filename+"\" != \""+header_filename+"\"!***");
-      System.exit(-1);
+      System.exit(1);
     }
   }
    
@@ -509,7 +509,7 @@ class TraceFileReader
         } else { // check that all vpid in a trace file are the same!
           if (trace_file_vpid != tcr.vpid) {
             System.out.println("***readTraceRecord: trace_file_vpid "+trace_file_vpid+" != record vpid "+tcr.vpid+"!***");
-            System.exit(-1);
+            System.exit(1);
           }
         }
         tr = tcr;
@@ -561,7 +561,7 @@ class TraceFileReader
           System.out.print(" "+value);
         }
         System.out.println("***");
-        //      System.exit(-1);
+        //      System.exit(1);
       }
 
     } catch (EOFException e) {
@@ -569,7 +569,7 @@ class TraceFileReader
       return null;
     } catch (IOException e) {
       System.out.println("*** IO Exception in readTraceRecord!***");
-      System.exit(-1);
+      System.exit(1);
     }
 
     return tr;
@@ -648,7 +648,7 @@ class TraceFileReader
         completeApplicationRunMap.put(  tcarr.app_name, map);
       } else {
         System.out.println("***TraceFileReader.build_structure() unknown trace record format!***");
-        //      System.exit(-1);
+        //      System.exit(1);
       }
     } // end for
   }
@@ -735,7 +735,7 @@ class TraceFileReader
         TraceCounterRecord tcr = (TraceCounterRecord)tid_trs.get(TID);
         if (tcr == null) {
           System.out.println("***tid_trs.get("+TID+") == null!***");
-          System.exit(-1);
+          System.exit(1);
         }
         int tid = TID.intValue();
         if(options.debug>=1)System.out.println("TraceFileReader.aggregate() tid "+tid);

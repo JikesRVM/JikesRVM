@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:&
+//$Id$
 
 /**
  * Collection of useful utilities.
@@ -83,10 +83,10 @@ public class Utilities
       input_file = new DataInputStream(new FileInputStream(trace_filename));
     } catch (FileNotFoundException e) {
       System.out.println("***Utilities.openDataInputStream("+trace_filename+"): FileNotFound exception!***");
-      System.exit(-1);
+      System.exit(1);
     } catch (SecurityException e) {
       System.out.println("***Utilities.openDataInputStream("+trace_filename+"): Security exception!***");
-      System.exit(-1);
+      System.exit(1);
     }
     return input_file;
   }
@@ -108,7 +108,7 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.readInt() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     if(debug>=5) {System.out.print("Utilities.readInt("+b[0]+" "+b[1]+" "+b[2]+" "+b[3]+") ");}
     if (TraceHeader.isLittleEndian()) {
@@ -147,7 +147,7 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.getLongFromDataInputStream() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
 
     if(debug>=4) {System.out.print("Utilities.getLongFromDataInputStream("+
@@ -202,7 +202,7 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.getStringFromDataInputStream() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     
     String string = new String(b_array);
@@ -242,7 +242,7 @@ public class Utilities
       System.err.println("***Utilities.growIntArray() called with array.length "+array.length+
                          " >= length "+newLength+"!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     int[] newarray = new int[newLength];
     for (int i = 0, n = array.length; i < n; ++i)
