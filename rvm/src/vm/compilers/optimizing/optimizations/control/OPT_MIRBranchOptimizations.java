@@ -91,8 +91,8 @@ public final class OPT_MIRBranchOptimizations
     if (MIR_Branch.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
-      if (top.similar(MIR_Branch.getTarget(g))) {
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
 	// Avoid an infinite recursion in the following bizarre scenario:
 	// g: goto L
 	// ...
@@ -100,6 +100,7 @@ public final class OPT_MIRBranchOptimizations
 	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
 	return false;
       }
+      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
       MIR_Branch.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
@@ -171,6 +172,15 @@ public final class OPT_MIRBranchOptimizations
     if (MIR_Branch.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
+	// Avoid an infinite recursion in the following scenario:
+	// g: if (...) goto L
+	// ...
+	// L: goto L
+	// This happens in VM_GCUtil in some systems due to a while(true) {} 
+	return false;
+      }
       MIR_CondBranch.setTarget(cb, MIR_Branch.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
