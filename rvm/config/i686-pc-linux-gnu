@@ -36,7 +36,7 @@ export RVM_FOR_LINUX=1
 #       GNU/Linux with a 2.4 or 2.2 kernel.  Debian with a 2.6 kernel will 
 #	work, but it won't work with a 2.4 or 2.2 kernel.
 #
-[[ $RVM_FOR_SINGLE_VIRTUAL_PROCESSOR ]] || export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 ## Use this for Debian GNU/Linux with a Linux 2.4 kernel, 
 ## and for any Linux 2.2 kernel:
 # export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
