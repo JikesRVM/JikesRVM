@@ -20,6 +20,20 @@ ME="${0##*/}"
 # Bash internal shorthand that works like the "dirname" command.
 mydir="${0%/*}"			# temporary; directory we were run from
 
+function croak_nonusage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
+    trap '' EXIT
+    exit 1
+}
+
+
 if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
@@ -37,10 +51,17 @@ sanity_env="${bin_dir}/sanity-envars.bash"
 checkenv HOME
 # Place where source files reside.
 checkenv RVM_ROOT
-bin_dir="${RVM_ROOT}/rvm/bin";
-# Place where RVM bootimage, booter, and runtime support files will be placed.
-checkenv RVM_BUILD
+[[ -e $RVM_ROOT ]] || croak_nonusage "The directory RVM_ROOT ($RVM_ROOT) does not exist.  Something is wrong; check your RVM_ROOT environment variable."
+[[ -d $RVM_ROOT/. ]] || croak_nonusage "RVM_ROOT ($RVM_ROOT) exists, but is not a directory or a symbolic link to a directory.  Something is wrong; check your RVM_ROOT environment variable."
 
+bin_dir="${RVM_ROOT}/rvm/bin";
+[[ -d $RVM_ROOT/rvm/bin/. ]] || croak_nonusage "Can't find the directory RVM_ROOT/rvm/bin ($RVM_ROOT/rvm/bin/.).  Something is wrong; check your RVM_ROOT environment variable."
+# Place where RVM bootimage, booter, and runtime support files were placed.
+checkenv RVM_BUILD
+[[ -e $RVM_BUILD ]] || croak_nonusage "The directory RVM_BUILD ($RVM_BUILD) does not exist.  Something is wrong; check your RVM_BUILD environment variable."
+[[ -d $RVM_BUILD/. ]] || croak_nonusage "RVM_BUILD ($RVM_BUILD) exists, but is not a directory or a symbolic link to a directory.  Something is wrong; check your RVM_BUILD environment variable."
+
+[[ -f ${bin_dir}/runrvm ]] || croak_nonusage "Can't find the program $bin_dir/runrvm.  Are you sure your RVM_ROOT variable is set correctly?"
 # Pass these along as parameters to runrvm.
 #. "${mydir}/runrvm" "$HOME" "$RVM_ROOT" "$RVM_BUILD" "$@"
 . "${bin_dir}/runrvm" "$HOME" "$RVM_ROOT" "$RVM_BUILD" "$@"
