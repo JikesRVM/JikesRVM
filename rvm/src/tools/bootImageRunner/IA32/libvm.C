@@ -36,6 +36,9 @@
 #endif
 #include <assert.h>
 
+#define __STDC_FORMAT_MACROS	// include PRIxPTR
+#include <inttypes.h>		// PRIxPTR, uintptr_t
+
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 /* OK, here's the scoop with pthreads.  The GNU C library will provide us with
  * the pthread_mutex_lock and pthread_mutex_unlock implementations, WITHOUT
@@ -513,10 +516,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      * stack to avoid bashing stuff in the bottom opt-frame. 
      */
     sp = (long unsigned int *) gregs[REG_ESP];
-    unsigned stackLimit
+    uintptr_t stackLimit
 	= *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
-    if ((long unsigned)sp <= stackLimit - 384) {
-	writeErr("sp too far below stackLimit to recover\n");
+    if ((uintptr_t) sp <= stackLimit - 384) {
+	writeErr("sp (0x%08" PRIxPTR ")too far below stackLimit (0x%08" PRIxPTR ")to recover\n", (uintptr_t) sp, stackLimit);
 	exit (2);
     }
     sp = (long unsigned int *)stackLimit - 384;
