@@ -87,13 +87,11 @@ public class OPT_Bits {
   /**
    * Return the number of ones in the binary representation of an integer.
    */
-  static int numberOfOnes(int value) {
+  static int populationCount(int value) {
     int result = 0;
     while (value != 0) {
-      if ((value & 0x1) != 0) {
-	result++;
-      }
-      value = value >>> 1;
+      result++;
+      value &= (value-1); // clear lsb 1 bit
     }
     return result;
   }
