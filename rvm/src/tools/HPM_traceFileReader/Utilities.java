@@ -29,6 +29,7 @@ public class Utilities
    * Add commas to a long.
    */
   static public String format_long(long counter) {
+    /*PFS debug*/ System.out.println("format_long("+counter+")");
     String value = new Long(counter).toString();
     int length = value.length();
     if (length <= 3) 
@@ -109,23 +110,23 @@ public class Utilities
       new Exception().printStackTrace();
       System.exit(-1);
     }
-    if(debug>=2) {System.out.print("Utilities.readInt("+b[0]+" "+b[1]+" "+b[2]+" "+b[3]+") ");}
+    if(debug>=5) {System.out.print("Utilities.readInt("+b[0]+" "+b[1]+" "+b[2]+" "+b[3]+") ");}
     if (TraceHeader.isLittleEndian()) {
       value = 
 	(((int)(b[3] << 24)) & 0xFF000000) + 
 	(((int)(b[2] << 16)) & 0x00FF0000) + 
 	(((int)(b[1] <<  8)) & 0x0000FF00) + 
 	(((int)(b[0]      )) & 0x000000FF);
-      if(debug>=2){System.out.print(value+" little-endian\n");}
+      if(debug>=5){System.out.print(value+" little-endian\n");}
     } else {
       value = 
 	(((int)(b[0] << 24)) & 0xFF000000) + 
 	(((int)(b[1] << 16)) & 0x00FF0000) + 
 	(((int)(b[2] <<  8)) & 0x0000FF00) + 
 	(((int)(b[3]      )) & 0x000000FF);
-      if(debug>=2) {System.out.print(value+" big-endian (default)");}
+      if(debug>=5) {System.out.print(value+" big-endian (default)");}
     }
-    if(debug>=2) {System.out.print("\n");}
+    if(debug>=5) {System.out.print("\n");}
     return value;
   }
   /**
@@ -149,30 +150,30 @@ public class Utilities
       System.exit(-1);
     }
 
-    if(debug>=2) {System.out.print("Utilities.getLongFromDataInputStream("+
+    if(debug>=4) {System.out.print("Utilities.getLongFromDataInputStream("+
                                    b[0]+" "+b[1]+" "+b[2]+" "+b[3]+" "+b[4]+" "+b[5]+" "+b[6]+" "+b[7]+") ");}
     if (TraceHeader.isLittleEndian()) {
       value = (long)
-	(((int)(b[7] << 56))&0xFF00000000000000L) + 
-	(((int)(b[6] << 48))&0x00FF000000000000L) +
-	(((int)(b[5] << 40))&0x0000FF0000000000L) + 
-	(((int)(b[4] << 32))&0x000000FF00000000L) + 
-	(((int)(b[3] << 24))&0x00000000FF000000L) + 
-	(((int)(b[2] << 16))&0x0000000000FF0000L) + 
-	(((int)(b[1] <<  8))&0x000000000000FF00L) + 
-	(((int)(b[0]      ))&0x00000000000000FFL);
-      if(debug>=2) {System.out.print(value+" little-endian\n");}
+	(((long)(b[7]) << 56)&0xFF00000000000000L) + 
+	(((long)(b[6]) << 48)&0x00FF000000000000L) +
+	(((long)(b[5]) << 40)&0x0000FF0000000000L) + 
+	(((long)(b[4]) << 32)&0x000000FF00000000L) + 
+	(((long)(b[3]) << 24)&0x00000000FF000000L) + 
+	(((long)(b[2]) << 16)&0x0000000000FF0000L) + 
+	(((long)(b[1]) <<  8)&0x000000000000FF00L) + 
+	(((long)(b[0])      )&0x00000000000000FFL);
+      if(debug>=4) {System.out.print(Long.toString(value)+" little-endian\n");}
     } else {
       value = (long)
-	(((int)(b[0] << 56))&0xFF00000000000000L) + 
-	(((int)(b[1] << 48))&0x00FF000000000000L) +
-	(((int)(b[2] << 40))&0x0000FF0000000000L) + 
-	(((int)(b[3] << 32))&0x000000FF00000000L) + 
-	(((int)(b[4] << 24))&0x00000000FF000000L) + 
-	(((int)(b[5] << 16))&0x0000000000FF0000L) + 
-	(((int)(b[6] <<  8))&0x000000000000FF00L) + 
-	(((int)(b[7]      ))&0x00000000000000FFL);
-      if(debug>=2) {System.out.print(value+" big-endian (default)\n");}
+	(((long)(b[0]) << 56)&0xFF00000000000000L) + 
+	(((long)(b[1]) << 48)&0x00FF000000000000L) +
+	(((long)(b[2]) << 40)&0x0000FF0000000000L) + 
+	(((long)(b[3]) << 32)&0x000000FF00000000L) + 
+	(((long)(b[4]) << 24)&0x00000000FF000000L) + 
+	(((long)(b[5]) << 16)&0x0000000000FF0000L) + 
+	(((long)(b[6]) <<  8)&0x000000000000FF00L) + 
+	(((long)(b[7])      )&0x00000000000000FFL);
+      if(debug>=4) {System.out.print(value+" big-endian (default)\n");}
     }
     
     return value;
@@ -205,7 +206,7 @@ public class Utilities
     }
     
     String string = new String(b_array);
-    if(debug>=4)System.out.println("Utilities.getString() returns "+string+" with length "+length);
+    if(debug>=5)System.out.println("Utilities.getString() returns "+string+" with length "+length);
     return string;
   }
   
@@ -219,7 +220,7 @@ public class Utilities
    */
   static public int[] addIntArrayElement(int[] array, int value, int index) 
   {
-    if(debug>=3)System.out.println("addIntArrayElement: index "+index+" has value "+value+
+    if(debug>=5)System.out.println("addIntArrayElement: index "+index+" has value "+value+
                                    " length "+array.length);
     if (index >= array.length) {
       array = growIntArray(array, Math.max(array.length<<1,index+1));
@@ -236,7 +237,7 @@ public class Utilities
    */ 
   static private int[] growIntArray(int[] array, int newLength) 
   {
-    if(debug>=3)System.out.println("growIntArray("+newLength+")");
+    if(debug>=5)System.out.println("growIntArray("+newLength+")");
     if (array.length >= newLength) {
       System.err.println("***Utilities.growIntArray() called with array.length "+array.length+
                          " >= length "+newLength+"!***");
