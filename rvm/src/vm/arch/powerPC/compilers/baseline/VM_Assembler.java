@@ -55,47 +55,77 @@ public final class VM_Assembler implements VM_BaselineConstants,
     shouldPrint = sp;
   }
 
-  public final static boolean fits (long val, int bits) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final static boolean fits (long val, int bits) {
     val = val >> bits-1;
     return (val == 0L || val == -1L);
   }
 
-  public final static boolean fits (int val, int bits) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
 
-  public void noteBytecode (int i, String bcode) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBytecode (int i, String bcode) throws NoInlinePragma {
     String s1 = VM_Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
 
-  public void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  public void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  public void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+o);
   }
 
-  public void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
-  public void noteBranchBytecode (int i, String bcode, int off,
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteBranchBytecode (int i, String bcode, int off,
                            int bt) throws NoInlinePragma {
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  public void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  public void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   
@@ -781,11 +811,17 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFSXtemplate = 31<<26 | 535<<1;
 
-  public static final int LFSX (int FRT, int RA, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    static final int LFSX (int FRT, int RA, int RB) {
     return 31<<26 | FRT<<21 | RA<<16 | RB<<11 | 535<<1;
   }
 
-  public final void emitLFSX (int FRT, int RA, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final void emitLFSX (int FRT, int RA, int RB) {
     int mi = LFSXtemplate | FRT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -882,7 +918,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
  
   static final int FMRtemplate = 63<<26 | 72<<1;
 
-  public final void emitFMR (int RA, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final void emitFMR (int RA, int RB) {
     int mi = FMRtemplate | RA<<21 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -894,7 +933,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return 63<<26 | RT<<21 |  RB<<11 | 12<<1;
   }
 
-  public final void emitFRSP (int RT, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final void emitFRSP (int RT, int RB) {
     int mi = FRSPtemplate | RT<<21 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -1111,11 +1153,17 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
   static final int STFSXtemplate = 31<<26 | 663<<1;
 
-  public static final int STFSX(int FRS, int RA, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    static final int STFSX(int FRS, int RA, int RB) {
     return 31<<26 | FRS<<21 | RA<<16 | RB<<11 | 663<<1;
   }
 
-  public final void emitSTFSX (int FRS, int RA, int RB) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    final void emitSTFSX (int FRS, int RA, int RB) {
     int mi = STFSXtemplate | FRS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -1476,6 +1524,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return mc;
   }
 
+  //-#if RVM_WITH_QUICK_COMPILER
   public void disassemble(int start, int stop) {
       try {
         for (int i = start; i < stop; i++) {
@@ -1489,6 +1538,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
       } finally {
       }
   }
+  //-#endif
 
   /**
    * Append a VM_CodeArray to the current machine code
@@ -2077,7 +2127,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
   //           PR is the current VM_Processor, which contains a pointer to the active thread.
   // After:    R0, S0 destroyed
   //
-  public void emitStackOverflowCheck (int frameSize) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    void emitStackOverflowCheck (int frameSize) {
     emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
@@ -2144,6 +2197,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
+  //-#if RVM_WITH_QUICK_COMPILER
   public static int getTargetOffset(int instr) {
      int opcode = (instr >>> 26) & 0x3F;
      int extendedOpcode;
@@ -2229,6 +2283,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
      mc.putInstruction(mcIndex, instr);
      return true;
    }
+  //-#endif
 
   public static String getOpcodeName(int opcode) {
     String s;

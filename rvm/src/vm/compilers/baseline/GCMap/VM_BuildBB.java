@@ -13,8 +13,15 @@ import com.ibm.JikesRVM.classloader.*;
  *
  * @author Anthony Cocchi
  */
-public final class VM_BuildBB
-  implements VM_BytecodeConstants, VM_BBConstants {
+//-#if RVM_WITH_QUICK_COMPILER
+public
+  //-#endif
+  final class VM_BuildBB
+  implements VM_BytecodeConstants
+             //-#if RVM_WITH_QUICK_COMPILER
+             , VM_BBConstants 
+             //-#endif
+{
 
 
   // ---------------- Static Class Fields --------------------
@@ -32,30 +39,47 @@ public final class VM_BuildBB
   //  VM_BuildLiveRefMaps, so that the reference maps can be built.            //
   //                                                                           //
   //***************************************************************************//
+
   /** 
    * basic blocks of the byte code 
    */
-  public VM_BasicBlockFactory      bbf;
-  public VM_BasicBlock             basicBlocks[];       
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    VM_BasicBlockFactory      bbf;
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    VM_BasicBlock             basicBlocks[];       
 
   /** 
    * identify which block a byte is part of 
    */
-  public short                     byteToBlockMap[]; 
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    short                     byteToBlockMap[]; 
 
   /**
    * Number of unique jsr targets processed
    */
-  public int                       numJsrs; 
+  //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    int                       numJsrs; 
   
   /**
    * Number of GC points found
    */
-  public int                       gcPointCount;
+  //-#if RVM_WITH_QUICK_COMPILER
+  public
+    //-#endif
+    int                       gcPointCount;
 
   // This variable is used in multiple methods of this class, make it accessible
   int bytelength;
 
+  //-#if RVM_WITH_QUICK_COMPILER
   int maxStackHeight;
 
   public static byte[][] stackSnapshots;
@@ -66,13 +90,17 @@ public final class VM_BuildBB
   private static int[] branchList;
   private static int branchListIndex;
   private static boolean[] branchVisited;
+  //-#endif
  
   /**
    * Analyze the bytecodes and build the basic blocks with their predecessors.
    * The results will be used by VM_BuildReferenceMaps
    */
   
-  public void determineTheBasicBlocks(VM_NormalMethod method) {
+  //-#if RVM_WITH_QUICK_COMPILER
+  public
+    //-#endif
+    void determineTheBasicBlocks(VM_NormalMethod method) {
     VM_ExceptionHandlerMap    exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int                       retList[];    // List of basic block numbers that end with a "ret" instruction.
     VM_BytecodeStream         bcodes;       // The bytecodes being analyzed.
@@ -89,10 +117,14 @@ public final class VM_BuildBB
 
     bcodes         = method.getBytecodes();
     bytelength     = bcodes.length();
+    //-#if RVM_WITH_QUICK_COMPILER
     maxStackHeight = method.getOperandWords();
+    //-#endif
 
     byteToBlockMap = new short[bytelength];
+    //-#if RVM_WITH_QUICK_COMPILER
     java.util.Arrays.fill(byteToBlockMap, (short)VM_BasicBlock.NOTBLOCK);
+    //-#endif
     basicBlocks    = new VM_BasicBlock[2];  // many methods only have one block (+1 for EXIT)
 
     bbf = new VM_BasicBlockFactory();
@@ -101,10 +133,12 @@ public final class VM_BuildBB
 
     retList = null;
 
+    //-#if RVM_WITH_QUICK_COMPILER
     if (nextInstructionStart == null ||
         nextInstructionStart.length < bytelength) {
       nextInstructionStart = new int[bytelength];
     }
+    //-#endif
     
     // 
     //  Set up the EXIT basic block
@@ -193,9 +227,13 @@ public final class VM_BuildBB
 
 
       // Now examine this instruction
+      //-#if RVM_WITH_QUICK_COMPILER
       int savedStart = lastInstrStart;
+      //-#endif
       lastInstrStart = bcodes.index();  // Instruction starts here
+      //-#if RVM_WITH_QUICK_COMPILER
       nextInstructionStart[savedStart] = lastInstrStart;
+      //-#endif
       lastInstrType = NONBRANCH;        // assume it will be a non-branch
       switch(bcodes.nextInstruction()) {
       case JBC_ifeq:
@@ -745,8 +783,7 @@ public final class VM_BuildBB
     // Go ahead and add block
     basicBlocks[blocknum] = newBB;        
   }
-
-  
+  //-#if RVM_WITH_QUICK_COMPILER
    private static class SnapshotNode {
      byte[] snapshot;
      SnapshotNode wordNode;
@@ -1979,4 +2016,5 @@ public final class VM_BuildBB
      }
      return result.toString();
     }
+  //-#endif
 }

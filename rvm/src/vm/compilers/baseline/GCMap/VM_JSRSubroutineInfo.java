@@ -13,13 +13,19 @@ package com.ibm.JikesRVM;
  * 
  * @author Anthony Cocchi
  */
-public final class VM_JSRSubroutineInfo {
+//-#if RVM_WITH_QUICK_COMPILER
+public 
+  //-#endif
+  final class VM_JSRSubroutineInfo {
 
   public int subroutineByteCodeStart;
   public byte[] startReferenceMap;
   int localsTop;
   public byte[] endReferenceMap;
-  public int endReferenceTop;
+    //-#if RVM_WITH_QUICK_COMPILER
+  public 
+    //-#endif
+    int endReferenceTop;
 
 
   // for statistics

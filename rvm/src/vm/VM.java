@@ -560,6 +560,7 @@ public class VM extends VM_Properties
   }
 
 
+  //-#if RVM_WITH_QUICK_COMPILER
   /**
    * Format a 64 bit number as "0x" followed by 16 hex digits.
    * Do this without referencing Long or Character classes, 
@@ -580,6 +581,7 @@ public class VM extends VM_Properties
     buf[index]   = '0';
     return new String(buf);
   }
+  //-#endif
 
 
   /**
@@ -1035,8 +1037,10 @@ public class VM extends VM_Properties
   public static int exitStatusDyingWithUncaughtException = 113;
   /** Trouble with the Hardware Performance Monitors */
   public static int exitStatusHPMTrouble = 110;
-  public static int exitStatusOptCompilerFailed = 101;
+  //-#if RVM_WITH_QUICK_COMPILER
   public static int exitStatusQuickCompilerFailed = 102;
+  //-#endif
+  public static int exitStatusOptCompilerFailed = 101;
   /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
    * this value, change it there too. */
   public static int exitStatusBogusCommandLineArg = 100;

@@ -124,7 +124,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
     case VM_CompiledMethod.BASELINE: return baselineIterator;
     case VM_CompiledMethod.OPT: return optIterator;
+      //-#if RVM_WITH_QUICK_COMPILER
     case VM_CompiledMethod.QUICK: return quickIterator;
+      //-#endif
     case VM_CompiledMethod.JNI: return jniIterator;
     }
     if (VM.VerifyAssertions) {

@@ -33,7 +33,7 @@ public final class VM_RecompilationManager {
     for (int cmid=1; cmid<numMethods; cmid++) {
       VM_CompiledMethod cpMeth = compiledMethods[cmid];
       if (cpMeth == null) {
-        if (DEBUG) VM.sysWrite("Not recompiling method ID "+cmid+
+        if (DEBUG) VM.sysWrite("Not recompiling method ID ", cmid,
                                " because it has no compiledMethod\n");
       } else {
         VM_Method meth = cpMeth.getMethod();

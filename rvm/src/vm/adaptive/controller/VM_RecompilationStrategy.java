@@ -196,7 +196,9 @@ abstract class VM_RecompilationStrategy {
     case VM_CompiledMethod.TRAP: 
     case VM_CompiledMethod.JNI:
       return -1; // don't try to optimize these guys!
+  //-#if RVM_WITH_QUICK_COMPILER
     case VM_CompiledMethod.QUICK:
+    //-#endif
     case VM_CompiledMethod.BASELINE:
       { 
         // Prevent the adaptive system from recompiling certain classes
@@ -223,6 +225,7 @@ abstract class VM_RecompilationStrategy {
           //      (C code may have a return address or other naked pointer into the old instruction array)
           return -1;
         }
+        //-#if RVM_WITH_QUICK_COMPILER
         switch (cmpMethod.getCompilerType())
           {
           case VM_CompiledMethod.BASELINE:
@@ -230,6 +233,9 @@ abstract class VM_RecompilationStrategy {
           case VM_CompiledMethod.QUICK:
             return VM_CompilerDNA.QUICK;
           }
+        //-#else
+        return 0;
+        //-#endif
       }
     case VM_CompiledMethod.OPT:
       VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;

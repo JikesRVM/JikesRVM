@@ -52,24 +52,45 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER      = 0;
   public static final byte BASELINE_COMPILER = 1;
+  //-#if RVM_WITH_QUICK_COMPILER
   public static final byte QUICK_COMPILER    = 2;
   public static final byte OPT_COMPILER      = 3;
+  //-#else
+  public static final byte OPT_COMPILER      = 2;
+  //-#endif
+
 
   // Data accumulators
+  //-#if RVM_WITH_QUICK_COMPILER
   private static final String name[]        = {"JNI\t","Base\t","Quick\t","Opt\t"};   // Output names
   private static int totalMethods[]         = {0,0,0,0};
   private static double totalCompTime[]     = {0,0,0,0}; 
   private static int totalBCLength[]        = {0,0,0,0};
   private static int totalMCLength[]        = {0,0,0,0};
+  //-#else
+  private static final String name[]        = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int totalMethods[]         = {0,0,0};
+  private static double totalCompTime[]     = {0,0,0}; 
+  private static int totalBCLength[]        = {0,0,0};
+  private static int totalMCLength[]        = {0,0,0};
+  //-#endif
 
   // running sum of the natural logs of the rates, 
   //  used for geometric mean, the product of rates is too big for doubles
   //  so we use the principle of logs to help us 
   // We compute  e ** ((log a + log b + ... + log n) / n )
+  //-#if RVM_WITH_QUICK_COMPILER
   private static double totalLogOfRates[]   = {0,0,0,0};
+  //-#else
+  private static double totalLogOfRates[]   = {0,0,0};
+  //-#endif
 
   // We can't record values until Math.log is loaded, so we miss the first few
-  private static int totalLogValueMethods[] = {0,0,0,0};
+  private static int totalLogValueMethods[] = {0,0,
+                                               //-#if RVM_WITH_QUICK_COMPILER
+                                               0,
+                                               //-#endif
+                                               0};
 
   //-#if RVM_WITH_QUICK_COMPILER
   // is the quick compiler usable?
@@ -546,6 +567,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 //     // call the inherited method "baselineCompile"
 //     return baselineCompile(method);
 //   }
+
 
   /**
    * This method detect if we're running on a uniprocessor and optimizes
