@@ -1,0 +1,4 @@
+This directory contains sources for
+
+1. opt compiler for inserting OsrPoint instructions.
+2. gathering osr point and encoding maps.

@@ -1,0 +1,4 @@
+This directory contains sources performing
+
+1. suspend thread 
+2. reschedule thread with specialized code.

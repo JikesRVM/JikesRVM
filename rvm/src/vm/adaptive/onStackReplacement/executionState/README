@@ -1,0 +1,4 @@
+This directory contains sources performing:
+
+1. extract execution state from a suspended thread (base, opt)
+2. generate specialized bytecode with pseudo instructions.

@@ -1,0 +1,4 @@
+This directory contains sources performing
+
+1. baseline compilation of specialized bytecode
+2. opt compilation of specialized bytecode
