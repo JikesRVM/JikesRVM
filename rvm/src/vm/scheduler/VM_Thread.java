@@ -59,10 +59,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   public final static int EPILOGUE = 2;
   public final static int NATIVE_PROLOGUE = 3;
   public final static int NATIVE_EPILOGUE = 4;
-
-  //-#if RVM_WITH_OSR
-  public final static int OSROPT  = 99;
-  //-#endif
+  public final static int OSROPT  = 5;
   
   /* Set by exception handler. */
   public boolean dyingWithUncaughtException = false;
