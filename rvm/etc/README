@@ -1,0 +1,24 @@
+-*-text-*-
+gnu-classpath-on-mac-osx.patch: 
+
+    If you want to build Jikes RVM for Mac OSX, you will need to patch
+    your copy (version 0.06 or CVS head) of GNU Classpath with this
+    patch file.  Macintosh OSX support was generously contributed by
+    Chris Hoffman of the University of Massachusetts.
+
+skel/: 
+
+    Skeleton initial files to use.
+
+jikes-rvm.el
+
+    GNU Emacs source code for editing Jikes RVM source code.  This
+    customizes java mode, C++ mode, and C mode.  Since this file will
+    probably improve with time, I recommend you load it in rather
+    than cutting and pasting its contents into your ~/.emacs file.
+
+dot-emacs.el
+
+    If you're going to edit Jikes RVM C, C++, or Emacs code, I recommend 
+    adding the contents of dot-emacs.el, or something similar, to a file in
+    your home directory named ~/.emacs.

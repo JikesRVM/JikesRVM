@@ -1,0 +1,20 @@
+-*-text-*-
+Skeleton.java
+
+    Skeleton file to use to begin a new Java source file.  Contains
+    an IBM copyright notice, Javadoc @author tag, and CVS Id line.
+
+skeleton.C
+
+    Like Skeleton.java but for C source code.
+
+skeleton.sh
+
+    Like Skeleton.java but for Bourne-Again Shell (BASH) source code.
+
+GNUmakefile.skel
+
+    A skeleton initial Makefile to use.  As the Java coding
+    conventions suggest, we name our Makefiles "GNUmakefile".  Do the
+    same with this one.
+
