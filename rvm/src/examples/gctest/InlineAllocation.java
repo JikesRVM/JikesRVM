@@ -43,7 +43,7 @@ class InlineAllocation {
   static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
   //-#endif 
   static int alloc2Limit = alloc1Limit + (VM.BuildForIA32 ? 8 : 2); // small array.  Should be only the store of the length different than small object
-  static int alloc4Limit = (VM.BuildForIA32 ? 30 : 10); // unknown size object. Should not be inlined at all.
+  static int alloc4Limit = (VM.BuildForIA32 ? 40 : 10); // unknown size object. Should not be inlined at all.
 
   /**
    * A trivial method that should require the full prologue/epilogue
