@@ -163,11 +163,11 @@ export JIKES=/usr/bin/jikes
 ## preprocessor macros.
 
 # export CC="/usr/bin/gcc -pipe -ggdb3 -O -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization"
-export CC="gcc -ggdb3 -O -W -Wall"
+export CC="gcc -w -pipe -ggdb3 -O"
 
 ## What C++ compiler should be used?
 # export CPLUS='/usr/bin/g++ -pipe -ggdb3 -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O'
-export CPLUS="g++ -pipe -ggdb3 -O -W -Wall"
+export CPLUS="g++ -w -pipe -ggdb3 -O"
 
 
 # how to link a shared C++ library (possibly also recompile one 
