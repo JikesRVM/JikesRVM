@@ -55,14 +55,9 @@ CLEAN="Yes"
 #
 RUN="Yes"
 
-# Run on 2 nodes for ppc, one for linux by default
+# Run on 2 nodes by default
 #
-if [[ X`uname` = X"Linux" ]]; then
-   echo "Restricting all Linux runs to 1 virtual processor." 
-   NUM_PROCS_LIST=1
-else
-   NUM_PROCS_LIST=2
-fi
+NUM_PROCS_LIST=2
 
 ## Quiet by default
 #
@@ -96,6 +91,7 @@ function showHelp {
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemispace image'
+  echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
 
@@ -167,11 +163,7 @@ while [ $# != 0 ]; do
    ## Set the number of processors to use
    # 
    -numprocs)
-	if [[ X`uname` = X"Linux" ]]; then
-	    echo "WARNING: ignoring -numprocs on Linux"
-	else 
-	    NUM_PROCS_LIST=$2
-	fi
+	NUM_PROCS_LIST=$2
 	shift
    ;;
 
@@ -377,7 +369,7 @@ function doRun
 	OPT_STR=
     fi
 
-    # suffix output files to distinguiush multiple options
+    # suffix output files to distinguish multiple options
     if [ x$OPT_LEVEL != x ]; then
 	if [ x$NUM_PROCS != x ]; then
 	    SUFFIX=".${OPT_LEVEL}.${NUM_PROCS}proc"
@@ -392,8 +384,14 @@ function doRun
 	fi
     fi
 
+    if [ x$VERBOSE = xYES ]; then
+	FLAGS="-k"
+    else
+	FLAGS="-ks"
+    fi
+
     . $RVM_BUILD/environment
-    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE -ks \
+    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/rvm/bin/rvm\
 	   SUFFIX=$SUFFIX \
