@@ -129,8 +129,10 @@ public class Throwable implements java.io.Serializable {
     return detailMessage;
   }
     
+  /** This has a stub implementation.  How gross.  But legal. */
   public StackTraceElement[] getStackTrace() {
-    throw new VM_UnimplementedError();
+    return new StackTraceElement[0];
+    // throw new VM_UnimplementedError();
   }
 
   public Throwable initCause(Throwable cause) {
@@ -345,8 +347,11 @@ public class Throwable implements java.io.Serializable {
     printStackTrace(pln, depth);
   }
     
+  /** Currently only implemented as a stub */
   public void setStackTrace(StackTraceElement[] stackTrace) {
-    throw new VM_UnimplementedError(); // if we run out of memory, so be it. 
+    stackTrace = null;          // throw out the old Jikes RVM stack trace.
+    
+    // throw new VM_UnimplementedError(); 
   }
 
   void printlnMyClassAndMessage(PrintLN out, int depth) {
