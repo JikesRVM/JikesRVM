@@ -73,14 +73,14 @@ final class JikesRVMSocketImpl extends SocketImpl {
 
 	// Main loop; keep trying to accept a connection until we succeed,
 	// the timeout (if any) is reached, or an error occurs.
-	for (;;) {
+	while (true) {
 	    // Try to accept a connection
 	    VM_ThreadIOQueue.selectInProgressMutex.lock();
 	    
 	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 	    connectionFd = VM.sysCall2(bootRecord.sysNetSocketAcceptIP,
-				   serverFD,
-				    VM_Magic.objectAsAddress(newSocket).toInt());
+				       serverFD,
+				       VM_Magic.objectAsAddress(newSocket).toInt());
 	    VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
 	    if (connectionFd >= 0)
@@ -95,6 +95,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 		// accept() would have blocked:
 		// Wait for the fd to become ready.
 		if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
+
 		VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(serverFD, totalWaitTime);
 		
 		// Check for exceptions (including timeout)
