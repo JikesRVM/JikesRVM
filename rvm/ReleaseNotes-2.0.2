@@ -17,8 +17,21 @@ Important:
                          pthread-specific state. 
                 
 Highlights include:
+  -- Improved IA32 performance (15% on specJVM98)
+  -- Change in IA32 register convention to make EBP 
+     a nonvolatile regster (RVM 2.0.2 does not use a 
+     register to hold the framepointer on IA32).
+  -- Simple static splitting transformation to create 
+     intraprocedural hot traces based on static infrequent bit
+  -- Redundant conditional branch elimination based on
+     global value numbers and dominator information.
+  -- Code-patch guard for guarded inlining (IA32 only).
 
 
 To see more details on other miscellaneous bug fixes, see
 the developerWorks bug tracking software tool.  
 The following bugs in version 2.0.1 are fixed in 2.0.2:
+  -- 2126 LINTEL: RegisterOperands in memory operands
+  -- 2493 Cross-platform linux builds broken
+  -- 2501 race condition in VM_Type.getClassForType
+  -- 2044 LINTEL: VM_Magic.resumeThreadExecution
