@@ -30,6 +30,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
   static final private byte ONEWORD    = 1;
   static final private byte DOUBLEWORD = 2;
 
+  static final private boolean debug = false;
+
 
   // -------------------- Instance Data ---------------------------
 
@@ -150,6 +152,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
   if (!method.isStatic()) paramCount++;
 
   currBBStkEmpty = method.getLocalWords()-1;   // -1 to locate the last "local" index
+  if (debug) VM.sysWrite("getLocalWords() : " + method.getLocalWords() + "\n");
 
   // Get information from the method being processed
 
@@ -360,19 +363,55 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	stackHeights[i] = currBBStkTop;
       }
 
+      if (debug) {
+        VM.sysWrite("opcode : " + opcode + "\n");
+        VM.sysWrite("current map: ");
+        for (int j=0; j<=currBBStkTop; j++) {
+          VM.sysWrite(currBBMap[j]);
+        }
+        VM.sysWrite("\n");
+      }
+
+
       switch (opcode) {
 
       case JBC_nop : {
         break;
       }
-      case JBC_aconst_null :
-      case JBC_aload_0 :
-      case JBC_aload_1 :
-      case JBC_aload_2 :
-      case JBC_aload_3 :
-      case JBC_aload : {
+
+      case JBC_aconst_null : {
        currBBStkTop++;
        currBBMap[currBBStkTop] = REFERENCE;
+       break;
+     }
+      case JBC_aload_0 : {
+       int localNumber = 0;
+       currBBStkTop++;
+       currBBMap[currBBStkTop] = currBBMap[localNumber];
+       break;
+     }
+      case JBC_aload_1 : {
+       int localNumber = 1;
+       currBBStkTop++;
+       currBBMap[currBBStkTop] = currBBMap[localNumber];
+       break;
+     }
+      case JBC_aload_2 : {
+       int localNumber = 2;
+       currBBStkTop++;
+       currBBMap[currBBStkTop] = currBBMap[localNumber];
+       break;
+     }
+      case JBC_aload_3 : {
+       int localNumber = 3;
+       currBBStkTop++;
+       currBBMap[currBBStkTop] = currBBMap[localNumber];
+       break;
+     }
+      case JBC_aload : {
+       int localNumber = ((int)bytecodes[i+1]) & 0x000000FF;
+       currBBStkTop++;
+       currBBMap[currBBStkTop] = currBBMap[localNumber];
        break;
      }
 
@@ -1452,8 +1491,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
              }
 
              case JBC_aload : {
+               int high = (((int)bytecodes[i+1]) & 0x000000FF) << 8;
+               int low = (((int)bytecodes[i+2]) & 0x000000FF);
+               int localNumber = high | low;
 	       currBBStkTop++;
-	       currBBMap[currBBStkTop] = REFERENCE;
+	       currBBMap[currBBStkTop] = currBBMap[localNumber];
                break;
              }
 
