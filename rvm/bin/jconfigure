@@ -2218,6 +2218,13 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	EOF
 	fi
 
+	if (( RVM_WITH_ALL_CLASSES && RVM_FOR_POWERPC )); then
+	cat <<- EOF
+		[Lcom/ibm/JikesRVM/opcodeXX;   # PPC Dissasembler
+		[Lcom/ibm/JikesRVM/opcode_tab; # PPC Dissasembler
+	EOF
+	fi
+
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
 		[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;
