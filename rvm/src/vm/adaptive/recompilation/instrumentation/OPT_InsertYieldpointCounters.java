@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import  com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /** 
  *
@@ -25,11 +25,11 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
 
    static final boolean DEBUG = false;
 
-   final boolean shouldPerform(OPT_Options options) {
+   public final boolean shouldPerform(OPT_Options options) {
      return options.INSERT_YIELDPOINT_COUNTERS;
    }
 
-   final String getName() { return "InsertYieldpointCounters"; }
+   public final String getName() { return "InsertYieldpointCounters"; }
 
    /**
     * counters after all yieldpoint instructions

@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.
@@ -11,12 +13,12 @@ package com.ibm.JikesRVM.opt;
  * @see OPT_HeapVariable
  * @author Stephen Fink
  */
-final class OPT_HeapOperand extends OPT_Operand {
+public final class OPT_HeapOperand extends OPT_Operand {
 
   /**
    * The heap variable corresponding to this operand.
    */
-  OPT_HeapVariable value;
+  public final OPT_HeapVariable value;
 
   /**
    * Return  the heap variable corresponding to this operand.
@@ -50,7 +52,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Construct an operand corresponding to a heap variable.
    * @param   heap the heap variable corresponding to this operand.
    */
-  OPT_HeapOperand(OPT_HeapVariable heap) {
+  public OPT_HeapOperand(OPT_HeapVariable heap) {
     value = heap;
   }
 
@@ -72,7 +74,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * @param op the second operand to compare with
    * @return true or false
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     if (!(op instanceof OPT_HeapOperand))
       return  false;
     OPT_HeapOperand h = (OPT_HeapOperand)op;

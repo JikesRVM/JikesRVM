@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * <ul>
@@ -75,13 +75,10 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
   private static final boolean OPTIMIZE = true;
 
-  final String getName() { return "ConvertALUOps"; }
-  final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
-  }
+  public final String getName() { return "ConvertALUOps"; }
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
 
-  final void perform(OPT_IR ir) { 
+  public final void perform(OPT_IR ir) { 
     // Calling OPT_Simplifier.simplify ensures that the instruction is 
     // in normalized form. This reduces the number of cases we have to 
     // worry about (and does last minute constant folding on the off 
@@ -328,7 +325,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
     // Sigh need some move instructions after all.
     if (result.similar(op2)) {
-      OPT_RegisterOperand tmp = ir.gc.temps.makeTemp(op1);
+      OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
       OPT_Instruction move = 
 	Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
       s.insertBefore(move);

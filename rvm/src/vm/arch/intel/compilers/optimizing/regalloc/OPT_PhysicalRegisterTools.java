@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This abstract class provides a set of useful methods for
@@ -17,8 +17,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author John Whaley
  * @author Stephen Fink
  */
-abstract class OPT_PhysicalRegisterTools extends
-OPT_GenericPhysicalRegisterTools{
+abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTools{
 
   /**
    * Return the governing IR.

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * IR level independent driver for 
@@ -38,22 +38,22 @@ public abstract class OPT_BranchOptimizationDriver
   }
 
   /** Interface */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.getOptLevel() >= _level;
   }
 
-  final String getName() {
+  public final String getName() {
     return  "Branch Optimizations";
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   } 
 
   /**
    * This phase contains no per-compilation instance fields.
    */
-  final OPT_CompilerPhase newExecution(OPT_IR ir) {
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) {
     return  this;
   }
 

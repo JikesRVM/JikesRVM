@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Simple flow-insensitive escape analysis
@@ -21,15 +21,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     implements OPT_Operators {
   private final static boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.SIMPLE_ESCAPE_IPA;
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Simple Escape Analysis";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return  false;
   }
 

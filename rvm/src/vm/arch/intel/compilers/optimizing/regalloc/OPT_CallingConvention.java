@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 
 /**
@@ -573,7 +573,7 @@ final class OPT_CallingConvention extends OPT_IRTools
 	    // the symbolic.  First a move from the physical to a fresh temp 
 	    // before start and second a move from the temp to the
 	    // 'real' parameter symbolic after start.
-	    OPT_RegisterOperand tmp = ir.gc.temps.makeTemp(rType);
+	    OPT_RegisterOperand tmp = ir.regpool.makeTemp(rType);
             OPT_Register param = phys.getGPRParam(gprIndex);
 	    OPT_RegisterOperand pOp = new OPT_RegisterOperand(param, rType);
             start.insertBefore(OPT_PhysicalRegisterTools.makeMoveInstruction(tmp,pOp));

@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /**
  * An element in the opt compiler's optimization plan.
@@ -30,7 +32,7 @@ public abstract class OPT_OptimizationPlanElement {
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  abstract boolean shouldPerform (OPT_Options options);
+  public abstract boolean shouldPerform (OPT_Options options);
 
   /**
    * Do the work represented by this element in the optimization plan.
@@ -38,7 +40,7 @@ public abstract class OPT_OptimizationPlanElement {
    * 
    * @param ir The OPT_IR object to work with.
    */
-  abstract void perform (OPT_IR ir);
+  public abstract void perform (OPT_IR ir);
 
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
@@ -49,7 +51,7 @@ public abstract class OPT_OptimizationPlanElement {
    * @param before true when invoked before perform, false otherwise.
    * @return true if the IR should be printed, false otherwise.
    */
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -57,7 +59,7 @@ public abstract class OPT_OptimizationPlanElement {
    * This method is called to initialize the optimization plan support
    *  measuring compilation.
    */
-  abstract void initializeForMeasureCompilation();
+  public abstract void initializeForMeasureCompilation();
 
   /**
    * Generate (to the sysWrite stream) a report of the
@@ -67,13 +69,13 @@ public abstract class OPT_OptimizationPlanElement {
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
-  abstract void reportStats (int indent, int timeCol, double totalTime);
+  public abstract void reportStats (int indent, int timeCol, double totalTime);
 
   /**
    * Report the elapsed time spent in the PlanElement
    * @return time spend in the plan (in seconds)
    */
-  abstract double elapsedTime ();
+  public abstract double elapsedTime ();
 
   /**
    * Helper function for <code> reportStats </code>

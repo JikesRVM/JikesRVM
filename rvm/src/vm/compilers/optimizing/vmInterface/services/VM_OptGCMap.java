@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * A class that encapsulates the GCMap portion of the machine code maps.

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /** 
  * An implementation of VM_CompiledMethod for the OPT compiler.
@@ -293,43 +293,43 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
   private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
 
-  final int getUnsignedNonVolatileOffset() {
+  public final int getUnsignedNonVolatileOffset() {
     return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
   }
-  final int getUnsignedExceptionOffset() {
+  public final int getUnsignedExceptionOffset() {
     return (int)((_bits & EXCEPTION_OBJ_MASK) >>> EXCEPTION_OBJ_SHIFT);
   }
-  final int getFirstNonVolatileGPR() {
+  public final int getFirstNonVolatileGPR() {
     int t = (int)((_bits & INTEGER_MASK) >>> INTEGER_SHIFT);
     return (t == NO_INTEGER_ENTRY) ? -1 : t;
   }
-  final int getFirstNonVolatileFPR() {
+  public final int getFirstNonVolatileFPR() {
     int t = (int)((_bits & FLOAT_MASK) >>> FLOAT_SHIFT);
     return (t == NO_FLOAT_ENTRY) ? -1 : t;
   }
   public final int getOptLevel() {
     return (int)((_bits & OPT_LEVEL_MASK) >>> OPT_LEVEL_SHIFT);
   }
-  final boolean isSaveVolatile() {
+  public final boolean isSaveVolatile() {
     return (_bits & SAVE_VOLATILE_MASK) != 0L;
   }
-  final boolean isInstrumentedMethod() {
+  public final boolean isInstrumentedMethod() {
     return (_bits & INSTRU_METHOD_MASK) != 0L;
   }
-  final int getFrameFixedSize() {
+  public final int getFrameFixedSize() {
     return (int)((_bits & FIXED_SIZE_MASK) >>> FIXED_SIZE_SHIFT);
   }
 
 
-  final void setUnsignedNonVolatileOffset(int x) {
+  public final void setUnsignedNonVolatileOffset(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
     _bits = (_bits & ~NONVOLATILE_MASK) | (((long)x) << NONVOLATILE_SHIFT);
   }
-  final void setUnsignedExceptionOffset(int x) {
+  public final void setUnsignedExceptionOffset(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
     _bits = (_bits & ~EXCEPTION_OBJ_MASK) | (((long)x) << EXCEPTION_OBJ_SHIFT);
   }
-  final void setFirstNonVolatileGPR(int x) {
+  public final void setFirstNonVolatileGPR(int x) {
     if (x == -1) {
       _bits |= INTEGER_MASK;
     } else {
@@ -337,7 +337,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       _bits = (_bits & ~INTEGER_MASK) | (((long)x) << INTEGER_SHIFT);
     }
   }
-  final void setFirstNonVolatileFPR(int x) {
+  public final void setFirstNonVolatileFPR(int x) {
     if (x == -1) {
       _bits |= FLOAT_MASK;
     } else {
@@ -345,23 +345,23 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       _bits = (_bits & ~FLOAT_MASK) | (((long)x) << FLOAT_SHIFT);
     }
   }
-  final void setOptLevel(int x) {
+  public final void setOptLevel(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
     _bits = (_bits & ~OPT_LEVEL_MASK) | (((long)x) << OPT_LEVEL_SHIFT);
   }
-  final void setSaveVolatile(boolean sv) {
+  public final void setSaveVolatile(boolean sv) {
     if (sv) 
       _bits |= SAVE_VOLATILE_MASK;
     else 
       _bits &= ~SAVE_VOLATILE_MASK;
   }
-  final void setInstrumentedMethod(boolean sv) {
+  public final void setInstrumentedMethod(boolean sv) {
     if (sv) 
       _bits |= INSTRU_METHOD_MASK;
     else 
       _bits &= ~INSTRU_METHOD_MASK;
   }
-  final void setFrameFixedSize(int x) {
+  public final void setFrameFixedSize(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
     _bits = (_bits & ~FIXED_SIZE_MASK) | (((long)x) << FIXED_SIZE_SHIFT);
   }

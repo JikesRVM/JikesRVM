@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import  java.util.*;
 
@@ -21,25 +21,26 @@ import  java.util.*;
  * @see VM_OptEncodedCallSiteTree
  *
  */
-class OPT_CallSiteTreeNode extends OPT_TreeNode {
+public class OPT_CallSiteTreeNode extends com.ibm.JikesRVM.opt.OPT_TreeNode {
   /**
    * The call site represented by this tree node
    */
-  OPT_InlineSequence callSite;
+  public OPT_InlineSequence callSite;
+
   /**
    * The position of this call site in the binary encoding.  It is set
    * when by VM_OptEncodedCallSiteTree.getEncoding.
    *
    * @see VM_OptEncodedCallSiteTree#getEncoding
    */
-  int encodedOffset;
+  public int encodedOffset;
 
   /**
    * construct a a call site tree node corresponding to a given
    * inlined call site
    * @param   OPT_InlineSequence seq an inlined call site
    */
-  OPT_CallSiteTreeNode (OPT_InlineSequence seq) {
+  public OPT_CallSiteTreeNode (OPT_InlineSequence seq) {
     callSite = seq;
   }
 }

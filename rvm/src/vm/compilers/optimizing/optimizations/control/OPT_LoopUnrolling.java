@@ -3,10 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /*
  * Loop unrolling
@@ -22,11 +22,11 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   /**
    * Returns the name of the phase.
    */
-  String getName () {
+  public String getName () {
     return  "Loop Unrolling";
   }
 
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     if (options.getOptLevel() < 2) return false;
     unrollFactor = (1 << options.UNROLL_LOG);
     return options.UNROLL_LOG >= 1;
@@ -37,7 +37,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   /**
    * This is the method that actually does the work of the phase.
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
 
     this.ir = ir;
     

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.Iterator;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 

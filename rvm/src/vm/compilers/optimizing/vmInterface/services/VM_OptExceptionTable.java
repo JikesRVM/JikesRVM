@@ -3,7 +3,9 @@
  */
 // $Id$
 package com.ibm.JikesRVM.opt; 
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Encoding of try ranges in the final machinecode and the

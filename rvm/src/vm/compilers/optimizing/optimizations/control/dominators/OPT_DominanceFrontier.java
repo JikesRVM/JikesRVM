@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * Calculate dominance frontier for a set of basic blocks.
@@ -38,7 +39,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return true;
   }
 
@@ -46,7 +47,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * Return a String representation for this phase
    * @return a String representation for this phase
    */
-  final String getName() {
+  public final String getName() {
     return  "Dominance Frontier";
   }
 
@@ -57,7 +58,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 

@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
 /**
@@ -15,8 +15,9 @@ import java.util.*;
  * @author Dave Grove
  * @author Martin Trapp
  **/
-final class OPT_GenerationContext implements OPT_Constants, 
-					     OPT_Operators {
+public final class OPT_GenerationContext 
+  implements com.ibm.JikesRVM.opt.OPT_Constants, 
+	     OPT_Operators {
 
   //////////
   // These fields are used to communicate information from its 
@@ -120,7 +121,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   /**
    * Inlining context of the method to be generated
    */
-  OPT_InlineSequence inlineSequence;
+  public OPT_InlineSequence inlineSequence;
 
   /**
    * The OPT_InlineOracle to be consulted for all inlining decisions during
@@ -316,7 +317,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     }
  
     // Initialize the child CFG, prologue, and epilogue blocks
-    child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes);
+    child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes());
     child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, 
 					child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
@@ -461,7 +462,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     parent.localMCSizeEstimate += 
       child.localMCSizeEstimate - VM_OptMethodSummary.CALL_COST;
 
-    parent.cfg.numberOfNodes = child.cfg.numberOfNodes;
+    parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
     if (child.generatedExceptionHandlers)
       parent.generatedExceptionHandlers = true;
     if (child.allocFrame)
@@ -770,7 +771,7 @@ final class OPT_GenerationContext implements OPT_Constants,
    * optimizations. This method should be called before hir2lir conversions
    * which might trigger inlining.
    */
-  void resync () {
+  public void resync () {
     //make sure the _ncGuards contain no dangling mappings
     resync_ncGuards();
   }
@@ -798,7 +799,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   /**
    * Kill ncGuards, so we do not use outdated mappings unintendedly later on
    */
-  void close () {
+  public void close () {
     _ncGuards = null;
   }
   

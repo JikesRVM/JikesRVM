@@ -3,10 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import  java.io.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * A few common utilites used for invoking BURS tree-pattern matching
@@ -77,7 +77,7 @@ public abstract class OPT_BURS implements OPT_Operators {
    * @param bb
    */
   final void finalizeBlock (OPT_BasicBlock bb) {
-    lastInstr.linkWithNext(bb.lastInstruction());
+    lastInstr.BURS_KLUDGE_linkWithNext(bb.lastInstruction());
     lastInstr = null;
     if (DEBUG) {
       VM.sysWrite("INITIAL MIR\n");
@@ -89,7 +89,7 @@ public abstract class OPT_BURS implements OPT_Operators {
    * append an instruction (in other words emit an MIR instruction)
    */
   public final void append (OPT_Instruction instruction) {
-    lastInstr.linkWithNext(instruction);
+    lastInstr.BURS_KLUDGE_linkWithNext(instruction);
     lastInstr = instruction;
   }
 }

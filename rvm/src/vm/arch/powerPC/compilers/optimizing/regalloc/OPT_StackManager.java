@@ -3,9 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 import java.util.Iterator;
 
@@ -19,7 +19,7 @@ import java.util.Iterator;
  * @author Mauricio J. Serrano
  * @author Stephen Fink
  */
-final class OPT_StackManager extends OPT_GenericStackManager
+public final class OPT_StackManager extends OPT_GenericStackManager
   implements OPT_Operators {
   
   /**
@@ -38,7 +38,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * Return the size of the fixed portion of the stack.
    * @return size in bytes of the fixed portion of the stackframe
    */
-  final int getFrameFixedSize() {
+  public final int getFrameFixedSize() {
     return frameSize;
   }
 
@@ -49,7 +49,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * @param type the type to spill
    * @return the spill location
    */
-  final int allocateNewSpillLocation(int type) {
+  public final int allocateNewSpillLocation(int type) {
 
     // increment by the spill size
     spillPointer += OPT_PhysicalRegisterSet.getSpillSize(type);
@@ -68,7 +68,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
+    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
       switch (inst.getOpcode()) {
 	case PPC_MOVE_opcode:
@@ -485,7 +485,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       return;
     }
 
-    OPT_Instruction ptr = ir.firstInstructionInCodeOrder().getNext();
+    OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, R(R0),
@@ -557,7 +557,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
       ir.stackManager.hasPrologueYieldpoint();
 
-    OPT_Instruction ptr = ir.firstInstructionInCodeOrder().getNext();
+    OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
     // Stack overflow check
@@ -581,11 +581,11 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
       // advance ptr because we want the remaining instructions to come after
       // the trap
-      ptr = ptr.getNext();
+      ptr = ptr.nextInstructionInCodeOrder();
 
     } else {
       // no stack overflow test, so we must remove the IR_Prologue instruction
-      OPT_Instruction next = ptr.getNext();
+      OPT_Instruction next = ptr.nextInstructionInCodeOrder();
       ptr.remove();
       ptr = next;
     }

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform local common-subexpression elimination for a factored basic
@@ -32,16 +32,16 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     this.isLIR = isLIR;
   }
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     // only perform when the following options are set.
     return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Local CSE";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
   static final boolean debug = false;

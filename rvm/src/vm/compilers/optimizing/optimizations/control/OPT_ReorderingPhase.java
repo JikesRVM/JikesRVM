@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 /**
@@ -26,15 +26,15 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 
   private static final boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.REORDER_CODE;
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return DEBUG;
   }
 
-  String getName () { 
+  public final String getName () { 
     return "Code Reordering"; 
   }
 
@@ -47,7 +47,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    * by reversing the branch condition, however.  That is saved for
    * OPT_BranchOptimizations.
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     ir.cfg.entry().clearInfrequent();
     if (ir.options.REORDER_CODE_PH) {
       // Do Pettis and Hansen PLDI'90 Algo2

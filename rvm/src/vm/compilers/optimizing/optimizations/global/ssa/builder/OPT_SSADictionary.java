@@ -3,17 +3,16 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-/**
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import  java.util.*;
+
+/*
  * This module tracks heap variables needed for Array SSA form.
  *
  * @author Stephen Fink
  */
-
-
-import  java.util.*;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
-
 
 /**
  * An <code> OPT_SSADictionary </code> structure holds lookaside
@@ -29,7 +28,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  *
  * @see OPT_SSA
  */
-final class OPT_SSADictionary implements OPT_Operators {
+public final class OPT_SSADictionary implements OPT_Operators {
 
   /**
    * Flag to turn on debugging

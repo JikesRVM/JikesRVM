@@ -18,10 +18,10 @@ package com.ibm.JikesRVM.opt;
  *
  * @author Dave Grove
  */
-class OPT_OperationNotImplementedException extends 
+public class OPT_OperationNotImplementedException extends 
     OPT_OptimizingCompilerException {
 
-  OPT_OperationNotImplementedException (String s) {
+  public OPT_OperationNotImplementedException (String s) {
     super(s, false);
   }
 }

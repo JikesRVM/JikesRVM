@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /**
  * An element in the opt compiler's optimzation plan
@@ -37,8 +39,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   String n the name for this phase
    * @param   OPT_OptimizationPlanElement[] e the elements to compose
    */
-  OPT_OptimizationPlanCompositeElement(String n, 
-				       OPT_OptimizationPlanElement[] e) {
+  public OPT_OptimizationPlanCompositeElement(String n, 
+					      OPT_OptimizationPlanElement[] e) {
     myName = n;
     myElements = e;
   }
@@ -50,8 +52,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   String n the name for this phase
    * @param   Object[] e the elements to compose
    */
-  OPT_OptimizationPlanCompositeElement(String n, 
-				       Object[] e) {
+  public OPT_OptimizationPlanCompositeElement(String n, 
+					      Object[] e) {
     myName = n;
     myElements = new OPT_OptimizationPlanElement[e.length];
     for (int i = 0; i < e.length; i++) {
@@ -69,7 +71,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * This method is called to initialize the optimization plan support
    *  measuring compilation.
    */
-  void initializeForMeasureCompilation() {
+  public void initializeForMeasureCompilation() {
     // initialize each composite object
     for (int i = 0; i < myElements.length; i++) {
       myElements[i].initializeForMeasureCompilation();
@@ -98,7 +100,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     for (int i = 0; i < myElements.length; i++) {
       if (myElements[i].shouldPerform(options)) {
         return  true;
@@ -113,7 +115,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * 
    * @param ir The OPT_IR object to work with.
    */
-  final void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
@@ -137,7 +139,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
   /**
    * @return a String which is the name of the phase.
    */
-  String getName() {
+  public String getName() {
     return myName;
   }
 
@@ -150,7 +152,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
-  final void reportStats (int indent, int timeCol, double totalTime) {
+  public final void reportStats (int indent, int timeCol, double totalTime) {
     double myTime = elapsedTime();
     if (myTime < 0.000001)
       return;
@@ -188,7 +190,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * Report the elapsed time spent in the PlanElement
    * @return time spend in the plan (in seconds)
    */
-  double elapsedTime () {
+  public double elapsedTime () {
     double total = 0.0;
     for (int i = 0; i < myElements.length; i++) {
       total += myElements[i].elapsedTime();

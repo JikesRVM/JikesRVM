@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Enumeration;
  * @author John Whaley
  * 
  */
-final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
+public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   
   /**
    * the VM_Type(s) of the exception(s) caught by this block.

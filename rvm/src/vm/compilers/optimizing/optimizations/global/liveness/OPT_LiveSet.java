@@ -4,7 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-/*
+import com.ibm.JikesRVM.opt.ir.*;
+
+/**
  * This file provides a sorted set (of registers) ADT with the 
  *  following public operations:
  * 
@@ -19,7 +21,7 @@ package com.ibm.JikesRVM.opt;
  *
  * @author Michael Hind 
  */
-class OPT_LiveSet {
+public class OPT_LiveSet {
 
   /**
    *  The beginning of the list

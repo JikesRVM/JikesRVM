@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * This interface contains flags to control IR generation.
@@ -10,7 +10,7 @@ package com.ibm.JikesRVM.opt;
  * @author John Whaley
  * @see OPT_BC2IR
  */
-interface OPT_IRGenOptions {
+public interface OPT_IRGenOptions {
   //////////////////////////////////////////
   // Flags that control IR generation policies
   //////////////////////////////////////////

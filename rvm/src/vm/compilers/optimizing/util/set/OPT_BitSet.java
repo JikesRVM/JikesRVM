@@ -28,7 +28,7 @@ public final class OPT_BitSet {
   /**
    * Constructor: create an empty set corresponding to a given mapping
    */
-  OPT_BitSet(OPT_BitSetMapping map) {
+  public OPT_BitSet(OPT_BitSetMapping map) {
     int length = map.getMappingSize();
     vector = new OPT_BitVector(length);
     this.map = map;

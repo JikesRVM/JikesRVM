@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 /**
@@ -26,16 +26,12 @@ import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
-  boolean shouldPerform (OPT_Options options) { 
+  public boolean shouldPerform (OPT_Options options) { 
     return true; 
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Expand Runtime Services";
-  }
-
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
   }
 
   class OPT_RedirectResult {
@@ -55,7 +51,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
 	
       OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
-	                                                : ir.gc.temps.makeTemp(value);
+	                                                : ir.regpool.makeTemp(value);
       OPT_BasicBlock beforeBB = inst.getBasicBlock();           
       OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
       OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
@@ -347,7 +343,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (VM_Configuration.BuildWithLazyRedirect) {
 		// This barrier completely replaces all access instruction.
 		OPT_Operand origArray = AStore.getClearArray(inst);
-		OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(origArray);
+		OPT_RegisterOperand newArray = ir.regpool.makeTemp(origArray);
 		OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
 		redirectInst.bcIndex = inst.bcIndex;
 		inst.insertBefore(redirectInst);
@@ -384,7 +380,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      // (2) Get real object for value to put if field is a reference type
 	      // (3) It is safe to use the real version for the lazy barrier
 	      OPT_Operand array = AStore.getClearArray(inst);
-	      OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(array);
+	      OPT_RegisterOperand newArray = ir.regpool.makeTemp(array);
 	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray,
 								  array, OPT_IRTools.TG());
 	      redirectInst.bcIndex = inst.bcIndex;
@@ -439,7 +435,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  // Leave the opcode of the final GetField so we don't have to handle UNRESOLVED stuff
 	  if (VM_Configuration.BuildWithLazyRedirect) {
 	      OPT_Operand object = GetField.getClearRef(inst);
-	      OPT_RegisterOperand newObject = ir.gc.temps.makeTemp(object);
+	      OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
 	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newObject, object, 
 								 GetField.getGuard(inst).copy());
 	      redirectInst.bcIndex = inst.bcIndex;
@@ -451,7 +447,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      VM_Field dataField = dataLoc.field;
 	      OPT_Operand origObject = GetField.getClearRef(inst);
 	      if (VM_Configuration.BuildWithLazyRedirect) {
-		  OPT_RegisterOperand realObject = ir.gc.temps.makeTemp(origObject);
+		  OPT_RegisterOperand realObject = ir.regpool.makeTemp(origObject);
 		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
 								     GetField.getGuard(inst).copy());
 		  redirectInst.bcIndex = inst.bcIndex;
@@ -461,7 +457,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      else {  // VM_Configuration.BuildWithEagerRedirect
 		  if (!dataField.getType().isPrimitiveType()) {
 		      OPT_RegisterOperand result = GetField.getClearResult(inst);
-		      OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		      OPT_RegisterOperand temp = ir.regpool.makeTemp(result);
 		      GetField.setResult(inst,temp);
 		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
 		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
@@ -519,7 +515,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                 // (2) Get real object for value to put if field is a reference type
                 // (3) It is safe to use the real version for the lazy barrier
 		OPT_Operand object = PutField.getClearRef(inst);
-		OPT_RegisterOperand newObject = ir.gc.temps.makeTemp(object);
+		OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
 		OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, newObject, object,
 								    PutField.getGuard(inst).copy());
 		redirectInst1.bcIndex = inst.bcIndex;

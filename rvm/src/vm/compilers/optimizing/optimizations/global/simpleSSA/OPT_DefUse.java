@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class computes du-lists and associated information.
@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Dave Grove
  * @modified Mauricio Serrano
  */
-final class OPT_DefUse implements OPT_Operators {
+public final class OPT_DefUse implements OPT_Operators {
   final static boolean DEBUG = false;
   final static boolean TRACE_DU_ACTIONS = false;
   final static boolean SUPRESS_DU_FOR_PHYSICALS = true;
@@ -28,7 +28,7 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question 
    */
-  static void clearDU(OPT_IR ir) {
+  public static void clearDU(OPT_IR ir) {
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {
       reg.defList = null;
@@ -45,7 +45,7 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  static void computeDU(OPT_IR ir) {
+  public static void computeDU(OPT_IR ir) {
     // Clear old register list (if any)
     clearDU(ir);
     if (TRACE_DU_ACTIONS || DEBUG)
@@ -387,7 +387,7 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  static void recomputeSpansBasicBlock(OPT_IR ir) {
+  public static void recomputeSpansBasicBlock(OPT_IR ir) {
     // clear fields
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {

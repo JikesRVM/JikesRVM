@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
 import  java.io.*;
 import  java.util.Enumeration;
 
@@ -19,20 +20,12 @@ import  java.util.Enumeration;
 final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
     implements OPT_IREnumeration {
 
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.DG_CRITICAL_PATH;
   }
 
-  final String getName() {
+  public final String getName() {
     return  "Critical Path Computation";
-  }
-
-  final String getPaddedName() {
-    return  "CRITICAL PATH\t";
-  }
-
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
   }
 
   /**
@@ -41,7 +34,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
    *
    * @param ir the IR in question 
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     if (verbose >= 1)
       debug("Computing CP for " + ir.method);
 

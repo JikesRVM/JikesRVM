@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
 /**
@@ -43,7 +43,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param reg the given register
    * @return float register operand
    */
-  static final OPT_RegisterOperand F(OPT_Register reg) {
+  public static final OPT_RegisterOperand F(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.FloatType);
   }
 
@@ -57,7 +57,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param reg the given register
    * @return double register operand
    */
-  static final OPT_RegisterOperand D(OPT_Register reg) {
+  public static final OPT_RegisterOperand D(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.DoubleType);
   }
 
@@ -71,7 +71,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param reg the given register
    * @return long register operand
    */
-  static final OPT_RegisterOperand L(OPT_Register reg) {
+  public static final OPT_RegisterOperand L(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.LongType);
   }
 
@@ -85,7 +85,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param reg the given register
    * @return condition register operand
    */
-  static final OPT_RegisterOperand CR(OPT_Register reg) {
+  public static final OPT_RegisterOperand CR(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
   }
 
@@ -113,7 +113,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param value the long value
    * @return long constant operand
    */
-  static final OPT_LongConstantOperand LC(long value) {
+  public static final OPT_LongConstantOperand LC(long value) {
     return new OPT_LongConstantOperand(value);
   }
 
@@ -127,7 +127,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param value the float value
    * @return float constant operand
    */
-  static final OPT_FloatConstantOperand FC(float value) {
+  public static final OPT_FloatConstantOperand FC(float value) {
     return new OPT_FloatConstantOperand(value);
   }
 
@@ -141,7 +141,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param value the double value
    * @return double constant operand
    */
-  static final OPT_DoubleConstantOperand DC(double value) {
+  public static final OPT_DoubleConstantOperand DC(double value) {
     return new OPT_DoubleConstantOperand(value);
   }
 
@@ -154,7 +154,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * 
    * @return true guard operand
    */
-  static final OPT_TrueGuardOperand TG() {
+  public static final OPT_TrueGuardOperand TG() {
     return new OPT_TrueGuardOperand();
   }
 
@@ -171,7 +171,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param dst the instruction to copy position information to
    * @return dest
    */
-  static final OPT_Instruction CPOS(OPT_Instruction src, 
+  public static final OPT_Instruction CPOS(OPT_Instruction src, 
 				    OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
@@ -183,7 +183,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type
    * @return a constant operand with the default value for type
    */
-  static final OPT_Operand getDefaultOperand(VM_Type type) {
+  public static final OPT_Operand getDefaultOperand(VM_Type type) {
     if (type.isBooleanType()) return new OPT_IntConstantOperand(0);
     if (type.isByteType())    return new OPT_IntConstantOperand(0);
     if (type.isCharType())    return new OPT_IntConstantOperand(0);
@@ -201,7 +201,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  static final OPT_Operator getMoveOp(VM_Type type) {
+  public static final OPT_Operator getMoveOp(VM_Type type) {
     if (type.isLongType())    return LONG_MOVE;
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
@@ -218,7 +218,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  static final OPT_Operator getCondMoveOp(VM_Type type) {
+  public static final OPT_Operator getCondMoveOp(VM_Type type) {
     if (type.isLongType())    return LONG_COND_MOVE;
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
@@ -234,7 +234,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param field field to load from
    * @return the OPT_Operator to use when loading the given field
    */
-  static final OPT_Operator getLoadOp(VM_Field field) {
+  public static final OPT_Operator getLoadOp(VM_Field field) {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
@@ -257,7 +257,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to store
    * @return the OPT_Operator to use when storing to the given field
    */
-  static final OPT_Operator getStoreOp(VM_Field field) {
+  public static final OPT_Operator getStoreOp(VM_Field field) {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
@@ -284,9 +284,9 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param op operand to copy to a register
    * @return register operand that we copied into
    */
-  static final OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
-						    OPT_Instruction s,
-						    OPT_Operand op) {
+  public static final OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
+							   OPT_Instruction s,
+							   OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
@@ -307,11 +307,11 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  static final OPT_RegisterOperand moveIntoRegister(VM_Type type,
-						    OPT_Operator move_op,
-						    OPT_RegisterPool pool,
-						    OPT_Instruction s,
-						    OPT_Operand op) {
+  public static final OPT_RegisterOperand moveIntoRegister(VM_Type type,
+							   OPT_Operator move_op,
+							   OPT_RegisterPool pool,
+							   OPT_Instruction s,
+							   OPT_Operand op) {
     OPT_RegisterOperand rop = pool.makeTemp(type);
     s.insertBack(Move.create(move_op, rop, op));
     rop = rop.copyD2U();
@@ -325,7 +325,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param from instruction to move
    * @param to instruction after where you want it moved
    */
-  static final void moveInstruction(OPT_Instruction from, OPT_Instruction to) {
+  public static final void moveInstruction(OPT_Instruction from, OPT_Instruction to) {
     from.remove();
     to.insertBack(from);
   }
@@ -338,8 +338,8 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param after instruction after where you want it inserted
    * @param temp basic block which contains the instructions to be inserted.
    */
-  static final void insertInstructionsAfter(OPT_Instruction after,
-					    OPT_BasicBlock temp) {
+  public static final void insertInstructionsAfter(OPT_Instruction after,
+						   OPT_BasicBlock temp) {
     if (temp.isEmpty()) return;
     OPT_Instruction after_after = after.getNext();
     after.linkWithNext(temp.firstRealInstruction());
@@ -466,7 +466,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  static boolean useDoublesAsDef(OPT_Operand u, 
+  public static boolean useDoublesAsDef(OPT_Operand u, 
                                  OPT_Instruction s) {
     for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
       OPT_Operand def = (OPT_Operand)d.nextElement();
@@ -488,7 +488,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  static boolean defDoublesAsUse(OPT_Operand d, 
+  public static boolean defDoublesAsUse(OPT_Operand d, 
                                  OPT_Instruction s) {
     for (Enumeration u = s.getUses(); u.hasMoreElements(); ) {
       OPT_Operand use = (OPT_Operand)u.nextElement();
@@ -502,7 +502,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
   /**
    * Does instruction s define register r?
    */
-  static boolean definedIn(OPT_Register r, OPT_Instruction s) {
+  public static boolean definedIn(OPT_Register r, OPT_Instruction s) {
     for (Enumeration e = s.getDefs(); e.hasMoreElements(); ) {
       OPT_Operand op = (OPT_Operand)e.nextElement();
       if (op != null && op.isRegister()) {
@@ -517,7 +517,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
   /**
    * Does instruction s use register r?
    */
-  static boolean usedIn(OPT_Register r, OPT_Instruction s) {
+  public static boolean usedIn(OPT_Register r, OPT_Instruction s) {
     for (Enumeration e = s.getUses(); e.hasMoreElements(); ) {
       OPT_Operand op = (OPT_Operand)e.nextElement();
       if (op != null && op.isRegister()) {
@@ -539,7 +539,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param instr the given instruction
    * @return the given instruction
    */
-  static final OPT_Instruction nonPEIGC(OPT_Instruction instr) {
+  public static final OPT_Instruction nonPEIGC(OPT_Instruction instr) {
     instr.markAsNonPEINonGCPoint();
     return instr;
   }

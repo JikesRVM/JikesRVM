@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * OPT_IndexPropagation.java
@@ -32,7 +32,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  true;
   }
 
@@ -40,19 +40,10 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * Return the name of this compiler phase.
    * @return "Index Propagation"
    */
-  final String getName() {
+  public final String getName() {
     return  "Index Propagation";
   }
 
-  /**
-   * Should the IR be printed before and/or after this phase?
-   * @param options controlling compiler options
-   * @param before query toggle
-   * @return true or false.
-   */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
-  }
   /**
    * Print vervose debugging messages?
    */ 

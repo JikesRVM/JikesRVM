@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
 
 /**
  * Represents a symbolic name for a stack location.
@@ -37,7 +39,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
    *                of the frame
    * @param size    Size (in bytes) of the stack location.
    */
-  OPT_StackLocationOperand(boolean fromTop, int offset, byte size) {
+  public OPT_StackLocationOperand(boolean fromTop, int offset, byte size) {
     this.fromTop = fromTop;
     this.offset = offset;
     this.size = size;
@@ -49,7 +51,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
    *                of the frame
    * @param size    Size (in bytes) of the stack location.
    */
-  OPT_StackLocationOperand(boolean fromTop, int offset, int size) {
+  public OPT_StackLocationOperand(boolean fromTop, int offset, int size) {
     this.fromTop = fromTop;
     this.offset = offset;
     this.size = (byte)size;
@@ -60,7 +62,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
    *         frame as its base, <code>false</code> if it uses the bottom
    *         of the frame as its base.
    */
-  boolean isFromTop() {
+  public boolean isFromTop() {
     return fromTop;
   }
 
@@ -68,14 +70,14 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
    * @return the offset from the frame pointer (top of stack frame) 
    *         corresponding to this stack location.
    */
-  int getOffset() {
+  public int getOffset() {
     return offset;
   }
 
   /** 
    * @return Size (in bytes) of this stack location.
    */
-  byte getSize() {
+  public byte getSize() {
     return size;
   }
 
@@ -93,7 +95,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
       (getOffset()<0?"":"+") + getOffset()+ s;
   }
 
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_StackLocationOperand) {
       OPT_StackLocationOperand o2 = (OPT_StackLocationOperand)op;
       return ((o2.isFromTop() == isFromTop()) &&

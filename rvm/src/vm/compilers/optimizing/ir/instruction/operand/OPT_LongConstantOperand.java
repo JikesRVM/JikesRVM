@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.OPT_Bits;
 
 /**
  * Represents a constant long operand.
@@ -15,13 +17,13 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  long value;
+  public long value;
 
   /**
    * Index in JTOC where this long constant lives. (0 for constants
    * obtained from constant folding)
    */
-  int index;
+  public int index;
 
   /**
    * Constructs a new long constant operand with the specified value.
@@ -38,7 +40,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * @param v value
    * @param i index in the jtoc
    */
-  OPT_LongConstantOperand(long v, int i) {
+  public OPT_LongConstantOperand(long v, int i) {
     value = v;
     index = i;
   }
@@ -46,14 +48,14 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   /**
    * Return the lower 32 bits (as an int) of value
    */
-  int lower32() {
+  public int lower32() {
     return OPT_Bits.lower32(value);
   }
 
   /**
    * Return the upper 32 bits (as an int) of value
    */
-  int upper32() {
+  public int upper32() {
     return OPT_Bits.upper32(value);
   }
   
@@ -74,7 +76,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_LongConstantOperand) &&
            (value == ((OPT_LongConstantOperand)op).value);
   }

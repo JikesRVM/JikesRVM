@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
  * A symbolic or physical register.
@@ -25,12 +27,12 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /** 
    * Register object that this operand uses.
    */
-  OPT_Register register;
+  public OPT_Register register;
 
   /**
    * Inferred data type of the contents of the register.
    */
-  VM_Type type;
+  public VM_Type type;
 
   /**
    * scratch word that can be used for different optimizations.
@@ -38,7 +40,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * 16 bits can be used for other purposes. Note: if packing is
    * supported, the scratch word could be split. 
    */
-   int scratch;
+  public int scratch;
 
   static private final int PARAMETER    = 0x01000000; // the register operand is for a parameter
   static private final int NON_VOLATILE = 0x02000000;
@@ -62,77 +64,76 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   // the following available for analysis-specific extra information 
   static private final int INFO_MASK    = 0x0000ffff;
 
+  public boolean isParameter()       {   return (scratch & PARAMETER    ) != 0; }
+  public boolean isNonVolatile()     {   return (scratch & NON_VOLATILE ) != 0; }
 
-  boolean isParameter()       {   return (scratch & PARAMETER    ) != 0; }
-  boolean isNonVolatile()     {   return (scratch & NON_VOLATILE ) != 0; }
+  public boolean isExtant()          {   return (scratch & EXTANT       ) != 0; }
+  public boolean isDeclaredType()    {   return (scratch & DECLARED_TYPE) != 0; }
+  public boolean isPreciseType()     {   return (scratch & PRECISE_TYPE ) != 0; }
+  public boolean isPositiveInt()     {   return (scratch & POSITIVE     ) != 0; }
+  public boolean isDeclaredOrPreciseType() {  return (scratch & (DECLARED_TYPE|PRECISE_TYPE)) != 0; }
 
-  boolean isExtant()          {   return (scratch & EXTANT       ) != 0; }
-  boolean isDeclaredType()    {   return (scratch & DECLARED_TYPE) != 0; }
-  boolean isPreciseType()     {   return (scratch & PRECISE_TYPE ) != 0; }
-  boolean isPositiveInt()     {   return (scratch & POSITIVE     ) != 0; }
-  boolean isDeclaredOrPreciseType() {  return (scratch & (DECLARED_TYPE|PRECISE_TYPE)) != 0; }
+  public boolean isRange()           {   return (scratch & RANGE_MASK)    != 0; }
+  public int     getRange()          {   return (scratch & RANGE_MASK)    >>>16;}
 
-  boolean isRange()           {   return (scratch & RANGE_MASK)    != 0; }
-  int     getRange()          {   return (scratch & RANGE_MASK)    >>>16;}
+  public void    setParameter()      {   scratch |=  PARAMETER;                 }
+  public void    setNonVolatile()    {   scratch |=  NON_VOLATILE;              }
+  public void    setExtant()         {   scratch |=  EXTANT;                    }
+  public void    setDeclaredType()   {   scratch |=  DECLARED_TYPE;             }
+  public void    setPreciseType()    {   scratch |=  PRECISE_TYPE;              }
+  public void    setPositiveInt()    {   scratch |=  POSITIVE;                  }
+  public void    setRange(int n)     {   scratch |=  (n << 16) & RANGE_MASK;    }
 
-  void    setParameter()      {   scratch |=  PARAMETER;                 }
-  void    setNonVolatile()    {   scratch |=  NON_VOLATILE;              }
-  void    setExtant()         {   scratch |=  EXTANT;                    }
-  void    setDeclaredType()   {   scratch |=  DECLARED_TYPE;             }
-  void    setPreciseType()    {   scratch |=  PRECISE_TYPE;              }
-  void    setPositiveInt()    {   scratch |=  POSITIVE;                  }
-  void    setRange(int n)     {   scratch |=  (n << 16) & RANGE_MASK;    }
+  public void    clearParameter()    {   scratch &= ~PARAMETER;        }
+  public void    clearNonVolatile()  {   scratch &= ~NON_VOLATILE;     }
+  public void    clearExtant()       {   scratch &= ~EXTANT;           }
+  public void    clearDeclaredType() {   scratch &= ~DECLARED_TYPE;    }
+  public void    clearPreciseType()  {   scratch &= ~PRECISE_TYPE;     }
 
-  void    clearParameter()    {   scratch &= ~PARAMETER;        }
-  void    clearNonVolatile()  {   scratch &= ~NON_VOLATILE;     }
-  void    clearExtant()       {   scratch &= ~EXTANT;           }
-  void    clearDeclaredType() {   scratch &= ~DECLARED_TYPE;    }
-  void    clearPreciseType()  {   scratch &= ~PRECISE_TYPE;     }
-
-  int  getFlags() {
+  public int  getFlags() {
      return scratch & FLAGS_MASK;
   }
 
-  void setFlags(int inFlag) {
+  public void setFlags(int inFlag) {
      scratch = (scratch & ~FLAGS_MASK) | inFlag;
   }
 
-  void clearFlags() {
+  public void clearFlags() {
      scratch = scratch & ~FLAGS_MASK;
   }
   
-  void addFlags(int inFlag) {
+  public void addFlags(int inFlag) {
      scratch |= inFlag;
   }
 
-  void setInheritableFlags(OPT_RegisterOperand src) {
+  public void setInheritableFlags(OPT_RegisterOperand src) {
     // Currently all flags are inheritable, so no need to mask
     setFlags(src.getFlags());
   }
 
-  void meetInheritableFlags(OPT_RegisterOperand other) {
+  public void meetInheritableFlags(OPT_RegisterOperand other) {
     // Currently all flags are "meetable", so no need to mask
     setFlags(getFlags() & other.getFlags());
   }
 
   // Return true if we have any bits set (flag true) that other doesn't
   // It's ok for other to have bits set true that we have set to false.
-  boolean hasLessConservativeFlags(OPT_RegisterOperand other) {
+  public boolean hasLessConservativeFlags(OPT_RegisterOperand other) {
      return other.getFlags() != (getFlags() | other.getFlags());
   }     
 
-  final int getInfo() {
+  public final int getInfo() {
      return scratch & INFO_MASK;
   }
 
-  final void setInfo(int value) {
+  public final void setInfo(int value) {
      scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
   }
 
   /* Some bits used to characterize guards.  TODO: Maybe declare a new
      type OPT_GuardOperand extends OPT_RegisterOperand, and save this
      state there? */
-  int scratch2;
+  private int scratch2;
 
   static private final int TAKEN     = 0x00000001; // guard operand that
   					    // represents a taken branch
@@ -142,25 +143,25 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   					// originates from a bounds-check
   static private final int NULL_CHECK = 0x00000008; // guard operand that
   					// originates from a null-check
-  boolean isTaken()       	{   return (scratch2 & TAKEN) != 0; }
-  boolean isNotTaken()     	{   return (scratch2 & NOT_TAKEN) != 0; }
-  boolean isBoundsCheck()       {   return (scratch2 & BOUNDS_CHECK) != 0; }
-  boolean isNullCheck()         {   return (scratch2 & NULL_CHECK) != 0; }
+  public boolean isTaken()       	{   return (scratch2 & TAKEN) != 0; }
+  public boolean isNotTaken()     	{   return (scratch2 & NOT_TAKEN) != 0; }
+  public boolean isBoundsCheck()       {   return (scratch2 & BOUNDS_CHECK) != 0; }
+  public boolean isNullCheck()         {   return (scratch2 & NULL_CHECK) != 0; }
 
-  void    setTaken()      	{   scratch2 |=  TAKEN;                 }
-  void    setNotTaken()      	{   scratch2 |=  NOT_TAKEN;             }
-  void    setBoundsCheck()     	{   scratch2 |=  BOUNDS_CHECK;          }
-  void    setNullCheck()     	{   scratch2 |=  NULL_CHECK;            }
+  public void    setTaken()      	{   scratch2 |=  TAKEN;                 }
+  public void    setNotTaken()      	{   scratch2 |=  NOT_TAKEN;             }
+  public void    setBoundsCheck()     	{   scratch2 |=  BOUNDS_CHECK;          }
+  public void    setNullCheck()     	{   scratch2 |=  NULL_CHECK;            }
 
-  void    clearTaken()    	{   scratch2 &= ~TAKEN;        		}
-  void    clearNotTaken()    	{   scratch2 &= ~NOT_TAKEN;    		}
-  void    clearBoundsCheck()   	{   scratch2 &= ~BOUNDS_CHECK;  	}
-  void    clearNullCheck()   	{   scratch2 &= ~NULL_CHECK;  	        }
+  public void    clearTaken()    	{   scratch2 &= ~TAKEN;        		}
+  public void    clearNotTaken()    	{   scratch2 &= ~NOT_TAKEN;    		}
+  public void    clearBoundsCheck()   	{   scratch2 &= ~BOUNDS_CHECK;  	}
+  public void    clearNullCheck()   	{   scratch2 &= ~NULL_CHECK;  	        }
 
 
   /* optimizations can use it for different purposes, as long as
     they are not used simultaneously */
-  Object scratchObject;
+  public Object scratchObject;
 
 
   /* since there is not multiple inheritance in Java, I am copying the 
@@ -185,19 +186,19 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param reg register object
    * @param typ data type
    */
-  OPT_RegisterOperand(OPT_Register reg, VM_Type typ) {
+  public OPT_RegisterOperand(OPT_Register reg, VM_Type typ) {
     register = reg; 
     type = typ;
   }
 
-  OPT_RegisterOperand(OPT_Register reg, VM_Type typ, int flags) {
+  public OPT_RegisterOperand(OPT_Register reg, VM_Type typ, int flags) {
     register = reg; 
     type = typ; 
     scratch = flags;
   }
 
 
-  void setRegister(OPT_Register replacement) {
+  public void setRegister(OPT_Register replacement) {
     register = replacement;
   }
 
@@ -257,7 +258,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * 
    * @param op operand to compare against
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_RegisterOperand) &&
       (register == ((OPT_RegisterOperand)op).register);
   }

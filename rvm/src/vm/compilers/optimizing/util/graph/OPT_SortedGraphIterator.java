@@ -154,13 +154,10 @@ public class OPT_SortedGraphIterator {
   public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode, 
 				   OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 predecessor
-    if (!nextNode.hasOneIn()) {
-      return  false;
-    }
+    if (!nextNode.hasOneIn()) return false;
     // now check that the predecessor is current node
     Enumeration enum = nextNode.getInNodes();
-    OPT_BasicBlock nextsPred = (OPT_BasicBlock)enum.nextElement();
-    return  nextsPred == currentNode;
+    return enum.nextElement() == currentNode;
   }
 
   /**
@@ -177,13 +174,10 @@ public class OPT_SortedGraphIterator {
   public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode, 
 				     OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 successor
-    if (!nextNode.hasOneOut()) {
-      return  false;
-    }
+    if (!nextNode.hasOneOut()) return  false;
     // now check that the successor is current node
     Enumeration enum = nextNode.getOutNodes();
-    OPT_BasicBlock nextsSucc = (OPT_BasicBlock)enum.nextElement();
-    return  nextsSucc == currentNode;
+    return enum.nextElement() == currentNode;
   }
 
   /**

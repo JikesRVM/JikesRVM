@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -48,7 +48,7 @@ public final class OPT_BranchOptimizations
    * @param mayReorderCode are we allowed to change the code order?
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    */
-  OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
+  public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
     super(level);
     mayReorderCode = mayReorderCode;
     mayDuplicateCondBranches = mayDuplicateCondBranches;
@@ -234,7 +234,7 @@ public final class OPT_BranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
 
@@ -328,7 +328,7 @@ public final class OPT_BranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
       if (targetLabel == nextLabel) {
@@ -392,7 +392,7 @@ public final class OPT_BranchOptimizations
     OPT_Instruction target1Label = IfCmp2.getTarget1(cb).target; 
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (target1Inst != null && target1Inst != cb) {
       if (Goto.conforms(target1Inst)) {
 	// conditional branch to unconditional branch.
@@ -969,7 +969,7 @@ public final class OPT_BranchOptimizations
     Goto.mutate(cb,GOTO,target);
     
     // Delete a potential GOTO after cb.
-    OPT_Instruction next = cb.getNext();
+    OPT_Instruction next = cb.nextInstructionInCodeOrder();
     if (next.operator != BBEND) {
       next.remove();
     }
@@ -1006,7 +1006,7 @@ public final class OPT_BranchOptimizations
     if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))
       return false;
     // make sure this is the last branch in the block
-    if (cb.getNext().operator() != BBEND)
+    if (cb.nextInstructionInCodeOrder().operator() != BBEND)
       return false;
     OPT_Operand val1 = IfCmp.getVal1(cb);
     OPT_Operand val2 = IfCmp.getVal2(cb);

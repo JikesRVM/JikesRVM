@@ -8,12 +8,11 @@ package com.ibm.JikesRVM.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_LinkedList {
+public class OPT_LinkedList {
+  
+  public OPT_LinkedList() { }
 
-  OPT_LinkedList() {
-  }
-
-  OPT_LinkedList(OPT_LinkedListElement e) {
+  public OPT_LinkedList(OPT_LinkedListElement e) {
     start = end = e;
   }
 

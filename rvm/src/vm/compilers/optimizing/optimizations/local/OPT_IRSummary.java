@@ -2,14 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * General utilities to summarize an IR
  *
  * @author Stephen Fink
  */
-final class OPT_IRSummary implements OPT_Operators {
+public final class OPT_IRSummary implements OPT_Operators {
 
   /** 
    * Does this IR have a bounds check expression?

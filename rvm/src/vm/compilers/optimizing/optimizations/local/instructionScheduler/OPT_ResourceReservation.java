@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
 /**
  * Describes a reservation on a particular resource.
  * A reservation is for a continuous period of time.

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  *
  * @author Dave Grove
  */
-abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
+public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
   // NOTE: The convention is that constant folding is controlled based
   // on the type of the result of the operator, not the type of its inputs.
   /** 

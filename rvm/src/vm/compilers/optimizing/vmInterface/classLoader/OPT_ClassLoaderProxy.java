@@ -9,7 +9,9 @@ package com.ibm.JikesRVM.opt;
  * @author Dave Grove
  * @author Julian Dolby
  **/
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 public final class OPT_ClassLoaderProxy 
 implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
@@ -24,44 +26,44 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
    * Before adding anything here, see what's already available on OPT_ClassLoaderProxy.
    * These static fields are initialized by the subclass constructor.
    */
-  static VM_Type VoidType;
-  static VM_Type BooleanType;
-  static VM_Type ByteType;
-  static VM_Type ShortType;
-  static VM_Type IntType;
-  static VM_Type LongType;
-  static VM_Type FloatType;
-  static VM_Type DoubleType;
-  static VM_Type CharType;
-  static VM_Type JavaLangObjectType;    
-  static VM_Type JavaLangClassType;    
-  static VM_Type JavaLangObjectArrayType;
-  static VM_Type JavaIoSerializableType; 
-  static VM_Type JavaLangCloneableType; 
-  static VM_Type JavaLangStringType;    
-  static VM_Type JavaLangThrowableType; 
-  static VM_Array BooleanArrayType;
-  static VM_Array CharArrayType;
-  static VM_Array FloatArrayType;
-  static VM_Array DoubleArrayType;
-  static VM_Array ByteArrayType;
-  static VM_Array ShortArrayType;
-  static VM_Array IntArrayType;
-  static VM_Array LongArrayType;
-  static VM_Class JavaLangNullPointerExceptionType;
-  static VM_Class JavaLangArrayIndexOutOfBoundsExceptionType;
-  static VM_Class JavaLangArithmeticExceptionType;
-  static VM_Class JavaLangArrayStoreExceptionType;
-  static VM_Class JavaLangClassCastExceptionType;
-  static VM_Class JavaLangNegativeArraySizeExceptionType;
-  static VM_Class JavaLangIllegalMonitorStateExceptionType;
-  static VM_Class JavaLangErrorType;
-  static VM_Type NULL_TYPE;
-  static VM_Type VALIDATION_TYPE;
-  static VM_Type InstructionArrayType;
-  static VM_Class VM_Type_type;
-  static VM_Class VM_Array_type;
-  static VM_Class VM_Class_type;
+  public static VM_Type VoidType;
+  public static VM_Type BooleanType;
+  public static VM_Type ByteType;
+  public static VM_Type ShortType;
+  public static VM_Type IntType;
+  public static VM_Type LongType;
+  public static VM_Type FloatType;
+  public static VM_Type DoubleType;
+  public static VM_Type CharType;
+  public static VM_Type JavaLangObjectType;    
+  public static VM_Type JavaLangClassType;    
+  public static VM_Type JavaLangObjectArrayType;
+  public static VM_Type JavaIoSerializableType; 
+  public static VM_Type JavaLangCloneableType; 
+  public static VM_Type JavaLangStringType;    
+  public static VM_Type JavaLangThrowableType; 
+  public static VM_Array BooleanArrayType;
+  public static VM_Array CharArrayType;
+  public static VM_Array FloatArrayType;
+  public static VM_Array DoubleArrayType;
+  public static VM_Array ByteArrayType;
+  public static VM_Array ShortArrayType;
+  public static VM_Array IntArrayType;
+  public static VM_Array LongArrayType;
+  public static VM_Class JavaLangNullPointerExceptionType;
+  public static VM_Class JavaLangArrayIndexOutOfBoundsExceptionType;
+  public static VM_Class JavaLangArithmeticExceptionType;
+  public static VM_Class JavaLangArrayStoreExceptionType;
+  public static VM_Class JavaLangClassCastExceptionType;
+  public static VM_Class JavaLangNegativeArraySizeExceptionType;
+  public static VM_Class JavaLangIllegalMonitorStateExceptionType;
+  public static VM_Class JavaLangErrorType;
+  public static VM_Type NULL_TYPE;
+  public static VM_Type VALIDATION_TYPE;
+  public static VM_Type InstructionArrayType;
+  public static VM_Class VM_Type_type;
+  public static VM_Class VM_Array_type;
+  public static VM_Class VM_Class_type;
 
   /**
    * Returns a common superclass of the two types.
@@ -69,7 +71,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
    * may be a conservative approximation (java.lang.Object).
    * If there is no common superclass, than null is returned.
    */
-  static public VM_Type findCommonSuperclass (VM_Type t1, VM_Type t2) {
+  public static VM_Type findCommonSuperclass (VM_Type t1, VM_Type t2) {
     if (t1 == t2)
       return  t1;
     if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
@@ -191,7 +193,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
    * @param childType child type
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
-  static public byte includesType (VM_Type parentType, VM_Type childType) {
+  public static byte includesType (VM_Type parentType, VM_Type childType) {
     // First handle some cases that we can answer without needing to 
     // look at the type hierarchy
     // NOTE: The ordering of these tests is critical!
@@ -359,7 +361,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
   private static VM_Class uninterruptibleClass;
   private static VM_Class VM_BootRecordType;
   public static VM_Type VM_ProcessorType;
-  static VM_Type AddressType;
+  public static VM_Type AddressType;
   private static VM_Type MagicType;             
   private static VM_Type UninterruptibleType;   
   private static VM_Type DynamicBridgeType;     
@@ -451,7 +453,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
   //   - a non-static method for which the non-overridden (superclass) 
   //   version is desired
   //
-  static VM_Method findSpecialMethod(VM_Method sought) {
+  public static VM_Method findSpecialMethod(VM_Method sought) {
     return VM_Class.findSpecialMethod( sought );
   }
   /**
@@ -459,7 +461,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
    * @param atype array type number (see "newarray" bytecode description in Java VM Specification)
    * @return array description
    */
-  static VM_Array getPrimitiveArrayType(int atype) {
+  public static VM_Array getPrimitiveArrayType(int atype) {
     return VM_Array.getPrimitiveArrayType( atype );
   }
 
@@ -470,8 +472,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
    * @param referent the member being referenced
    * @param referrer the method containing the reference
    */
-  public static boolean needsDynamicLink(VM_Member referent, VM_Class referrer)
-  {
+  public static boolean needsDynamicLink(VM_Member referent, VM_Class referrer) {
     return VM_ClassLoader.needsDynamicLink(referent, referrer);
   }
 
@@ -583,11 +584,11 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
   // Jikes RVM specific stuff
   // --------------------------------------------------------------------------
 
-  static VM_Type getVMProcessorType() {
+  public static VM_Type getVMProcessorType() {
     return VM_ProcessorType;
   };
 
-  static VM_Class getBootRecordType() {
+  public static VM_Class getBootRecordType() {
     return VM_BootRecordType;
   }
 }

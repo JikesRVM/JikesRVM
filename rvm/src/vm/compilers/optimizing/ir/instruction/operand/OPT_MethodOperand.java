@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_SpecializedMethod;
 
 /**
  * Refers to a method. Used for method call instructions.
@@ -22,30 +24,30 @@ import com.ibm.JikesRVM.*;
 public final class OPT_MethodOperand extends OPT_Operand {
 
   /** Enumeration of types of invokes */
-  static final byte STATIC    = 0;
+  public static final byte STATIC    = 0;
   /** Enumeration of types of invokes */
-  static final byte SPECIAL   = 1;
+  public static final byte SPECIAL   = 1;
   /** Enumeration of types of invokes */
-  static final byte VIRTUAL   = 2;
+  public static final byte VIRTUAL   = 2;
   /** Enumeration of types of invokes */
-  static final byte INTERFACE = 3;
+  public static final byte INTERFACE = 3;
 
   /**
    * The method being invoked
    */
-  VM_Method method;
+  public VM_Method method;
   
   /**
    * For use when invoking internal methods (defined as INSTRUCTION[]
    * reachable from the JTOC but that don't have VM_Method objecrs/
    */
-  VM_Member internal;
+  public VM_Member internal;
   
   /**
    * offset into jtoc/tib (for internal methods only).
    * (internal != null, method = null).
    */
-  int offset; 
+  public int offset; 
 
   /**
    * Does the invoke only have a single target?
@@ -70,12 +72,12 @@ public final class OPT_MethodOperand extends OPT_Operand {
   /**
    * The type of the invoke (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  byte type = -1;
+  public byte type = -1;
 
   /**
    * Is the target currently unresolved?
    */
-  boolean unresolved;
+  public boolean unresolved;
 
   /**
    * @param callee the method to call
@@ -110,7 +112,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param r is the target currently unresolved?
    * @return the newly created method operand
    */
-  static OPT_MethodOperand SPECIAL(VM_Method callee, boolean r) {
+  public static OPT_MethodOperand SPECIAL(VM_Method callee, boolean r) {
     return new OPT_MethodOperand(callee,SPECIAL,r);
   }
 
@@ -121,7 +123,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param r is the target currently unresolved?
    * @return the newly created method operand
    */
-  static OPT_MethodOperand STATIC(VM_Method callee, boolean r) {
+  public static OPT_MethodOperand STATIC(VM_Method callee, boolean r) {
     return new OPT_MethodOperand(callee,STATIC,r);
   }
 
@@ -132,7 +134,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param callee the method to call
    * @return the newly created method operand
    */
-  static OPT_MethodOperand STATIC(VM_Method callee) {
+  public static OPT_MethodOperand STATIC(VM_Method callee) {
     return new OPT_MethodOperand(callee,STATIC,false);
   }
 
@@ -143,7 +145,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param r is the target currently unresolved?
    * @return the newly created method operand
    */
-  static OPT_MethodOperand VIRTUAL(VM_Method callee, boolean r) {
+  public static OPT_MethodOperand VIRTUAL(VM_Method callee, boolean r) {
     return new OPT_MethodOperand(callee,VIRTUAL,r);
   }
 
@@ -156,7 +158,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param refined has the target been refined?
    * @return the newly created method operand
    */
-  static OPT_MethodOperand VIRTUAL(VM_Method callee, 
+  public static OPT_MethodOperand VIRTUAL(VM_Method callee, 
 				   boolean r, 
 				   boolean refined) {
     OPT_MethodOperand mo = new OPT_MethodOperand(callee,VIRTUAL,r);
@@ -171,7 +173,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param r is the target currently unresolved?
    * @return the newly created method operand
    */
-  static OPT_MethodOperand INTERFACE(VM_Method callee, boolean r) {
+  public static OPT_MethodOperand INTERFACE(VM_Method callee, boolean r) {
     return new OPT_MethodOperand(callee,INTERFACE,r);
   }
 
@@ -184,27 +186,27 @@ public final class OPT_MethodOperand extends OPT_Operand {
     offset   = o;
   } 
 
-  boolean isStatic() {
+  public boolean isStatic() {
     return type == STATIC;
   }
 
-  boolean isVirtual() {
+  public boolean isVirtual() {
     return type == VIRTUAL;
   }
 
-  boolean isSpecial() {
+  public boolean isSpecial() {
     return type == SPECIAL;
   }
 
-  boolean isInterface() {
+  public boolean isInterface() {
     return type == INTERFACE;
   }
 
-  boolean isSingleTarget() {
+  public boolean isSingleTarget() {
     return isSingleTarget;
   }
 
-  boolean isRefined() {
+  public boolean isRefined() {
     return isRefined;
   }
 
@@ -215,7 +217,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    *
    * @return Does this op represent a call that never returns?
    */
-  boolean isNonReturningCall() {
+  public boolean isNonReturningCall() {
     return isNonReturningCall;
   }
 
@@ -223,21 +225,21 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * Record whether this operand represents a method call that never 
    * returns (such as a call to athrow());
    */
-  void setIsNonReturningCall(boolean neverReturns) {
+  public void setIsNonReturningCall(boolean neverReturns) {
     isNonReturningCall = neverReturns;
   }
 
   /**
    * Return whether this operand is the off branch of a guarded inline
    */
-  boolean isGuardedInlineOffBranch() {
+  public boolean isGuardedInlineOffBranch() {
     return isGuardedInlineOffBranch;
   }
 
   /**
    * Record that this operand is the off branch of a guarded inline
    */
-  void setIsGuardedInlineOffBranch(boolean f) {
+  public void setIsGuardedInlineOffBranch(boolean f) {
     isGuardedInlineOffBranch = f;
   }
 
@@ -264,7 +266,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_MethodOperand) && 
       (method == ((OPT_MethodOperand)op).method);
   }

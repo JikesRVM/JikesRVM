@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This abstract class provides a set of useful architecture-independent 

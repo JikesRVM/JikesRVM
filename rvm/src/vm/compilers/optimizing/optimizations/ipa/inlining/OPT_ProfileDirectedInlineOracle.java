@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
   * This class implements the OPT_InlineOracle interface with a

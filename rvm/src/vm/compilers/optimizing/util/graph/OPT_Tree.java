@@ -12,7 +12,7 @@ import  java.util.Enumeration;
  *
  *  @author Michael Hind
  */
-class OPT_Tree {
+public class OPT_Tree {
   
   /**
    *  A tree is simply a pointer to the root
@@ -23,7 +23,7 @@ class OPT_Tree {
    * constructor where the root is not initially known
    * @param node
    */
-  OPT_Tree() {
+  public OPT_Tree() {
     root = null;
   }
 
@@ -31,7 +31,7 @@ class OPT_Tree {
    * constructor where the root is initially known
    * @param node
    */
-  OPT_Tree(OPT_TreeNode node) {
+  public OPT_Tree(OPT_TreeNode node) {
     root = node;
   }
 
@@ -39,7 +39,7 @@ class OPT_Tree {
    * Is the tree empty?
    * @return whether the tree is empty
    */
-  final boolean isEmpty() {
+  public final boolean isEmpty() {
     return  root == null;
   }
 
@@ -47,7 +47,7 @@ class OPT_Tree {
    * Gets the root of the tree
    * @return the root of the tree
    */
-  final OPT_TreeNode getRoot() {
+  public final OPT_TreeNode getRoot() {
     return  root;
   }
 
@@ -55,7 +55,7 @@ class OPT_Tree {
    * Sets the root of the tree to be the passed node.
    * WARNING: the tree should be empty when this occurs
    */
-  final void setRoot(OPT_TreeNode node) {
+  public final void setRoot(OPT_TreeNode node) {
     node.clear();  // make sure all pointers are pointing anywhere else
     root = node;
   }
@@ -64,7 +64,7 @@ class OPT_Tree {
    * Provides an undefined enumeration over all elements in the tree
    * @return enumeration
    */
-  final Enumeration elements() {
+  public final Enumeration elements() {
     return  new OPT_TreeTopDownEnumerator(root);
   }
 
@@ -72,7 +72,7 @@ class OPT_Tree {
    * Counts and returns the number of nodes
    * @return the number of nodes.
    */
-  final int numberOfNodes() {
+  public final int numberOfNodes() {
     int n = 0;
     for (Enumeration e = elements(); e.hasMoreElements();) {
       e.nextElement();
@@ -85,7 +85,7 @@ class OPT_Tree {
    * Provides a bottom-up enumeration over all elements in the tree
    * @return enumeration
    */
-  final  Enumeration getBottomUpEnumerator() {
+  public final  Enumeration getBottomUpEnumerator() {
     return  new OPT_TreeBottomUpEnumerator(root);
   }
 
@@ -93,7 +93,7 @@ class OPT_Tree {
    * Provides a top-down enumeration over all elements in the tree
    * @return enumeration
    */
-  final Enumeration getTopDownEnumerator() {
+  public final Enumeration getTopDownEnumerator() {
     return  new OPT_TreeTopDownEnumerator(root);
   }
 
@@ -101,7 +101,7 @@ class OPT_Tree {
    * Prints the tree 
    * @return the tree as a string
    */
-  final public String toString() {
+  public final String toString() {
     StringBuffer sb = new StringBuffer();
 
     // visit the nodes in a depth first traversal, printing the nodes

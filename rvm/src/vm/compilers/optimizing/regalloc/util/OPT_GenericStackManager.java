@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,7 +19,7 @@ import java.util.Iterator;
  * @author Stephen Fink
  * @author Michael Hind
  */
-abstract class OPT_GenericStackManager extends OPT_IRTools 
+public abstract class OPT_GenericStackManager extends OPT_IRTools 
 implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
@@ -915,7 +915,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    *  prologue is
    */
   private void insertEndPrologue() {
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
+    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
     inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
     inst.remove();
@@ -1120,7 +1120,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   final void insertSpillAfter(OPT_Instruction s, OPT_Register r,
                               byte type, int location) {
-    insertSpillBefore(s.getNext(),r,type,location);
+    insertSpillBefore(s.nextInstructionInCodeOrder(),r,type,location);
   }
 
   /**
@@ -1147,7 +1147,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   final void insertUnspillAfter(OPT_Instruction s, OPT_Register r, 
                                 byte type, int location) {
-    insertUnspillBefore(s.getNext(),r,type,location);
+    insertUnspillBefore(s.nextInstructionInCodeOrder(),r,type,location);
   }
 
   /**
@@ -1233,7 +1233,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * We encountered a magic (get/set framepointer) that is going to force
    * us to acutally create the stack frame.
    */
-  void forceFrameAllocation() { frameRequired = true; }
+  public void forceFrameAllocation() { frameRequired = true; }
 
   /**
    * We encountered a float/int conversion that uses

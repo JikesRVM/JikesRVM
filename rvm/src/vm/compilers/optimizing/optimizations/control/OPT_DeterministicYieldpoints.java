@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class expands yield points into an explicit counter decrement
@@ -24,7 +24,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     // For now it's a compile-time flag only.
     return VM.BuildForDeterministicThreadSwitching;
   }
@@ -33,7 +33,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
    * Return the name of this phase
    * @return "Deterministic Yieldpoint Expansion"
    */
-  final String getName () {
+  public final String getName () {
     return  "Deterministic Yield Point Expansion";
   }
 

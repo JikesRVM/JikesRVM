@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Transformations that use escape analysis.
@@ -21,15 +21,15 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 class OPT_EscapeTransformations extends OPT_CompilerPhase
     implements OPT_Operators {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Escape Transformations";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 

@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.*;
 
 /**
  *
@@ -12,7 +14,7 @@ package com.ibm.JikesRVM.opt;
  *  @author Michael Hind
  *
  */
-final class OPT_GCIRMap {
+public final class OPT_GCIRMap {
 
   /**
    *  This is the list of maps

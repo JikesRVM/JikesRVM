@@ -13,7 +13,7 @@ import  java.util.NoSuchElementException;
  * 
  * @author Igor Pechtchanski
  */
-final class OPT_EmptyEnumerator
+public final class OPT_EmptyEnumerator
     implements Enumeration {
   public static final OPT_EmptyEnumerator EMPTY = new OPT_EmptyEnumerator();
 

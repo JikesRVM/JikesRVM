@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import java.util.Enumeration;
 
@@ -12,35 +12,35 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-class OPT_PhysicalDefUse {
+public class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
-  final static int mask         = 0x00;  // empty mask
-  final static int maskC0       = 0x01;
-  final static int maskXER      = 0x02;
-  final static int maskLR       = 0x04;
-  final static int maskJTOC     = 0x08;
-  final static int maskCTR      = 0x10;
-  final static int maskPR       = 0x20;
+  public final static int mask         = 0x00;  // empty mask
+  public final static int maskC0       = 0x01;
+  public final static int maskXER      = 0x02;
+  public final static int maskLR       = 0x04;
+  public final static int maskJTOC     = 0x08;
+  public final static int maskCTR      = 0x10;
+  public final static int maskPR       = 0x20;
 
   // Meta mask for the enumeration.
   private final static int maskHIGH = 0x20;
   private final static int maskALL  = 0x3F;
 
-  final static int maskC0_XER   = maskC0 | maskXER;
-  final static int maskJTOC_LR  = maskJTOC | maskLR;
-  final static int maskJTOC_CTR = maskJTOC | maskCTR;
-  final static int maskcallDefs = maskLR;
-  final static int maskcallUses = maskJTOC;
-  final static int maskIEEEMagicUses = maskJTOC;
-  final static int maskTSPDefs  = maskPR;
-  final static int maskTSPUses  = maskJTOC;
+  public final static int maskC0_XER   = maskC0 | maskXER;
+  public final static int maskJTOC_LR  = maskJTOC | maskLR;
+  public final static int maskJTOC_CTR = maskJTOC | maskCTR;
+  public final static int maskcallDefs = maskLR;
+  public final static int maskcallUses = maskJTOC;
+  public final static int maskIEEEMagicUses = maskJTOC;
+  public final static int maskTSPDefs  = maskPR;
+  public final static int maskTSPUses  = maskJTOC;
 
   /**
    * @return a string representation of the physical registers encoded by
    * an integer
    */
-  static String getString(int code) {
+  public static String getString(int code) {
     if (code == mask) return "";
     // Not a common case, construct it...
     String s = "";
@@ -58,7 +58,7 @@ class OPT_PhysicalDefUse {
    * @param ir the governing IR
    * @return an enumeration of the physical registers embodied by a code
    */
-  static PDUEnumeration enumerate(int code, OPT_IR ir) {
+  public static PDUEnumeration enumerate(int code, OPT_IR ir) {
     return new PDUEnumeration(code,ir);
   }
 
@@ -67,7 +67,7 @@ class OPT_PhysicalDefUse {
    * @return an enumeration of all physical registers that code be 
    *         implicitly defed/used
    */
-  static PDUEnumeration enumerateAllImplicitDefUses(OPT_IR ir) {
+  public static PDUEnumeration enumerateAllImplicitDefUses(OPT_IR ir) {
     return new PDUEnumeration(maskALL,ir);
   }
 
@@ -109,7 +109,7 @@ class OPT_PhysicalDefUse {
       case maskCTR: return phys.getCTR();
       case maskPR: return phys.getPR();
       }
-      OPT_OptimizingCompilerException.UNREACHABLE();
+      com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException.UNREACHABLE();
       return null; // placate jikes.
     }
   }

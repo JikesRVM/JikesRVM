@@ -11,7 +11,7 @@ import  java.util.Enumeration;
  *
  *  @author Michael Hind
  */
-class OPT_TreeNode {
+public class OPT_TreeNode {
 
   /**
    *  The parent of this node
@@ -31,7 +31,7 @@ class OPT_TreeNode {
   /**
    * Constructor
    */
-  OPT_TreeNode() {
+  public OPT_TreeNode() {
     parent = null;
     leftChild = null;
     rightSibling = null;
@@ -41,7 +41,7 @@ class OPT_TreeNode {
    * return the parent of this node
    * @return my parent
    */
-  OPT_TreeNode getParent() {
+  public OPT_TreeNode getParent() {
     return  parent;
   }
 
@@ -49,7 +49,7 @@ class OPT_TreeNode {
    * returns the first child of this node
    * @return the first child of this node
    */
-  OPT_TreeNode getLeftChild() {
+  public OPT_TreeNode getLeftChild() {
     return  leftChild;
   }
 
@@ -57,7 +57,7 @@ class OPT_TreeNode {
    * returns the next node with the same parent as me 
    * @return the next node with the same parent as me 
    */
-  OPT_TreeNode getRightSibling() {
+  public OPT_TreeNode getRightSibling() {
     return  rightSibling;
   }
 
@@ -65,7 +65,7 @@ class OPT_TreeNode {
    *  adds a child to this node
    *  @param node the new child
    */
-  void addChild(OPT_TreeNode node) {
+  public void addChild(OPT_TreeNode node) {
     if (leftChild == null) {
       leftChild = node;
     } 
@@ -83,7 +83,7 @@ class OPT_TreeNode {
   /**
    *  Sets all tree pointers to null
    */
-  void clear() {
+  public void clear() {
     leftChild = null;
     rightSibling = null;
     parent = null;

@@ -17,15 +17,15 @@ import  java.util.Enumeration;
  */
 final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.SCHEDULE_PREPASS;
   }
 
-  final String getName() {
+  public final String getName() {
     return  "InstrSched (pre-pass)";
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  !before &&          // old interface only printed afterwards
     options.PRINT_SCHEDULE_PRE;
   }
@@ -36,7 +36,7 @@ final class OPT_PrePassScheduler extends OPT_CompilerPhase {
    *
    * @param ir the IR in question 
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(com.ibm.JikesRVM.opt.ir.OPT_IR ir) {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);
   }
 

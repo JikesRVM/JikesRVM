@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * This class holds the results of a flow-insensitive escape analysis
  * for a method.

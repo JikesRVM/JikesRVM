@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /*
  * Simple flow-insensitive optimizations.
@@ -39,15 +39,15 @@ public final class OPT_Simple extends OPT_CompilerPhase
    */
   private final boolean foldBranches;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.SIMPLE_OPT;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Simple Opts";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 
@@ -98,7 +98,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
    *
    * @param ir the IR to optimize
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     // Compute defList, useList, useCount fields for each register.
     OPT_DefUse.computeDU(ir);
     // Recompute isSSA flags

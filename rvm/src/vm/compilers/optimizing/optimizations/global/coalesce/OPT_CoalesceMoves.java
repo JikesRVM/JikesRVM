@@ -5,8 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
-
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Coalesce registers in move instructions where possible.
@@ -24,7 +23,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
    * Should we perform this phase?
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.COALESCE_AFTER_SSA;
   }
 
@@ -32,17 +31,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
    * Return a string name for this phase.
    * @return "Coalesce Moves"
    */
-  final String getName() {
+  public final String getName() {
     return  "Coalesce Moves";
-  }
-
-  /**
-   * Should we print the IR before or after performing this phase?
-   * @param options controlling compiler options
-   * @param before query before if true, after if false.
-   */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
   }
 
   /**

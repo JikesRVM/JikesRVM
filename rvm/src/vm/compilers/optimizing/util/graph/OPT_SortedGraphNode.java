@@ -3,14 +3,12 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-/**
- * @author Jong Choi
- */
-
 
 import  java.util.Enumeration;
 
-
+/**
+ * @author Jong Choi
+ */
 // For now, OPT_SortedGraphNode inherits from DoublyLinkedList only 
 // for compatibility
 // with the current implementation of OPT_BasicBlock. 
@@ -107,15 +105,15 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
   int sortMarker = Integer.MIN_VALUE;
   private static int currentSortMarker = Integer.MIN_VALUE;
 
-  int getSortMarker() {
+  public int getSortMarker() {
     return  sortMarker;
   }
 
-  void setSortMarker(int sortMarker) {
+  public void setSortMarker(int sortMarker) {
     this.sortMarker = sortMarker;
   }
 
-  boolean isSortMarkedWith(int sortMarker) {
+  public boolean isSortMarkedWith(int sortMarker) {
     return  (this.sortMarker >= sortMarker);
   }
   protected OPT_SortedGraphNode sortedPrev = null, sortedNext = null;

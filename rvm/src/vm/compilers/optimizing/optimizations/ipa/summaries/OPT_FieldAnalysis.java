@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Flow-insensitive, context-insensitive, interprocedural analysis
@@ -21,20 +21,15 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  *
  * @author Stephen Fink
  */
-
-final class OPT_FieldAnalysis extends OPT_CompilerPhase {
+public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   final static private boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.FIELD_ANALYSIS;
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Field Analysis";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
   }
 
   /** 

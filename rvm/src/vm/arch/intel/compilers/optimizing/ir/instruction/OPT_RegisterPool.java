@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
  * Pool of symbolic registers.

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.Iterator;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.Unary;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform live-range splitting.
@@ -30,12 +30,8 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.Unary;
  */
 class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -61,22 +57,18 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
   private static class LiveRangeSplitting extends OPT_CompilerPhase 
     implements OPT_Operators{
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    final String getName () {
+    public final String getName () {
       return "Live Range Splitting";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /**
      * The main entrypoint for this pass.
      */
-    final void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       // 1. Compute an up-to-date loop structure tree.
       OPT_DominatorsPhase dom = new OPT_DominatorsPhase(true);
       dom.perform(ir);
@@ -329,16 +321,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    */
   private static class RenamePreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    final String getName () {
+    public final String getName () {
       return  "Rename Preparation";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /**

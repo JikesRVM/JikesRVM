@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Convert an IR object from LIR to MIR via BURS
@@ -48,15 +48,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class ReduceOperators extends OPT_CompilerPhase
     implements VM_Constants, OPT_Operators, OPT_Constants {
 
-    final String getName () {
+    public final String getName () {
       return "Reduce Operators";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != 
 	     null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
@@ -289,15 +289,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class NormalizeConstants extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Normalize Constants";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_NormalizeConstants.perform(ir);
     }
   }
@@ -306,15 +306,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class DoLiveness extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Live Handlers";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       if (ir.options.HANDLER_LIVENESS) {	
 	new OPT_LiveAnalysis(false, false, true).perform(ir);
       }
@@ -327,11 +327,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class DoBURS extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "DepGraph & BURS";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
@@ -339,7 +339,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
     // It isn't verifiable again until after ComplexOperators completes.
     public void verify(OPT_IR ir) { }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       OPT_DefUse.recomputeSpansBasicBlock(ir);
       OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
@@ -387,15 +387,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class ComplexOperators extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Complex Operators";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_ComplexLIR2MIRExpansion.convert(ir);
       // ir now contains well formed MIR.
       ir.IRStage = OPT_IR.MIR;

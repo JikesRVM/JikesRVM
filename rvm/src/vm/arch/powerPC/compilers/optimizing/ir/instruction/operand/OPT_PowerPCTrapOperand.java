@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * Encodes the T0 field for trap operations 
@@ -14,35 +14,35 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   /**
    * Value of this operand.
    */
-  int value;
+  public int value;
   // see PowerPC BOOK
-  static final int ALWAYS = 31;
-  static final int EQUAL = 4;
-  static final int NOT_EQUAL = 24;
-  static final int LESS = 16;
-  static final int GREATER_EQUAL = 12;
-  static final int GREATER = 8;
-  static final int LESS_EQUAL = 20;
-  static final int HIGHER = 1;
-  static final int LOWER = 2;
-  static final int HIGHER_EQUAL = 5;
-  static final int LOWER_EQUAL = 6;
-  static final int NOT_SAME = 3;
-  static final int SAME = 4;
+  public static final int ALWAYS = 31;
+  public static final int EQUAL = 4;
+  public static final int NOT_EQUAL = 24;
+  public static final int LESS = 16;
+  public static final int GREATER_EQUAL = 12;
+  public static final int GREATER = 8;
+  public static final int LESS_EQUAL = 20;
+  public static final int HIGHER = 1;
+  public static final int LOWER = 2;
+  public static final int HIGHER_EQUAL = 5;
+  public static final int LOWER_EQUAL = 6;
+  public static final int NOT_SAME = 3;
+  public static final int SAME = 4;
 
   private OPT_PowerPCTrapOperand(int Code) {
     value = Code;
   }
 
-  static OPT_PowerPCTrapOperand LESS() {
+  public static OPT_PowerPCTrapOperand LESS() {
     return  new OPT_PowerPCTrapOperand(LESS);
   }
 
-  static OPT_PowerPCTrapOperand LOWER() {
+  public static OPT_PowerPCTrapOperand LOWER() {
     return  new OPT_PowerPCTrapOperand(LOWER);
   }
 
-  static OPT_PowerPCTrapOperand ALWAYS() {
+  public static OPT_PowerPCTrapOperand ALWAYS() {
     return  new OPT_PowerPCTrapOperand(ALWAYS);
   }
 
@@ -50,7 +50,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     return  new OPT_PowerPCTrapOperand(value);
   }
 
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_PowerPCTrapOperand) && 
         (((OPT_ConditionOperand)op).value == value);
   }
@@ -58,7 +58,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   /**
    * flips the direction of the condition
    */
-  OPT_PowerPCTrapOperand flipCode() {
+  public OPT_PowerPCTrapOperand flipCode() {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -140,14 +140,14 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     return  this;
   }
 
-  OPT_PowerPCTrapOperand(OPT_ConditionOperand c) {
+  public OPT_PowerPCTrapOperand(OPT_ConditionOperand c) {
     translate(c);
   }
 
   /**
    * translate from OPT_ConditionOperand: used by BURS
    */
-  void translate(OPT_ConditionOperand c) {
+  public void translate(OPT_ConditionOperand c) {
     switch (c.value) {
       case OPT_ConditionOperand.EQUAL:
         value = EQUAL;

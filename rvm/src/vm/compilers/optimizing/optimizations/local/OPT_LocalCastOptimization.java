@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform simple peephole optimizations to reduce the overhead of
@@ -27,23 +27,19 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     implements OPT_Operators {
 
-  boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return  options.SIMPLE_OPT;
   }
 
-  String getName() {
+  public String getName() {
     return  "Local Cast Optimizations";
-  }
-
-  boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
   }
 
   /**
    * Main routine: perform the transformation.
    * @param ir the IR to transform
    */
-  void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // loop over all basic blocks ...
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
         e.hasMoreElements();) {

@@ -4,7 +4,7 @@
 //$Id: 
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 /**
  * The register allocator currently caches a bunch of state in the IR;

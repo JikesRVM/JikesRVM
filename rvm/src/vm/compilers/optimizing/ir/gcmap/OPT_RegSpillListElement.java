@@ -2,14 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
 
 /**
  * A class to hold each element in the GCIRMap
  * @author Michael Hind
  */
-class OPT_RegSpillListElement extends OPT_LinkedListElement {
+public class OPT_RegSpillListElement extends com.ibm.JikesRVM.opt.OPT_LinkedListElement {
 
   /**
    * this should be a symbolic register
@@ -25,7 +26,7 @@ class OPT_RegSpillListElement extends OPT_LinkedListElement {
    * Constructor
    * @param symbolicReg the symbolic register holding the reference
    */
-  OPT_RegSpillListElement(OPT_Register symbolicReg) {
+  public OPT_RegSpillListElement(OPT_Register symbolicReg) {
     this.symbolicReg = symbolicReg;
   }
 
@@ -98,12 +99,10 @@ class OPT_RegSpillListElement extends OPT_LinkedListElement {
    */
   public String toString() {
     StringBuffer buf = new StringBuffer("");
-    ;
     buf.append("(" + symbolicReg + ", ");
     if (isSpill()) {
       buf.append("Sp: " + getSpill());
-    } 
-    else {
+    } else {
       buf.append("Reg: " + getRealRegNumber());
     }
     buf.append(")  ");

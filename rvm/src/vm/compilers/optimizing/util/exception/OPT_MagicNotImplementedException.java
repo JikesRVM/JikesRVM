@@ -32,7 +32,7 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
    * @param  String s
    * @return the newly created exception object
    */
-  static OPT_MagicNotImplementedException EXPECTED(String s) {
+  public static OPT_MagicNotImplementedException EXPECTED(String s) {
     return new OPT_MagicNotImplementedException(s, true);
   }
     
@@ -43,10 +43,9 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
    * @param  String s
    * @return the newly created exception object
    */
-  static OPT_MagicNotImplementedException UNEXPECTED(String s) {
+  public static OPT_MagicNotImplementedException UNEXPECTED(String s) {
     return new OPT_MagicNotImplementedException(s, false);
   }
-    
 }
 
 

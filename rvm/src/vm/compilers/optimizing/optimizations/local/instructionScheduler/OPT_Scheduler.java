@@ -5,7 +5,7 @@
 // $Id$
 package com.ibm.JikesRVM.opt;
 
-//import java.io.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 
 /**

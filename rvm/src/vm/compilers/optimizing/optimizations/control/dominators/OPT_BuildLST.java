@@ -2,9 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 /**
  * A compiler phase to construct the loop structure tree (LST).
  * The steps are (1) construct approximate dominators (ie blocks are 
@@ -21,7 +21,7 @@ public class OPT_BuildLST extends OPT_CompilerPhase {
   /**
    * This phase contains no per-compilation instance fields.
    */
-  final OPT_CompilerPhase newExecution(OPT_IR ir) {
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 

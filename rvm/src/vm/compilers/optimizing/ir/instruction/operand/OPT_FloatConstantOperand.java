@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
 
 /**
@@ -16,13 +17,13 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  float value;
+  public float value;
 
   /**
    * Index in JTOC where this float constant lives (0 for constants
    * generated from constant folding).
    */
-  int index;
+  public int index;
 
   /**
    * Constructs a new float constant operand with the specified value.
@@ -46,7 +47,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
    * @param v value
    * @param i index in the jtoc
    */
-  OPT_FloatConstantOperand(float v, int i) {
+  public OPT_FloatConstantOperand(float v, int i) {
     value = v;
     index = i;
   }
@@ -68,7 +69,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_FloatConstantOperand) &&
 	   (value == ((OPT_FloatConstantOperand)op).value);
   }

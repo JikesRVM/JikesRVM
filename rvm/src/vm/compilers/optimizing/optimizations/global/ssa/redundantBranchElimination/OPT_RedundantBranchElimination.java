@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 /**
@@ -40,7 +40,7 @@ import java.util.*;
  */
 final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanCompositeElement {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.REDUNDANT_BRANCH_ELIMINATION;
   }
   
@@ -51,9 +51,9 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     super("RedundantBranchElimination", new OPT_OptimizationPlanElement[] {
       // Stage 1: Require SSA form
       new OPT_OptimizationPlanAtomicElement(new OPT_CompilerPhase() {
-	  String getName() { return "Ensure SSA"; }
-	  boolean shouldPerform() { return true; }
-	  void perform(OPT_IR ir) {
+	  public String getName() { return "Ensure SSA"; }
+	  public boolean shouldPerform() { return true; }
+	  public void perform(OPT_IR ir) {
 	    ir.desiredSSAOptions = new OPT_SSAOptions();
 	    new OPT_EnterSSA().perform(ir);
 	  }
@@ -70,9 +70,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 
   private static final class RBE extends OPT_CompilerPhase implements OPT_Operators {
     private static final boolean DEBUG = false;
-    final String getName() { return "RBE Transform"; }
-    final boolean shouldPerform(OPT_Options options) { return true; }
-    final boolean printingEnabled (OPT_Options options, boolean before) {
+    public final String getName() { return "RBE Transform"; }
+    public final boolean printingEnabled (OPT_Options options, boolean before) {
       return false && DEBUG;
     }
 
@@ -82,7 +81,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * 
      * @param OPT_IR the IR on which to apply the phase
      */
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs
       OPT_GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       OPT_DominatorTree dt = ir.HIRInfo.dominatorTree;
@@ -143,7 +142,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * Return the basic block that s's block will goto if s is not taken.
      */
     private final OPT_BasicBlock getNotTakenBlock(OPT_Instruction s) {
-      s = s.getNext();
+      s = s.nextInstructionInCodeOrder();
       if (Goto.conforms(s)) return s.getBranchTarget();
       if (VM.VerifyAssertions) VM._assert(s.operator() == BBEND);
       return s.getBasicBlock().nextBasicBlockInCodeOrder();
@@ -175,7 +174,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 				OPT_IR ir) {
       if (DEBUG) VM.sysWrite("Eliminating definitely taken branch "+cb+"\n");
       OPT_BasicBlock  deadBB = source.nextBasicBlockInCodeOrder();
-      OPT_Instruction next = cb.getNext();
+      OPT_Instruction next = cb.nextInstructionInCodeOrder();
       if (Goto.conforms(next)) {
 	deadBB = next.getBranchTarget();
 	next.remove();

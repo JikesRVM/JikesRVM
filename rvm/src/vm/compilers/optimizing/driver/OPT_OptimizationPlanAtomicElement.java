@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /**
  * An element in the opt compiler's optimization plan
@@ -29,13 +31,13 @@ public final class OPT_OptimizationPlanAtomicElement extends
   /**
    * Accumulated time spent in the element.
    */
-  VM_Stopwatch mySW;
+  protected VM_Stopwatch mySW;
 
   /**
    * Create a plan element corresponding to a particular compiler phase.
    * @param   p
    */
-  OPT_OptimizationPlanAtomicElement (OPT_CompilerPhase p) {
+  public OPT_OptimizationPlanAtomicElement (OPT_CompilerPhase p) {
     myPhase = p;
   }
 
@@ -53,7 +55,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  myPhase.shouldPerform(options);
   }
 
@@ -63,7 +65,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * 
    * @param ir The OPT_IR object to work with.
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     if (VM.MeasureCompilation && VM.runningVM) {
       mySW.start();
     }
@@ -80,7 +82,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
-  void reportStats (int indent, int timeCol, double totalTime) {
+  public void reportStats (int indent, int timeCol, double totalTime) {
     if (mySW == null || mySW.count == 0)
       return;
     int curCol = 0;
@@ -105,7 +107,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * Report the total time spent executing the PlanElement
    * @return time spend in the plan (in seconds)
    */
-  double elapsedTime () {
+  public double elapsedTime () {
     if (mySW == null)
       return  0.0; 
     else 

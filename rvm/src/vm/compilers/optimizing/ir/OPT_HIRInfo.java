@@ -2,14 +2,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR
  *
  * @author Dave Grove
  */
-final class OPT_HIRInfo {
+public final class OPT_HIRInfo {
   
   OPT_HIRInfo(OPT_IR ir) { }
 

@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class implements the dead store scalar replacement algorithm by
@@ -43,7 +43,7 @@ final class OPT_DeadStoreElimination extends
    * @param options controlling compiler options
    * @return whether we should perform this phase.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  options.STORE_ELIMINATION;
   }
 
@@ -59,7 +59,7 @@ final class OPT_DeadStoreElimination extends
      * @param options controlling compiler options
      * @return whether to perform the phase
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.STORE_ELIMINATION;
     }
 
@@ -67,19 +67,8 @@ final class OPT_DeadStoreElimination extends
      * Return a String representation for this phase
      * @return a String representation for this phase
      */
-    final String getName () {
+    public final String getName () {
       return  "Array SSA Dead Store Elimination";
-    }
-
-    /**
-     * Should the IR be printed either before or after performing this phase?
-     *
-     * @param options controlling compiler options
-     * @param before true iff querying before the phase
-     * @return true or false
-     */
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return  false;
     }
 
     /** 
@@ -174,7 +163,7 @@ final class OPT_DeadStoreElimination extends
      * @param options controlling compiler options
      * @return whether to perform the phase
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.STORE_ELIMINATION;
     }
 
@@ -182,19 +171,8 @@ final class OPT_DeadStoreElimination extends
      * Return a String representation for this phase
      * @return a String representation for this phase
      */
-    final String getName () {
+    public final String getName () {
       return  "Store Elimination Preparation";
-    }
-
-    /**
-     * Should the IR be printed either before or after performing this phase?
-     *
-     * @param options controlling compiler options
-     * @param before true iff querying before the phase
-     * @return true or false
-     */
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return  false;
     }
 
     /**

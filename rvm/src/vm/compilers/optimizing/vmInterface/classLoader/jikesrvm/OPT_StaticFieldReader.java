@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.lang.reflect.Field;
 
 /**
@@ -17,7 +17,7 @@ import java.lang.reflect.Field;
  * @author Steve Fink
  * @author Dave Grove
  */
-abstract class OPT_StaticFieldReader {
+public abstract class OPT_StaticFieldReader {
 
   /**
    * Returns a constant operand with the current value of a static field.
@@ -58,7 +58,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static int getIntStaticFieldValue(VM_Field field) 
+  public static int getIntStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -95,7 +95,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static float getFloatStaticFieldValue(VM_Field field) 
+  public static float getFloatStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -118,7 +118,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final long getLongStaticFieldValue(VM_Field field) 
+  public static final long getLongStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -140,7 +140,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final double getDoubleStaticFieldValue(VM_Field field) 
+  public static final double getDoubleStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -163,7 +163,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final Object getObjectStaticFieldValue(VM_Field field) 
+  public static final Object getObjectStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -186,7 +186,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return true if the field contains null, false otherwise
    */
-  static final boolean isStaticFieldNull(VM_Field field) 
+  public static final boolean isStaticFieldNull(VM_Field field) 
     throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
@@ -197,7 +197,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return type of value contained in the field
    */
-  static final VM_Type getTypeFromStaticField (VM_Field field) 
+  public static final VM_Type getTypeFromStaticField (VM_Field field) 
     throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
     if (o == null) return OPT_ClassLoaderProxy.NULL_TYPE;

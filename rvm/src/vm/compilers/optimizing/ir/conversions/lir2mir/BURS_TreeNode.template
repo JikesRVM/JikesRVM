@@ -4,7 +4,9 @@
 //$Id$
 
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * A BURS_TreeNode is a node in a binary tree that is fed as input to BURS.

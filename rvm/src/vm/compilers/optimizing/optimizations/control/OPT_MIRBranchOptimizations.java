@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform simple peephole optimizations for MIR branches.
@@ -154,7 +154,7 @@ public final class OPT_MIRBranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
       if (targetLabel == nextLabel) {
@@ -232,7 +232,7 @@ public final class OPT_MIRBranchOptimizations
     OPT_Instruction target1Label = MIR_CondBranch2.getTarget1(cb).target; 
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (target1Inst != null && target1Inst != cb) {
       if (MIR_Branch.conforms(target1Inst)) {
 	// conditional branch to unconditional branch.

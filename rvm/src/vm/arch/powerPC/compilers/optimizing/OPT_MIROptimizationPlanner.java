@@ -38,7 +38,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -50,7 +50,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // Optional printing of initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }
@@ -109,7 +109,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
   private static void MIR2MC(Vector p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
-	boolean shouldPerform(OPT_Options options) {
+	public boolean shouldPerform(OPT_Options options) {
 	  return options.PRINT_FINAL_MIR; } 
       });
     addComponent(p, new OPT_ConvertMIRtoMC());

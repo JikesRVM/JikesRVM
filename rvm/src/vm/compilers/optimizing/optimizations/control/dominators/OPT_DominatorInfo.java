@@ -4,7 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.OPT_BasicBlock;
 import  java.util.*; 
+
 /**
  * OPT_DominatorInfo.java
  *

@@ -8,8 +8,8 @@ package com.ibm.JikesRVM.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-abstract class OPT_LinkedListElement {
-  OPT_LinkedListElement next;
+public abstract class OPT_LinkedListElement {
+  protected OPT_LinkedListElement next;
 
   /**
    * Returns a pointer to the next element in the list, or null if this is the
@@ -47,7 +47,7 @@ abstract class OPT_LinkedListElement {
    *
    * @param l list to append
    */
-  final OPT_LinkedListElement append(OPT_LinkedListElement l) {
+  public final OPT_LinkedListElement append(OPT_LinkedListElement l) {
     if (this == l)
       return  this;
     if (next != null)

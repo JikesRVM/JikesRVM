@@ -3,9 +3,11 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.*;
+import com.ibm.JikesRVM.*;
+import java.util.*;
+import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTree;
+import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTreeNode;
 
 /**
  * Suppose the following inlining actions have been taken 

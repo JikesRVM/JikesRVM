@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException; 
 
 /**
  * A memory operand.
@@ -26,40 +28,40 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   /**
    * The location operand describing this memory access
    */
-  OPT_LocationOperand loc;
+  public OPT_LocationOperand loc;
   
   /**
    * The guard operand that validates this memory access
    */
-  OPT_Operand guard;
+  public OPT_Operand guard;
 
   /**
    * The base register (may be null)
    */
-  OPT_RegisterOperand base;
+  public OPT_RegisterOperand base;
 
   /**
    * The index register (may be null)
    */
-  OPT_RegisterOperand index;
+  public OPT_RegisterOperand index;
 
   /**
    * The scale value (log power of 2)
    * valid values are 0,1,2,3
    */
-  byte scale;
+  public byte scale;
 
   /**
    * The displacement (an int)
    */
-  int disp;
+  public int disp;
 
   /**
    * Number of bytes being accessed (1,2,4,8)
    */
-  byte size;
+  public byte size;
 
-  OPT_MemoryOperand(OPT_RegisterOperand base, 
+  public OPT_MemoryOperand(OPT_RegisterOperand base, 
 		    OPT_RegisterOperand index,
 		    byte scale,
 		    int disp,

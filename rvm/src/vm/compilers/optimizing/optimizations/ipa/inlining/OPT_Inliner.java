@@ -2,11 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
-
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * This class contains the high level logic for executing an inlining decision.
@@ -17,7 +16,8 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @see OPT_InlineDecision
  * @see OPT_GenerationContext
  */
-class OPT_Inliner implements OPT_Operators, OPT_Constants {
+public class OPT_Inliner implements OPT_Operators, 
+				    com.ibm.JikesRVM.opt.OPT_Constants {
 
   // The following flag requires an adaptive boot image and flag
   // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation

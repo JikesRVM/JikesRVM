@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
 import  java.math.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * ABCD: Array Bound Check elimination on Demand
@@ -45,7 +45,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  options.GLOBAL_BOUNDS_CHECK;
   }
 
@@ -55,21 +55,14 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
   private static final class ABCD extends OPT_CompilerPhase
       implements OPT_Operators {
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GLOBAL_BOUNDS_CHECK;
     }
 
-    final String getName () {
+    public final String getName () {
       return  "GBoundsCheck";
     }
 
-    final String getPaddedName () {
-      return  "GBoundsCheck\t";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return  false;
-    }
     /**
      * add transitive edges?
      */
@@ -1223,16 +1216,12 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
    */
   private static class ABCDPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GLOBAL_BOUNDS_CHECK;
     }
 
-    final String getName () {
+    public final String getName () {
       return  "ABCD Preparation";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return  false;
     }
 
     final public void perform (OPT_IR ir) {

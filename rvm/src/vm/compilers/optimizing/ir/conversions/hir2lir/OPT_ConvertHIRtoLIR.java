@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
 /**
  * Convert an IR object from HIR to LIR
  *
@@ -11,15 +12,15 @@ package com.ibm.JikesRVM.opt;
  */
 final class OPT_ConvertHIRtoLIR extends OPT_CompilerPhase {
 
-  final String getName () {
-    return  "HIR Operator Expansion";
+  public final String getName () {
+    return "HIR Operator Expansion";
   }
 
-  OPT_CompilerPhase newExecution (OPT_IR ir) {
-    return  this;
-  }             // this phase has no state.
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
 
-  final void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     if (OPT_IR.SANITY_CHECK) {
       ir.verify("before conversion to LIR", true);
     }

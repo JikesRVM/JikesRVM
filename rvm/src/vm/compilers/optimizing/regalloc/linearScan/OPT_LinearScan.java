@@ -3,9 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 /**
@@ -15,7 +15,7 @@ import java.util.*;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
+public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
   /**
    * Build this phase as a composite of others.
@@ -57,15 +57,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Register allocation is required
    */
-  final boolean shouldPerform(OPT_Options options) { 
+  public final boolean shouldPerform(OPT_Options options) { 
     return true; 
   }
 
-  final String getName() { 
+  public final String getName() { 
     return "Linear Scan Composite Phase"; 
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
@@ -152,11 +152,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   }
 
 
-  final static class LinearScanState {
+  public final static class LinearScanState {
     /**
      * The live interval information, a set of Basic Intervals 
      * sorted by increasing start point
-     * Used by ClassWriter so needs to be public
      */
     public ArrayList intervals;
 
@@ -176,23 +175,23 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class RegisterRestrictions extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Register Restrictions"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
-
+    public void perform(OPT_IR ir) {
+      
       //  The registerManager has already been initialized
       OPT_GenericStackManager sm = ir.stackManager;
 
@@ -218,15 +217,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       /**
        * Register allocation is required
        */
-      final boolean shouldPerform(OPT_Options options) { 
-        return true; 
+      public final boolean shouldPerform(OPT_Options options) { 
+	return true; 
       }
 
-      final String getName() { 
+      public final String getName() { 
         return "Linear Scan"; 
       }
 
-      final boolean printingEnabled(OPT_Options options, boolean before) {
+      public final boolean printingEnabled(OPT_Options options, boolean before) {
         return false;
       }
 
@@ -235,7 +234,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        *  See TOPLAS 21(5), Sept 1999, p 895-913
        *  @param ir the IR
        */
-      void perform(OPT_IR ir) {
+      public void perform(OPT_IR ir) {
 
         this.ir = ir;
 
@@ -1684,17 +1683,17 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * should we perform this phase? yes.
      */
-    final boolean shouldPerform(OPT_Options options) { return true; }
+    public final boolean shouldPerform(OPT_Options options) { return true; }
 
     /**
      * a name for this phase.
      */
-    final String getName() { return "Interval Analysis"; }
+    public final String getName() { return "Interval Analysis"; }
 
     /**
      * should we print the ir?
      */
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -1708,7 +1707,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *
      * @param ir the ir
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       this.ir = ir;
 
       OPT_ControlFlowGraph cfg = ir.cfg;
@@ -2253,15 +2252,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class UpdateGCMaps1 extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Update GCMaps 1"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2270,7 +2269,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  replace the symbolic reg with the real reg or spill it was allocated
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
 
       for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
            GCenum.hasMoreElements(); ) {
@@ -2313,22 +2312,22 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class UpdateGCMaps2 extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Update GCMaps 2"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       OPT_ScratchMap scratchMap = ir.stackManager.getScratchMap();
 
@@ -2422,22 +2421,22 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   final static class SpillCode extends OPT_CompilerPhase implements
     OPT_Operators{
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Spill Code"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       replaceSymbolicRegisters(ir);
 
       // Generate spill code if necessary

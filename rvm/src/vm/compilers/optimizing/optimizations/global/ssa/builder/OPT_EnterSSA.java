@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This compiler phase constructs SSA form.  
@@ -72,7 +72,7 @@ implements OPT_Operators, OPT_Constants {
    * @param options the controlling compiler options
    * @return true iff SSA is enabled under the options
    */
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.SSA;
   }
 
@@ -80,7 +80,7 @@ implements OPT_Operators, OPT_Constants {
    * Return a string identifying this compiler phase.
    * @return "Enter SSA"
    */
-  final String getName () {
+  public final String getName () {
     return "Enter SSA";
   }
 
@@ -91,7 +91,7 @@ implements OPT_Operators, OPT_Constants {
    * @param before true iff querying before the phase
    * @return true or false
    */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 

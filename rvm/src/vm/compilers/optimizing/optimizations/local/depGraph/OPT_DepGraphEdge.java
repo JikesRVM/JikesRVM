@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.

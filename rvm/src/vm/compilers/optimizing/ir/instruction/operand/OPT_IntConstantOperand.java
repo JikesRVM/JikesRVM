@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.OPT_Bits;
 
 /**
  * Represents a constant int operand.
@@ -38,28 +40,28 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
   /**
    * Return the lower 8 bits (as an int) of value
    */
-  int lower8() {
+  public int lower8() {
     return OPT_Bits.lower8(value);
   }
 
   /**
    * Return the lower 16 bits (as an int) of value
    */
-  int lower16() {
+  public int lower16() {
     return OPT_Bits.lower16(value);
   }
 
   /**
    * Return the upper 16 bits (as an int) of value
    */
-  int upper16() {
+  public int upper16() {
     return OPT_Bits.upper16(value);
   }
   
   /**
    * Return the upper 24 bits (as an int) of value
    */
-  int upper24() {
+  public int upper24() {
     return OPT_Bits.upper24(value);
   }
 
@@ -71,7 +73,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_IntConstantOperand) &&
 	   (value == ((OPT_IntConstantOperand)op).value);
   }

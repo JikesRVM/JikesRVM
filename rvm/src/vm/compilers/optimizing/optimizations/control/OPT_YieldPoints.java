@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class inserts yield points in
@@ -25,7 +25,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return !options.NO_THREADS;
   }
 
@@ -33,14 +33,14 @@ class OPT_YieldPoints extends OPT_CompilerPhase
    * Return the name of this phase
    * @return "Yield Point Insertion"
    */
-  final String getName() {
+  public final String getName() {
     return "Yield Point Insertion";
   }
 
   /**
    * This phase contains no per-compilation instance fields.
    */
-  final OPT_CompilerPhase newExecution(OPT_IR ir) {
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
@@ -49,7 +49,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase
    * 
    * @param ir the governing IR
    */
-  final public void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     if (!ir.method.isInterruptible()) {
       return;   // don't insert yieldpoints in Uninterruptible code.
     }

@@ -2,11 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * A basic block in the 
@@ -59,7 +59,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Martin Trapp
  */
 
-class OPT_BasicBlock extends OPT_SortedGraphNode 
+public class OPT_BasicBlock extends OPT_SortedGraphNode 
     implements OPT_Operators, OPT_Constants {
 
   /** Bitfield used in flag encoding */
@@ -121,7 +121,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   public OPT_BasicBlock(int i, 
 			OPT_InlineSequence position, 
 			OPT_ControlFlowGraph cfg) {
-    this(i, position, cfg.numberOfNodes++);
+    this(i, position, cfg.allocateNodeNumber());
   }
 
   /**
@@ -320,7 +320,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block might raise an 
    *         exception or <code>false</code> if it cannot
    */
-  final boolean canThrowExceptions() {  
+  public final boolean canThrowExceptions() {  
     return (flags & CAN_THROW_EXCEPTIONS) != 0; 
   }
   
@@ -339,7 +339,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block might raise an 
    *         exception uncaught or <code>false</code> if it cannot
    */
-  final boolean  mayThrowUncaughtException() {  
+  public final boolean  mayThrowUncaughtException() {  
     return (flags & IMPLICIT_EXIT_EDGE) != 0; 
   }
 
@@ -352,7 +352,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block is the first block in
    *         an exception hander or <code>false</code> if it is not
    */
-  final boolean isExceptionHandlerBasicBlock() {  
+  public final boolean isExceptionHandlerBasicBlock() {  
     return (flags & EXCEPTION_HANDLER) != 0; 
   }
 
@@ -363,7 +363,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block is reachable from 
    *         an exception hander or <code>false</code> if it is not
    */
-  final boolean isReachableFromExceptionHandler() {  
+  public final boolean isReachableFromExceptionHandler() {  
     return (flags & REACHABLE_FROM_EXCEPTION_HANDLER) != 0; 
   }
 
@@ -375,7 +375,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if this and other have equivalent in
    * scope exception handlers.
    */
-  final boolean isExceptionHandlerEquivalent (OPT_BasicBlock other) {
+  public final boolean isExceptionHandlerEquivalent (OPT_BasicBlock other) {
     // We might be able to do something,
     // by considering the (subset) of reachable exception handlers, 
     // but it would be awfully tricky to get it right, 
@@ -400,7 +400,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block is marked as unsafe
    *         to schedule or <code>false</code> if it is not
    */
-  final boolean isUnsafeToSchedule() { 
+  public final boolean isUnsafeToSchedule() { 
     return (flags & UNSAFE_TO_SCHEDULE) != 0; 
   }
 
@@ -412,7 +412,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block is marked as infrequently
    *         executed or <code>false</code> if it is not
    */
-  final boolean getInfrequent() {
+  public final boolean getInfrequent() {
     return (flags & INFREQUENT) != 0; 
   }
 
@@ -422,7 +422,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block scratch flag is set
    *         or <code>false</code> if it is not
    */
-  final boolean getScratchFlag() {  
+  public final boolean getScratchFlag() {  
     return (flags & SCRATCH  ) != 0; 
   }
 
@@ -432,77 +432,77 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return <code>true</code> if the block is marked as landing pad
    *         or <code>false</code> if it is not
    */
-  final boolean getLandingPad() {
+  public final boolean getLandingPad() {
     return (flags & LANDING_PAD) != 0; 
   }
 
   /**
    * Mark the block as possibly raising an exception.
    */
-  final void setCanThrowExceptions() {  
+  public final void setCanThrowExceptions() {  
     flags |= CAN_THROW_EXCEPTIONS;
   }
   
   /**
    * Mark the block as possibly raising an uncaught exception.
    */ 
-  final void setMayThrowUncaughtException() {
+  public final void setMayThrowUncaughtException() {
     flags |= IMPLICIT_EXIT_EDGE;
   }
 
   /**
    * Mark the block as the first block in an exception handler.
    */
-  final void setExceptionHandlerBasicBlock() {
+  public final void setExceptionHandlerBasicBlock() {
     flags |= EXCEPTION_HANDLER;
   }
 
   /**
    * Mark the block as being reachable from an exception handler.
    */
-  final void setReachableFromExceptionHandler() {
+  public final void setReachableFromExceptionHandler() {
     flags |= REACHABLE_FROM_EXCEPTION_HANDLER;
   }
 
   /**
    * Mark the block as being unsafe to schedule.
    */
-  final void setUnsafeToSchedule() {
+  public final void setUnsafeToSchedule() {
     flags |= UNSAFE_TO_SCHEDULE;
   }
 
   /**
    * Mark the block as being infrequently executed.
    */
-  final void setInfrequent() { 
+  public final void setInfrequent() { 
     flags |= INFREQUENT;
   }
 
   /**
    * Set the scratch flag
    */
-  final void setScratchFlag() {  
+  public final void setScratchFlag() {  
     flags |= SCRATCH;
   }
 
   /**
    * Mark the block as a landing pad for loop invariant code motion.
    */
-  final void setLandingPad() { 
+  public final void setLandingPad() { 
     flags |= LANDING_PAD;
   }
 
   /**
    * Clear the may raise an exception property of the block
    */
-  final void clearCanThrowExceptions() {
+  public final void clearCanThrowExceptions() {
     flags &= ~CAN_THROW_EXCEPTIONS;
   }
 
   /**
    * Clear the may raise uncaught exception property of the block
    */
-  final void clearMayThrowUncaughtException() {
+  public final void clearMayThrowUncaughtException() {
     flags &= ~IMPLICIT_EXIT_EDGE;
   }
 
@@ -510,7 +510,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * Clear the block is the first one in an exception handler 
    * property of the block.
    */
-  final void clearExceptionHandlerBasicBlock() {
+  public final void clearExceptionHandlerBasicBlock() {
     flags &= ~EXCEPTION_HANDLER;
   }    
 
@@ -518,35 +518,35 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * Clear the block is reachable from an exception handler 
    * property of the block.
    */
-  final void clearReachableFromExceptionHandler() {
+  public final void clearReachableFromExceptionHandler() {
     flags &= ~REACHABLE_FROM_EXCEPTION_HANDLER;
   }    
 
   /**
    * Clear the unsafe to schedule property of the block
    */
-  final void clearUnsafeToSchedule() {
+  public final void clearUnsafeToSchedule() {
     flags &= ~UNSAFE_TO_SCHEDULE;
   }    
 
   /**
    * Clear the infrequently executed property of the block
    */
-  final void clearInfrequent() { 
+  public final void clearInfrequent() { 
     flags &= ~INFREQUENT;
   }    
 
   /**
    * Clear the scratch flag.
    */
-  final void clearScratchFlag() {
+  public final void clearScratchFlag() {
     flags &= ~SCRATCH;                   
   }    
 
   /**
    * Clear the landing pad property of the block
    */
-  final void clearLandingPad() { 
+  public final void clearLandingPad() { 
     flags &= ~LANDING_PAD;
   }    
 
@@ -1078,7 +1078,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   // an exception of static type throwException 
   // (may dynamically be any subtype of thrownException)
   private void addTargets(ComputedBBEnum e, VM_Type thrownException) {
-    for (OPT_SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.nextOut) {
+    for (OPT_SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.getNextOut()) {
       OPT_BasicBlock bb = (OPT_BasicBlock)ed.toNode();
       if (bb.isExceptionHandlerBasicBlock()) {
 	OPT_ExceptionHandlerBasicBlock eblock = 
@@ -1144,7 +1144,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * A useful primitive routine for some CFG manipulations.
    */
   public final void deleteNormalOut() {
-    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e!=null; e = e.nextOut) {
+    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e!=null; e = e.getNextOut()) {
       OPT_BasicBlock out = (OPT_BasicBlock)e.toNode(); 
       if (!out.isExceptionHandlerBasicBlock())
 	deleteOut(e);
@@ -1330,7 +1330,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @param ir the containing IR
    * @return the copy
    */
-  final OPT_BasicBlock copyWithoutLinks(OPT_IR ir) {
+  public final OPT_BasicBlock copyWithoutLinks(OPT_IR ir) {
     // create a new block with the same bytecode index and exception handlers
     int bytecodeIndex = -1;
     OPT_InlineSequence position = null;
@@ -1365,7 +1365,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    *
    * @param ir the containing IR
    */
-  final void replicateNormalOut(OPT_IR ir) {
+  public final void replicateNormalOut(OPT_IR ir) {
     // for each normal out successor (b) of 'this' ....
     for (OPT_BasicBlockEnumeration e = getNormalOut(); 
 	 e.hasMoreElements();) {
@@ -1386,7 +1386,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @param ir the governing IR
    * @param b the block to replicate
    */
-  final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b) {
+  public final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b) {
     return replicateThisOut (ir, b, this);
   }
   
@@ -1402,7 +1402,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @param b the block to replicate
    * @param pred code order predecessor for new block
    */
-  final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b,
+  public final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b,
 					 OPT_BasicBlock pred) {
     // don't replicate the exit node
     if (b.isExit()) return null;
@@ -1477,7 +1477,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @param b     the original target
    * @param bCopy the future target   
    */
-  final void redirectOuts (OPT_BasicBlock b, OPT_BasicBlock bCopy, 
+  public final void redirectOuts (OPT_BasicBlock b, OPT_BasicBlock bCopy, 
 			   OPT_IR ir) {
     OPT_BranchOperand copyTarget = bCopy.makeJumpTarget();
     OPT_BranchOperand bTarget = b.makeJumpTarget();
@@ -1687,7 +1687,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   }
   // helper function for unfactor
   private final void deleteExceptionalOut() {
-    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e!=null; e = e.nextOut) {
+    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e!=null; e = e.getNextOut()) {
       OPT_BasicBlock out = (OPT_BasicBlock)e.toNode(); 
       if (out.isExceptionHandlerBasicBlock())
 	deleteOut(e);
@@ -1700,7 +1700,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    *
    * @return an enumeration of the in nodes
    */
-  public final /*OPT_BasicBlockEnumeration*/ InEdgeEnum getIn() {
+  public final OPT_BasicBlockEnumeration getIn() {
     return new InEdgeEnum(this);
   }
 
@@ -1827,7 +1827,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final int getNumberOfNormalOut() {
     int count = 0;
-    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
+    for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.getNextOut()) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.toNode();
       if (!bb.isExceptionHandlerBasicBlock()) {
 	count++;
@@ -1844,7 +1844,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   public final int getNumberOfExceptionalOut() {
     int count = 0;
     if (canThrowExceptions())
-      for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
+      for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.getNextOut()) {
 	OPT_BasicBlock bb = (OPT_BasicBlock)e.toNode(); 
 	if (bb.isExceptionHandlerBasicBlock()) {
 	  count++;
@@ -1863,7 +1863,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final boolean hasReachableExceptionHandlers() {
     if (canThrowExceptions())
-      for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
+      for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.getNextOut()) {
 	OPT_BasicBlock bb = (OPT_BasicBlock)e.toNode();
 	if (bb.isExceptionHandlerBasicBlock()) {
 	  return true;
@@ -1925,12 +1925,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   // this class needs to be implemented efficiently, as it is used heavily.
   static final class InEdgeEnum implements OPT_BasicBlockEnumeration {
     private OPT_SpaceEffGraphEdge _edge;
-    public InEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n._inEdgeStart; }
+    public InEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n.firstInEdge(); }
     public boolean hasMoreElements() { return _edge != null; }
     public Object nextElement()      { return next();        }
     public OPT_BasicBlock next() {
       OPT_SpaceEffGraphEdge e = _edge;
-      _edge = e.nextIn;
+      _edge = e.getNextIn();
       return (OPT_BasicBlock)e.fromNode();
     }
   } 
@@ -1938,12 +1938,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   // this class needs to be implemented efficiently, as it is used heavily.
   static final class OutEdgeEnum implements OPT_BasicBlockEnumeration {
     private OPT_SpaceEffGraphEdge _edge;
-    public OutEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n._outEdgeStart; }
+    public OutEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n.firstOutEdge(); }
     public boolean hasMoreElements() { return _edge != null; }
     public Object nextElement()      { return next();        }
     public OPT_BasicBlock next() {
       OPT_SpaceEffGraphEdge e = _edge;
-      _edge = e.nextOut;
+      _edge = e.getNextOut();
       return (OPT_BasicBlock)e.toNode();
     }
   } 
@@ -1952,13 +1952,13 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   static final class NormalOutEdgeEnum extends BBEnum {
     private OPT_SpaceEffGraphEdge _edge;
     protected NormalOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
-      _edge = n._outEdgeStart; 
+      _edge = n.firstOutEdge(); 
       current=advance();
     }
     protected OPT_BasicBlock advance() {
       while (_edge != null) {
 	OPT_BasicBlock cand = (OPT_BasicBlock)_edge.toNode();
-	_edge = _edge.nextOut;
+	_edge = _edge.getNextOut();
 	if (!cand.isExceptionHandlerBasicBlock())
 	  return cand;
       }
@@ -1970,13 +1970,13 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   static final class ExceptionOutEdgeEnum extends BBEnum {
     private OPT_SpaceEffGraphEdge _edge;
     protected ExceptionOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
-      _edge = n._outEdgeStart; 
+      _edge = n.firstOutEdge(); 
       current=advance();
     }
     protected OPT_BasicBlock advance() {
       while (_edge != null) {
 	OPT_BasicBlock cand = (OPT_BasicBlock)_edge.toNode();
-	_edge = _edge.nextOut;
+	_edge = _edge.getNextOut();
 	if (cand.isExceptionHandlerBasicBlock())
 	  return cand;
       }

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Dependence Graph for a single basic block in the program.
@@ -100,7 +100,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * Create the dependency graph nodes for instructions start to end
    */
   private void createNodes(OPT_Instruction start, OPT_Instruction end) {
-    for (OPT_Instruction p = start; ; p = p.getNext()) {
+    for (OPT_Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
       OPT_DepGraphNode pnode = new OPT_DepGraphNode(p);
       addGraphNode(pnode);
       if (p == end) {
@@ -551,7 +551,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * @param end   the last opt instruction in the region
    */
   private void clearRegisters(OPT_Instruction start, OPT_Instruction end) {
-    for (OPT_Instruction p = start; ; p = p.getNext()) {
+    for (OPT_Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
       for (OPT_OperandEnumeration ops = p.getOperands();
            ops.hasMoreElements(); ) {
         OPT_Operand op = ops.next();

@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
 
 /**
@@ -18,13 +19,13 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  double value;
+  public double value;
 
   /**
    * Index in JTOC where this double constant lives. (0 for constants
    * obtained from constant folding)
    */
-  int index;
+  public int index;
 
   /**
    * Constructs a new double constant operand with the specified value.
@@ -68,7 +69,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_DoubleConstantOperand)&&
            (value == ((OPT_DoubleConstantOperand)op).value);
   }

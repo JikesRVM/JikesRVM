@@ -1,12 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_ResourceMap.java
-
-
-
 //$Id$
 package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * Resource usage map representation
  * Used by the scheduler to accomodate resource patterns

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
 import java.lang.Math;
 
 /**

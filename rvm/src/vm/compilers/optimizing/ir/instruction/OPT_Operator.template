@@ -11,9 +11,10 @@
  * DO NOT MANUALLY EDIT THE JAVA FILE.
  */
 
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * An OPT_Operator represents the operator of an {@link OPT_Instruction}.
@@ -41,7 +42,7 @@ public final class OPT_Operator {
    * The operators opcode.
    * This value serves as a unique id suitable for use in switches
    */
-  char opcode;
+  public final char opcode;
 
   /**
    * Encoding of the operator's InstructionFormat.
@@ -51,39 +52,39 @@ public final class OPT_Operator {
    * {@link OPT_Instruction} contains an explanation
    * of the role of InstructionFormats in the IR.
    */
-  public byte format;
+  public final byte format;
 
   /**
    * encoding of operator traits (characteristics)
    */
-  private int traits;
+  private final int traits;
 
   /**
    * How many operands of the operator are (pure) defs?
    */
-  private int numberDefs;
+  private final int numberDefs;
 
   /**
    * How many operands of the operator are both defs and uses?
    * Only non-zero on IA32, 390.
    */
-  private int numberDefUses;  
+  private final int numberDefUses;  
 
   /**
    * How many operands of the operator are pure uses?
    * Only contains a valid value for non-variableLength operators
    */
-  private int numberUses;
+  private final int numberUses;
 
   /**
    * Physical registers that are implicitly defined by the operator.
    */
-  final int implicitDefs;
+  public final int implicitDefs;
 
   /**
    * Physical registers that are implicitly used by the operator.
    */
-  final int implicitUses;
+  public final int implicitUses;
 
 $$$$ IF ARCHITECTURE != "NONE"
 $$$$ IF ARCHITECTURE == "powerPC"
@@ -91,7 +92,7 @@ $$$$ IF ARCHITECTURE == "powerPC"
    * Instruction template used by the assembler to
    * generate binary code.  Only valid on MIR operators.
    */
-  int instTemplate;
+  public int instTemplate;
 $$$$ END IF
 
   /**

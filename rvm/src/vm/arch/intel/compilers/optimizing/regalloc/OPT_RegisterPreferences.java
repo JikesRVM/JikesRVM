@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * @author Stephen Fink

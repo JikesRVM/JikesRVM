@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import java.io.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /**
  * A trivial phase that can be inserted to dump the IR.
@@ -22,7 +22,7 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
     msg = m;
   }
 
-  final String getName() {
+  public final String getName() {
     return  "IR_Printer: " + msg;
   }
 
@@ -30,8 +30,7 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
    * Print an IR
    * @param ir the IR to print
    */
-  final void perform(OPT_IR ir) {
-
+  public final void perform(OPT_IR ir) {
     if (ir.options.getOptLevel() < ir.options.IR_PRINT_LEVEL) {
       return;
     }
@@ -47,7 +46,7 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
    * @param ir not used
    * @return this 
    */
-  OPT_CompilerPhase newExecution (OPT_IR ir) {
-    return  this;
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
   }
 }

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform local constant propagation for a factored basic block.
@@ -15,15 +15,15 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  */
 public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Operators {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.LOCAL_CONSTANT_PROP;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Local ConstantProp";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 

@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /**
  * Compiler phases all extend this abstract class.
@@ -35,20 +37,20 @@ import com.ibm.JikesRVM.*;
  * @author Dave Grove
  * @author Michael Hind
  */
-abstract class OPT_CompilerPhase
+public abstract class OPT_CompilerPhase
     implements Cloneable {
 
   /**
    * @return a String which is the name of the phase.
    */
-  abstract String getName ();
+  public abstract String getName ();
 
   /**
    * This is the method that actually does the work of the phase.
    *
    * @param OPT_IR the IR on which to apply the phase
    */
-  abstract void perform (OPT_IR ir);
+  public abstract void perform (OPT_IR ir);
 
   /**
    * This method determines if the phase should be run, based on the
@@ -60,7 +62,7 @@ abstract class OPT_CompilerPhase
    * @param options the compiler options for the compilation
    * @return true if the phase should be performed
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  true;
   }
 
@@ -73,7 +75,7 @@ abstract class OPT_CompilerPhase
    * @param before true when invoked before perform, false otherwise.
    * @return true if the IR should be printed, false otherwise.
    */
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -85,7 +87,7 @@ abstract class OPT_CompilerPhase
    * @param ir the OPT_IR that is about to be passed to performPhase
    * @return an opt compiler phase on which performPhase may be invoked.
    */
-  OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
     try {
       return  (OPT_CompilerPhase)this.clone();
     } catch (CloneNotSupportedException e) {

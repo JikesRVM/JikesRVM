@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Global code placement comes in two flavours. The first is loop
@@ -54,7 +54,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     if (options.getOptLevel() < 2)
       return  false;
     return  options.GCP || options.VERBOSE_GCP || options.GCSE;
@@ -79,14 +79,14 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    final String getName () {
+    public final String getName () {
       return  "GCP Preparation";
     }
 
@@ -139,14 +139,14 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    final String getName () {
+    public final String getName () {
       return  "GCP Finalization";
     }
 

@@ -4,8 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
-import  com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
+
 /**
  * Calculate dominators for basic blocks.
  * <p> Uses the algorithm contained in Dragon book, pg. 670-1.

@@ -4,7 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Vector;
 import java.util.Hashtable;
 
@@ -15,7 +15,7 @@ import java.util.Hashtable;
  * @author Matthew Arnold
  * */
 
-abstract class OPT_EdgeCounts
+public abstract class OPT_EdgeCounts
 implements OPT_Constants, OPT_Operators
 {
 
@@ -28,7 +28,7 @@ implements OPT_Constants, OPT_Operators
    * @param target The target of the edge
    * @return count The number of times the edge was executed
    */
-  abstract double getEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target);
+  public abstract double getEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target);
 
   /**
    * Set the frequency of an edge
@@ -37,7 +37,7 @@ implements OPT_Constants, OPT_Operators
    * @param target The target of the edge
    * @param count The number of times the edge was executed
    */
-  abstract void setEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target, 
+  public abstract void setEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target, 
 				 double count);
 
   /**
@@ -46,7 +46,7 @@ implements OPT_Constants, OPT_Operators
    * @param bb The basic block
    * @return The number of times the basic block is executed
    */
-  abstract double getBasicBlockFrequency(OPT_BasicBlock bb);
+  public abstract double getBasicBlockFrequency(OPT_BasicBlock bb);
 
   /**
    * Initialize any needed information about the edge counts.
@@ -55,7 +55,7 @@ implements OPT_Constants, OPT_Operators
    * @param ir the governing ir
    * 
    */
-  abstract void initialize(OPT_IR ir);
+  public abstract void initialize(OPT_IR ir);
 
 
   /**
@@ -67,7 +67,7 @@ implements OPT_Constants, OPT_Operators
    *
    * @param ir the governing ir
    */
-  abstract void updateCFGFrequencies(OPT_IR ir);
+  public abstract void updateCFGFrequencies(OPT_IR ir);
 
 
 
@@ -76,14 +76,14 @@ implements OPT_Constants, OPT_Operators
    *
    * @return Whether basic block frequencies are available
    */
-  abstract boolean basicBlockFrequenciesAvailable();
+  public abstract boolean basicBlockFrequenciesAvailable();
 
   /**
    * Are intraprocedural edge frequencies available?
    *
    * @return Whether edge frequencies are available
    */
-  abstract boolean edgeFrequenciesAvailable();
+  public abstract boolean edgeFrequenciesAvailable();
 
 
   /**
@@ -93,7 +93,7 @@ implements OPT_Constants, OPT_Operators
    * the Jikes RVM implemented weak references this would not be necessary.
    *
    */
-  void compilationFinished() {
+  public void compilationFinished() {
   }
 
 

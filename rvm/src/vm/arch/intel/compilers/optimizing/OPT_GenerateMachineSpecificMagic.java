@@ -2,10 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import com.ibm.JikesRVM.opt.OPT_MagicNotImplementedException;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.

@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.*;
  *
  * @author Stephen Fink
  */
-interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
+public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
 
   // Types of values stored in physical registers; 
   // These affect instruction selection for accessing

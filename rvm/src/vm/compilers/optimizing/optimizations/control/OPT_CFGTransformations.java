@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  *  This Phase supports
@@ -29,7 +29,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * This is the method that actually does the work of the phase.
    */
-  void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     staticPerform(ir);
   }
 
@@ -60,7 +60,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * This method determines if the phase should be run, based on the
    * OPT_Options object it is passed
    */
-  boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     if (options.getOptLevel() < 2)
       return  false;
     return  options.TURN_WHILES_INTO_UNTILS;
@@ -69,14 +69,14 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * Returns the name of the phase.
    */
-  String getName() {
+  public String getName() {
     return  "CFGTransformations";
   }
 
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    */
-  boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 

@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import  java.util.Enumeration;
 
 /**
@@ -215,9 +216,11 @@ public class OPT_Compiler {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
       // Temporary workaround memory retention problems
+      /* TODO: delete me!
       if (!cp.irGeneration) {
 	cleanIR(ir);
       }
+      */
       // if doing analysis only, don't try to return an object
       if (cp.analyzeOnly || cp.irGeneration)
 	return null;
@@ -245,7 +248,6 @@ public class OPT_Compiler {
    * after compilation
    * completes.  If we ever make the opt compiler truly reentrant, 
    * this would be fixed. --dave.
-   */
   static void cleanIR (OPT_IR ir) {
     OPT_DefUse.clearDU(ir);
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
@@ -269,6 +271,7 @@ public class OPT_Compiler {
       instr = next;
     }
   }
+  */
 
   /**
    * Debugging aid.

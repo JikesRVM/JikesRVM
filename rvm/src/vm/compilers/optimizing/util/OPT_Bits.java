@@ -19,7 +19,7 @@ public class OPT_Bits {
    * Return the lower 16 bits to
    * be used in a PPC immediate field
    */
-  static int PPCMaskLower16(int value) {
+  public static int PPCMaskLower16(int value) {
     return  (value & 0xffff);
   }
 
@@ -27,7 +27,7 @@ public class OPT_Bits {
    * Return the upper 16 bits to be used in a PPC 
    * immediate field
    */
-  static int PPCMaskUpper16(int value) {
+  public static int PPCMaskUpper16(int value) {
     short s = (short)(value & 0xffff);
     return  ((value - (int)s) >> 16) & 0xffff;
   }
@@ -36,42 +36,42 @@ public class OPT_Bits {
   /**
    * Return the lower 8 bits (as an int) of an int
    */
-  static int lower8(int value) {
+  public static int lower8(int value) {
     return (value & 0xff);
   }
 
   /**
    * Return the lower 16 bits (as an int) of  an int
    */
-  static int lower16(int value) {
+  public static int lower16(int value) {
     return (value & 0xffff);
   }
 
   /**
    * Return the upper 16 bits (as an int) of an int
    */
-  static int upper16(int value) {
+  public static int upper16(int value) {
     return value >>> 16;
   }
 
   /**
    * Return the upper 24 bits (as an int) of an int
    */
-  static int upper24(int value) {
+  public static int upper24(int value) {
     return value >>> 8;
   }
 
   /**
    * Return the lower 32 bits (as an int) of a long
    */
-  static int lower32(long value) {
+  public static int lower32(long value) {
     return (int)value;
   }
 
   /**
    * Return the upper 32 bits (as an int) of a long
    */
-  static int upper32(long value) {
+  public static int upper32(long value) {
     return (int)(value >>> 32);
   }
 
@@ -79,7 +79,7 @@ public class OPT_Bits {
   /**
    * Does an int literal val fit in bits bits?
    */
-  static boolean fits (int val, int bits) {
+  public static boolean fits (int val, int bits) {
     val = val >> bits - 1;
     return  (val == 0 || val == -1);
   }
@@ -88,7 +88,7 @@ public class OPT_Bits {
   /**
    * Return the number of ones in the binary representation of an integer.
    */
-  static int populationCount(int value) {
+  public static int populationCount(int value) {
     int result = 0;
     while (value != 0) {
       result++;

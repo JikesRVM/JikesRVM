@@ -2,16 +2,19 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Translate from bytecodes to HIR
  *
  * @author Dave Grove
  */
-final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
+public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
+  public OPT_ConvertBCtoHIR() {}
 
-  final String getName () { 
+  public final String getName () { 
     return "Generate HIR";
   }
 
@@ -20,7 +23,7 @@ final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
    * 
    * @param ir The IR to generate HIR into
    */
-  final void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     // Generate the cfg into gc
     OPT_GenerationContext gc = 
       new OPT_GenerationContext(ir.method, ir.compiledMethod, 
@@ -42,7 +45,7 @@ final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
   }
 
   // This phase contains no instance fields.
-  OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
     return this;
   }
 }

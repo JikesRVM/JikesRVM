@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
 /**
  * This interface defines the functionality necessary to be a
  * OPT_InstrumentedEventCounterManager.  The goal of this interface is

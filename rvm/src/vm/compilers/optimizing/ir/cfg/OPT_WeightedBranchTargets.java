@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Used to iterate over the branch targets (including the fall through edge) 
@@ -15,7 +16,7 @@ import com.ibm.JikesRVM.*;
  *
  * @author Dave Grove
  */
-final class OPT_WeightedBranchTargets {
+public final class OPT_WeightedBranchTargets {
   private OPT_BasicBlock[] targets;
   private float[] weights;
   private int cur;
@@ -26,8 +27,8 @@ final class OPT_WeightedBranchTargets {
   public void advance() { cur++; }
   public OPT_BasicBlock curBlock() { return targets[cur]; }
   public float curWeight() { return weights[cur]; }
-
-  OPT_WeightedBranchTargets(OPT_BasicBlock bb) {
+  
+  public OPT_WeightedBranchTargets(OPT_BasicBlock bb) {
     targets = new OPT_BasicBlock[3];
     weights = new float[3];
     cur = 0;

@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * Encodes the BO & BI condition fields for PowerPC
@@ -11,92 +11,93 @@ package com.ibm.JikesRVM.opt;
  * @author by Mauricio Serrano
  */
 public final class OPT_PowerPCConditionOperand extends OPT_Operand {
+  public static final int ALWAYS = (20 << 5);
+  public static final int EQUAL = (12 << 5) | 2;
+  public static final int NOT_EQUAL = (4 << 5) | 2;
+  public static final int LESS = (12 << 5) | 0;
+  public static final int GREATER_EQUAL = (4 << 5) | 0;
+  public static final int GREATER = (12 << 5) | 1;
+  public static final int LESS_EQUAL = (4 << 5) | 1;
+  public static final int OVERFLOW = (12 << 5) | 3;
+  public static final int NOT_OVERFLOW = (4 << 5) | 3;
+
+  /* interpretation for floating-point values */
+  public static final int UNORDERED = (12 << 5) | 3;
+  public static final int NOT_UNORDERED = (4 << 5) | 3;
+
+  /* special RVM value */
+  public static final int NO_THREAD_SWITCH = (4 << 5) | 0;             // same as !geq
+  public static final int THREAD_SWITCH = (12 << 5) | 0;               // same as less
+  // --CTR == 0
+  public static final int CTRZ = (17 << 5) | 0;
+  // --CTR != 0
+  public static final int CTRNZ = (16 << 5) | 0;
+  // (--CTR == 0) & condition
+  public static final int CTRZ_EQUAL = (10 << 5) | 2;
+  public static final int CTRZ_NOT_EQUAL = (2 << 5) | 2;
+  public static final int CTRZ_LESS = (10 << 5) | 0;
+  public static final int CTRZ_GREATER_EQUAL = (2 << 5) | 0;
+  public static final int CTRZ_GREATER = (10 << 5) | 1;
+  public static final int CTRZ_LESS_EQUAL = (2 << 5) | 1;
+  public static final int CTRZ_OVERFLOW = (10 << 5) | 3;
+  public static final int CTRZ_NOT_OVERFLOW = (2 << 5) | 3;
+  // (--CTR != 0) & condition
+  public static final int CTRNZ_EQUAL = (8 << 5) | 2;
+  public static final int CTRNZ_NOT_EQUAL = (0 << 5) | 2;
+  public static final int CTRNZ_LESS = (8 << 5) | 0;
+  public static final int CTRNZ_GREATER_EQUAL = (0 << 5) | 0;
+  public static final int CTRNZ_GREATER = (8 << 5) | 1;
+  public static final int CTRNZ_LESS_EQUAL = (0 << 5) | 1;
+  public static final int CTRNZ_OVERFLOW = (8 << 5) | 3;
+  public static final int CTRNZ_NOT_OVERFLOW = (0 << 5) | 3;
+
   /**
    * Value of this operand.
    */
-  int value;
-  static final int ALWAYS = (20 << 5);
-  static final int EQUAL = (12 << 5) | 2;
-  static final int NOT_EQUAL = (4 << 5) | 2;
-  static final int LESS = (12 << 5) | 0;
-  static final int GREATER_EQUAL = (4 << 5) | 0;
-  static final int GREATER = (12 << 5) | 1;
-  static final int LESS_EQUAL = (4 << 5) | 1;
-  static final int OVERFLOW = (12 << 5) | 3;
-  static final int NOT_OVERFLOW = (4 << 5) | 3;
-
-  /* interpretation for floating-point values */
-  static final int UNORDERED = (12 << 5) | 3;
-  static final int NOT_UNORDERED = (4 << 5) | 3;
-
-  /* special RVM value */
-  static final int NO_THREAD_SWITCH = (4 << 5) | 0;             // same as !geq
-  static final int THREAD_SWITCH = (12 << 5) | 0;               // same as less
-  // --CTR == 0
-  static final int CTRZ = (17 << 5) | 0;
-  // --CTR != 0
-  static final int CTRNZ = (16 << 5) | 0;
-  // (--CTR == 0) & condition
-  static final int CTRZ_EQUAL = (10 << 5) | 2;
-  static final int CTRZ_NOT_EQUAL = (2 << 5) | 2;
-  static final int CTRZ_LESS = (10 << 5) | 0;
-  static final int CTRZ_GREATER_EQUAL = (2 << 5) | 0;
-  static final int CTRZ_GREATER = (10 << 5) | 1;
-  static final int CTRZ_LESS_EQUAL = (2 << 5) | 1;
-  static final int CTRZ_OVERFLOW = (10 << 5) | 3;
-  static final int CTRZ_NOT_OVERFLOW = (2 << 5) | 3;
-  // (--CTR != 0) & condition
-  static final int CTRNZ_EQUAL = (8 << 5) | 2;
-  static final int CTRNZ_NOT_EQUAL = (0 << 5) | 2;
-  static final int CTRNZ_LESS = (8 << 5) | 0;
-  static final int CTRNZ_GREATER_EQUAL = (0 << 5) | 0;
-  static final int CTRNZ_GREATER = (8 << 5) | 1;
-  static final int CTRNZ_LESS_EQUAL = (0 << 5) | 1;
-  static final int CTRNZ_OVERFLOW = (8 << 5) | 3;
-  static final int CTRNZ_NOT_OVERFLOW = (0 << 5) | 3;
+  public int value;
 
   // TODO: add the things with the CTR register also.
-  OPT_PowerPCConditionOperand(int Code) {
+  public OPT_PowerPCConditionOperand(int Code) {
     value = Code;
   }
 
-  static OPT_PowerPCConditionOperand EQUAL() {
+  public static OPT_PowerPCConditionOperand EQUAL() {
     return  new OPT_PowerPCConditionOperand(EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand NOT_EQUAL() {
+  public static OPT_PowerPCConditionOperand NOT_EQUAL() {
     return  new OPT_PowerPCConditionOperand(NOT_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand LESS() {
+  public static OPT_PowerPCConditionOperand LESS() {
     return  new OPT_PowerPCConditionOperand(LESS);
   }
 
-  static OPT_PowerPCConditionOperand LESS_EQUAL() {
+  public static OPT_PowerPCConditionOperand LESS_EQUAL() {
     return  new OPT_PowerPCConditionOperand(LESS_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand GREATER() {
+  public static OPT_PowerPCConditionOperand GREATER() {
     return  new OPT_PowerPCConditionOperand(GREATER);
   }
 
-  static OPT_PowerPCConditionOperand GREATER_EQUAL() {
+  public static OPT_PowerPCConditionOperand GREATER_EQUAL() {
     return  new OPT_PowerPCConditionOperand(GREATER_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand UNORDERED() {
+  public static OPT_PowerPCConditionOperand UNORDERED() {
     return  new OPT_PowerPCConditionOperand(UNORDERED);
   }
 
-  static OPT_PowerPCConditionOperand NO_THREAD_SWITCH() {
+  public static OPT_PowerPCConditionOperand NO_THREAD_SWITCH() {
     return  new OPT_PowerPCConditionOperand(NO_THREAD_SWITCH);
   }
 
-  static OPT_PowerPCConditionOperand THREAD_SWITCH() {
+  public static OPT_PowerPCConditionOperand THREAD_SWITCH() {
     return  new OPT_PowerPCConditionOperand(THREAD_SWITCH);
   }
 
-  static OPT_PowerPCConditionOperand get(OPT_ConditionOperand cond) {
+  public static OPT_PowerPCConditionOperand get(OPT_ConditionOperand cond) {
     return  new OPT_PowerPCConditionOperand(cond);
   }
 
@@ -104,7 +105,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
     return  new OPT_PowerPCConditionOperand(value);
   }
 
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_PowerPCConditionOperand) 
         &&(((OPT_PowerPCConditionOperand)op).value == value);
   }
@@ -112,7 +113,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   /**
    * flips the direction of the condition
    */
-  OPT_PowerPCConditionOperand flipCode() {
+  public OPT_PowerPCConditionOperand flipCode() {
     switch(value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -145,7 +146,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
         value = CTRZ;
         break;
     default:
-      throw new OPT_OptimizingCompilerException("Unhandled case in flipCode");
+      throw new com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException("Unhandled case in flipCode");
     }
     return  this;
   }
@@ -154,7 +155,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
    * this could be used if you want to flip the order of the operands
    * you will notice that there are some differences
    */
-  OPT_PowerPCConditionOperand flipOperands() {
+  public OPT_PowerPCConditionOperand flipOperands() {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -185,14 +186,14 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
     return  this;
   }
 
-  OPT_PowerPCConditionOperand(OPT_ConditionOperand c) {
+  public OPT_PowerPCConditionOperand(OPT_ConditionOperand c) {
     translate(c);
   }
 
   /**
    * translate from OPT_ConditionOperand: used by BURS
    */
-  void translate(OPT_ConditionOperand c) {
+  public void translate(OPT_ConditionOperand c) {
     switch (c.value) {
       case OPT_ConditionOperand.EQUAL:
         value = EQUAL;

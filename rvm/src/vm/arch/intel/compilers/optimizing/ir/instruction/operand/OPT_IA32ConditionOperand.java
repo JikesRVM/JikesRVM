@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
+
 /**
  * An IA32 condition operand
  *
@@ -16,7 +19,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
    * Value of this operand (one of the ConditionCode constants operands 
    * defined in VM_AssemblerConstants)
    */
-  byte value;
+  public byte value;
 
   /**
    * Returns a copy of the current operand.
@@ -30,7 +33,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
    *
    * @param op other operand
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_IA32ConditionOperand) && 
       ((OPT_IA32ConditionOperand)op).value == value;
   }
@@ -38,7 +41,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   /**
    * flip the direction of the condition (return this, mutated to flip value)
    */
-  OPT_IA32ConditionOperand flipCode() { 
+  public OPT_IA32ConditionOperand flipCode() { 
     switch (value) {
     case O:   value =  NO; break;
     case NO:  value =   O; break;
@@ -66,7 +69,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
    * change the condition when operands are flipped 
    * (return this mutated to change value)
    */
-  OPT_IA32ConditionOperand flipOperands() {
+  public OPT_IA32ConditionOperand flipOperands() {
     switch (value) {
     case LLT: value = LGT; break;
     case LGE: value = LLE; break;
@@ -86,50 +89,50 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
    * Construct the IA32 Condition Operand that corresponds to the 
    * argument ConditionOperand
    */
-  OPT_IA32ConditionOperand(OPT_ConditionOperand c) {
+  public OPT_IA32ConditionOperand(OPT_ConditionOperand c) {
     translate(c);
   }
 
-  static OPT_IA32ConditionOperand EQ() {
+  public static OPT_IA32ConditionOperand EQ() {
     return new OPT_IA32ConditionOperand(EQ);
   }
-  static OPT_IA32ConditionOperand NE() {
+  public static OPT_IA32ConditionOperand NE() {
     return new OPT_IA32ConditionOperand(NE);
   }
-  static OPT_IA32ConditionOperand LT() {
+  public static OPT_IA32ConditionOperand LT() {
     return new OPT_IA32ConditionOperand(LT);
   }
-  static OPT_IA32ConditionOperand LE() {
+  public static OPT_IA32ConditionOperand LE() {
     return new OPT_IA32ConditionOperand(LE);
   }
-  static OPT_IA32ConditionOperand GT() {
+  public static OPT_IA32ConditionOperand GT() {
     return new OPT_IA32ConditionOperand(GT);
   }
-  static OPT_IA32ConditionOperand GE() {
+  public static OPT_IA32ConditionOperand GE() {
     return new OPT_IA32ConditionOperand(GE);
   }
-  static OPT_IA32ConditionOperand O() {
+  public static OPT_IA32ConditionOperand O() {
     return new OPT_IA32ConditionOperand(O);
   }
-  static OPT_IA32ConditionOperand NO() {
+  public static OPT_IA32ConditionOperand NO() {
     return new OPT_IA32ConditionOperand(NO);
   }
-  static OPT_IA32ConditionOperand LGT() {
+  public static OPT_IA32ConditionOperand LGT() {
     return new OPT_IA32ConditionOperand(LGT);
   }
-  static OPT_IA32ConditionOperand LLT() {
+  public static OPT_IA32ConditionOperand LLT() {
     return new OPT_IA32ConditionOperand(LLT);
   }
-  static OPT_IA32ConditionOperand LGE() {
+  public static OPT_IA32ConditionOperand LGE() {
     return new OPT_IA32ConditionOperand(LGE);
   }
-  static OPT_IA32ConditionOperand LLE() {
+  public static OPT_IA32ConditionOperand LLE() {
     return new OPT_IA32ConditionOperand(LLE);
   }
-  static OPT_IA32ConditionOperand PE() {
+  public static OPT_IA32ConditionOperand PE() {
     return new OPT_IA32ConditionOperand(PE);
   }
-  static OPT_IA32ConditionOperand PO() {
+  public static OPT_IA32ConditionOperand PO() {
     return new OPT_IA32ConditionOperand(PO);
   }
 
@@ -138,8 +141,8 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   }
 
   // translate from OPT_ConditionOperand: used during LIR => MIR translation
-  void translate(OPT_ConditionOperand c) {
-     switch(c.value) {
+  private void translate(OPT_ConditionOperand c) {
+    switch(c.value) {
      case OPT_ConditionOperand.EQUAL:         value =  EQ; break;
      case OPT_ConditionOperand.NOT_EQUAL:     value =  NE; break;
      case OPT_ConditionOperand.LESS:          value =  LT; break;

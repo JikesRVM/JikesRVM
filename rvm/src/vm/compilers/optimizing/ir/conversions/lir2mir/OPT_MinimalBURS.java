@@ -4,7 +4,9 @@
 //$Id$
 
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class contains code for quick and dirty instruction selection

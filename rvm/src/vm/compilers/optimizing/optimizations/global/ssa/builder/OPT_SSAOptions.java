@@ -15,7 +15,7 @@ import  java.util.*;
  * @author Stephen Fink
  * @author Martin Trapp
  */
-class OPT_SSAOptions {
+public class OPT_SSAOptions {
   /**
    * options for SSA construction
    */

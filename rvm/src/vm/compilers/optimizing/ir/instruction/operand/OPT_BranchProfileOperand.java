@@ -2,9 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  *
@@ -12,34 +10,34 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Matthew Arnold
  */
 public final class OPT_BranchProfileOperand extends OPT_Operand {
-  float takenProbability;
+  public float takenProbability;
 
   public static final float ALWAYS = 1f;
   public static final float LIKELY = .99f;
   public static final float UNLIKELY = 1f - LIKELY;
   public static final float NEVER = 1f - ALWAYS;
 
-  OPT_BranchProfileOperand(float takenProbability) {
+  public OPT_BranchProfileOperand(float takenProbability) {
     this.takenProbability = takenProbability;
   }
 
-  OPT_BranchProfileOperand() {
+  public OPT_BranchProfileOperand() {
     this.takenProbability = 0.5f;
   }
 
-  static OPT_BranchProfileOperand always() {
+  public static OPT_BranchProfileOperand always() {
     return new OPT_BranchProfileOperand(ALWAYS);
   }
 
-  static OPT_BranchProfileOperand likely() {
+  public static OPT_BranchProfileOperand likely() {
     return new OPT_BranchProfileOperand(LIKELY);
   }
   
-  static OPT_BranchProfileOperand unlikely() {
+  public static OPT_BranchProfileOperand unlikely() {
     return new OPT_BranchProfileOperand(UNLIKELY);
   }
 
-  static OPT_BranchProfileOperand never() {
+  public static OPT_BranchProfileOperand never() {
     return new OPT_BranchProfileOperand(NEVER);
   }
 
@@ -68,7 +66,7 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BranchOperand) &&
       (takenProbability == 
        ((OPT_BranchProfileOperand)op).takenProbability);

@@ -15,15 +15,13 @@ import java.util.Enumeration;
  * @author Mauricio J. Serrano
  * @author Igor Pechtchanski
  */
-class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
+public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   /** scratch field: optimizations use as they wish */
-
   public Object scratchObject;
 
   /** any optimization can use this for its own purposes */
-
-  int scratch;
+  public int scratch;
 
   /**
    * The following word is used for various purposes. The first
@@ -40,23 +38,23 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   static final int INFO_MASK      = 0x00ffffff;
 
-  final boolean dfsVisited()   { return (info & DFS_VISITED) != 0; }
-  final boolean topVisited()   { return (info & TOP_VISITED) != 0; }
-  final boolean onStack()      { return (info & ON_STACK   ) != 0; }
-  final boolean flagsOn()      { return (info & (DFS_VISITED|TOP_VISITED|ON_STACK)) != 0; }
-  final boolean isLoopHeader() { return (info & LOOP_HEADER) != 0; }
+  public final boolean dfsVisited()   { return (info & DFS_VISITED) != 0; }
+  public final boolean topVisited()   { return (info & TOP_VISITED) != 0; }
+  public final boolean onStack()      { return (info & ON_STACK   ) != 0; }
+  public final boolean flagsOn()      { return (info & (DFS_VISITED|TOP_VISITED|ON_STACK)) != 0; }
+  public final boolean isLoopHeader() { return (info & LOOP_HEADER) != 0; }
 
-  final void setDfsVisited()        { info |= DFS_VISITED; }
-  final void setTopVisited()        { info |= TOP_VISITED; }
-  final void setOnStack()           { info |= ON_STACK;    }
-  final void setDfsVisitedOnStack() { info |= (DFS_VISITED|ON_STACK); }
-  final void setLoopHeader()        { info |= LOOP_HEADER; }
+  public final void setDfsVisited()        { info |= DFS_VISITED; }
+  public final void setTopVisited()        { info |= TOP_VISITED; }
+  public final void setOnStack()           { info |= ON_STACK;    }
+  public final void setDfsVisitedOnStack() { info |= (DFS_VISITED|ON_STACK); }
+  public final void setLoopHeader()        { info |= LOOP_HEADER; }
 
-  final void clearDfsVisited() { info &= ~DFS_VISITED; }
-  final void clearTopVisited() { info &= ~TOP_VISITED; }
-  final void clearOnStack()    { info &= ~ON_STACK;    }
-  final void clearFlags()      { info &= ~(DFS_VISITED|TOP_VISITED|ON_STACK); }
-  final void clearLoopHeader() { info &= ~LOOP_HEADER; }
+  public final void clearDfsVisited() { info &= ~DFS_VISITED; }
+  public final void clearTopVisited() { info &= ~TOP_VISITED; }
+  public final void clearOnStack()    { info &= ~ON_STACK;    }
+  public final void clearFlags()      { info &= ~(DFS_VISITED|TOP_VISITED|ON_STACK); }
+  public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
 
   public int getScratch() { return scratch; }
 
@@ -68,11 +66,11 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
     return this.scratchObject = scratch;
   }
 
-  final void setNumber(int value) {
+  public final void setNumber(int value) {
     info = (info & ~INFO_MASK) | (value & INFO_MASK);
   }
 
-  final int getNumber() {
+  public final int getNumber() {
     return info & INFO_MASK;
   }
 
@@ -88,7 +86,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   // The following is used by several node sorting schemes
   /////////////////
 
-  OPT_SpaceEffGraphNode nextSorted;
+  public OPT_SpaceEffGraphNode nextSorted;
 
   // return the first in/out edge
 
@@ -120,12 +118,12 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   // deletes all the in/out edges
 
-  final void deleteIn() {
+  public final void deleteIn() {
     for (OPT_SpaceEffGraphEdge e = _inEdgeStart; e !=null; e = e.nextIn)
       e.fromNode().removeOut(e);
     clearIn();
   }
-  final void deleteOut() {
+  public final void deleteOut() {
     for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e !=null; e = e.nextOut)
       e.toNode().removeIn(e);
     clearOut();
@@ -133,13 +131,13 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   /* get number of in/out edges */
 
-  final int getNumberOfIn() {
+  public final int getNumberOfIn() {
     int count = 0;
     for (OPT_SpaceEffGraphEdge e = _inEdgeStart; e != null; e = e.nextIn)
       count++;
     return count;
   }
-  final int getNumberOfOut() {
+  public final int getNumberOfOut() {
     int count = 0;
     for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut)
        count++;
@@ -147,29 +145,29 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   }
 
   /* specialized versions */
-  final boolean hasZeroOut() {
+  public final boolean hasZeroOut() {
     return _outEdgeStart == null;
   }
-  final boolean hasZeroIn() {
+  public final boolean hasZeroIn() {
     return _inEdgeStart == null;
   }
-  final boolean hasOneOut() {
+  public final boolean hasOneOut() {
     OPT_SpaceEffGraphEdge first = _outEdgeStart;
     return (first != null) && (first.nextOut == null);
   }
-  final boolean hasOneIn() {
+  public final boolean hasOneIn() {
     OPT_SpaceEffGraphEdge first = _inEdgeStart;
     return (first != null) && (first.nextIn == null);
   }
 
   /* returns true if points to the in/out set */
 
-  final boolean pointsIn(OPT_SpaceEffGraphNode inNode) {
+  public final boolean pointsIn(OPT_SpaceEffGraphNode inNode) {
     for (OPT_SpaceEffGraphEdge e = _inEdgeStart; e != null; e = e.nextIn)
       if (e.fromNode() == inNode) return true;
     return false;
   }
-  final boolean pointsOut(OPT_SpaceEffGraphNode outNode) {
+  public final boolean pointsOut(OPT_SpaceEffGraphNode outNode) {
     for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut)
       if (e.toNode() == outNode) return true;
     return false;
@@ -186,7 +184,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * returns the out edge pointing to node n, if it exists.
    * returns null otherwise
    */
-  final OPT_SpaceEffGraphEdge findOutEdgeTo(OPT_SpaceEffGraphNode n) {
+  public final OPT_SpaceEffGraphEdge findOutEdgeTo(OPT_SpaceEffGraphNode n) {
     for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
       if (e.toNode() == n) return e;
     }
@@ -200,7 +198,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * of efficiency, but it makes control flow graph manipulations
    * a real pain. (SJF)
    */
-  final void replaceInEdge(OPT_SpaceEffGraphEdge e1, OPT_SpaceEffGraphEdge e2) {
+  public final void replaceInEdge(OPT_SpaceEffGraphEdge e1, OPT_SpaceEffGraphEdge e2) {
     // set the predecessor of e1 to point to e2
     if (_inEdgeStart == e1) _inEdgeStart = e2;
     else {
@@ -228,12 +226,12 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   /* returns true if the node is the single predecessor/successor of
      this block */
 
-  final boolean hasOneIn(OPT_SpaceEffGraphNode inNode) {
+  public final boolean hasOneIn(OPT_SpaceEffGraphNode inNode) {
     OPT_SpaceEffGraphEdge first = _inEdgeStart;
     return (first != null) && (first.nextIn == null) &&
            (first.fromNode() == inNode);
   }
-  final boolean hasOneOut(OPT_SpaceEffGraphNode outNode) {
+  public final boolean hasOneOut(OPT_SpaceEffGraphNode outNode) {
     OPT_SpaceEffGraphEdge first = _outEdgeStart;
     return (first != null) && (first.nextOut == null) &&
            (first.toNode() == outNode);
@@ -241,8 +239,8 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   /* replaces an oldnode with a new node */
 
-  final void replaceOut(OPT_SpaceEffGraphNode oldOut,
-                        OPT_SpaceEffGraphNode newOut) {
+  public final void replaceOut(OPT_SpaceEffGraphNode oldOut,
+			       OPT_SpaceEffGraphNode newOut) {
     deleteOut(oldOut);
     insertOut(newOut);
   }
@@ -674,13 +672,13 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   /**
    * Links inlined from DoublyLinkedListElement.
    */
-  OPT_SpaceEffGraphNode prev, next;
+  public OPT_SpaceEffGraphNode prev, next;
 
   /**
    * Get the next node.
    * @return next node
    */
-  final OPT_SpaceEffGraphNode getNext() {
+  public final OPT_SpaceEffGraphNode getNext() {
     return next;
   }
 
@@ -688,7 +686,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * Get the previous node.
    * @return previous node
    */
-  final OPT_SpaceEffGraphNode getPrev() {
+  public final OPT_SpaceEffGraphNode getPrev() {
     return prev;
   }
 
@@ -696,7 +694,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * Append a given node after this node.
    * @param n the node to append
    */
-  final void append(OPT_SpaceEffGraphNode n) {
+  public final void append(OPT_SpaceEffGraphNode n) {
     next = n;
     n.prev = this;
   }
@@ -705,7 +703,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * Remove this node from the list.
    * @return the next node in the list
    */
-  final OPT_SpaceEffGraphNode remove() {
+  public final OPT_SpaceEffGraphNode remove() {
     // copy old links
     OPT_SpaceEffGraphNode Prev = prev, Next = next;
 

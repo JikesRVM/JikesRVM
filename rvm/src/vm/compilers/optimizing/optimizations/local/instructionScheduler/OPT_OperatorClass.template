@@ -3,9 +3,11 @@
  */
 //OPT_OperatorClass.java
 //$Id$
-
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Vector;
 
 /**
  * Generated from a template.
@@ -19,10 +21,7 @@ import com.ibm.JikesRVM.*;
  * @see OPT_Operators
  * @author Igor Pechtchanski
  */
-
-import java.util.Vector;
-
-final class OPT_OperatorClass implements OPT_Operators {
+public final class OPT_OperatorClass implements OPT_Operators {
 
    // debug level (0 = no debug)
    private static final int verbose = 0;

@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * This class implements global value numbering 
@@ -17,31 +18,11 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
   static final boolean DEBUG = false;
 
   /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
-   */
-  final boolean shouldPerform (OPT_Options options) {
-    // always perform this as a sub-phase
-    return  true;
-  }
-
-  /**
    * Return the name of this phase.
    * @return "Global Value Number"
    */
-  final String getName () {
+  public final String getName () {
     return  "Global Value Number";
-  }
-
-  /**
-   * Should the IR be printed before and/or after this phase?
-   * @param options controlling compiler options
-   * @param before query control
-   * @return true or false
-   */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
   }
 
   /** 

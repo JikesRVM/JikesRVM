@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
 /**
@@ -1225,7 +1225,7 @@ public final class OPT_Instruction
    *
    * @return The probability that the branch is taken.  
    */
-  float getBranchProbability() {
+  public float getBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     return BranchProfileCarrier.getBranchProfile(this).takenProbability;
   }
@@ -1236,7 +1236,7 @@ public final class OPT_Instruction
    *
    * @param The probability that the branch is taken.  
    */
-  void setBranchProbability(float takenProbability) {
+  public void setBranchProbability(float takenProbability) {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     BranchProfileCarrier.getBranchProfile(this).takenProbability = 
       takenProbability;
@@ -1248,7 +1248,7 @@ public final class OPT_Instruction
    * reversed using flipCode().
    * 
    */
-  void flipBranchProbability() {
+  public void flipBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     setBranchProbability(1.0f-getBranchProbability());
   }
@@ -1910,6 +1910,14 @@ public final class OPT_Instruction
   protected void linkWithNext(OPT_Instruction other) {
     next = other;
     other.prev = this;
+  }
+
+  /**
+   * Temp kludge for BURS as we bring the ir package on line
+   * @deprecated
+   */
+  public void BURS_KLUDGE_linkWithNext(OPT_Instruction other) {
+    linkWithNext(other);
   }
 
   /**

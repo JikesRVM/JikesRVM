@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.HashSet;
@@ -22,8 +22,8 @@ import java.util.HashMap;
  * @author Mauricio J. Serrano
  * @author Julian Dolby
  */
-final class OPT_StackManager extends OPT_GenericStackManager
-implements OPT_Operators {
+public final class OPT_StackManager extends OPT_GenericStackManager
+  implements OPT_Operators {
 
 
   /**
@@ -263,7 +263,7 @@ implements OPT_Operators {
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
+    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
       switch (inst.getOpcode()) {
         case IA32_MOV_opcode:
@@ -387,7 +387,7 @@ implements OPT_Operators {
 
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext().getNext();
+    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder().nextInstructionInCodeOrder();
     OPT_Instruction plg = inst.getPrev();
 
     int frameFixedSize = getFrameFixedSize();

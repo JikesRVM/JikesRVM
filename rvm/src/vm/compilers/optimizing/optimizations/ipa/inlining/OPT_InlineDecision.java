@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
 
 /**
@@ -10,7 +11,7 @@ import com.ibm.JikesRVM.*;
  *
  * @author Stephen Fink
  */
-final class OPT_InlineDecision {
+public final class OPT_InlineDecision {
 
   /** 
    * Return a decision NOT to inline.

@@ -4,12 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
  * @author Harini Srinivasan
  * @author Igor Pechtchanski
  */
-final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode 
+public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode 
   implements OPT_DepGraphConstants {
 
   /**

@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Transform tail recursive calls into loops.
@@ -29,11 +29,11 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
   private static final boolean DEBUG = false;
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.getOptLevel() >= 1;
   }
-  final String getName () { return  "Tail Recursion Elimination";  }
-  final OPT_CompilerPhase newExecution (OPT_IR ir) { return  this;  }
+  public final String getName () { return  "Tail Recursion Elimination";  }
+  public final OPT_CompilerPhase newExecution (OPT_IR ir) { return  this;  }
 
 
 
@@ -42,7 +42,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
    * 
    * @param ir the IR to optimize
    */
-  final void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     OPT_BasicBlock target = null;
     OPT_Instruction prologue = null;
     boolean didSomething = false;

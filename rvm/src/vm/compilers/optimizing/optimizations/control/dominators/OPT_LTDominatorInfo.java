@@ -4,8 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.Iterator;
-import  java.util.HashSet;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * This class holds data associated with a basic block as computed by the

@@ -7,7 +7,7 @@ import com.ibm.JikesRVM.*;
 
 import  java.util.*;
 import  java.math.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * @author Rastislav Bodik
@@ -45,7 +45,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * that can benefit from PI nodes.
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.GLOBAL_BOUNDS_CHECK || typeChecks;
   };
 
@@ -53,7 +53,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * A String representation of this phase
    * @return a string representation
    */
-  final String getName() {
+  public final String getName() {
     return  "Pi Nodes " + insertion;
   }
 
@@ -62,7 +62,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @param options controlling compiler options
    * @param before control for the query
    */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 

@@ -2,13 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.*;
 
 /**
  *  This class holds each element in the OPT_GCIRMap
  *  @author Michael Hind
  */
-final class OPT_GCIRMapElement extends OPT_LinkedListElement {
+public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
 
   /**
    *  The instruction, i.e., GC point
@@ -26,7 +28,8 @@ final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    * @param regSpillList the list of references either symbolic (before regalloc)
    *                or physical/spill location (after regalloc)
    */
-  OPT_GCIRMapElement(OPT_Instruction inst, OPT_LinkedList regSpillList) {
+  public OPT_GCIRMapElement(OPT_Instruction inst, 
+			   OPT_LinkedList regSpillList) {
     this.inst = inst;
     this.regSpillList = regSpillList;
   }
@@ -36,7 +39,7 @@ final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    * is split into two instructions, both of which are PEIs
    * after register allocation/GCIRMap creation.
    */
-  OPT_GCIRMapElement createTwin (OPT_Instruction inst) {
+  public OPT_GCIRMapElement createTwin (OPT_Instruction inst) {
     return new OPT_GCIRMapElement(inst, this.regSpillList);
   }
 

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple
@@ -31,7 +31,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
     });
   }
 
-  boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.SSA;
   }
 
@@ -40,16 +40,12 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class FoldingDriver extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return  options.SSA && options.EXPRESSION_FOLDING;
     }
 
-    final String getName() {
+    public final String getName() {
       return  "SSA Expression Folding";
-    }
-
-    final boolean printingEnabled(OPT_Options options, boolean before) {
-      return false;
     }
 
     /**
@@ -65,16 +61,12 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class TuneUpPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return  options.SSA;
     }
 
-    final String getName() {
+    public final String getName() {
       return  "SSA Tune UpPreparation";
-    }
-
-    final boolean printingEnabled(OPT_Options options, boolean before) {
-      return false;
     }
 
     /**

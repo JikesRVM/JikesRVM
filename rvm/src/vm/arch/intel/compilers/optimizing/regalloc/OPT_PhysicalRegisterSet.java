@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
 /**
@@ -34,35 +35,35 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Return the total number of physical registers.
    */
-  static final int getSize() {
+  public static final int getSize() {
     return NUM_GPRS + NUM_FPRS + NUM_SPECIALS;
   }
 
   /**
    * Return the total number of physical registers.
    */
-  final int getNumberOfPhysicalRegisters() {
+  public final int getNumberOfPhysicalRegisters() {
     return getSize();
   }
 
   /**
    * Return the total number of nonvolatile GPRs.
    */
-  static final int getNumberOfNonvolatileGPRs() {
+  public static final int getNumberOfNonvolatileGPRs() {
     return NUM_NONVOLATILE_GPRS;
   }
 
   /**
    * Return the total number of GPRs that may hold parameters.
    */
-  static final int getNumberOfGPRParams() {
+  public static final int getNumberOfGPRParams() {
     return NUM_PARAMETER_GPRS;
   }
 
   /**
    * Return the total number of FPRs that may hold parameters.
    */
-  static final int getNumberOfFPRParams() {
+  public static final int getNumberOfFPRParams() {
     return NUM_PARAMETER_FPRS;
   }
 
@@ -70,7 +71,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Return the (zero-based indexed) nth GPR that may hold a parameter.
    */
-  final OPT_Register getGPRParam(int n) {
+  public final OPT_Register getGPRParam(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
     if (n==0) {
       return getEAX();
@@ -82,14 +83,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Return the (zero-based indexed) nth FPR that may hold a parameter.
    */
-  final OPT_Register getFPRParam(int n) {
+  public final OPT_Register getFPRParam(int n) {
     return getFPR(VOLATILE_FPRS[n]);
   }
 
   /**
    * Return the (zero-based indexed) nth GPR that may hold a return value.
    */
-  OPT_Register getReturnGPR(int n) {
+  public OPT_Register getReturnGPR(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
     if (n==0) {
       return getEAX();
@@ -178,7 +179,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Is a particular register subject to allocation?
    */
-  boolean isAllocatable(OPT_Register r) {
+  public boolean isAllocatable(OPT_Register r) {
     return (r.number < FIRST_SPECIAL && r != getPR() && r != getESP());
   }
 
@@ -186,56 +187,56 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the processor register
    */
-  OPT_Register getPR() {
+  public OPT_Register getPR() {
     return getGPR(PROCESSOR_REGISTER);
   }
 
   /**
    * @return the frame pointer register
    */
-  OPT_Register getFP() {
+  public OPT_Register getFP() {
     throw new OPT_OptimizingCompilerException("Framepointer is not a register on IA32");
   }
 
   /**
    * @return the EAX register
    */
-  OPT_Register getEAX() {
+  public OPT_Register getEAX() {
     return getGPR(EAX);
   }
 
   /**
    * @return the ECX register
    */
-  OPT_Register getECX() {
+  public OPT_Register getECX() {
     return getGPR(ECX);
   }
 
   /**
    * @return the EDX register
    */
-  OPT_Register getEDX() {
+  public OPT_Register getEDX() {
     return getGPR(EDX);
   }
 
   /**
    * @return the EBX register
    */
-  OPT_Register getEBX() {
+  public OPT_Register getEBX() {
     return getGPR(EBX);
   }
 
   /**
    * @return the ESP register
    */
-  OPT_Register getESP() {
+  public OPT_Register getESP() {
     return getGPR(ESP);
   }
 
   /**
    * @return the EBP register
    */
-  OPT_Register getEBP() {
+  public OPT_Register getEBP() {
     return getGPR(EBP);
   }
 
@@ -249,7 +250,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the EDI register
    */
-  OPT_Register getEDI() {
+  public OPT_Register getEDI() {
     return getGPR(EDI);
   }
 
@@ -257,77 +258,77 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return a register representing the AF bit of the EFLAGS register.
    */
-  OPT_Register getAF() {
+  public OPT_Register getAF() {
     return reg[AF];
   }
 
   /**
    * @return a register representing the CF bit of the EFLAGS register.
    */
-  OPT_Register getCF() {
+  public OPT_Register getCF() {
     return reg[CF];
   }
 
   /**
    * @return a register representing the OF bit of the EFLAGS register.
    */
-  OPT_Register getOF() {
+  public OPT_Register getOF() {
     return reg[OF];
   }
 
   /**
    * @return a register representing the PF bit of the EFLAGS register.
    */
-  OPT_Register getPF() {
+  public OPT_Register getPF() {
     return reg[PF];
   }
 
   /**
    * @return a register representing the SF bit of the EFLAGS register.
    */
-  OPT_Register getSF() {
+  public OPT_Register getSF() {
     return reg[SF];
   }
 
   /**
    * @return a register representing the ZF bit of the EFLAGS register.
    */
-  OPT_Register getZF() {
+  public OPT_Register getZF() {
     return reg[ZF];
   }
 
   /**
    * @return a register representing the C0 floating-point status bit
    */
-  OPT_Register getC0() {
+  public OPT_Register getC0() {
     return reg[C0];
   }
 
   /**
    * @return a register representing the C1 floating-point status bit
    */
-  OPT_Register getC1() {
+  public OPT_Register getC1() {
     return reg[C1];
   }
 
   /**
    * @return a register representing the C2 floating-point status bit
    */
-  OPT_Register getC2() {
+  public OPT_Register getC2() {
     return reg[C2];
   }
 
   /**
    * @return a register representing the C3 floating-point status bit
    */
-  OPT_Register getC3() {
+  public OPT_Register getC3() {
     return reg[C3];
   }
 
   /**
    * @return the nth physical GPR 
    */
-  OPT_Register getGPR(int n) {
+  public OPT_Register getGPR(int n) {
     return reg[FIRST_INT+n];
   }
 
@@ -336,14 +337,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    *
    * PRECONDITION: r is a physical GPR
    */
-  static int getGPRIndex(OPT_Register r) {
+  public static int getGPRIndex(OPT_Register r) {
     return r.number - FIRST_INT;
   }
 
   /**
    * @return the first GPR register used to hold a return value
    */
-  OPT_Register getFirstReturnGPR() {
+  public OPT_Register getFirstReturnGPR() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_GPRS > 0);
     return getEAX();
   }
@@ -351,7 +352,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the second GPR register used to hold a return value
    */
-  OPT_Register getSecondReturnGPR() {
+  public OPT_Register getSecondReturnGPR() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_GPRS > 1);
     return getEDX();
   }
@@ -359,7 +360,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the FPR register used to hold a return value
    */
-  OPT_Register getReturnFPR() {
+  public OPT_Register getReturnFPR() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_FPRS == 1);
     return getFPR(0);
   }
@@ -367,7 +368,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the nth physical FPR 
    */
-  OPT_Register getFPR(int n) {
+  public OPT_Register getFPR(int n) {
     return reg[FIRST_DOUBLE + n];
   }
 
@@ -376,14 +377,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    *
    * PRECONDITION: r is a physical GPR
    */
-  static int getFPRIndex(OPT_Register r) {
+  public static int getFPRIndex(OPT_Register r) {
     return r.number - FIRST_DOUBLE;
   }
 
   /**
    * @return the nth physical register in the pool. 
    */
-  OPT_Register get(int n) {
+  public OPT_Register get(int n) {
     return reg[n];
   }
 
@@ -393,7 +394,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @param r a symbolic register
    * @return one of INT_REG, DOUBLE_REG 
    */
-  static final int getPhysicalRegisterType(OPT_Register r) {
+  public static final int getPhysicalRegisterType(OPT_Register r) {
     if (r.isInteger() || r.isLong()) {
       return INT_REG;
     } else if (r.isFloatingPoint()) {
@@ -427,14 +428,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Get the register name for a register with a particular number in the
    * pool
    */
-  static String getName(int number) {
+  public static String getName(int number) {
     return registerName[number];
   }
   /**
    * Get the spill size for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  static int getSpillSize(int type) {
+  public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
       VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
@@ -449,7 +450,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Get the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG,  SPECIAL_REG
    */
-  static int getSpillAlignment(int type) {
+  public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
       VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
@@ -464,28 +465,28 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the physical registers in this set.
    */
-  Enumeration enumerateAll() {
+  public Enumeration enumerateAll() {
     return new RangeEnumeration(0,getSize()-1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  Enumeration enumerateGPRs() {
+  public Enumeration enumerateGPRs() {
     return new RangeEnumeration(FIRST_INT,FIRST_DOUBLE-1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  Enumeration enumerateFPRs() {
+  public Enumeration enumerateFPRs() {
     return new RangeEnumeration(FIRST_DOUBLE,FIRST_SPECIAL-1);
   }
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  Enumeration enumerateVolatileGPRs() {
+  public Enumeration enumerateVolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_GPRS ];
     for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
       r[i] = getGPR(VOLATILE_GPRS[i]);
@@ -495,7 +496,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  Enumeration enumerateNonvolatileGPRs() {
+  public Enumeration enumerateNonvolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
@@ -504,7 +505,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the volatile FPRs in this set.
    */
-  Enumeration enumerateVolatileFPRs() {
+  public Enumeration enumerateVolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_FPRS ];
     for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
       r[i] = getFPR(VOLATILE_FPRS[i]);
@@ -514,7 +515,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  Enumeration enumerateNonvolatileFPRs() {
+  public Enumeration enumerateNonvolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
       r[i] = getFPR(NONVOLATILE_FPRS[i]);
@@ -525,7 +526,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  Enumeration enumerateVolatiles(int regClass) {
+  public Enumeration enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateVolatileGPRs();
@@ -541,7 +542,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the volatile physical registers
    */
-  Enumeration enumerateVolatiles() {
+  public Enumeration enumerateVolatiles() {
     Enumeration e1 = enumerateVolatileGPRs();
     Enumeration e2 = enumerateVolatileFPRs();
     return new OPT_CompoundEnumerator(e1, e2);
@@ -550,14 +551,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the set of volatile physical registers
    */
-  OPT_BitSet getVolatiles() {
+  public OPT_BitSet getVolatiles() {
     return volatileSet;
   }
 
   /**
    * @return the set of FPR physical registers
    */
-  OPT_BitSet getFPRs() {
+  public OPT_BitSet getFPRs() {
     return fpSet;
   }
 
@@ -565,7 +566,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  Enumeration enumerateNonvolatiles(int regClass) {
+  public Enumeration enumerateNonvolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateNonvolatileGPRs();
@@ -583,7 +584,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * backwards
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  Enumeration enumerateNonvolatilesBackwards(int regClass) {
+  public Enumeration enumerateNonvolatilesBackwards(int regClass) {
     return new OPT_ReverseEnumerator(enumerateNonvolatiles(regClass));
   }
 

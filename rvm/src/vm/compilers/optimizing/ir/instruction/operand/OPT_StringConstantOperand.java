@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * Represents a constant string operand.
@@ -15,12 +15,12 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
   /**
    * The string value
    */
-  String value;
+  public String value;
 
   /**
    * Index in JTOC where this string constant lives.
    */
-  int index;
+  public int index;
 
   /**
    * Construct a new string constant operand
@@ -28,7 +28,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @param v the string constant
    * @param i JTOC index of the string constant
    */
-  OPT_StringConstantOperand(String v, int i) {
+  public OPT_StringConstantOperand(String v, int i) {
     value = v;
     index = i;
   }
@@ -50,7 +50,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_StringConstantOperand) &&
       (value.equals(((OPT_StringConstantOperand)op).value));
   }

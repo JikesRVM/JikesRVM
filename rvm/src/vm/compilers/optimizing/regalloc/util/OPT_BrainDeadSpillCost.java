@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
+
 /**
  * An object that returns an estimate of the relative cost of spilling a 
  * symbolic register.

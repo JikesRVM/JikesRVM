@@ -4,7 +4,7 @@
 //$Id$ 
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 /**
@@ -20,16 +20,12 @@ import java.util.*;
  */
 public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operators {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.LOCAL_COPY_PROP;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Local CopyProp";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**

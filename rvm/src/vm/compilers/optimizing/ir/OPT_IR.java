@@ -2,11 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)
@@ -88,7 +88,7 @@ public final class OPT_IR implements OPT_Operators {
    * the IR during compilation, so method really only represents the 
    * primary or outermost method being compiled.
    */
-  VM_Method getMethod() { 
+  public VM_Method getMethod() { 
     return method;
   }
 
@@ -107,7 +107,7 @@ public final class OPT_IR implements OPT_Operators {
    * {@link OPT_SSAOptions Options} that define the SSA properties
    * desired the next time we enter SSA form.
    */
-  OPT_SSAOptions desiredSSAOptions; 
+  public OPT_SSAOptions desiredSSAOptions; 
 
   /** 
    * {@link OPT_SSAOptions Options} that define the SSA properties
@@ -115,13 +115,13 @@ public final class OPT_IR implements OPT_Operators {
    * on SSA form should update this object to reflect transformations
    * on SSA form.
    */
-  OPT_SSAOptions actualSSAOptions; 
+  public OPT_SSAOptions actualSSAOptions; 
 
   /**
    * The root {@link OPT_GenerationContext generation context}
    * for the current compilation.
    */
-  OPT_GenerationContext gc;
+  public OPT_GenerationContext gc;
 
   /**
    * The {@link OPT_InlineOracle inlining oracle} to be used for the 
@@ -143,7 +143,7 @@ public final class OPT_IR implements OPT_Operators {
    * TODO: It's plausible that this field also really belongs on
    * the generation context instead of the IR.
    */
-    public OPT_SpecializationHandler special;
+  public OPT_SpecializationHandler special;
   //-#endif
     
   /**
@@ -608,7 +608,7 @@ public final class OPT_IR implements OPT_Operators {
    * does not matter (at least for intraprocedural analyses).
    * For more information {@link OPT_BasicBlock see}.
    */
-  void unfactor() {
+  public void unfactor() {
     OPT_BasicBlockEnumeration e = getBasicBlocks();
     while  (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
@@ -835,7 +835,7 @@ public final class OPT_IR implements OPT_Operators {
 	cur.scratch = 0;
 
 	prev = cur;
-	cur = (OPT_BasicBlock)cur.next;
+	cur = (OPT_BasicBlock)cur.getNext();
       }
     }
 

@@ -2,11 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Converts all remaining instructions with HIR-only operators into 
@@ -398,7 +397,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       BB2.appendInstruction(s2);
     }
     // continue at next BB
-    s = BB2.end;
+    s = BB2.lastInstruction();
 
     return  s;
   }

@@ -1,9 +1,14 @@
+
 /*
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import com.ibm.JikesRVM.opt.OPT_Constants;
+import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
 
 /**
  * An <code>OPT_Operand</code> identifies an operand for an 
@@ -69,14 +74,14 @@ public abstract class OPT_Operand {
   /**
    * Handle back to containing instruction.
    */
-  OPT_Instruction instruction;
+  public OPT_Instruction instruction;
 
   /**
    * clear the {@link #instruction} field (done when moving the 
    * operand from one instruction to another
    * @return <code>this</code>
    */
-  final OPT_Operand clear() { 
+  public final OPT_Operand clear() { 
     instruction = null; 
     return this;
   }
@@ -88,7 +93,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_RegisterOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isRegister() { 
+  public final boolean isRegister() { 
     return this instanceof OPT_RegisterOperand; 
   }
 
@@ -99,7 +104,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_ConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isConstant() { 
+  public final boolean isConstant() { 
     return this instanceof OPT_ConstantOperand; 
   }
 
@@ -110,7 +115,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_IntConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isIntConstant() { 
+  public final boolean isIntConstant() { 
     return this instanceof OPT_IntConstantOperand; 
   }
 
@@ -121,7 +126,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_FloatConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isFloatConstant() { 
+  public final boolean isFloatConstant() { 
     return this instanceof OPT_FloatConstantOperand; 
   }
 
@@ -132,7 +137,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_LongConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isLongConstant() { 
+  public final boolean isLongConstant() { 
     return this instanceof OPT_LongConstantOperand; 
   }
 
@@ -143,7 +148,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_DoubleConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isDoubleConstant() { 
+  public final boolean isDoubleConstant() { 
     return this instanceof OPT_DoubleConstantOperand; 
   }
 
@@ -154,7 +159,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_StringConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isStringConstant() { 
+  public final boolean isStringConstant() { 
     return this instanceof OPT_StringConstantOperand; 
   }
 
@@ -165,7 +170,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_NullConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isNullConstant() { 
+  public final boolean isNullConstant() { 
     return this instanceof OPT_NullConstantOperand; 
   }
 
@@ -176,7 +181,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_TrueGuardOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isTrueGuard() { 
+  public final boolean isTrueGuard() { 
     return this instanceof OPT_TrueGuardOperand; 
   }
 
@@ -187,7 +192,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_BranchOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isBranch() { 
+  public final boolean isBranch() { 
     return this instanceof OPT_BranchOperand; 
   }
 
@@ -198,7 +203,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_BasicBlockOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isBlock() { 
+  public final boolean isBlock() { 
     return this instanceof OPT_BasicBlockOperand; 
   }
 
@@ -209,7 +214,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_MemoryOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isMemory() { 
+  public final boolean isMemory() { 
     return this instanceof OPT_MemoryOperand; 
   }
 
@@ -220,7 +225,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_StackLocationOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isStackLocation() { 
+  public final boolean isStackLocation() { 
     return this instanceof OPT_StackLocationOperand; 
   }
 
@@ -231,7 +236,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_MethodOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isMethod() { 
+  public final boolean isMethod() { 
     return this instanceof OPT_MethodOperand; 
   }
 
@@ -242,7 +247,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_LocationOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isLocation() { 
+  public final boolean isLocation() { 
     return this instanceof OPT_LocationOperand; 
   }
 
@@ -253,7 +258,7 @@ public abstract class OPT_Operand {
    *         <code>instanceof</code> an {@link OPT_TypeOperand}
    *         or <code>false</code> if it is not.
    */
-  final boolean isType() { 
+  public final boolean isType() { 
     return this instanceof OPT_TypeOperand; 
   }
 
@@ -263,7 +268,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_RegisterOperand}
    */
-  final OPT_RegisterOperand asRegister() { 
+  public final OPT_RegisterOperand asRegister() { 
     return (OPT_RegisterOperand)this; 
   }
 
@@ -272,7 +277,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_IntConstantOperand}
    */
-  final OPT_IntConstantOperand asIntConstant() { 
+  public final OPT_IntConstantOperand asIntConstant() { 
     return (OPT_IntConstantOperand)this; 
   }
 
@@ -281,7 +286,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_FloatConstantOperand}
    */
-  final OPT_FloatConstantOperand asFloatConstant() { 
+  public final OPT_FloatConstantOperand asFloatConstant() { 
     return (OPT_FloatConstantOperand)this; 
   }
 
@@ -290,7 +295,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_LongConstantOperand}
    */
-  final OPT_LongConstantOperand asLongConstant() { 
+  public final OPT_LongConstantOperand asLongConstant() { 
     return (OPT_LongConstantOperand)this; 
   }
 
@@ -299,7 +304,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_DoubleConstantOperand}
    */
-  final OPT_DoubleConstantOperand asDoubleConstant() { 
+  public final OPT_DoubleConstantOperand asDoubleConstant() { 
     return (OPT_DoubleConstantOperand)this; 
   }
 
@@ -308,7 +313,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_StringConstantOperand}
    */
-  final OPT_StringConstantOperand asStringConstant() { 
+  public final OPT_StringConstantOperand asStringConstant() { 
     return (OPT_StringConstantOperand)this; 
   }
 
@@ -317,7 +322,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_NullConstantOperand}
    */
-  final OPT_NullConstantOperand asNullConstant() { 
+  public final OPT_NullConstantOperand asNullConstant() { 
     return (OPT_NullConstantOperand)this; 
   }
 
@@ -326,7 +331,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_BranchOperand}
    */
-  final OPT_BranchOperand asBranch() { 
+  public final OPT_BranchOperand asBranch() { 
     return (OPT_BranchOperand)this; 
   }
 
@@ -335,7 +340,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_BasicBlockOperand}
    */
-  final OPT_BasicBlockOperand asBlock() { 
+  public final OPT_BasicBlockOperand asBlock() { 
     return (OPT_BasicBlockOperand)this; 
   }
 
@@ -344,7 +349,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_MemoryOperand}
    */
-  final OPT_MemoryOperand asMemory() { 
+  public final OPT_MemoryOperand asMemory() { 
     return (OPT_MemoryOperand)this; 
   }
 
@@ -353,7 +358,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_StackLocationOperand}
    */
-  final OPT_StackLocationOperand asStackLocation() { 
+  public final OPT_StackLocationOperand asStackLocation() { 
     return (OPT_StackLocationOperand)this; 
   }
 
@@ -362,7 +367,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_MethodOperand}
    */
-  final OPT_MethodOperand asMethod() { 
+  public final OPT_MethodOperand asMethod() { 
     return (OPT_MethodOperand)this; 
   }
 
@@ -371,7 +376,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_TypeOperand}
    */
-  final OPT_TypeOperand asType() { 
+  public final OPT_TypeOperand asType() { 
     return (OPT_TypeOperand)this; 
   }
 
@@ -380,7 +385,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_ConditionOperand}
    */
-  final OPT_ConditionOperand asCondition() { 
+  public final OPT_ConditionOperand asCondition() { 
     return (OPT_ConditionOperand)this; 
   }
 
@@ -389,7 +394,7 @@ public abstract class OPT_Operand {
    * 
    * @return <code>this</code> cast as an {@link OPT_LocationOperand}
    */
-  final OPT_LocationOperand asLocation() { 
+  public final OPT_LocationOperand asLocation() { 
     return (OPT_LocationOperand)this; 
   }
 
@@ -400,7 +405,7 @@ public abstract class OPT_Operand {
    *         is int-like as defined by {@link VM_Type#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isIntLike() {
+  public final boolean isIntLike() {
     return isIntConstant() || 
       (isRegister() && asRegister().type.isIntLikeType());
   }
@@ -412,7 +417,7 @@ public abstract class OPT_Operand {
    *         is an int as defined by {@link VM_Type#isIntType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isInt() {
+  public final boolean isInt() {
     return isIntConstant() || 
       (isRegister() && asRegister().type.isIntType());
   }
@@ -424,7 +429,7 @@ public abstract class OPT_Operand {
    *         is a long as defined by {@link VM_Type#isLongType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isLong() {
+  public final boolean isLong() {
     return isLongConstant() || 
       (isRegister() && asRegister().type.isLongType());
   }
@@ -436,7 +441,7 @@ public abstract class OPT_Operand {
    *         is a float as defined by {@link VM_Type#isFloatType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isFloat() {
+  public final boolean isFloat() {
     return isFloatConstant() || 
       (isRegister() && asRegister().type.isFloatType());
   }
@@ -448,7 +453,7 @@ public abstract class OPT_Operand {
    *         is a double as defined by {@link VM_Type#isDoubleType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isDouble() {
+  public final boolean isDouble() {
     return isDoubleConstant() || 
       (isRegister() && asRegister().type.isDoubleType());
   }
@@ -460,7 +465,7 @@ public abstract class OPT_Operand {
    *         is a reference as defined by {@link VM_Type#isReferenceType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isRef() {
+  public final boolean isRef() {
     return isStringConstant() || isNullConstant() ||
            (isRegister() && asRegister().type.isReferenceType());
   }
@@ -472,7 +477,7 @@ public abstract class OPT_Operand {
    *         is an address as defined by {@link VM_Type#isAddressType}
    *         or <code>false</code> if it is not.
    */
-  final boolean isAddress() {
+  public final boolean isAddress() {
     return (isRegister() && asRegister().type.isAddressType());
   }
   /**
@@ -481,7 +486,7 @@ public abstract class OPT_Operand {
    * @return <code>true</code> if the operand definitely represents
    *         <code>null</code> or <code>false</code> if it does not.
    */
-  final boolean isDefinitelyNull() {
+  public final boolean isDefinitelyNull() {
     return isNullConstant() || 
       (isRegister() && asRegister().type == OPT_ClassLoaderProxy.NULL_TYPE);
   }
@@ -503,7 +508,7 @@ public abstract class OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  abstract boolean similar(OPT_Operand op);
+  public abstract boolean similar(OPT_Operand op);
 
 
   /**
@@ -511,7 +516,7 @@ public abstract class OPT_Operand {
    * 
    * @return the type of the value represented by the operand.
    */
-  final VM_Type getType() {
+  public final VM_Type getType() {
     if (isRegister())
       return asRegister().type;
     if (isType())
@@ -550,7 +555,7 @@ public abstract class OPT_Operand {
    * 
    * @return the index of the operand in its containing instruction
    */
-  int getIndexInInstruction() {
+  public int getIndexInInstruction() {
     for (int i=0; i<instruction.getNumberOfOperands(); i++) {
       OPT_Operand op = instruction.getOperand(i);
       if (op == this) return i;

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
 /**
@@ -22,84 +23,84 @@ abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMapping {
   /**
    * Return the total number of physical registers.
    */
-  abstract int getNumberOfPhysicalRegisters(); 
+  public abstract int getNumberOfPhysicalRegisters(); 
 
   /**
    * @return the FP register
    */
-  abstract OPT_Register getFP();
+  public abstract OPT_Register getFP();
 
   /**
    * @return the processor register
    */
-  abstract OPT_Register getPR();
+  public abstract OPT_Register getPR();
 
   /**
    * @return the nth physical GPR 
    */
-  abstract OPT_Register getGPR(int n);
+  public abstract OPT_Register getGPR(int n);
 
   /**
    * @return the first GPR return
    */
-  abstract OPT_Register getFirstReturnGPR(); 
+  public abstract OPT_Register getFirstReturnGPR(); 
 
   /**
    * @return the nth physical FPR 
    */
-  abstract OPT_Register getFPR(int n); 
+  public abstract OPT_Register getFPR(int n); 
 
   /**
    * @return the nth physical register in the pool. 
    */
-  abstract OPT_Register get(int n);
+  public abstract OPT_Register get(int n);
 
   /**
    * Enumerate all the physical registers in this set.
    */
-  abstract Enumeration enumerateAll();
+  public abstract Enumeration enumerateAll();
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  abstract Enumeration enumerateGPRs(); 
+  public abstract Enumeration enumerateGPRs(); 
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  abstract Enumeration enumerateVolatileGPRs(); 
+  public abstract Enumeration enumerateVolatileGPRs(); 
 
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  abstract Enumeration enumerateNonvolatileGPRs();
+  public abstract Enumeration enumerateNonvolatileGPRs();
 
   /**
    * Enumerate all the volatile FPRs in this set.
    */
-  abstract Enumeration enumerateVolatileFPRs();
+  public abstract Enumeration enumerateVolatileFPRs();
 
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  abstract Enumeration enumerateNonvolatileFPRs();
+  public abstract Enumeration enumerateNonvolatileFPRs();
 
   /**
    * Enumerate all the volatile physical registers
    */
-  abstract Enumeration enumerateVolatiles(); 
+  public abstract Enumeration enumerateVolatiles(); 
 
   /**
    * Enumerate all the nonvolatile GPRs in this set, backwards
    */
-  Enumeration enumerateNonvolatileGPRsBackwards() {
+  public Enumeration enumerateNonvolatileGPRsBackwards() {
     return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
   }
 
   /**
    * Enumerate all the nonvolatile FPRs in this set, backwards.
    */
-  Enumeration enumerateNonvolatileFPRsBackwards() {
+  public Enumeration enumerateNonvolatileFPRsBackwards() {
     return new OPT_ReverseEnumerator(enumerateNonvolatileFPRs());
   }
 

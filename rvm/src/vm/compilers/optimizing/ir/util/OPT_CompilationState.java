@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_Options;
 
 /**
   * This class holds miscellaneous information regarding the state of
@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
   * @author Stephen Fink
   * @modified Dave Grove
   */
-final class OPT_CompilationState {
+public final class OPT_CompilationState {
 
   /*
    * Interface 
@@ -50,7 +50,7 @@ final class OPT_CompilationState {
    * @return <code>true</code> if it is an interface call
    *         or <code>false</code> if it is not.
    */
-   boolean isInvokeInterface() {
+  public boolean isInvokeInterface() {
      return Call.getMethod(call).isInterface();
    }
 

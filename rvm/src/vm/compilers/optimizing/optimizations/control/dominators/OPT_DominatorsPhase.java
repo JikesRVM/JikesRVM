@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 /**
  * Driver routine for dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
@@ -31,14 +32,14 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return true;
   }
   /**
    * Return a string representation of this phase
    * @return "Dominators + LpStrTree"
    */
-  final String getName() {
+  public final String getName() {
     return  "Dominators + LpStrTree";
   }
 
@@ -48,14 +49,14 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * @param before query control
    * @return true or false
    */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
   /**
    * Main driver for the dominator calculation.
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     try {
       // reset flags in case an exception is thrown inside "perform"
       // and it doesn't return normally

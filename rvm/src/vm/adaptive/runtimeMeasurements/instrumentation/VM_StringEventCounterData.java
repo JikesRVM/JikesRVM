@@ -3,7 +3,11 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
+
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Hashtable;
+import java.util.Enumeration;
 
 /**
  * VM_StringEventCounterData.java
@@ -15,11 +19,7 @@ import com.ibm.JikesRVM.opt.*;
  *
  * @author Matthew Arnold
  *
-**/
-
-import java.util.Hashtable;
-import java.util.Enumeration;
-
+ */
 public class VM_StringEventCounterData extends VM_ManagedCounterData
   implements VM_Reportable 
 {

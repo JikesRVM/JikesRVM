@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Static splitting based on very simple hints left by
@@ -36,11 +36,11 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
   private static final boolean DEBUG = false;
   private static final int MAX_COST = 10; // upper bound on instructions duplicated
 
-  String getName () { return  "Static Splitting"; }
-  boolean shouldPerform (OPT_Options options) {
+  public String getName () { return  "Static Splitting"; }
+  public boolean shouldPerform (OPT_Options options) {
     return options.STATIC_SPLITTING;
   }
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return DEBUG;
   }
 
@@ -51,7 +51,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
    * 
    * @param OPT_IR the IR on which to apply the phase
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     // (1) Find candidates to split
     simpleCandidateSearch(ir);
 

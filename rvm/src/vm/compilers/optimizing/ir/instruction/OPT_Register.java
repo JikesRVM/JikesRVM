@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * Represents a symbolic or physical register. 
@@ -23,12 +23,12 @@ public final class OPT_Register {
   /**
    * Index number relative to register pool.
    */
-  int number;
+  public int number;
 
   /**
    * Encoding of register properties & scratch bits
    */
-  int flags;
+  private int flags;
 
   static private final int LOCAL            = 0x00001;  /* local variable */
   static private final int SPAN_BASIC_BLOCK = 0x00002;  /* live on a basic block boundary */
@@ -63,81 +63,81 @@ public final class OPT_Register {
   /* derived constants to be exported */
   static private final int TYPE_MASK = (INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
   static final int NUMBER_TYPE    = (TYPE_MASK>>>TYPE_SHIFT)+1;
-  static final int INTEGER_TYPE   = INTEGER     >>> TYPE_SHIFT;
-  static final int FLOAT_TYPE     = FLOAT       >>> TYPE_SHIFT;
-  static final int DOUBLE_TYPE    = DOUBLE      >>> TYPE_SHIFT;
-  static final int CONDITION_TYPE = CONDITION   >>> TYPE_SHIFT;
-  static final int LONG_TYPE      = LONG        >>> TYPE_SHIFT;
-  static final int VALIDATION_TYPE= VALIDATION  >>> TYPE_SHIFT;
+  public static final int INTEGER_TYPE   = INTEGER     >>> TYPE_SHIFT;
+  public static final int FLOAT_TYPE     = FLOAT       >>> TYPE_SHIFT;
+  public static final int DOUBLE_TYPE    = DOUBLE      >>> TYPE_SHIFT;
+  public static final int CONDITION_TYPE = CONDITION   >>> TYPE_SHIFT;
+  public static final int LONG_TYPE      = LONG        >>> TYPE_SHIFT;
+  public static final int VALIDATION_TYPE= VALIDATION  >>> TYPE_SHIFT;
 
-  boolean isTemp()          { return (flags & LOCAL           ) == 0; }
-  boolean isLocal()         { return (flags & LOCAL           ) != 0; }
-  boolean spansBasicBlock() { return (flags & SPAN_BASIC_BLOCK) != 0; }
-  boolean isSSA()           { return (flags & SSA             ) != 0; }
-  boolean seenUse()         { return (flags & SEEN_USE        ) != 0; }
-  boolean isPhysical()      { return (flags & PHYSICAL        ) != 0; }
-  boolean isSymbolic()      { return (flags & PHYSICAL        ) == 0; }
+  public boolean isTemp()          { return (flags & LOCAL           ) == 0; }
+  public boolean isLocal()         { return (flags & LOCAL           ) != 0; }
+  public boolean spansBasicBlock() { return (flags & SPAN_BASIC_BLOCK) != 0; }
+  public boolean isSSA()           { return (flags & SSA             ) != 0; }
+  public boolean seenUse()         { return (flags & SEEN_USE        ) != 0; }
+  public boolean isPhysical()      { return (flags & PHYSICAL        ) != 0; }
+  public boolean isSymbolic()      { return (flags & PHYSICAL        ) == 0; }
 
-  boolean isInteger()       { return (flags & INTEGER         ) != 0; }
-  boolean isFloat()         { return (flags & FLOAT           ) != 0; } 
-  boolean isDouble()        { return (flags & DOUBLE          ) != 0; }
-  boolean isFloatingPoint() { return (flags & (FLOAT|DOUBLE)  ) != 0; }
-  boolean isLong()          { return (flags & LONG            ) != 0; }
-  boolean isCondition()     { return (flags & CONDITION       ) != 0; }
-  boolean isValidation()    { return (flags & VALIDATION      ) != 0; }
-  boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }
+  public boolean isInteger()       { return (flags & INTEGER         ) != 0; }
+  public boolean isFloat()         { return (flags & FLOAT           ) != 0; } 
+  public boolean isDouble()        { return (flags & DOUBLE          ) != 0; }
+  public boolean isFloatingPoint() { return (flags & (FLOAT|DOUBLE)  ) != 0; }
+  public boolean isLong()          { return (flags & LONG            ) != 0; }
+  public boolean isCondition()     { return (flags & CONDITION       ) != 0; }
+  public boolean isValidation()    { return (flags & VALIDATION      ) != 0; }
+  public boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }
 
-  int     getType()         { return (flags>>>TYPE_SHIFT)&(NUMBER_TYPE-1); }  
+  public int     getType()         { return (flags>>>TYPE_SHIFT)&(NUMBER_TYPE-1); }  
 
-  boolean isVolatile()      { return (flags & VOLATILE        ) != 0; }
-  boolean isNonVolatile()   { return (flags & NON_VOLATILE    ) != 0; }
+  public boolean isVolatile()      { return (flags & VOLATILE        ) != 0; }
+  public boolean isNonVolatile()   { return (flags & NON_VOLATILE    ) != 0; }
 
-  void setLocal()           { flags |= LOCAL;            }
-  void setSpansBasicBlock() { flags |= SPAN_BASIC_BLOCK; }
-  void setSSA()             { flags |= SSA;              }
-  void setSeenUse()         { flags |= SEEN_USE;         }
-  void setPhysical()        { flags |= PHYSICAL;         }
+  public void setLocal()           { flags |= LOCAL;            }
+  public void setSpansBasicBlock() { flags |= SPAN_BASIC_BLOCK; }
+  public void setSSA()             { flags |= SSA;              }
+  public void setSeenUse()         { flags |= SEEN_USE;         }
+  public void setPhysical()        { flags |= PHYSICAL;         }
 
-  void setInteger()         { flags |= INTEGER;          }
-  void setFloat()           { flags |= FLOAT;            }
-  void setDouble()          { flags |= DOUBLE;           }
-  void setLong()            { flags |= LONG;             }
-  void setCondition()       { flags =  (flags & ~TYPE_MASK) | CONDITION; }
-  void setValidation()      { flags |= VALIDATION;       }
-  void setExcludedLiveA()   { flags |= EXCLUDE_LIVEANAL; }
+  public void setInteger()         { flags |= INTEGER;          }
+  public void setFloat()           { flags |= FLOAT;            }
+  public void setDouble()          { flags |= DOUBLE;           }
+  public void setLong()            { flags |= LONG;             }
+  public void setCondition()       { flags =  (flags & ~TYPE_MASK) | CONDITION; }
+  public void setValidation()      { flags |= VALIDATION;       }
+  public void setExcludedLiveA()   { flags |= EXCLUDE_LIVEANAL; }
 
-  void setVolatile()        { flags |= VOLATILE;         }
-  void setNonVolatile()     { flags |= NON_VOLATILE;     }
+  public void setVolatile()        { flags |= VOLATILE;         }
+  public void setNonVolatile()     { flags |= NON_VOLATILE;     }
 
-  void putSSA(boolean a)    { if (a) setSSA(); else clearSSA(); }
-  void putSpansBasicBlock(boolean a) { if (a) setSpansBasicBlock(); else clearSpansBasicBlock(); }
+  public void putSSA(boolean a)    { if (a) setSSA(); else clearSSA(); }
+  public void putSpansBasicBlock(boolean a) { if (a) setSpansBasicBlock(); else clearSpansBasicBlock(); }
 
-  void clearLocal()           { flags &= ~LOCAL;            }
-  void clearSpansBasicBlock() { flags &= ~SPAN_BASIC_BLOCK; }
-  void clearSSA()             { flags &= ~SSA;              }
-  void clearSeenUse()         { flags &= ~SEEN_USE;         }
-  void clearPhysical()        { flags &= ~PHYSICAL;         }
+  public void clearLocal()           { flags &= ~LOCAL;            }
+  public void clearSpansBasicBlock() { flags &= ~SPAN_BASIC_BLOCK; }
+  public void clearSSA()             { flags &= ~SSA;              }
+  public void clearSeenUse()         { flags &= ~SEEN_USE;         }
+  public void clearPhysical()        { flags &= ~PHYSICAL;         }
 
-  void clearInteger()         { flags &= ~INTEGER;          }
-  void clearFloat()           { flags &= ~FLOAT;            }
-  void clearDouble()          { flags &= ~DOUBLE;           }
-  void clearLong()            { flags &= ~LONG;             }
-  void clearCondition()       { flags &= ~CONDITION;        }
-  void clearType() 	      { flags &= ~TYPE_MASK;	    }
-  void clearValidation()      { flags &= ~VALIDATION;       }
+  public void clearInteger()         { flags &= ~INTEGER;          }
+  public void clearFloat()           { flags &= ~FLOAT;            }
+  public void clearDouble()          { flags &= ~DOUBLE;           }
+  public void clearLong()            { flags &= ~LONG;             }
+  public void clearCondition()       { flags &= ~CONDITION;        }
+  public void clearType() 	      { flags &= ~TYPE_MASK;	    }
+  public void clearValidation()      { flags &= ~VALIDATION;       }
 
 
-  Object scratchObject;
+  public Object scratchObject;
 
   /** 
    * Used in dependence graph construction.
    */
-  void setdNode(OPT_DepGraphNode a) {
+  public void setdNode(com.ibm.JikesRVM.opt.OPT_DepGraphNode a) {
     scratchObject = a;
   }
 
-  OPT_DepGraphNode dNode() {
-    return (OPT_DepGraphNode)scratchObject;
+  public com.ibm.JikesRVM.opt.OPT_DepGraphNode dNode() {
+    return (com.ibm.JikesRVM.opt.OPT_DepGraphNode)scratchObject;
   }
 
 
@@ -145,12 +145,12 @@ public final class OPT_Register {
    * Used to store register lists.
    * Computed on demand by OPT_IR.computeDU().
    */
-  OPT_RegisterOperand defList, useList;
+  public OPT_RegisterOperand defList, useList;
 
   /** 
    * This accessor is only valid when register lists are valid 
    */
-  OPT_Instruction getFirstDef() {
+  public OPT_Instruction getFirstDef() {
     if (defList == null) 
       return null;
     else 
@@ -161,12 +161,12 @@ public final class OPT_Register {
   /**
    * The number of uses; used by flow-insensitive optimizations
    */
-  int useCount;
+  public int useCount;
 
   /**
    * A field optimizations can use as they choose
    */
-  int scratch;
+  public int scratch;
 
 
   OPT_Register(int Number) {
@@ -174,7 +174,7 @@ public final class OPT_Register {
   }
 
 
-  int getNumber() {
+  public int getNumber() {
     int start = OPT_PhysicalRegisterSet.getSize();
     return number - start;
   }
@@ -205,7 +205,7 @@ public final class OPT_Register {
   }
 
 
-  String typeName() {
+  public String typeName() {
     String s = "";
     if (isCondition()) s += "c";
     if (isInteger()) s += "i"; 
@@ -219,81 +219,81 @@ public final class OPT_Register {
 
   
   /* used by the register allocator */
-  OPT_Register mapsToRegister;
-  void clearAllocationFlags() {
+  public OPT_Register mapsToRegister;
+  public void clearAllocationFlags() {
     flags &= ~(PINNED | TOUCHED | ALLOCATED | SPILLED);
   }
-  void pinRegister() {
+  public void pinRegister() {
     flags |= PINNED | TOUCHED;
   }
-  void reserveRegister() {
+  public void reserveRegister() {
     flags |= PINNED;
   }
-  void touchRegister() {
+  public void touchRegister() {
     flags |= TOUCHED;
   }
-  void allocateRegister() {
+  public void allocateRegister() {
     flags = (flags & ~SPILLED) | (ALLOCATED | TOUCHED);
   }
-  void allocateRegister(OPT_Register reg) {
+  public void allocateRegister(OPT_Register reg) {
     flags = (flags & ~SPILLED) | (ALLOCATED | TOUCHED);
     mapsToRegister = reg;
   }
-  void allocateToRegister(OPT_Register reg) {
+  public void allocateToRegister(OPT_Register reg) {
     this.allocateRegister(reg);
     reg.allocateRegister(this);
   }
-  void deallocateRegister() {
+  public void deallocateRegister() {
     flags &= ~ALLOCATED;
     mapsToRegister = null;
   }
-  void freeRegister() {
+  public void freeRegister() {
     deallocateRegister();
     OPT_Register symbReg = mapsToRegister;
     if (symbReg != null)
       symbReg.clearSpill();
   }
-  void spillRegister() {
+  public void spillRegister() {
     flags = (flags & ~ALLOCATED) | SPILLED;
   }
-  void clearSpill() {
+  public void clearSpill() {
     flags &= ~SPILLED;
   }
-  void unpinRegister() {
+  public void unpinRegister() {
     flags &= ~PINNED;
   }
-  boolean isTouched() {
+  public boolean isTouched() {
     return (flags & TOUCHED) != 0;
   }
-  boolean isAllocated() {
+  public boolean isAllocated() {
     return (flags & ALLOCATED) != 0;
   }
-  boolean isSpilled() {
+  public boolean isSpilled() {
     return (flags & SPILLED) != 0;
   }
-  boolean isPinned() {
+  public boolean isPinned() {
     return (flags & PINNED) != 0;
   }
-  boolean isAvailable() {
+  public boolean isAvailable() {
     return (flags & (ALLOCATED | PINNED)) == 0;
   }
-  OPT_Register getRegisterAllocated() {
+  public OPT_Register getRegisterAllocated() {
     return mapsToRegister;
   }
-  int getSpillAllocated() {
+  public int getSpillAllocated() {
     return scratch;
   }
 
-  final public int hashCode() {
+  public final int hashCode() {
     return number;
   }
 
 
   /* inlined behavior of DoublyLinkedListElement */
   OPT_Register next, prev;
-  final OPT_Register getNext() { return next; }
+  public final OPT_Register getNext() { return next; }
   final void setNext(OPT_Register e) { next = e; }
-  final OPT_Register getPrev() { return prev; }
+  public final OPT_Register getPrev() { return prev; }
   final void linkWithNext(OPT_Register Next) {
     next = Next;
     Next.prev = this;

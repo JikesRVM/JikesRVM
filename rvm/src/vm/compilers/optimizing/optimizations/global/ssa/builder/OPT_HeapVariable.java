@@ -4,14 +4,16 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
+import com.ibm.JikesRVM.opt.ir.OPT_BasicBlock;
+import java.util.*;
 
 /**
  * An OPT_HeapVariable represents a heap variable for heap array SSA form
  *
  * @author Stephen Fink
  */
-class OPT_HeapVariable {
+public class OPT_HeapVariable {
 
   /** 
    * Create a new Heap variable of a given type, with a given number.
@@ -83,17 +85,17 @@ class OPT_HeapVariable {
    * a unique identifier for this heap variable among all heap variables
    * with this type.
    */
-  int number;        
+  public int number;        
   /**
    * a bit vector representing the basic blocks that write to this
    * variable
    */
-  OPT_BitVector definedIn;    
+  public OPT_BitVector definedIn;    
   /**
    * The type of this heap variable.  Must be either a VM_Type or
    * VM_Field.
    */
-  Object type;             
+  public Object type;             
 }
 
 

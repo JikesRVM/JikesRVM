@@ -20,29 +20,25 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
     });
   }
   
-  final boolean shouldPerform(OPT_Options options) { return true; }
-  final String getName() { return "RegAlloc"; }
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean shouldPerform(OPT_Options options) { return true; }
+  public final String getName() { return "RegAlloc"; }
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return options.PRINT_REGALLOC;
   }
 
   private static class RegisterAllocPreparation extends OPT_CompilerPhase {
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return true;
     }
 
-    final String getName () {
+    public final String getName () {
       return  "Register Allocation Preparation";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /**
      * create the stack manager
      */
-    final public void perform (OPT_IR ir) {
+    final public void perform (com.ibm.JikesRVM.opt.ir.OPT_IR ir) {
       ir.stackManager.prepare(ir);
     }
   }

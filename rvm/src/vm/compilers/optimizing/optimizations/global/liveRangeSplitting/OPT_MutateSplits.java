@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Change SPLIT operations inserting for live range splitting into Moves.
@@ -14,22 +14,18 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  */
 final class OPT_MutateSplits extends OPT_CompilerPhase implements OPT_Operators{
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Mutate Splits";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
    * The main entrypoint for this pass.
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       if (s.operator == SPLIT) {

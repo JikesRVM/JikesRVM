@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import  com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import  com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class provides global common sub expression elimination.
@@ -22,19 +22,19 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  options.GCSE;
   }
 
   /**
    * Returns the name of the phase
    */
-  String getName () {
+  public String getName () {
     return  "Global CSE";
   }
   
 
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     if (ir.hasReachableExceptionHandlers() || OPT_GCP.tooBig(ir)) return;
     verbose = OPT_LICM.verbose;
     this.ir = ir;

@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
@@ -60,7 +61,7 @@ import java.util.NoSuchElementException;
  * @author Mauricio Serrano
  * @author John Whaley
  */
-final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
+public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * The distringuished exit node of the FCFG
@@ -73,7 +74,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @return the entry node of the FCFG
    */
-  OPT_BasicBlock entry() {
+  public OPT_BasicBlock entry() {
     return (OPT_BasicBlock)_firstNode;
   }
   
@@ -88,7 +89,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @return the exit node of the FCFG
    */
-  OPT_BasicBlock exit() {
+  public OPT_BasicBlock exit() {
     return (OPT_BasicBlock)_exitNode;
   }
 
@@ -99,7 +100,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @return the first basic block in the code order
    */
-  OPT_BasicBlock firstInCodeOrder() {
+  public OPT_BasicBlock firstInCodeOrder() {
     return (OPT_BasicBlock)_firstNode;
   }
 
@@ -110,7 +111,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @return the last basic block in the code order
    */
-  OPT_BasicBlock lastInCodeOrder() {
+  public OPT_BasicBlock lastInCodeOrder() {
     return (OPT_BasicBlock)_lastNode;
   }
 
@@ -200,7 +201,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @param bb basic block to link to the exit
    */
-  void linkToExit(OPT_BasicBlock bb) {
+  public void linkToExit(OPT_BasicBlock bb) {
      bb.insertOut(exit());
   }
 
@@ -210,7 +211,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @param bb the block to remove
    */
-  void removeFromCFGAndCodeOrder(OPT_BasicBlock bb) {
+  public void removeFromCFGAndCodeOrder(OPT_BasicBlock bb) {
     removeFromCFG(bb);
     removeFromCodeOrder(bb);
   }
@@ -220,7 +221,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * 
    * @param bb the block to remove
    */
-  void removeFromCFG(OPT_BasicBlock bb) {
+  public void removeFromCFG(OPT_BasicBlock bb) {
     bb.deleteIn();
     bb.deleteOut();
   }
@@ -231,7 +232,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    *
    * @param bb the block to remove
    */
-  void removeFromCodeOrder(OPT_BasicBlock bb) {
+  public void removeFromCodeOrder(OPT_BasicBlock bb) {
     if (bb == _firstNode) {
       _firstNode = bb.getNext();
     }
@@ -251,7 +252,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param old a block currently in the code ordering
    * @param toAdd a block to add after old in the code ordering
    */
-  void insertAfterInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
+  public void insertAfterInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
     if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.next == null);
     if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.prev == null);
     OPT_SpaceEffGraphNode oldNext = old.next;
@@ -275,7 +276,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param old a block currently in the code ordering
    * @param toAdd a block to add before old in the code ordering
    */
-  void insertBeforeInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
+  public void insertBeforeInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
     if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.next == null);
     if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.prev == null);
     OPT_SpaceEffGraphNode oldPrev = old.prev;
@@ -297,7 +298,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    *
    * @param bb the block to add to the end of the code ordering
    */
-  void addLastInCodeOrder(OPT_BasicBlock bb) {
+  public void addLastInCodeOrder(OPT_BasicBlock bb) {
     if (OPT_IR.SANITY_CHECK) VM._assert(bb.next == null);
     if (OPT_IR.SANITY_CHECK) VM._assert(bb.prev == null);
     if (_firstNode == null) {
@@ -318,7 +319,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param bb1 a basic block
    * @param bb2 the basic block to follow bb1 in the code ordering
    */
-  void linkInCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
+  public void linkInCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
     if (OPT_IR.SANITY_CHECK) VM._assert(bb1.next == null);
     if (OPT_IR.SANITY_CHECK) VM._assert(bb2.prev == null);
     bb1.append(bb2);
@@ -336,7 +337,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param bb1 the first block
    * @param bb2 the second block
    */
-  void breakCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
+  public void breakCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
     if (OPT_IR.SANITY_CHECK) VM._assert(bb1.next == bb2);
     if (OPT_IR.SANITY_CHECK) VM._assert(bb2.prev == bb1);
     bb1.next = null;
@@ -349,7 +350,7 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    *       whole scale recomputation of the code order, for example
    *       by OPT_ReorderingPhase
    */
-  void clearCodeOrder() {
+  public void clearCodeOrder() {
     OPT_SpaceEffGraphNode cur = _firstNode;
     if (cur == null) return;
     while (true) {

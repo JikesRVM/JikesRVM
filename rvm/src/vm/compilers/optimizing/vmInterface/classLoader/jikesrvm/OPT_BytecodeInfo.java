@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.io.PrintStream;
 
 /**
@@ -17,7 +18,7 @@ import java.io.PrintStream;
  *
  * @see OPT_BC2IR
  */
-class OPT_BytecodeInfo {
+public class OPT_BytecodeInfo {
   /**
    * The method whose bytecode this object represents.
    */
@@ -44,7 +45,7 @@ class OPT_BytecodeInfo {
    * method.
    * @param   m the method whose bytecode this object represents
    */
-  OPT_BytecodeInfo (VM_Method m) {
+  public OPT_BytecodeInfo (VM_Method m) {
     method = m;
     declaringClass = m.getDeclaringClass();
     bcodes = m.getBytecodes();
@@ -54,18 +55,18 @@ class OPT_BytecodeInfo {
       bcLength = 0;
   }
 
-  final boolean queryAnnotation( int index, byte mask ) {
+  public final boolean queryAnnotation( int index, byte mask ) {
     return method.queryAnnotationForBytecode( index, mask );
   }
 
-  void print(PrintStream s) {
+  public void print(PrintStream s) {
       s.println( method.toString() );
   }
 
  /**
    *  Return the length of the of the bytecode array. 
    */
-  final int getLength() {
+  public final int getLength() {
       return bcLength;
   }
 
@@ -75,19 +76,18 @@ class OPT_BytecodeInfo {
    *
    * @return the current bytecode offset
    */
-  final int currentInstruction() {
+  public final int currentInstruction() {
       return bcIndex;
   }
 
-  final void finishedInstruction() {
-      
+  public final void finishedInstruction() {
   }
 
   /**
    * Set the cursor to a particular index in the bytecode stream.
    * @param index the position in the bytecode array of bytes
    */
-  final void setInstruction (int index) {
+  public final void setInstruction (int index) {
     bcIndex = index;
   }
 
@@ -95,7 +95,7 @@ class OPT_BytecodeInfo {
    * Fetch the next byte from the bytecode stream and advance the cursor.
    * @return the next byte in the bytecode stream
    */
-  final int getNextInstruction () {
+  public final int getNextInstruction () {
     return  fetch1ByteUnsigned();
   }
 
@@ -104,7 +104,7 @@ class OPT_BytecodeInfo {
    * advance the cursor.
    * @return the next byte in the bytecode stream
    */
-  final int peekNextOpcode () {
+  public final int peekNextOpcode () {
     return  get1ByteUnsigned(bcIndex);
   }
 
@@ -114,7 +114,7 @@ class OPT_BytecodeInfo {
    * @return the value of next byte in the bytecode stream, 
    * as a <em> signed </em> integer.
    */
-  final int getByteValue () {
+  public final int getByteValue () {
     return  fetch1ByteSigned();
   }
 
@@ -124,7 +124,7 @@ class OPT_BytecodeInfo {
    * @return the value of next byte in the bytecode stream, 
    * as a <em> signed </em> short.
    */
-  final int getShortValue () {
+  public final int getShortValue () {
     return  fetch2BytesSigned();
   }
 
@@ -134,7 +134,7 @@ class OPT_BytecodeInfo {
    * @return the value of a literal constant from the bytecode stream,
    * encoding as a constant IR operand
    */
-  final OPT_Operand getConstantOperand (boolean wide) {
+  public final OPT_Operand getConstantOperand (boolean wide) {
     int i = (!wide) ? fetch1ByteUnsigned() : fetch2BytesUnsigned();
     byte desc = declaringClass.getLiteralDescription(i);
     switch (desc) {
@@ -167,7 +167,7 @@ class OPT_BytecodeInfo {
    * advance the cursor.
    * @return the number of a local variable
    */
-  final int getLocalNumber () {
+  public final int getLocalNumber () {
     return  fetch1ByteUnsigned();
   }
 
@@ -176,7 +176,7 @@ class OPT_BytecodeInfo {
    * advance the cursor.
    * @return the bytecode index of a branch target
    */
-  final int getBranchTarget () {
+  public final int getBranchTarget () {
     return  fetch2BytesSigned();
   }
 
@@ -185,7 +185,7 @@ class OPT_BytecodeInfo {
    * the bytecode stream and advance the cursor.
    * @return the bytecode index of a branch target
    */
-  final int getWideBranchTarget () {
+  public final int getWideBranchTarget () {
     return  fetch4BytesSigned();
   }
 
@@ -204,7 +204,7 @@ class OPT_BytecodeInfo {
    * Advance the cursor to the next bytecode index that is a multiple of
    * four.
    */
-  final private void alignSwitch () {
+  private final void alignSwitch () {
     int align = bcIndex & 3;
     if (align != 0)
       bcIndex += 4 - align;                     // eat padding
@@ -215,7 +215,7 @@ class OPT_BytecodeInfo {
    * bytes in the bytecode stream. Advance the cursor.
    * @return the default target for a switch statement
    */
-  final int getSwitchDefaultTarget () {
+  public final int getSwitchDefaultTarget () {
       alignSwitch();
       return  fetch4BytesSigned();
   }
@@ -225,7 +225,7 @@ class OPT_BytecodeInfo {
    * bytes in the bytecode stream. Advance the cursor.
    * @return the low value for a switch statement
    */
-  final int getSwitchLowValue () {
+  public final int getSwitchLowValue () {
     return  fetch4BytesSigned();
   }
 
@@ -234,7 +234,7 @@ class OPT_BytecodeInfo {
    * bytes in the bytecode stream. Advance the cursor.
    * @return the high value for a switch statement
    */
-  final int getSwitchHighValue () {
+  public final int getSwitchHighValue () {
     return  fetch4BytesSigned();
   }
 
@@ -246,7 +246,7 @@ class OPT_BytecodeInfo {
    * @param high the high tableswitch value
    * @return the offset to jump to for the constant value
    */
-  final int getTableSwitchOffsetForConstant (int value, int low, int high) {
+  public final int getTableSwitchOffsetForConstant (int value, int low, int high) {
     return  get4BytesSigned(bcIndex + ((value - low) << 2));
   }
 
@@ -255,7 +255,7 @@ class OPT_BytecodeInfo {
    * bytecode stream.
    * @param numTargets the number of tableswitch targets to skip over
    */
-  final void skipTableSwitchTargets (int numTargets) {
+  public final void skipTableSwitchTargets (int numTargets) {
     bcIndex += (numTargets << 2);
   }
 
@@ -265,7 +265,7 @@ class OPT_BytecodeInfo {
    * @param i unused
    * @return the next four bytes in the stream as a signed integer
    */
-  final int getSwitchTarget (int i) {
+  public final int getSwitchTarget (int i) {
     return  fetch4BytesSigned();
   }
 
@@ -275,7 +275,7 @@ class OPT_BytecodeInfo {
    * @param i unused
    * @return the next four bytes in the stream as a signed integer
    */
-  final int getSwitchValue (int i) {
+  public final int getSwitchValue (int i) {
     return  fetch4BytesSigned();
   }
 
@@ -283,7 +283,7 @@ class OPT_BytecodeInfo {
    * Advance the cursor past a switch value in the bytecode stream
    * @param i unused
    */
-  final void skipSwitchValue (int i) {
+  public final void skipSwitchValue (int i) {
     bcIndex += 4;
   }
 
@@ -292,7 +292,7 @@ class OPT_BytecodeInfo {
    * encoded in the next four bytes of bytecode.
    * @return the next four bytes of the stream as a signed integer
    */
-  final int getLookupSwitchNumberOfPairs () {
+  public final int getLookupSwitchNumberOfPairs () {
     return  fetch4BytesSigned();
   }
 
@@ -301,7 +301,7 @@ class OPT_BytecodeInfo {
    * @param numPairs the number of pairs in the switch statement
    * @param numProcessed the number of pairs the cursor has already passed
    */
-  final void skipLookupSwitchPairs (int numPairs, int numProcessed) {
+  public final void skipLookupSwitchPairs (int numPairs, int numProcessed) {
     bcIndex += (numPairs - numProcessed)*8;
   }
 
@@ -311,7 +311,7 @@ class OPT_BytecodeInfo {
    * @return the field reference corresponding to the next two bytes of
    * bytecode
    */
-  final VM_Field getFieldReference () {
+  public final VM_Field getFieldReference () {
       int constantPoolIndex = fetch2BytesUnsigned();
       return  declaringClass.getFieldRef(constantPoolIndex);
   }
@@ -321,7 +321,7 @@ class OPT_BytecodeInfo {
    * the cursor.
    * @return the next two bytes of the stream as an unsigned integer
    */
-  final int getFieldReferenceIndex () {
+  public final int getFieldReferenceIndex () {
     return  fetch2BytesUnsigned();
   }
 
@@ -330,7 +330,7 @@ class OPT_BytecodeInfo {
    * @param constantPoolIndex a constant pool index
    * @return the field corresponding to this constant pool index
    */
-  final VM_Field getFieldReference (int constantPoolIndex) {
+  public final VM_Field getFieldReference (int constantPoolIndex) {
       VM_Field f = declaringClass.getFieldRef(constantPoolIndex);
       return f;
   }
@@ -341,7 +341,7 @@ class OPT_BytecodeInfo {
    * @return the method reference corresponding to the next two bytes of
    * bytecode
    */
-  final VM_Method getMethodReference () {
+  public final VM_Method getMethodReference () {
       int constantPoolIndex = fetch2BytesUnsigned();
       return getMethodReference( constantPoolIndex );
   }
@@ -351,7 +351,7 @@ class OPT_BytecodeInfo {
    * the cursor.
    * @return the next two bytes of the stream as an unsigned integer
    */
-  final int getMethodReferenceIndex () {
+  public final int getMethodReferenceIndex () {
     return  fetch2BytesUnsigned();
   }
 
@@ -360,7 +360,7 @@ class OPT_BytecodeInfo {
    * @param constantPoolIndex a constant pool index
    * @return the method corresponding to this constant pool index
    */
-  final VM_Method getMethodReference (int constantPoolIndex) {
+  public final VM_Method getMethodReference (int constantPoolIndex) {
     VM_Method m = declaringClass.getMethodRef(constantPoolIndex);
     return m;
   }
@@ -368,7 +368,7 @@ class OPT_BytecodeInfo {
   /**
    * Advance the cursor by two bytes.
    */
-  final void eatInvokeInterfaceGarbage () {
+  public final void eatInvokeInterfaceGarbage () {
     bcIndex += 2;     
   }
 
@@ -378,7 +378,7 @@ class OPT_BytecodeInfo {
    * @return the type reference corresponding to the next two bytes of
    * bytecode
    */
-  final VM_Type getTypeReference () {
+  public final VM_Type getTypeReference () {
       int constantPoolIndex = fetch2BytesUnsigned();
       return  declaringClass.getTypeRef(constantPoolIndex);
   }
@@ -388,7 +388,7 @@ class OPT_BytecodeInfo {
    * the cursor.
    * @return the next two bytes of the stream as an unsigned integer
    */
-  final int getTypeReferenceIndex () {
+  public final int getTypeReferenceIndex () {
     return  fetch2BytesUnsigned();
   }
 
@@ -397,7 +397,7 @@ class OPT_BytecodeInfo {
    * @param constantPoolIndex a constant pool index
    * @return the type corresponding to this constant pool index
    */
-  final VM_Type getTypeReference (int constantPoolIndex) {
+  public final VM_Type getTypeReference (int constantPoolIndex) {
     return  declaringClass.getTypeRef(constantPoolIndex);
   }
 
@@ -405,7 +405,7 @@ class OPT_BytecodeInfo {
    * Return the next byte of the stream as an unsigned integer
    * @return the next byte of the stream as an unsigned integer
    */
-  final int getWideOpcode () {
+  public final int getWideOpcode () {
     return  fetch1ByteUnsigned();
   }
 
@@ -413,7 +413,7 @@ class OPT_BytecodeInfo {
    * Return the next 2 bytes of the stream as an unsigned integer
    * @return the next 2 bytes of the stream as an unsigned integer
    */
-  final int getWideLocalNumber () {
+  public final int getWideLocalNumber () {
     return  fetch2BytesUnsigned();
   }
 
@@ -421,7 +421,7 @@ class OPT_BytecodeInfo {
    * Return the next byte of the stream as an unsigned integer
    * @return the next byte of the stream as an unsigned integer
    */
-  final int getArrayDimension () {
+  public final int getArrayDimension () {
     return  fetch1ByteUnsigned();
   }
 
@@ -477,7 +477,7 @@ class OPT_BytecodeInfo {
    * do <em> not </em> advance the cursor.
    * @return the next two bytes of the stream as a signed integer
    */
-  final int get2BytesSigned (int index) {
+  public final int get2BytesSigned (int index) {
     int i = bcodes[index++] << 8;
     i |= (bcodes[index] & 0xFF);
     return  (int)i;
@@ -510,7 +510,7 @@ class OPT_BytecodeInfo {
    * not advance the cursor.
    * @return the next two bytes of the stream as an unsigned integer
    */
-  final int get2BytesUnsigned () {
+  public final int get2BytesUnsigned () {
     int i = (bcodes[bcIndex] & 0xFF) << 8;
     i |= (bcodes[bcIndex + 1] & 0xFF);
     return  (int)i;

@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import  com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import  com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class does the job. It is a subphase of OPT_GCP.
@@ -20,7 +20,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Execute loop invariant code motion on the given IR.
    * @param ir
    */
-  void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     this.ir = ir;
 
     if (false && ir.hasReachableExceptionHandlers()) {
@@ -75,7 +75,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Returns the name of the phase
    */
-  String getName () {
+  public String getName () {
     return  "LICM";
   }
   
@@ -83,7 +83,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Should this phase be executed?
    * @param options
    */
-  boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return  options.GCP || options.VERBOSE_GCP;
   }
   

@@ -2,16 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
 
-import  java.util.Enumeration;
-import  java.util.NoSuchElementException;
+import com.ibm.JikesRVM.opt.OPT_LinkedList;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * This class provides an enumerator for a list of OPT_RegSpillElements
  * @author Michael Hind
  */
-class OPT_RegSpillListEnumerator implements Enumeration {
+public class OPT_RegSpillListEnumerator implements Enumeration {
 
   /**
    *  The next element to return when called

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * This class contains useful methods for managing liveIntervals.
  *

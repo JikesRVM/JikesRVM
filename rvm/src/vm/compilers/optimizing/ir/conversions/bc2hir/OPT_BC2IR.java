@@ -3,12 +3,12 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
-import  java.util.Enumeration;
-import  java.util.NoSuchElementException;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * This class translates from bytecode to HIR.
@@ -1516,14 +1516,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
 	      }
-	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
-		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
-		// CALL must be treated as potential throw of anything
-		rectifyStateWithExceptionHandlers();
-		break;
-	      } else {
-		throw  (e);
-	      }
+	      throw e;
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
@@ -1646,14 +1639,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
 	      }
-	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
-		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
-		// CALL must be treated as potential throw of anything
-		rectifyStateWithExceptionHandlers();
-		break;
-	      } else {
-		throw  (e);
-	      }
+	      throw e;
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
@@ -5655,7 +5641,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private static final class DummyStackSlot extends OPT_Operand {
     public OPT_Operand copy() { return this; }
-    boolean similar(OPT_Operand op) { return (op instanceof DummyStackSlot); }
+    public boolean similar(OPT_Operand op) { return (op instanceof DummyStackSlot); }
     public String toString() { return "<DUMMY>"; }
   }
 
@@ -5667,7 +5653,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     int retIndex;
     ReturnAddressOperand(int ri) { retIndex = ri; }
     public OPT_Operand copy() { return this; }
-    boolean similar(OPT_Operand op) {
+    public boolean similar(OPT_Operand op) {
       return (op instanceof ReturnAddressOperand) && 
 	(retIndex == ((ReturnAddressOperand)op).retIndex);
     }

@@ -13,7 +13,7 @@ package com.ibm.JikesRVM.opt;
  * @author Mauricio J. Serrano
  * @author Igor Pechtchanski
  */
-class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
+public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
   /**
    * End node.
    */
@@ -42,19 +42,19 @@ class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
   public final boolean backEdge()      { return (scratch & BACK_EDGE) != 0; }
   public final boolean dominatorEdge() { return (scratch & DOMINATOR) != 0; }
 
-  final void setVisited()       { scratch |= VISITED;   }
-  final void setBackEdge()      { scratch |= BACK_EDGE; }
-  final void setDominatorEdge() { scratch |= DOMINATOR; }
+  public final void setVisited()       { scratch |= VISITED;   }
+  public final void setBackEdge()      { scratch |= BACK_EDGE; }
+  public final void setDominatorEdge() { scratch |= DOMINATOR; }
 
-  final void clearVisited()       { scratch &= ~VISITED;   }
-  final void clearBackEdge()      { scratch &= ~BACK_EDGE; }
-  final void clearDominatorEdge() { scratch &= ~DOMINATOR; }
+  public final void clearVisited()       { scratch &= ~VISITED;   }
+  public final void clearBackEdge()      { scratch &= ~BACK_EDGE; }
+  public final void clearDominatorEdge() { scratch &= ~DOMINATOR; }
 
-  final int getInfo() {
+  public final int getInfo() {
     return scratch & INFO_MASK;
   }
 
-  final void setInfo(int value) {
+  public final void setInfo(int value) {
     scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
   }
 
@@ -62,13 +62,13 @@ class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * Get the end node for the edge.
    * @return end node for the edge
    */
-  final OPT_SpaceEffGraphNode toNode() { return _toNode; }
+  public final OPT_SpaceEffGraphNode toNode() { return _toNode; }
 
   /**
    * Get the start node for the edge.
    * @return start node for the edge
    */
-  final OPT_SpaceEffGraphNode fromNode() { return _fromNode; }
+  public final OPT_SpaceEffGraphNode fromNode() { return _fromNode; }
 
   /**
    * Set end node.
@@ -184,19 +184,19 @@ class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
   /**
    * Links inlined from LinkedListElement2.
    */
-  OPT_SpaceEffGraphEdge nextIn, nextOut;
+  protected OPT_SpaceEffGraphEdge nextIn, nextOut;
 
   /**
    * Get the next in edge.
    * @return next in edge.
    */
-  final OPT_SpaceEffGraphEdge getNextIn() { return nextIn; }
+  public final OPT_SpaceEffGraphEdge getNextIn() { return nextIn; }
 
   /**
    * Get the next out edge.
    * @return next out edge.
    */
-  final OPT_SpaceEffGraphEdge getNextOut() { return nextOut; }
+  public final OPT_SpaceEffGraphEdge getNextOut() { return nextOut; }
 
   /**
    * Append a given edge after this edge as an in edge.

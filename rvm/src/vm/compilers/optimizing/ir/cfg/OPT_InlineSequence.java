@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.StringTokenizer;
 
 /**
@@ -14,23 +15,23 @@ import java.util.StringTokenizer;
  * @author Igor Pechtchanski
  * @author Stephen Fink
  */
-final class OPT_InlineSequence {
+public final class OPT_InlineSequence {
   final static boolean DEBUG=false;
 
   /**
    * Current method.
    */
-  VM_Method method;
+  public VM_Method method;
 
   /**
    * Caller info.  null if none.
    */
-  OPT_InlineSequence caller;
+  public OPT_InlineSequence caller;
 
   /**
    * bytecode index (in caller) of call site
    */
-  int bcIndex;
+  public int bcIndex;
 
   /**
    * @return contents of {@link #method}

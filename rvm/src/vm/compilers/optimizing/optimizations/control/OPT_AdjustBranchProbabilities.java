@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This pass adjusts branch probabilities derived from static estimates
@@ -17,14 +17,13 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase
   implements OPT_Operators {
 
-  final String getName() {
+  public final String getName() {
     return "Adjust Branch Probabilities";
   }
 
-  final OPT_CompilerPhase newExecution(OPT_IR ir) {
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
-
 
   /**
    * Simplistic adjustment of branch probabilities.

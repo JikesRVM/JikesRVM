@@ -14,18 +14,18 @@ import  java.util.Enumeration;
  * @author John Whaley
  * @date  3/18/98
  */
-class OPT_Stack {
+public class OPT_Stack {
   OPT_LinkedListObjectElement head;
 
-  OPT_Stack() {
+  public OPT_Stack() {
     head = null;
   }
 
-  OPT_Stack(Object e) {
+  public OPT_Stack(Object e) {
     head = new OPT_LinkedListObjectElement(e);
   }
 
-  final Object push(Object e) {
+  public final Object push(Object e) {
     OPT_LinkedListObjectElement el = new OPT_LinkedListObjectElement(e);
     if (head != null)
       head.insertBefore(el);
@@ -33,29 +33,29 @@ class OPT_Stack {
     return  e;
   }
 
-  final Object pop() {
+  public final Object pop() {
     OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
     head = (OPT_LinkedListObjectElement)head.getNext();
     return  el.getValue();
   }
 
-  final Object getTOS() {
+  public final Object getTOS() {
     return  ((OPT_LinkedListObjectElement)head).getValue();
   }
 
-  final Object peek() {
+  public final Object peek() {
     return  getTOS();
   }
 
-  final boolean isEmpty() {
+  public final boolean isEmpty() {
     return  (head == null);
   }
 
-  final boolean empty() {
+  public final boolean empty() {
     return  isEmpty();
   }
 
-  final int search(Object obj) {
+  public final int search(Object obj) {
     OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
     for (int i = 0; el != null; ++i, 
         el = (OPT_LinkedListObjectElement)el.getNext()) {
@@ -65,7 +65,7 @@ class OPT_Stack {
     return  -1;
   }
 
-  final boolean compare(OPT_Stack s2) {
+  public final boolean compare(OPT_Stack s2) {
     OPT_LinkedListObjectElement p1 = this.head;
     OPT_LinkedListObjectElement p2 = s2.head;
     for (;;) {
@@ -80,7 +80,7 @@ class OPT_Stack {
     }
   }
 
-  final OPT_Stack copy() {
+  public final OPT_Stack copy() {
     OPT_Stack s = new OPT_Stack();
     if (head == null)
       return  s;
@@ -88,13 +88,13 @@ class OPT_Stack {
     return  s;
   }
 
-  final OPT_Stack shallowCopy() {
+  public final OPT_Stack shallowCopy() {
     OPT_Stack s = new OPT_Stack();
     s.head = head;
     return  s;
   }
 
-  final OPT_LinkedListObjectEnumerator elements() {
+  public final OPT_LinkedListObjectEnumerator elements() {
     return  new OPT_LinkedListObjectEnumerator(
         (OPT_LinkedListObjectElement)head);
   }

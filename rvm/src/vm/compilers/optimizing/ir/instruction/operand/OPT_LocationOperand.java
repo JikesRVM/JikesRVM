@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.JikesRVM.opt.ir;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
  * Represents a location in memory. Used to keep track of memory aliasing.
@@ -15,7 +17,7 @@ import com.ibm.JikesRVM.*;
  * @author John Whaley
  */
 public final class OPT_LocationOperand extends OPT_Operand 
-  implements OPT_Constants  {
+  implements com.ibm.JikesRVM.opt.OPT_Constants  {
 
   /*
    * TODO: Now that we don't pay a large penalty for dynamic type checks
@@ -49,50 +51,50 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * The type of this location.
    */
-  int type;
+  public int type;
 
   /**
    * Field that corresponds to this location.
    * null if this is not a field access.
    */
-  VM_Field field;
+  public VM_Field field;
 
   /**
    * Method operand that corresponds to this location
    * null if this is not a method access.
    */
-  OPT_MethodOperand methOp;
+  public OPT_MethodOperand methOp;
 
   /**
    * Array element type that corresponds to the type of the array that contains
    * this location. null if this is not an array access.
    */
-  VM_Type arrayElementType;
+  public VM_Type arrayElementType;
 
   /**
    * JTOC index that corresponds to this location.
    * -1 if this is not a JTOC access.
    */
-  int JTOCindex = -1;
+  public int JTOCindex = -1;
 
   /**
    * Spill offset that corresponds to this location.
    * -1 if this is not a spill access.
    */
-  int spillOffset = -1;
+  public int spillOffset = -1;
 
   /**
    * Reference number.  Set by alias analysis.
    * Used to distinguish same-type accesses.
    */
-  int refNumber;
+  public int refNumber;
 
   /**
    * Constructs a new location operand with the given field
    * 
    * @param loc location
    */
-  OPT_LocationOperand(VM_Field loc) {
+  public OPT_LocationOperand(VM_Field loc) {
     type = FIELD_ACCESS;
     field = loc;
   }
@@ -102,7 +104,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * 
    * @param loc location
    */
-  OPT_LocationOperand(OPT_MethodOperand m) {
+  public OPT_LocationOperand(OPT_MethodOperand m) {
     type = METHOD_ACCESS;
     methOp = m;
   }
@@ -112,7 +114,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * 
    * @param type array element type
    */
-  OPT_LocationOperand(VM_Type t) {
+  public OPT_LocationOperand(VM_Type t) {
     type = ARRAY_ACCESS;
     arrayElementType = t;
   }
@@ -123,7 +125,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * 
    * @param index if positive, JTOC index, otherwise spill offset
    */
-  OPT_LocationOperand(int index) {
+  public OPT_LocationOperand(int index) {
     if (index > 0) {
       type = JTOC_ACCESS;
       JTOCindex = index;
@@ -136,11 +138,11 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * Constructs a new location operand for array length access.
    */
-  OPT_LocationOperand() {
+  public OPT_LocationOperand() {
     type = ALENGTH_ACCESS;
   }
 
-  static OPT_LocationOperand createRedirection() {
+  public static OPT_LocationOperand createRedirection() {
       OPT_LocationOperand result = new OPT_LocationOperand();
       result.type = REDIRECTION_ACCESS;
       return result;
@@ -234,7 +236,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * @return <code>true</code> if the operands might be aliased or
    *         <code>false</code> if they are definitely not aliased
    */
-  static boolean mayBeAliased(OPT_LocationOperand op1, 
+  public static boolean mayBeAliased(OPT_LocationOperand op1, 
 			      OPT_LocationOperand op2) {
     if (op1 == null || op2 == null) return true;	// be conservative
 
@@ -254,7 +256,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_LocationOperand) &&
       mayBeAliased(this, (OPT_LocationOperand) op);
   }

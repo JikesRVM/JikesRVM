@@ -3,10 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 import OPT_IndexPropagation.*;
 
 /**
@@ -37,16 +37,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
   static final boolean DEBUG = false;
 
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.LOAD_ELIMINATION;  
   }
 
-  final String getName() {
+  public final String getName() {
     return  "Array SSA Load Elimination";
-  }
-
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -55,17 +51,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
   private int round;
 
   final static class LoadEliminator extends OPT_CompilerPhase implements OPT_Operators{
-
-    final boolean shouldPerform(OPT_Options options) {
-      return true;
-    }
-
-    final String getName() {
+    public final String getName() {
       return  "Load Eliminator";
-    }
-
-    final boolean printingEnabled(OPT_Options options, boolean before) {
-      return false;
     }
 
     /** 
@@ -567,16 +554,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   private static class LoadEliminationPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return  options.LOAD_ELIMINATION;
     }
 
-    final String getName() {
+    public final String getName() {
       return  "Load Elimination Preparation";
-    }
-
-    final boolean printingEnabled(OPT_Options options, boolean before) {
-      return  false;
     }
 
     private final int round;
@@ -602,16 +585,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   private static class GVNPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return  options.LOAD_ELIMINATION;
     }
 
-    final String getName() {
+    public final String getName() {
       return  "GVN Preparation";
-    }
-
-    final boolean printingEnabled(OPT_Options options, boolean before) {
-      return  false;
     }
 
     private final int round;

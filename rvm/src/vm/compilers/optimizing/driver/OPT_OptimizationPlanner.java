@@ -2,11 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.Vector;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Vector;
 
 /**
  * OPT_OptimizationPlanner.java
@@ -161,7 +161,7 @@ public class OPT_OptimizationPlanner {
       // Do this after branch optmization, since without merging
       // FallThroughOuts, the IR is quite ugly. 
       new OPT_IRPrinter("Initial HIR") {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.PRINT_HIGH;
 	  }
 	}
@@ -237,7 +237,7 @@ public class OPT_OptimizationPlanner {
 	    new OPT_BuildLST(),
 	    new OPT_EstimateBlockFrequencies()
 	      }) {
-          boolean shouldPerform(OPT_Options options) {
+          public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }},
 
@@ -282,7 +282,7 @@ public class OPT_OptimizationPlanner {
         new OPT_GCP(), 
         // Leave SSA 
         new OPT_LeaveSSA() })     {
-          boolean shouldPerform(OPT_Options options) {
+          public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
         },
@@ -298,7 +298,7 @@ public class OPT_OptimizationPlanner {
            new OPT_EscapeTransformations(),
            new OPT_BranchOptimizations(2, true, true) 
            }) {
-            boolean shouldPerform(OPT_Options options) {
+            public boolean shouldPerform(OPT_Options options) {
               return options.getOptLevel() >= 2;
             }
           }
@@ -320,7 +320,7 @@ public class OPT_OptimizationPlanner {
 	    new OPT_BuildLST(),
 	    new OPT_EstimateBlockFrequencies()
 	      }){
-          boolean shouldPerform(OPT_Options options) {
+          public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
         },
@@ -340,7 +340,7 @@ public class OPT_OptimizationPlanner {
 	    new OPT_LeaveSSA()  
 	      }
 	  ) {
-	   boolean shouldPerform(OPT_Options options) {
+	   public boolean shouldPerform(OPT_Options options) {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
@@ -359,7 +359,7 @@ public class OPT_OptimizationPlanner {
 	   new OPT_Simple(true, true),
 	   new OPT_BranchOptimizations(2, true, true) 
 	     }) {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.getOptLevel() >= 2;
 	  }
 	}
@@ -376,7 +376,7 @@ public class OPT_OptimizationPlanner {
     composeComponents(p, "Convert HIR to LIR", new Object[] {
       // Optional printing of final HIR
       new OPT_IRPrinter("Final HIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_HIR;
         }
       }, 
@@ -396,7 +396,7 @@ public class OPT_OptimizationPlanner {
       new OPT_AdjustBranchProbabilities(),
       // Optional printing of initial LIR
       new OPT_IRPrinter("Initial LIR") {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.PRINT_LOW;
 	  }
 	}
@@ -456,7 +456,7 @@ public class OPT_OptimizationPlanner {
       new OPT_SplitBasicBlock(), 
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -468,7 +468,7 @@ public class OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // For now, always print the Initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }
@@ -529,7 +529,7 @@ public class OPT_OptimizationPlanner {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -541,7 +541,7 @@ public class OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // Optional printing of initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }
@@ -600,7 +600,7 @@ public class OPT_OptimizationPlanner {
   private static void MIR2MC(Vector p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
-	boolean shouldPerform(OPT_Options options) {
+	public boolean shouldPerform(OPT_Options options) {
 	  return options.PRINT_FINAL_MIR; } 
       });
     addComponent(p, new OPT_ConvertMIRtoMC());

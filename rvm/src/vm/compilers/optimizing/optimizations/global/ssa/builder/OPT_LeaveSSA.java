@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 
 /**
@@ -45,7 +45,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * Should we perform this phase?
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.SSA;
   }
 
@@ -53,17 +53,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * Return a string name for this phase.
    * @return "Leave SSA"
    */
-  final String getName() {
+  public final String getName() {
     return  "Leave SSA";
-  }
-
-  /**
-   * Should we print the IR before or after performing this phase?
-   * @param options controlling compiler options
-   * @param before query before if true, after if false.
-   */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -616,8 +607,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     }
 
     // visit all guard registers, init union/find
-
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       r.scratch = 1;
       r.scratchObject = r;
@@ -652,7 +642,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private void unSSAGuardsFinalize(OPT_IR ir) {
     OPT_DefUse.computeDU(ir);
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       OPT_Register nreg = guardFind(r);
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(r);

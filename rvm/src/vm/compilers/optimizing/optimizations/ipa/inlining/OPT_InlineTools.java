@@ -3,10 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.Stack;
-import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Stack;
 
 /**
  * This class provides some utilities that are useful for inlining.
@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Stephen Fink
  * @author Dave Grove
  */
-abstract class OPT_InlineTools implements OPT_Constants {
+public abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
    * Does class A directly implement the interface B?

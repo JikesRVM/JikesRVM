@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * This class implements a node in the dominator tree.
