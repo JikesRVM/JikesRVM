@@ -1,0 +1,74 @@
+#! /bin/bash
+
+## This is a pretend "java" executable that will run Jikes RVM with
+## settings that make it work to run Eclipse.
+
+ME="$(basename $0)"
+
+## Load in the environment.
+
+if ! [[ ${RVM_BUILD-} ]]; then
+    echo >&2 "$ME: You must set RVM_BUILD in order to run this program."
+    exit 2
+fi
+if ! [[ ${RVM_ROOT-} ]]; then
+    echo >&2 "$ME: You must set RVM_ROOT in order to run this program."
+    exit 2
+fi
+if ! . ${RVM_BUILD}/environment.target; then
+    echo >&2 "$ME: RVM_BUILD is set to \`$RVM_BUILD', but I can
+ not find a file name \`environment.host' there.  That file should be there
+ for any properly configured Jikes RVM build directory."
+    exit 2
+fi
+
+## Get XALAN_J_DIR.  Make sure it is sane.
+if ! [[ ${XALAN_J_DIR} ]]; then
+    echo >&2 "$ME: Your Jikes RVM configuration doesn't have XALAN_J_DIR set.
+ You absolutely have to have the Xalan XML parser installed in order to
+ run Eclipse on top of Jikes RVM."
+    exit 2
+fi
+
+xalan_bin="${XALAN_J_DIR}/bin"
+for jar_file in bsf.jar xalan.jar xml-apis.jar xercesImpl.jar; do
+    f="${xalan_bin}/${jar_file}"
+    if ! [[ -f $f ]]; then
+	echo >&2 "$ME: Your Jikes RVM configuration set XALAN_J_DIR to
+\`$XALAN_J_DIR', but I can not find a file that should be there:
+\`${f}'.  Since your Xalan installation appears broken, I am giving up."
+	exit 2
+    fi
+done
+unset jar_file f
+
+# If you are using a different version of Xerces, then
+# the XML parser factory settings are as follows:
+#
+# javax.xml.parsers.DocumentBuilderFactory
+#     = org.apache.xerces.jaxp.DocumentBuilderFactoryImpl
+# javax.xml.parsers.SAXParserFactory=
+#     = org.apache.xerces.jaxp.SAXParserFactoryImpl
+# XERCES_PROPS="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+## We'll assume you're just running using the Xerces that came with XALAN, 
+## though.
+XERCES_PROPS=
+XALAN_PROPS=-Djavax.xml.transform.TransformerFactory=org.apache.xalan.processor.TransformerFactoryImpl 
+XML="${xalan_bin}"
+XALAN_CLASSPATH=$XML/xalan.jar:$XML/xml-apis.jar:$XML/xercesImpl.jar:$XML/bsf.jar
+
+# These are useful when debugging problems:
+# VERBOSE_OPTS="-verbose:class -X:base:verbose=true -X:vm:stackTraceAtExit=true -X:vm:verboseStackTrace=1"
+VERBOSE_OPTS=""
+
+export RVM_BOOTCLASSPATH_APPEND="${XALAN_CLASSPATH}"
+
+# -Dosgi.locking=null: Present because GNU Classpath 0.10 does not implement
+# some of the java.nio package's locking functions.  This means that
+# we have to tell Eclipse 3.0 not to try to perform locking.
+# (The osgi.locking system property is new with Eclipse 3.0)
+
+## If you have lots of memory, you can hike up the 400M (400 megabytes) by
+## even more, for possible greater efficiency.  But it seems to be enough to 
+## run Eclipse. 
+exec rvm -Xms400M $VERBOSE_OPTS -Dosgi.locking=none $XALAN_PROPS $XERCES_PROPS "$@"
