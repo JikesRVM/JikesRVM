@@ -70,6 +70,8 @@ class OptTestHarness {
   // Record and show performance of executed methods, if any
   static Performance perf;
 
+  static ClassLoader cl;
+
   // Keep baseline and opt methods separate in list of methods 
   // to be compiled
   static Vector optMethodVector = null;
@@ -153,12 +155,10 @@ class OptTestHarness {
     return null;
   }
   
-  static VM_Class loadClass(String s) throws VM_ResolutionException {
-    if (s.startsWith("./")) s = s.substring(2, s.length());
-    if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
-    if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
-    s = s.replace('.','/');
-    return VM_Class.forName(s); 
+  static VM_Class loadClass(String s) throws ClassNotFoundException {
+    synchronized(VM_ClassLoader.lock) {
+      return (VM_Class)cl.loadClass(s, true).getVMType();
+    }
   }
 
   static void printFormatString() {
@@ -183,9 +183,10 @@ class OptTestHarness {
 				    boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
-      if (!baselineMethodVector.contains(method))
+      if (!baselineMethodVector.contains(method)) {
 	baselineMethodVector.addElement(method);
-    }else if (!optMethodVector.contains(method)) {
+      }
+    } else if (!optMethodVector.contains(method)) {
       // Method to be opt compiled
       optMethodVector.addElement(method);
       optOptionsVector.addElement(opts);
@@ -276,7 +277,9 @@ class OptTestHarness {
 	  VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
 	  VM_CompiledMethod cm = null;
 	  if (BASELINE) 
-	    cm = VM_Compiler.compile(method);
+	    synchronized(VM_ClassLoader.lock) {
+	      cm = VM_Compiler.compile(method);
+	    }
 	  else {
 	    OPT_CompilationPlan cp = 
 	      new OPT_CompilationPlan(method, 
@@ -284,7 +287,9 @@ class OptTestHarness {
 				      null,
 				      options);
 	    try {
-	      cm = OPT_Compiler.compile(cp);
+	      synchronized(VM_ClassLoader.lock) {
+		cm = OPT_Compiler.compile(cp);
+	      }
 	    } catch (Throwable e) {
 	      System.err.println("SKIPPING method:"+ method + "Due to exception: "+ e) ;
 	    }
@@ -323,8 +328,10 @@ class OptTestHarness {
     for(int i = 0; i < size ; i++) {
       VM_Method method = (VM_Method) baselineMethodVector.elementAt(i);
       VM_CompiledMethod cm = null;
-      cm = VM_Compiler.compile(method);
-      method.replaceCompiledMethod(cm);
+      synchronized(VM_ClassLoader.lock) {
+	cm = VM_Compiler.compile(method);
+	method.replaceCompiledMethod(cm);
+      }
     }
 
     // Now compile all methods in opt vector
@@ -340,8 +347,10 @@ class OptTestHarness {
 				  OPT_OptimizationPlanner.createOptimizationPlan(opts),
 				  null,
 				  opts);
-	cm = OPT_Compiler.compile(cp);
-	method.replaceCompiledMethod(cm);
+	synchronized(VM_ClassLoader.lock) {
+	  cm = OPT_Compiler.compile(cp);
+	  method.replaceCompiledMethod(cm);
+	}
       } catch (OPT_OptimizingCompilerException e) {
 	if (e.isFatal && opts.ERRORS_FATAL) {
 	  e.printStackTrace();
@@ -384,6 +393,8 @@ class OptTestHarness {
 	   IOException,
 	   IllegalAccessException, 
 	   VM_ResolutionException {
+
+    cl = new VM_ApplicationClassLoader(VM_SystemClassLoader.getVMClassLoader());
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
     baselineMethodVector = new Vector(50);
