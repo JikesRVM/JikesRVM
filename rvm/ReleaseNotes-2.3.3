@@ -8,13 +8,15 @@ These are release notes for Jikes RVM release 2.3.3.
 
 *Highlights of this release include:
 
-**GNU Classpath 0.10 on Linux/OSX
-Jikes RVM now uses GNU Classpath version 0.10 on all platforms except
-for AIX. We hope to resolve the classpath configuration/build problems
-with classpath 0.10 on AIX in the near future.  Jikes RVM 2.3.3 should
-work with classpath version 0.08, 0.09 or 0.10.  However, we recommend
-that users switch to classpath 0.10 if possible (if they are not on
-AIX). 
+**GNU Classpath 0.10
+Jikes RVM now uses GNU Classpath version 0.10 on all platforms.  Jikes
+RVM 2.3.3 should work with classpath version 0.08, 0.09 or 0.10.
+However, we recommend that users switch to classpath 0.10, to get the
+new features and because we run our nightly regression tests against
+Classpath 0.10.
+
+(If hand-building GNU Classpath 0.10 or 0.09 on AIX, follow the
+directions in rvm/doc/classpath-0.10-on-AIX.txt)
 
 **GCspy garbage collection visualization tool
 
