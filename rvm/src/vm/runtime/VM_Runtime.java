@@ -763,12 +763,17 @@ public class VM_Runtime implements VM_Constants {
    */
   private static void deliverException(Throwable exceptionObject, 
 				       VM_Registers exceptionRegisters) {
+    if (VM.debugOOM) {
+      VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
+    }
     //-#if RVM_FOR_IA32
     VM_Magic.clearFloatingPointState();
     //-#endif
     
     // walk stack and look for a catch block
     //
+    if(VM.debugOOM)
+      VM.sysWrite("Hunting for a catch block...");
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     VM_Address fp = exceptionRegisters.getInnermostFramePointer();
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
@@ -782,11 +787,13 @@ public class VM_Runtime implements VM_Constants {
 
 	  if (catchBlockOffset.toInt() >= 0  ){ 
 	      // found an appropriate catch block
-	      exceptionDeliverer.deliverException(compiledMethod, 
-						  methodStartAddress.add(catchBlockOffset), 
-						  exceptionObject, 
-						  exceptionRegisters);
-	      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+	    if (VM.debugOOM)
+	      VM.sysWriteln("found one; delivering.");
+	    exceptionDeliverer.deliverException(compiledMethod, 
+						methodStartAddress.add(catchBlockOffset), 
+						exceptionObject, 
+						exceptionRegisters);
+	    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	  }
 	  
 	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
@@ -796,14 +803,37 @@ public class VM_Runtime implements VM_Constants {
       fp = exceptionRegisters.getInnermostFramePointer();
     }
 
-    // no appropriate catch block found
-    //
-    VM.enableGC();
-    if (VM.alreadyShuttingDown())
-      VM.die();
+    if (VM.debugOOM) {
+      VM.sysWriteln("Nope.");
+      VM.sysWriteln("VM_Runtime.deliverException() found no catch block.");
+    }
+    /* No appropriate catch block found. */
+
+    /* This should be (but isn't) undoable; ugh.  The heap is shared but the
+     * thread isn't.  No way to just give the memory to this particular
+     * thread, I think. */
+    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError)
+      MM_Interface.emergencyGrowHeap(5 * (1<<20)); // ask for 5 megs and pray
+    handlePossibleRecursiveException();
+    VM.enableGC();    
     exceptionObject.printStackTrace();
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+  }
+
+  private static int handlingUncaughtException = 0; // used by handlePossibleRecursiveException()
+    
+
+  /** Handle the case of exception handling triggering new exceptions. */
+  private static void handlePossibleRecursiveException() {
+    ++handlingUncaughtException;
+    if (handlingUncaughtException > 1 
+	&& handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + 1)
+	VM.sysWrite("We got an uncaught exception while handling an uncaught exception");
+    if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {
+      VM.dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    }
   }
 
   /**

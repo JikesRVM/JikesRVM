@@ -832,53 +832,33 @@ public class VM extends VM_Properties
    * @param message  error message describing the problem
    */
   public static void sysFail(String message) throws VM_PragmaNoInline {
-    ++inSysExit;
-    /* If we've been here exactly once before, then print a message.  */
-    if (inSysExit == 2)
-      sysWriteln("VM.sysExit(): We're in a recursive call to VM.sysExit(); aborting abruptly");
-    if (alreadyShuttingDown())
-      die();
+    handlePossibleRecursiveCallToSysFail(message);
+
     // print a traceback and die
     VM_Scheduler.traceback(message);
     VM.shutdown(1);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public static boolean alreadyShuttingDown() {
-    return (inSysExit != 0) || (inShutdown != 0);
-  }
+//   /* This could be made public. */
+//   private static boolean alreadyShuttingDown() {
+//     return (inSysExit != 0) || (inShutdown != 0);
+//   }
 
-  /** Only for use if we're recursively shutting down!   Used by die() only. */
-  private static boolean dying = false; // Have we already called die()?
-
-  public static void die() {
-    if (!dying) {
-      VM.sysWriteln("VM.die(): Dying abruptly; we're stuck in a recursive shutdown.");
-      dying = true;
-    }
-      
-    /* Emergency death. */
-    die(exitStatusRecursivelyShuttingDown);
-  }
-
-  private static void die(int value) {
-    if (VM.VerifyAssertions) 
-      VM._assert(VM.alreadyShuttingDown());
-    VM_SysCall.sysExit(value);
-  }
-
-  private static int inSysExit = 0;
-
+  public static boolean debugOOM = true; // debug out-of-memory exception. DEBUG
+  public static boolean doEmergencyGrowHeap = false; // DEBUG
+  
   /**
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
   public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
-    ++inSysExit;
-    /* If we've been here exactly once before, then print a message.  */
-    if (inSysExit == 2)
-      sysWriteln("VM.sysExit(): We're in a recursive call to VM.sysExit(); aborting abruptly");
-    if (inSysExit > 1)
-      die(exitStatusRecursivelyShuttingDown);
+    handlePossibleRecursiveCallToSysExit();
+    if (debugOOM) {
+      sysWrite("entered VM.sysExit(");
+      sysWrite(value);
+      sysWriteln(")");
+    }
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -886,9 +866,8 @@ public class VM extends VM_Properties
     } else {
       System.exit(value);
     }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-
-  private static int inShutdown = 0;
 
   /**
    * Shut down the virtual machine.
@@ -896,20 +875,80 @@ public class VM extends VM_Properties
    * @param value  exit value
    */
   public static void shutdown(int value) {
-    ++inShutdown;
-    /* If we've been here exactly once before, then print a message.  */
-    if (inShutdown == 2)
-      sysWriteln("VM.shutdown(): We're in a recursive call to VM.shutdown(); aborting abruptly");
-    if (inShutdown > 1)
-      die(exitStatusRecursivelyShuttingDown);
+    handlePossibleRecursiveShutdown();
+    
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
     } else {
-      die(value);
+      VM_SysCall.sysExit(value);
+    }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  private static int inSysFail = 0;
+  private static void handlePossibleRecursiveCallToSysFail(
+							   String message) 
+  {
+    ++inSysFail;
+    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + 1) {
+      sysWriteln("VM.sysFail(): We're in a recursive call to VM.sysFail()");
+      sysWrite("sysFail was called with the message: ");
+      sysWriteln(message);
+     }
+    if (inSysFail > maxSystemTroubleRecursionDepth) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
+
+
+  private static int inSysExit = 0;
+  private static void handlePossibleRecursiveCallToSysExit() {
+    ++inSysExit;
+    /* Message if we've been here before. */
+    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + 1)
+      sysWriteln("In a recursive call to VM.sysExit()");
+    
+    if (inSysExit > maxSystemTroubleRecursionDepth ) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+  }
+
+  private static int inShutdown = 0;
+  /** Used only by VM.shutdown() */
+  private static void handlePossibleRecursiveShutdown() {
+    ++inShutdown;
+    /* If we've been here only a few times, print message. */
+    if (   inShutdown > 1 
+	&& inShutdown <= maxSystemTroubleRecursionDepth + 1) {
+      sysWriteln("We're in a recursive call to VM.shutdown()!");
+    }
+    if (inShutdown > maxSystemTroubleRecursionDepth ) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+  }
+  
+  /** Have we already called dieAbruptlyRecursiveSystemTrouble()?  
+      Only for use if we're recursively shutting down!  Used by
+      dieAbruptlyRecursiveSystemTrouble() only.  */
+
+  private static boolean inDieAbruptlyRecursiveSystemTrouble = false;
+
+  public static void dieAbruptlyRecursiveSystemTrouble() {
+    if (! inDieAbruptlyRecursiveSystemTrouble) {
+      inDieAbruptlyRecursiveSystemTrouble = true;
+      VM.sysWrite("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly");
+      VM.sysWriteln("; we're stuck in a recursive shutdown/exit.");
+    }
+    /* Emergency death. */
+    VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
 
   /**
    * Create a virtual processor (aka "unix kernel thread", "pthread").

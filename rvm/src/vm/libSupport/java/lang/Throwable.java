@@ -1,5 +1,5 @@
-/*
- * (C) Copyright IBM Corp 2002
+ /*
+ * (C) Copyright IBM Corp 2002, 2003
  */
 //$Id$
 package java.lang;
@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.PrintContainer;
  * 
  * @author Julian Dolby
  * @author Dave Grove
+ * @modified Steven Augart
  */
 public class Throwable implements java.io.Serializable {
 
@@ -130,7 +131,10 @@ public class Throwable implements java.io.Serializable {
   public void printStackTrace () {
     //    static boolean ranOut = false;
     boolean useSysWrite = false;
-    if (this instanceof OutOfMemoryError) {
+
+    if (VM.stackTraceVMSysWrite) {
+      useSysWrite = true;
+    } else if (this instanceof OutOfMemoryError) {
       tallyOutOfMemoryError();
       VM.sysWriteln("Throwable.printStackTrace(): We are trying to dump the stack of an OutOfMemoryError.");
       VM.sysWriteln("Throwable.printStackTrace():  We'll use the VM.sysWriteln() function,");
@@ -166,9 +170,9 @@ public class Throwable implements java.io.Serializable {
   public synchronized void printStackTrace (PrintLN err) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
     try {
-      /** We have carefully crafted toString, at least for this exception, to
-       * dump the errors properly.   But someone below us could override it. */ 
-      err.println(this.toString());
+      /* A routine to avoid OutOfMemoryErrors, which I think we will never see
+	 anyway.  But let's encapsulate potentially memory-gathering operations. */
+      printJustThisThrowableNoStackTrace(err);
       /* Old call.  This won't elide stack frames as nicely, but otherwise will
 	 work fine. */
       // stackTrace.print(err);
@@ -228,9 +232,15 @@ public class Throwable implements java.io.Serializable {
     throw new VM_UnimplementedError(); // if we run out of memory, so be it. 
   }
 
+  void printJustThisThrowableNoStackTrace(PrintLN err) {
+      /** We have carefully crafted toString, at least for this exception, to
+       * dump the errors properly.  But someone below us could override it.
+       * If so, we'll throw a recursive OutOfMemoryException. */ 
+      err.println(this.toString());
+  }
   
-  /* We could make this more functional in the face of running out of memory
-   * by making it produce in the */
+  /* We could make this more functional in the face of running out of memory,
+   * but probably not worth the hassle. */
   public String toString() {
 
     String msg;

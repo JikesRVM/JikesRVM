@@ -43,7 +43,7 @@ public class VM_Properties extends VM_Configuration {
   /**
    * If true, don't exit from the process.  As of July, 2003, this has not
    * worked in a couple of years, nor has there been much interest in using it.
-   * If it is resurrected, we need to check the code that calls die(), to make
+   * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
    * sure that instead we just kill the proper threads. 
    */
   public static boolean runningAsSubsystem = false;
@@ -76,6 +76,10 @@ public class VM_Properties extends VM_Configuration {
    * jni activities
    */
   public static boolean verboseJNI = false;
+
+  /** Turned on by -X:StackTraceVMSysWrite.  When true, we will always use
+   * VM.sysWrite() to generate our error messages. */
+  public static boolean stackTraceVMSysWrite = false;
 
   /**
    * The following is set on by -X:measureCompilation=true command line arg.
@@ -119,4 +123,7 @@ public class VM_Properties extends VM_Configuration {
   //-#if RVM_WITH_OSR
   public static final boolean TraceOnStackReplacement   = false; 
   //-#endif
+
+  /* System trouble, recursion depth, etc. */
+  public static int maxSystemTroubleRecursionDepth = 3;
 }

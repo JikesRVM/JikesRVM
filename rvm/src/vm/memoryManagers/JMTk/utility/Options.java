@@ -46,6 +46,10 @@ public class Options implements VM_Uninterruptible, Constants {
     return currentHeapSize;
   }
 
+  public static void overrideGrowHeapSize (int size) {
+    currentHeapSize += size;
+  }
+  
   public static void setDefaultHeapSizes(int initial, int max) {
     initialHeapSize = initial;
     max = maxHeapSize;

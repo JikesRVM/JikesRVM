@@ -468,6 +468,12 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return type.isClassType();
   }
 
+  public static void emergencyGrowHeap(int growSize) { // in bytes
+    // This can be undoable if the current thread doesn't cause 'em all to exit.
+    // if (VM.VerifyAssertions && growSize < 0) VM._assert(false);
+    Options.overrideGrowHeapSize(growSize);
+  }
+  
   public static int synchronizedCounterOffset = -1;
 
   // Make sure we don't GC does not putField on a possible moving object
