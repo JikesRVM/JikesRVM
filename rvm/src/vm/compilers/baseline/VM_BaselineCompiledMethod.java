@@ -184,9 +184,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     out.print(method.getDeclaringClass().getSourceName()); // a VM_Atom
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
-      out.print("; offset: ");
+      out.print("; machine code offset: ");
       out.printHex(instructionOffset.toInt());
-      out.println(")");
     } else {
       out.print(':');
       out.print(lineNumber);
