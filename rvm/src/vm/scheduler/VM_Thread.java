@@ -163,7 +163,13 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * Subclass should override with something more interesting.
    */ 
   public void exit () throws InterruptiblePragma {
-    thread.exit();
+    /* Early in the boot process, we are running the Boot Thread, which does
+     * not have an associated java.lang.Thread, so "thread" will be null.  In
+     * this case, if there is trouble during initialization, we still want to
+     * be able to exit peacefully, without throwing a confusing additional
+     * exception.  */ 
+    if (thread != null)
+      thread.exit();
   }
 
   /**
