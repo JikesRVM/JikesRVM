@@ -77,7 +77,7 @@ V COND_MOVE_CUTOFF int 5
 How many extra instructions will we insert in order to remove a conditional branch?
 
 
-V LOAD_ELIMINATION_ROUNDS int 3
+V LOAD_ELIMINATION_ROUNDS int 1
 How many rounds of redundant load elimination will we attempt?
 
 

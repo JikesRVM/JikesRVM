@@ -79,6 +79,9 @@ Should we perform redundant load elimination during SSA pass?
 COALESCE_AFTER_SSA 2 false
 Should we coalesce move instructions after leaving SSA?
 
+EXPRESSION_FOLDING -1 false
+Should we try to fold expressions with constants in SSA form?
+
 ## (SJF): The following optimization is not on by default because
 ## it is usually expensive and ineffective.
 ## 9/15/2001: This optimization is causing stability problems on IA32.

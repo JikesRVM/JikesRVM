@@ -40,7 +40,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
   private static class FoldingDriver extends OPT_CompilerPhase {
 
     final boolean shouldPerform (OPT_Options options) {
-      return  options.SSA;
+      return  options.SSA && options.EXPRESSION_FOLDING;
     }
 
     final String getName () {
