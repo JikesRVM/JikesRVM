@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -21,7 +21,7 @@ export RVM_FOR_32_ADDR=1
 export RVM_FOR_LINUX=1
 
 # SMP is not supported on PowerPC/Linux.
-# pthread library doesn't play nicely with RVM since it wants to
+# The pthread library doesn't play nicely with RVM since it wants to
 # mask the bottom bits of stackpointer to find phtread local storage.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
@@ -38,7 +38,7 @@ export HOST_JAVA_HOME=/opt/j2sdk1.3.1
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
 
-# the JDK javadoc executable
+# the JDK Javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
 
 # the JDK javac executable
@@ -53,20 +53,24 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
-# path for GNU make
-export GNU_MAKE=/usr/bin/make
+# sources for GNU Classpath 0.06 (current stable version of Classpath)
+# Uncomment this line only if you have the Classpath sources downloaded.
+# export CLASSPATH_ROOT=/opt/classpath-0.06
 
-# path for jikes.
+# path for GNU make
+export GNU_MAKE="/usr/bin/make"
+
+# path for the Jikes java-to-byte-code compiler
 export JIKES=/usr/bin/jikes
 
 # what C compilers should be used?
-export CC="/usr/bin/gcc -w -O -Wa,-mppc"
+export CC="/usr/bin/gcc -w -g -O -Wa,-mppc"
 
 # what C++ compilers should be used?
-export CPLUS="/usr/bin/g++"
+export CPLUS='/usr/bin/g++ -w -g -O'
 
 # how to link a shared C++ library
-export LDSHARED="/usr/bin/g++ -shared"
+export LDSHARED="${CPLUS} -shared"
 
 # used by the jbuild.linkBooter
 export CPP=/usr/bin/cpp
@@ -78,18 +82,35 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
-
-export AWK=/bin/awk
-export BASH=/bin/bash
-export CVS=/usr/bin/cvs
-export DIFF=/usr/bin/diff
-export FGREP=/bin/fgrep
-export FIND=/usr/bin/find
+#  some Unix commands
+export AWK="/bin/awk"
+export BASH="/bin/bash"
+# You need one of YACC or Bison (one will usually be installed)
+# If you're using Bison, uncomment the line below:
+# BISON="bison"
+export CVS="/usr/bin/cvs"
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
 export GNU_TAR=/bin/tar
-export GREP=/bin/grep
-export MD5SUM=/usr/bin/md5sum
-export PS=/bin/ps
-export SED=/bin/sed
-export WGET=/usr/bin/wget
-export XARGS=/usr/bin/xargs
-export UNZIP_CMD=/usr/bin/unzip
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
+export SED="/bin/sed"
+export WGET="/usr/bin/wget"
+export XARGS="/usr/bin/xargs"
+export UNZIP_CMD="/usr/bin/unzip"
+
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+
+# Used for the Emacs spell-checker
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE
