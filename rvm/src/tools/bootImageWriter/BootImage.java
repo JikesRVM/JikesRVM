@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @version 03 Jan 2000
  */
 public class BootImage extends BootImageWriterMessages
-  implements BootImageWriterConstants, BootImageInterface {
+  implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {
 
   /**
    * Talk while we work?
@@ -125,7 +125,7 @@ public class BootImage extends BootImageWriterMessages
     numObjects++;
     array.bootCount++;
     int size = array.getInstanceSize(numElements);
-    array.bootBytes += ((size + 3) & ~3);
+    array.bootBytes += ((size + BYTES_IN_ADDRESS -1)&~(BYTES_IN_ADDRESS-1));
     return VM_ObjectModel.allocateArray(this, array, numElements);
   }
 
@@ -138,7 +138,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public int allocateStorage(int size) {
     int lowAddr = freeOffset;
-    freeOffset += ((size + 3) & ~3); // maintain word alignment
+    freeOffset += ((size + BYTES_IN_ADDRESS -1)&~(BYTES_IN_ADDRESS-1));
     if (freeOffset > endOffset)
       fail("bootimage full (need " + size + " more bytes)");
     return lowAddr;

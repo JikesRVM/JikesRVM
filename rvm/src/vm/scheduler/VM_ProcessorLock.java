@@ -161,7 +161,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (!MCS_Locking) {
       if (VM.VerifyAssertions) i.lockCount -= 1;
-      VM_Magic.setIntAtOffset(this, latestContenderOffset, 0);  // latestContender = null;
+      VM_Magic.setObjectAtOffset(this, latestContenderOffset, null);  // latestContender = null;
       return;
     }
     VM_Processor p;
