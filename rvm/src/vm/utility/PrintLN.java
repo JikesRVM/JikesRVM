@@ -22,8 +22,11 @@ import java.io.PrintStream;
 public abstract class PrintLN {
   //  PrintLN(PrintWriter out);
   //  PrintLN(PrintStream out);
-  public boolean isVMSysWriteln() { return false; };
-  public boolean isSystemErr() { return false; };
+  public boolean isSysWrite() { return false; }
+  // Transitional method; will go away RSN
+  /** @deprecated superseded by <code>isSysWrite()</code> */
+  public boolean isVMSysWriteln() { return isSysWrite(); }
+  public boolean isSystemErr() { return false; }
   public abstract void flush();
   
   public abstract void println();
