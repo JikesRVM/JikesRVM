@@ -11,9 +11,9 @@ The following four sections of the document will one day be the
 release notes for Jikes RVM following the 2.3.4 release.
 
 *Highlights after the Jikes RVM 2.3.4 release
-**We work with the new GNU Classpath 0.13.  Carefully read
-the comments before the definition of RVM_WITH_CLASSPATH_0_13 in
-rvm/bin/jconfigure if you want to work with Classpath 0.13.
+**We work with the new GNU Classpath 0.14.  Carefully read
+the comments before the definition of RVM_WITH_CLASSPATH_0_14 in
+rvm/bin/jconfigure if you want to work with Classpath 0.14.
 
 **We can build with Jikes versions 1.20, 1.21, 1.22, and CVS Head.
 
