@@ -10,6 +10,7 @@
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
 # This file is pre-configured for x86 hosts running GNU/Linux
+
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #
@@ -17,7 +18,8 @@
 # you'll want to enable RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  Otherwise, 
 # you should not need to change anything in this section.
 #########
-# target architecture is Intel x86 (IA32)
+
+# The target architecture is Intel x86 (IA32)
 export RVM_FOR_IA32=1
 export RVM_FOR_32_ADDR=1
 
@@ -56,7 +58,9 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 
 # HOST_VM_TYPE=Kaffe
 HOST_VM_TYPE=Sun
-# HOST_VM_TYPE=JikesRVM
+# HOST_VM_TYPE=JikesRVM	# Does not work yet, due to trouble separating the
+			# namespaces of the Builder Jikes RVM and the
+			# Jikes RVM being built.	
 
 # Root of JDK installation.
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
@@ -88,34 +92,55 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
 ## CLASSPATH_INSTALLATION
-## If you built GNU Classpath with the default install directory (if
+## If you built GNU Classpath 0.12 with the default install directory (if
 ## unspecified, "--prefix=/usr/local/classpath" is implied) and
 ## installed it with "make install", then uncomment this line:
-#
 # export CLASSPATH_INSTALLATION=/usr/local/classpath
+
+## If you have classpath 0.10 or Classpath 0.11 already unpacked and built,
+## then you can use them instead:
+
+# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.10
+# export RVM_WITH_CLASSPATH_0_10=1
+
+# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.11
+# export RVM_WITH_CLASSPATH_0_11=1
 
 ## OR, if you built GNU Classpath but haven't 
 ## installed it (most people haven't), you can set
 ## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
 ## *and* set CLASSPATH_BUILD_DIR to the directory
-## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran "make"
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran $GNU_MAKE
 
 # export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
 # export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
 
 ## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
 
-# CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.12
-# (current stable version of Classpath)
-# Uncomment this line only if you manually downloaded the Classpath sources.
+## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
+## sources for GNU Classpath 0.12 (current stable version of Classpath)
+
+## If you manually downloaded the Classpath sources, then unpack them
+## into $CLASSPATH_ROOT and rename the newly extracted source
+## directory "classpath-0.12" to "classpath".  (If you haven't
+## manually downloaded the Classpath sources, then the Jikes RVM build
+## process will automatically do so for you, and will use
+## CLASSPATH_ROOT if you've set it.)
+
+## The Jikes RVM build process will expect to automatically take 
+## care of building Classpath from those sources, if you want.
 # export CLASSPATH_ROOT=/opt/classpath-0.12
 
-## OR you can leave all of the CLASSPATH_ variables unset and let the build 
-## process download and build GNU Classpath for you.   This will work.
-## I don't recommend doing it more than once, though -- if you and 
-## others are all working on Jikes RVM, then please just put Classpath in one
-## place you can share.
+## OR you can leave all of the CLASSPATH_ variables unset and let the
+## build process download and build GNU Classpath for you.  This
+## behaves as if you had set CLASSPATH_ROOT to "$RVM_ROOT/classpath".
+## This will work.  I don't recommend doing it more than once, though
+## -- if you and others are all working on Jikes RVM, then please just
+## put Classpath in one place you can share.
+## You will also have to make sure that variable WGET has a rational value,
+## so tha the downloading will work.  (It's only used to retrieve GNU
+## classpath, so you can ignore it otherwise.)
+export WGET="/usr/bin/wget"
 
 # Path for GNU make
 export GNU_MAKE="/usr/bin/make"
@@ -125,11 +150,24 @@ export GNU_MAKE="/usr/bin/make"
 # from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
 export JIKES=/usr/bin/jikes
 
-# What C compiler should be used?
-export CC='/usr/bin/gcc -w -g -O'
+## What C compiler should be used?  We only use the GNU C compiler
+## on the project, although it is possible that other compilers might work.
+##
+## The following long list of warning flags are the warnings that one of the
+## project developers always uses when building Jikes RVM.
+## Some of these warnings are not present in all versions of GCC.
+##  That is why this particular setting of CC is not the default.
+#
+## We don't usually set -Wundef; Bison's "bison.simple" file refers to
+## preprocessor macros.
 
-# what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -w -g -O'
+# export CC="/usr/bin/gcc -pipe -ggdb3 -O -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization"
+export CC="gcc -ggdb3 -O -W -Wall"
+
+## What C++ compiler should be used?
+# export CPLUS='/usr/bin/g++ -pipe -ggdb3 -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O'
+export CPLUS="g++ -pipe -ggdb3 -O -W -Wall"
+
 
 # how to link a shared C++ library (possibly also recompile one 
 # or more source files in it)
@@ -154,18 +192,38 @@ export GREP="/bin/grep"
 export MD5SUM="/usr/bin/md5sum"
 export PS="/bin/ps"
 export SED="/bin/sed"
-export WGET="/usr/bin/wget"
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
 
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM
 ########## 
-# These are used only by the jbuild.plugin build script.
 
-export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+## Uncomment this and set it to the directory created when you extracted
+## eclipse-SDK-3.0-linux-gtk.zip  or eclipse-platform-3.0-linux-gtk.zip 
 
-export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+## (Eclipse extracts itself into a directory named "eclipse",
+##  without a version number.)
+# export ECLIPSE_INSTALL_DIR="$HOME/Eclipse-3.0/eclipse"
+
+## To run Eclipse on Jikes RVM, you will need to use the Xalan XML parser.
+## Setting up to use Xalan may also help you run other programs
+## under Jikes RVM.
+##
+## We tested using XALAN 2.6.0; visit http://xml.apache.org/xalan-j/
+## and download the "Xalan Java binary distribution", since that
+## distribution has Xerces packaged with it.  The file is
+## xalan-j_2_6_0-bin.tar.gz.
+
+## Unlike how we treat the Classpath .jar file and .so files, we don't
+## copy Xalan into $RVM_BUILD.  (We could easily modify the build system to do
+## so, though.)
+# export XALAN_J_DIR="/usr/local/xalan-j_2_6_0"
+
+# ANT is only used by the jbuild.plugin build script.
+## We use Ant 1.6.2 for our testing; later versions should work as well.
+## Uncomment this if you have Ant installed, and edit it appropriately.
+# export ANT_CMD=$ANT_HOME/bin/ant
 
 ##########
 # PART IV: Miscellaneous variables.
