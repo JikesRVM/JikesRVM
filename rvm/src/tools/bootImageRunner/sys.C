@@ -2130,7 +2130,7 @@ sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
 	}
 
 	/* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-	uintptr_t start = address;
+	uintptr_t start = (uintptr_t)address;
 	uintptr_t end = start + size;
 	uintptr_t addr;
 
