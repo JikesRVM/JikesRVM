@@ -1,4 +1,4 @@
- As of version 2.2.1, Jikes\TMweb\ RVM has adopted the
+ As of version 2.2.1, Jikes\TMweb{} RVM has adopted the
 \xlink{GNU Classpath}{http://www.classpath.org} libraries.  GNU
 Classpath is an ongoing project working towards a complete set of
 Java\TMweb{} libraries.  The GNU Classpath web site includes
@@ -9,11 +9,11 @@ appropriate versions of the library as needed.  Thus, the integration
 can be seamless from a user's perspective.
 
 \begin{description}
-\item[Manual GNU Classpath] If you set the CLASS\-PATH\_ROOT variable in
+\item[Manual GNU Classpath] If you set the \varName{CLASS\-PATH\_ROOT} variable in
 your Jikes RVM configuration file, the build process will use the
 libraries that are located there.  The setup must mimic the one
 generated automatically, which means that
-{\tt \$CLASS\-PATH\_ROOT/\-`con\-fig.guess`} must contain a build for your platform
+{\tt \$CLASS\-PATH\_ROOT/\-\$(con\-fig.guess)} must contain a build for your platform
 and {\tt \$CLASS\-PATH\_ROOT/\-class\-path} must be a version of GNU Classpath from
 CVS.  This configuration is mainly useful if (1) you want to share one
 copy of the Classpath libraries among multiple Jikes RVM users or (2)
@@ -22,7 +22,7 @@ current release of Jikes RVM works with GNU Classpath version
 \classpathversion.  \link{We discuss more about how to set
 {\tt \$CLASS\-PATH\_\-ROOT} \texorhtml{in section~\Ref (page~\Pageref)}{elsewhere}}{sec:installDetails}.
 
-\item[Automatic GNU Classpath] If you do not set CLASS\-PATH\_\-ROOT and 
+\item[Automatic GNU Classpath] If you do not set \varName{CLASS\-PATH\_\-ROOT} and 
 {\tt RVM\_\-WITH\_\-GNU\_\-CLASS\-PATH=1} then the Jikes RVM build process
 will use {\tt wget} to download the appropriate version of GNU Classpath (using
 the URL in {\tt \$RVM\_\-ROOT/\-rvm/\-bin/\-class\-path.stamp}) and build it for
