@@ -54,13 +54,13 @@ public class OPT_SummaryDatabase {
 
   /** Implementation */
   private static final boolean DEBUG = false;
-  private static JDK2_HashMap hash = new JDK2_HashMap();
+  private static java.util.HashMap hash = new java.util.HashMap();
 
   /** 
    * Initializer.
    */
   private static void initialize () {
-    hash = new JDK2_HashMap();
+    hash = new java.util.HashMap();
   }
 }
 

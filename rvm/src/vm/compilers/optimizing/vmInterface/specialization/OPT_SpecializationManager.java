@@ -115,7 +115,7 @@ class OPT_SpecializationManager {
 	}
     }
     
-    static private JDK2_HashMap concreteMethodTable = new JDK2_HashMap();
+    static private java.util.HashMap concreteMethodTable = new java.util.HashMap();
 
     static class SpecializedCodeMapSlot {
 	final ConcreteMethodData table;
@@ -130,13 +130,13 @@ class OPT_SpecializationManager {
     static class SpecializationGraphNodeData {
 
 	private VM_CompiledMethod code;
-	final private JDK2_HashSet codeMapSlots = new JDK2_HashSet();
+	final private java.util.HashSet codeMapSlots = new java.util.HashSet();
 
 	public void setCodeMapSlot(ConcreteMethodData table, int index) {
 	    codeMapSlots.add( new SpecializedCodeMapSlot(table, index) );
 	}
 
-	public JDK2_Iterator getCodeMapSlots() {
+	public java.util.Iterator getCodeMapSlots() {
 	    return codeMapSlots.iterator();
 	}
 
@@ -150,8 +150,8 @@ class OPT_SpecializationManager {
 
     }
 
-    static private JDK2_HashMap SpecializationGraphNodeData = 
-	new JDK2_HashMap();
+    static private java.util.HashMap SpecializationGraphNodeData = 
+	new java.util.HashMap();
 
     static private void setCodeMapSlot(OPT_SpecializationGraphNode context,
 				OPT_ConcreteMethodKey table,
@@ -170,7 +170,7 @@ class OPT_SpecializationManager {
 	x.setCodeMapSlot(y, callSiteIndex);
     }
 
-    static private JDK2_Iterator 
+    static private java.util.Iterator 
 	getCodeMapSlots(OPT_SpecializationGraphNode context) 
     {
 	SpecializationGraphNodeData x = (SpecializationGraphNodeData)
@@ -260,7 +260,7 @@ class OPT_SpecializationManager {
     static public void setCompiledCode(OPT_SpecializationGraphNode context,
 				       VM_CompiledMethod specializedCode)
     {
-	JDK2_Iterator e = getCodeMapSlots( context );
+	java.util.Iterator e = getCodeMapSlots( context );
 	while ( e.hasNext() ) {
 	    SpecializedCodeMapSlot s = (SpecializedCodeMapSlot)e.next();
 	    ConcreteMethodData dat = s.table;
@@ -383,7 +383,7 @@ class OPT_SpecializationManager {
     }
 
     static private void insertSpecializedCodeMaps() {
-	JDK2_Iterator e = concreteMethodTable.keySet().iterator();
+	java.util.Iterator e = concreteMethodTable.keySet().iterator();
 	while ( e.hasNext() ) {
 	    OPT_ConcreteMethodKey key = (OPT_ConcreteMethodKey) e.next();
 	    int size = VM_SpecializationCallSites.getNumberOfSites(key);
@@ -431,7 +431,7 @@ class OPT_SpecializationManager {
     }
     
     static private void insertDispatchTrampolines() {
-	JDK2_Iterator e = concreteMethodTable.keySet().iterator();
+	java.util.Iterator e = concreteMethodTable.keySet().iterator();
 	while ( e.hasNext() ) {
 	    OPT_ConcreteMethodKey key = (OPT_ConcreteMethodKey) e.next();
 	    try {

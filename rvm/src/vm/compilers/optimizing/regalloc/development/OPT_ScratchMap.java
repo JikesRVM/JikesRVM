@@ -19,13 +19,13 @@ final class OPT_ScratchMap {
   /**
    * For each register, the set of intervals describing the register.
    */
-  private JDK2_HashMap map = new JDK2_HashMap();
+  private java.util.HashMap map = new java.util.HashMap();
 
   /**
    * For each register, a pending (incomplete) interval under
    * construction.
    */
-  private JDK2_HashMap pending = new JDK2_HashMap();
+  private java.util.HashMap pending = new java.util.HashMap();
 
   /**
    * Begin a new interval of scratch-ness for a symbolic register.
@@ -154,7 +154,7 @@ final class OPT_ScratchMap {
    */
   public String toString() {
     String result = "";
-    for (JDK2_Iterator i = map.values().iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = map.values().iterator(); i.hasNext(); ) {
       Vector v = (Vector)i.next();
       for (Enumeration e = v.elements(); e.hasMoreElements(); ) {
         result += e.nextElement() + "\n";

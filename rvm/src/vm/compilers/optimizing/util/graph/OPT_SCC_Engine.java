@@ -28,7 +28,7 @@ class OPT_SCC_Engine {
    *
    * @return An enumeration of all SCCs
    */
-  JDK2_Iterator iterateSCCs () {
+  java.util.Iterator iterateSCCs () {
     return  sccs.iterator();
   }
 
@@ -44,11 +44,11 @@ class OPT_SCC_Engine {
   /**
    *  Map of graph nodes to SCCs
    */
-  private JDK2_HashMap vertexHash = new JDK2_HashMap();
+  private java.util.HashMap vertexHash = new java.util.HashMap();
   /**
    *  Set of all SCCs
    */
-  private JDK2_HashSet sccs = new JDK2_HashSet();
+  private java.util.HashSet sccs = new java.util.HashSet();
 
   /** 
    * Compute the SCCs and cache the result

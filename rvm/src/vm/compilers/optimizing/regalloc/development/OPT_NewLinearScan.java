@@ -87,7 +87,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     ActiveSet active = new ActiveSet(ir,spillManager);
 
     // Intervals sorted by increasing start point
-    for (JDK2_Iterator e = intervals.getIntervals(); e.hasNext(); ) {
+    for (java.util.Iterator e = intervals.getIntervals(); e.hasNext(); ) {
 
       BasicInterval bi = (BasicInterval)e.next();
 
@@ -215,7 +215,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       OPT_GCIRMapElement GCelement = GCenum.next();
       
       // new elements to add to the gc map
-      JDK2_HashSet newElements = new JDK2_HashSet();
+      java.util.HashSet newElements = new java.util.HashSet();
 
       OPT_Instruction GCinst = GCelement.getInstruction();
 
@@ -265,7 +265,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         }
       } 
       // add each new Element to the gc map
-      for (JDK2_Iterator i = newElements.iterator(); i.hasNext(); ) {
+      for (java.util.Iterator i = newElements.iterator(); i.hasNext(); ) {
         OPT_RegSpillListElement newElem = (OPT_RegSpillListElement)i.next();
         GCelement.addRegSpillElement(newElem);
       }
@@ -845,11 +845,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    */
   class IntervalSet {
 
-    private JDK2_TreeSet sortedIntervals;
+    private java.util.TreeSet sortedIntervals;
 
     private boolean sortByStart = true;
 
-    private class EndComparator implements JDK2_Comparator {
+    private class EndComparator implements java.util.Comparator {
       public int compare(Object o1, Object o2) {
         BasicInterval b1 = (BasicInterval)o1;
         BasicInterval b2 = (BasicInterval)o2;
@@ -865,7 +865,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       }
     }
 
-    private class StartComparator implements JDK2_Comparator {
+    private class StartComparator implements java.util.Comparator {
       public int compare(Object o1, Object o2) {
         BasicInterval b1 = (BasicInterval)o1;
         BasicInterval b2 = (BasicInterval)o2;
@@ -887,16 +887,16 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     IntervalSet(boolean sortByStart) {
       this.sortByStart = sortByStart;
       if (sortByStart) {
-        sortedIntervals = new JDK2_TreeSet(new StartComparator());
+        sortedIntervals = new java.util.TreeSet(new StartComparator());
       } else {
-        sortedIntervals = new JDK2_TreeSet(new EndComparator());
+        sortedIntervals = new java.util.TreeSet(new EndComparator());
       }
     }
 
     /**
      * Return a linked list of intervals
      */
-    JDK2_Iterator getIntervals() {
+    java.util.Iterator getIntervals() {
       return sortedIntervals.iterator();
     }
 
@@ -912,7 +912,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      */
     public String toString() {
       String result = "";
-      for (JDK2_Iterator e = getIntervals(); e.hasNext();) {
+      for (java.util.Iterator e = getIntervals(); e.hasNext();) {
         BasicInterval b = (BasicInterval)e.next();
         result = result + "(" + b.getRegister() + ")" + b + "\n";
       }
@@ -999,7 +999,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      */
     void expireOldIntervals(BasicInterval newInterval) {
 
-      for (JDK2_Iterator e = getIntervals(); e.hasNext(); ) {
+      for (java.util.Iterator e = getIntervals(); e.hasNext(); ) {
         BasicInterval bi = (BasicInterval)e.next();
 
         // break out of the loop when we reach an interval that is still
@@ -1160,7 +1160,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      * interval in the active set?
      */
     final boolean currentlyActive(OPT_Register r) {
-      for (JDK2_Iterator e = getIntervals(); e.hasNext(); ) {
+      for (java.util.Iterator e = getIntervals(); e.hasNext(); ) {
         BasicInterval i = (BasicInterval)e.next();
         if (OPT_RegisterAllocatorState.getMapping(i.getRegister()) == r) {
           return true;
@@ -1234,7 +1234,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     private OPT_Register getPhysicalPreference(CompoundInterval ci) {
       // a mapping from OPT_Register to Integer
       // (physical register to weight);
-      JDK2_HashMap map = new JDK2_HashMap();
+      java.util.HashMap map = new java.util.HashMap();
       OPT_Register r = ci.getRegister();
 
       OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
@@ -1300,8 +1300,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       // OK, now find the highest preference. 
       OPT_Register result = null;
       int weight = -1;
-      for (JDK2_Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
-        JDK2_Map.Entry entry = (JDK2_Map.Entry)i.next();
+      for (java.util.Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
+        java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
         int w = ((Integer)entry.getValue()).intValue();
         if (w > weight) {
           weight = w;
@@ -1370,7 +1370,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         result = null;
         minCost = Integer.MAX_VALUE;
       }
-      for (JDK2_Iterator e = getIntervals(); e.hasNext(); ) {
+      for (java.util.Iterator e = getIntervals(); e.hasNext(); ) {
         BasicInterval b = (BasicInterval)e.next();
         CompoundInterval i = b.getContainer();
         OPT_Register newR = i.getRegister();
@@ -1506,8 +1506,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       initializeRegisters();
 
       // the set of compound intervals active on entry/exit to a basic block;
-      JDK2_HashSet activeIn  = new JDK2_HashSet(10);
-      JDK2_HashSet activeOut  = new JDK2_HashSet(10);
+      java.util.HashSet activeIn  = new java.util.HashSet(10);
+      java.util.HashSet activeOut  = new java.util.HashSet(10);
 
       // visit each basic block in the listOfBlocks list
       for (OPT_BasicBlock bb = listOfBlocks; bb !=null; 
@@ -1533,7 +1533,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
         // done with the basic block, set activeIn = activeOut
         activeIn = activeOut;
-        activeOut = new JDK2_HashSet(10);
+        activeOut = new java.util.HashSet(10);
       }
 
       // debug support
@@ -1703,7 +1703,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      * Set of spill locations which were previously allocated, but may be
      * free since the assigned register is no longer live.
      */
-    JDK2_HashSet freeIntervals = new JDK2_HashSet();
+    java.util.HashSet freeIntervals = new java.util.HashSet();
 
     /**
      * Return a spill location that is valid to hold the contents of
@@ -1734,7 +1734,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
       // Now search for any free interval.
       if (result == null) {
-        for (JDK2_Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
+        for (java.util.Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
           SpillLocationInterval s = (SpillLocationInterval)i.next();
           if (s.getSize() == spillSize && !s.intersects(ci)) {
             result = s;
@@ -1783,7 +1783,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
                                              int spillSize) {
       // a mapping from SpillLocationInterval to Integer 
       // (spill location to weight);
-      JDK2_HashMap map = new JDK2_HashMap();
+      java.util.HashMap map = new java.util.HashMap();
       OPT_Register r = ci.getRegister();
 
       OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
@@ -1801,7 +1801,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         if (neighbor.isSymbolic() && neighbor.isSpilled()) {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
-          for (JDK2_Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
+          for (java.util.Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
             SpillLocationInterval s = (SpillLocationInterval)i.next();
             if (s.getOffset() == spillOffset && 
                 s.getSize() == spillSize && !s.intersects(ci)) {
@@ -1827,7 +1827,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         if (neighbor.isSymbolic() && neighbor.isSpilled()) {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
-          for (JDK2_Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
+          for (java.util.Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
             SpillLocationInterval s = (SpillLocationInterval)i.next();
             if (s.getOffset() == spillOffset && 
                 s.getSize() == spillSize && !s.intersects(ci)) {
@@ -1847,8 +1847,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       // OK, now find the highest preference. 
       SpillLocationInterval result = null;
       int weight = -1;
-      for (JDK2_Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
-        JDK2_Map.Entry entry = (JDK2_Map.Entry)i.next();
+      for (java.util.Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
+        java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
         int w = ((Integer)entry.getValue()).intValue();
         if (w > weight) {
           weight = w;

@@ -96,7 +96,7 @@ class OPT_ValueGraph
   /**
    * A mapping from name to value graph vertex.
    */
-  private JDK2_HashMap nameMap = new JDK2_HashMap(); 
+  private java.util.HashMap nameMap = new java.util.HashMap(); 
 
   /** 
    * Add a node to the value graph for every symbolic register.

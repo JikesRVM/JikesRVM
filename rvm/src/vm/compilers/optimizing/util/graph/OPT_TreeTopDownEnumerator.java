@@ -18,19 +18,19 @@ final class OPT_TreeTopDownEnumerator implements Enumeration {
   /**
    * List of nodes in preorder
    */
-  private JDK2_ArrayList list;
+  private java.util.ArrayList list;
 
   /**
    * an iterator of the above list
    */
-  private JDK2_ListIterator iterator;
+  private java.util.ListIterator iterator;
 
   /**
    * constructor: it creates the list of nodes
    * @param   OPT_TreeNode root
    */
   OPT_TreeTopDownEnumerator(OPT_TreeNode root) {
-    list = new JDK2_ArrayList();
+    list = new java.util.ArrayList();
 
     // Perform a DFS, saving nodes in preorder
     DFS(root);

@@ -29,7 +29,7 @@ public final class OPT_SpecializationDatabase {
     if (specializationInProgress)
       return;
     specializationInProgress = true;
-    JDK2_Iterator methods = deferredMethods.iterator();
+    java.util.Iterator methods = deferredMethods.iterator();
     while (methods.hasNext()) {
       OPT_SpecializedMethod m = (OPT_SpecializedMethod)methods.next();
       if (m.getCompiledMethod() == null) {
@@ -45,7 +45,7 @@ public final class OPT_SpecializationDatabase {
     specializationInProgress = false;
   }
   private static boolean specializationInProgress;
-  private static JDK2_HashSet deferredMethods = new JDK2_HashSet();
+  private static java.util.HashSet deferredMethods = new java.util.HashSet();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod (OPT_SpecializedMethod m) {
@@ -57,7 +57,7 @@ public final class OPT_SpecializationDatabase {
    * specialied compiled versions of the method pointed by VM_Method
    * @return null if no specialized versions
    */
-  static JDK2_Iterator getSpecialVersions (VM_Method m) {
+  static java.util.Iterator getSpecialVersions (VM_Method m) {
     MethodSet s = (MethodSet)specialVersionsHash.get(m);
     if (s == null) {
       return  null;
@@ -73,7 +73,7 @@ public final class OPT_SpecializationDatabase {
    * @return 
    */
   static int getSpecialVersionCount (VM_Method m) {
-    JDK2_Iterator versions = getSpecialVersions(m);
+    java.util.Iterator versions = getSpecialVersions(m);
     int count = 0;
     if (versions != null) {
       while (versions.hasNext() && (versions.next() != null)) {
@@ -94,13 +94,13 @@ public final class OPT_SpecializationDatabase {
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }
-  private static JDK2_HashMap specialVersionsHash = new JDK2_HashMap();
+  private static java.util.HashMap specialVersionsHash = new java.util.HashMap();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static MethodSet findOrCreateMethodSet (JDK2_HashMap hash, Object key) {
+  private static MethodSet findOrCreateMethodSet (java.util.HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -118,7 +118,7 @@ public final class OPT_SpecializationDatabase {
     /**
      * a set of OPT_SpecializedMethod
      */
-    JDK2_HashSet methods = new JDK2_HashSet();
+    java.util.HashSet methods = new java.util.HashSet();
 
     MethodSet (Object key) {
       this.key = key;
@@ -128,7 +128,7 @@ public final class OPT_SpecializationDatabase {
       methods.add(spMethod);
     }
 
-    public JDK2_Iterator iterator () {
+    public java.util.Iterator iterator () {
       return  methods.iterator();
     }
   }

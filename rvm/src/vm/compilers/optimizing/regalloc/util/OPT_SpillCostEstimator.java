@@ -11,7 +11,7 @@
  */
 abstract class OPT_SpillCostEstimator {
 
-  private JDK2_HashMap map = new JDK2_HashMap(); 
+  private java.util.HashMap map = new java.util.HashMap(); 
 
   /**
    * Return a number that represents an estimate of the relative cost of

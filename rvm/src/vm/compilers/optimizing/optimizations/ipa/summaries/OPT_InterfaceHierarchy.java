@@ -15,7 +15,7 @@ public class OPT_InterfaceHierarchy {
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
    */
-  private static JDK2_HashMap interfaceMapping = new JDK2_HashMap();
+  private static java.util.HashMap interfaceMapping = new java.util.HashMap();
 
   /**
    * Notify this dictionary that a new class has been initialized. 
@@ -42,7 +42,7 @@ public class OPT_InterfaceHierarchy {
    * Note that class c implements interface I;
    */
   private static void noteImplements(VM_Class c, VM_Class I) {
-    JDK2_HashSet implementsSet = findOrCreateSet(I);
+    java.util.HashSet implementsSet = findOrCreateSet(I);
     implementsSet.add(c);
   }
 
@@ -50,10 +50,10 @@ public class OPT_InterfaceHierarchy {
    * Return the set of classes that implement a given interface. Create a
    * set if none found.
    */
-  private static JDK2_HashSet findOrCreateSet(VM_Class I) {
-    JDK2_HashSet set = (JDK2_HashSet)interfaceMapping.get(I);
+  private static java.util.HashSet findOrCreateSet(VM_Class I) {
+    java.util.HashSet set = (java.util.HashSet)interfaceMapping.get(I);
     if (set == null) {
-      set = new JDK2_HashSet(3);
+      set = new java.util.HashSet(3);
       interfaceMapping.put(I,set);
     }
     return set;
@@ -62,9 +62,9 @@ public class OPT_InterfaceHierarchy {
   /**
    * Return the set of all classes known to implement interface I.
    */
-  private static JDK2_HashSet allImplementors(VM_Class I) {
+  private static java.util.HashSet allImplementors(VM_Class I) {
     // get the set of classes registered as implementing I
-    JDK2_HashSet result = findOrCreateSet(I);
+    java.util.HashSet result = findOrCreateSet(I);
     
     // also add any classes that implement a sub-interface of I.
     VM_Class[] subI = I.getSubClasses();
@@ -75,8 +75,8 @@ public class OPT_InterfaceHierarchy {
 
     // also add any sub-classes of these classes.
     // need to cache additions to avoid modifying the set while iterating
-    JDK2_HashSet toAdd = new JDK2_HashSet(5);
-    for (JDK2_Iterator i = result.iterator(); i.hasNext(); ) {
+    java.util.HashSet toAdd = new java.util.HashSet(5);
+    for (java.util.Iterator i = result.iterator(); i.hasNext(); ) {
       VM_Class c = (VM_Class)i.next();
       toAdd.addAll(allSubClasses(c));
     }
@@ -87,8 +87,8 @@ public class OPT_InterfaceHierarchy {
   /**
    * Return the set of all classes known to extend C
    */
-  private static JDK2_HashSet allSubClasses(VM_Class C) {
-    JDK2_HashSet result = new JDK2_HashSet(5);
+  private static java.util.HashSet allSubClasses(VM_Class C) {
+    java.util.HashSet result = new java.util.HashSet(5);
     
     // also add any classes that implement a sub-interface of I.
     VM_Class[] subC = C.getSubClasses();
@@ -109,12 +109,12 @@ public class OPT_InterfaceHierarchy {
   public static VM_Method getUniqueImplementation(VM_Method foo) {
     VM_Class I = foo.getDeclaringClass();
 
-    JDK2_HashSet classes = allImplementors(I);
+    java.util.HashSet classes = allImplementors(I);
     VM_Method firstMethod = null;
     VM_Atom name = foo.getName();
     VM_Atom desc = foo.getDescriptor();
 
-    for (JDK2_Iterator i = classes.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = classes.iterator(); i.hasNext(); ) {
       VM_Class klass = (VM_Class)i.next();
       VM_Method m = klass.findDeclaredMethod(name,desc);
       if (firstMethod == null) 

@@ -51,7 +51,7 @@ class TabooMethods {
   /**
    * The set of forbidden methods
    */
-  static JDK2_HashSet tabooSet = new JDK2_HashSet();
+  static java.util.HashSet tabooSet = new java.util.HashSet();
 
   /**
    * Static initializer: set up the set of forbidden methods

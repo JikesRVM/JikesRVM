@@ -5,7 +5,7 @@
  * put your documentation comment here
  */
 class OPT_SingletonIterator
-    implements JDK2_Iterator {
+    implements java.util.Iterator {
 
   /**
    * put your documentation comment here
@@ -35,14 +35,14 @@ class OPT_SingletonIterator
       not_done = false;
       return  item;
     }
-    throw  new JDK2_NoSuchElementException();
+    throw  new java.util.NoSuchElementException();
   }
 
   /**
    * put your documentation comment here
    */
   public void remove () {
-    throw  new JDK2_UnsupportedOperationException();
+    throw  new java.util.UnsupportedOperationException();
   }
 }
 

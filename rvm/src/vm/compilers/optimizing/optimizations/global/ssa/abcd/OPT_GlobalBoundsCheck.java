@@ -78,12 +78,12 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
      * key:   the constraint var <= arr.length - c
      * value: answer (of type ABCD_Answer)
      */
-    private JDK2_HashMap answers;
+    private java.util.HashMap answers;
     /**
      * Transitive closure edges added to the iG on demand
      * key: instruction (representing the USE of a variable)
      */
-    private JDK2_HashMap closures;
+    private java.util.HashMap closures;
 
     /**
      * value: 
@@ -259,7 +259,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * An answer to constraints, stored in JDK2_HashMap 'answers'
+     * An answer to constraints, stored in java.util.HashMap 'answers'
      */
     static class ABCD_Answer {
       /** 
@@ -295,7 +295,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
        * guard variables 
        * on which this answer depends
        */
-      public JDK2_HashSet guards = new JDK2_HashSet();  
+      public java.util.HashSet guards = new java.util.HashSet();  
 
       /**
        * constructor for pending constraints
@@ -323,7 +323,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       /**
        * Return the set of guards this answer depends on
        */
-      public JDK2_HashSet getGuards () {
+      public java.util.HashSet getGuards () {
         return  guards;
       }
 
@@ -499,7 +499,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
             break;
         }
         s = s + c + " (" + id + ")   ";
-        for (JDK2_Iterator it = guards.iterator(); it.hasNext();) {
+        for (java.util.Iterator it = guards.iterator(); it.hasNext();) {
           s = s + it.next();
         }
         return  s;
@@ -536,8 +536,8 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
             + "  " + ir.method.name);
       }
       // flush cache on each method
-      answers = new JDK2_HashMap();
-      closures = new JDK2_HashMap();
+      answers = new java.util.HashMap();
+      closures = new java.util.HashMap();
       // recompute register lists
       OPT_RegisterInfo.clearRegisterList(ir);
       OPT_RegisterInfo.computeRegisterList(ir);
@@ -570,7 +570,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
             continue;
           // uncomment the following line to turn off caching across
           // bound checks
-          answers = new JDK2_HashMap();
+          answers = new java.util.HashMap();
           // create the constraint (ie, query) to be proven
           ABCD_Constraint constraint = new ABCD_Constraint(index.asRegister(), 
               -1, BoundsCheck.getRef(instr).asRegister());
@@ -632,11 +632,11 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
      */ 
     private void insertCompensatingGuards (RedundantCheck rc) {
       OPT_Instruction check = rc.check;
-      JDK2_HashSet guards = rc.guards;
+      java.util.HashSet guards = rc.guards;
       OPT_Operand originalGuard = BoundsCheck.getGuard(check);
       OPT_Operand resultGuard = BoundsCheck.getGuardResult(check);
       int n = guards.size();
-      JDK2_Iterator it = guards.iterator();
+      java.util.Iterator it = guards.iterator();
       if (n == 0)
         return; 
       else if (n == 1) {
@@ -1334,14 +1334,14 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
     // bounds check
     class RedundantCheck {
       OPT_Instruction check;                    // the redundant bounds-check
-      JDK2_HashSet guards;      // set of guards needed to prove redundancy
+      java.util.HashSet guards;      // set of guards needed to prove redundancy
 
       /**
        * put your documentation comment here
        * @param       OPT_Instruction check
-       * @param       JDK2_HashSet guards
+       * @param       java.util.HashSet guards
        */
-      RedundantCheck (OPT_Instruction check, JDK2_HashSet guards) {
+      RedundantCheck (OPT_Instruction check, java.util.HashSet guards) {
         this.check = check;
         this.guards = guards;
       }

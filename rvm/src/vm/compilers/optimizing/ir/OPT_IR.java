@@ -829,8 +829,8 @@ final class OPT_IR implements OPT_Operators {
     final int inBBListMarker = 999;  // actual number is insignificant
     if (checkCFG) {
       final boolean VERIFY_CFG_EDGES = false;
-      JDK2_HashSet origOutSet = null;
-      if (VERIFY_CFG_EDGES) origOutSet = new JDK2_HashSet();
+      java.util.HashSet origOutSet = null;
+      if (VERIFY_CFG_EDGES) origOutSet = new java.util.HashSet();
 
       for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
 	   cur != null;

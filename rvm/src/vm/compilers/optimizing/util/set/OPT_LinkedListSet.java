@@ -7,7 +7,7 @@ import  java.util.NoSuchElementException;
 /**
  * put your documentation comment here
  */
-class OPT_LinkedListSet extends JDK2_AbstractSet {
+class OPT_LinkedListSet extends java.util.AbstractSet {
   OPT_LinkedListObjectElement tos;
   boolean no_duplicates;
 
@@ -23,7 +23,7 @@ class OPT_LinkedListSet extends JDK2_AbstractSet {
    * @return 
    */
   int eliminateDuplicates () {
-    JDK2_Set s = new JDK2_HashSet();
+    java.util.Set s = new java.util.HashSet();
     OPT_LinkedListObjectElement curr = tos;
     OPT_LinkedListObjectElement prev = null;
     int size = 0;
@@ -114,7 +114,7 @@ class OPT_LinkedListSet extends JDK2_AbstractSet {
    * put your documentation comment here
    * @return 
    */
-  public JDK2_Iterator iterator () {
+  public java.util.Iterator iterator () {
     if (!no_duplicates)
       eliminateDuplicates();
     return  new OPT_LinkedListSetIterator(this);
@@ -135,7 +135,7 @@ class OPT_LinkedListSet extends JDK2_AbstractSet {
     return  a;
   }
 
-  // note: breaks JDK2_Set spec, always returns true.
+  // note: breaks java.util.Set spec, always returns true.
   // doesn't allow null.
   public boolean add (Object o) {
     OPT_LinkedListObjectElement e = new OPT_LinkedListObjectElement(o);
@@ -210,7 +210,7 @@ class OPT_LinkedListSet extends JDK2_AbstractSet {
  * put your documentation comment here
  */
 class OPT_LinkedListSetIterator
-    implements JDK2_Iterator {
+    implements java.util.Iterator {
   OPT_LinkedListSet s;
   OPT_LinkedListObjectElement n, npp;
 

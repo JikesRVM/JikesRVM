@@ -61,7 +61,7 @@ implements OPT_Operators {
    */
   final public void perform (OPT_IR ir) {
 
-    JDK2_HashMap newMap = new JDK2_HashMap(5);
+    java.util.HashMap newMap = new java.util.HashMap(5);
 
     for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)be.nextElement();
@@ -207,7 +207,7 @@ implements OPT_Operators {
    * @param rootOnly only consider root operands?
    */
   private static void splitAllLiveRanges(OPT_Instruction s, 
-                                         JDK2_HashMap newMap,
+                                         java.util.HashMap newMap,
                                          OPT_IR ir,
 					 boolean rootOnly) {
     // walk over each USE
@@ -254,7 +254,7 @@ implements OPT_Operators {
    * @param ir the governing IR
    */
   private static OPT_RegisterOperand findOrCreateTemp(OPT_RegisterOperand rOp,
-						      JDK2_HashMap map,
+						      java.util.HashMap map,
 						      OPT_IR ir) {
     OPT_Register tReg = (OPT_Register)map.get(rOp.register);
     if (tReg == null) {

@@ -23,11 +23,11 @@ class OPT_EdgelessGraphNode
   /**
    *  The set of nodes that have edges pointing to this node.
    */
-  private JDK2_HashSet inEdges = new JDK2_HashSet();
+  private java.util.HashSet inEdges = new java.util.HashSet();
   /**
    *  The set of nodes to which this node has edges.
    */
-  private JDK2_HashSet outEdges = new JDK2_HashSet();
+  private java.util.HashSet outEdges = new java.util.HashSet();
   /**
    *  A scratch field in int type
    * @deprecated
@@ -84,13 +84,13 @@ class OPT_EdgelessGraphNode
    */
   static class NodeEnumeration
       implements OPT_GraphNodeEnumeration {
-    private JDK2_Iterator e;
+    private java.util.Iterator e;
 
     /**
      * put your documentation comment here
-     * @param     JDK2_Iterator e
+     * @param     java.util.Iterator e
      */
-    NodeEnumeration (JDK2_Iterator e) {
+    NodeEnumeration (java.util.Iterator e) {
       this.e = e;
     }
 

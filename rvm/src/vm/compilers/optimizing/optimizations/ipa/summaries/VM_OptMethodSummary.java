@@ -142,7 +142,7 @@ final class VM_OptMethodSummary
     // conservative.
     if (method.getBytecodes() == null)
       return  true;
-    JDK2_HashSet set = getWriteSummary(method);
+    java.util.HashSet set = getWriteSummary(method);
     if (set == null)
       return  false;
     if (set.contains(field))
@@ -164,7 +164,7 @@ final class VM_OptMethodSummary
   public static void summarizeMethod (VM_Method method, byte[] bytecodes, 
 				      boolean isSynchronized) {
     int summary = computeSummary(method, bytecodes, isSynchronized);
-    JDK2_HashSet set = computeFieldsWritten(method, bytecodes);
+    java.util.HashSet set = computeFieldsWritten(method, bytecodes);
     storeWriteSummary(method, set);
     storeSummary(method, summary);
   }
@@ -176,7 +176,7 @@ final class VM_OptMethodSummary
   /**
    * Backing store for summaries of fields written.
    */
-  private static JDK2_HashSet[] writeSets = new JDK2_HashSet[1000];
+  private static java.util.HashSet[] writeSets = new java.util.HashSet[1000];
 
   /**
    * Store the simple summary for a given method
@@ -198,13 +198,13 @@ final class VM_OptMethodSummary
   /**
    * Store the summary of fields written for a given method
    */
-  private static void storeWriteSummary (VM_Method method, JDK2_HashSet set) {
+  private static void storeWriteSummary (VM_Method method, java.util.HashSet set) {
     int idx = method.getDictionaryId();
     if (idx >= writeSets.length) {
       int newLength = writeSets.length*2;
       if (idx >= newLength)
         newLength = idx;
-      JDK2_HashSet[] newarray = new JDK2_HashSet[newLength];
+      java.util.HashSet[] newarray = new java.util.HashSet[newLength];
       for (int i = 0, n = writeSets.length; i < n; ++i)
         newarray[i] = writeSets[i];
       writeSets = newarray;
@@ -228,7 +228,7 @@ final class VM_OptMethodSummary
    * Return the summary of fields written for a given method
    * @return the set of VM_Fields the method writes to
    */
-  private static JDK2_HashSet getWriteSummary (VM_Method method) {
+  private static java.util.HashSet getWriteSummary (VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
       VM.assert(method.getBytecodes() != null);
@@ -696,11 +696,11 @@ final class VM_OptMethodSummary
    * @param bytecodes the bytecode array to be summarized
    * @return the set of VM_Fields potentially written.  null if none.
    */
-  private static JDK2_HashSet computeFieldsWritten (VM_Method method, 
+  private static java.util.HashSet computeFieldsWritten (VM_Method method, 
       byte[] bytecodes) {
     int bcIndex = 0;
     VM_Class klass = method.getDeclaringClass();
-    JDK2_HashSet result = new JDK2_HashSet();
+    java.util.HashSet result = new java.util.HashSet();
     while (bcIndex < bytecodes.length) {
       int code = (int)(bytecodes[bcIndex++] & 0xFF);
       switch (code) {

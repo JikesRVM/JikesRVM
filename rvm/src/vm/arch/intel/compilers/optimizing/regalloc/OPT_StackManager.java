@@ -43,7 +43,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
   /**
    * Holds the set of scratch registers currently free for use.
    */
-  private JDK2_HashSet scratchAvailable = new JDK2_HashSet(10);
+  private java.util.HashSet scratchAvailable = new java.util.HashSet(10);
 
   /**
    * An array which holds the spill location number used to stash volatile
@@ -1217,7 +1217,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * Throw an exception if none found.
    */ 
   private OPT_Register getFPRNotUsedIn(OPT_Instruction s,
-                                       JDK2_HashSet reserved) {
+                                       java.util.HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     
     // first try the volatiles
@@ -1241,7 +1241,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * Throw an exception if none found.
    */ 
   private OPT_Register getGPRNotUsedIn(OPT_Instruction s, 
-                                       JDK2_HashSet reserved) {
+                                       java.util.HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -1389,7 +1389,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // No scratch register is currently available.  Find a physical
       // register that is not used in the instruction, and spill it
       // in order to free it for use.
-      JDK2_HashSet reservedScratch = getReservedScratchRegisters(s);
+      java.util.HashSet reservedScratch = getReservedScratchRegisters(s);
 
       OPT_Register phys = null;
       if (symb.isFloatingPoint()) {
@@ -1441,7 +1441,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // No scratch register is currently available.  Find a physical
       // register that is not used in the instruction, and spill it
       // in order to free it for use.
-      JDK2_HashSet reservedScratch = getReservedScratchRegisters(s);
+      java.util.HashSet reservedScratch = getReservedScratchRegisters(s);
 
       OPT_Register phys = null;
       if (symb.isFloatingPoint()) {
@@ -1534,7 +1534,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * dead.  Mark this.
    */
   private void restoreScratchRegistersBefore(OPT_Instruction s) {
-    for (JDK2_Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
       ScratchRegister scratch = (ScratchRegister)i.next();
       if (verboseDebug) {
         System.out.println("RESTORE: consider " + scratch);
@@ -1591,7 +1591,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * registers that are used by s.  The others are dead.
    */
   private void restoreAllScratchRegistersBefore(OPT_Instruction s) {
-    for (JDK2_Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
       ScratchRegister scratch = (ScratchRegister)i.next();
 
       // SPECIAL CASE: If s is a return instruction, only restore the 
@@ -1662,7 +1662,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
   private ScratchRegister findScratchHome(OPT_Register r) {
 
     int location1 = OPT_RegisterAllocatorState.getSpill(r);
-    for (JDK2_Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
       ScratchRegister s = (ScratchRegister)i.next();
       OPT_Register current = s.currentContents;
       if (current == r) {
@@ -1681,10 +1681,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * Return the set of scratch registers which are currently reserved
    * for use in instruction s.
    */
-  private JDK2_HashSet getReservedScratchRegisters(OPT_Instruction s) {
-    JDK2_HashSet result = new JDK2_HashSet(3);
+  private java.util.HashSet getReservedScratchRegisters(OPT_Instruction s) {
+    java.util.HashSet result = new java.util.HashSet(3);
 
-    for (JDK2_Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
       if (sr.currentContents != null && appearsIn(sr.currentContents,s)) {
         result.add(sr.scratch);
@@ -1704,7 +1704,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
                                                  OPT_Instruction s) {
     ScratchRegister result = null;
 
-    for (JDK2_Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
       if (appearsIn(sr.scratch,s)) {
         // The physical scratch register already appears in s, so we can't 

@@ -18,7 +18,7 @@
 
 import java.util.*;
 
-class VM_CallSiteTripleComparator implements JDK2_Comparator {
+class VM_CallSiteTripleComparator implements java.util.Comparator {
 
   public static boolean debug = false;
   

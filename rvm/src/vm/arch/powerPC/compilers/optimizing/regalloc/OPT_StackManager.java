@@ -1200,7 +1200,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
                                       OPT_Register r) {
     // a mapping from OPT_Register to Integer
     // (physical register to weight);
-    JDK2_HashMap map = new JDK2_HashMap();
+    java.util.HashMap map = new java.util.HashMap();
 
     OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
     OPT_SpaceEffGraphNode node = graph.findNode(r);
@@ -1260,8 +1260,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // OK, now find the highest preference. 
     OPT_Register result = null;
     int weight = -1;
-    for (JDK2_Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
-      JDK2_Map.Entry entry = (JDK2_Map.Entry)i.next();
+    for (java.util.Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
+      java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
       int w = ((Integer)entry.getValue()).intValue();
       if (w > weight) {
         weight = w;

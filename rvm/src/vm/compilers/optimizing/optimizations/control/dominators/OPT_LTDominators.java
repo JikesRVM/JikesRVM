@@ -308,7 +308,7 @@ class OPT_LTDominators extends OPT_Stack {
       LINK(blockInfo.getParent(), block);
 
       // foreach block2 in bucket(parent(block)) do
-      JDK2_Iterator bucketEnum = 
+      java.util.Iterator bucketEnum = 
 	OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
       while (bucketEnum.hasNext()) {
         OPT_BasicBlock block2 = (OPT_BasicBlock)bucketEnum.next();

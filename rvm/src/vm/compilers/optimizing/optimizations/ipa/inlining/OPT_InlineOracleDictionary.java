@@ -112,7 +112,7 @@ class OPT_InlineOracleDictionary {
   /**
    * The main mapping.
    */
-  private static JDK2_HashMap hash = new JDK2_HashMap();
+  private static java.util.HashMap hash = new java.util.HashMap();
   /**
    * The default oracle, for methods not mapped in the hash map.
    */ 

@@ -9,13 +9,13 @@
  */
 public class OPT_IteratorEnumerator
     implements java.util.Enumeration {
-  private final JDK2_Iterator i;
+  private final java.util.Iterator i;
 
   /**
    * put your documentation comment here
-   * @param   JDK2_Iterator i
+   * @param   java.util.Iterator i
    */
-  public OPT_IteratorEnumerator (JDK2_Iterator i) {
+  public OPT_IteratorEnumerator (java.util.Iterator i) {
     this.i = i;
   }
 

@@ -15,10 +15,10 @@ import java.util.Enumeration;
 class OPT_GenericRegisterRestrictions implements OPT_Operators {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
-  private JDK2_HashMap hash = new JDK2_HashMap();
+  private java.util.HashMap hash = new java.util.HashMap();
 
   // a set of symbolic registers that must not be spilled.
-  private JDK2_HashSet noSpill = new JDK2_HashSet();
+  private java.util.HashSet noSpill = new java.util.HashSet();
 
   protected OPT_PhysicalRegisterSet phys;
 

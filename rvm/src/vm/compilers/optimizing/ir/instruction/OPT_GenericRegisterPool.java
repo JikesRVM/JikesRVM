@@ -248,7 +248,7 @@ abstract class OPT_GenericRegisterPool {
       return getInteger(spanBasicBlock);
   }
 
-  private JDK2_HashMap _regPairs = new JDK2_HashMap();
+  private java.util.HashMap _regPairs = new java.util.HashMap();
   /**
    * MIR: Get the other half of the register pair that is 
    * associated with the argument register.

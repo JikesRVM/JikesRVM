@@ -4,7 +4,7 @@
 /**
  * put your documentation comment here
  */
-class OPT_SingletonSet extends JDK2_AbstractSet {
+class OPT_SingletonSet extends java.util.AbstractSet {
   Object o;
 
   /**
@@ -36,7 +36,7 @@ class OPT_SingletonSet extends JDK2_AbstractSet {
    * put your documentation comment here
    * @return 
    */
-  public JDK2_Iterator iterator () {
+  public java.util.Iterator iterator () {
     return  new OPT_SingletonIterator(o);
   }
 

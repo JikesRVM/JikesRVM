@@ -276,11 +276,11 @@ class OPT_DeadStoreSystem extends OPT_DF_System
   /**
    * A mapping from OPT_HeapVariable to Object
    */
-  private JDK2_HashMap KILL = new JDK2_HashMap();               
+  private java.util.HashMap KILL = new java.util.HashMap();               
   /**
    * A mapping from OPT_HeapVariable to Object
    */
-  private JDK2_HashMap LIVE = new JDK2_HashMap();             
+  private java.util.HashMap LIVE = new java.util.HashMap();             
   /**
    * The governing IR
    */
@@ -381,7 +381,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
    * Initialize each DEAD_DEF and DEAD_USE variable to be universal.
    */
   protected void initializeLatticeCells () {
-    for (JDK2_Iterator e = cells.values().iterator(); e.hasNext();) {
+    for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
       Object cell = e.next();
       if (cell instanceof OPT_ValueNumberSetCell) {
         OPT_ValueNumberSetCell s = (OPT_ValueNumberSetCell)cell;
@@ -409,7 +409,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
     else {
       A = ((OPT_HeapOperand)key.o1).getHeapVariable();
     }
-    for (JDK2_Iterator i = ssa.iterateOriginalHeapUses(A); i.hasNext();) {
+    for (java.util.Iterator i = ssa.iterateOriginalHeapUses(A); i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       OPT_Instruction s = H.instruction;
       if (GetField.conforms(s) || GetStatic.conforms(s)) {
@@ -418,7 +418,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
         cell.add(v);
       }
     }
-    for (JDK2_Iterator i = ssa.iterateOriginalHeapDefs(A); i.hasNext();) {
+    for (java.util.Iterator i = ssa.iterateOriginalHeapDefs(A); i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       OPT_Instruction s = H.instruction;
       if (PutStatic.conforms(s) || PutField.conforms(s)) {
@@ -444,7 +444,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
     else {
       A = ((OPT_HeapOperand)key.o1).getHeapVariable();
     }
-    for (JDK2_Iterator i = ssa.iterateOriginalHeapUses(A); i.hasNext();) {
+    for (java.util.Iterator i = ssa.iterateOriginalHeapUses(A); i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       OPT_Instruction s = H.instruction;
       if (ALoad.conforms(s)) {
@@ -455,7 +455,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
         cell.add(v1, v2);
       }
     }
-    for (JDK2_Iterator i = ssa.iterateOriginalHeapDefs(A); i.hasNext();) {
+    for (java.util.Iterator i = ssa.iterateOriginalHeapDefs(A); i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       OPT_Instruction s = H.instruction;
       if (AStore.conforms(s)) {
@@ -701,7 +701,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
       setLiveUniversal(A.getHeapVariable());
       return;
     }
-    for (JDK2_Iterator i = ssa.iterateHeapUses(A.getHeapVariable()); 
+    for (java.util.Iterator i = ssa.iterateHeapUses(A.getHeapVariable()); 
         i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       OPT_Instruction s = H.instruction;
@@ -874,7 +874,7 @@ class OPT_DeadStoreSystem extends OPT_DF_System
     int nUses = ssa.getNumberOfUses(A.getHeapVariable());
     OPT_DF_LatticeCell uses[] = new OPT_DF_LatticeCell[nUses];
     int j = 0;
-    for (JDK2_Iterator i = ssa.iterateHeapUses(A.getHeapVariable()); 
+    for (java.util.Iterator i = ssa.iterateHeapUses(A.getHeapVariable()); 
         i.hasNext();) {
       OPT_HeapOperand H = (OPT_HeapOperand)i.next();
       // if the instruction does not DEF any heap variables,

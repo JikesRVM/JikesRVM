@@ -16,7 +16,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
        $$$$ IF TAG == S
        $$$$ LET PRETTY_NAME @PAD(FULL_NAME,23-@LENGTH("TYPE")," ")
-   private JDK2_HashSet PRETTY_NAME= null; // OPTION.DESCRIP
+   private java.util.HashSet PRETTY_NAME= null; // OPTION.DESCRIP
        $$$$ END LET PRETTY_NAME
        $$$$ ELSE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
@@ -56,7 +56,7 @@ $$$$ FOREACH OPTION VDATFILE
    final boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
    final boolean fuzzyMatchFULL_NAME(TYPE q) { 
      if (FULL_NAME == null) return false;
-     JDK2_Iterator i = FULL_NAME.iterator();
+     java.util.Iterator i = FULL_NAME.iterator();
      while (i.hasNext()) {
        String s = (String)i.next();
        if (q.indexOf(s) > -1) return true;
@@ -64,9 +64,9 @@ $$$$ FOREACH OPTION VDATFILE
      return false;
    }	
    final boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
-   final JDK2_Iterator getFULL_NAMEs() { 
+   final java.util.Iterator getFULL_NAMEs() { 
      if (FULL_NAME == null) {
-       return new JDK2_Iterator() {
+       return new java.util.Iterator() {
          public boolean hasNext() { return false; }
          public Object next() { return null; }
  	 public void remove() {}
@@ -90,7 +90,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
         if (FULL_NAME != null) {
-          clone.FULL_NAME = (JDK2_HashSet)this.FULL_NAME.clone();
+          clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
         }
      $$$$ END IF 
      $$$$ END SPLIT  
@@ -205,7 +205,7 @@ $$$$ FOREACH OPTION VDATFILE
          $$$$ IF TAG == S
            $$$$ IF TYPE == String
        if (FULL_NAME == null) {
-         FULL_NAME = new JDK2_HashSet();
+         FULL_NAME = new java.util.HashSet();
        }
        FULL_NAME.add(value);
        return true;

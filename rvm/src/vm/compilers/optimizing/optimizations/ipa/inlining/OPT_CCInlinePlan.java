@@ -51,7 +51,7 @@ class OPT_CCInlinePlan {
    */
   public void dump () {
     System.out.println("\nDump inline plans\n");
-    JDK2_Iterator iterator = map.values().iterator();
+    java.util.Iterator iterator = map.values().iterator();
     while (iterator.hasNext()) {
       OPT_CCInlineComponent component = (OPT_CCInlineComponent)iterator.next();
       OPT_CCInlineNode node = component.getRoot();
@@ -97,7 +97,7 @@ class OPT_CCInlinePlan {
    * InlineComponent.
    */
   public void writeObject (Writer out) throws IOException {
-    for (JDK2_Iterator e = map.keySet().iterator(); e.hasNext();) {
+    for (java.util.Iterator e = map.keySet().iterator(); e.hasNext();) {
       OPT_CCInlineComponent c = (OPT_CCInlineComponent)map.get(e.next());
       out.write(c + "\n");
     }
@@ -145,7 +145,7 @@ class OPT_CCInlinePlan {
   /** 
    * Enumerate the inline components of this plan.
    */
-  public JDK2_Iterator getComponents () {
+  public java.util.Iterator getComponents () {
     return  map.values().iterator();
   }
 
@@ -154,7 +154,7 @@ class OPT_CCInlinePlan {
    */
   public int countInlinedBytecodes () {
     int count = 0;
-    for (JDK2_Iterator i = getComponents(); i.hasNext();) {
+    for (java.util.Iterator i = getComponents(); i.hasNext();) {
       OPT_CCInlineComponent c = (OPT_CCInlineComponent)i.next();
       count += c.countInlinedBytecodes();
     }
@@ -164,7 +164,7 @@ class OPT_CCInlinePlan {
   /**
    * A mapping from VM_Method to Inline Component
    */
-  JDK2_Map map = new JDK2_HashMap();  
+  java.util.Map map = new java.util.HashMap();  
 }
 
 

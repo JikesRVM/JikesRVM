@@ -73,10 +73,10 @@ class OPT_GraphUtilities {
   /**
    * Sort the nodes in a graph by decreasing DFS finish time
    */
-  public static JDK2_SortedSet sortByDecreasingFinishTime (OPT_Graph net, 
+  public static java.util.SortedSet sortByDecreasingFinishTime (OPT_Graph net, 
       OPT_DFS dfs) {
     FinishTimeComparator f = new FinishTimeComparator(dfs);
-    JDK2_TreeSet result = new JDK2_TreeSet(f);
+    java.util.TreeSet result = new java.util.TreeSet(f);
     for (Enumeration e = net.enumerateNodes(); e.hasMoreElements();) {
       OPT_GraphNode v = (OPT_GraphNode)e.nextElement();
       result.add(v);
@@ -88,7 +88,7 @@ class OPT_GraphUtilities {
    * put your documentation comment here
    */
   static class FinishTimeComparator
-      implements JDK2_Comparator {
+      implements java.util.Comparator {
     private OPT_DFS dfs;
 
     /**

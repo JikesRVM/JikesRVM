@@ -18,7 +18,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
-  public JDK2_Iterator getUses ();
+  public java.util.Iterator getUses ();
 
   /** 
    * Returns an enumeration of the equations in which this
@@ -26,7 +26,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
-  public JDK2_Iterator getDefs ();
+  public java.util.Iterator getDefs ();
 
   /** 
    * Return a string representation of the cell

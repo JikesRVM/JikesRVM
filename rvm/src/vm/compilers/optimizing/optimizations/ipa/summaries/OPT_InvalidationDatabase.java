@@ -42,7 +42,7 @@ public final class OPT_InvalidationDatabase {
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
    * a delicate * dance to avoid recursive classloading. --dave.
    */
-  public JDK2_Iterator invalidatedByOverriddenMethod (VM_Method m) {
+  public java.util.Iterator invalidatedByOverriddenMethod (VM_Method m) {
     MethodSet s = (MethodSet)nonOverriddenHash.get(m);
     if (s == null)
       return  null; 
@@ -90,7 +90,7 @@ public final class OPT_InvalidationDatabase {
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
    * a delicate * dance to avoid recursive classloading. --dave.
    */
-  public JDK2_Iterator invalidatedBySubclass (VM_Class m) {
+  public java.util.Iterator invalidatedBySubclass (VM_Class m) {
     MethodSet s = (MethodSet)noSubclassHash.get(m);
     if (s == null)
       return  null; 
@@ -128,18 +128,18 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private JDK2_HashMap nonOverriddenHash = new JDK2_HashMap();                                   
+  private java.util.HashMap nonOverriddenHash = new java.util.HashMap();                                   
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private JDK2_HashMap noSubclassHash = new JDK2_HashMap();                     
+  private java.util.HashMap noSubclassHash = new java.util.HashMap();                     
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private MethodSet findOrCreateMethodSet (JDK2_HashMap hash, Object key) {
+  private MethodSet findOrCreateMethodSet (java.util.HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -156,7 +156,7 @@ public final class OPT_InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */ 
-    JDK2_HashSet methods = new JDK2_HashSet();  
+    java.util.HashSet methods = new java.util.HashSet();  
 
     MethodSet (Object key) {
       this.key = key;
@@ -170,7 +170,7 @@ public final class OPT_InvalidationDatabase {
       methods.remove(new Integer(cmid));
     }
 
-    public JDK2_Iterator iterator () {
+    public java.util.Iterator iterator () {
       return  methods.iterator();
     }
   }

@@ -24,9 +24,9 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   static final boolean DEBUG = false;
 
   /** Implementation */
-  private JDK2_HashMap hash = new JDK2_HashMap();   // bb -> node
+  private java.util.HashMap hash = new java.util.HashMap();   // bb -> node
   private OPT_LSTNode rootNode;
-  private JDK2_HashMap nest;            // bb -> Integer (nesting depth)
+  private java.util.HashMap nest;            // bb -> Integer (nesting depth)
   private OPT_IR ir;
 
   /**
@@ -165,7 +165,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    *  	shebang.
    */
   private void initializeNesting() {
-    nest = new JDK2_HashMap();
+    nest = new java.util.HashMap();
     ir.resetBasicBlockMap();
     // for each node in the LST ...
     for (OPT_LSTNode node = (OPT_LSTNode)_firstNode.getNext(); 

@@ -47,7 +47,7 @@ class OPT_DFS extends OPT_Stack {
 
     // Implementation
 
-   private JDK2_HashMap info = new JDK2_HashMap(); // f: vertex -> VertexInfo
+   private java.util.HashMap info = new java.util.HashMap(); // f: vertex -> VertexInfo
    private int time;
 
    /**

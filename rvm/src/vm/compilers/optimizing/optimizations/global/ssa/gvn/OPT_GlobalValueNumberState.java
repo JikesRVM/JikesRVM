@@ -117,7 +117,7 @@ class OPT_GlobalValueNumberState {
 
      while ( true ) {
        OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.elementAt(val2);
-       JDK2_Iterator i = class2.iterator() ;  
+       java.util.Iterator i = class2.iterator() ;  
        if ( ! i.hasNext() ) break;
        OPT_ValueGraphVertex v = (OPT_ValueGraphVertex) i.next();
        if ( DEBUG) 
@@ -281,7 +281,7 @@ class OPT_GlobalValueNumberState {
    */
   private void initialize () {
     // store a map from label -> congruenceClass
-    JDK2_HashMap labelMap = new JDK2_HashMap(10);
+    java.util.HashMap labelMap = new java.util.HashMap(10);
     for (Enumeration e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       Object label = v.getLabel();
@@ -302,7 +302,7 @@ class OPT_GlobalValueNumberState {
    * @return the congruence class for the label.
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
-      JDK2_HashMap labelMap) {
+      java.util.HashMap labelMap) {
     OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);
@@ -335,7 +335,7 @@ class OPT_GlobalValueNumberState {
       if (c.size() == 1)
         continue;
       // store a reference to the first node in c
-      JDK2_Iterator i = c.iterator();
+      java.util.Iterator i = c.iterator();
       OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
       // now check that each other target matches the first element
       // if not, add this class to the work list
@@ -356,7 +356,7 @@ class OPT_GlobalValueNumberState {
   private void partitionClass (OPT_GVCongruenceClass partition) {
     // store a reference to the first node in c, which will serve
     // as a representative for this class
-    JDK2_Iterator i = partition.iterator();
+    java.util.Iterator i = partition.iterator();
     OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
     Vector newClasses = new Vector();
     // now check each other node in c, to see if it matches the
@@ -415,7 +415,7 @@ class OPT_GlobalValueNumberState {
    */
   private void addDependentClassesToWorklist (OPT_GVCongruenceClass c) {
     // for each element of this congruence class:
-    for (JDK2_Iterator elements = c.iterator(); elements.hasNext();) {
+    for (java.util.Iterator elements = c.iterator(); elements.hasNext();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)elements.next();
       // for each vertex which points to v in the value graph
       for (Enumeration e = v.inNodes(); e.hasMoreElements();) {
@@ -526,7 +526,7 @@ class OPT_GlobalValueNumberState {
     /**
      * The set of vertices in this congruence class
      */
-    JDK2_HashSet vertices = new JDK2_HashSet(1);
+    java.util.HashSet vertices = new java.util.HashSet(1);
 
     /**
      * Create a congruence class with a given representative value number
@@ -591,7 +591,7 @@ class OPT_GlobalValueNumberState {
      * Return an iterator over the vertices in this congruence class
      * @return an iterator over the vertices in this congruence class
      */
-    public JDK2_Iterator iterator () {
+    public java.util.Iterator iterator () {
       return  vertices.iterator();
     }
 

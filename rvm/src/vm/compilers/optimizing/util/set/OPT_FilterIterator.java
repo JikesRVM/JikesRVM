@@ -6,18 +6,18 @@
  * <code>Iterator</code> to generate a new one.
  */
 public class OPT_FilterIterator
-    implements JDK2_Iterator {
-  final JDK2_Iterator i;
+    implements java.util.Iterator {
+  final java.util.Iterator i;
   final Filter f;
   private Object next = null;
   private boolean done = false;
 
   /**
    * put your documentation comment here
-   * @param   JDK2_Iterator i
+   * @param   java.util.Iterator i
    * @param   Filter f
    */
-  public OPT_FilterIterator (JDK2_Iterator i, Filter f) {
+  public OPT_FilterIterator (java.util.Iterator i, Filter f) {
     this.i = i;
     this.f = f;
     advance();
@@ -41,7 +41,7 @@ public class OPT_FilterIterator
    */
   public Object next () {
     if (done)
-      throw  new JDK2_NoSuchElementException();
+      throw  new java.util.NoSuchElementException();
     Object o = next;
     advance();
     return  f.map(o);
@@ -59,7 +59,7 @@ public class OPT_FilterIterator
    * put your documentation comment here
    */
   public void remove () {
-    throw  new JDK2_UnsupportedOperationException();
+    throw  new java.util.UnsupportedOperationException();
   }
 
   /**

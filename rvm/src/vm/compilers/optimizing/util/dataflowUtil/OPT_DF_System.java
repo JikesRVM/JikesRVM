@@ -100,13 +100,13 @@ public abstract class OPT_DF_System {
   public void addNewEquationsToWorkList () {
     if (DEBUG)
       System.out.println("new equations:");
-    for (JDK2_Iterator e = newEquations.iterator(); e.hasNext();) {
+    for (java.util.Iterator e = newEquations.iterator(); e.hasNext();) {
       OPT_DF_Equation eq = (OPT_DF_Equation)e.next();
       if (DEBUG)
         System.out.println(eq.toString());
       addToWorkList(eq);
     }
-    newEquations = new JDK2_HashSet();
+    newEquations = new java.util.HashSet();
     if (DEBUG)
       System.out.println("end of new equations");
   }
@@ -128,7 +128,7 @@ public abstract class OPT_DF_System {
    * @param cell the lattice cell that has changed
    */
   public void changedCell (OPT_DF_LatticeCell cell) {
-    JDK2_Iterator e = cell.getUses();
+    java.util.Iterator e = cell.getUses();
     while (e.hasNext()) {
       newEquations.add((OPT_DF_Equation)e.next());
     }
@@ -278,7 +278,7 @@ public abstract class OPT_DF_System {
   /**
    * Set of equations pending evaluation
    */
-  protected JDK2_SortedSet workList = new JDK2_TreeSet(
+  protected java.util.SortedSet workList = new java.util.TreeSet(
     new java.util.Comparator() {
        public int compare (Object o1, Object o2) {
 	   if (!(o1 instanceof OPT_DF_Equation))
@@ -294,7 +294,7 @@ public abstract class OPT_DF_System {
   /**
    * Set of equations considered "new"
    */
-  protected JDK2_Set newEquations = new JDK2_HashSet();
+  protected java.util.Set newEquations = new java.util.HashSet();
   /**
    * The lattice cells of the system: Mapping from Object to OPT_DF_LatticeCell
    */
@@ -326,7 +326,7 @@ public abstract class OPT_DF_System {
   protected void updateWorkList (OPT_DF_Equation eq) {
     // find each equation which uses this lattice cell, and
     // add it to the work list
-    JDK2_Iterator e = eq.getLHS().getUses();
+    java.util.Iterator e = eq.getLHS().getUses();
     while (e.hasNext()) {
       workList.add(e.next());
     }

@@ -48,7 +48,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   }
   
   private OPT_IR ir;
-  private static JDK2_HashMap avail = new JDK2_HashMap();
+  private static java.util.HashMap avail = new java.util.HashMap();
 
   /**
    * Do a global CSE for all instructions of block b using the given

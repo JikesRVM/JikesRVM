@@ -4,14 +4,14 @@
 /**
  * put your documentation comment here
  */
-class OPT_EmptySet extends JDK2_AbstractSet {
+class OPT_EmptySet extends java.util.AbstractSet {
   public static OPT_EmptySet INSTANCE = new OPT_EmptySet();
 
   /**
    * put your documentation comment here
    * @return 
    */
-  public JDK2_Iterator iterator () {
+  public java.util.Iterator iterator () {
     return  OPT_EmptyIterator.INSTANCE;
   }
 

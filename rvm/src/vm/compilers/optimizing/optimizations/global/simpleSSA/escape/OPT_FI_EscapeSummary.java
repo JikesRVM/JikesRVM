@@ -66,12 +66,12 @@ class OPT_FI_EscapeSummary {
    * A mapping that holds the analysis result for thread-locality for each
    * OPT_Register.
    */
-  private JDK2_HashMap hash = new JDK2_HashMap();   
+  private java.util.HashMap hash = new java.util.HashMap();   
   /**
    * A mapping that holds the analysis result for method-locality for each
    * OPT_Register.
    */
-  private JDK2_HashMap hash2 = new JDK2_HashMap();  
+  private java.util.HashMap hash2 = new java.util.HashMap();  
 
   /**
    * Static object used to represent analysis result

@@ -98,7 +98,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      */
     final void eliminateLoads (OPT_IR ir, OPT_DF_Solution available) {
       // maintain a mapping from value number to temporary register
-      JDK2_HashMap registers = new JDK2_HashMap();
+      java.util.HashMap registers = new java.util.HashMap();
       UseRecordSet UseRepSet = replaceLoads(ir, available, registers);
       replaceDefs(ir, UseRepSet, registers);
     }
@@ -115,7 +115,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      * @param registers a place to store information about temp registers
      */
     final UseRecordSet replaceLoads (OPT_IR ir, OPT_DF_Solution available, 
-        JDK2_HashMap registers) {
+        java.util.HashMap registers) {
       UseRecordSet result = new UseRecordSet();
       OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
       OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
@@ -211,7 +211,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      * @param registers mapping from valueNumber -> temporary register
      */
     final void replaceDefs (OPT_IR ir, UseRecordSet UseRepSet, 
-        JDK2_HashMap registers) {
+        java.util.HashMap registers) {
       OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
       for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
         OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -318,7 +318,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      * @param type the type to store in the new register
      */
     OPT_Register findOrCreateRegister (Object heapType, int valueNumber, 
-        JDK2_HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+        java.util.HashMap registers, OPT_RegisterPool pool, VM_Type type) {
       UseRecord key = new UseRecord(heapType, valueNumber);
       OPT_Register result = (OPT_Register)registers.get(key);
       if (result == null) {
@@ -341,7 +341,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      * @param type the type to store in the new register
      */
     OPT_Register findOrCreateRegister (Object heapType, int v1, int v2, 
-        JDK2_HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+        java.util.HashMap registers, OPT_RegisterPool pool, VM_Type type) {
       UseRecord key = new UseRecord(heapType, v1, v2);
       OPT_Register result = (OPT_Register)registers.get(key);
       if (result == null) {
@@ -405,7 +405,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
      * put your documentation comment here
      */
     static class UseRecordSet {
-      JDK2_HashSet set = new JDK2_HashSet(10);
+      java.util.HashSet set = new java.util.HashSet(10);
 
       // Does this set contain a use that has the same type as H and
       // the given value number?
@@ -449,10 +449,10 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
    *	1) there's a load L of type T	
    *	2) there's another load or store M of type T, M!=L 
    */
-  final public static JDK2_Set getCandidates (OPT_IR ir) {
-    JDK2_HashSet seenLoad = new JDK2_HashSet(10);
-    JDK2_HashSet seenStore = new JDK2_HashSet(10);
-    JDK2_HashSet resultSet = new JDK2_HashSet(10);
+  final public static java.util.Set getCandidates (OPT_IR ir) {
+    java.util.HashSet seenLoad = new java.util.HashSet(10);
+    java.util.HashSet seenStore = new java.util.HashSet(10);
+    java.util.HashSet resultSet = new java.util.HashSet(10);
     // walk the instructions.  Store whether we've seen a load and/or a
     // store for each type. Then, when we see a second appearance,
     // if we've previously seen a load, then add this type to the

@@ -16,7 +16,7 @@ class OPT_HashedValueNumbers implements OPT_Operators {
    */
   OPT_HashedValueNumbers () {
     actNum = 2;
-    hash = new JDK2_HashMap();
+    hash = new java.util.HashMap();
   }
   
   /**
@@ -47,7 +47,7 @@ class OPT_HashedValueNumbers implements OPT_Operators {
   /**
    * This HashMap keeps track of known values
    */
-  private JDK2_HashMap hash;
+  private java.util.HashMap hash;
   
 
 

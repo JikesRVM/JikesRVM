@@ -28,7 +28,7 @@ public class OPT_InvokeeThreadLocalContext
       (VM_Method source) {
     // first check if the specialization database contains
     // a specialized version from this context.
-    JDK2_Iterator versions = 
+    java.util.Iterator versions = 
         OPT_SpecializationDatabase.getSpecialVersions(source);
     if (versions != null) {
       while (versions.hasNext()) {

@@ -140,7 +140,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System
   protected void initializeLatticeCells () {
     // initially all lattice cells are set to TOP
     // set the lattice cells that are exposed on entry to BOTTOM
-    for (JDK2_Iterator e = cells.values().iterator(); e.hasNext();) {
+    for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
       OPT_DF_LatticeCell c = (OPT_DF_LatticeCell)e.next();
       if (c instanceof OPT_IPObjectCell) {
         OPT_IPObjectCell c1 = (OPT_IPObjectCell)c;

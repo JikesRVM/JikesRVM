@@ -11,7 +11,7 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-public class OPT_DF_Solution extends JDK2_HashMap {
+public class OPT_DF_Solution extends java.util.HashMap {
 
   /** 
    * Return a string representation of the dataflow solution
@@ -19,7 +19,7 @@ public class OPT_DF_Solution extends JDK2_HashMap {
    */
   public String toString () {
     String result = new String();
-    for (JDK2_Iterator e = values().iterator(); e.hasNext();) {
+    for (java.util.Iterator e = values().iterator(); e.hasNext();) {
       OPT_DF_LatticeCell cell = (OPT_DF_LatticeCell)e.next();
       result = result + cell + "\n";
     }

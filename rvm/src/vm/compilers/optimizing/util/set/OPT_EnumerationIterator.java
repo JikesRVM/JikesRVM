@@ -6,7 +6,7 @@
  * into an <code>Iterator</code>.
  */
 public class EnumerationIterator
-    implements JDK2_Iterator {
+    implements java.util.Iterator {
   private final java.util.Enumeration e;
 
   /**
@@ -37,7 +37,7 @@ public class EnumerationIterator
    * put your documentation comment here
    */
   public void remove () {
-    throw  new JDK2_UnsupportedOperationException();
+    throw  new java.util.UnsupportedOperationException();
   }
 }
 

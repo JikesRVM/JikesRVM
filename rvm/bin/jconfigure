@@ -312,8 +312,6 @@ integer RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not just
 integer RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 integer RVM_WITHOUT_LAZY_COMPILATION=0 # force method compilation on class loading
 integer RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
-integer RVM_WITH_ESCAPE_ANALYSIS=0  # include Escape Analysis
-integer RVM_WITH_DATARACE_ANALYSIS=0  # include Data Race Analysis
 integer RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 integer RVM_WITH_SPECIALIZATION=0 # support for method cloning
 integer RVM_WITH_JAZZLIB=0 # use jazzlib for jar/zip files?
@@ -727,14 +725,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/optimizing
    elif (( $RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM )); then
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
-   fi
-
-   if (( RVM_WITH_ESCAPE_ANALYSIS )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis
-   fi
-   if (( RVM_WITH_DATARACE_ANALYSIS )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/dataRace
-      print $RVM_ROOT/rvm/src/vm/profiler/dyndatarace
    fi
 
    if (( $RVM_WITH_SPECIALIZATION )); then
@@ -1156,16 +1146,6 @@ fi
    print 'FILES=`/bin/ls' $RVM_ROOT'/rvm/src/tools/jdp/interpreter/mapVM.java`'
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
 
-
-   # TEMP: remove JDK2_ renaming hack from opt compiler
-   # We are now using a JDK2 library, so maybe we dont need this hack anymore
-   #
-   print 'for f in `find' $CLASSES_DIRECTORY_STR '-name '*.java'`; do'
-   print "  sed 's/JDK2_/java.util./g' < \$f > \$f.tmp"
-   print "  chmod a+rw \$f"
-   print "  mv -f \$f.tmp \$f"
-   print "done"
-
    if (( ! BUILD_RVMRT_JAR )); then
      print "cp $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY"
      print "\nprint -n '(rvmrt.jar copied) \n'"
@@ -1346,12 +1326,6 @@ function emitImageLinker
       
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
-      if (( RVM_WITH_ESCAPE_ANALYSIS )); then
-        print "   print $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
-      fi
-      if (( RVM_WITH_DATARACE_ANALYSIS )); then
-        print "   print $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/optimizations/ipa/dataRace/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
-      fi
 
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"

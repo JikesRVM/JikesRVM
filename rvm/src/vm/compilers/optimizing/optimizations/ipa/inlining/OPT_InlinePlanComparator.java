@@ -10,7 +10,7 @@ import  java.util.*;
  */
 
 class OPT_InlinePlanComparator
-    implements JDK2_Comparator {
+    implements java.util.Comparator {
   public static boolean debug = false;
 
   /** 

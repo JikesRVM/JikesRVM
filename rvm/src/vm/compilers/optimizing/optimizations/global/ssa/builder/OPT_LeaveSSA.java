@@ -77,7 +77,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * This class provides an abstraction over stacks of names
    * for registers.
    */
-  static class VariableStacks extends JDK2_HashMap {
+  static class VariableStacks extends java.util.HashMap {
 
     /**
      * Get the name at the top of the stack for a particular register 
@@ -157,10 +157,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @param live valid liveness information for the IR
    * @param s structure holding stacks of names for each symbolic register
    */
-  private JDK2_Set scheduleCopies (OPT_BasicBlock bb, OPT_LiveAnalysis live, 
+  private java.util.Set scheduleCopies (OPT_BasicBlock bb, OPT_LiveAnalysis live, 
                                    VariableStacks s) {
     // pushed records variables renamed in this block
-    JDK2_Set pushed = new JDK2_HashSet(4);
+    java.util.Set pushed = new java.util.HashSet(4);
     // compute out liveness from information in LiveAnalysis
     OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(bb);
     OPT_LiveSet out = new OPT_LiveSet();
@@ -168,8 +168,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     out.remove(le.BBKillSet());
     out.add(le.gen());
     // initialization
-    JDK2_HashMap map = new JDK2_HashMap(4);
-    JDK2_HashSet usedByAnother = new JDK2_HashSet(4);
+    java.util.HashMap map = new java.util.HashMap(4);
+    java.util.HashSet usedByAnother = new java.util.HashSet(4);
     OPT_LinkedListObjectElement copySet = null;
     OPT_LinkedListObjectElement workList = null;
     // collect copies required in this block.  These copies move
@@ -346,7 +346,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     }
     // add copies required in this block to remove phis,
     // recording needed renamings in s and pushed
-    JDK2_Set pushed = scheduleCopies(bb, live, s);
+    java.util.Set pushed = scheduleCopies(bb, live, s);
     // insert copies in control children
     Enumeration children = dom.getChildren(bb);
     while (children.hasMoreElements()) {
@@ -355,7 +355,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
       insertCopies(c, dom, live, s);
     }
     // pop renamings from this block off stack
-    JDK2_Iterator p = pushed.iterator();
+    java.util.Iterator p = pushed.iterator();
     while (p.hasNext())
       s.pop((OPT_Register)p.next());
   }

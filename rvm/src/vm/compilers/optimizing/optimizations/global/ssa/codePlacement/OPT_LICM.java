@@ -624,7 +624,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   //-#endif
   private OPT_IR ir;
   private OPT_FI_EscapeSummary escapeSummary;
-  private static JDK2_HashSet moved = new JDK2_HashSet();
+  private static java.util.HashSet moved = new java.util.HashSet();
 
   /**
    * returns the initial memory value valid before the loop is first entered,

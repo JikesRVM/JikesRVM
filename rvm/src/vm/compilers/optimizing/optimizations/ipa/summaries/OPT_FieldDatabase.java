@@ -7,7 +7,7 @@
  *
  * @author Stephen Fink
  */
-final class OPT_FieldDatabase extends JDK2_HashMap {
+final class OPT_FieldDatabase extends java.util.HashMap {
    final static private boolean DEBUG = false;
 
    OPT_FieldDatabase() { }
@@ -37,7 +37,7 @@ final class OPT_FieldDatabase extends JDK2_HashMap {
    }
     // a data structure holding information about a field
     final class FieldDatabaseEntry {
-      private JDK2_HashMap summaries;	// VM_Method -> FieldWriterInfo
+      private java.util.HashMap summaries;	// VM_Method -> FieldWriterInfo
       boolean cachedAllAnalyzed;	// have we already determined
       					// all methods are analyzed?
       VM_Type cachedConcreteType;	// cache a copy of the concrete type
@@ -51,7 +51,7 @@ final class OPT_FieldDatabase extends JDK2_HashMap {
       boolean allMethodsAreAnalyzed() {
 
          if (cachedAllAnalyzed) return true;
-         for (JDK2_Iterator i = summaries.values().iterator(); i.hasNext(); ) {
+         for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
 	    FieldWriterInfo info = (FieldWriterInfo)i.next();
 	    if (!info.isAnalyzed()) return false;
 	 }
@@ -64,7 +64,7 @@ final class OPT_FieldDatabase extends JDK2_HashMap {
       VM_Type getConcreteType() {
 	 if (cachedConcreteType != null) return cachedConcreteType;
 	 VM_Type result = null;
-         for (JDK2_Iterator i = summaries.values().iterator(); i.hasNext(); ) {
+         for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
 	    FieldWriterInfo info = (FieldWriterInfo)i.next();
 	    if (!info.isAnalyzed()) return null;
 	    if (info.isBottom()) return null;
@@ -87,7 +87,7 @@ final class OPT_FieldDatabase extends JDK2_HashMap {
          if (VM.VerifyAssertions) VM.assert(f.isPrivate());
 
          VM_Class klass = f.getDeclaringClass();
-	 summaries = new JDK2_HashMap(1);
+	 summaries = new java.util.HashMap(1);
        
          // walk thru each method of the declaring class.  If a
 	 // method m may write to f, then create a FieldWriterInfo

@@ -85,7 +85,7 @@ final class OPT_ClassLoadingDependencyManager {
     for (int i = 0; i < sc_methods.length; i++) {
       if (sc_methods[i] != c_methods[i]) {
         VM_Method overridden = sc_methods[i];
-        JDK2_Iterator invalidatedMethods = 
+        java.util.Iterator invalidatedMethods = 
             db.invalidatedByOverriddenMethod(overridden);
         if (invalidatedMethods != null) {
           while (invalidatedMethods.hasNext()) {
@@ -107,7 +107,7 @@ final class OPT_ClassLoadingDependencyManager {
     VM_Class sc = c.getSuperClass();
     if (sc == null)
       return;                   // c == java.lang.Object.
-    JDK2_Iterator invalidatedMethods = db.invalidatedBySubclass(sc);
+    java.util.Iterator invalidatedMethods = db.invalidatedBySubclass(sc);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = ((Integer)invalidatedMethods.next()).intValue();

@@ -200,7 +200,7 @@ final class OPT_GenerationContext implements OPT_Constants,
 
     // Create register pool, initialize arguments, resultReg.
     temps = new OPT_RegisterPool(meth);
-    _ncGuards = new JDK2_HashMap();
+    _ncGuards = new java.util.HashMap();
     initLocalPool();
     VM_Type[] params = meth.getParameterTypes();
     int numParams = params.length;
@@ -550,7 +550,7 @@ final class OPT_GenerationContext implements OPT_Constants,
 
   // For each register, we always use the same register as a validation operand.
   // This helps us avoid needlessly losing information at CFG join points.
-  private JDK2_HashMap _ncGuards;
+  private java.util.HashMap _ncGuards;
 
   /**
    * Make a register operand to use as a null check guard for the 

@@ -37,7 +37,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
    */
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
-    JDK2_HashMap info = new JDK2_HashMap();
+    java.util.HashMap info = new java.util.HashMap();
 
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
@@ -78,10 +78,10 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                 // TODO: use a better data structure for efficiency.
                 // I'm being lazy for now in the name of avoiding
                 // premature optimization.
-                JDK2_HashSet toRemove = new JDK2_HashSet();
-                for (JDK2_Iterator i = info.entrySet().iterator();
+                java.util.HashSet toRemove = new java.util.HashSet();
+                for (java.util.Iterator i = info.entrySet().iterator();
                      i.hasNext(); ) {
-                  JDK2_Map.Entry entry = (JDK2_Map.Entry)i.next();
+                  java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
                   OPT_Register eR =
                     ((OPT_RegisterOperand)entry.getValue()).
                     asRegister().register;
@@ -92,7 +92,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                   }
                 }
                 // Now perform the removals.
-                for (JDK2_Iterator i = toRemove.iterator(); i.hasNext();) {
+                for (java.util.Iterator i = toRemove.iterator(); i.hasNext();) {
                   info.remove(i.next());
                 }
               }

@@ -39,7 +39,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
     e = nodes;
     net.compactNodeNumbering();
     info = new OPT_GraphNodeEnumeration[net.numberOfNodes() + 1];
-    //	info = new JDK2_HashMap( net.numberOfNodes() );
+    //	info = new java.util.HashMap( net.numberOfNodes() );
     if (e.hasMoreElements())
       theNextElement = e.next();
   }

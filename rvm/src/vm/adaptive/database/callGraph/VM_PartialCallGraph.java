@@ -23,7 +23,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
    * Constructor
    */
   VM_PartialCallGraph() {
-    findTriples = new JDK2_HashMap();
+    findTriples = new java.util.HashMap();
     totalEdgeWeights = 0.0;
   }
   
@@ -32,7 +32,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
    *
    * @return iterator over edges 
    */
-  JDK2_Iterator getEdges() {
+  java.util.Iterator getEdges() {
     return findTriples.values().iterator();
   }
   
@@ -45,7 +45,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
     double rate = VM_Controller.options.AI_DECAY_RATE;
     
     synchronized(findTriples) {
-      for (JDK2_Iterator iterator = getEdges(); iterator.hasNext();) {
+      for (java.util.Iterator iterator = getEdges(); iterator.hasNext();) {
 	VM_CallSiteTriple triple = (VM_CallSiteTriple)iterator.next();
 	triple.decayWeight(rate);
       }
@@ -122,7 +122,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
   public void dump() {
     VM.sysWrite("VM_PartialCallGraph.dump()\n");
     VM.sysWrite("  Number of edges "+findTriples.size()+", total weight: "+totalEdgeWeights+"\n");
-    JDK2_TreeSet treeSet = new JDK2_TreeSet(new VM_CallSiteTripleComparator(true));
+    java.util.TreeSet treeSet = new java.util.TreeSet(new VM_CallSiteTripleComparator(true));
     try {
       synchronized(findTriples) {
 	treeSet.addAll(findTriples.values());
@@ -132,11 +132,11 @@ public final class VM_PartialCallGraph implements VM_Decayable {
       VM.sysExit(-1);
     }
     int i=0;
-    for (JDK2_Iterator iterator = treeSet.iterator(); iterator.hasNext();) {
+    for (java.util.Iterator iterator = treeSet.iterator(); iterator.hasNext();) {
       VM_CallSiteTriple triple = null;
       try {
 	triple = (VM_CallSiteTriple)iterator.next();
-      } catch (JDK2_NoSuchElementException e) {
+      } catch (java.util.NoSuchElementException e) {
 	VM.sysWrite("***OPT_PCG.dump(): iterator.next() returns NoSuchElementException!\n");
 	VM.sysExit(-1);
       }
@@ -153,7 +153,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
   /*
    * hashcodeOf(callers,call site,callees) -> triple
    */
-  private JDK2_HashMap findTriples;
+  private java.util.HashMap findTriples;
   /*
    * sum of all edge weights in the graph
    */

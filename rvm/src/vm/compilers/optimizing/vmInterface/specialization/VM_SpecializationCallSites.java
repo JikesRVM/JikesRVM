@@ -6,7 +6,7 @@ import java.util.Vector;
 class VM_SpecializationCallSites {
 
     static class CallSiteKey {
-	private JDK2_HashSet edgeKeys;
+	private java.util.HashSet edgeKeys;
 
 	public int hashCode() {
 	    return edgeKeys.hashCode();
@@ -54,7 +54,7 @@ class VM_SpecializationCallSites {
 	CallSiteKey(OPT_SpecializationGraphNode src, 
 		    GNO_InstructionLocation call) 
 	{
-	    edgeKeys = new JDK2_HashSet();
+	    edgeKeys = new java.util.HashSet();
 	    OPT_SpecializationGraphEdgeEnumeration e = 
 		OPT_SpecializationManager.
 		     computeApplicableSpecializations(src, call);
@@ -120,7 +120,7 @@ class VM_SpecializationCallSites {
 	}
     }
 
-    static private JDK2_HashMap nominalMethods = new JDK2_HashMap();
+    static private java.util.HashMap nominalMethods = new java.util.HashMap();
 
     static private Object getMethodKey(VM_Method callTarget) {
 	if ( callTarget.getDeclaringClass().isLoaded() 

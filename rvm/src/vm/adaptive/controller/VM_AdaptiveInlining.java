@@ -81,7 +81,7 @@ class VM_AdaptiveInlining {
     Vector vectorOfTriples = new Vector();
       
     /** Compute the set of hot edges */
-    for (JDK2_Iterator i = dcg.getEdges(); i.hasNext(); ) {
+    for (java.util.Iterator i = dcg.getEdges(); i.hasNext(); ) {
       VM_CallSiteTriple triple = (VM_CallSiteTriple)i.next();
       if(DEBUG)VM.sysWrite(" :"+ triple +"\n");
 	 
@@ -170,7 +170,7 @@ class VM_AdaptiveInlining {
   }
     
   // Mapping from Integer(CMID) to nonInlinedElement
-  private static JDK2_HashMap nonInlinedEdges = new JDK2_HashMap();
+  private static java.util.HashMap nonInlinedEdges = new java.util.HashMap();
   static class NonInlinedElement {
     int cmid;
     VM_CallSiteTriple edge;

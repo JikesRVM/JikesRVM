@@ -30,7 +30,7 @@ class OPT_ContextFreeInlinePlan {
    */
   public void addRule (VM_Method a, int x, VM_Method b) {
     OPT_CallSite s = new OPT_CallSite(a, x);
-    JDK2_HashSet targets = findOrCreateTargets(s);
+    java.util.HashSet targets = findOrCreateTargets(s);
     targets.add(b);
   }
 
@@ -41,12 +41,12 @@ class OPT_ContextFreeInlinePlan {
    * @param x bytecodeIndex
    */
   public VM_Method[] getTargets (VM_Method a, int x) {
-    JDK2_HashSet targets = (JDK2_HashSet)map.get(new OPT_CallSite(a, x));
+    java.util.HashSet targets = (java.util.HashSet)map.get(new OPT_CallSite(a, x));
     if (targets == null)
       return  null;
     int length = targets.size();
     VM_Method[] result = new VM_Method[length];
-    JDK2_Iterator j = targets.iterator();
+    java.util.Iterator j = targets.iterator();
     for (int i = 0; i < length; i++) {
       result[i] = (VM_Method)j.next();
     }
@@ -56,7 +56,7 @@ class OPT_ContextFreeInlinePlan {
   /**
    *  Allows iteration over the elements
    */
-  public JDK2_Iterator getIterator () {
+  public java.util.Iterator getIterator () {
     return  map.keySet().iterator();
   }
 
@@ -66,10 +66,10 @@ class OPT_ContextFreeInlinePlan {
    */
   public String toString () {
     String tmp = "";
-    for (JDK2_Iterator i = getIterator(); i.hasNext();) {
+    for (java.util.Iterator i = getIterator(); i.hasNext();) {
       OPT_CallSite key = (OPT_CallSite)i.next();
-      JDK2_HashSet targets = (JDK2_HashSet)map.get(key);
-      for (JDK2_Iterator j = targets.iterator(); j.hasNext();) {
+      java.util.HashSet targets = (java.util.HashSet)map.get(key);
+      for (java.util.Iterator j = targets.iterator(); j.hasNext();) {
         VM_Method callee = (VM_Method)j.next();
         tmp += "  <" + key.method + "," + key.bcIndex + "," + "," + callee
             + ">\n";
@@ -79,16 +79,16 @@ class OPT_ContextFreeInlinePlan {
   }
 
   /** Implementation */
-  JDK2_HashMap map = new JDK2_HashMap();        // f:call site -> Set<VM_Method>
+  java.util.HashMap map = new java.util.HashMap();        // f:call site -> Set<VM_Method>
 
   /**
    * Find the set of targets for a call site
    * If none found, create one
    */
-  private JDK2_HashSet findOrCreateTargets (OPT_CallSite c) {
-    JDK2_HashSet targets = (JDK2_HashSet)map.get(c);
+  private java.util.HashSet findOrCreateTargets (OPT_CallSite c) {
+    java.util.HashSet targets = (java.util.HashSet)map.get(c);
     if (targets == null) {
-      targets = new JDK2_HashSet();
+      targets = new java.util.HashSet();
       map.put(c, targets);
     }
     return  targets;

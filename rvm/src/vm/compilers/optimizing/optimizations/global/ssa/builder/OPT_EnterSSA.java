@@ -49,7 +49,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
   /**
    * A set of registers determined to span basic blocks
    */
-  private JDK2_HashSet nonLocalRegisters;
+  private java.util.HashSet nonLocalRegisters;
 
   /**
    * Should this phase be performed under a guiding set of compiler
@@ -96,7 +96,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     this.ir = ir;
     boolean scalarsOnly = ir.desiredSSAOptions.getScalarsOnly();
     boolean backwards = ir.desiredSSAOptions.getBackwards();
-    JDK2_Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
+    java.util.Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
     boolean insertUsePhis = ir.desiredSSAOptions.getInsertUsePhis();
     boolean insertPEIDeps = ir.desiredSSAOptions.getInsertPEIDeps();
     // make sure the dominator computation completed successfully
@@ -148,10 +148,10 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * </code> field.
    */
   private void computeNonLocals () {
-    nonLocalRegisters = new JDK2_HashSet(20);
+    nonLocalRegisters = new java.util.HashSet(20);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      JDK2_HashSet killed = new JDK2_HashSet(5);
+      java.util.HashSet killed = new java.util.HashSet(5);
       OPT_BasicBlock block = blocks.next();
       OPT_InstructionEnumeration instrs = block.forwardRealInstrEnumerator();
       while (instrs.hasMoreElements()) {
@@ -183,7 +183,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     // this only applies if there are exception handlers
     if (!ir.hasReachableExceptionHandlers()) return;
 
-    JDK2_HashSet needed = new JDK2_HashSet(4);
+    java.util.HashSet needed = new java.util.HashSet(4);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
       OPT_BasicBlock block = blocks.next();
@@ -227,7 +227,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
       }
     }
     // having determine where copies should be inserted, now insert them.
-    JDK2_Iterator copies = needed.iterator();
+    java.util.Iterator copies = needed.iterator();
     while (copies.hasNext()) {
       OPT_Pair copy = (OPT_Pair)copies.next();
       OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
@@ -281,7 +281,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * code placement algorithms.
    */
   private void computeSSA (OPT_IR ir, boolean scalarsOnly, boolean backwards, 
-      JDK2_Set heapTypes, boolean insertUsePhis, boolean insertPEIDeps) {
+      java.util.Set heapTypes, boolean insertUsePhis, boolean insertPEIDeps) {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
 
@@ -710,8 +710,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase
       S[i].push(null);
     }
     OPT_BasicBlock entry = ir.cfg.entry();
-    JDK2_HashMap phiDefTypes = new JDK2_HashMap(10);
-    JDK2_HashSet ambiguous = new JDK2_HashSet(10);
+    java.util.HashMap phiDefTypes = new java.util.HashMap(10);
+    java.util.HashSet ambiguous = new java.util.HashSet(10);
     OPT_RegisterInfo.clearRegisterList(ir);
     search(entry, S, ir, phiDefTypes, ambiguous);
     OPT_RegisterInfo.recomputeSSA(ir);
@@ -730,8 +730,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param ambiguous, a set of phi statements whose type is unknown
    */
   private static void search (OPT_BasicBlock X, java.util.Stack[] S, OPT_IR ir, 
-                              JDK2_HashMap phiDefTypes, 
-                              JDK2_HashSet ambiguous) {
+                              java.util.HashMap phiDefTypes, 
+                              java.util.HashSet ambiguous) {
     if (DEBUG)
       System.out.println("SEARCH " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
@@ -884,15 +884,15 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param ambig set of instructions with ambiguous types
    * @param phiDefTypes mapping from register to types
    */
-  private static void setAmbiguousTypes (JDK2_HashSet ambig, 
-      JDK2_HashMap phiDefTypes) {
-    JDK2_HashSet remove = new JDK2_HashSet(10);
+  private static void setAmbiguousTypes (java.util.HashSet ambig, 
+      java.util.HashMap phiDefTypes) {
+    java.util.HashSet remove = new java.util.HashSet(10);
     // worklist algorithm to drain the ambig set.
     int fixedPoint = ambig.size() + 1;
     while (ambig.size() < fixedPoint) {
       remove.clear();
       // for each phi instruction with an ambiguous type  ..
-      for (JDK2_Iterator i = ambig.iterator(); i.hasNext();) {
+      for (java.util.Iterator i = ambig.iterator(); i.hasNext();) {
         OPT_Instruction s = (OPT_Instruction)i.next();
         // loop across all rvals with type info
         OPT_Operand op = null;
@@ -932,7 +932,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
         }
       }
       // now remove the resolved instructions from the worklist
-      for (JDK2_Iterator i2 = remove.iterator(); i2.hasNext();) {
+      for (java.util.Iterator i2 = remove.iterator(); i2.hasNext();) {
         OPT_Instruction s = (OPT_Instruction)i2.next();
         ambig.remove(s);
       }
@@ -941,7 +941,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     }
     // we've reached the fixed point.  Remaining ambiguous
     // phis are truly dead. remove them
-    for (JDK2_Iterator i3 = ambig.iterator(); i3.hasNext();) {
+    for (java.util.Iterator i3 = ambig.iterator(); i3.hasNext();) {
       OPT_Instruction s = (OPT_Instruction)i3.next();
       OPT_RegisterOperandEnumeration uses = OPT_RegisterInfo.uses
           (s.getOperand(0).asRegister().register);
@@ -970,7 +970,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
     // use stacks.get(VM_Type.IntType);
-    JDK2_HashMap stacks = new JDK2_HashMap(n);
+    java.util.HashMap stacks = new java.util.HashMap(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
     for (Enumeration e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
@@ -997,7 +997,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param ir the governing IR
    * used and defined by each instruction.
    */
-  private static void search2(OPT_BasicBlock X, JDK2_HashMap stacks, 
+  private static void search2(OPT_BasicBlock X, java.util.HashMap stacks, 
                               OPT_IR ir ) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
@@ -1105,7 +1105,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param IR governing IR
    * @param store place to store copies
    */
-  private static void copyHeapDefs (OPT_IR ir, JDK2_HashMap store) {
+  private static void copyHeapDefs (OPT_IR ir, java.util.HashMap store) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); 
         be.hasMoreElements();) {
@@ -1127,7 +1127,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    *	    registers that are defined by phi instructions
    */
   private static void setPhiType (OPT_Instruction s, VM_Type t, 
-                                  JDK2_HashMap phiDefTypes, 
+                                  java.util.HashMap phiDefTypes, 
                                   int operandIndex) {
     // if t is null, do nothing
     if (t == null) return;

@@ -20,7 +20,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
   /**
    * Mapping register -> Node
    */
-  JDK2_HashMap nodeMap = new JDK2_HashMap();
+  java.util.HashMap nodeMap = new java.util.HashMap();
 
   /**
    * find or create a node in the graph corresponding to a register.
