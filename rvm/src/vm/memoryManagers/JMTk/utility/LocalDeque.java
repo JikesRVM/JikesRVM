@@ -99,44 +99,6 @@ public class LocalDeque extends LocalQueue
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
-  /**
-   * Check whether there are sufficient entries in the tail buffer for
-   * a pending pop.  If there are not sufficient entries, acquire a
-   * new buffer from the shared deque. Return true if there are
-   * enough entries for the pending pop, false if the deque has been
-   * exhausted.
-   *
-   * @param arity The arity of the values stored in this deque: there
-   * must be at least this many values available.
-   * @return True if there are enough entries for the pending pop,
-   * false if the queue has been exhausted.
-   */
-  protected final boolean checkPop(int arity) throws VM_PragmaInline {
-    if (tail.EQ(tailBufferEnd)) {
-      return popUnderflow(arity);
-    } else if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(bufferOffset(tail).sLT(bufferSentinel(queue.getArity())));
-    }
-    return true;
-  }
-
-  /**
-   * Pop an address value from the buffer.  This is <i>unchecked</i>.  The
-   * caller must first call <code>checkPop()</code> to ensure the
-   * buffer has sufficient values.
-   *
-   * @return the next address in the buffer
-   */
-  protected final VM_Address uncheckedPop() throws VM_PragmaInline {
-    VM_Address retVal;
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(tail.LT(tailBufferEnd));
-    // if (VM_Interface.VerifyAssertions) enqueued--;
-    retVal = VM_Magic.getMemoryAddress(tail);
-    tail = tail.add(BYTES_IN_ADDRESS);
-    return retVal;
-  }
-
   /****************************************************************************
    *
    * Private instance methods and fields
@@ -156,32 +118,6 @@ public class LocalDeque extends LocalQueue
 
     head = queue.alloc();
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
-  }
-
-  /**
-   * There are not sufficient entries in the head buffer for a pending
-   * pop.  Acquire a new tail buffer.  If the shared deque has no
-   * buffers available, consume the head if necessary.  Return false
-   * if entries cannot be acquired.
-   *
-   * @param arity The arity of this buffer (used for sanity test only).
-   * @return True if the buffer has been successfully
-   * replenished.
-   */
-  private final boolean popUnderflow(int arity) throws VM_PragmaNoInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
-    do {
-      if (tail.NE(Deque.TAIL_INITIAL_VALUE))
-	queue.free(head);
-      tailBufferEnd = queue.dequeue(arity, true);
-      tail = bufferStart(tailBufferEnd);
-    } while (tail.NE(Deque.TAIL_INITIAL_VALUE) && tail.EQ(tailBufferEnd));
-
-    if (tail.EQ(Deque.TAIL_INITIAL_VALUE))
-      return !tailStarved(arity);
-
-      return true;
   }
 
   /**
