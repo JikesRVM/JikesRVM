@@ -546,15 +546,25 @@ getFaultingAddress(mstsave *save)
 #endif
 {
     if (lib_verbose) {
-#if (_AIX43)
-        fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
-#else
+#if (_AIX51)
         fprintf(SysTraceFile, "save->except[0]=" FMTrvmPTR "\n", 
                 rvmPTR_ARG(save->except[0]));
+#else
+        fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
 #endif
     }
 
-#if (_AIX43)
+#if (_AIX51)
+    if (faultingAddressLocation == -1) {
+        if (save->except[0] == testFaultingAddress) 
+            faultingAddressLocation = 0;
+        else {
+            fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
+            exit(-1);
+        }
+    }
+    return save->except[0];
+#else
     if (faultingAddressLocation == -1) {
         if (save->o_vaddr == testFaultingAddress) {
             faultingAddressLocation = 0;
@@ -565,16 +575,6 @@ getFaultingAddress(mstsave *save)
         }
     }
     return save->o_vaddr;
-#else
-    if (faultingAddressLocation == -1) {
-        if (save->except[0] == testFaultingAddress) 
-            faultingAddressLocation = 0;
-        else {
-            fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-            exit(-1);
-        }
-    }
-    return save->except[0];
 #endif
 }
 #endif // RVM_FOR_AIX
