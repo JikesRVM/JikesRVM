@@ -88,15 +88,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~3)));
     if (allocator == SS_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_ALLOCATOR;
     VM_Address region;
-    // if (gcCount > 1) VM.sysWrite("alloc called");
     switch (allocator) {
       case       SS_ALLOCATOR: region = ss.alloc(isScalar, bytes); break;
       case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_ALLOCATOR: region = los.alloc(isScalar, bytes); break;
       default:                 region = VM_Address.zero(); VM.sysFail("No such allocator");
     }
-    // if (gcCount > 1) VM.sysWriteln ("  returning ", region);
-    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
   }
 
@@ -175,8 +172,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
-				    CallSite callsite, AllocAdvice hint) { 
+  final public AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+					  CallSite callsite, AllocAdvice hint) { 
     return null;
   }
 
