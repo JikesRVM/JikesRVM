@@ -260,7 +260,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		       OPT_MethodOperand.STATIC(OPT_Entrypoints.optLockMethod), 
 		       MonitorOp.getClearGuard(inst), 
 		       MonitorOp.getClearRef(inst));
-	  inline(inst, ir);
+	  inline(inst, ir, true);
 	}
 	break;
 
@@ -466,17 +466,26 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     ir.gc.close();
   }
 
-
   /**
    * Inline a call instruction
    */
   private void inline(OPT_Instruction inst, OPT_IR ir) {
+    inline(inst,ir,false);
+  }
+
+  /**
+   * Inline a call instruction
+   */
+  private void inline(OPT_Instruction inst, OPT_IR ir, 
+                      boolean noCalleeExceptions) {
     // Save and restore inlining control state.
     // Some options have told us to inline this runtime service,
     // so we have to be sure to inline it "all the way" not
     // just 1 level.
     boolean savedInliningOption = ir.options.INLINE;
+    boolean savedExceptionOption = ir.options.NO_CALLEE_EXCEPTIONS;
     ir.options.INLINE = true;
+    ir.options.NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
     try {
       OPT_InlineDecision inlDec = 
 	OPT_InlineDecision.YES(Call.getMethod(inst).method, 
@@ -484,6 +493,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       OPT_Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;
+      ir.options.NO_CALLEE_EXCEPTIONS = savedExceptionOption;
     }
     didSomething = true;
   }

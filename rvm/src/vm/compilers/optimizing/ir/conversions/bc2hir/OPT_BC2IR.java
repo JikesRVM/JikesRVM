@@ -1635,6 +1635,10 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		    Call.create2(CALL, null, null, dtcRoutine, 
 		      new OPT_IntConstantOperand(meth.getDictionaryId()),
 		      tibPtr.copyD2U());
+                if (gc.options.NO_CALLEE_EXCEPTIONS) {
+                  callCheck.markAsNonPEI();
+                }
+
 		appendInstruction(callCheck);
 		callCheck.bcIndex = RUNTIME_SERVICES_BCI;
 
@@ -2276,6 +2280,9 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     VM_Type[] params = methOp.method.getParameterTypes();
     OPT_Instruction s = Call.create(CALL, null, null, null, null,  
 				    params.length + numHiddenParams);
+    if (gc.options.NO_CALLEE_EXCEPTIONS) {
+      s.markAsNonPEI();
+    }
     for (int i = params.length - 1; i >= 0; i--)
       Call.setParam(s, i + numHiddenParams, pop(params[i]));
     if (numHiddenParams != 0) {

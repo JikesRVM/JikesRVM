@@ -37,6 +37,9 @@ Try to remove unnecessary monitor operations
 INVOKEE_THREAD_LOCAL -1 false
 Compile the method assuming the invokee is thread-local
 
+NO_CALLEE_EXCEPTIONS -1 false
+Assert that any callee of this compiled method will not throw exceptions?
+
 SIMPLE_ESCAPE_IPA -1 false
 Eagerly compute method summaries for simple escape analysis
 
