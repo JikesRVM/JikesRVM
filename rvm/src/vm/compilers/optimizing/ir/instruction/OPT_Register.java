@@ -62,7 +62,6 @@ public final class OPT_Register {
 
   /* derived constants to be exported */
   static private final int TYPE_MASK = (INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
-  static final int NUMBER_TYPE    = (TYPE_MASK>>>TYPE_SHIFT)+1;
   public static final int INTEGER_TYPE   = INTEGER     >>> TYPE_SHIFT;
   public static final int FLOAT_TYPE     = FLOAT       >>> TYPE_SHIFT;
   public static final int DOUBLE_TYPE    = DOUBLE      >>> TYPE_SHIFT;
@@ -87,7 +86,7 @@ public final class OPT_Register {
   public boolean isValidation()    { return (flags & VALIDATION      ) != 0; }
   public boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }
 
-  public int     getType()         { return (flags>>>TYPE_SHIFT)&(NUMBER_TYPE-1); }  
+  public int     getType()         { return (flags & TYPE_MASK) >>>TYPE_SHIFT; }
 
   public boolean isVolatile()      { return (flags & VOLATILE        ) != 0; }
   public boolean isNonVolatile()   { return (flags & NON_VOLATILE    ) != 0; }
