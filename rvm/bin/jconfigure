@@ -1878,34 +1878,22 @@ function emitController () {
 	# Copy over rvmrt.jar; we need that to get a working compiler
 	# (at least when we're operating in open-source mode, under the 
 	# Jikes compiler, which doesn't have a default bootclasspath)
-EOF
-    if [[ ${CLASSPATH_BUILD_DIR-} ]]; then
-	cat <<- EOF
-	# Experimental; use a pre-built GNU Classpath in a 
-	# user-specified directory.
-	SRC=${CLASSPATH_BUILD_DIR}/lib/glibj.zip
-EOF
-    elif [[ ${CLASSPATH_INSTALLATION-} ]]; then
-	cat <<- EOF
-	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
-EOF
-    else
-	## The classic way
-	cat <<- EOF
-	# Ensure that we have the right version of the class libraries
-	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
+        if [[ \${CLASSPATH_BUILD_DIR-} ]]; then
+	    # Use a pre-built GNU Classpath in a 
+	    # user-specified directory.
+	    SRC=\${CLASSPATH_BUILD_DIR}/lib/glibj.zip
+	elif [[ \${CLASSPATH_INSTALLATION-} ]]; then
+	    SRC=\${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
+	else
+	    # Ensure that we have the right version of the class libraries
+	    $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
 
-	CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
-	SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
-	SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
-EOF
-    fi
-    cat <<- EOF
+	    CPS="\${CLASSPATH_ROOT-$ROOT_DIRECTORY_STR/classpath}"
+	    SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
+	    SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
+	fi
 	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
 	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
-EOF
-	
-    cat <<- EOF
 	if [[ \$CLEAN_FLAG = -clean ]]; then
 	    rm -rf $TOOL_DIRECTORY_STR
 	    timeit ./jbuild.expand      -clean
@@ -1970,7 +1958,7 @@ EOF
 	    show_mesg "To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
 	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
 	    if ! type -p rvm > /dev/null; then
-	        show_mesg "You will also need to add ${RVM_ROOT}/rvm/bin to your path"
+	        show_mesg "You will also need to add ${ROOT_DIRECTORY_STR}/rvm/bin to your path"
 	    fi
 	fi
 	trap '' EXIT
@@ -3390,7 +3378,7 @@ function emitBooterLinker () {
 	fi
     else
 	# source from which to copy native libraries
-	CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+	CPS="${TARGET_CLASSPATH_ROOT-$ROOT_DIRECTORY_STR/classpath}"
 	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     fi
 
