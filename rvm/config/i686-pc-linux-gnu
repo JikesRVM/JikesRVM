@@ -39,7 +39,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
 
 # the JDK java executable
-export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
+export HOST_VM_RT="$HOST_JAVA_HOME/jre/bin/java"
 
 # 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
 # the JRE's various library paths (otherwise they don't find their .so files 
