@@ -1135,17 +1135,25 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
   final void FP_ADD(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
 		    OPT_Operand val1,
 		    OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, IA32_FADD, D(getFPR(0)), val2));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_ADD and DOUBLE_ADD
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param val the value to add to fp0
+   */
+  final void FP_ADD(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operand val) {
+    burs.append(MIR_BinaryAcc.mutate(s, IA32_FADD, D(getFPR(0)), val));
   }
 
   /**
@@ -1154,18 +1162,28 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    * @param op either IA32_FSUB or IA32_FSUBR
-   * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
   final void FP_SUB(OPT_BURS burs, OPT_Instruction s,
 		    OPT_Operator op,
-		    OPT_RegisterOperand result,
 		    OPT_Operand val1,
 		    OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_SUB and DOUBLE_SUB
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param op either IA32_FSUB or IA32_FSUBR
+   * @param val the operand to subtract from/to fp0
+   */
+  final void FP_SUB(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operator op,
+		    OPT_Operand val) {
+    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val));
   }
 
   /**
@@ -1173,17 +1191,25 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
   final void FP_MUL(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
 		    OPT_Operand val1,
 		    OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, IA32_FMUL, D(getFPR(0)), val2));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_MUL and DOUBLE_MUL
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param val the operand to multiply fp0 by
+   */
+  final void FP_MUL(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operand val) {
+    burs.append(MIR_BinaryAcc.mutate(s, IA32_FMUL, D(getFPR(0)), val));
   }
 
   /**
@@ -1192,18 +1218,28 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    * @param op either IA32_DIV or IA32_DIVR
-   * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
   final void FP_DIV(OPT_BURS burs, OPT_Instruction s,
 		    OPT_Operator op,
-		    OPT_RegisterOperand result,
 		    OPT_Operand val1,
 		    OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_DIV and DOUBLE_DIV
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param op either IA32_DIV or IA32_DIVR
+   * @param val the operand to divide fp0 by/to
+   */
+  final void FP_DIV(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operator op,
+		    OPT_Operand val) {
+    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val));
   }
 
   /**
@@ -1211,18 +1247,27 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
   final void FP_REM(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
 		    OPT_Operand val1,
 		    OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_REM and DOUBLE_REM
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param val the operand to divide with fp0 to get a remainder
+   */
+  final void FP_REM(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operand val) {
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val));
+    burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), val));
   }
 
   /**
@@ -1230,15 +1275,21 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
+   * @param value the operand to negate
    */
   final void FP_NEG(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
 		    OPT_Operand value) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
     burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
-    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_NEG and DOUBLE_NEG
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand by negating fp0
+   */
+  final void FP_NEG(OPT_BURS burs, OPT_Instruction s) {
+    burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
   }
 
 
