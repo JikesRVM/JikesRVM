@@ -64,7 +64,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	OPT_TypeOperand Type = New.getClearType(inst);
 	VM_Class cls = (VM_Class)Type.getVMType();
 	OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(cls));
 	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
 	Call.mutate4(inst, CALL, New.getClearResult(inst), 
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -113,7 +113,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	} else { 
 	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	}
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(array));
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array));
 	VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
 	Call.mutate4(inst, CALL, NewArray.getClearResult(inst),  
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -223,7 +223,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       break;
 
       case REF_ASTORE_opcode: {
-	if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	if (MM_Interface.NEEDS_WRITE_BARRIER) {
 	  VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
 	  OPT_Instruction wb =
 	    Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
@@ -241,7 +241,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       break;
 
       case PUTFIELD_opcode: {
-	if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	if (MM_Interface.NEEDS_WRITE_BARRIER) {
 	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
 	  VM_FieldReference field = loc.getFieldRef();
 	  if (!field.getFieldContentsType().isPrimitiveType()) {
