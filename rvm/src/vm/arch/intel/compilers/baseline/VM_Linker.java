@@ -13,13 +13,20 @@
  */
 class VM_Linker {
 
-  // Load a class dynamically
-  // given: the id of the class
+  // Handle dynamic linking for a VM_Method 
+  // given: the id of the method
   //
-  static void loadClassOnDemand (int classId) throws VM_ResolutionException {
-    VM_Class klass = (VM_Class) VM_TypeDictionary.getValue(classId);
-    VM_Runtime.initializeClassForDynamicLink(klass);
-    return;
+  static void resolveMethod (int methodId) throws VM_ResolutionException {
+    VM_Method target = VM_MethodDictionary.getValue(methodId);
+    VM_TableBasedDynamicLinker.resolveMember(target);
+  }
+      
+  // Handle dynamic linking for a VM_Field 
+  // given: the id of the method
+  //
+  static void resolveField (int fieldId) throws VM_ResolutionException {
+    VM_Field target = VM_FieldDictionary.getValue(fieldId);
+    VM_TableBasedDynamicLinker.resolveMember(target);
   }
       
   // Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",

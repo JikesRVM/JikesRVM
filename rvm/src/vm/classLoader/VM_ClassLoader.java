@@ -826,9 +826,7 @@ public class VM_ClassLoader
 	}
       }
     }
-    VM.sysWrite("VM_ClassLoader: repairMethod: method " + m + " not found");
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-    return null;
+    throw new NoSuchMethodError(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
   }
 
   static VM_Field repairField(VM_Field f) {
@@ -847,9 +845,7 @@ public class VM_ClassLoader
 	}
       }
     }
-    VM.sysWrite("VM_ClassLoader: repairField: field " + f + " not found");
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-    return null;
+    throw new NoSuchFieldError(f.getDeclaringClass()+": "+name+" "+desc+" no such field found");
   }
 
   // like repairMethod, except a) we crawl the interface hierarchy

@@ -77,7 +77,8 @@ class VM_Entrypoints implements VM_Constants
    //-#if RVM_FOR_IA32  
    static int fieldOffsetsOffset;     
    static int methodOffsetsOffset;    
-   static int loadClassOnDemandOffset;
+   static int resolveFieldOffset;
+   static int resolveMethodOffset;
    static int jtocOffset;              
    static int threadIdOffset;
    static int framePointerOffset;      
@@ -405,7 +406,8 @@ class VM_Entrypoints implements VM_Constants
       findItableOffset        = findItableMethod.getOffset();
 //-#elif RVM_FOR_IA32
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[B").getOffset();
-      loadClassOnDemandOffset = VM.getMember("LVM_Linker;", "loadClassOnDemand", "(I)V").getOffset();
+      resolveFieldOffset      = VM.getMember("LVM_Linker;", "resolveField", "(I)V").getOffset();
+      resolveMethodOffset     = VM.getMember("LVM_Linker;", "resolveMethod", "(I)V").getOffset();
       fieldOffsetsOffset      = VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I").getOffset();    
       methodOffsetsOffset     = VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I").getOffset();   
       jtocOffset              = VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;").getOffset(); 

@@ -1813,10 +1813,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
@@ -1888,10 +1887,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
@@ -1952,10 +1950,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
@@ -2025,10 +2022,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                              // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                           // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                             // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());                          // pass field's dict id
 	  genParameterRegisterLoad(1);                                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);                   // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);         // load field's class
 	  asm.emitJMP_Imm (retryLabel);                                          // reload T0
 	  fr.resolve(asm);                                                       // comefrom
 	  if (fieldRef.getSize() == 4) {// field is one word
@@ -2102,10 +2098,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in TIB of virtual method, or 0
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());         // pass method's dict id
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);   // load method's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
@@ -2166,10 +2161,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
 	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                              // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
 	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);                    // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load field's class
 	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
 	  fr.resolve(asm);                                                        // comefrom
 	  genParameterRegisterLoad(methodRef, true);
@@ -2214,10 +2208,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
 	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                              // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
 	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);     // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load method's class
 	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
 	  fr.resolve(asm);                                                        // comefrom
 	  genParameterRegisterLoad(methodRef, false);          
