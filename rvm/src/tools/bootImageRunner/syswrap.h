@@ -18,6 +18,7 @@
 #endif
 
 typedef int (*SelectFunc)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
+typedef int (*PollFunc)(struct pollfd*, long unsigned int, int);
 
 // Init function for the syscall wrapper library.
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
