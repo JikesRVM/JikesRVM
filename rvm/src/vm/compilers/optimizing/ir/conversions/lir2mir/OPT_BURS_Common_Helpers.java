@@ -3,8 +3,8 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -15,14 +15,17 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   implements OPT_Operators, OPT_PhysicalRegisterConstants {
-  
+
+  /** Infinte cost for a rule */
+  protected static final int INFINITE = 32767;
+
   /**
    * The burs object
    */
   protected final OPT_BURS burs;
 
   /**
-   * The registerpool of the IR being processed
+   * The register pool of the IR being processed
    */
   protected final OPT_RegisterPool regpool;
 
@@ -57,15 +60,51 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
     return I(op).value;
   }
 
+  // is a == 0?
+  protected final boolean ZERO(OPT_Operand a) {
+    return (IV(a) == 0);
+  }
+
+  // is a == 1?
+  protected final boolean ONE(OPT_Operand a) {
+    return (IV(a) == 1);
+  }
+
+  // is a == -1?
+  protected final boolean MINUSONE(OPT_Operand a) {
+    return (IV(a) == -1);
+  }
+
   protected final int FITS(OPT_Operand op, int numBits, int trueCost) {
     return FITS(op, numBits, trueCost, OPT_BURS_STATE.INFINITE);
   }
   protected final int FITS(OPT_Operand op, int numBits, int trueCost, int falseCost) {
-    if(op.isIntConstant() && OPT_Bits.fits(IV(op),numBits)) {
+    if (op.isIntConstant() && OPT_Bits.fits(IV(op),numBits)) {
       return trueCost;
     } else {
       return falseCost;
     }
+  }
+
+  // helper functions for condition operands
+  protected final boolean EQ_NE(OPT_ConditionOperand c) {
+    int cond = c.value;
+    return ((cond == OPT_ConditionOperand.EQUAL) ||
+	    (cond == OPT_ConditionOperand.NOT_EQUAL));
+  }
+
+  protected final boolean EQ_LT_LE(OPT_ConditionOperand c) {
+    int cond = c.value;
+    return ((cond == OPT_ConditionOperand.EQUAL) ||
+	    (cond == OPT_ConditionOperand.LESS) ||
+	    (cond == OPT_ConditionOperand.LESS_EQUAL));
+  }
+
+  protected final boolean EQ_GT_GE(OPT_ConditionOperand c) {
+    int cond = c.value;
+    return ((cond == OPT_ConditionOperand.EQUAL) ||
+	    (cond == OPT_ConditionOperand.GREATER) ||
+	    (cond == OPT_ConditionOperand.GREATER_EQUAL));
   }
 
   // condition code state

@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *
  * Note: some of the functions have been taken and modified
  * from the file gen.c, from the LCC compiler.  
- * See $RVM_ROOT/tools/jburg/COPYRIGHT file for copyright restrictions.
+ * See $RVM_ROOT/rvm/src/tools/jburg/COPYRIGHT file for copyright restrictions.
  *
  * @see OPT_BURS
  * @author Mauricio Serrano
@@ -23,8 +23,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *
  * NOTE: Program generated file, do not edit!
  */
-public final class OPT_BURS_STATE 
-   extends OPT_BURS_Helpers 
+public final class OPT_BURS_STATE extends OPT_BURS_Helpers 
    implements OPT_Operators, OPT_BURS_Definitions {
 
    static final byte NOFLAGS           = 0x00;
@@ -44,51 +43,6 @@ public final class OPT_BURS_STATE
 
    /* accessors used by BURS */
    private static OPT_BURS_TreeNode STATE(OPT_BURS_TreeNode a) { return a; }
-
-   //
-   // helper functions for dealing with int constant operands
-   // NOTE: There are (many) more of these that are architecture-specific 
-   //       defined in OPT_BURS_Helpers.java and inherited by OPT_BURS_STATE.
-	
-   // is a == 0?
-   boolean ZERO(OPT_Operand a) {
-     return (IV(a) == 0);
-   }
-
-   // is a == 1?
-   boolean ONE(OPT_Operand a) {
-     return (IV(a) == 1);
-   }
-
-   // is a == -1?
-   boolean MINUSONE(OPT_Operand a) {
-     return (IV(a) == -1);
-   }
-
-   // helper functions for condition operands
-   boolean EQ_NE(OPT_ConditionOperand c) {
-      int cond = c.value;
-      return ((cond == OPT_ConditionOperand.EQUAL) ||
-              (cond == OPT_ConditionOperand.NOT_EQUAL));
-   }
-
-   boolean EQ_LT_LE(OPT_ConditionOperand c) {
-      int cond = c.value;
-      return ((cond == OPT_ConditionOperand.EQUAL) ||
-              (cond == OPT_ConditionOperand.LESS) ||
-              (cond == OPT_ConditionOperand.LESS_EQUAL));
-   }
-
-   boolean EQ_GT_GE(OPT_ConditionOperand c) {
-      int cond = c.value;
-      return ((cond == OPT_ConditionOperand.EQUAL) ||
-              (cond == OPT_ConditionOperand.GREATER) ||
-              (cond == OPT_ConditionOperand.GREATER_EQUAL));
-   }
-
-   // cost constants
-   static final int INFINITE = 32767;
-
 
    /* node accessors */
    private OPT_Instruction P(OPT_BURS_TreeNode p) {
