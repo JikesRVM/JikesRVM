@@ -25,7 +25,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * @version $Revision$
  * @date $Date$
  */
-public class Header extends SimpleRCHeader {
+public class Header extends RCHeader {
   public final static String Id = "$Id$"; 
 
   // Merges all the headers together.  In this case, we have only one.

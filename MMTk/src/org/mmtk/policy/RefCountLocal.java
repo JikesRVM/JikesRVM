@@ -252,9 +252,9 @@ final class RefCountLocal extends SegregatedFreeList
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
       checked++;
-      int rc = SimpleRCBaseHeader.getRC(obj);
-      int sanityRC = SimpleRCBaseHeader.getTracingRC(obj);
-      SimpleRCBaseHeader.clearTracingRC(obj);
+      int rc = RCBaseHeader.getRC(obj);
+      int sanityRC = RCBaseHeader.getTracingRC(obj);
+      RCBaseHeader.clearTracingRC(obj);
       if (rc != sanityRC) {
 	VM.sysWrite("---> ");
 	VM.sysWrite(checked);
