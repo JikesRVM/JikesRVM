@@ -7,6 +7,23 @@
 # @modified Steven Augart
 #   (Bash conversion plus more error checking.)
 #
+
+## This program is sensitive to the following environment variables:
+## JIKES
+## JAR
+## ZIP_CMD
+## AR
+## CC
+## FIND
+## AR_FLAGS
+## RVM_ROOT
+## GNU_MAKE
+## GREP
+## XARGS
+
+
+## CLASSPATH_ROOT		( optional )
+
 ME="${0##*/}"
 
 trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || :
@@ -28,6 +45,9 @@ export OS_VER=$(uname -v)
 JIKES_TOOL=$JIKES
 JAR_TOOL=$JAR
 
+declare -i AIX=0
+[[ $OSTYPE == aix* ]] && AIX=1
+
 CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
 if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
@@ -39,11 +59,16 @@ fi
 
 ## What args do we give to classpath's "configure" command?
 function classpath_configure_args () {
-    if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
-	#echo "   --enable-portable-native-sync"
-	echo >&2 "$ME: KLUDGE DISABLING GTK SUPPORT; our function vector is out-of-date"
-	echo "  --disable-gtk-peer"
-    else
+    if (( AIX )); then
+	## AIX does not come with pkg-config or glib by default.  So, if 
+	## someone is doing a default AIX build, we'll disable them.
+	## The GTK peers won't do any good without select hijacking, 
+	## in any case. 
+	echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
+	return;
+    fi
+    echo " --enable-portable-native-sync" # Needed for Classpath 0.09 and 0.08
+    if ! [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
 	echo "  --disable-gtk-peer"
     fi
 }
@@ -110,7 +135,7 @@ fi
 if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
 	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
-	echo >&2 "(Classpath 0.08 or newer is required)"
+	echo >&2 "(Classpath 0.08 or newer is required; 0.10 is recommended)"
 	exit 1
     fi
     echo "Downloading GNU Classpath"
@@ -130,7 +155,8 @@ fi
 # stuff untarred into this dir
 cd classpath
 
-# set up the directory for building if needed
+# Set up the directory for building if it's not already done.
+# This will only be needed if you are using a CVS release.
 if [[ ! -e $DEST_DIR/classpath/configure ]]; then
     echo >&2 "Setting up source tree"
     if [[ `uname -m` = i686 ]]; then
@@ -149,7 +175,13 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
     mkdir -p $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $(classpath_configure_args)
+    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS eval ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $(classpath_configure_args)
+    if (( AIX )); then
+	echo "Cleaning up native/fdlibm/Makefile for AIX"
+	sed -e '/^CPPFLAGS/s/-D_ALL_SOURCE//' native/fdlibm/Makefile \
+		> native/fdlibm/Makefile.tmp
+	mv -f native/fdlibm/Makefile.tmp native/fdlibm/Makefile
+    fi
     echo "Building the library"
     $GNU_MAKE
 fi
