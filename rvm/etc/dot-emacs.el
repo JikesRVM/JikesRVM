@@ -1,4 +1,3 @@
-
 ;;; -*- coding: iso-8859-1; -*-
 ;;;
 ;;; Copyright © IBM Corp 2003
