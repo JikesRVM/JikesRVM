@@ -110,8 +110,12 @@ public class VM_Interface implements VM_Constants {
    *  Process GC parameters.
    */
   public static void processCommandLineArg(String arg) {
-      VM.sysWriteln("Unrecognized collection option: ", arg);
-      VM.sysExit(1);
+    // kludge since JMTk and watson don't process options the same way
+    // option already processed in RunBootImage.c
+    if (arg.startsWith("verbose=")) 
+      return;
+    VM.sysWriteln("Unrecognized collection option: ", arg);
+    VM.sysExit(1);
   }
 
   public static int numProcessors() throws VM_PragmaUninterruptible {
