@@ -628,16 +628,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param locationMetadata an int that encodes the source location being modified
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int locationMetadata, int mode) 
+                                 VM_Address tgt, int metaDataA, int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src, slot, tgt);
+      writeBarrierInternal(src, slot, tgt, metaDataA, metaDataB, mode);
     else 
-      writeBarrierOOL(src, slot, tgt);
+      writeBarrierInternalOOL(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -653,21 +654,22 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrier(VM_Address src, VM_Address slot,
-                                  VM_Address tgt) 
+  private final void writeBarrierInternal(VM_Address src, VM_Address slot,
+                                  VM_Address tgt, int metaDataA, 
+                                  int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(slot, tgt);
+      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {      
-      VM_Address old;
-      do {
-        old = VM_Magic.prepareAddress(slot, 0);
-      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
+      VM_Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.pushOOL(old);
       if (tgt.GE(RC_START))
@@ -683,21 +685,22 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrierOOL(VM_Address src, VM_Address slot,
-                                     VM_Address tgt) 
+  private final void writeBarrierInternalOOL(VM_Address src, VM_Address slot,
+                                     VM_Address tgt, int metaDataA,
+                                     int metaDataB, int mode) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(slot, tgt);
+      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {
-      VM_Address old;
-      do {
-        old = VM_Magic.prepareAddress(slot, 0);
-      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
+      VM_Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.push(old);
       if (tgt.GE(RC_START))

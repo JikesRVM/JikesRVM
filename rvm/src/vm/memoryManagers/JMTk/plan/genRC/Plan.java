@@ -752,16 +752,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param locationMetadata an int that encodes the source location being modified
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot, 
-                                 VM_Address tgt, int locationMetadata, int mode) 
+                                 VM_Address tgt, int metaDataA, int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (Header.needsToBeLogged(src))
       writeBarrierSlow(src);
-    VM_Magic.setMemoryAddress(slot, tgt, locationMetadata);
+    VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**

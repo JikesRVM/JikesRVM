@@ -3602,6 +3602,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == VM_MagicNames.setObjectAtOffset ||
                methodName == VM_MagicNames.setWordAtOffset) {
+      if (methodToBeCalled.getParameterTypes().length == 4) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popAddr(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object

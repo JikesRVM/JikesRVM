@@ -235,6 +235,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Interface.getPlan().writeBarrier(src,
                                         src.add(offset),
                                         VM_Magic.objectAsAddress(value),
+                                        offset,
                                         locationMetadata,
                                         PUTFIELD_WRITE_BARRIER);
   }
@@ -271,9 +272,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
                                             Object value)
     throws VM_PragmaInline {
     VM_Address array = VM_Magic.objectAsAddress(ref);
+    int offset = (index<<LOG_BYTES_IN_ADDRESS);
     VM_Interface.getPlan().writeBarrier(array,
-                                        array.add(index<<LOG_BYTES_IN_ADDRESS),
+                                        array.add(offset),
                                         VM_Magic.objectAsAddress(value),
+                                        offset,
                                         0, // don't know metadata
                                         AASTORE_WRITE_BARRIER);
   }

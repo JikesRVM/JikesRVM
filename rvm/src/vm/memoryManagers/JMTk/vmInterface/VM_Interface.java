@@ -1163,6 +1163,49 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   }
 
   /**
+   * Perform the actual write of the write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   */
+  public static void performWriteInBarrier(VM_Address ref, VM_Address slot, 
+                                           VM_Address target, int offset, 
+                                           int locationMetadata, int mode) 
+    throws VM_PragmaInline {
+    Object obj = VM_Magic.addressAsObject(ref);
+    VM_Magic.setObjectAtOffset(obj, offset, target, locationMetadata);  
+  }
+
+  /**
+   * Atomically write a reference field of an object or array and return 
+   * the old value of the reference field.
+   * 
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   * @return The value that was replaced by the write.
+   */
+  public static VM_Address performWriteInBarrierAtomic(VM_Address ref, 
+                                    VM_Address slot, VM_Address target, 
+                                    int offset, int locationMetadata, int mode)
+    throws VM_PragmaInline {                                
+    Object obj = VM_Magic.addressAsObject(ref);
+    Object newObject = VM_Magic.addressAsObject(target);
+    Object oldObject;
+    do {
+      oldObject = VM_Magic.prepareObject(obj, offset);
+    } while (!VM_Magic.attemptObject(obj, offset, oldObject, newObject));
+    return VM_Magic.objectAsAddress(oldObject); 
+  }
+
+  /**
    * Gets an element of a char array without invoking any read
    * barrier.  This method is called by the Log method, as it will be
    * used during garbage collection and needs to manipulate character

@@ -299,9 +299,16 @@ public class VM_Magic {
 
   /**
    * Set Object at arbitrary (byte) offset from object.
-   * Use getObjectAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, objectAsAddress(new))
+   * Use setObjectAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, objectAsAddress(new))
    */ 
   public static void setObjectAtOffset(Object object, int offset, Object newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set Object at arbitrary (byte) offset from object.
+   */
+  public static void setObjectAtOffset(Object object, int offset, Object newvalue, int locationMetadata) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

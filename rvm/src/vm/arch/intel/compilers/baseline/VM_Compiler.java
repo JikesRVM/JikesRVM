@@ -3197,6 +3197,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.setIntAtOffset ||
         methodName == VM_MagicNames.setWordAtOffset || 
         methodName == VM_MagicNames.setObjectAtOffset ) {
+      if (m.getParameterTypes().length == 4) { 
+        // discard locationMetadata parameter
+        asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
+      }
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref

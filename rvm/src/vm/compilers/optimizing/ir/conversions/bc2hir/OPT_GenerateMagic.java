@@ -194,11 +194,15 @@ class OPT_GenerateMagic implements OPT_Operators,
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setObjectAtOffset) {
+      OPT_LocationOperand loc = null;
+      if (meth.getParameterTypes().length == 4) {
+        loc = mapToMetadata(bc2ir.popInt());
+      }
       OPT_Operand val = bc2ir.popRef();
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, 
-                                           null));
+                                           loc));
     } else if (methodName == VM_MagicNames.getByteAtOffset) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
