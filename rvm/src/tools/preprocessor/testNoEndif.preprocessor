@@ -1,0 +1,5 @@
+//-#if A
+something
+//-#elif B
+more
+// No #endif statement here!
