@@ -204,7 +204,8 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the number of bytes
    */
   public static long totalMemory () throws VM_PragmaUninterruptible {
-      return smallHeapSize + largeHeap.size;    
+      return smallHeapSize;
+      // + largeHeap.size;    
   }
   
   /**
