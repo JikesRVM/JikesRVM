@@ -273,14 +273,6 @@ public class VM_Magic {
   }
 
   /**
-   * Set int at arbitrary (byte) offset from object.
-   * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
-   */ 
-  public static void setIntAtIntOffset(Object object, int offset, int newvalue) {
-    setIntAtOffset(object, Offset.fromIntSignExtend(offset), newvalue);
-  }
-
-  /**
    * Set word at arbitrary (byte) offset from object.
    * Use setWordAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 

@@ -3,9 +3,12 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import org.vmmagic.unboxed.Offset;
+
 /**
  * @author Dave Grove 
  */
 class VM_Magic {
-  public static void setIntAtIntOffset(Object o, int x, int y) { } 
+  public static void setIntAtOffset(Object o, Offset x, int y) { } 
 }
