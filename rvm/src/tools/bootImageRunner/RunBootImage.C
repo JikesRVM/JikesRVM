@@ -523,7 +523,7 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
                                      // Megabytes, K for kilobytes, etc.
 
     errno = 0;
-    long double hs = strtold(subtoken, &endp);  // heap size number
+    double hs = strtod(subtoken, &endp);  // heap size number
 
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
@@ -561,7 +561,7 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
 
     if (!*fastExit) {
 	if (errno == ERANGE 
-            || hs > ((long double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
+            || hs > ((double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
         {
 	// If message not already printed, print it.
 	    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
