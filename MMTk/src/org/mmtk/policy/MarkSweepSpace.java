@@ -246,7 +246,27 @@ public final class MarkSweepSpace extends Space
    * Header manipulation
    */
 
-   /**
+  /**
+   * Perform any required post allocation initialization
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+  public final void postAlloc(ObjectReference object) 
+    throws InlinePragma {
+    initializeHeader(object);
+  }
+ 
+  /**
+   * Perform any required post copy (i.e. in-GC allocation) initialization
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+  public final void postCopy(ObjectReference object) 
+    throws InlinePragma {
+    writeMarkBit(object);      // TODO one of these two is redundant!
+    	MarkSweepLocal.liveObject(object);
+  }
+  /**
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized

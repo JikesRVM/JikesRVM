@@ -282,7 +282,17 @@ public final class CopySpace extends Space
    *
    * Header manipulation
    */
-
+  
+  /**
+   * Perform any required post-allocation initialization
+   * 
+   * <i>Nothing to be done in this case</i> 
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+   public final void postAlloc(ObjectReference object) 
+    	throws InlinePragma {}
+   
   /**
    * Clear the GC portion of the header for an object.
    * 

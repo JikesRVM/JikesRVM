@@ -43,7 +43,6 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
 
   // spaces
   private static ImmortalSpace defaultSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
-  private static final int DS = defaultSpace.getDescriptor();
 
   /****************************************************************************
    *
@@ -77,8 +76,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public static final void boot()
-    throws InterruptiblePragma {
+  public static final void boot() throws InterruptiblePragma {
     StopTheWorldGC.boot();
   }
 
@@ -113,12 +111,12 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * Perform post-allocation actions.  For many allocators none are
    * required.
    *
-   * @param ref The newly allocated object
+   * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(ObjectReference ref, ObjectReference typeRef, 
+  public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
 			      int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case      ALLOC_LOS: // no los, so use default allocator
@@ -320,14 +318,14 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * @param object The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final ObjectReference traceObject(ObjectReference obj) 
+  public static final ObjectReference traceObject(ObjectReference object) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
-    return obj;
+    return object;
   }
 
   /**
@@ -335,13 +333,13 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i>
+   * @param object The object reference to be traced.  This is <i>NOT</i>
    * an interior pointer.
    * @param root True if this reference to <code>obj</code> was held
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final ObjectReference traceObject(ObjectReference obj,
+  public static final ObjectReference traceObject(ObjectReference object,
 						  boolean root) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return ObjectReference.nullReference();
@@ -359,11 +357,6 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
     return true;
   }
 
-
-  public static boolean willNotMove(ObjectReference obj) {
-    return true;
-  }
-
   /****************************************************************************
    *
    * Space management
@@ -377,10 +370,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    int pages = defaultSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
-    return pages;
+    return getPagesUsed();
   }
 
   /**
@@ -406,8 +396,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * all future allocation is to the semi-space</i>.
    */
   protected static final int getPagesAvail() {
-    return (getTotalPages() - defaultSpace.reservedPages() 
-            - immortalSpace.reservedPages());
+    return getTotalPages() - getPagesReserved();
   }
 
 

@@ -273,6 +273,16 @@ public final class LargeObjectSpace extends Space
    * Header manipulation
    */
 
+  /**
+  * Perform any required post-allocation initialization   * 
+  * 
+  * @param object the object ref to the storage to be initialized
+  */
+  public final void postAlloc(ObjectReference object) 
+   	throws InlinePragma {
+    initializeHeader(object);
+  }
+
    /**
    * Perform any required initialization of the GC portion of the header.
    * 
