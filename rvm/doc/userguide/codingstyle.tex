@@ -38,6 +38,16 @@ overhead.
 If you use the form without a {\it message}, then the default message
 ``{\tt vm internal error at:}''  will appear.  
 
+If you use the form with a {\it message} the message {\em must} be a
+single string literal.  Doing string appends in assertions can be a
+source of horrible performance problems when assertions are enabled
+(ie most development builds).  If you want to provide a
+more detailed error message when the assertion fails, then you must
+use the following coding pattern:
+\begin{example}
+\tt{}   if (VM.VerifyAssertions && {\it condition}) VM._assert(false, {\it message});
+\end{example}
+
 An assertion failure is always followed by a stack dump.
 
 
