@@ -1219,7 +1219,7 @@ class GenerateAssembler {
 
 	// Kludge for PATCH_POINT 
 	emittedOpcodes.add("LOCK");
-	emitTab(3);    emit("case PATCH_POINT_opcode:\n");
+	emitTab(3);    emit("case IG_PATCH_POINT_opcode:\n");
 	emitTab(4);    emit("emitPatchPoint();\n");
 	emitTab(4);    emit("break;\n");
 	

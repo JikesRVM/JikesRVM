@@ -292,37 +292,37 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	}
 	break;
 
-      case TYPE_IFCMP_opcode:
+      case IG_CLASS_TEST_opcode:
 	{
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getTIB(s, ir, 
-			      (OPT_RegisterOperand)TypeIfCmp.getClearValue(s), 
-			      TypeIfCmp.getClearGuard(s)), 
-		       getTIB(s, ir, TypeIfCmp.getType(s)), 
-		       TypeIfCmp.getClearCond(s), 
-		       TypeIfCmp.getClearTarget(s),
-		       TypeIfCmp.getClearBranchProfile(s));
+			      (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+			      InlineGuard.getClearGuard(s)), 
+		       getTIB(s, ir, InlineGuard.getGoal(s).asType()), 
+		       OPT_ConditionOperand.NOT_EQUAL(), 
+		       InlineGuard.getClearTarget(s),
+		       InlineGuard.getClearBranchProfile(s));
 	  break;
 	}
 
-      case METHOD_IFCMP_opcode:
+      case IG_METHOD_TEST_opcode:
 	{
-	  OPT_MethodOperand methOp = MethodIfCmp.getClearMethod(s);
+	  OPT_MethodOperand methOp = InlineGuard.getClearGoal(s).asMethod();
 	  OPT_RegisterOperand t1 = 
 	    getTIB(s, ir, 
-		   (OPT_RegisterOperand)MethodIfCmp.getClearValue(s), 
-		   MethodIfCmp.getClearGuard(s));
+		   (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+		   InlineGuard.getClearGuard(s));
 	  OPT_RegisterOperand t2 = 
 	    getTIB(s, ir, methOp.method.getDeclaringClass());
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getInstanceMethod(s, ir, t1, methOp), 
 		       getInstanceMethod(s, ir, t2, methOp), 
-		       MethodIfCmp.getClearCond(s), 
-		       MethodIfCmp.getClearTarget(s),
-		       MethodIfCmp.getClearBranchProfile(s));
+		       OPT_ConditionOperand.NOT_EQUAL(), 
+		       InlineGuard.getClearTarget(s),
+		       InlineGuard.getClearBranchProfile(s));
 	  break;
 	}
-
+	
       case INSTANCEOF_opcode:
 	s = OPT_DynamicTypeCheckExpansion.instanceOf(s, ir);
 	break;

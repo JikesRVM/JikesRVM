@@ -328,13 +328,6 @@ store
 
 
 # conditional branch based on value/condition operands
-PATCH_POINT
-PatchPoint
-branch | conditional
-
-
-
-# conditional branch based on value/condition operands
 INT_IFCMP
 IfCmp
 branch | conditional
@@ -390,18 +383,23 @@ branch | conditional
 
 
 
-# conditional branch based on value/condition operands
-TYPE_IFCMP
-TypeIfCmp
+# inlining guard with patch-point mechanism
+IG_PATCH_POINT
+InlineGuard
 branch | conditional
 
 
 
-# conditional branch based on value/condition operands
-# Warning: METHOD_IFCMP can only be used with virtual methods. 
-# Don't use it with static methods
-METHOD_IFCMP
-MethodIfCmp
+# inlining gaurd with class-test mechanism
+IG_CLASS_TEST
+InlineGuard
+branch | conditional
+
+
+
+# inlining guard with method-test mechanism
+IG_METHOD_TEST
+InlineGuard
 branch | conditional
 
 

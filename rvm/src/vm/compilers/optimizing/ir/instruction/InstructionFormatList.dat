@@ -114,12 +114,6 @@ TrapIf
 "U Cond OPT_ConditionOperand" "U TCode OPT_TrapCodeOperand"
 
 
-PatchPoint
-1 0 2
-"D GuardResult OPT_RegisterOperand" \
-"U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
-
-
 IfCmp
 1 0 5
 "D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
@@ -133,16 +127,10 @@ IfCmp2
 "U Cond2 OPT_ConditionOperand" "U Target2 OPT_BranchOperand" "U BranchProfile2 OPT_BranchProfileOperand"
 
 
-TypeIfCmp
-0 0 6
-"U Value OPT_Operand" "U Guard OPT_Operand" "U Type OPT_TypeOperand" \
-"U Cond OPT_ConditionOperand" "U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
-
-
-MethodIfCmp
-0 0 6
-"U Value OPT_Operand" "U Guard OPT_Operand" "U Method OPT_MethodOperand" \
-"U Cond OPT_ConditionOperand" "U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
+InlineGuard
+0 0 5
+"U Value OPT_Operand" "U Guard OPT_Operand" "U Goal OPT_Operand" \
+"U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
 
 
 BooleanCmp

@@ -265,15 +265,9 @@ class OPT_HashedValueNumbers implements OPT_Operators {
       op.ops[++i] = getValueNumber(IfCmp.getVal2(inst));
       op.ops[++i] = getValueNumber(IfCmp.getCond(inst));
     }
-    else if (MethodIfCmp.conforms(inst)) {
-      op.ops[++i] = getValueNumber(MethodIfCmp.getValue(inst));
-      op.ops[++i] = getValueNumber(MethodIfCmp.getMethod(inst));
-      op.ops[++i] = getValueNumber(MethodIfCmp.getCond(inst));
-    }
-    else if (TypeIfCmp.conforms(inst)) {
-      op.ops[++i] = getValueNumber(TypeIfCmp.getValue(inst));
-      op.ops[++i] = getValueNumber(TypeIfCmp.getType(inst));
-      op.ops[++i] = getValueNumber(TypeIfCmp.getCond(inst));
+    else if (InlineGuard.conforms(inst)) {
+      op.ops[++i] = getValueNumber(InlineGuard.getValue(inst));
+      op.ops[++i] = getValueNumber(InlineGuard.getGoal(inst));
     }
     else {
       // Should never reach here.

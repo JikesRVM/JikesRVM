@@ -302,24 +302,23 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 	}
 
 	if (guards[i] == OPT_Options.IG_CLASS_TEST) {
-	  tmp = TypeIfCmp.create(TYPE_IFCMP, receiver.copyU2U(), 
-				 Call.getGuard(callSite).copy(), 
-				 new OPT_TypeOperand(target.getDeclaringClass()), 
-				 OPT_ConditionOperand.NOT_EQUAL(), 
-				 testFailed.makeJumpTarget(),
-				 OPT_BranchProfileOperand.unlikely());
+	  tmp = InlineGuard.create(IG_CLASS_TEST, receiver.copyU2U(), 
+				   Call.getGuard(callSite).copy(), 
+				   new OPT_TypeOperand(target.getDeclaringClass()), 
+				   testFailed.makeJumpTarget(),
+				   OPT_BranchProfileOperand.unlikely());
 	} else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
-	  tmp = MethodIfCmp.create(METHOD_IFCMP, receiver.copyU2U(), 
+	  tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
 				   OPT_MethodOperand.VIRTUAL(target, false), 
-				   OPT_ConditionOperand.NOT_EQUAL(), 
 				   testFailed.makeJumpTarget(),
 				   OPT_BranchProfileOperand.unlikely());
 	} else {
-	  tmp = PatchPoint.create(PATCH_POINT, 
-				  parent.temps.makeTempValidation(),
-				  testFailed.makeJumpTarget(),
-				  OPT_BranchProfileOperand.unlikely());
+	  tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copyU2U(), 
+				   Call.getGuard(callSite).copy(), 
+				   OPT_MethodOperand.VIRTUAL(target, false), 
+				   testFailed.makeJumpTarget(),
+				   OPT_BranchProfileOperand.unlikely());
 	}
 	tmp.copyPosition(callSite);
 	lastIfBlock.appendInstruction(tmp);

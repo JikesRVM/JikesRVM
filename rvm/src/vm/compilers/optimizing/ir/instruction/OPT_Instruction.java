@@ -1272,15 +1272,11 @@ public final class OPT_Instruction
     case DOUBLE_IFCMPG_opcode:
       return IfCmp.getTarget(this).target.getBasicBlock();
 
-    case TYPE_IFCMP_opcode:
-      return TypeIfCmp.getTarget(this).target.getBasicBlock();
-
-    case METHOD_IFCMP_opcode:
-      return MethodIfCmp.getTarget(this).target.getBasicBlock();
-
-    case PATCH_POINT_opcode:
-      return PatchPoint.getTarget(this).target.getBasicBlock();
-
+    case IG_CLASS_TEST_opcode:
+    case IG_METHOD_TEST_opcode:
+    case IG_PATCH_POINT_opcode:
+      return InlineGuard.getTarget(this).target.getBasicBlock();
+      
     default:
       if (MIR_Branch.conforms(this)) {
 	return MIR_Branch.getTarget(this).target.getBasicBlock();
@@ -1327,16 +1323,10 @@ public final class OPT_Instruction
       e.addElement(IfCmp.getTarget(this).target.getBasicBlock());
       break;
 
-    case PATCH_POINT_opcode:
-      e.addElement(PatchPoint.getTarget(this).target.getBasicBlock());
-      break;
-
-    case TYPE_IFCMP_opcode:
-      e.addElement(TypeIfCmp.getTarget(this).target.getBasicBlock());
-      break;
-
-    case METHOD_IFCMP_opcode:
-      e.addElement(MethodIfCmp.getTarget(this).target.getBasicBlock());
+    case IG_PATCH_POINT_opcode:
+    case IG_CLASS_TEST_opcode:
+    case IG_METHOD_TEST_opcode:
+      e.addElement(InlineGuard.getTarget(this).target.getBasicBlock());
       break;
 
     case TABLESWITCH_opcode:

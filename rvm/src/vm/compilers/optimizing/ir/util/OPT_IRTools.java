@@ -418,12 +418,9 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
         if (IfCmp.getTarget(s).similar(outTarget)) {
           IfCmp.setTarget(s, (OPT_BranchOperand)target.copy());
         }
-      } else if (MethodIfCmp.conforms(s)) {
-        if (MethodIfCmp.getTarget(s).similar(outTarget))
-          MethodIfCmp.setTarget(s, (OPT_BranchOperand)target.copy());
-      } else if (TypeIfCmp.conforms(s)) {
-        if (TypeIfCmp.getTarget(s).similar(outTarget))
-          TypeIfCmp.setTarget(s, (OPT_BranchOperand)target.copy());
+      } else if (InlineGuard.conforms(s)) {
+        if (InlineGuard.getTarget(s).similar(outTarget))
+          InlineGuard.setTarget(s, (OPT_BranchOperand)target.copy());
       } else if (Goto.conforms(s)) {
         foundGoto = true;
         if (Goto.getTarget(s).similar(outTarget))

@@ -350,10 +350,10 @@ stm:	RESOLVE
 EMIT_INSTRUCTION
 RESOLVE(burs, P(p));
 
-stm:	PATCH_POINT
+stm:	IG_PATCH_POINT
 10
 EMIT_INSTRUCTION
-EMIT(P(p));
+EMIT(InlineGuard.mutate(P(p), IG_PATCH_POINT, null, null, null, InlineGuard.getTarget(P(p)), InlineGuard.getBranchProfile(P(p))));
 
 stm:	UNINT_BEGIN
 10

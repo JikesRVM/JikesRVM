@@ -121,9 +121,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
       /*Element*/
       ();
       // TODO: what other compareops generate useful assertions?
-      if (IfCmp.conforms(instr) ||
-	  TypeIfCmp.conforms(instr) || 
-	  MethodIfCmp.conforms(instr)) {
+      if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 
         OPT_BasicBlock thisbb = instr.getBasicBlock();
         // only handle the "normal" case
@@ -139,9 +137,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
 	// For these types of IfCmp's, the Pi Node is not actually
 	// needed yet.  For now the only functionality needed is the
 	// blocks made on the outgoing edges.
-	if (TypeIfCmp.conforms(instr) || 
-	    MethodIfCmp.conforms(instr)) 
-	  continue;
+	if (InlineGuard.conforms(instr)) continue;
 
         OPT_RegisterOperand ifGuard = (OPT_RegisterOperand)
             IfCmp.getGuardResult(instr);

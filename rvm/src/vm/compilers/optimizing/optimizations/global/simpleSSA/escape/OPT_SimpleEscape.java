@@ -255,7 +255,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:
       case ARRAYLENGTH_opcode:case REF_IFCMP_opcode:
-      case INT_IFCMP_opcode:case TYPE_IFCMP_opcode:case METHOD_IFCMP_opcode:
+      case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
       case BOOLEAN_CMP_opcode:case OBJARRAY_STORE_CHECK_opcode:
       case GET_OBJ_STATUS_opcode:case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
@@ -411,8 +412,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         // escape
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:case ARRAYLENGTH_opcode:
-      case REF_IFCMP_opcode:case INT_IFCMP_opcode:case TYPE_IFCMP_opcode:
-      case METHOD_IFCMP_opcode:case BOOLEAN_CMP_opcode:
+      case REF_IFCMP_opcode:case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
+      case BOOLEAN_CMP_opcode:
       case OBJARRAY_STORE_CHECK_opcode:case GET_OBJ_STATUS_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
       case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:

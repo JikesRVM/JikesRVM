@@ -415,7 +415,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
 	 s != null;
 	 s = s.nextInstructionInCodeOrder()) {
-      if (s.operator() == PATCH_POINT) {
+      if (s.operator() == IG_PATCH_POINT) {
 	patchPoints++;
       }
     }
@@ -426,9 +426,9 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
 	   s != null;
 	   s = s.nextInstructionInCodeOrder()) {
-	if (s.operator() == PATCH_POINT) {
+	if (s.operator() == IG_PATCH_POINT) {
 	  int patchPoint = s.getmcOffset();
-	  int newTarget = PatchPoint.getTarget(s).target.getmcOffset();
+	  int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
 	  // A patch map is the offset of the last byte of the patch point
 	  // and the new branch immediate to lay down if the code is ever patched.
 	  patchMap[idx++] = patchPoint-1;
