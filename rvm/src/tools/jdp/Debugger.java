@@ -141,6 +141,7 @@ class Debugger implements jdpConstants {
   static char integerPreference='d';   // print array, class fields in hex or integer
   static char stackPreference='x';     // print stack with or without decimal column
   static char fprPreference='f';     // print FPR values in hex or in float
+  static boolean showFPRsPreference = false;  // Show or do not show FPRs with other regs
 
 
   /**
@@ -615,6 +616,12 @@ class Debugger implements jdpConstants {
       doRegisterWrite(command, args);
     }
 
+    else if (command.equals("regname") || command.equals("regnames")) {
+      if (args.length != 0)
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
+      doRegisterName(command);
+    }
+
     else if (command.equals("memraw") || command.equals("mraw")) {
       doMemoryReadRaw(command, args);
     }
@@ -696,11 +703,11 @@ class Debugger implements jdpConstants {
       doSetPreference(command, args);
     }
 
-    else if (command.equals("preference") || command.equals("x2d")) {
+    else if (command.equals("x2d")) {
       doConvertHexToInt(command, args);
     }
 
-    else if (command.equals("preference") || command.equals("d2x")) {
+    else if (command.equals("d2x")) {
       doConvertIntToHex(command, args);
     }
 
@@ -1563,6 +1570,19 @@ class Debugger implements jdpConstants {
 
   }
 
+  /**
+   * Print the symbolic names of the registers
+   * @param command String containing the command
+   * @return  
+   * @see     
+   */
+  public void doRegisterName(String command) {
+    try {
+      jdp_console.writeOutput(user.reg.getNames());
+    } catch (Exception e) {
+      jdp_console.writeOutput(e.getMessage());
+    }
+  }
 
   /**
    * Print the value of static fields of a class
@@ -1939,6 +1959,11 @@ class Debugger implements jdpConstants {
       ret.append("  integer = " + integerPreference + "\n");
       ret.append("  stack = "   + stackPreference + "\n");
       ret.append("  fpr = "     + fprPreference + "\n");
+      ret.append("  showFPRs = ");
+      if (showFPRsPreference) 
+	ret.append(" true\n");
+      else
+	ret.append(" false\n");
       jdp_console.writeOutput(ret.toString());
 
     } else if (args[0].equals("int")) {
@@ -1965,7 +1990,17 @@ class Debugger implements jdpConstants {
       else 
 	printHelp(command);
       return;
-    } else {      
+    } else if (args[0].equals("showFPRs") || args[0].equals("showfprs")) {
+      if (args[1].equals("true"))
+	showFPRsPreference = true;
+      else if (args[1].equals("false")) 
+	showFPRsPreference = false;
+      else {
+	jdp_console.writeOutput("Sorry, value should be 'true' or 'false'\n");
+	printHelp(command);
+      }
+    } else {
+      jdp_console.writeOutput("Sorry, I do not recognize your preference request");
       printHelp(command);
     }
   }
@@ -2098,6 +2133,8 @@ class Debugger implements jdpConstants {
       ret.append("Display/update hardware registers (not thread context registers)\n");
       ret.append("For AIX: you can specify number or name, where number is:  0-31, 128-136, 138, 148, 256-287\n");
       ret.append("For Lintel: you can only specify name.\n");
+      ret.append("Display will not include floating point registers unless\n");
+      ret.append("'pref showFPRs true' has been specified.\n");
       ret.append("On this plaform the register names are: \n");
       String regname="";
       for (int i=0; i<VM_BaselineConstants.GPR_NAMES.length; i++)
@@ -2108,6 +2145,11 @@ class Debugger implements jdpConstants {
 	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
       ret.append(regname);
       ret.append(Platform.extraRegNames);
+
+    } else if (command.equals("regnames") || command.equals("regname")) {
+      ret.append("Format: regnames || regnames \n");
+      ret.append("Show the correspondence between hardware register names \n");
+      ret.append("and symbolic register names \n");
 
     } else if (command.equals("mem") || command.equals("m") || 
 	       command.equals("wmem") || command.equals("wm") ||
@@ -2220,7 +2262,8 @@ class Debugger implements jdpConstants {
       ret.append("Set user preferences\n");
       ret.append("To display integer in hex or decimal, specify:  int  < hex | x | dec | d > \n");
       ret.append("To display stack with/without a decimal column, specify: stack < hex | x | dec | d > \n");
-      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f > "); 
+      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f >\n "); 
+      ret.append("To select whether floating point registers are displayed as part of reg command, specify: showFPRs true | false\n");
 
 
     } else if (command.equals("verbose") || command.equals("v")) {
@@ -2271,6 +2314,7 @@ class Debugger implements jdpConstants {
       ret.append("wmem          write memory \n");
       ret.append("reg           display registers \n");
       ret.append("wreg          write register \n");
+      ret.append("regnames      display register symbolic names \n");
       ret.append("printclass    print the class statics or the type of an object address\n");
       ret.append("print         print local variables or cast an address as an object\n");
       ret.append("listi         list machine instruction\n");
