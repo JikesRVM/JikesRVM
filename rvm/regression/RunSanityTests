@@ -33,8 +33,8 @@ declare -i passed_tests=0
 
 # How often to look to see if the builds are done
 declare -i SLEEP_DURATION=120
-# timeout on waiting for a build to finish; assume a glitch after an hour.
-declare -i MAX_SLEEP=3600
+# timeout on waiting for a build to finish; assume a glitch after two hours.
+declare -i MAX_SLEEP=7200
 
 # Who am I?
 #
