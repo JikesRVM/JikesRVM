@@ -91,9 +91,6 @@ final class RefCountLocal extends SegregatedFreeList
     incBuffer = inc;
     decBuffer = dec;
     rootSet = root;
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingBuffer = new AddressDeque("tracing buffer", tracingPool);
-    }
     if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
   }
@@ -107,10 +104,6 @@ final class RefCountLocal extends SegregatedFreeList
   static {
     rootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     rootPool.newClient();
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
-      tracingPool.newClient();
-    }
 
     cellSize = new int[SIZE_CLASSES];
     blockSizeClass = new byte[SIZE_CLASSES];
@@ -176,7 +169,6 @@ final class RefCountLocal extends SegregatedFreeList
     }
     restoreFreeLists();
     
-    if (Plan.REF_COUNT_SANITY_TRACING) rcSanityCheck();
   }
 
   /**
@@ -312,90 +304,6 @@ final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  /****************************************************************************
-   *
-   * Methods relating to sanity tracing (tracing used to check
-   * reference counts)
-   */
-
-  /**
-   * Check the reference counts of all objects against those
-   * established during the sanity scan.
-   */
-  private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    VM_Address obj;
-    int checked = 0;
-    while (!(obj = tracingBuffer.pop()).isZero()) {
-      checked++;
-      int rc = RCBaseHeader.getRC(obj);
-      int sanityRC = RCBaseHeader.getTracingRC(obj);
-      RCBaseHeader.clearTracingRC(obj);
-      if (rc != sanityRC) {
-	Log.write("---> ");
-	Log.write(checked);
-	Log.write(" roots checked, RC mismatch: ");
-	Log.write(obj); Log.write(" -> ");
-	Log.write(rc); Log.write(" (rc) != ");
-	Log.write(sanityRC); Log.writeln(" (sanity)");
-	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-      }
-    }
-  }
-
-  /**
-   * Set the mark bit appropriately in an immortal object so that the
-   * traversal of immortal objects is performed correctly during
-   * sanity scans.
-   *
-   * @param object An object just allocated to the immortal space
-   */
-  public final void postAllocImmortal(VM_Address object)
-    throws VM_PragmaInline {
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      if (rcSpace.bootImageMark)
-	RCBaseHeader.setBufferedBit(object);
-      else
-	RCBaseHeader.clearBufferedBit(object);
-    }
-  }
-
-  /**
-   * A boot or immortal object has been encountered during a root
-   * scan.  Its mark bit needs to be set appropriately according to
-   * the current state of the immortal mark bit.  Currently as a dirty
-   * hack we overload the buffered bit for marking during sanity
-   * scans.  FIXME
-   *
-   * @param object The immortal or boot image object encountered
-   * during a root scan.
-   */
-  public void rootScan(VM_Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    // this object has been explicitly scanned as part of the root scanning
-    // process.  Mark it now so that it does not get re-scanned.
-    if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
-      if (rcSpace.bootImageMark)
-	RCBaseHeader.setBufferedBit(object);
-      else
-	RCBaseHeader.clearBufferedBit(object);
-    }
-  }
-
-  /**
-   * Add an object to the tracing buffer (used for sanity
-   * tracing---verifying ref counts through tracing).
-   *
-   * @param object The object to be added to the tracing buffer.
-   */
-  public final void addToTraceBuffer(VM_Address object) 
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    tracingBuffer.push(VM_Magic.objectAsAddress(object));
-  }
 
   /****************************************************************************
    *

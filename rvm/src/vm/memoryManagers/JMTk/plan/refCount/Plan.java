@@ -37,7 +37,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = false;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
-  public static final boolean REF_COUNT_SANITY_TRACING = false;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
 
   private static final boolean INLINE_WRITE_BARRIER = false;
@@ -204,7 +203,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case RC_SPACE: 
     case LOS_SPACE: decBuffer.pushOOL(VM_Magic.objectAsAddress(ref)); return;
     case IMMORTAL_SPACE: 
-      rc.postAllocImmortal(VM_Magic.objectAsAddress(ref));
       ImmortalSpace.postAlloc(ref); return;
     default: if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); return;
     }
@@ -460,8 +458,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       return rcSpace.traceObject(obj, root);
-    else if (REF_COUNT_SANITY_TRACING && (space == BOOT_SPACE || space == IMMORTAL_SPACE))
-      return rcSpace.traceBootObject(obj);
     
     if (VM_Interface.VerifyAssertions && space != BOOT_SPACE 
 	&& space != IMMORTAL_SPACE && space != META_SPACE) 
@@ -702,16 +698,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void addToRootSet(VM_Address root) 
     throws VM_PragmaInline {
     rootSet.push(root);
-  }
-
-  /**
-   * Add an object to the trace buffer (used for sanity tracing)
-   *
-   * @param object The object to be added to the trace buffer
-   */
-  public final void addToTraceBuffer(VM_Address object) 
-    throws VM_PragmaInline {
-    rc.addToTraceBuffer(object);
   }
 
 

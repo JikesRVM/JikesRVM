@@ -116,9 +116,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-    if (Plan.REF_COUNT_SANITY_TRACING) 
-      incrementTraceCount(object);
-
     increment(object);
     if (root)
       VM_Interface.getPlan().addToRootSet(object);
@@ -137,49 +134,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return RCBaseHeader.isLiveRC(object);
   }
   
-  /****************************************************************************
-   *
-   * Methods for sanity tracing (tracing to check ref counts)
-   */
-
-  /**
-   * An (reference counted) object has been encountered in a sanity
-   * trace, increment its reachability count and enqueue for recursive
-   * scanning if this is the first tracing of the object
-   *
-   * @param object The object to be traced
-   */
-  public final void incrementTraceCount(VM_Address object) 
-    throws VM_PragmaInline {
-    if (RCBaseHeader.incTraceRC(object)) {
-      VM_Interface.getPlan().addToTraceBuffer(object); 
-      Plan.enqueue(object);
-    }
-  }
-
-  /**
-   * A boot image (or immortal) object has been encountered in a
-   * sanity trace.  Set the mark bit if necessary (at present this is
-   * a hack---we use the buffered bit).  FIXME
-   *
-   * For consistency with existing interfaces, return the object.
-   *
-   * @param object The boot or immortal object encountered.
-   * @return The object (a no-op in this case).
-   */
-  public final VM_Address traceBootObject(VM_Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
-      RCBaseHeader.setBufferedBit(object);
-      Plan.enqueue(object);
-    } else if (!bootImageMark && RCBaseHeader.isBuffered(object)) {
-      RCBaseHeader.clearBufferedBit(object);
-      Plan.enqueue(object);
-    }
-    return object;
-  }
-
   /****************************************************************************
    *
    * Misc
