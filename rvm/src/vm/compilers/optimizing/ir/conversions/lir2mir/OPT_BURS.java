@@ -651,10 +651,15 @@ final class OPT_BURS implements OPT_Operators {
    * Add a node to the ready set.
    */
   private void readySetInsert(OPT_BURS_TreeNode node) {
-    // Adjust numRegisters to bias away from picking trees that
-    // are rooted in result carriers, since they start a new live 
-    // range.
-    if (!ResultCarrier.conforms(node.getInstruction())) {
+    OPT_Instruction s = node.getInstruction();
+    if (s.operator == GUARD_COMBINE ||
+	s.operator == GUARD_COND_MOVE ||
+	s.operator == GUARD_MOVE || 
+	!ResultCarrier.conforms(s)) {
+      // Adjust numRegisters to bias away from picking trees that
+      // are rooted in result carriers, since they start a new live 
+      // range. We don't count guard operations as result carriers, since
+      // guard operations get wiped out before register allocation anyways.
       node.setNumRegisters(node.numRegisters()+2);
     }
 
