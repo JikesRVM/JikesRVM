@@ -84,10 +84,10 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 ## you can *instead* set CLASSPATH_ROOT: 
 
 # CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.08
+# for GNU Classpath 0.10 
 # (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
-# export CLASSPATH_ROOT=/opt/classpath-0.08
+# export CLASSPATH_ROOT=/opt/classpath-0.10
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the build 
 ## process download and build GNU Classpath for you.

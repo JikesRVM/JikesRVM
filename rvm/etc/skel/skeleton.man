@@ -19,7 +19,7 @@
 ./
 ./ TODO: We need to use a macro-expansion process like that of 
 ./ GNU Configure so that we replace this with the proper version.
-.TH "COMMAND-NAME" "1" "April 2004" "Jikes RVM version 2.3.2+CVS" "User Commands"
+.TH "COMMAND-NAME" "1" "April 2004" "Jikes RVM version 2.3.3" "User Commands"
 .SH NAME
 command-name \- One-line description of command-name
 

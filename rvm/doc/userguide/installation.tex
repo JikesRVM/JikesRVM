@@ -89,9 +89,7 @@ better error messages than {\tt jikes-1.18}.
 
 \item Download Jikes RVM from the \xlink{Jikes RVM
 download page}{\RVMDownloadURL}, and unpack it.   You can either
-  download a tarball via FTP or download directly from CVS.  (Until
-  the 2.3.2 release comes out, the only way to use Kaffe to boot Jikes
-  RVM is to download directly from CVS.)  We shall
+  download a tarball via FTP or download directly from CVS.  We shall
 hereinafter call the location of the unpacked RVM distribution {\tt
   \$RVM\_\-ROOT\-/\-rvm}.   
 
@@ -470,21 +468,21 @@ whose default values are defined with reference to \texttt{HOST\_JAVA\_HOME}.
 
 {\bf The setting of \texttt{CLASSPATH\_ROOT} is tricky}, so we will go
 into some depth here.  For this example, we'll assume you downloaded
-\texttt{classpath-0.08.tgz}.  Create a directory to hold it.  You can
+\texttt{classpath-0.10.tgz}.  Create a directory to hold it.  You can
 name that directory anything; we'll name it 
-{\it \texttt{\$RVM\_\-ROOT/}classpath-0.08-build}.  
+{\it \texttt{\$RVM\_\-ROOT/}classpath-0.10-build}.  
 A command like 
 ``\texttt{/usr/gnu/tar -C
-  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.08-build} xzf classpath-0.08.tgz}''
+  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.10-build} xzf classpath-0.10.tgz}''
 will create the directory
-``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.08-build}\texttt{/\-class\-path-0.08}''.  
+``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.10-build}\texttt{/\-class\-path-0.10}''.  
 
 You {\bf must rename} ``\texttt{\$\{RVM\_\-ROOT\}/{\it
-    class\-path-0.08-build}/\-class\-path-0.08}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.08-build}/\-class\-path}''.  Now set your {\tt
-  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.08-build}}''
+    class\-path-0.10-build}/\-class\-path-0.10}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
+    class\-path-0.10-build}/\-class\-path}''.  Now set your {\tt
+  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.10-build}}''
 ({\bf not} to \texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.08-build}/\-class\-path}).
+    class\-path-0.10-build}/\-class\-path}).
 
 
 The first time you run Jikes RVM's build process, it will

@@ -1,5 +1,5 @@
 -*-outline-*-
-These are release notes for the future Jikes RVM release 2.3.3.
+These are release notes for Jikes RVM release 2.3.3.
 
 *Sections of this document:
  *Highlights
@@ -8,11 +8,13 @@ These are release notes for the future Jikes RVM release 2.3.3.
 
 *Highlights of this release include:
 
-**GNU Classpath 0.10
-Jikes RVM now uses GNU Classpath version 0.10.  Although Classpath
-0.08 is still expected to work with Jikes RVM 2.3.3, we recommend that
-users upgraded to the Classpath 0.10 to benefit from the additional
-functionality and bug fixes since Classpath 0.08.
+**GNU Classpath 0.10 on Linux/OSX
+Jikes RVM now uses GNU Classpath version 0.10 on all platforms except
+for AIX. We hope to resolve the classpath configuration/build problems
+with classpath 0.10 on AIX in the near future.  Jikes RVM 2.3.3 should
+work with classpath version 0.08, 0.09 or 0.10.  However, we recommend
+that users switch to classpath 0.10 if possible (if they are not on
+AIX). 
 
 **GCspy garbage collection visualization tool
 
@@ -52,6 +54,11 @@ location of your choice).
 We have implemented all of the missing functions from JNI 1.2 and 1.4.
 There are still aspects of the JNI implementation that can be
 improved; volunteers welcome.
+
+**MMTk
+Improvements to write barrier implementation, cleanup to mechanisms
+for specifying alignment constraints in allocation code, and
+refactoring of reference processing (java.lang.ref.*).
 
 *Other notes:
 

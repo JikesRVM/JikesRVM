@@ -17,7 +17,7 @@ dest="$2"
 #
 
 sed	-e 's,@USER_MANUAL@,@DOC_DIR@,g'			\
-        -e 's,@VERSION@,2.3.2+CVS,g'				\
+        -e 's,@VERSION@,2.3.3,g'				\
 	-e 's,@DOC_DIR@,/usr/share/doc/jikesrvm,g'		\
 	-e 's,@MAN_DIR@,/usr/share/man,g'			\
 	-e 's,@BIN_DIR@,/usr/bin,g'				\

@@ -6,13 +6,7 @@
 # to reflect the environment at watson.
 #
 
-export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
+. $RVM_ROOT/rvm/config/i686-pc-linux-gnu.watson
 
-. $RVM_ROOT/rvm/config/i686-pc-linux-gnu
-
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.08
-export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
-export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
-export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
 export RVM_HPM_DIR=/usr/local/lib
 export RVM_WITH_HPM=1
