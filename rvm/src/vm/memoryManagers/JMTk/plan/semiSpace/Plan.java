@@ -359,7 +359,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     CopySpace.prepare(((hi) ? ss0VM : ss1VM), ssMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
-    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   /**
@@ -374,7 +373,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // rebind the semispace bump pointer to the appropriate semispace.
     ss.rebind(((hi) ? ss1VM : ss0VM)); 
     los.prepare();
-    VM_Interface.preCopyGCInstances();
   }
 
   /**

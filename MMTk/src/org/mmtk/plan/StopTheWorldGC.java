@@ -235,6 +235,12 @@ public abstract class StopTheWorldGC extends BasePlan
     baseThreadLocalPrepare(order);
     if (order == 1) VM_Interface.resetThreadCounter();
     VM_Interface.rendezvous(4250);
+    if (Plan.MOVES_OBJECTS) {
+      VM_Interface.preCopyGCInstances();
+      VM_Interface.rendezvous(4260);
+      if (order == 1) VM_Interface.resetThreadCounter();
+      VM_Interface.rendezvous(4270);
+    }
   }
 
   /**

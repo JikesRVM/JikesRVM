@@ -373,7 +373,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     msSpace.prepare(msVM, msMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
-    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   /**
@@ -388,7 +387,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     nursery.reset();
     ms.prepare();
     los.prepare();
-    VM_Interface.preCopyGCInstances();
   }
 
   /**

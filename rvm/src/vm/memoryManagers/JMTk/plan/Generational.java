@@ -410,7 +410,6 @@ public abstract class Generational extends StopTheWorldGC
       globalMaturePrepare();
       ImmortalSpace.prepare(immortalVM, null);
     }
-    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   abstract void threadLocalMaturePrepare(int count);
@@ -429,7 +428,6 @@ public abstract class Generational extends StopTheWorldGC
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
     }
-    VM_Interface.preCopyGCInstances();   // Pre-copy objects the GC uses
   }
 
   /**
