@@ -1,0 +1,22 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+package org.vmmagic.unboxed;
+
+/**
+ * @author Kris Venstermans 
+ */
+public class Word {
+  public Word rsha (int sh) {
+    return null;
+  }
+  
+  public boolean isZero() {
+    return true;
+  }
+
+  public boolean isMax() {
+    return true;
+  }
+
+}
