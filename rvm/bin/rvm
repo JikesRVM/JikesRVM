@@ -4,14 +4,18 @@
 #
 # $Id$
 #
-# Invoke the rvm script using environmental variables
-#
+# Invoke the rvm script using environment variables
+
+# The script validates the RVM_ environment variables and
+# passes them to the runrvm executable, which then
+# computes command line arguments for the Jikes RVM executable.
 # @author Jeffrey Palm
 # @date   25 Jun 2002
 # @modified Steven Augart (ported to bash)
 # @date May 31, 2003
 
 
+# Sanity checks
 # What is our name?
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
@@ -51,15 +55,10 @@ sanity_env="${bin_dir}/sanity-envars.bash"
 checkenv HOME
 # Place where source files reside.
 checkenv RVM_ROOT
-[[ -e $RVM_ROOT ]] || croak_nonusage "The directory RVM_ROOT ($RVM_ROOT) does not exist.  Something is wrong; check your RVM_ROOT environment variable."
-[[ -d $RVM_ROOT/. ]] || croak_nonusage "RVM_ROOT ($RVM_ROOT) exists, but is not a directory or a symbolic link to a directory.  Something is wrong; check your RVM_ROOT environment variable."
 
+# We reset bin_dir so that we're sure to have an absolute pathname.
 bin_dir="${RVM_ROOT}/rvm/bin";
-[[ -d $RVM_ROOT/rvm/bin/. ]] || croak_nonusage "Can't find the directory RVM_ROOT/rvm/bin ($RVM_ROOT/rvm/bin/.).  Something is wrong; check your RVM_ROOT environment variable."
-# Place where RVM bootimage, booter, and runtime support files were placed.
 checkenv RVM_BUILD
-[[ -e $RVM_BUILD ]] || croak_nonusage "The directory RVM_BUILD ($RVM_BUILD) does not exist.  Something is wrong; check your RVM_BUILD environment variable."
-[[ -d $RVM_BUILD/. ]] || croak_nonusage "RVM_BUILD ($RVM_BUILD) exists, but is not a directory or a symbolic link to a directory.  Something is wrong; check your RVM_BUILD environment variable."
 
 [[ -f ${bin_dir}/runrvm ]] || croak_nonusage "Can't find the program $bin_dir/runrvm.  Are you sure your RVM_ROOT variable is set correctly?"
 # Pass these along as parameters to runrvm.
