@@ -5,8 +5,6 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -189,7 +187,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public final int getAllocator(Type type, int bytes, CallSite callsite, 
+  public final int getAllocator(MMType type, int bytes, CallSite callsite, 
                                 AllocAdvice hint) {
     return DEFAULT_SPACE;
   }
@@ -218,7 +216,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
