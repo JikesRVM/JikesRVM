@@ -36,23 +36,22 @@ export BOOTIMAGE_LOAD_ADDRESS="0x43000000"
 export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable
-export HOST_JAVA="/opt/IBMJava2-13/jre/bin/java"
-#
+export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
 
 # the JDK javadoc executable
-export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
+export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
 
 # the JDK jar executable
-export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
 
 # the JDK javac executable
-export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
+export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
 
 # the JDK standard library jar files
-export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
+export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 
 # the JDK tools jar
-export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
+export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
@@ -75,7 +74,6 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 # The configuration for building the user guide.
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
-
 
 #  some Unix commands
 export AWK=/bin/awk
