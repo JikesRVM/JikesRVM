@@ -42,21 +42,14 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * which is necessarily after the basic allocator boot).
    */
   public static void postBoot() {
-      if (useMemoryController) 
-	  VM_MemoryState.attach(false);  // attach as slave 
   }
 
   /** 
    *  Process GC parameters.
    */
   public static void processCommandLineArg(String arg) {
-      if (arg.compareTo("slave") == 0) {
-	  useMemoryController = true;
-      }
-      else {
-	  VM.sysWriteln("Unrecognized collection option: ", arg);
-	  VM.sysExit(1);
-      }
+      VM.sysWriteln("Unrecognized collection option: ", arg);
+      VM.sysExit(1);
   }
 
   /**
