@@ -1032,6 +1032,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     tmpFP[1].reserveRegister();
     tmpFP[2].reserveRegister();
     phys.getJTOC().reserveRegister();
+    phys.getFirstConditionRegister().reserveRegister();
   }
 
   /**
