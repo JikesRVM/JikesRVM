@@ -1157,10 +1157,11 @@ implements OPT_Operators, OPT_Constants {
         VM_Type meet = OPT_ClassLoaderProxy.proxy.
           findCommonSuperclass(t, result.asRegister().type);
         if (meet == null) {
-          if ((   ( result.asRegister().type.isIntLikeType())
-                  && t.isReferenceType())
-              || ((result.asRegister().type.isReferenceType())
-                  && t.isIntLikeType())) {
+	  VM_Type resultType = result.asRegister().type;
+          if (  (resultType.isIntLikeType()
+                  && (t.isReferenceType() || t.isAddressType())) 
+	    || ((resultType.isReferenceType() || resultType.isAddressType())
+                  && t.isIntLikeType()) ) {
             meet = VM_Type.IntType;
           }
         }

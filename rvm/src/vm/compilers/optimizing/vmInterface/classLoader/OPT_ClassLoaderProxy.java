@@ -97,6 +97,8 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
     if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
       VM_Type type = null;
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
+        if (t1.isAddressType() || t2.isAddressType())
+          return  VM_Type.AddressType;
         if (t1.isIntType() || t2.isIntType())
           return  VM_Type.IntType;
         if (t1.isCharType() || t2.isCharType())
@@ -104,11 +106,12 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
         if (t1.isShortType() || t2.isShortType())
           return  VM_Type.ShortType;
         if (t1.isByteType() || t2.isByteType())
-          return  VM_Type.IntType;
+	    return  VM_Type.IntType;  // XXX is this right?
       }
       return  null;
     }
-    if (!t1.isReferenceType() || !t2.isReferenceType())
+    if (!((t1.isReferenceType() || t1.isAddressType()) && 
+	  (t2.isReferenceType() || t2.isAddressType())))
       return  null;
     // can these next two cases happen?
     if (t1 == NULL_TYPE)
