@@ -45,8 +45,7 @@ $$$$ END FOREACH
 OPT_Operand code(OPT_BURS_TreeNode p, int  n, int ruleno) {
   switch(ruleno) {
 $$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
-$$$$ LET IS_INSTRUCTION RULE.FLAGS & 1
-$$$$ IF IS_INSTRUCTION == 1
+$$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
   case CASE:
     {
@@ -55,7 +54,6 @@ $$$$ IF IS_INSTRUCTION == 1
     break;
   $$$$ END LET
 $$$$ END IF
-$$$$ END LET
 $$$$ END FOREACH
   default:
     throw new OPT_OptimizingCompilerException("BURS","rule without emit code:",OPT_BURS_Debug.string[ruleno]);

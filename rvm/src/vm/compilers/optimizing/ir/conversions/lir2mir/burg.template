@@ -23,6 +23,11 @@ import instructionFormats.*;
 public final class OPT_BURS_STATE extends OPT_BURS_Helpers 
    implements OPT_Operators, OPT_BURS_Definitions {
 
+   static final byte NOFLAGS           = 0x00;
+   static final byte EMIT_INSTRUCTION  = 0x01;
+   static final byte LEFT_CHILD_FIRST  = 0x02;
+   static final byte RIGHT_CHILD_FIRST = 0x04;
+
    private OPT_BURS burs;
 
    OPT_BURS_STATE(OPT_BURS b) {
@@ -193,7 +198,7 @@ public final class OPT_BURS_STATE extends OPT_BURS_Helpers
      if (p == null) return;
      int rule = STATE(p).rule(goalnt);
      byte act = action[rule];
-     if (act != 0) {
+     if ((act & EMIT_INSTRUCTION) != 0) {
        p.setNonTerminal(goalnt);
      }
      if (rule == 0) {
