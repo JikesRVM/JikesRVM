@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 
 //$Id$
@@ -151,7 +151,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
    */
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
+  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.PrintLN out) 
+    throws VM_PragmaInterruptible 
+  {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -181,43 +183,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 		  + ": machine code offset " + 
 		  VM.intAsHexString(instructionOffset.toInt())
 		  + ")");
-    }
-  }
-
-  /**
-   * Print this compiled method's portion of a stack trace.
-   * @param instructionOffset offset of machine instruction from start of method
-   * @param out               the PrintWriter to print the stack trace to.
-   */
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
-    VM_OptMachineCodeMap map = getMCMap();
-    int iei = map.getInlineEncodingForMCOffset(instructionOffset);
-    if (iei >= 0) {
-      int[] inlineEncoding = map.inlineEncoding;
-      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-      for (int j = iei; 
-	   j >= 0; 
-	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
-        int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
-        int lineNumber = m.getLineNumberForBCIndex(bci);
-        out.println("\tat " 
-		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		    + "." + m.getName() + " (" + 
-		    m.getDeclaringClass().getSourceName() + ":" + 
-		    lineNumber + ")");
-        if (j > 0) {
-          bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
-        }
-      }
-    } else {
-      out.println("\tat " 
-		  + method.getDeclaringClass().getDescriptor().
-		  classNameFromDescriptor()
-		  + "." + method.getName() + " (" 
-		  + method.getDeclaringClass().getSourceName()
-		  + ": machine code offset " + 
-		  VM.intAsHexString(instructionOffset.toInt()) + ")");
     }
   }
 
