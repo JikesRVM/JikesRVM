@@ -3,7 +3,7 @@
  **
  ** Generic GCspy Server Interpreter skeleton
  **
- ** (C) Richard Jones, 2002
+ ** (C) Copyright Richard Jones, 2002
  ** Computing Laboratory, University of Kent at Canterbury
  ** All rights reserved.
  **/

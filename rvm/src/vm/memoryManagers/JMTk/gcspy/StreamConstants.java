@@ -1,7 +1,12 @@
 /**
  ** StreamConstants
  **
+ ** (C) Copyright Richard Jones, 2003
+ ** Computing Laboratory, University of Kent at Canterbury
+ ** All rights reserved.
  **/
+
+//$Id$
 
 package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
 
