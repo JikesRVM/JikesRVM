@@ -47,7 +47,6 @@
 public class VM_Allocator extends VM_GCStatistics
   implements VM_Constants, VM_Uninterruptible {
 
-  static final boolean GCDEBUG_SCANTHREADS = false;
   /**
    * When true, causes time spent in each phase of collection to be measured.
    * Forces summary statistics to be generated. See VM_CollectorThread.TIME_GC_PHASES.
@@ -100,15 +99,6 @@ public class VM_Allocator extends VM_GCStatistics
     VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
     smallHeap.boot(st, immortalHeap);
 
-    // when preparing for a timing run touch all the pages in the Nursery
-    // and Small Object Heap, to avoid overhead of page fault
-    // during the timing run
-    if (COMPILE_FOR_TIMING_RUN) {
-      largeHeap.touchPages();
-      smallHeap.touchPages();
-      nurseryHeap.touchPages();
-    }
-        
     // check for inconsistent heap & nursery sizes
     if (smallHeap.size <= nurseryHeap.size) {
       VM.sysWrite("\nNursery size is too large for the specified Heap size:\n");
@@ -386,15 +376,12 @@ public class VM_Allocator extends VM_GCStatistics
   // Implementation
   // **************************
 
-  static final int      TYPE = 1;	// IDENTIFIES HYBRID
   static final boolean  writeBarrier = true;      // MUST BE TRUE FOR THIS STORAGE MANAGER
   static final boolean  movesObjects = true;
 
   static final int  MARK_VALUE = 1;               // designates "marked" objects in Nursery
 
   static final int  SMALL_SPACE_MAX = 2048;       // largest object in small heap
-
-  static final boolean COMPILE_FOR_TIMING_RUN = true;      // touch heap in boot
 
   static int verbose = 0;
 
@@ -633,7 +620,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     VM_ScanStatics.scanStatics();     // all GC threads scan JTOC in parallel
 
-    gc_scanThreads();          // ALL GC threads compete to scan threads & stacks
+    VM_CopyingCollectorUtil.scanThreads(nurseryHeap);    // ALL GC threads process thread objects & scan their stacks
 
     // This synchronization is necessary to ensure all stacks have been scanned
     // and all internal saved ip values have been updated before we scan copied
@@ -828,7 +815,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     VM_ScanStatics.scanStatics();     // all threads scan JTOC in parallel
 
-    gc_scanThreads();          // ALL GC threads compete to scan threads & stacks
+    VM_CopyingCollectorUtil.scanThreads(nurseryHeap);    // ALL GC threads process thread objects & scan their stacks
 
     // have processor 1 record timestame for end of scanning stacks & statics
     // ...this will be approx. because there is not a rendezvous after scanning thread stacks.
@@ -1163,117 +1150,6 @@ public class VM_Allocator extends VM_GCStatistics
       st.modifiedOldObjectsTop = newbuffer.add(st.modifiedOldObjectsTop.diff(oldbuffer));
     }
   }  // scanProcessor
-
-
-  // Scans all threads in the VM_Scheduler threads array.  A threads stack
-  // will be copied if necessary and any interior addresses relocated.
-  // Each threads stack is scanned for object references, which will
-  // becomes Roots for a collection.
-  //
-  // All collector threads execute here in parallel, and compete for
-  // individual threads to process.  Each collector thread processes
-  // its own thread object and stack.
-  //
-  static void gc_scanThreads ()  {
-
-    VM_Thread  t;
-    int[]      oldstack;
-    
-    // get ID of running GC thread
-    int myThreadId = VM_Thread.getCurrentThread().getIndex();
-    
-    for (int i=0; i<VM_Scheduler.threads.length; i++ ) {
-      t = VM_Scheduler.threads[i];
-      VM_Address ta = VM_Magic.objectAsAddress(t);
-      
-      if ( t == null )
-	continue;
-      
-      // let each GC thread scan its own thread object to force updating
-      // of the header TIB pointer, and possible copying of register arrays
-      // stacks are supposed to be in the bootimage (for now)
-      
-      if ( i == myThreadId ) {  // at thread object for running gc thread
-	
-	// GC threads are assumed not to have native processors.  if this proves
-	// false, then we will have to deal with its write buffers
-	//
-	if (VM.VerifyAssertions) VM.assert(t.nativeAffinity == null);
-	
-	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert( !(nurseryHeap.refInHeap(ta)) );
-	
-	if (VM.VerifyAssertions) oldstack = t.stack; // for verifying  gc stacks not moved
-	VM_ScanObject.scanObjectOrArray(ta);             // will copy copy stacks, reg arrays, etc.
-	if (VM.VerifyAssertions) VM.assert(oldstack == t.stack);
-	
-	if (t.jniEnv != null) VM_ScanObject.scanObjectOrArray(t.jniEnv);
-	VM_ScanObject.scanObjectOrArray(t.contextRegisters);
-	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
-	
-	if (GCDEBUG_SCANTHREADS) VM_Scheduler.trace("VM_Allocator","Collector Thread scanning own stack",i);
-	VM_ScanStack.scanStack( t, VM_Address.zero(), true /*relocate_code*/ );
-	continue;
-      }
-
-      // skip other collector threads participating (have ordinal number) in this GC
-      if ( t.isGCThread && (VM_Magic.threadAsCollectorThread(t).gcOrdinal > 0) )
-	continue;
-      
-      // have mutator thread, compete for it with other GC threads
-      if ( VM_GCLocks.testAndSetThreadLock(i) ) {
-
-	if (GCDEBUG_SCANTHREADS) VM_Scheduler.trace("VM_Allocator","processing mutator thread",i);
-	
-	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert( !(nurseryHeap.refInHeap(ta)) );
-	
-	// scan thread object to force "interior" objects to be copied, marked, and
-	// queued for later scanning.
-	oldstack = t.stack;    // remember old stack address before scanThread
-	VM_ScanObject.scanObjectOrArray(ta);
-	
-	// if stack moved, adjust interior stack pointers
-	if ( oldstack != t.stack ) {
-	  if (GCDEBUG_SCANTHREADS) VM_Scheduler.trace("VM_Allocator","...adjusting mutator stack",i);
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
-	}
-	
-	// the above scanThread(t) will have marked and copied the threads JNIEnvironment object,
-	// but not have scanned it (likely queued for later scanning).  We force a scan of it now,
-	// to force copying of the JNI Refs array, which the following scanStack call will update,
-	// and we want to ensure that the updates go into the "new" copy of the array.
-	//
-	if (t.jniEnv != null) VM_ScanObject.scanObjectOrArray(t.jniEnv);
-	
-	// Likewise we force scanning of the threads contextRegisters, to copy 
-	// contextRegisters.gprs where the threads registers were saved when it yielded.
-	// Any saved object references in the gprs will be updated during the scan
-	// of its stack.
-	//
-	VM_ScanObject.scanObjectOrArray(t.contextRegisters);
-	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
-
-	// all threads in "unusual" states, such as running threads in
-	// SIGWAIT (nativeIdleThreads, nativeDaemonThreads, passiveCollectorThreads),
-	// set their ContextRegisters before calling SIGWAIT so that scans of
-	// their stacks will start at the caller of SIGWAIT
-	//
-	// fp = -1 case, which we need to add support for again
-	// this is for "attached" threads that have returned to C, but
-	// have been given references which now reside in the JNIEnv sidestack
-	//
-	if (verbose >= 3) VM.sysWriteln("Scanning stack for thread ",i);
-	VM_ScanStack.scanStack( t, VM_Address.zero(), true /*relocate_code*/ );
-
-      }  // (if true) we seized got the thread to process
-      
-      else continue;  // some other gc thread has seized this thread
-      
-    }  // end of loop over threads[]
-    
-  }  // gc_scanThreads
-  
 
   static boolean validRef ( VM_Address ref ) {
       return bootHeap.refInHeap(ref) || smallHeap.refInHeap(ref) || largeHeap.refInHeap(ref) ||
