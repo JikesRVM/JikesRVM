@@ -79,6 +79,8 @@ public class VM_FileSystem {
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
    * @return desired info (-1 -> error)
+   *    The boolean ones return 0 in case of non-true, 1 in case of 
+   *    true status.
    */ 
   public static int stat(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
