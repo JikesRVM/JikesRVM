@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002, 2004
+ * (C) Copyright IBM Corp 2002, 2004, 2005
  */
 //$Id$
 package java.lang;
@@ -35,14 +35,16 @@ public class JikesRVMSupport {
     Class c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
-    //-#elif !RVM_WITH_CLASSPATH_0_10
-    return new Class((Object) VMClass.create(type), pd);
-    //-#else
+    //-#elif RVM_WITH_CLASSPATH_0_10
+    // Classpath 0.10 is the earliest acceptable version
     /* Classpath 0.10 doesn't seem to have any way to actually set the
        ProtectionDomain.  Ugly. */
     Class c = new Class((Object) VMClass.create(type));
     setClassProtectionDomain(c, pd);
     return c;
+    //-#else
+    // Classpath 0.11, 0.12, or later
+    return new Class((Object) VMClass.create(type), pd);
     //-#endif
   }
 
@@ -97,7 +99,7 @@ public class JikesRVMSupport {
     return new Thread(vmdata, myName);
   }
 
-  //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
+  //-#if RVM_WITH_CLASSPATH_0_12
   public static void javaLangSystemEarlyInitializers() {
     System.initLoadLibrary();
     System.initProperties();
