@@ -194,6 +194,17 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 	transferMutex.lock();
 	transferQueue.enqueue(t);
 	transferMutex.unlock();
+	if (processorMode == NATIVE) {
+		// increase loop counter so this thread will be looked at 
+		// again - isbeingdispatched goes off when dispatcher stops
+		// running on the RVM processor, using this thread's stack.
+		// RARE CASE: the stuck thread has returned from this native
+		// processor, but being dispatched in the nativeidlethread has not
+		// yet gone off because its stack is still being used by dispatcher
+		// on the RVM	
+		i++;
+		if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
+	}
       } else {
 	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
 	readyQueue.enqueue(t);
