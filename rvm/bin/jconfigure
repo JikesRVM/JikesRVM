@@ -1715,7 +1715,7 @@ function emitImageLinker
    fi
 
    print ""
-   print 'OPT_ARGS="'$OPT_ARGS'"'
+   print 'OPT_ARGS="'$OPT_ARGS' $DEBUG_ARGS"'
 
    if (( RVM_WITH_NOFLUSH )); then
       print ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
