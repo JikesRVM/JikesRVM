@@ -358,7 +358,6 @@ integer RVM_WITH_PREMATURE_CLASS_RESOLUTION=0 # resolve classes referred to by m
 integer RVM_WITH_NOFLUSH=0	 # omit sync/isync in all cases
 
 # controls for diagnostic flags
-integer RVM_WITH_DIAGNOSTICS=0
 integer RVM_FOR_STRESSGC=0
 
 # Are we building the library source?
