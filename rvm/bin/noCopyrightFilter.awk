@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2001, 2003
+# (C) Copyright IBM Corp. 2001, 2003, 2004
 #
 # $Id$
 
@@ -35,6 +35,7 @@
 /\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
 /\/LICENSE/ { next }
+/\/NEWS/ { next }
 /\/src\/tools\/install\/macros.txt/ { next }
 
 /\/ReleaseNotes-/ { next }

@@ -37,6 +37,7 @@
 /\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
 /\/LICENSE/ { next }
+/\/NEWS/ { next }
 /\/src\/tools\/install\/macros.txt/ { next }
 
 
