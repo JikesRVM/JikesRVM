@@ -181,10 +181,8 @@ the whole program (such as
 \xlink{{\tt VM\_YieldpointCounterData}}{\VMYieldpointCounterDataURL} and
 \xlink{{\tt
 VM\_MethodInvocationCounterData}}{\VMMethodInvocationCounterDataURL}), 
-or one per method (such as
-\xlink{{\tt
-VM\_InstrumentedControlFlowEdgeCounterData}}{\VMInstrumentedControlFlowEdgeCounterDataURL}).  There is also a
-very generic data object called 
+or one per method.  There is also a
+generic data object called 
 \xlink{{\tt VM\_StringCounterData}}{\VMStringCounterDataURL} 
 that
 allows events to be give string names (see Debugging Counters above).
@@ -192,7 +190,7 @@ allows events to be give string names (see Debugging Counters above).
 \paragraph{Instrumentation Phases:}  The instrumentation itself is
 inserted by a compiler phase.  (see
 \xlink{{\tt
-OPT\_InsertBasicBlockCounters.java}}{\OPTInsertBasicBlockCountersURL},
+OPT\_InsertInstructionCounters.java}}{\OPTInsertInstructionCountersURL},
 \xlink{{\tt
 OPT\_InsertYieldpointCounters.java}}{\OPTInsertYieldpointCountersURL},
 \xlink{{\tt
