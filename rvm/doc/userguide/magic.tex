@@ -28,7 +28,7 @@ system.  The use of \xlink{{\tt VM\_Magic.objectAsAddress} to perform various
 forms of pointer arithmetic}{\VMMagicURL\#objectAsAddress(java.lang.Object)} is especially hazardous, since it can
 result in pointers being ``lost'' during garbage collection.  All such
 uses of magic must either occur in \link{uninterruptible methods}[
-(see below, Section~\Ref,page~\Pageref)]{uninterruptible_code}
+(see below, Section~\Ref, page~\Pageref)]{uninterruptible_code}
 or be guarded by calls to \xlink{{\tt VM.disableGC}}{\VMURL\#disableGC()} and \xlink{{\tt VM.enableGC}}{\VMURL\#enableGC()}.
 The optimizing compiler performs aggressive inlining and code motion, so
 not explictly marking such dangerous regions in one of these two
@@ -133,8 +133,9 @@ newarray}; {\instruction anewarray}; {\instruction athrow};
 {\instruction monitorenter},
 {\instruction monitorexit}, {\instruction multianewarray}. 
 \item{} Uninterruptible code cannot cause class loading and thus must
-not contain unresolved getstatic, putstatic, getfield, putfield,
-invokevirtual, or invokestatic bytecodes. 
+not contain unresolved {\instruction getstatic}, {\instruction
+putstatic}, {\instruction getfield}, {\instruction putfield},
+{\instruction invokevirtual}, or {\instruction invokestatic} bytecodes. 
 \item{} Uninterruptible code cannot contain calls to interruptible
 code. As a consequence, it is illegal to override an uninterruptible
 virtual method with an interruptible method.
