@@ -53,15 +53,28 @@ public final class FreeListVMResource extends VMResource implements Constants, V
    * zero on failure.
    */
   public final VM_Address acquire(int pages, MemoryResource mr) {
-
+    return acquire(pages, mr, true);
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr, byte tag) {
+    return acquire(pages, mr, tag, true);
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr, byte tag,
+				  boolean chargeMR) {
+    VM_Address rtn = acquire(pages, mr, chargeMR);
+    setTag(rtn, pages, tag);
+    return rtn;
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr,
+				  boolean chargeMR) {
     if (VM.VerifyAssertions) VM._assert(mr != null);
-    if (!mr.acquire(pages))
-	return VM_Address.zero();
+    if (chargeMR && !mr.acquire(pages))
+      return VM_Address.zero();
     lock();
     int startPage = freeList.alloc(pages);
     if (startPage == -1) {
       unlock();
-      mr.release(pages);
+      if (chargeMR)
+	mr.release(pages);
       VM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
@@ -79,13 +92,25 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   public final void release(VM_Address addr, MemoryResource mr) {
+    release(addr, mr, true);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, byte tag) {
+    release(addr, mr, tag, true);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, byte tag,
+			    boolean chargeMR) {
+    clearTag(addr, getSize(addr), tag);
+    release(addr, mr, chargeMR);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, 
+			    boolean chargeMR) {
     lock();
     int offset = addr.diff(start).toInt();
     int startPage = Conversions.bytesToPages(offset);
     int freedPages = freeList.free(startPage);
     pagetotal -= freedPages;
-    mr.release(freedPages);
-    releaseHelp(start.add(Conversions.pagesToBytes(startPage)), freedPages);
+    if (chargeMR)
+      mr.release(freedPages);
     unlock();
   }
   

@@ -1,6 +1,6 @@
 /*
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2003
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
@@ -22,7 +23,8 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uninterruptible {
+abstract class SegregatedFreeList extends Allocator 
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -35,7 +37,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   private static final int FREE_LIST_OFFSET = 0;
   private static final int FREE_LIST_BITS = BlockAllocator.MAX_BLOCK_LOG;
   private static final int SIZE_CLASS_BITS = 6;
-  private static final int INUSE_BITS = 8;
+  private static final int INUSE_BITS = 10;
   private static final int SIZE_CLASS_SHIFT = FREE_LIST_BITS;
   private static final int INUSE_SHIFT = FREE_LIST_BITS + SIZE_CLASS_BITS;
   protected static final int MIN_CELLS = 6;
@@ -49,7 +51,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   protected static int[] blockHeaderSize;
   protected static int[] cellsInBlock;
 
-  public static final boolean FRAGMENTATION_CHECK = true;
+  public static final boolean FRAGMENTATION_CHECK = false;
   protected static final boolean FRAG_VERBOSE = false;
   protected static int bytesAlloc;
   private long[] fragInuseCellBytes;
@@ -114,12 +116,8 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
       bytesAlloc += bytes;
 
     int sizeClass = getSizeClass(bytes);
-//     VM.sysWrite(bytes); VM.sysWrite(" "); VM.sysWrite(sizeClass); VM.sysWrite(" "); VM.sysWrite(VM_Magic.objectAsAddress(freeList)); VM.sysWrite(" "); VM.sysWrite(freeList[sizeClass]); VM.sysWrite("\n");
     VM_Address cell = freeList.get(sizeClass);
-//     VM.sysWrite(cell); VM.sysWrite("-");
     if (!cell.isZero()) {
-//     VM.sysWrite(cell); VM.sysWrite("-");
-//     VM.sysWrite(getNextCell(cell)); VM.sysWrite("-");
       cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
       postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes);
@@ -197,7 +195,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   private final VM_Address expandSizeClass(int sizeClass) 
     throws VM_PragmaInline {
-    VM_Address block = blockAllocator.alloc(blockSizeClass.get(sizeClass));
+    VM_Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
     if (block.isZero())
       return VM_Address.zero();
 
@@ -227,9 +225,9 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   abstract void postExpandSizeClass(VM_Address block, int sizeClass);
 
-  protected final int getNextCell(VM_Address cell)
+  protected final VM_Address getNextCell(VM_Address cell)
     throws VM_PragmaInline {
-    return VM_Magic.getMemoryWord(cell);
+    return VM_Magic.getMemoryAddress(cell);
   }
 
   private final void setNextCell(VM_Address cell, VM_Address next)
@@ -361,7 +359,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   public final void flushFreeLists() {
     //    VM.sysWrite("Flushing free lists!\n");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
-      if (currentBlock[sizeClass] != 0) {
+      if (!currentBlock.get(sizeClass).isZero()) {
 	VM_Address block = currentBlock.get(sizeClass);
 	VM_Address cell = freeList.get(sizeClass);
 	flushFreeList(block, sizeClass, cell);
@@ -400,11 +398,11 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 						  VM_Address cell,
 						  int sizeClass, int inuse) 
     throws VM_PragmaInline {
-    int value = (cell.toInt() & FREE_LIST_MASK) | (sizeClass << SIZE_CLASS_SHIFT) | (inuse << INUSE_SHIFT);
+    VM_Word value = VM_Word.fromInt((cell.toInt() & FREE_LIST_MASK) | (sizeClass << SIZE_CLASS_SHIFT) | (inuse << INUSE_SHIFT));
     VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
     
     if (block.EQ(DEBUG_BLOCK)) {
-      VM.sysWrite(inuse); VM.sysWrite(" "); VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(inuse << INUSE_SHIFT); VM.sysWrite(" "); VM.sysWrite(value>>INUSE_SHIFT); VM.sysWrite(" sfliu\n");
+      VM.sysWrite(inuse); VM.sysWrite(" "); VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(inuse << INUSE_SHIFT); VM.sysWrite(" "); VM.sysWrite(value.toInt()>>INUSE_SHIFT); VM.sysWrite(" sfliu\n");
     }
     if (VM.VerifyAssertions) {
       VM._assert(inuse == getInUse(block));
@@ -418,38 +416,38 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   protected static final VM_Address getFreeList(VM_Address block) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = (value & FREE_LIST_MASK);
-    if (value == 0)
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    value = value.and(VM_Word.fromInt(FREE_LIST_MASK));
+    if (value.isZero())
       return VM_Address.zero();
     else
-      return VM_Address.fromInt(value | (block.toInt() & ~FREE_LIST_MASK));
+      return value.or(block.toWord().and(VM_Word.fromInt(~FREE_LIST_MASK))).toAddress();
   }
 
   private static final void setFreeList(VM_Address block, VM_Address cell)
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (cell.toInt() & FREE_LIST_MASK) | (value & ~FREE_LIST_MASK);
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
   protected static final int getSizeClass(VM_Address block) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & SIZE_CLASS_MASK)>>SIZE_CLASS_SHIFT;
     return value;
   }
 
   private static final void setSizeClass(VM_Address block, int sizeClass)
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & ~SIZE_CLASS_MASK) | (sizeClass<<SIZE_CLASS_SHIFT);
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
   protected static final int getInUse(VM_Address block) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     if (block.EQ(DEBUG_BLOCK)) {
       VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(value>>INUSE_SHIFT); VM.sysWrite(" giu\n");
     }
@@ -458,24 +456,31 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   private static final void setInUse(VM_Address block, int inuse) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & ~INUSE_MASK) | (inuse << INUSE_SHIFT);
     if (block.EQ(DEBUG_BLOCK)) {
       VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(value>>INUSE_SHIFT); VM.sysWrite(" siu\n");
     }
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
   private static final int decInUse(VM_Address block) 
     throws VM_PragmaInline {
     
-    int value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value -= (1<<INUSE_SHIFT);
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
     if (VM.VerifyAssertions) {
       VM._assert((value>>INUSE_SHIFT) < (1<<INUSE_BITS));
       VM._assert((value>>INUSE_SHIFT) > 0);
     }
     return value>>INUSE_SHIFT;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous
+  //
+  public void show() {
   }
 }

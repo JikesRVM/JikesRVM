@@ -1,6 +1,6 @@
 /*
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2003
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -35,10 +36,13 @@ final class MarkSweepLocal extends SegregatedFreeList
   private static final int BITMAP_BASE = FREE_LIST_HEADER_BYTES;
   private static final int INUSE_BITMAP_BASE = BITMAP_BASE;
   private static final int MARK_BITMAP_BASE = BITMAP_BASE + WORD_SIZE;
-  private static final boolean LAZY_SWEEP = false;
+  private static final boolean LAZY_SWEEP = true;
   protected static int[] bitmapPairs;
   
   protected static int bytesLive;
+  private static int lastBytesAlloc = 0;
+  //  private static int MS_MUST_COLLECT_THRESHOLD = 1<<22;
+  private static int MS_MUST_COLLECT_THRESHOLD = 1<<30;
   private static long inuse[];
   private static long used[];
 
@@ -96,10 +100,8 @@ final class MarkSweepLocal extends SegregatedFreeList
 	    ((avail > (PAGE_SIZE>>1)) && (cells > MIN_CELLS)))
 	  break;
       }
-      //      VM.sysWrite("\n");
-      //      VM.sysWrite((float) (((float)cellSize[sc]*cellsInBlock[sc])/ite(cellSize[sc]*cellsInBlock[sc]+blockHeaderSize[sc]+Block.BLOCK_HEADER_SIZE); VM.sysWrite("\n");
     }
-    dumpSizeClassData();
+    //    dumpSizeClassData();
   }
 
   private static void dumpSizeClassData() {
@@ -153,27 +155,16 @@ final class MarkSweepLocal extends SegregatedFreeList
 
     // set the inuse bit
     bitmapWord = block.add(INUSE_BITMAP_BASE + offset);
-    word = VM_Word.fromInt(VM_Magic.getMemoryWord(bitmapWord));
+    word = VM_Magic.getMemoryWord(bitmapWord);
     word = word.or(mask);
-    VM_Magic.setMemoryWord(bitmapWord, word.toInt());
+    VM_Magic.setMemoryWord(bitmapWord, word);
 
-    if (block.EQ(DEBUG_BLOCK)) {
-       VM.sysWrite(cell); VM.sysWrite(" ");
-       VM.sysWrite(index); VM.sysWrite(" ");
-       VM.sysWrite(bitnumber); VM.sysWrite(" ");
-       VM.sysWrite(sizeClass); VM.sysWrite(" ");
-       VM.sysWrite(offset); VM.sysWrite(" ");
-       VM.sysWrite(block); VM.sysWrite(" ");
-       VM.sysWrite(bitmapWord); VM.sysWrite(" ");
-       VM.sysWrite(word); VM.sysWrite("<-\n");
-       VM.sysWrite(">\n");
-    }
     if (msSpace.inMSCollection) {
       // set the mark bit
       bitmapWord = block.add(MARK_BITMAP_BASE + offset);
-      word = VM_Word.fromInt(VM_Magic.getMemoryWord(bitmapWord));
+      word = VM_Magic.getMemoryWord(bitmapWord);
       word = word.or(mask);
-      VM_Magic.setMemoryWord(bitmapWord, word.toInt());
+      VM_Magic.setMemoryWord(bitmapWord, word);
     }
   };  
   
@@ -217,13 +208,15 @@ final class MarkSweepLocal extends SegregatedFreeList
     restoreFreeLists();
     if (PARANOID)
       sanity();
+    if (FRAGMENTATION_CHECK)
+      fragmentationSpotCheck();
   }
 
   /**
    * Sweep all blocks for free objects. 
    */
   private final void sweepBlocks() {
-    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       VM_Address block = firstBlock.get(sizeClass);
       while (!block.isZero()) {
 	// first check to see if block is completely free and if possible
@@ -268,7 +261,7 @@ final class MarkSweepLocal extends SegregatedFreeList
 	VM._assert((INUSE_BITMAP_BASE == BITMAP_BASE) 
 		   && (MARK_BITMAP_BASE == (BITMAP_BASE + WORD_SIZE)));
       VM_Address markBitmap = base.add(pair<<(LOG_WORD_SIZE+1));
-      VM_Magic.setMemoryWord(markBitmap, 0);
+      VM_Magic.setMemoryWord(markBitmap, VM_Word.zero());
     }
   }
 
@@ -297,17 +290,17 @@ final class MarkSweepLocal extends SegregatedFreeList
       base = base.add(WORD_SIZE);
       VM_Address markBitmap = base;
       base = base.add(WORD_SIZE);
-      int mark = VM_Magic.getMemoryWord(markBitmap);
+      VM_Word mark = VM_Magic.getMemoryWord(markBitmap);
       if (release) {
-	int inuse = VM_Magic.getMemoryWord(inUseBitmap);
-	int free = mark ^ inuse;
-	if (free != 0) {
+	VM_Word inuse = VM_Magic.getMemoryWord(inUseBitmap);
+	VM_Word free = mark.xor(inuse);
+	if (!free.isZero()) {
 	  freeFromBitmap(block, free, sizeClass, pair);
 	  VM_Magic.setMemoryWord(inUseBitmap, mark); 
 	}
-	if (mark != 0)
-	  VM_Magic.setMemoryWord(markBitmap, 0);
-      } else if (mark != 0)
+	if (!mark.isZero())
+	  VM_Magic.setMemoryWord(markBitmap, VM_Word.zero());
+      } else if (!mark.isZero())
 	return true;
     }
     return false;
@@ -327,14 +320,14 @@ final class MarkSweepLocal extends SegregatedFreeList
    * bitmap).
    * @param small True if these are small obejcts.
    */
-  private final void freeFromBitmap(VM_Address block, int free, int sizeClass,
-				    int pair)
+  private final void freeFromBitmap(VM_Address block, VM_Word free,
+				    int sizeClass, int pair)
     throws VM_PragmaInline {
     int index = (pair<<LOG_WORD_BITS);
     VM_Address base = block.add(blockHeaderSize[sizeClass]);
     int size = cellSize[sizeClass];
     for(int i=0; i < WORD_BITS; i++) {
-      if ((free & (1<<i)) != 0) {
+      if (!(free.and(VM_Word.fromInt((1<<i))).isZero())) {
 	int offset = (index + i)* size;
 	VM_Address cell = base.add(offset);
 	free(cell, block, sizeClass);
@@ -405,7 +398,7 @@ final class MarkSweepLocal extends SegregatedFreeList
 
   private final int checkFreeList(VM_Address block, int sizeClass) {
     VM_Address cell;
-    if (currentBlock.get(sizeClass).EQ(block)) {
+    if (currentBlock.get(sizeClass).EQ(block))
       cell = freeList.get(sizeClass);
     else
       cell = getFreeList(block);
@@ -443,10 +436,10 @@ final class MarkSweepLocal extends SegregatedFreeList
 			       int sizeClass) {
     int index = (cell.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
     int bitnumber = index & (WORD_BITS - 1);
-    int mask = 1<<bitnumber;
+    VM_Word mask = VM_Word.fromInt(1<<bitnumber);
     int offset = (index>>LOG_WORD_BITS)<<(LOG_WORD_SIZE + 1);
     VM_Address word = block.add(INUSE_BITMAP_BASE + offset);
-    boolean inuse = (VM_Magic.getMemoryWord(word) & mask) != 0;
+    boolean inuse = !(VM_Magic.getMemoryWord(word).and(mask).isZero());
     if (inuse && block.EQ(DEBUG_BLOCK)) {
       VM.sysWrite(index); VM.sysWrite(" "); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(word); VM.sysWrite(" "); VM.sysWrite(VM_Magic.getMemoryWord(word)); VM.sysWrite("\n");
     }
@@ -461,18 +454,18 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Address base = block;
     for (int pair = 0; pair < bitmapPairs[sizeClass]; pair++) {
       VM_Address bitmap = base.add(INUSE_BITMAP_BASE + (pair<<(LOG_WORD_SIZE+1)));
-      int word = VM_Magic.getMemoryWord(bitmap);
+      VM_Word word = VM_Magic.getMemoryWord(bitmap);
       if (block.EQ(DEBUG_BLOCK)) {
 	VM.sysWrite(pair); VM.sysWrite(" "); VM.sysWrite(bitmap); VM.sysWrite(" "); VM.sysWrite(word); VM.sysWrite("\n");
       }
       for (int bit = 0; bit < WORD_BITS; bit++) {
-	if ((word & (1<<bit)) != 0)
+	if (!(word.and(VM_Word.fromInt(1<<bit)).isZero()))
 	  used++;
       }
     }
 
     int inuse;
-    if (currentBlock[sizeClass] == block.toInt())
+    if (currentBlock.get(sizeClass) == block)
       inuse = cellsInUse[sizeClass];
     else
       inuse = getInUse(block);
@@ -498,7 +491,7 @@ final class MarkSweepLocal extends SegregatedFreeList
   private final int getUsedPages() {
     int bytes = 0;
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
-      bytes += getUsedBlockBytes(firstBlock.get(sc)), sc);
+      bytes += getUsedBlockBytes(firstBlock.get(sc), sc);
     }
     return bytes>>LOG_PAGE_SIZE;
   }
@@ -583,7 +576,7 @@ final class MarkSweepLocal extends SegregatedFreeList
     int inUseBytes = 0;
     while (!block.isZero()) {
       int inuse = 0;
-      if (currentBlock[sizeClass] == block.toInt())
+      if (currentBlock.get(sizeClass).EQ(block))
 	inuse = cellsInUse[sizeClass];
       else
 	inuse = getInUse(block);
@@ -592,4 +585,13 @@ final class MarkSweepLocal extends SegregatedFreeList
     }
     return inUseBytes;
   }
+
+  public boolean mustCollect() {
+    if ((lastBytesAlloc ^ bytesAlloc) > MS_MUST_COLLECT_THRESHOLD) {
+      lastBytesAlloc = bytesAlloc;
+      return true;
+    } else
+      return false;
+  }
+
 }
