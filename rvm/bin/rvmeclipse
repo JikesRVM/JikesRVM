@@ -1,5 +1,5 @@
-#!/bin/bash
-set -e
+#!/bin/sh
+
 # 
 # (C) Copyright IBM Corp. 2003
 #
@@ -9,12 +9,7 @@ set -e
 #
 
 . $RVM_BUILD/environment.target
-if ! [[ $ECLIPSE_INSTALL_DIR ]]; then
-    echo "ECLIPSE_INSTALL_DIR must be set but isn't; aborting."
-    exit 1
-fi
 
-# -X:vm:verboseStackTrace=100
-# Tune the -Xms and -Xmx values for your particular machine.
-exec $ECLIPSE_INSTALL_DIR/eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xms400M -Xmx1000M  -X:gc:verbose=2
+cd $ECLIPSE_INSTALL_DIR
 
+./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xms200
