@@ -7,7 +7,7 @@ are three major aspects of this support:
 \item [JNI Functions] This is the mechanism for transitioning from
 native code into Java. Jikes RVM implements all but 3 of the
 functions defined by the 1.1 JNI specification. Jikes RVM implements
-almost none of the additional functions added by the 1.2 JNI
+some of the additional functions added by the 1.2 JNI
 specification.
 \item [Native methods] This is the mechanism for transitioning from
 Java to native code. In addition to the normal mechanism used to
@@ -45,12 +45,17 @@ VM\_JNICompiler}.
 There are two mechanisms whereby RVM may transition from Java to native
 code.
 
-The first mechanism is when RVM calls a method through a VM {\tt syscall}
-method.  These native methods are non-blocking system calls or C library 
+\index{syscall}
+The first mechanism is when RVM calls a method of the class {\tt VM\_SysCall}.
+The native methods thus invoked are defined in one of the
+C and C++ files of the {\tt JikesRVM} executable. 
+These native methods are non-blocking system calls or C library 
 services.  To implement a syscall, the RVM compilers generate a call
 sequence consistent with the platform's underlying calling convention.
 A {\tt syscall} is not a GC-safe point, so {\tt syscalls} may modify the
-Java heap (eg. memcpy).
+Java heap (eg. memcpy). For more details on the mechanics of adding a
+new syscall to the system, see the header comments of 
+\xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.
 
 The second mechanism is JNI.  Naturally, the user writes JNI code
 using the JNI interface.  RVM implements a call to a native method by
