@@ -1,16 +1,12 @@
-FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
 JMTkFullAdaptiveSemispace        -test-list nightly-tests
 JMTkBaseBaseSemispace            -test-list nightly-tests
 JMTkBaseAdaptiveSemispace        -test-list nightly-tests-short
-BaseAdaptiveSemispace            -test-list nightly-tests-short
-ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
-FastSemispace                    -test-list nightly-tests-short
-BaseBaseSemispace                -test-list nightly-tests
-BaseBaseMarkSweep                -test-list nightly-tests
 JMTkExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
 JMTkFastAdaptiveSemispace        -test-list nightly-tests-short
-FullAdaptiveSemispace            -test-list nightly-tests
-FastAdaptiveSemispace            -test-list nightly-tests-short
+BaseBaseSemispace                -test-list nightly-tests
+BaseAdaptiveSemispace            -test-list nightly-tests-short
+FastSemispace                    -test-list nightly-tests-short
+FastAdaptiveSemispace            -test-list nightly-tests
+FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
+BaseBaseMarkSweep                -test-list nightly-tests
 FastMarkSweep                    -test-list nightly-tests-short
-
-
