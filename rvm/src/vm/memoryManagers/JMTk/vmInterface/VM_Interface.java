@@ -348,6 +348,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static int pickAllocator(VM_Type type) throws VM_PragmaInterruptible {
+      return pickAllocator(type, null);
+  }
+
+  public static int pickAllocator(VM_Type type, VM_Method method) throws VM_PragmaInterruptible {
+    if (method != null) {
+	String site = method.toString();
+	if (site.startsWith("com.ibm.JikesRVM.memoryManagers.JMTk.SegregatedFreeList")) {
+	    // VM.sysWriteln("pickAllocator: making immortal callsite ", site);
+	    return Plan.IMMORTAL_SPACE;
+	}
+    }
     Type t = type.JMTKtype;
     if (t.initialized)
       return t.allocator;
@@ -750,5 +761,19 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static int synchronizedCounterOffset = -1;
 
+  // Make sure we don't GC does not putField on a possible moving object
+  //
+  public static void modifyCheck (Object obj) {
+    if (Plan.gcInProgress()) {
+	VM_Address ref = VM_Magic.objectAsAddress(obj);
+	if (VMResource.refIsMovable(ref)) {
+	    VM.sysWriteln("GC modifying a potetentially moving object via Java (i.e. not magic)");
+	    VM.sysWriteln("  obj = ", ref);
+	    VM_Type t = VM_Magic.getObjectType(obj);
+	    VM.sysWrite(" type = "); VM.sysWriteln(t.getDescriptor());
+	    VM.sysFail("GC modifying a potetentially moving object via Java (i.e. not magic)");
+	}
+    }
+  }
 
 }
