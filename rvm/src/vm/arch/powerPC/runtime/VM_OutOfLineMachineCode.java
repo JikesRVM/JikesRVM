@@ -380,7 +380,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // change the vpstatus of the VP to "in Native"
     //
     asm.emitLAddr  (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
-    asm.emitLWZ    (S1, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // S1 gets addr vpStatus word
+    asm.emitLAddr  (S1, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // S1 gets addr vpStatus word
     asm.emitLVAL   (S0,  VM_Processor.IN_NATIVE);                  // S0  <- new status value
     asm.emitSTW    (S0,  0, S1);                                   // change state to native
 

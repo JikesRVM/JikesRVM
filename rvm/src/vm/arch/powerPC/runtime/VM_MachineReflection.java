@@ -33,11 +33,17 @@ public class VM_MachineReflection implements VM_Constants {
     for (int i=0; i<types.length; i++) {
       VM_TypeReference t = types[i];
       if (t.isLongType()) {
-        if (gp > LAST_VOLATILE_GPR) {
-          Spills+=2;
+        if (VM.BuildFor64Addr) {
+          if (gp > LAST_VOLATILE_GPR) {
+            Spills++;
+          } else {
+            GPRs++; gp++;
+          }
         } else {
-          GPRs++; gp++;
-          if (VM.BuildFor32Addr){
+          if (gp > LAST_VOLATILE_GPR) {
+            Spills+=2;
+          } else {
+            GPRs++; gp++;
             if(gp > LAST_VOLATILE_GPR) {
               Spills++;
             } else {
@@ -49,7 +55,7 @@ public class VM_MachineReflection implements VM_Constants {
 	if (fp > LAST_VOLATILE_FPR) Spills++;
 	else {FPRs++; fp++;}
       } else if (t.isDoubleType()) {
-	if (fp > LAST_VOLATILE_FPR) Spills+=2;
+	if (fp > LAST_VOLATILE_FPR) Spills+= VM.BuildFor64Addr ? 1 : 2;
 	else {FPRs++; fp++;}
       } else { // t is object, int, short, char, byte, or boolean
 	if (gp > LAST_VOLATILE_GPR) Spills++;
@@ -98,7 +104,6 @@ public class VM_MachineReflection implements VM_Constants {
           if (gp > LAST_VOLATILE_GPR) {
             //-#if RVM_FOR_64_ADDR
             Spills.set(--Spill, VM_Word.fromLong(l));
-            Spills.set(--Spill, VM_Word.fromLong(l)); //Kris V: 1 of them is obsolete, but doesn't hurt
             //-#endif
           } else {
             gp++;
@@ -138,7 +143,6 @@ public class VM_MachineReflection implements VM_Constants {
           if (VM.BuildFor64Addr) {
             //-#if RVM_FOR_64_ADDR
             Spills.set(--Spill, VM_Word.fromLong(l));
-            Spills.set(--Spill, VM_Word.fromLong(l));//Kris V: 1 of them is obsolete, but doesn't hurt
             //-#endif
           } else {
             Spills.set(--Spill, VM_Word.fromIntZeroExtend((int)(l>>>32)));

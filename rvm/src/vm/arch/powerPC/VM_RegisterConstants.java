@@ -173,22 +173,22 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // the definitions are chained to the first one, JNI_JTOC_OFFSET
   // saved R17-R31 + R16 + GCflag + affinity + saved JTOC
 
-  static final int JNI_JTOC_OFFSET                  = 4;
-  static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_JTOC_OFFSET + 4;    // at 8
+  static final int JNI_JTOC_OFFSET                  = BYTES_IN_ADDRESS;
+  static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_JTOC_OFFSET + BYTES_IN_ADDRESS;    // at 8
   static final int JNI_PR_OFFSET                    = JNI_RVM_NONVOLATILE_OFFSET + 
-    ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * 4);             // at 68
-  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_PR_OFFSET + 4;    // at 72: save 7 register 4-10
+    ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);             // at 68
+  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_PR_OFFSET + BYTES_IN_ADDRESS;    // at 72: save 7 register 4-10
   static final int JNI_AFFINITY_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE; // at 100
 
   //-#if RVM_FOR_AIX
-  static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_AFFINITY_OFFSET + 4;          // 104
-  static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + 4;          // 108
+  static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_AFFINITY_OFFSET + BYTES_IN_ADDRESS;          // 104
+  static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + BYTES_IN_ADDRESS;          // 108
   static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
   //-#endif
 
   //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   // LINUX saves prologue address in lr slot of glue frame (1), see picture blow
-  static final int JNI_GC_FLAG_OFFSET                = JNI_AFFINITY_OFFSET + 4;
+  static final int JNI_GC_FLAG_OFFSET                = JNI_AFFINITY_OFFSET + BYTES_IN_ADDRESS;
   static final int JNI_MINI_FRAME_POINTER_OFFSET     = 
     VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
 		      VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);

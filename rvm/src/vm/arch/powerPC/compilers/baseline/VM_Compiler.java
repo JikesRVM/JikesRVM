@@ -3274,7 +3274,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genSpillDoubleSlot (int stackIndex) {
      peekDouble(0, stackIndex);
      asm.emitSTFD(0, spillOffset, FP);
-     spillOffset += 2*BYTES_IN_STACKSLOT;
+     if (VM.BuildFor64Addr) {
+       spillOffset += BYTES_IN_STACKSLOT;		 		  
+     } else {
+       spillOffset += 2*BYTES_IN_STACKSLOT;
+     }
   }
                
   private void genUnspillSlot (int localIndex) {
@@ -3286,7 +3290,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genUnspillDoubleSlot (int localIndex) {
      asm.emitLFD (0, spillOffset, FP);
      asm.emitSTFD(0, localOffset(localIndex) - BYTES_IN_DOUBLE , FP);
-     spillOffset += 2*BYTES_IN_STACKSLOT;
+     if (VM.BuildFor64Addr) {
+       spillOffset += BYTES_IN_STACKSLOT;
+     } else {
+       spillOffset += 2*BYTES_IN_STACKSLOT;
+     }
   }
 
 
