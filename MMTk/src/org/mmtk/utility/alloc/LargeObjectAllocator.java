@@ -85,7 +85,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
     throws VM_PragmaNoInline {
     VM_Address cell = allocSlow(bytes, align, offset, false);
     postAlloc(cell);
-    return cell;
+    return alignAllocation(cell, align, offset);
   }
 
   abstract protected void postAlloc(VM_Address cell);
@@ -106,11 +106,12 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   final protected VM_Address allocSlowOnce (int bytes, int align, int offset,
                                             boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of BYTES_IN_PARTICLE
-    int pages = (getMaximumAlignedSize(bytes + header, align) + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
+    int maxbytes = getMaximumAlignedSize(bytes + header, align);
+    int pages = (maxbytes + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
-    VM_Address cell = alignAllocation(sp.add(header), align, offset);
-    Memory.zero(cell, VM_Extent.fromIntZeroExtend(bytes));
+    VM_Address cell = sp.add(header);
+    Memory.zero(cell, VM_Extent.fromIntZeroExtend(maxbytes));
     return cell;
   }
 
