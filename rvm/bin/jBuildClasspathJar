@@ -7,6 +7,12 @@
 #
 
 ##
+## constants
+##
+TOP_LEVEL_PACKAGES="java javax gnu"
+
+
+##
 ## defaults
 ##
 export FULL=0
@@ -19,7 +25,8 @@ if [ `uname` = Linux ]; then
 else
   CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
 fi
-CLASSPATH_CVS_DATESPEC_ARG="2003-01-14 12:00 EST"
+CLASSPATH_CVS_DATESPEC_ARG=`cat $RVM_ROOT/rvm/bin/ids/classpath.stamp`
+
 
 ##
 ## read local config
@@ -61,18 +68,24 @@ while [[ $# > 0 ]] ; do
 done
 
 ##
+## Blow everything away if timestamps do not match
+##
+if [[ -e $DEST_DIR/stamp ]]; then
+  if ( ! $DIFF -q $RVM_ROOT/rvm/bin/ids/classpath.stamp $DEST_DIR/stamp ); then
+    echo "Removing out-of-date GNU Classpath checkout"
+    rm -rf $DEST_DIR
+  fi
+fi
+
+##
 ## check if requested
 ##
 if [[ $CHECK = 1 ]]; then
   if [[ $FULL = 1 ]]; then
-    if [[ $RVM_FOR_IA32 = 1 ]]; then
-      if [[ -e $DEST_DIR/i686/lib/glibj.zip ]]; then
+    if [[ -e $DEST_DIR/classpath/config.guess ]]; then
+      system_type=`$DEST_DIR/classpath/config.guess`  
+      if [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
        exit 0
-      fi
-    else
-      
-      if [[ -e $DEST_DIR/aix$OS_VER/lib/glibj.zip ]]; then
-        exit 0
       fi
     fi
   else
@@ -88,13 +101,14 @@ fi
 if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
   echo "Downloading GNU Classpath"
   rm -rf $DEST_DIR
-  mkdir $DEST_DIR
+  mkdir -p $DEST_DIR
   cd $DEST_DIR
 
   if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
     $CVS -Q -d $CLASSPATH_CVS_ROOT co classpath
   else
     $CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath
+    cp $RVM_ROOT/rvm/bin/ids/classpath.stamp $DEST_DIR/stamp
   fi 
 else
   cd $DEST_DIR
@@ -122,21 +136,28 @@ if [[ $FULL = 1 ]]; then
   fi
 
   # configure and build library
-  if [[ $RVM_FOR_IA32 = 1 ]]; then
-    echo "Configuring for i686"
-    mkdir ../i686; cd ../i686
-    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES"
+  system_type=`$DEST_DIR/classpath/config.guess`  
+  if [[ ! -e $DEST_DIR/$system_type/lib/glib.zip ]]; then
+    mkdir $DEST_DIR/$system_type
+    echo "Configuring for $system_type"
+    cd $DEST_DIR/$system_type
+    if [[ $RVM_FOR_IA32 = 1 ]]; then
+      ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
+    else
+      FIND=$FIND ZIP=$ZIP_CMD ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
+    fi   
     echo "Building the library"
     $GNU_MAKE
-  else
-    echo "Configuring for aix$OS_VER (GTK AWT peer disabled)"
-    mkdir ../aix$OS_VER
-    cd ../aix$OS_VER
-    export FIND=$FIND
-    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
-    echo "Building the library"
-    $GNU_MAKE
-  fi   
+  fi
+
+  # build classpath source jar
+  echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
+  rm -f $RVM_ROOT/support/lib/classpathsrc.jar
+  touch $RVM_ROOT/support/lib/classpathsrc.jar
+  cd $DEST_DIR/classpath
+  for p in $TOP_LEVEL_PACKAGES; do
+    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
+  done
 
 else
   ##
@@ -153,7 +174,6 @@ else
   #
   echo "Compiling the .java files"
   cd lib
-  TOP_LEVEL_PACKAGES="java javax gnu"
   for p in $TOP_LEVEL_PACKAGES; do
     $FIND ../$p -name '*.java' | $GREP -v -f standard.omit | $XARGS $JIKES -classpath ..:../vm/reference
   done
