@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
 import java.net.*;
 
 public class VM_InetAddress {

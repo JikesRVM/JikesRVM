@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
 import java.io.IOException;
 import java.io.FileDescriptor;
 import java.io.FileDescriptor;
