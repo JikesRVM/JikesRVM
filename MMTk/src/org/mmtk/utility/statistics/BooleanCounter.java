@@ -142,7 +142,7 @@ public class BooleanCounter extends Counter
    */
   final protected void printTotal() {
     int total = 0;
-    for (int p = 0; p < Stats.phase; p++) {
+    for (int p = 0; p <= Stats.phase; p++) {
       total += (state[p]) ? 1 : 0;
     }
     printValue(total);
@@ -157,7 +157,7 @@ public class BooleanCounter extends Counter
    */
   final protected void printTotal(boolean mutator) {
     int total = 0;
-    for (int p = (mutator) ? 0 : 1; p < Stats.phase; p += 2) {
+    for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
       total += (state[p]) ? 1 : 0;
     }
     printValue(total);

@@ -166,7 +166,7 @@ public abstract class LongCounter extends Counter
    */
   final protected void printTotal(boolean mutator) {
     long total = 0;
-    for (int p = (mutator) ? 0 : 1; p < Stats.phase; p += 2) {
+    for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
       total += count[p];
     }
     printValue(total);
