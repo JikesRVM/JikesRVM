@@ -522,46 +522,6 @@ For more information on the BURS algorithm see
 
 \PowerPCTMFooter
 
-%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{"Magic" Methods}\label{magic}
-\index{magic methods}
-\index{VM\_Magic}
-\index{semantic inlining}
-Certain methods, known as "magic" methods and declared as static methods of 
-\xlink{{\tt VM\_Magic}}{\VMMagicURL}, 
-are treated differently by the compiler. Because these methods access
-raw memory (such as portions of object headers) or registers, or are
-operating system calls they cannot be implemented in Java\trademark
-code. Instead, for each of these methods, the Java instructions to
-generate the code is stored in 
-\xlink{{\tt OPT\_GenerateMagic}}{\OPTGenerateMagicURL} and 
-\xlink{{\tt
-OPT\_GenerateMachineSpecificMagic}}{\OPTGenerateMachineSpecificMagicURL} (to generate HIR) and 
-\xlink{{\tt VM\_MagicCompiler}}{\VMMagicCompilerURL} 
-(to generate assembly code)\footnote{The optimizing
-compiler always uses the set of instructions that generate HIR; the
-instructions that generate assembly code are only invoked by the
-baseline compiler.}.
-
-When the compiler determines that a call target is one of these
-magic methods, it inlines appropriate HIR for the magic method 
-into the caller method.
-
-An RVM implementor must be {\em extremely careful} when writing
-code that uses {\tt VM\_Magic} to circumvent the Java type
-system. The use of {\tt VM\_Magic.objectAsAddress} to perform various
-forms of pointer arithmetic is especially hazardous, since it can
-result in pointers being ``lost'' during garbage collection. 
-All such uses of magic must either occur in uninterruptible
-code (ie in a method of a class that {\em directly} implements 
-\xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL}
-) or be guarded by calls to 
-{\tt VM.disableGC} and {\tt VM.enableGC}.  The optimizing compiler
-performs aggressive inlining and code motion and not explictly marking
-such dangerous regions in one of these two manners will lead to
-disaster.
-
-\JavaTMFooter
 
 \subsection{OptTestHarness}\label{opttestharness}
 
