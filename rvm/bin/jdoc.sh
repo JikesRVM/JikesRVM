@@ -4,6 +4,7 @@
 #
 
 DEST_DIR=$1
+shift
 
 # make sure we have a repository to use
 if [ x$RVM_ROOT = x ]; then
@@ -13,14 +14,23 @@ fi
 
 
 # should tables of inherited stuff be stripped?
-STRIP_FIELDS=0
-STRIP_CLASSES=0
-if [ x$2 = xboth -o x$2 = xfields ]; then
-  STRIP_FIELDS=1
-fi
-if [ x$2 = xboth -o x$2 = xclasses ]; then
-  STRIP_CLASSES=1
-fi
+STRIP_FIELDS=1
+STRIP_CLASSES=1
+STRIP_METHODS=1
+HACK_SPLASH_PAGE=1
+while [ $# != 0 ]; do
+  if [ x$2 = x-leave-fields ]; then
+    STRIP_FIELDS=0
+  elif [ x$2 = x-leave-classes ]; then
+    STRIP_CLASSES=0
+  elif [ x$2 = x-leave-methods ]; then
+    STRIP_METHODS=0
+  elif [ x$2 = x-leave-splash ]; then
+    HACK_SPLASH_PAGE=0
+  fi
+
+  shift
+done
 
 
 # make build directory
@@ -77,10 +87,16 @@ find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -private -a
 echo -n "(javadoc complete) "
 
 # no more need for code dir or build dir
-# rm -rf $CODE_DIR $RVM_BUILD
+rm -rf $CODE_DIR $RVM_BUILD
 
 # post-process if desired
 cd $DEST_DIR
+
+if [ $HACK_SPLASH_PAGE -eq 1 ]; then
+   $SED 's@instructionFormats/package-summary@overview-tree@g' < index.html > index.hacked
+   mv index.html index.old
+   mv index.hacked index.html
+fi
 
 if [ $STRIP_FIELDS -eq 1 ]; then
     for f in `find . -name '*.html'`; do
@@ -89,9 +105,28 @@ if [ $STRIP_FIELDS -eq 1 ]; then
       else
         TMP=./xxx
       fi
-      awk '
+      $AWK '
         BEGIN { discard_table = 0; find_table = 0; }
         /<A NAME="fields_inherited_from_class/ { find_table = 1; }
+        find_table==1 && /<TABLE/ { discard_table = 1; }
+        discard_table==0 { print $0; }
+        discard_table==1 { }
+        discard_table==1 && /<\/TABLE/ { find_table = 0; discard_table = 0; }
+      ' $f > $TMP
+      mv $TMP $f
+    done
+fi
+
+if [ $STRIP_METHODS -eq 1 ]; then
+    for f in `find . -name '*.html'`; do
+      if [ `uname` = Linux ]; then
+        TMP=`mktemp /tmp/strip.XXXXXX`
+      else
+        TMP=./xxx
+      fi
+      $AWK '
+        BEGIN { discard_table = 0; find_table = 0; }
+        /<A NAME="methods_inherited_from_class/ { find_table = 1; }
         find_table==1 && /<TABLE/ { discard_table = 1; }
         discard_table==0 { print $0; }
         discard_table==1 { }
@@ -108,7 +143,7 @@ if [ $STRIP_CLASSES -eq 1 ]; then
       else
         TMP=./xxx
       fi
-      awk '
+      $AWK '
         BEGIN { discard_table = 0; find_table = 0; }
         /<A NAME="inner_classes_inherited_from_class/ { find_table = 1; }
         find_table==1 && /<TABLE/ { discard_table = 1; }
