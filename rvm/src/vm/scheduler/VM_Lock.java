@@ -375,6 +375,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   private static final int LOCK_ALLOCATION_UNIT_SIZE  =  100;
   private static final int LOCK_ALLOCATION_UNIT_COUNT =  2500;  // TEMP SUSAN
           static final int MAX_LOCKS = LOCK_ALLOCATION_UNIT_SIZE * LOCK_ALLOCATION_UNIT_COUNT ;
+          static final int INIT_LOCKS = 4096;
 
   private static VM_ProcessorLock lockAllocationMutex;
   private static int              lockUnitsAllocated;
@@ -386,12 +387,23 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    */
   static void init() throws VM_PragmaInterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
-    VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
+    VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
       VM._assert((VM_Scheduler.locks.length-1<=(VM_ThinLockConstants.TL_LOCK_ID_MASK>>>VM_ThinLockConstants.TL_LOCK_ID_SHIFT))
                 || (VM_ThinLockConstants.TL_LOCK_ID_MASK==-1));
   }
   
+  static void growLocks() throws VM_PragmaInterruptible {
+    VM_Lock [] oldLocks = VM_Scheduler.locks;
+    int newSize = 2 * oldLocks.length;
+    if (newSize > MAX_LOCKS + 1)
+      VM.sysFail("Cannot grow lock array greater than maximum possible index");
+    VM_Lock [] newLocks = new VM_Lock[newSize];
+    for (int i=0; i<oldLocks.length; i++)
+      newLocks[i] = oldLocks[i];
+    VM_Scheduler.locks = newLocks;
+  }
+
   /**
    * Delivers up an unassigned heavy-weight lock.  Locks are allocated
    * from processor specific regions or lists, so normally no synchronization
@@ -428,6 +440,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	}
       }
       l.index = mine.nextLockIndex++;
+      while (l.index >= VM_Scheduler.locks.length)
+	growLocks();
       VM_Scheduler.locks[l.index] = l;
       l.active = true;
       VM_Magic.sync(); // make sure other processors see lock initialization.  Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen
