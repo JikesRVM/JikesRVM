@@ -59,7 +59,7 @@ if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle filter limit " + val); \
 val = val2;
 
 
-V gcTimeCap int MAX_INT timeCap
+V gcTimeCap int 1000 timeCap
 Try to limit reference counting collections to this time cap (ms)
 if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
 
