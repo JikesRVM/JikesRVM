@@ -55,7 +55,7 @@ of tests (a list of multiple tests must be guarded by quotation marks
 in most Unix shells); the {\tt{-test-list}} option takes a single
 filename as the next argument, and that file must contain a list of
 tests to run.  If the filename is an absolute path, that file is read,
-if it is a relative path, it is assume to be relative to
+if it is a relative path, it is assumed to be relative to
 \$RVM\_ROOT/rvm/regression/config.  In either case, the items in the
 list of tests to run must be subdirectories of
 \$RVM\_ROOT/rvm/regression/tests (the directory that contains the
@@ -73,7 +73,7 @@ marks in most Unix shells); the {\tt{-configuration-file}} option
 expects that the next command line word be a filename, and that the
 named file contain a list of boot image configuration names understood
 by jconfigure.  If the filename is an absolute path, that file is
-read, if it is a relative path, it is assume to be relative to
+read, if it is a relative path, it is assumed to be relative to
 \$RVM\_ROOT/rvm/regression/config.
 
 \item{\tt{-result}} {\em root directory}
@@ -82,7 +82,7 @@ read, if it is a relative path, it is assume to be relative to
 sanity tests should be put.  Programs tend to generate output, and
 running tests can cause compilation and other operations that generate
 results.  To avoid cluttering up the directories containing the actual
-tests, one can specify that the results put elsewhere with this
+tests, one can specify that the results be put elsewhere with this
 option.  The directory specified is actually the root of a tree that
 will be created to contain the results of the different tests and
 configurations desired; the structure under the specified root
@@ -114,7 +114,7 @@ directories for each optimization level specified.
 
 \item{\tt{-numprocs}} {\em n}
 
- This command line option specifies how many processors (i.e. Jikes
+ This command line option specifies how many processors (i.e. Jikes\trademark
 RVM virtual processors) are to be used for each test run.  For every
 test that is run, the desired number of processors will be given to
 Jikes RVM as a boot time command line option.  This option is ignored
