@@ -127,7 +127,7 @@ GENERATOR_FILES = ${GENERATOR}.class QuotedStringTokenizer.class \
 
 TEX_FILES = $(INPUT_FILES) $(GEN_INPUTS) 
 
-TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux jmtk_options.tex
+TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux jmtk_options.tex missfont.log
 
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
