@@ -3,7 +3,10 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
+
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * Use optimizing compiler to build virtual machine boot image.
  * 
@@ -11,8 +14,6 @@ import com.ibm.JikesRVM.opt.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 public class VM_BootImageCompiler {
 
   // Identity.
@@ -49,22 +50,9 @@ public class VM_BootImageCompiler {
 
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
 
-      // Kludge:  The opt complier gets into all sorts of trouble when 
-      // inlining is enabled if java.lang.Object isn't fully instantiated 
-      // (in particular, instantiating Arrays which requires a clone of 
-      // java.lang.Object's TIB and SI leads to recursive baseline compilation).
-      // Therefore, we force java.lang.Object to be instantiated early by 
-      // calling VM_Class.forName.
-      // TODO:  We really want to be be able to replace the baseline compiled
-      // version of the methods with an opt compiled method, but doing that is
-      // tricky! Several obvious hacks didn't work, so I'm leaving this for 
-      // now under the assumption that any important methods of 
-      // java.lang.Object will be inlined, and thus opt compiled. --dave
-      VM_Class object = VM_Class.forName("java.lang.Object");
       //-#if RVM_WITH_GCTk_ALLOC_ADVICE
       GCTk_AllocAdvice.buildInit(options.ALLOC_ADVICE_FILE);
       //-#endif
-      compilerEnabled = true;
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
@@ -73,10 +61,6 @@ public class VM_BootImageCompiler {
       } else {
 	VM.sysWrite(msg);
       }
-    } catch (VM_ResolutionException e) {
-      String msg = "VM_BootImageCompiler: Failure during initialization: "+e+"\n";
-      e.printStackTrace();
-      System.exit(101);
     }
   }
 
@@ -87,14 +71,23 @@ public class VM_BootImageCompiler {
    * @return the compiled method
    */
   public static VM_CompiledMethod compile(VM_Method method) {
-
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    if (!compilerEnabled) return VM_BaselineCompiler.compile(method); // Other half of kludge for java.lang.Object (see above)
+    VM_CompiledMethod cm = null;
+
     try {
       OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-      return OPT_Compiler.compile(cp);
-    }
-    catch (OPT_OptimizingCompilerException e) {
+      long start = 0;
+      if (VM.BuildForAdaptiveSystem) {
+	start = System.currentTimeMillis();
+      }
+      cm = OPT_Compiler.compile(cp);
+      if (VM.BuildForAdaptiveSystem) {
+	long stop = System.currentTimeMillis();
+	long compileTime = stop - start;
+	cm.setCompilationTime((float)compileTime);
+      }
+      return cm;
+    } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
@@ -106,7 +99,18 @@ public class VM_BootImageCompiler {
 	}
 	if (printMsg) VM.sysWrite(msg);
       }
-      return VM_BaselineCompiler.compile(method);
+      cm = VM_BaselineCompiler.compile(method);
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+      if (!method.isNative()) {
+	// Must estimate compilation time by using offline ratios.
+	// It is tempting to time via System.currentTimeMillis()
+	// but 1 millisecond granularity isn't good enough because the 
+	// the baseline compiler is just too fast.
+	double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+	cm.setCompilationTime(compileTime);
+      }
+      //-#endif
+      return cm;
     }
   }
 
@@ -116,9 +120,6 @@ public class VM_BootImageCompiler {
   public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
-
-  // only used for java.lang.Object kludge
-  private static boolean compilerEnabled; 
 
   // Cache objects needed to cons up compilation plans
   private static OPT_OptimizationPlanElement[] optimizationPlan;
