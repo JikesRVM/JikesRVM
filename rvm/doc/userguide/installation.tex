@@ -574,13 +574,13 @@ the \texttt{jikesrvm-researchers} mailing list dated 2003-10-26.
 
 \item
 One of the \xlink{\texttt{jikesrvm-researchers} readers contributed
-this information on how to install Jikes RVM on a clean OS~X
+this information on how to install Jikes RVM on a clean OS~X~10.2
 box}{\RVMResearcherMailingListArchiveURL/2003-October/002367.html}:
 \begin{quote}
 \raggedright
 I first installed the following: \\
-\texttt{August2003gccUpdater.dmg  Java141Developer.dmg jikes-1.18.tar.bz2 \\
-CHUD\_3.0.1.dmg Dec2002DevToolsCD.dmg     dlcompat-20030629.tar.gz \\
+\hspace*{1cm}\texttt{August2003gccUpdater.dmg  Java141Developer.dmg jikes-1.18.tar.bz2 \\
+\hspace*{1cm}CHUD\_3.0.1.dmg Dec2002DevToolsCD.dmg     dlcompat-20030629.tar.gz \\
 }
 
 The \texttt{*.dmg} files are freely available through the Apple
@@ -600,6 +600,11 @@ patch included in it.
 \item
 Check the \link{list of OS~X prerequisites}[ on page~\Pageref]{prereqs} for additional
 information. 
+
+\item As of OS~X~10.3, Apple's developer tools include the Jikes
+  compiler; if you have the developer tools installed on OS~X~10.3,
+  you can try building without installing any special libraries
+  etc.\ at all; it will probably work just fine.
 
 \end{enumerate}
 
