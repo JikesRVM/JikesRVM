@@ -48,13 +48,15 @@ declare -r -i Exit_Status_Run_Linker=111
 ME="${0##*/}"
 
 # Where are we?
-# Bash internal shorthand that works like the "dirname" command.
+# Bash internal shorthand that works like the "dirname" command:
 mydir="${0%/*}"			# temporary; directory we were run from
 
+## The sole purpose of this next "if" statement 
+## is to set the variable bin_dir, and to verify that it is set to something
+## reasonable that will allow us to load in "libjconfigure.bash".
 if [[ $mydir && $mydir != $ME ]]; then
-    # Where to find auxiliary programs:
+    # Where to find library files and auxiliary programs:
     bin_dir="${mydir}"
-    # Scratch space:
     suffix=libjconfigure.bash
     f=$bin_dir/$suffix
     if [[ ! -f $f ]]; then
@@ -69,11 +71,10 @@ $ME: Something is weird here.  I can't find a file named
     fi
 else
     bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
-    # Scratch space:
-    suffix=rvm/bin/libjconfigure.bash
+    suffix=libjconfigure.bash
     f=$bin_dir/$suffix
     if [[ ! -f $f ]]; then
-	show_mesg >&2 "\
+	echo >&2 "\
 $ME: I can't find a file named \"${f##*/}\" at 
    RVM_ROOT/$suffix (that's 
    $f).
