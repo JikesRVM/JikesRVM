@@ -58,7 +58,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static SharedQueue rootPool;
 
   // GC state
-  private static boolean progress = true;  // are we making progress?
   private static int required;  // how many pages must this GC yeild?
   private static int lastRCPages = 0; // pages at end of last GC
   
@@ -318,14 +317,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
-    if (mustCollect || 
-	getPagesReserved() > getTotalPages() ||
-	(((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
-	  metaDataMR.committedPages() > Options.metaDataPages)
-	 && initialized)) {
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(mr != metaDataMR);
+    if (gcInProgress || !initialized) return false;
+    if (mustCollect || getPagesReserved() > getTotalPages() ||
+	(progress &&
+	 ((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
+	  metaDataMR.committedPages() > Options.metaDataPages))) {
+      if (mr == metaDataMR) {
+        VM_Interface.triggerAsyncCollection();
+        return false;
+      }
       required = mr.reservedPages() - mr.committedPages();
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;

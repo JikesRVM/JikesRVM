@@ -309,9 +309,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress || !initialized) return false;
-    mustCollect |= ms.mustCollect();
-    mustCollect |= stressTestGCRequired();
+    if (gcInProgress || !initialized || mr == metaDataMR) return false;
+    mustCollect |= stressTestGCRequired() || ms.mustCollect();
     availablePreGC = getTotalPages() - getPagesReserved();
     int reserve = (mr == msMR) ? msReservedPages : 0;
     if (mustCollect || availablePreGC <= reserve) {

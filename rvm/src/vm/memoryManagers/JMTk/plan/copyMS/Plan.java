@@ -329,13 +329,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
+    if (gcInProgress || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
-      if (mr == nurseryMR)
-	required = required<<1;  // must account for copy reserve
+      if (mr == nurseryMR) required = required<<1;  // account for copy reserve
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }

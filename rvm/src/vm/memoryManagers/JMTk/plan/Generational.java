@@ -339,12 +339,11 @@ public abstract class Generational extends StopTheWorldGC
    */
   public final boolean poll (boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
+    if (gcInProgress || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurseryMR.reservedPages() > Options.nurseryPages;
     if (mustCollect || heapFull || nurseryFull) {
-      if (VM_Interface.VerifyAssertions)    VM_Interface._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
 	required = required<<1;  // must account for copy reserve
