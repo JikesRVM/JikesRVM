@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001, 2002, 2003
 #
@@ -64,13 +64,16 @@ function croak_nonusage () {
     
 
 ## These have already been err-checked for us by "rvm".
-home=$1;      shift;  # Used to be $HOME
-rvm_root=$1;  shift;  # Used to be $RVM_ROOT
-rvm_build=$1; shift;  # Used to be $RVM_BUILD
+home="$1";      shift;  # Used to be $HOME
+rvm_root="$1";  shift;  # Used to be $RVM_ROOT
+rvm_build="$1"; shift;  # Used to be $RVM_BUILD
 
+
+# TODO: This portion of the runrvm program should be consolidated with
+# the originally-identical part of the gdbrvm program.
 
 ## If you change anything below this point, you probably want to 
-## change runrvm as well.
+## change gdbrvm as well.
 
 # Load up where the RVM bootimage, booter, and runtime support files reside:
 env="$rvm_build/environment.target"
@@ -79,12 +82,11 @@ env="$rvm_build/environment.target"
 . $env
 unset env
 
-declare -a user_args=("$@")
-for arg in "${user_args[@]}"; do
-    if [[ $arg = -- ]]; then
-	print "$ME: the command line option \"--\" is no longer used; ignoring it."
-    fi
-done
+# Note: Writing it like this commented-out line below will break!  Must not
+# incorporate the assignment into the declare, at least under Bash 2.05b.
+#declare -a user_args=("$@")
+declare -a user_args
+user_args=("$@")
 
 # Add arguments to the invocation line for $rvm_build/JikesRVM.  We
 # put these before any user-specified arguments, so that any flags
@@ -93,14 +95,17 @@ done
 ## These are the first set of defines (we used to 
 ## set these before checking user args, for some odd reason).
 
-declare -a sys_args=("-X:i=$rvm_build/RVM.image" \
+declare -a sys_args
+sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
 		"-Djava.home=$rvm_root"					\
 		"-Dgnu.classpath.home.url=file:${rvm_build}"		\
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
-		"-Duser.home=$home" "-Duser.dir=$(pwd)" "-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)" "-Dos.arch=$(uname -m)" )
+		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
+		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
+		"-Dos.arch=$(uname -m)" )
 
 # Now execute the VM
 prog="$rvm_build/JikesRVM"
