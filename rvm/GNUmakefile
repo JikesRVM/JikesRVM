@@ -37,15 +37,15 @@ else
    GENSRC:=
 endif
 
-find_ignore_docs:=-name \*.gif -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
+find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
 find_match_junk_names:=-name Old -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
-append_java_templates=find src ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs -0 etags $(EFLAGS) --language=java --append --output=$@ 
+append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs -0 etags $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
 # in a clean checkout, but might possibly do so if there were old 
 # files left over whose names start with "#" or with ".#". 
-FIND:=find $(GENSRC) src ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
-FINDALL:=find $(GENSRC) . ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
+FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
+FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 EFLAGS:=--members --declarations --defines --globals
 
@@ -65,12 +65,12 @@ TAGS.ALL: FORCE
 
 TAGS.Makefiles: FORCE
 	$(RM) $@
-	find . ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	find . -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
 
 .PHONY: conditionals
 # Note: explicit tab characters below.
 conditionals:
-	find . -name \*.java -print0 | xargs -0 fgrep --no-filename '//-#' | sed -e 's/.*#[a-z]\+[ 	]*//' | sed  -e '/\/\/.*/d' | tr '[!&|]' '\n' |sed  -e 's/[ 	]*$$//' -e 's/^[ 	]//'  -e '/^$$/d'  | sort | uniq
+	find . -follow -name \*.java -print0 | xargs -0 fgrep --no-filename '//-#' | sed -e 's/.*#[a-z]\+[ 	]*//' | sed  -e '/\/\/.*/d' | tr '[!&|]' '\n' |sed  -e 's/[ 	]*$$//' -e 's/^[ 	]//'  -e '/^$$/d'  | sort | uniq
 # | cat -v -e -t
 
 
