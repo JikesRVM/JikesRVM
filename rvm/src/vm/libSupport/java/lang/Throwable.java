@@ -172,7 +172,7 @@ public class Throwable implements java.io.Serializable {
     if (useSysWrite) {
       sysWriteStackTrace();
     } else { // Not using sysWrite
-      VM._assert(System.err != null);
+      if (VM.VerifyAssertions) VM._assert(System.err != null);
       // We will catch other exceptions deeper down the call stack.
       printStackTrace(System.err);
     }
