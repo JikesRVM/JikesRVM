@@ -245,16 +245,21 @@ public class VM_StackTrace implements VM_Constants {
 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
 	}
       }
-      if (cm == null) {
-	out.println("\tat <invisible method>");
-	/* Commented out; Work in Progress: */
-//       } else if (cm.getMethod() == runMethodMarkingPrelude) {
+      try {
+	if (cm == null) {
+	  out.println("\tat <invisible method>");
+	  /* Commented out; Work in Progress: */
+//      } else if (cm.getMethod() == runMethodMarkingPrelude) {
 // 	/* cm.getMethod() yields a VM_Method. */
 // 	/* Notice that if runMethodMarkingPrelude is null, the right thing
 // 	   happens here. */
 //       	return;			// gone far enough.
-      } else {
-	cm.printStackTrace(offsets.get(i), out);
+        } else {
+	  cm.printStackTrace(offsets.get(i), out);
+	}
+      }
+      catch (OutOfMemoryError e) {
+	VM.sysWriteln("Caught OutOfMemoryError while printing one frame of stack trace");
       }
     }
   }
