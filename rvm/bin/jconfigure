@@ -56,43 +56,95 @@ declare -r -i Exit_Status_Run_Linker=111
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
 
-# Where are we?
-# Bash internal shorthand that works like the "dirname" command:
-mydir="${0%/*}"			# temporary; directory we were run from
+## get_bin_dir():
+## Find what directory our aux. files are in.  Also confirms that
+## RVM_ROOT is set to something reasonable.
+## We print out the value of bin_dir at the end, or exit abnormally.
+##
+## This is horribly convoluted, and probably to no good purpose.
+## I'm ashamed to admit that I wrote it. --Steve Augart
+function get_bin_dir() {
+    # Where are we?
+    # Bash internal shorthand that works like the "dirname" command:
+    local mydir="${0%/*}"			# temporary; directory we were run from
 
-## The sole purpose of this next "if" statement 
-## is to set the variable bin_dir, and to verify that it is set to something
-## reasonable that will allow us to load in "libjconfigure.bash".
-if [[ $mydir && $mydir != $ME ]]; then
-    # Where to find library files and auxiliary programs:
-    bin_dir="${mydir}"
-    suffix=libjconfigure.bash
-    f=$bin_dir/$suffix
-    if [[ ! -f $f ]]; then
-	echo >&2 "\
-$ME: Something is weird here.  I can't find a file named
-    \"${f##*/}\" in \"$f\",
-    but I was apparently run from the directory \"$bin_dir\".  
-    Please use a version of jconfigure in the same source tree that 
-    your sources are located in."
+    ## The sole purpose of this next "if" statement is to set the
+    ## variable bin_dir, and to verify that it is set to something
+    ## reasonable that will allow us to load in "libjconfigure.bash".
+    if [[ $mydir && $mydir != $ME ]]; then
+	# Where to find library files and auxiliary programs:
+	local bin_dir="${mydir}"
+	local suffix=libjconfigure.bash
+	local f=$bin_dir/$suffix
+	if [[ ! -f $f ]]; then
+	    echo >&2 "\
+    $ME: Something is weird here.  I can't find a file named
+	\"${f##*/}\" in \"$f\",
+	but I was apparently run from the directory \"$bin_dir\".  
+	Please use a version of jconfigure in the same source tree that 
+	your sources are located in."
+	    trap '' EXIT
+	    exit 2
+	fi
+    else
+	bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
+	suffix=libjconfigure.bash
+	f=$bin_dir/$suffix
+	if [[ ! -f $f ]]; then
+	    echo >&2 "\
+    $ME: I can't find a file named \"${f##*/}\" at 
+       RVM_ROOT/$suffix (that's 
+       $f).
+       You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
+	    trap '' EXIT
+	    exit 2
+	fi
+    fi
+
+    if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
+	echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
 	trap '' EXIT
 	exit 2
     fi
-else
-    bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
-    suffix=libjconfigure.bash
-    f=$bin_dir/$suffix
-    if [[ ! -f $f ]]; then
-	echo >&2 "\
-$ME: I can't find a file named \"${f##*/}\" at 
-   RVM_ROOT/$suffix (that's 
-   $f).
-   You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
+
+    if [[ ${RVM_ROOT} = "" ]]; then
+	echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
 	trap '' EXIT
 	exit 2
     fi
-fi
 
+    if [[ ${RVM_ROOT} != /* ]]; then
+	echo >&2 "\
+    $ME: RVM_ROOT must be set to an absolute path 
+	(one starting with a /), not to
+	\"$RVM_ROOT\".  Please set it properly and try again."
+	trap '' EXIT
+	exit 2
+    fi
+
+    suffix="rvm/bin/libjconfigure.bash"
+    f="$RVM_ROOT/$suffix"
+    if [[ ! -f $f  ]]; then
+	echo >&2 "\
+    $ME: Can't find a file named \"${f##*/}\" in 
+	RVM_ROOT/$suffix (that's 
+	\"$f\").  
+	RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
+	if [[ $bin_dir != $RVM_ROOT ]]; then
+	    maybe_root=$bin_dir
+	    if [[ $maybe_root != /* ]]; then
+		$maybe_root=${PWD}/$maybe_root
+	    fi
+	    if [[ -d $maybe_root/rvm/_timestamp ]]; then
+		echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
+	    fi
+	fi
+	trap '' EXIT
+	exit 2
+    fi
+
+    echo ${bin_dir}
+}
 
 function croak_nonusage () {
     show_mesg "$*"  >&2;
@@ -112,49 +164,7 @@ function load () {
     . "${fname}";
 }
 
-
-if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
-    echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-if [[ ${RVM_ROOT} = "" ]]; then
-    echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-if [[ ${RVM_ROOT} != /* ]]; then
-    echo >&2 "\
-$ME: RVM_ROOT must be set to an absolute path 
-    (one starting with a /), not to
-    \"$RVM_ROOT\".  Please set it properly and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-suffix="rvm/bin/libjconfigure.bash"
-f="$RVM_ROOT/$suffix"
-if [[ ! -f $f  ]]; then
-    echo >&2 "\
-$ME: Can't find a file named \"${f##*/}\" in 
-    RVM_ROOT/$suffix (that's 
-    \"$f\").  
-    RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
-    if [[ $bin_dir != $RVM_ROOT ]]; then
-	maybe_root=$bin_dir
-	if [[ $maybe_root != /* ]]; then
-	    $maybe_root=${PWD}/$maybe_root
-	fi
-	if [[ -d $maybe_root/rvm/_timestamp ]]; then
-	    echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
-	fi
-    fi
-    trap '' EXIT
-    exit 2
-fi
-
+bin_dir="$(get_bin_dir)"
 load "${bin_dir}/sanity-envars.bash" ;  		# Defines checkenv()
 load "${bin_dir}/libjconfigure.bash" ;
 
@@ -377,10 +387,18 @@ function setSomeFromPath () {
 }
 
 function rationalize_config_file_settings () {
-    ## HOST_VM_TYPE: Valid values: Sun, Kaffe, JikesRVM
-    : ${HOST_VM_TYPE=Sun}	# the default.
+    ## HOST_VM_TYPE: Valid working values: Sun, Kaffe
+    ##			In-progress values: JikesRVM, gij
+    : ${HOST_VM_TYPE=Sun}	# the default
 
     case $HOST_VM_TYPE in
+	gij)
+	    if [[ ! ${JAVAH-} ]]; then
+		setFromPath JAVAH gcjh
+		[[ ${JAVAH} ]] && JAVAH="${JAVAH} -jni"
+	    fi
+	    ;;
+
 	Kaffe)
 	    [[ ${KAFFE_HOME-} ]] || export KAFFE_HOME=/usr/local/kaffe
 	    [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME=${KAFFE_HOME}
@@ -416,7 +434,10 @@ function rationalize_config_file_settings () {
     fi
 
     if ! [[ ${HOST_VM_RT-} ]]; then
-	if [[ $HOST_VM_TYPE = Kaffe ]]; then
+	if [[ $HOST_VM_TYPE = gij ]]; then
+	    setFromPath HOST_VM_RT gij
+	    setFromPath FASTJAR jar
+	elif [[ $HOST_VM_TYPE = Kaffe ]]; then
 	    HOST_VM_RT=${KAFFE_HOME}/bin/kaffe
 	elif [[ $HOST_VM_TYPE = Sun ]]; then
 	    HOST_VM_RT=${HOST_JAVA_HOME}/bin/java
@@ -457,12 +478,17 @@ function rationalize_config_file_settings () {
     ## HOST_JAVAC:
     ## The Java compiler.
     if [[ ! ${HOST_JAVAC-} ]]; then
-	if [[ $HOST_VM_TYPE = Sun ]]; then
+	if [[ $HOST_VM_TYPE = gij ]]; then
+	    ## -fjni isn't compatible with generating class files, so we will
+	    ## leave it out.
+	    export HOST_JAVAC="gcj -C"
+	elif [[ $HOST_VM_TYPE = Sun ]]; then
 	    ## Use the Sun compiler.
 	    export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
 	elif [[ ${JIKES-} ]]; then	# always true
 	    # JIKES_WARNING_FLAGS won't be set the first time we read 
-	    # this file; that is OK.
+	    # RVM_HOST_CONFIG; that is OK.  It will be set the second time,
+	    #  before we generate the output.
 	    export HOST_JAVAC="CLASSPATH=${RVM_BUILD}/RVM.classes:${RVM_BUILD}/RVM.classes/rvmrt.jar $JIKES ${JIKES_WARNING_FLAGS-}"
 #	    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]; then
 #		export HOST_JAVAC=$bin_dir/fake-javac
@@ -1332,14 +1358,14 @@ EOF
 
 ## We only emit the boilerplate inline.
 function emitBoilerplate () {
+## NEW version:
     cat <<- 'EOF'
 	## BEGIN inline Bash boilerplate.
-	# What is our name?
-	# Bash internal shorthand that works like the "basename" command.
-	ME="${0##*/}"
-	EOF
-    cat "${bin_dir}/libjconfigure.bash";
-    echo '## END inline Bash boilerplate.'
+	ME="${0##*/}"			# What is our name?
+	set -e
+	. ${JAL_ROOT?}/rvm/bin/libjconfigure.bash
+	## END inline Bash boilerplate.
+EOF
 }
 
 function emit_disable_exit_on_error () {
@@ -1509,7 +1535,7 @@ EOF
     [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"
     [[ ! ${HOST_TOOLS-} ]] || echo "HOST_TOOLS = $HOST_TOOLS"
     [[ ! ${HOST_JAVADOC-} ]] || echo "HOST_JAVADOC := $HOST_JAVADOC"
-    
+
     cat <<- EOF
 	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
 	HOST_VM_RT = ${HOST_VM_RT}
@@ -1561,8 +1587,6 @@ function emitController () {
 	#! ${HOST_BASH}
 
 	# Run all phases of vm builder.
-
-	$(emitBoilerplate)
 
 	# timeit() \$1: The command to run
 	#	   \$2: That command's arguments.
@@ -1694,13 +1718,15 @@ function emitController () {
 	    shift
 	done
 
-	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	[[ ! \${RVM_BUILD-} ]] || cd \$RVM_BUILD
 	
 	if [[ \$BOOTER_FLAG = -booter ]]; then
 	  . ./environment.target
 	else
 	  . ./environment.host
 	fi
+    $(emitBoilerplate)
+
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Ensure that we have the right version of the class libraries
@@ -1801,8 +1827,11 @@ function emitExpander () {
     cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate VM sources that derive from templates.
-	$(emitBoilerplate)
+
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	
 	. ./environment.host
+    $(emitBoilerplate)
 
 
 	# Process command-line args   
@@ -1861,20 +1890,24 @@ function emitExpander () {
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
+
+	# Opt compiler only:
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool
 	EOF
     fi
     cat <<- EOF
-	# build command line options for core VM
+
+	# Build the command line options for the core VM
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
-	# build command line options for JMTk
+	# Build the command line options for JMTk
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
 	cat <<- EOF
-        # build VM_Assembler on Intel
+
+	# Build VM_Assembler on Intel
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_OPT_COMPILER )); then
@@ -1883,6 +1916,7 @@ run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rv
 	fi
     fi
     cat <<- EOF
+
 	# Do the expansion
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
@@ -1890,16 +1924,19 @@ EOF
 
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
+		# (OPT Compiler only:)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_EXTREME_ASSERTIONS )); then
 	    cat <<- EOF
+		# (OPT Compiler with extreme assertions only:)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	fi
     fi
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
+		# (Adaptive system only)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
     fi
@@ -1925,8 +1962,10 @@ function emitCopier () {
 	# Taken:    .java files in the source tree
 	# Returned: .java files in the build directory
 
-	$(emitBoilerplate)
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
 	. ./environment.host
+	
+    $(emitBoilerplate)
 	
 
 	# Process command-line args   
@@ -2082,11 +2121,10 @@ function emitCompiler () {
 	# Taken:    .java files in build directory 
 	#            CLASSES_INVALID
 	# Returned: .class files in build directory
-EOF
-    emitBoilerplate;
-    cat <<- EOF
-	. ./environment.host
 
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	. ./environment.host
+    $(emitBoilerplate)
 
 	while (( \$# > 0 )); do
 	    arg="\$1"
@@ -2204,9 +2242,12 @@ function emitInterfaceDeclarationsWriter () {
 	# Taken:    .class files in build directory
 	# Returned:  InterfaceDeclarations.h in build directory
 	#
-	$(emitBoilerplate)
 
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	
 	. ./environment.host
+    $(emitBoilerplate)
+
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
@@ -2332,9 +2373,9 @@ function emitImageLinker () {
 	# Taken:    .class files in build directory
 	# Returned: PRIMORDIAL_CLASSES and bootimage in build directory
 	#
-$(emitBoilerplate)
-
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
 	. ./environment.host
+    $(emitBoilerplate)
 
 	# Process command-line args
 	DEMOGRAPHICS_FLAG=""
@@ -3038,27 +3079,9 @@ function emitBooterLinker () {
 	# the host/boot image
 	# writing system and the target system.
 	
-$(emitBoilerplate)
-	ROOT_DIR="\${0%/*}"
-	# If a relative path, go over to a fully-qualified path.
-	if [[ "\$ROOT_DIR" = "." ]]; then
-	    ROOT_DIR="\$PWD"
-	fi
-
-	##  XXX TODO I do not understand the point behind this code.
-	##  The strange part for me is that CURRENT_DIR is not
-	##  defined anywhere else in this build process.  --Steve Augart
-
-	if [[ "\$ROOT_DIR" != "\${CURRENT_DIR=}" ]]; then
-	    if [[ -f "\$CURRENT_DIR"/"\$ROOT_DIR"/"\$ME" ]]; then
-	      ROOT_DIR=\$CURRENT_DIR/\$ROOT_DIR
-	    fi
-	fi
-	
-	. \$ROOT_DIR/environment.target
-	
-	$BUILD_DIRECTORY_STR1=\$ROOT_DIR
-	
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	. ./environment.target
+    $(emitBoilerplate)
 
 	while (( \$# > 0 )); do
 	    arg="\$1"
@@ -3499,14 +3522,15 @@ function emitToolCompiler () {
 	# This runs the host's Java compiler with the
 	# classpath and command-line flags set up so that we can just
 	# make .class files for Jikes RVM to run.
-$(emitBoilerplate)
+
+	ME="\${0##*/}"			# What is my name?
 	if [[ \${RVM_BUILD-UNSET} = UNSET ]]; then
-	    show_mesg >&2 "Please set your RVM_BUILD environment variable (for example, to \${HOME}/rvmBuild)"
-	    trap "" EXIT
+	    echo >&2 "$ME: Please set your RVM_BUILD environment variable (for example, to \${HOME}/rvmBuild)"
 	    exit $Exit_Status_Bad_Args
 	fi
-
+	set -e
 	. \${RVM_BUILD}/environment.target
+	. \${JAL_ROOT?}/rvm/bin/libjconfigure.bash
 
 	declare -r usage_msg="Usage: \${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
 	function usage () {
@@ -3566,8 +3590,9 @@ cat <<EOF
 	# the target environment.  Sticks the pure .java files that are the output
 	# into the <output-directory> specified as the first non-flag
 	# command-line argument.
-$(emitBoilerplate);
-	. "$RVM_BUILD/environment.target"
+
+	. "${RVM_BUILD?}/environment.target"
+    $(emitBoilerplate)
 
 	if (( \$# == 0 )); then
 	    show_mesg_raw >&2 "usage: \$ME [ extra-preprocessor-flags...] output-directory java-file [ java-file... ]"
@@ -3585,10 +3610,12 @@ function emitPluginBuilder () {
     cat <<- EOF
 	#! /usr/bin/env bash
 	# Build and install Jikes RVM launching plugin for Eclipse 2.x
-EOF
 
-    emitBoilerplate;
-    cat <<- EOF
+	# Pick up the configuration to learn where Ant is
+	# and to get the value Ant needs for JAVA_HOME
+	. "\${RVM_BUILD?}/environment.target"
+    $(emitBoilerplate)
+
 	function emitPluginVersionNumber () {
 	    # Put any non-numeric prefix or tail to the Jikes RVM Version Number 
 	    # into some sort of numeric form.  The best I can think of to do 
@@ -3669,9 +3696,6 @@ EOF
 	    echo "build.dir=\${build_dir}"
 	}
 
-	# Pick up the configuration to learn where Ant is
-	# and to get the value Ant needs for JAVA_HOME
-	. "\${RVM_BUILD}/environment.target"
 
 	export JAVA_HOME=\${HOST_JAVA_HOME}
 
@@ -3819,7 +3843,7 @@ emitInstaller() {
 	# to be.
 	# This is not run as a part of the normal build process; it has
 	# special applications
-$(emitBoilerplate)
+
 	# $BUILD_DIRECTORY_STR1=\$ROOT_DIR
 	function usage() {
 	    show_mesg >&2 "Usage: \$ME <destination-directory>"
@@ -3827,10 +3851,10 @@ $(emitBoilerplate)
 	}
 
 	(( \$# == 1 )) || usage;
-	. ${BUILD_DIRECTORY_STR}/environment.host
+	. ./environment.host
+    $(emitBoilerplate)
 	dest="\$1"
 	run mkdir -p \$dest
-	# OK, it is Linux-specific (.so)
 	shopt -s  nullglob
 	run cp *.a *.so environment.target $BOOTIMAGE_STR $BOOTER_STR \$dest
 	shopt -u nullglob
