@@ -337,7 +337,8 @@ elif (( numfailed == 0 )); then
 else
     subject="Failed $numfailed tests"
 fi
-subject="[$ARCH] regression $subject"
+machineArch=`uname-p`
+subject="[$ARCH/$machineArch] regression $subject"
 if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
     echo "$ME: this is a dry run.  Won't actually mail."
