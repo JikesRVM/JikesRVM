@@ -213,14 +213,6 @@ public abstract class StopTheWorldGC extends BasePlan
     threadLocalReset();
   }
 
-  public static void writePages(String prefix, int pages) {
-    VM.sysWrite(prefix);
-    VM.sysWrite(pages);
-    VM.sysWrite(" (");
-    VM.sysWrite(Conversions.pagesToBytes(pages) / (1024.0 * 1024.0));
-    VM.sysWrite(" Mb)");
-  }
-
   /**
    * Perform operations with <i>global</i> scope to clean up after a
    * collection.  This is called by <code>release()</code>, which will
@@ -310,5 +302,25 @@ public abstract class StopTheWorldGC extends BasePlan
       
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous
+  //
+
+  /**
+   * Print out the number of pages and volume in MB, preceeded by a
+   * prefix string.
+   *
+   * @param prefix A prefix string
+   * @param pages The number of pages
+   */
+  public static void writePages(String prefix, int pages) {
+    VM.sysWrite(prefix);
+    VM.sysWrite(pages);
+    VM.sysWrite(" (");
+    VM.sysWrite(Conversions.pagesToBytes(pages) / (1024.0 * 1024.0));
+    VM.sysWrite(" Mb)");
   }
 }

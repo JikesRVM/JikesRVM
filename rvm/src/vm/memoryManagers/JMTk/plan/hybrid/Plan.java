@@ -585,10 +585,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Print out total memory usage and a breakdown by allocator.
    */
   public final static void showUsage() {
-      VM.sysWrite("used pages = ", getPagesUsed());
-      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
-      VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
-      VM.sysWrite("= (ms) ", msMR.reservedPages());
-      VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
+    writePages("used pages = ", getPagesUsed());
+    writePages("= (nursery) ", nurseryMR.reservedPages());  
+    writePages("= (ms) ", msMR.reservedPages());
+    writePages(" + (imm) ", immortalMR.reservedPages());
+    VM.sysWriteln();
   }
 }

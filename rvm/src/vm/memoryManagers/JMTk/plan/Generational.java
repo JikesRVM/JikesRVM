@@ -694,12 +694,12 @@ public abstract class Generational extends StopTheWorldGC
    * Print out total memory usage and a breakdown by allocator.
    */
   public static void showUsage() {
-      VM.sysWrite("used pages = ", Plan.getPagesUsed());
-      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed()) >> 20, " Mb) ");
-      VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
-      VM.sysWrite(" + (mature) ", matureMR.reservedPages());  
-      if (Plan.usesLOS) VM.sysWrite(" + (los) ", losMR.reservedPages());
-      VM.sysWrite(" + (imm) ", immortalMR.reservedPages());
-      VM.sysWriteln(" + (md)",  metaDataMR.reservedPages());
+    writePages("used = ", Plan.getPagesUsed());
+    writePages("= (nursery) ", nurseryMR.reservedPages());  
+    writePages(" + (mature) ", matureMR.reservedPages());  
+    if (Plan.usesLOS) writePages(" + (los) ", losMR.reservedPages());
+    writePages(" + (imm) ", immortalMR.reservedPages());
+    writePages(" + (md)",  metaDataMR.reservedPages());
+    VM.sysWriteln();
   }
 }
