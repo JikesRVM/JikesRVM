@@ -8,79 +8,18 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
- * Contains architecture-specific helper functions for BURS.
+ * Contains IA32-specific helper functions for BURS.
  * 
  * @author Dave Grove
  * @author Stephen Fink
  */
-abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
-  implements OPT_Operators, OPT_PhysicalRegisterConstants {
+abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   
-  // Generic helper functions.
-  // Defined here to allow us to use them in the arch-specific
-  // helper functions which are the bulk of this file.
-
-  // returns the given operand as a register
-  final OPT_RegisterOperand R(OPT_Operand op) {
-    return (OPT_RegisterOperand) op;
-  }
-
-  // returns the given operand as an integer constant
-  final OPT_IntConstantOperand I(OPT_Operand op) {
-    return (OPT_IntConstantOperand) op;
-  }
-   
-  // returns the given operand as a long constant
-  final OPT_LongConstantOperand L(OPT_Operand op) {
-    return (OPT_LongConstantOperand) op;
-  }
-
-  // returns the integer value of the given operand
-  final int IV(OPT_Operand op) {
-    return I(op).value;
-  }
-
-  // Cost functions better suited to grammars with multiple non-termials
-  final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
-    return ADDRESS_EQUAL(store, load, trueCost, OPT_BURS_STATE.INFINITE);
-  }
-  final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
-    if (Store.getAddress(store).similar(Load.getAddress(load)) &&
-	Store.getOffset(store).similar(Load.getOffset(load))) {
-      return trueCost;
-    } else {
-      return falseCost;
-    }
-  }
-
-  final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
-    return ARRAY_ADDRESS_EQUAL(store, load, trueCost, OPT_BURS_STATE.INFINITE);
-  }
-  final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
-    if (AStore.getArray(store).similar(ALoad.getArray(load)) &&
-	AStore.getIndex(store).similar(ALoad.getIndex(load))) {
-      return trueCost;
-    } else {
-      return falseCost;
-    }
-  }
-
-  final int FITS(OPT_Operand op, int numBits, int trueCost) {
-    return FITS(op, numBits, trueCost, OPT_BURS_STATE.INFINITE);
-  }
-  final int FITS(OPT_Operand op, int numBits, int trueCost, int falseCost) {
-    if(op.isIntConstant() && OPT_Bits.fits(IV(op),numBits)) {
-      return trueCost;
-    } else {
-      return falseCost;
-    }
-  }
-
   // can an IV be the scale in a LEA instruction?
-  final int LEA_SHIFT(OPT_Operand op, int trueCost) {
+  protected final int LEA_SHIFT(OPT_Operand op, int trueCost) {
     return LEA_SHIFT(op, trueCost, OPT_BURS_STATE.INFINITE);
   }
-  final int LEA_SHIFT(OPT_Operand op, int trueCost, int falseCost) {
+  protected final int LEA_SHIFT(OPT_Operand op, int trueCost, int falseCost) {
     if (op.isIntConstant()) {
       int val = IV(op);
       if (val >=0 && val <= 3) {
@@ -89,7 +28,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
     return falseCost;
   }
-  final byte LEA_SHIFT(OPT_Operand op) {
+  protected final byte LEA_SHIFT(OPT_Operand op) {
     switch (IV(op)) {
     case 0: return B_S;
     case 1: return W_S;
@@ -100,10 +39,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
 
-  final int isFPC_ONE(OPT_Instruction s, int trueCost) {
+  protected final int isFPC_ONE(OPT_Instruction s, int trueCost) {
     return isFPC_ONE(s, trueCost, OPT_BURS_STATE.INFINITE);
   }
-  final int isFPC_ONE(OPT_Instruction s, int trueCost, int falseCost) {
+  protected final int isFPC_ONE(OPT_Instruction s, int trueCost, int falseCost) {
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
@@ -113,10 +52,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       return dc.value == 1.0 ? trueCost : falseCost;
     }
   }
-  final int isFPC_ZERO(OPT_Instruction s, int trueCost) {
+  protected final int isFPC_ZERO(OPT_Instruction s, int trueCost) {
     return isFPC_ZERO(s, trueCost, OPT_BURS_STATE.INFINITE);
   }
-  final int isFPC_ZERO(OPT_Instruction s, int trueCost, int falseCost) {
+  protected final int isFPC_ZERO(OPT_Instruction s, int trueCost, int falseCost) {
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
@@ -127,350 +66,52 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
 
-  // 
-  // Begin IA32 specific helper functions.
-  // 
-  final OPT_IA32ConditionOperand COND(OPT_ConditionOperand op) {
+  protected final OPT_IA32ConditionOperand COND(OPT_ConditionOperand op) {
     return new OPT_IA32ConditionOperand(op);
   }
 
-  // word size for memory operands
-  static final byte B  = 0x01;  // byte (8 bits)
-  static final byte W  = 0x02;  // word (16 bits)
-  static final byte DW = 0x04;  // doubleword (32 bits)
-  static final byte QW = 0x08;  // quadword (64 bits)
-
-  static final byte B_S  = 0x00;  // byte (8*2^0 bits)
-  static final byte W_S  = 0x01;  // word (8*2^116 bits)
-  static final byte DW_S = 0x02;  // doubleword (8*2^2 bits)
-  static final byte QW_S = 0x03;  // quadword (8*2^3 bits)
-
   // Get particular physical registers
-  OPT_Register getEAX () {
+  protected final OPT_Register getEAX () {
     return getIR().regpool.getPhysicalRegisterSet().getEAX();
   }
-  OPT_Register getECX () {
+  protected final OPT_Register getECX () {
     return getIR().regpool.getPhysicalRegisterSet().getECX();
   }
-  OPT_Register getEDX () {
+  protected final OPT_Register getEDX () {
     return getIR().regpool.getPhysicalRegisterSet().getEDX();
   }
-  OPT_Register getEBX () {
+  protected final OPT_Register getEBX () {
     return getIR().regpool.getPhysicalRegisterSet().getEBX();
   }
-  OPT_Register getESP () {
+  protected final OPT_Register getESP () {
     return getIR().regpool.getPhysicalRegisterSet().getESP();
   }
-  OPT_Register getEBP () {
+  protected final OPT_Register getEBP () {
     return getIR().regpool.getPhysicalRegisterSet().getEBP();
   }
-  OPT_Register getESI () {
+  protected final OPT_Register getESI () {
     return getIR().regpool.getPhysicalRegisterSet().getESI();
   }
-  OPT_Register getEDI () {
+  protected final OPT_Register getEDI () {
     return getIR().regpool.getPhysicalRegisterSet().getEDI();
   }
-  OPT_Register getFPR (int n) {
+  protected final OPT_Register getFPR (int n) {
     return getIR().regpool.getPhysicalRegisterSet().getFPR(n);
   }
 
-  OPT_Operand myFP0() {
+  protected final OPT_Operand myFP0() {
     return new OPT_BURSManagedFPROperand(0);
   }
-  OPT_Operand myFP1() {
+  protected final OPT_Operand myFP1() {
     return new OPT_BURSManagedFPROperand(1);
   }
 
-  // support to remember an address being computed in a subtree
-  private static final class AddrStackElement {
-    OPT_RegisterOperand base;
-    OPT_RegisterOperand index;
-    byte scale;
-    int displacement;
-    AddrStackElement next;
-    AddrStackElement(OPT_RegisterOperand b,
-		     OPT_RegisterOperand i,
-		     byte s, int d,
-		     AddrStackElement n) {
-      base = b;
-      index = i;
-      scale = s;
-      displacement = d;
-      next = n;
-    }
-  }
-  private AddrStackElement AddrStack;
-  final void pushAddress(OPT_RegisterOperand base,
-			 OPT_RegisterOperand index,
-			 byte scale,
-			 int disp) {
-    AddrStack = new AddrStackElement(base, index, scale, disp, AddrStack);
-  }
-  final void augmentAddress(OPT_Operand op) {
-    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to augment");
-    if (op.isRegister()) {
-      OPT_RegisterOperand rop = op.asRegister();
-      if (AddrStack.base == null) {
-	AddrStack.base = rop;
-      } else if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
-	AddrStack.index = rop;
-      } else {
-	throw new OPT_OptimizingCompilerException("three base registers in address");
-      }
-    } else {
-      int disp = ((OPT_IntConstantOperand)op).value;
-      AddrStack.displacement += disp;
-    }
-  }
-  final void combineAddresses() {
-    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to combine");
-    AddrStackElement tmp = AddrStack;
-    AddrStack = AddrStack.next;
-    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "only 1 address to combine");
-    if (tmp.base != null) {
-      if (AddrStack.base == null) {
-	AddrStack.base = tmp.base;
-      } else if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
-	AddrStack.index = tmp.base;
-      } else {
-	throw new OPT_OptimizingCompilerException("three base registers in address");
-      }
-    }
-    if (tmp.index != null) {
-      if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
-	AddrStack.index = tmp.index;
-	AddrStack.scale = tmp.scale;
-      } else if (AddrStack.base == null && tmp.scale == (byte)0) {
-	AddrStack.base = tmp.base;
-      } else {
-	throw new OPT_OptimizingCompilerException("two scaled registers in address");
-      }
-    }
-    AddrStack.displacement += tmp.displacement;
-  }
-  final OPT_MemoryOperand consumeAddress(byte size, 
-					 OPT_LocationOperand loc,
-					 OPT_Operand guard) {
-    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to consume");
-    OPT_MemoryOperand mo = 
-      new OPT_MemoryOperand(AddrStack.base, AddrStack.index, AddrStack.scale,
-			    AddrStack.displacement, size, loc, guard);
-    AddrStack = AddrStack.next;
-    return mo;
-  }
-
-  // support to remember a memory operand computed in a subtree
-  private static final class MOStackElement {
-    OPT_MemoryOperand mo;
-    MOStackElement next;
-    MOStackElement(OPT_MemoryOperand m, 
-		   MOStackElement n) {
-      mo = m;
-      next = n;
-    }
-  }
-  private MOStackElement MOStack;
-  final void pushMO(OPT_MemoryOperand mo) {
-    MOStack = new MOStackElement(mo, MOStack);
-  }
-  final OPT_MemoryOperand consumeMO() {
-    if (VM.VerifyAssertions) VM._assert(MOStack != null, "No memory operand to consume");
-    OPT_MemoryOperand mo = MOStack.mo;
-    MOStack = MOStack.next;
-    return mo;
-  }
-
-
-  // Construct a memory operand for the effective address of the 
-  // load instruction
-  final OPT_MemoryOperand MO_L(OPT_Instruction s, byte size) {
-    return MO(Load.getAddress(s), Load.getOffset(s), size, 
-	      Load.getLocation(s), Load.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the 
-  // store instruction
-  final OPT_MemoryOperand MO_S(OPT_Instruction s, byte size) {
-    return MO(Store.getAddress(s), Store.getOffset(s), size, 
-	      Store.getLocation(s), Store.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the 
-  // array load instruction
-  final OPT_MemoryOperand MO_AL(OPT_Instruction s, byte scale, byte size) {
-    return MO_ARRAY(ALoad.getArray(s), ALoad.getIndex(s), scale, size, 
-		    ALoad.getLocation(s), ALoad.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the 
-  // array store instruction
-  final OPT_MemoryOperand MO_AS(OPT_Instruction s, byte scale, byte size) {
-    return MO_ARRAY(AStore.getArray(s), AStore.getIndex(s), scale, size, 
-		    AStore.getLocation(s), AStore.getGuard(s));
-  }
-
-  // Construct a memory operand for the effective address of the 
-  // load instruction 
-  final OPT_MemoryOperand MO_L(OPT_Instruction s, byte size, int disp) {
-    return MO(Load.getAddress(s), Load.getOffset(s), size, disp,
-	      Load.getLocation(s), Load.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the 
-  // store instruction
-  final OPT_MemoryOperand MO_S(OPT_Instruction s, byte size, int disp) {
-    return MO(Store.getAddress(s), Store.getOffset(s), size, disp,
-	      Store.getLocation(s), Store.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the 
-  // array load instruction
-  final OPT_MemoryOperand MO_AL(OPT_Instruction s, byte scale, byte size, int disp) {
-    return MO_ARRAY(ALoad.getArray(s), ALoad.getIndex(s), scale, size, disp,
-		    ALoad.getLocation(s), ALoad.getGuard(s));
-  }
-  // Construct a memory operand for the effective address of the array store instruction
-  final OPT_MemoryOperand MO_AS(OPT_Instruction s, byte scale, byte size, int disp) {
-    return MO_ARRAY(AStore.getArray(s), AStore.getIndex(s), scale, size, disp,
-		    AStore.getLocation(s), AStore.getGuard(s));
-  }
-
-  final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
-			     byte size, OPT_LocationOperand loc,
-			     OPT_Operand guard) {
-    if (base instanceof OPT_IntConstantOperand) {
-      if (offset instanceof OPT_IntConstantOperand) {
-	return MO_D(IV(base)+IV(offset), size, loc, guard);
-      } else {
-	return MO_BD(offset, IV(base), size, loc, guard);
-      }
-    } else {
-      if (offset instanceof OPT_IntConstantOperand) {
-	return MO_BD(base, IV(offset), size, loc, guard);
-      } else {
-	return MO_BI(base, offset, size, loc, guard);
-      }
-    }
-  }
-
-  final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-				   OPT_Operand index, 
-				   byte scale, byte size, 
-				   OPT_LocationOperand loc,
-				   OPT_Operand guard) {
-    if (index instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, IV(index)<<scale, size, loc, guard);
-    } else {
-      return MO_BIS(base, index, scale, size, loc, guard);
-    }
-  }
-
-
-  final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
-			     byte size, int disp,
-			     OPT_LocationOperand loc,
-			     OPT_Operand guard) {
-    if (base instanceof OPT_IntConstantOperand) {
-      if (offset instanceof OPT_IntConstantOperand) {
-	return MO_D(IV(base)+IV(offset)+disp, size, loc, guard);
-      } else {
-	return MO_BD(offset, IV(base)+disp, size, loc, guard);
-      }
-    } else {
-      if (offset instanceof OPT_IntConstantOperand) {
-	return MO_BD(base, IV(offset)+disp, size, loc, guard);
-      } else {
-	return MO_BID(base, offset, disp, size, loc, guard);
-      }
-    }
-  }
-
-  final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-				   OPT_Operand index, 
-				   byte scale, byte size, 
-				   int disp,
-				   OPT_LocationOperand loc,
-				   OPT_Operand guard) {
-    if (index instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, (IV(index)<<scale)+disp, size, loc, guard);
-    } else {
-      return new OPT_MemoryOperand(R(base), R(index), scale, 
-				   disp, size, loc, guard);
-    }
-  }
-
- 
-  final OPT_MemoryOperand MO_B(OPT_Operand base, byte size, 
-			       OPT_LocationOperand loc,
-			       OPT_Operand guard) {
-    return OPT_MemoryOperand.B(R(base), size, loc, guard);
-  }
-
-  final OPT_MemoryOperand MO_BI(OPT_Operand base, 
-				OPT_Operand index, 
-				byte size, OPT_LocationOperand loc,
-				OPT_Operand guard) {
-    return OPT_MemoryOperand.BI(R(base), R(index), size, loc, guard);
-  }
-
-  final OPT_MemoryOperand MO_BD(OPT_Operand base, int disp, 
-				byte size, OPT_LocationOperand loc,
-				OPT_Operand guard) {
-    return OPT_MemoryOperand.BD(R(base), disp, size, loc, guard);
-  }
-
-  final OPT_MemoryOperand MO_BID(OPT_Operand base, 
-				 OPT_Operand index, 
-				 int disp, byte size, 
-				 OPT_LocationOperand loc,
-				 OPT_Operand guard) {
-    return OPT_MemoryOperand.BID(R(base), R(index), disp, size, loc, guard);
-  }
-
-  final OPT_MemoryOperand MO_BIS(OPT_Operand base, 
-				 OPT_Operand index, 
-				 byte scale, byte size, 
-				 OPT_LocationOperand loc,
-				 OPT_Operand guard) {
-    return OPT_MemoryOperand.BIS(R(base), R(index), scale, size, loc, guard);
-  }
-
-  final OPT_MemoryOperand MO_D(int disp, 
-			       byte size, OPT_LocationOperand loc,
-			       OPT_Operand guard) {
-    return OPT_MemoryOperand.D(disp, size, loc, guard);
-  }
-
-
-
-  final OPT_MemoryOperand MO_MC(OPT_Instruction s) {
-    OPT_Operand base = Binary.getVal1(s);
-    OPT_Operand val = Binary.getVal2(s);
-    if (val instanceof OPT_FloatConstantOperand) {
-      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      int offset = fc.index << 2;
-      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-      if (base instanceof OPT_IntConstantOperand) {
-	return MO_D(IV(base)+offset, DW, loc, TG());
-      } else {
-	return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
-      }
-    } else {
-      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      int offset = dc.index << 2;
-      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-      if (base instanceof OPT_IntConstantOperand) {
-	return MO_D(IV(base)+offset, QW, loc, TG());
-      } else {
-	return MO_BD(Binary.getVal1(s), offset, QW, loc, TG());
-      }
-    }
-  }
-
-  final OPT_Operand MO_CONV(OPT_BURS burs, byte size) {
+  protected final OPT_Operand MO_CONV(OPT_BURS burs, byte size) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
     return new OPT_StackLocationOperand(true, offset, size);
   }
 
-  final void STORE_LONG_FOR_CONV(OPT_BURS burs, OPT_Operand op) {
+  protected final void STORE_LONG_FOR_CONV(OPT_BURS burs, OPT_Operand op) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
     if (op instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand hval = R(op);
@@ -483,21 +124,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), I(val.lower32())));
     }
   }      
-
-  // condition code state
-  private OPT_ConditionOperand cc;
-  void pushCOND(OPT_ConditionOperand c) {
-    if (VM.VerifyAssertions) VM._assert(cc == null);
-    cc = c ;
-  }
-  OPT_ConditionOperand consumeCOND() {
-    OPT_ConditionOperand ans = cc;
-    if (VM.VerifyAssertions) {
-      VM._assert(cc != null);
-      cc = null;
-    }
-    return ans;
-  }
 
   // emit code to load 32 bits form a given jtoc offset
   private OPT_MemoryOperand loadFromJTOC(OPT_BURS burs, int offset) {
@@ -532,7 +158,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  void GET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
+  protected final void GET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     burs.append(MIR_Move.mutate(s, IA32_MOV, Nullary.getResult(s), sl));
@@ -546,7 +172,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  void SET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
+  protected final void SET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager. allocateSpaceForCaughtException();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
@@ -562,7 +188,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result operand
    * @param value the second operand
    */
-  final void INT_2LONG(OPT_BURS burs, OPT_Instruction s,
+  protected final void INT_2LONG(OPT_BURS burs, OPT_Instruction s,
 		       OPT_RegisterOperand result,
 		       OPT_Operand value) {
     OPT_Register hr = result.register;
@@ -583,7 +209,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result operand
    * @param value the second operand
    */
-  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
+  protected final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     OPT_MemoryOperand M;
@@ -716,7 +342,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   /**
    * Emit code to move 64 bits from FPRs to GPRs
    */
-  final void FPR2GPR_64(OPT_BURS burs, OPT_Instruction s) {
+  protected final void FPR2GPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
     OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
@@ -732,7 +358,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   /**
    * Emit code to move 64 bits from GPRs to FPRs
    */
-  final void GPR2FPR_64(OPT_BURS burs, OPT_Instruction s) {
+  protected final void GPR2FPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
     OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
@@ -759,7 +385,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  final void ROUND_TO_ZERO(OPT_BURS burs, OPT_Instruction s) {
+  protected final void ROUND_TO_ZERO(OPT_BURS burs, OPT_Instruction s) {
     // load the JTOC into a register
     OPT_RegisterOperand PR = R(burs.ir.regpool.getPhysicalRegisterSet().
                                getPR());
@@ -792,7 +418,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val2 the second operand
    * @param isDiv true for div, false for rem
    */
-  final void INT_DIVIDES(OPT_BURS burs, OPT_Instruction s,
+  protected final void INT_DIVIDES(OPT_BURS burs, OPT_Instruction s,
 			 OPT_RegisterOperand result,
 			 OPT_Operand val1,
 			 OPT_Operand val2,
@@ -822,7 +448,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_ADD(OPT_BURS burs, OPT_Instruction s,
+  protected final void LONG_ADD(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     OPT_Register lhsReg = result.register;
@@ -854,7 +480,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_SUB(OPT_BURS burs, OPT_Instruction s,
+  protected final void LONG_SUB(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     OPT_Register lhsReg = result.register;
@@ -884,7 +510,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param result the result/first operand
    */
-  final void GET_TIME_BASE(OPT_BURS burs,
+  protected final void GET_TIME_BASE(OPT_BURS burs,
                            OPT_Instruction s,
                            OPT_RegisterOperand result) {
     OPT_Register highReg = result.register;
@@ -902,7 +528,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_MUL(OPT_BURS burs, OPT_Instruction s,
+  protected final void LONG_MUL(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     // In general, (a,b) * (c,d) = (l(a imul d)+l(b imul c)+u(b mul d), l(b mul d))
@@ -1064,7 +690,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param result the result/first operand
    */
-  final void LONG_NEG(OPT_BURS burs, OPT_Instruction s,
+  protected final void LONG_NEG(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result) {
     OPT_Register lhsReg = result.register;
     OPT_Register lowlhsReg = burs.ir.regpool.getSecondReg(lhsReg);
@@ -1082,7 +708,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_AND(OPT_BURS burs, OPT_Instruction s,
+  protected final void LONG_AND(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     OPT_Register lhsReg = result.register;
@@ -1120,9 +746,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_OR(OPT_BURS burs, OPT_Instruction s,
-		     OPT_RegisterOperand result,
-		     OPT_Operand value) {
+  protected final void LONG_OR(OPT_BURS burs, OPT_Instruction s,
+			       OPT_RegisterOperand result,
+			       OPT_Operand value) {
     OPT_Register lhsReg = result.register;
     OPT_Register lowlhsReg = burs.ir.regpool.getSecondReg(lhsReg);
     if (value instanceof OPT_RegisterOperand) {
@@ -1158,9 +784,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result/first operand
    * @param value the second operand
    */
-  final void LONG_XOR(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result,
-		      OPT_Operand value) {
+  protected final void LONG_XOR(OPT_BURS burs, OPT_Instruction s,
+				OPT_RegisterOperand result,
+				OPT_Operand value) {
     OPT_Register lhsReg = result.register;
     OPT_Register lowlhsReg = burs.ir.regpool.getSecondReg(lhsReg);
     if (value instanceof OPT_RegisterOperand) {
@@ -1195,8 +821,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param result the result/first operand
    */
-  final void LONG_NOT(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result) {
+  protected final void LONG_NOT(OPT_BURS burs, OPT_Instruction s,
+				OPT_RegisterOperand result) {
     OPT_Register lhsReg = result.register;
     OPT_Register lowlhsReg = burs.ir.regpool.getSecondReg(lhsReg);
     burs.append(MIR_UnaryAcc.create(IA32_NOT, R(lowlhsReg)));
@@ -1218,11 +844,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FP_MOV_OP_MOV(OPT_BURS burs, OPT_Instruction s,
-			   OPT_Operator op,
-			   OPT_Operand result,
-			   OPT_Operand val1,
-			   OPT_Operand val2) {
+  protected final void FP_MOV_OP_MOV(OPT_BURS burs, OPT_Instruction s,
+				     OPT_Operator op,
+				     OPT_Operand result,
+				     OPT_Operand val1,
+				     OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
@@ -1239,10 +865,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FP_MOV_OP(OPT_BURS burs, OPT_Instruction s,
-			   OPT_Operator op,
-			   OPT_Operand val1,
-			   OPT_Operand val2) {
+  protected final void FP_MOV_OP(OPT_BURS burs, OPT_Instruction s,
+				 OPT_Operator op,
+				 OPT_Operand val1,
+				 OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
   }
@@ -1260,7 +886,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FP_OP_MOV(OPT_BURS burs, OPT_Instruction s,
+  protected final void FP_OP_MOV(OPT_BURS burs, OPT_Instruction s,
 		       OPT_Operator op,
 		       OPT_Operator movop,
 		       OPT_Operand result,
@@ -1281,10 +907,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FP_OP(OPT_BURS burs, OPT_Instruction s,
-		   OPT_Operator op,
-		   OPT_Operand val1,
-		   OPT_Operand val2) {
+  protected final void FP_OP(OPT_BURS burs, OPT_Instruction s,
+			     OPT_Operator op,
+			     OPT_Operand val1,
+			     OPT_Operand val2) {
     burs.append(MIR_BinaryAcc.mutate(s, op, val1, val2));
   }
 
@@ -1296,9 +922,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FP_REM(OPT_BURS burs, OPT_Instruction s,
-		    OPT_Operand val1,
-		    OPT_Operand val2) {
+  protected final void FP_REM(OPT_BURS burs, OPT_Instruction s,
+			      OPT_Operand val1,
+			      OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
@@ -1310,8 +936,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param val the operand to divide with fp0 to get a remainder
    */
-  final void FP_REM(OPT_BURS burs, OPT_Instruction s,
-		    OPT_Operand val) {
+  protected final void FP_REM(OPT_BURS burs, OPT_Instruction s,
+			      OPT_Operand val) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val));
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
   }
@@ -1327,11 +953,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val2   the second value
    * @param cond   the condition operand
    */
-  final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
-			 OPT_Operand res, 
-			 OPT_Operand val1,
-			 OPT_Operand val2,
-			 OPT_ConditionOperand cond) {
+  protected final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
+				   OPT_Operand res, 
+				   OPT_Operand val1,
+				   OPT_Operand val2,
+				   OPT_ConditionOperand cond) {
     burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
     burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
@@ -1349,9 +975,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result operand
    * @param cond   the condition operand
    */
-  final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
-			 OPT_Operand res, 
-			 OPT_ConditionOperand cond) {
+  protected final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
+				   OPT_Operand res, 
+				   OPT_ConditionOperand cond) {
     OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
     burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
     burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
@@ -1368,9 +994,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val2 the second value operand
    * @param cond the condition operand
    */
-  final void IFCMP(OPT_BURS burs, OPT_Instruction s,
-		   OPT_Operand val1, OPT_Operand val2,
-		   OPT_ConditionOperand cond) {
+  protected final void IFCMP(OPT_BURS burs, OPT_Instruction s,
+			     OPT_Operand val1, OPT_Operand val2,
+			     OPT_ConditionOperand cond) {
     burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     burs.append(MIR_CondBranch.mutate(s, IA32_JCC, COND(cond),
 				      IfCmp.getTarget(s), 
@@ -1386,8 +1012,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param val1 the first value to compare
    * @param val2 the second value to compare
    */
-  final void CMOV_CMP(OPT_BURS burs, OPT_Instruction s,
-		      OPT_Operand val1, OPT_Operand val2) {
+  protected final void CMOV_CMP(OPT_BURS burs, OPT_Instruction s,
+				OPT_Operand val1, OPT_Operand val2) {
     if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
       if (VM.VerifyAssertions) {
         VM._assert(val2.isRegister());
@@ -1410,11 +1036,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param trueVal the value to move to result if cond is true
    * @param falseVal the value to move to result if cond is not true
    */
-  final void CMOV_MOV(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result,
-		      OPT_ConditionOperand cond,
-		      OPT_Operand trueValue,
-		      OPT_Operand falseValue) {
+  protected final void CMOV_MOV(OPT_BURS burs, OPT_Instruction s,
+				OPT_RegisterOperand result,
+				OPT_ConditionOperand cond,
+				OPT_Operand trueValue,
+				OPT_Operand falseValue) {
     OPT_Operator movop, cmovop;
     if (result.type.isDoubleType() || result.type.isFloatType()) {
       movop = IA32_FMOV;
@@ -1464,7 +1090,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   /**
    * Expand a prologue by expanding out longs into pairs of ints
    */
-  void PROLOGUE(OPT_BURS burs, OPT_Instruction s) {
+  protected final void PROLOGUE(OPT_BURS burs, OPT_Instruction s) {
     int numFormals = Prologue.getNumberOfFormals(s);
     int numLongs = 0;
     for (int i=0; i<numFormals; i++) {
@@ -1501,9 +1127,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param address the operand containing the target address
    */
-  final void CALL(OPT_BURS burs, 
-		  OPT_Instruction s,
-		  OPT_Operand address) {
+  protected final void CALL(OPT_BURS burs, 
+			    OPT_Instruction s,
+			    OPT_Operand address) {
     OPT_RegisterPool regpool = burs.ir.regpool;
 
     // Step 1: Find out how many parameters we're going to have.
@@ -1563,7 +1189,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    * @param address the operand containing the target address
    */
-  final void SYSCALL(OPT_BURS burs, OPT_Instruction s, OPT_Operand address) {
+  protected final void SYSCALL(OPT_BURS burs, OPT_Instruction s, OPT_Operand address) {
     OPT_RegisterPool regpool = burs.ir.regpool;
     burs.ir.setHasSysCall(true);
 
@@ -1628,7 +1254,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  final void LOWTABLESWITCH(OPT_BURS burs, OPT_Instruction s) {
+  protected final void LOWTABLESWITCH(OPT_BURS burs, OPT_Instruction s) {
     // (1) We're changing index from a U to a DU.
     //     Inject a fresh copy instruction to make sure we aren't
     //     going to get into trouble (if someone else was also using index).
@@ -1650,8 +1276,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  final void RESOLVE(OPT_BURS burs, 
-		     OPT_Instruction s) {
+  protected final void RESOLVE(OPT_BURS burs, 
+			       OPT_Instruction s) {
     OPT_Operand target = loadFromJTOC(burs, VM_Entrypoints.optResolveMethod.getOffset());
     burs.append(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
 					 null, null,  target, 
@@ -1663,7 +1289,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    */
-  void TRAP_IF_IMM(OPT_BURS burs, OPT_Instruction s) {
+  protected final void TRAP_IF_IMM(OPT_BURS burs, OPT_Instruction s) {
     OPT_RegisterOperand gRes = TrapIf.getGuardResult(s);
     OPT_RegisterOperand v1 =  (OPT_RegisterOperand)TrapIf.getVal1(s);
     OPT_IntConstantOperand v2 = (OPT_IntConstantOperand)TrapIf.getVal2(s);
@@ -1699,11 +1325,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param oldValue the old value at the address mo
    * @param newValue the new value at the address mo
    */
-  void ATTEMPT(OPT_BURS burs, 
-	       OPT_RegisterOperand result,
-	       OPT_MemoryOperand mo,
-	       OPT_Operand oldValue,
-	       OPT_Operand newValue) {
+  protected final void ATTEMPT(OPT_BURS burs, 
+			       OPT_RegisterOperand result,
+			       OPT_MemoryOperand mo,
+			       OPT_Operand oldValue,
+			       OPT_Operand newValue) {
     OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
     OPT_RegisterOperand temp2 = burs.ir.regpool.makeTemp(result);
     burs.append(MIR_Move.create(IA32_MOV, temp, newValue));
@@ -1730,13 +1356,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param target   the branch target
    * @param bp       the branch profile information
    */
-  void ATTEMPT_IFCMP(OPT_BURS burs, 
-		     OPT_MemoryOperand mo,
-		     OPT_Operand oldValue,
-		     OPT_Operand newValue,
-		     OPT_ConditionOperand cond,
-		     OPT_BranchOperand target,
-		     OPT_BranchProfileOperand bp) {
+  protected final void ATTEMPT_IFCMP(OPT_BURS burs, 
+				     OPT_MemoryOperand mo,
+				     OPT_Operand oldValue,
+				     OPT_Operand newValue,
+				     OPT_ConditionOperand cond,
+				     OPT_BranchOperand target,
+				     OPT_BranchProfileOperand bp) {
     OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, temp, newValue));
     burs.append(MIR_Move.create(IA32_MOV, R(getEAX()), oldValue));
