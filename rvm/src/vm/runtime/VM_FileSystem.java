@@ -376,6 +376,8 @@ public class VM_FileSystem {
    * @return number of bytes written (-2: error)
    */ 
   public static int writeBytes(int fd, byte buf[], int off, int cnt) {
+    if (cnt == 0) return 0;
+
     if (off < 0)
       throw new IndexOutOfBoundsException();
 
@@ -392,17 +394,24 @@ public class VM_FileSystem {
     // If the write would have blocked, put this thread on the 
     // IO queue, then try again if it looks like the fd is ready.
 
-    VM_Address start = VM_Magic.objectAsAddress(buf).add(off);
-
     if (!blockingWriteHack(fd))
       return -2;
 
+    int written = 0;
     for (;;) {
-      int rc = VM_SysCall.sysWriteBytes(fd, start, cnt);
-      if (rc >= 0)
-	// Write succeeded
-	return rc;
-      else if (rc == -1) {
+      int rc = VM_SysCall.sysWriteBytes(fd, 
+					VM_Magic.objectAsAddress(buf).add(off),
+					cnt);
+      if (rc >= 0) {
+	// Write succeeded, perhaps partially
+	written += rc;
+	off += rc;
+	cnt -= rc;
+	if (cnt == 0)
+	  return written;
+	else 
+	  continue;
+      } else if (rc == -1) {
 	// Write would have blocked
 	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
 	if (!isFdReady(waitData.writeFds[0]))
