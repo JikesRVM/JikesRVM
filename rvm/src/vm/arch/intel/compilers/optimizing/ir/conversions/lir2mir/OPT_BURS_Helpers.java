@@ -553,24 +553,21 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    // convert value to an integer and store in FP0.
-    burs.append(MIR_Move.create(IA32_MOV, D(getFPR(0)), value));
-    burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), D(getFPR(0))));
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), sl));
+    
+    // FP0 := value
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
+    // result := 0
+    burs.append(MIR_Move.create(IA32_MOV, result, I(0)));
 
-    // Now deal with NaNs
-    // Compare FP1 with itself, to see if its a NaN.  If so, move 0.0 into
-    // FP0.  
-    // move 0.0 into FP2
-    burs.append(MIR_Nullary.create(IA32_FLDZ, D(getFPR(0))));
-    burs.append(MIR_Move.create(IA32_FSTP, D(getFPR(0)), D(getFPR(2))));
-    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(1)), D(getFPR(1))));
-    burs.append(MIR_CondMove.create(IA32_FCMOV, D(getFPR(0)),
-                                    D(getFPR(2)), 
-                                    OPT_IA32ConditionOperand.PE()));
-    // Finally, move FP0 to result
-    burs.append(MIR_Move.mutate(s,IA32_FMOV, result, D(getFPR(0))));
+    // Set condition flags: set PE iff FP0 is a Nan
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), D(getFPR(0))));
+
+    // Convert FP0 to an integer and store in sl
+    burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
+
+    // If FP0 was not classified as a NaN, then result := sl
+    burs.append(MIR_CondMove.create(IA32_CMOV, result, sl,
+                                    OPT_IA32ConditionOperand.PO()));
   }
   /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT

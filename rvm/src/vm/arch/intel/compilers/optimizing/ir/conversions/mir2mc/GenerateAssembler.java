@@ -174,6 +174,8 @@ class GenerateAssembler {
 	opcodeArgTables.put("IDIV", new int[]{1,2});
 	opcodeArgTables.put("SET", new int[]{1,0});
 	opcodeArgTables.put("CMPXCHG", new int[]{1,2});
+	opcodeArgTables.put("FCMOV", new int[]{2,0,1});
+	opcodeArgTables.put("CMOV", new int[]{2,0,1});
     }
 
     /**
