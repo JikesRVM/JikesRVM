@@ -104,8 +104,9 @@ sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-Dgnu.classpath.home.url=file:${rvm_build}"		\
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
 		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
+		"-Duser.name=$(whoami)"					\
 		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
-		"-Dos.arch=\"$(uname -m)\""				\
+		"-Dos.arch=$(uname -m)"					\
  )
 
 ## This implementation is dependent upon subsequent uses of -cp and -classpath
