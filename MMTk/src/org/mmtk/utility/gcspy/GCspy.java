@@ -62,9 +62,9 @@ public class GCspy implements Uninterruptible {
   }
 
   /**
-   * Should the JVM wait for GCspy to connect?
+   * Should the VM wait for GCspy to connect?
    *
-   * @return whether the JVM should wait for the visualiser to connect
+   * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
     return gcspyWait.getValue();
