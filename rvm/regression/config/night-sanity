@@ -2,10 +2,10 @@ BaseBaseSemiSpace                -classpath -test-list nightly-tests
 BaseAdaptiveSemiSpace            -test-list nightly-tests-short
 FullAdaptiveSemiSpace            -classpath -test-list nightly-tests
 BaseBaseMarkSweep                -classpath -test-list nightly-tests
-BaseBaseCopyMS                   -test-list nightly-tests
-BaseBaseGenCopy                  -test-list nightly-tests
+BaseBaseCopyMS                   -classpath -test-list nightly-tests
+BaseBaseGenCopy                  -classpath -test-list nightly-tests
 BaseBaseGenMS                    -test-list nightly-tests
-ExtremeAssertionsOptOptSemiSpace -test-list nightly-tests-short
+ExtremeAssertionsOptOptSemiSpace -classpath -test-list nightly-tests-short
 FullOptSemiSpace -use-opt-levels "O0 O1 O2" -classpath -test-list nightly-tests-short
 FastAdaptiveSemiSpace            -classpath -test-list nightly-tests-short
 FastSemiSpace                    -classpath -test-list nightly-tests-short
