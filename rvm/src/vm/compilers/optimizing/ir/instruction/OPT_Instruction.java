@@ -618,6 +618,21 @@ public final class OPT_Instruction
   }
 
   /**
+   * Replace any operands that are similar to the first operand 
+   * with a copy of the second operand.
+   *
+   * @param old the operand whose similar operands should be replaced
+   * @param new the new one to replace it with
+   */
+  public void replaceSimilarOperands(OPT_Operand oldOp, OPT_Operand newOp) {
+    for (int i = 0; i < ops.length; i++) {
+      if (oldOp.similar(getOperand(i))) {
+	putOperand(i, newOp.copy());
+      }
+    }
+  }
+
+  /**
    * Replace all occurances of register r with register n
    *
    * @param r the old register
@@ -1263,6 +1278,9 @@ public final class OPT_Instruction
     case METHOD_IFCMP_opcode:
       return MethodIfCmp.getTarget(this).target.getBasicBlock();
 
+    case PATCH_POINT_opcode:
+      return PatchPoint.getTarget(this).target.getBasicBlock();
+
     default:
       if (MIR_Branch.conforms(this)) {
 	return MIR_Branch.getTarget(this).target.getBasicBlock();
@@ -1307,6 +1325,10 @@ public final class OPT_Instruction
     case DOUBLE_IFCMPL_opcode:
     case DOUBLE_IFCMPG_opcode:
       e.addElement(IfCmp.getTarget(this).target.getBasicBlock());
+      break;
+
+    case PATCH_POINT_opcode:
+      e.addElement(PatchPoint.getTarget(this).target.getBasicBlock());
       break;
 
     case TYPE_IFCMP_opcode:
