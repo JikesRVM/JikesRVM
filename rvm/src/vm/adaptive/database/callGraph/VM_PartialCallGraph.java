@@ -76,7 +76,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   
   /**
    * @param caller caller method
-   * @param bxIndex bcIndex in caller method
+   * @param bcIndex bytecode index in caller method
    * @return the VM_WeightedCallTargets currently associated with the
    *         given caller bytecodeIndex pair.
    */
@@ -97,7 +97,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    * creating it if it is not already in the call graph.
    *
    * @param caller   method making the call
-   * @param bytecode call site, if -1 then no call site is specified.
+   * @param bcIndex  call site, if -1 then no call site is specified.
    * @param callee   method called
    */
   public synchronized void incrementEdge(VM_Method caller, int bcIndex, VM_Method callee) {
