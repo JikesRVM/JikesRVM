@@ -168,5 +168,30 @@ public class VM_GCUtil
 	VM.sysWrite(type.getDescriptor());
     }
   }
+
+
+  static void dumpProcessorsArray () {
+    VM_Processor st;
+    VM.sysWrite("VM_Scheduler.processors[]:\n");
+    for (int i = 0; ++i <= VM_Scheduler.numProcessors;) {
+      st = VM_Scheduler.processors[i];
+      VM.sysWrite(" i = ");
+      VM.sysWrite(i);
+      if (st==null) 
+	VM.sysWrite(" st is NULL");
+      else {
+	VM.sysWrite(", id = ");
+	VM.sysWrite(st.id);
+	VM.sysWrite(", address = ");
+	VM.sysWrite(VM_Magic.objectAsAddress(st));
+	VM.sysWrite(", buffer = ");
+	VM.sysWrite(VM_Magic.objectAsAddress(st.modifiedOldObjects));
+	VM.sysWrite(", top = ");
+	VM.sysWrite(st.modifiedOldObjectsTop);
+      }
+      VM.sysWrite("\n");
+    }
+  }
+
   
 }   // VM_GCUtil
