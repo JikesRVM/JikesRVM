@@ -2,20 +2,23 @@
  * (C) Copyright IBM Corp. 1998, 1999 All Rights Reserved
  */
 //$Id$
+
 /**
- * Adapted for RVM
+ * Adapted for Jikes RVM
  * @author Ton Ngo
  * @author Steve Smith 
  * @date 4/12/00
  */
 
-
 #ifndef JNI_H
 #define JNI_H
 
-#include "jniport.h"
+#include <inttypes.h>
 #include <stdio.h>  /* For 1.1 version of args (i.e., vfprintf) */
 #include <stdarg.h> /* For va_list */
+
+#define JNIEXPORT 
+#define JNICALL
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,12 +53,12 @@ extern "C" {
 #define JNI_EEXIST			(-5)
 #define JNI_EINVAL			(-6)
 
-typedef unsigned char jboolean;
-/* jbyte is platform specific */
-typedef unsigned short jchar;
-typedef short jshort;
-/* jint is platform specific */
-/* jlong is platform specific */
+typedef uint8_t jboolean;
+typedef int8_t jbyte;
+typedef uint16_t short jchar;
+typedef int16_t jshort;
+typedef int32_t jint;
+typedef int64_t jlong;
 typedef float jfloat;
 typedef double jdouble;
 typedef jint jsize;
