@@ -12,13 +12,16 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
- * The underlying barrier object used by instances of Barrier 
- * to perform synchronization.  Instances of this class should
- * be used only for constructing Barrier instances.
+ * This class implements barrier synchronization.
+ * The mechanism handles proper resetting by usnig 3 underlying counters
+ * and supports unconditional blocking until the number of participants
+ * can be determined.
  *
  * @author   Perry Cheng
  */
 public final class Barrier implements VM_Uninterruptible {
+
+  public static int verbose = 0;
 
   // The value of target is one more than the number of threads we expect to arrive.
   // It is one greater to allow safely updating the currentCounter value.
@@ -31,8 +34,9 @@ public final class Barrier implements VM_Uninterruptible {
   int currentCounter = 0;
 
   // Debugging constants
-  private static final int TIME_CHECK = 1000000;  // Check time every TIME_CHECK-th iteration
-  private static final double TIME_OUT = 5.0;    // Die after TIME_OUT seconds
+  private static final int TIME_CHECK = 1000000;    // Check time every TIME_CHECK-th iteration
+  private static final double BEGIN_TIME_OUT = 5.0; // Begin verbosity after BEGIN_TIME_OUT seconds
+  private static final double END_TIME_OUT = 10.0;  // Die after END_TIME_OUT seconds
 
   public Barrier () {
     counters = new SynchronizedCounter[NUM_COUNTERS];
@@ -47,6 +51,10 @@ public final class Barrier implements VM_Uninterruptible {
     target = t + 1;
   }
 
+  public void clearTarget () {
+    target = -1;
+  }
+
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
@@ -54,7 +62,7 @@ public final class Barrier implements VM_Uninterruptible {
     SynchronizedCounter c = counters[currentCounter];
     int myValue = c.increment();
     // Do NOT use the currentCounter variables unless designated thread
-    // VM.sysWriteln("", where, ": myValue = ", myValue);
+    if (verbose >= 1) VM.sysWriteln("", where, ": myValue = ", myValue);
     if (VM.VerifyAssertions) VM._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { // last one to show up
       int nextCounter = (currentCounter + 1) % NUM_COUNTERS;
@@ -75,10 +83,12 @@ public final class Barrier implements VM_Uninterruptible {
 	    startCheck = VM_Interface.now();
 	  else {
 	    double elapsed = VM_Interface.now() - startCheck;
-	    if (elapsed >= TIME_OUT) {
+	    if (elapsed >= END_TIME_OUT) 
+	      VM.sysFail("Barrier Timeout");
+	    if (elapsed >= BEGIN_TIME_OUT) {
 	      VM.sysWrite("GC Error: Barrier timed out after ", elapsed);
-	      VM.sysWrite(" seconds.  myValue = ", myValue);
-	      VM.sysWriteln("  count = ", c.peek(), "target = ", target);
+	      VM.sysWrite(" seconds.  Called from ", where, ".  myOrder = ", myValue);
+	      VM.sysWriteln("  count is ", c.peek(), " waiting for ", target - 1);
 	    }
 	  }
 	}
