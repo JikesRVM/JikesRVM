@@ -63,3 +63,13 @@ $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.
 cd $RVM_BUILD/Jalapeno.classes
 $FIND . -type f | $GREP -v \.class\$ | $XARGS rm -f
 $HOST_JAR -cvf $RVM_BUILD/rvmrt.jar com java
+
+# Install the new jar file?
+if tty -s; then # keyboard is live (ie. this is not an automated build)
+  print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
+  read response
+  if [[ $response = y ]]; then
+    print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
+    cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
+  fi
+fi
