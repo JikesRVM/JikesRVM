@@ -205,7 +205,7 @@ public abstract class VM_BaselineCompiler
     if (options.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
-      VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     //-#endif
     fullyBootedVM = true;
@@ -221,7 +221,7 @@ public abstract class VM_BaselineCompiler
       return;
     } else {
       VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
-      VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

@@ -134,7 +134,7 @@ class DebuggerThread extends VM_Thread {
 
     case 'q': // terminate execution of virtual machine
       VM.sysWrite("terminating execution\n");
-      VM.sysExit(VM.exitStatusMiscTrouble);
+      VM.sysExit(VM.EXIT_STATUS_MISC_TROUBLE);
       return;
 
     default:

@@ -80,7 +80,7 @@ public class Throwable implements java.io.Serializable {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
          everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+      VM.sysExit(VM.EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS);
     }
     if (numWeirdErrors > 1 ) {
       VM.sysWriteln("I'm now ", numWeirdErrors, " levels deep in weird Errors while handling this Throwable");
@@ -94,7 +94,7 @@ public class Throwable implements java.io.Serializable {
     if (++numOutOfMemoryErrors >= maxOutOfMemoryErrors) {
       /* We exit before printing, in case we're in some weird hell where
           everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
+      VM.sysExit(VM.EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS);
     }
     if (numOutOfMemoryErrors > 1 ) {
       VM.sysWriteln("GC Warning: I'm now ", numOutOfMemoryErrors, " levels deep in OutOfMemoryErrors while handling this Throwable");
@@ -234,7 +234,7 @@ public class Throwable implements java.io.Serializable {
         if (++depth == maxDepth)
           VM.sysWriteln("We got ", depth, " deep in printing stack traces; trouble.  Aborting.");
         if (depth >= maxDepth)
-          VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+          VM.sysExit(VM.EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS);
         doPrintStackTrace(err, effect, depth);
         if (VM.VerifyAssertions) VM._assert(depth >= 1);
       } finally {

@@ -337,10 +337,10 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
     try {
       VM.sysWrite(VM_JNIHelpers.createStringFromC(messageAddress));
-      System.exit(VM.exitStatusJNITrouble);
+      System.exit(VM.EXIT_STATUS_JNI_TROUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
-      System.exit(VM.exitStatusRecursivelyShuttingDown);
+      System.exit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 
@@ -376,7 +376,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
       env.deleteJNIRef(objJREF);
     } catch (ArrayIndexOutOfBoundsException e) {
       VM.sysWrite("JNI refs array confused.  Fatal Error!\n");
-      VM.sysExit(VM.exitStatusJNITrouble );
+      VM.sysExit(VM.EXIT_STATUS_JNI_TROUBLE );
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5930,25 +5930,25 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
   private static int reserved0(VM_JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1; 
   }
 
   private static int reserved1(VM_JNIEnvironment env){
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);                    
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
     return -1;                 
   }                                    
 
   private static int reserved2(VM_JNIEnvironment env){         
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);                    
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
     return -1;                 
   }                                                                    
 
   private static int reserved3(VM_JNIEnvironment env){         
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);                    
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
     return -1;                 
   }
 }

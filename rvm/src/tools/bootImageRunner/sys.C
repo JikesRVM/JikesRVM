@@ -94,7 +94,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <dlfcn.h>
 #include <inttypes.h>           // uintptr_t
 
-#include "sys.h"
 #ifdef _AIX
 extern "C" timer_t gettimerid(int timer_type, int notify_type);
 extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
@@ -102,6 +101,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #endif
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner.
 

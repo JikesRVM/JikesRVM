@@ -67,7 +67,7 @@ public class Java2HPM
 	System.loadLibrary("Java2HPM");
       } catch (Exception e) {
 	VM.sysWriteln("\nJava2HPM.<init>() Exception with System.loadLibrary(Java2HPM)\n");
-	VM.shutdown(VM.exitStatusHPMTrouble);
+	VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       if(debug>=1)VM.sysWrite("Java2HPM static initializer called System.loadLibrary(\"Java2HPM\")\n");
     }

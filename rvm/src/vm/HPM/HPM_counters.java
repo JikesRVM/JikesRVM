@@ -38,7 +38,7 @@ public final class HPM_counters
     if (!VM_HardwarePerformanceMonitors.booted()) {
       VM.sysWrite("***HPM_counters() called before VM_HPM.booted()!***\n");
       new Exception().printStackTrace();
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     // TEMPORARY
     counters = new long[HPM_info.getNumberOfValues()];
@@ -148,13 +148,13 @@ public final class HPM_counters
       VM.sysWrite("***HPM_counters.format_length(");
       VM.sysWriteLong(value);VM.sysWrite(") l_index ");VM.sysWrite(l_index,MAX_LONG_LENGTH);
       VM.sysWrite("< 2 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     if (f_index < 3) {
       VM.sysWrite("***HPM_counters.format_length(");
       VM.sysWriteLong(value);VM.sysWrite(") f_index ");VM.sysWrite(f_index,MAX_LONG_FORMAT_LENGTH);
       VM.sysWrite("< 3 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     // copy over remainders digits
     if (length > 0) {

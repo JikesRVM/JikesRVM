@@ -149,6 +149,11 @@ class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
+    pln("#ifdef NEED_EXIT_STATUS_CODES");
+    emitExitStatusCodes();
+    pln("#endif /* NEED_EXIT_STATUS_CODES */");
+    pln();
+
     pln("#ifdef NEED_ASSEMBLER_DECLARATIONS");
     emitAssemblerDeclarations();
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
@@ -661,6 +666,27 @@ class GenerateInterfaceDeclarations {
                      + offset + ";\n");
   }
 
+
+  // Codes for exit(3).
+  static void emitExitStatusCodes () {
+    pln("/* Automatically generated from the exitStatus declarations in VM.java */");
+    pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = "
+        + VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
+    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = "
+        + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
+    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = "
+        + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
+    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = "
+        + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
+    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = "
+        + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
+        + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
+    pln("const int EXIT_STATUS_JNI_TROUBLE                          = "
+        + VM.EXIT_STATUS_JNI_TROUBLE + ";");
+    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = "
+        + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
+  }
 
   // Emit assembler constants.
   //

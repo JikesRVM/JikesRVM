@@ -340,7 +340,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
       } else {
         VM.sysWrite("Unrecognized opt compiler argument \""+arg+"\"");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
     } else {
       String[] tmp = new String[earlyOptArgs.length+2];

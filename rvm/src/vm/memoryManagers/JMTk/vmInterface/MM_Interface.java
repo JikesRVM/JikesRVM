@@ -210,7 +210,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     throws InterruptiblePragma {
       if ( ! Options.process(arg)) {
 	VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
   }
 

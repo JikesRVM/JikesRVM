@@ -406,7 +406,7 @@ public class VM extends VM_Properties
   private static void pleaseSpecifyAClass() throws InterruptiblePragma {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
-    VM.sysExit(VM.exitStatusBogusCommandLineArg);
+    VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
 
@@ -1016,43 +1016,37 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
   
-  // Exit statuses, pending a better location.
-  // We also use the explicit constant -1 as an exit status (that gets mapped
-  // to 255).  -1 is for things that are particularly bad.
-  final public static int exitStatusRecursivelyShuttingDown = 128;
-  final public static int exitStatusDumpStackAndDie = 124;
-  final public static int exitStatusMainThreadCouldNotLaunch = 123;
-  final public static int exitStatusMiscTrouble = 122;
-  final public static int exitStatusSysFail = exitStatusDumpStackAndDie;
-
-  /* See sys.C; if you change one of the following macros here,
-     change them there too! */
-
-  // EXIT_STATUS_SYSCALL_TROUBLE
-  final public static int exitStatusSyscallTrouble = 121;
-  // EXIT_STATUS_TIMER_TROUBLE
-  final public static int exitStatusTimerTrouble = exitStatusSyscallTrouble;
-
-  // EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
-  final public static int exitStatusUnexpectedCallToSys = 120;
-  // EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
-  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
-
-  public static int exitStatusDyingWithUncaughtException = 113;
+  /* Exit statuses, pending a better location.
+     Please keep this list in numerical order.
+     We also use the explicit constant -1 as an exit status (it gets mapped
+     / to 255).  -1 is for things that are particularly bad.
+  */
+  final public static int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
+  final public static int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
+  final public static int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
+  final public static int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
+  final public static int EXIT_STATUS_MISC_TROUBLE = 122;
+  final public static int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
+  final public static int EXIT_STATUS_SYSCALL_TROUBLE = 121;
+  final public static int EXIT_STATUS_TIMER_TROUBLE = 
+    EXIT_STATUS_SYSCALL_TROUBLE;
+  final public static int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
+  final public static int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 
+    EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
+  public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
   /** Trouble with the Hardware Performance Monitors */
-  public static int exitStatusHPMTrouble = 110;
+  public static int EXIT_STATUS_HPM_TROUBLE = 110;
   //-#if RVM_WITH_QUICK_COMPILER
-  public static int exitStatusQuickCompilerFailed = 102;
+  public static int EXIT_STATUS_QUICK_COMPILER_FAILED = 102;
   //-#endif
-  public static int exitStatusOptCompilerFailed = 101;
-  /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
-   * this value, change it there too. */
-  public static int exitStatusBogusCommandLineArg = 100;
-  public static int exitStatusTooManyThrowableErrors = 99;
-  public static int exitStatusTooManyOutOfMemoryErrors = exitStatusTooManyThrowableErrors;
-  /* See EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C.  If you change
-     this value, change it there too.  */
-  public static int exitStatusJNITrouble = 98;
+  public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
+  public static int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
+  public static int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
+  public static int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
+    EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
+  public static int EXIT_STATUS_JNI_TROUBLE = 98;
+  /* Used in VM_0005fProcess.C */
+  public static int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   
 
   /**
@@ -1065,9 +1059,9 @@ public class VM extends VM_Properties
     // print a traceback and die
     VM_Scheduler.traceback(message);
     if (VM.runningVM)
-      VM.shutdown(exitStatusSysFail);
+      VM.shutdown(EXIT_STATUS_SYSFAIL);
     else
-      VM.sysExit(exitStatusSysFail);
+      VM.sysExit(EXIT_STATUS_SYSFAIL);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -1087,9 +1081,9 @@ public class VM extends VM_Properties
     // print a traceback and die
     VM_Scheduler.traceback(message, number);
     if (VM.runningVM)
-      VM.shutdown(exitStatusSysFail);
+      VM.shutdown(EXIT_STATUS_SYSFAIL);
     else
-      VM.sysExit(exitStatusSysFail);
+      VM.sysExit(EXIT_STATUS_SYSFAIL);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -1254,7 +1248,7 @@ public class VM extends VM_Properties
                     "; we're stuck in a recursive shutdown/exit.");
     }
     /* Emergency death. */
-    VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
+    VM_SysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     /* And if THAT fails, go into an inf. loop.  Ugly, but it's better than
        returning from this function and leading to yet more cascading errors.
        and misleading error messages.   (To the best of my knowledge, we have

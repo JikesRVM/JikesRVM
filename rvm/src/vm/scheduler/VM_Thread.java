@@ -869,11 +869,11 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     if (terminateSystem) {
       if (myThread.dyingWithUncaughtException)
-        VM.sysExit(VM.exitStatusDyingWithUncaughtException);
+        VM.sysExit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       else if (myThread.thread instanceof MainThread) {
         MainThread mt = (MainThread) myThread.thread;
         if (! mt.launched) {
-          VM.sysExit(VM.exitStatusMainThreadCouldNotLaunch);
+          VM.sysExit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
       }
       VM.sysExit(0);

@@ -29,7 +29,8 @@ extern char **environ;
 // Java includes
 #include <jni.h>
 
-#include "sys.h"
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
 
 // generated class header
 #include "com_ibm_JikesRVM_VM_0005fProcess.h"
@@ -183,13 +184,6 @@ closePipe(int descriptors[])
   return errno ? -1 : 0;
 }
 
-// FIXME:
-// Presumably we should throw some sort of I/O error
-// (from Runtime.exec()) if we can't change into the
-// working directory the caller specified.
-// Instead, we'll just return this value as the exit code.
-const int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
-
 //////////////////////////////////////////////////////////////
 // Implementation of native methods
 //////////////////////////////////////////////////////////////
@@ -285,6 +279,11 @@ Java_com_ibm_JikesRVM_VM_1Process_exec4
 #ifdef DEBUG
         fprintf(stderr, "chdir() failed: %s\n", strerror(errno));
 #endif
+        // FIXME:
+        // Presumably we should throw some sort of I/O error
+        // (from Runtime.exec()) if we can't change into the
+        // working directory the caller specified.
+        // Instead, we just return this value as the exit code.
         exit(EXIT_STATUS_BAD_WORKING_DIR);
       }
     }

@@ -61,7 +61,7 @@ public class VM_BootImageCompiler {
       if (e.isFatal) {
         // An unexpected error when building the quick boot image should be fatal
         e.printStackTrace();
-        System.exit(VM.exitStatusOptCompilerFailed);
+        System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
       } else {
         VM.sysWrite(msg);
       }
@@ -94,7 +94,7 @@ public class VM_BootImageCompiler {
       if (e.isFatal) {
         // An unexpected error when building the quick boot image should be fatal
         e.printStackTrace();
-        System.exit(VM.exitStatusOptCompilerFailed);
+        System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
       } else {
         boolean printMsg = false;
         if (e == escape) 

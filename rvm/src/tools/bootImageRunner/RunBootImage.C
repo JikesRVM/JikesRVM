@@ -60,6 +60,10 @@
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_GNU_CLASSPATH_VERSION
+#define NEED_EXIT_STATUS_CODES  // Get EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
+
+
+
 
 #ifdef RVM_FOR_IBM
 #include <AixLinkageLayout.h>
@@ -72,9 +76,6 @@ uint64_t initialHeapSize;  /* Declared in bootImageRunner.h */
 uint64_t maximumHeapSize;  /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
-
-#include "sys.h"		// EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
-
 
 
 static int DEBUG = 0;                   // have to set this from a debugger

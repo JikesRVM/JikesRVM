@@ -155,7 +155,7 @@ public final class HPM_info
       VM.sysWrite("***HPM_info.short_name(");VM.sysWrite(i);VM.sysWrite(") ");VM.sysWrite(i);
       VM.sysWrite(" > number of events ");VM.sysWrite(numberOfEvents);VM.sysWrite("!***");
       VM.sysWriteln();
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     return short_names[i];
   }

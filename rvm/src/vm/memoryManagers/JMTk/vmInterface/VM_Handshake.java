@@ -133,7 +133,7 @@ public class VM_Handshake {
       VM.sysWrite("GC required before system fully initialized");
       VM.sysWriteln("Specify larger than default heapsize on command line");
       VM_Scheduler.dumpStack();
-      VM.shutdown(VM.exitStatusMiscTrouble);
+      VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
 
     /* wait for preceding GC to complete */

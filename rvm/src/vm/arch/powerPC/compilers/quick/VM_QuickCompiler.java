@@ -364,7 +364,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     if (options != null && options.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
-      VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     //-#endif
     fullyBootedVM = true;
@@ -380,7 +380,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       return;
     } else {
       VM.sysWrite("VM_QuickCompiler: Unrecognized argument \""+ arg + "\"\n");
-      VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

@@ -236,7 +236,7 @@ public class VM_CommandLineArgs {
         if (v.endsWith(" ")) {
           if (++i >= numArgs) { 
             VM.sysWrite("vm: " + v + "needs an argument\n"); 
-            VM.sysExit(VM.exitStatusBogusCommandLineArg); 
+            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG); 
           }
           args[ i - 1 ] += argRdr.getArg(i);
           args[i] = null;
@@ -413,11 +413,11 @@ public class VM_CommandLineArgs {
         catch (NumberFormatException e) { cpuAffinity = -1; }
         if (cpuAffinity < 0) {
           VM.sysWrite("vm: "+p.value+" needs a cpu number (0..N-1), but found '"+arg+"'\n");
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         if (VM.BuildForSingleVirtualProcessor && cpuAffinity != 0) { 
           VM.sysWrite("vm: I wasn't compiled to support multiple processors\n");
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         VM_Scheduler.cpuAffinity = cpuAffinity;
         break;
@@ -431,12 +431,12 @@ public class VM_CommandLineArgs {
         if (VM_Scheduler.numProcessors < 1 ||
             VM_Scheduler.numProcessors > (VM_Scheduler.MAX_PROCESSORS-1)) {
           VM.sysWrite("vm: "+p.value+arg+" needs an argument between 1 and " + (VM_Scheduler.MAX_PROCESSORS-1) + " (inclusive)\n");
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         if (VM.BuildForSingleVirtualProcessor &&
             VM_Scheduler.numProcessors != 1) {
           VM.sysWrite("vm: I wasn't compiled to support multiple processors\n");
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         break;
 
@@ -470,7 +470,7 @@ public class VM_CommandLineArgs {
         VM_Controller.addOptCompilerOption("opt:help");
         //-#else
         VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
       case RECOMP_ARG:
@@ -480,7 +480,7 @@ public class VM_CommandLineArgs {
         VM_Controller.addOptCompilerOption("opt"+arg);
         //-#else
         VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
 
@@ -492,7 +492,7 @@ public class VM_CommandLineArgs {
         VM_Controller.processCommandLineArg("help");
         //-#else
         VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
       case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
@@ -500,7 +500,7 @@ public class VM_CommandLineArgs {
         VM_Controller.processCommandLineArg(arg);
         //-#else
         VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
 
@@ -524,7 +524,7 @@ public class VM_CommandLineArgs {
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
@@ -534,7 +534,7 @@ public class VM_CommandLineArgs {
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
 
@@ -547,7 +547,7 @@ public class VM_CommandLineArgs {
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the quick compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:quick'\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
       case QUICK_ARG: // "-X:quick:arg"; pass 'arg' as an quickion
@@ -556,7 +556,7 @@ public class VM_CommandLineArgs {
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the quick compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:quick'\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         //-#endif
         break;
 
@@ -569,7 +569,7 @@ public class VM_CommandLineArgs {
       case VM_ARG: // "-X:vm:arg" pass 'arg' as an option
         if (!VM_Options.process(arg)) {
           VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         break;
         
@@ -587,7 +587,7 @@ public class VM_CommandLineArgs {
       case HPM_ARG: // "-X:hpm:<option>"
       case HPM_HELP_ARG:
         VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         break;
         //-#endif
       }
@@ -617,7 +617,7 @@ public class VM_CommandLineArgs {
           int mid = arg.indexOf('=');
           if (mid == -1 || mid + 1 == arg.length()) {
             VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
-            VM.sysExit(VM.exitStatusBogusCommandLineArg);
+            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           String name  = arg.substring(0, mid);
           String value = arg.substring(mid + 1);
@@ -638,12 +638,12 @@ public class VM_CommandLineArgs {
           mf = jf.getManifest();
         } catch(Exception e) {
           VM.sysWriteln("IOE: " + e.getMessage());
-          VM.sysExit(VM.exitStatusBogusCommandLineArg); 
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG); 
         }
         String s = mf.getMainAttributes().getValue("Main-Class");
         if (s == null) {
           VM.sysWriteln("The jar file is missing the manifest entry for the main class: "+arg);
-          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         // maybe also load classes on the classpath list in the manifest
         VM_ClassLoader.setApplicationRepositories(arg);
@@ -695,7 +695,7 @@ public class VM_CommandLineArgs {
       char c = arg.charAt(i);
       if (c > 127) {
         VM.sysWriteln("vm: Invalid floating point argument ",arg);
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
       b[i] = (byte)c;
     }
@@ -715,7 +715,7 @@ public class VM_CommandLineArgs {
       char c = arg.charAt(i);
       if (c > 127) {
         VM.sysWriteln("vm: Invalid int/byte argument ",arg);
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
       b[i] = (byte)c;
     }
