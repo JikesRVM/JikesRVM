@@ -1119,7 +1119,7 @@ fi
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
 
    if (( ! BUILD_RVMRT_JAR )); then
-     print "cp $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY"
+     print "cp -f $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY"
      print "\nprint -n '(rvmrt.jar copied) \n'"
    fi
 
@@ -1201,7 +1201,7 @@ function emitCompiler
    print "rm -f $CLASSES_INVALID_STR"
    print ''
 
-# These are required to read a zip file
+   # These are required to read a zip file
    if (( !BUILD_RVMRT_JAR )); then 
      print "cd $CLASSES_DIRECTORY_STR"
 
