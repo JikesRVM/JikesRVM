@@ -18,13 +18,14 @@ import java.net.URL;
 import java.io.*;
 
 /** 
- * Implements an object that functions as a system class loader.
+ * Implements an object that functions as a bootstrap class loader.  This
+ * loads the classes that implement Jikes RVM, and loads the java.* classes.
  * This class is a Singleton pattern.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public final class VM_SystemClassLoader extends java.lang.ClassLoader {
+public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
   private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
 
@@ -36,20 +37,20 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       try {
         VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(vmClassLoader, new HashMap());
       } catch (Exception e) {
-        VM.sysWriteln("failed to setup system class loader");
+        VM.sysWriteln("failed to setup bootstrap class loader");
         VM.sysExit(-1);
       }
     }
   }
 
   // prevent other classes from constructing
-  private VM_SystemClassLoader() { super(null); }
+  private VM_BootstrapClassLoader() { super(null); }
 
   /* Interface */
-  private final static VM_SystemClassLoader vmClassLoader =
-    new VM_SystemClassLoader();
+  private final static VM_BootstrapClassLoader vmClassLoader =
+    new VM_BootstrapClassLoader();
 
-  public static VM_SystemClassLoader getVMClassLoader() { 
+  public static VM_BootstrapClassLoader getVMClassLoader() { 
     return vmClassLoader;
   }
   
@@ -106,7 +107,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   /**
-   * Search the system class loader's classpath for given class.
+   * Search the bootstrap class loader's classpath for given class.
    *
    * @param className the name of the class to load
    * @return the class object, if it was found
@@ -149,7 +150,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
   }
   
-  public String toString() { return "SystemCL"; }
+  public String toString() { return "BootstrapCL"; }
 
   private static HashMap zipFileCache;
     
