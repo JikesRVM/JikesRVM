@@ -661,34 +661,24 @@ public class VM_CommandLineArgs {
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
+	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
+	OPT_Options.printHelp("-X:opt");
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT) {
-	//-#if RVM_WITH_OPT_COMPILER
-	    OPT_Options.printHelp("-X:opt");
-	//-#else
-	  VM.sysWrite("vm: This should be unreachable.");
-	  VM.sysExit(1);
-	//-#endif
-	}
-	else {
-	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
-	  VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-	  VM.sysExit(1);
-	}
+	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
+	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
+	VM.sysExit(1);
 	//-#endif
 	break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
 	VM.sysExit(1);
+	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
+	VM_RuntimeCompiler.processCommandLineArg(arg);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT)
-	  VM_RuntimeCompiler.processCommandLineArg(arg);
-	else {
-	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
-	  VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-	  VM.sysExit(1);
-	}
+	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
+	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
+	VM.sysExit(1);
 	//-#endif
 	break;
       case PROF_ARG: // "-X:prof:arg"; pass 'arg' as an option

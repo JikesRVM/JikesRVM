@@ -77,6 +77,7 @@ public class VM_RuntimeOptCompilerInfrastructure
       VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
     }
     
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
@@ -114,9 +115,7 @@ public class VM_RuntimeOptCompilerInfrastructure
     } else {
       try {
 	compilationInProgress = true;
-	// Use a default compilation plan.
 	OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-
 	return optCompileWithFallBackInternal(method, plan);
       } finally {
 	compilationInProgress = false;
@@ -135,7 +134,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * @param plan the compilation plan to use for the compile
    */
   public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, 
-OPT_CompilationPlan plan) {
+								      OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -165,7 +164,6 @@ OPT_CompilationPlan plan) {
     } else {
       try {
 	compilationInProgress = true;
-	// Use a default compilation plan.
 	OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options, context);
 	return optCompileWithFallBackInternal(method, plan);
       } finally {

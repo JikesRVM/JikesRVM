@@ -45,15 +45,16 @@ public class VM_RuntimeCompilerInfrastructure
   implements VM_Constants, VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
-  public static final byte BASELINE_COMPILER = 0;
-  public static final byte OPT_COMPILER      = 1;
+  public static final byte JNI_COMPILER      = 0;
+  public static final byte BASELINE_COMPILER = 1;
+  public static final byte OPT_COMPILER      = 2;
 
   // Data accumulators
-  private static final String name[]         = {"Base\t","Opt\t"};   // Output names
-  private static int total_methods[]         = {0,0};                // (1)
-  private static double total_time[]         = {0.0,0.0};            // (2)
-  private static int total_bcodeLen[]        = {0,0};                // (3)
-  private static int total_mcodeLen[]        = {0,0};                // (4)
+  private static final String name[]         = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int total_methods[]         = {0,0,0};                // (1)
+  private static double total_time[]         = {0.0, 0.0,0.0};         // (2)
+  private static int total_bcodeLen[]        = {0, 0,0};               // (3)
+  private static int total_mcodeLen[]        = {0, 0,0};               // (4)
 
   /**
    * To be called when the VM is about to exit.
@@ -74,11 +75,14 @@ public class VM_RuntimeCompilerInfrastructure
   public static void record(byte compiler, VM_Method method, 
 			    VM_CompiledMethod compiledMethod) {
     
-    // KLUDGE: The baseline compiler is currently also used to compile
-    //         native methods (which don't have bytecodes).
-    // TODO: Compile stub frames for native methods directly with 
-    //       JNICompiler and record it properly here.
-    if (!method.isNative()) {
+    if (method.isNative()) {
+      total_methods[compiler]++;
+      total_bcodeLen[compiler] += 1; // lie!
+      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+      if (VM.MeasureCompilation) {
+	total_time[compiler] += compiledMethod.getCompilationTime();
+      }
+    } else {
       total_methods[compiler]++;
       total_bcodeLen[compiler] += method.getBytecodes().length;
       total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
@@ -95,7 +99,7 @@ public class VM_RuntimeCompilerInfrastructure
   public static void report (boolean explain) { 
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
-    for (int i=BASELINE_COMPILER; i<=OPT_COMPILER; i++) {
+    for (int i=JNI_COMPILER; i<=OPT_COMPILER; i++) {
       if (total_methods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods
@@ -178,6 +182,7 @@ public class VM_RuntimeCompilerInfrastructure
    * @param method the method to compile
    */
   public static VM_CompiledMethod baselineCompile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
@@ -192,6 +197,31 @@ public class VM_RuntimeCompilerInfrastructure
       double compileTime = (end - start) * 1000; // convert to milliseconds
       cm.setCompilationTime(compileTime);
       record(BASELINE_COMPILER, method, cm);
+    }
+    
+    return cm;
+  }
+
+  /**
+   * This method will compile the passed method using the baseline compiler.
+   * @param method the method to compile
+   */
+  public static VM_CompiledMethod jniCompile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+    double start = 0;
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      start = updateStartAndTotalTimes(now);
+    }
+
+    VM_CompiledMethod cm = VM_JNICompiler.compile(method);
+
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      double end = updateStartAndTotalTimes(now);
+      double compileTime = (end - start) * 1000; // convert to milliseconds
+      cm.setCompilationTime(compileTime);
+      record(JNI_COMPILER, method, cm);
     }
     
     return cm;

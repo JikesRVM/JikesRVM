@@ -178,21 +178,14 @@ public abstract class VM_BaselineCompiler {
    * @return the generated VM_CompiledMethod for said VM_Method.
    */
   public static synchronized VM_CompiledMethod compile (VM_Method method) {
-    if (method.isNative()) {
-      VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
-      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(cm);
-      cm.compileComplete(machineCode.getInstructions());
-      return cm;
+    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
+    if (VM.runningAsJDPRemoteInterpreter) {
+      // "fake" compilation
+      cm.compileComplete(null);
     } else {
-      VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
-      if (VM.runningAsJDPRemoteInterpreter) {
-	// "fake" compilation
-	cm.compileComplete(null);
-      } else {
-	new VM_Compiler(cm).compile();
-      }
-      return cm;
+      new VM_Compiler(cm).compile();
     }
+    return cm;
   }
 
 

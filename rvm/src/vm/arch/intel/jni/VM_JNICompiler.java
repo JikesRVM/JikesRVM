@@ -39,10 +39,9 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    * Handle the Java to C transition:  native methods
    *
    */
-
-  static VM_MachineCode generateGlueCodeForNative (VM_CompiledMethod cm) {
+  public static synchronized VM_CompiledMethod compile (VM_Method method) {
+    VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
-    VM_Method method     = cm.getMethod();
     VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
     int nativeIP         = method.getNativeIP();
     // recompute some constants
@@ -174,9 +173,9 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     else
       asm.emitRET_Imm((parameterWords+1) << LG_WORDSIZE); 
 
-    // return asm.makeMachineCode();
-    return new VM_MachineCode(asm.getMachineCodes(), null);
-
+    VM_MachineCode machineCode = new VM_MachineCode(asm.getMachineCodes(), null);
+    cm.compileComplete(machineCode.getInstructions());
+    return cm;
   }
 
   /**************************************************************

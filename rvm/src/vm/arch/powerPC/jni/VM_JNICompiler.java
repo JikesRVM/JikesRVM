@@ -92,9 +92,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   |       	  |
    * </pre>
    */
-  static VM_MachineCode generateGlueCodeForNative (VM_CompiledMethod cm) {
+  public static synchronized VM_CompiledMethod compile (VM_Method method) {
+    VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
-    VM_Method method     = cm.getMethod();
     VM_Assembler asm	= new VM_Assembler(0);
     int frameSize	= VM_Compiler.getFrameSize(method);
     VM_Class klass	= method.getDeclaringClass();
@@ -308,7 +308,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     asm.emitBCTR();                            // then branch to the exception delivery code, does not return
 
-    return asm.makeMachineCode();
+    VM_MachineCode machineCode = asm.makeMachineCode();
+    cm.compileComplete(machineCode.getInstructions());
+    return cm;
   } 
 
 

@@ -452,14 +452,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
       //
       if (VM.writingBootImage)
         cm = VM_BootImageCompiler.compile(this); // use compiler specified by RVM_BOOT_IMAGE_COMPILER_PATH
-      else if (VM.runningVM)
+      else 
         cm = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
-      else
-        cm = VM_BaselineCompiler.compile(this);  // use baseline compiler (assumption: we're producing information for debugger)
     }
 
     // Ensure that cm wasn't invalidated while it was being compiled.
-    
     synchronized(cm) {
       if (cm.isInvalid()) {
 	VM_CompiledMethods.setCompiledMethodObsolete(cm);

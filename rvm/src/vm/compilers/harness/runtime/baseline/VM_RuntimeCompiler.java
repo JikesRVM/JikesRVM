@@ -13,8 +13,6 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
-  public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
-
   static void boot() {
     if (VM.MeasureCompilation) {
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
@@ -26,8 +24,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   }
 
   static VM_CompiledMethod compile(VM_Method method) {
-    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    return baselineCompile(method);
+    return method.isNative() ? jniCompile(method) : baselineCompile(method);
   }
   
   static void detailedCompilationReport(boolean explain) {

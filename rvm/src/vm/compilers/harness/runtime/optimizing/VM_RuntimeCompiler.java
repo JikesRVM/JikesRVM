@@ -16,19 +16,13 @@ import java.util.*;
  */
 public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
-  public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
-
   public static void boot() {
-    // This is needed before any OPT compilation can occur
     VM.sysWrite("VM_RuntimeCompiler: boot (opt compiler)\n");
     try {
       VM_RuntimeOptCompilerInfrastructure.boot(); 
-
-      // boot() has set compilerEnabled to true
       Iterator i = earlyArgs.iterator();
       while (i.hasNext()) processCommandLineArg( (String) i.next() );
-    }
-    catch (OPT_OptimizingCompilerException e) {
+    } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_RuntimeCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
@@ -36,8 +30,6 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
       } else {
 	VM.sysWrite(msg);
       }
-      // at this point compilerEnabled flag will remain false, 
-      // so we'll use the baseline compiler for all methods
     }
   }
 
@@ -64,20 +56,20 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   // tries to compile the passed method with the OPT_Compiler.
   // if this fails we use the fallback compiler (baseline for now)
   static VM_CompiledMethod compile(VM_Method method) {
-    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
+    if (method.isNative()) {
+      return jniCompile(method);
+    } 
+
     if (!compilerEnabled                          // opt compiler isn't initialized yet
 	|| !VM_Scheduler.allProcessorsInitialized // gc system isn't fully up: reduce memory load
 	|| method.isClassInitializer()            // will only run once: don't bother optimizing
 	|| VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse // exception in progress. can't use opt compiler: it uses exceptions and runtime doesn't support multiple pending (undelivered) exceptions [--DL]
-	|| method.isNative()                      // opt compiler doesn't support compiling the JNI stub needed to invoke native methods
 	) {
-    // VM.sysWrite("VM_RuntimeCompiler: no opt compile for " + method + "\n");
-       return fallback(method);
-    }
-    else {
-      if ( !preloadChecked ) {
+      return fallback(method);
+    } else {
+      if (!preloadChecked) {
 	preloadChecked = true;			// prevent subsequent calls
-	if ( options.PRELOAD_CLASS != null ) {
+	if (options.PRELOAD_CLASS != null) {
 	  compilationInProgress = true;		// use baseline during preload
           OPT_Compiler.preloadSpecialClass( options );
 	  compilationInProgress = false;

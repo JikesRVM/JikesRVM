@@ -66,18 +66,20 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   // This will be called by the classLoader when we need to compile a method
   // for the first time.
   public static VM_CompiledMethod compile(VM_Method method) {
+    if (method.isNative()) {
+      return jniCompile(method);
+    } 
+    
     VM_CompiledMethod cm;
-
     if (!VM_Controller.enabled) {
-      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
       // System still early in boot process; compile with baseline compiler
       cm = baselineCompile(method);
       VM_ControllerMemory.incrementNumBase();
     } else {
-      if ( !preloadChecked ) {
+      if (!preloadChecked) {
 	preloadChecked = true;			// prevent subsequent calls
 	// N.B. This will use irc options
-	if ( VM_BaselineCompiler.options.PRELOAD_CLASS != null ) {
+	if (VM_BaselineCompiler.options.PRELOAD_CLASS != null) {
 	  compilationInProgress = true;		// use baseline during preload
 	  // Other than when boot options are requested (processed during preloadSpecialClass
 	  // It is hard to communicate options for these special compilations. Use the 
@@ -87,9 +89,10 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
 	  if (VM_BaselineCompiler.options.PRINT_METHOD) {
 	    tmpoptions.PRINT_METHOD = true;
-	  } else 
+	  } else {
 	    tmpoptions = options;
-          OPT_Compiler.preloadSpecialClass( tmpoptions );
+	  }
+          OPT_Compiler.preloadSpecialClass(tmpoptions);
 	  compilationInProgress = false;
 	}
       }
@@ -99,16 +102,11 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	    // exception in progress. can't use opt compiler: 
             // it uses exceptions and runtime doesn't support 
             // multiple pending (undelivered) exceptions [--DL]
-	    VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse ||
-	    // opt compiler doesn't support compiling the JNI 
-            // stub needed to invoke native methods
-	    method.isNative()) {
-          VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+	    VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse) {
 	  // compile with baseline compiler
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
 	} else { // compile with opt compiler
-          VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
 	  // Initialize an instrumentation plan.
 	  VM_AOSInstrumentationPlan instrumentationPlan = 
 	    new VM_AOSInstrumentationPlan(VM_Controller.options,
@@ -127,10 +125,9 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  cm = optCompileWithFallBack(method, compPlan);
 	}
       } else {
-          VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
-	  // compile with baseline compiler
-	  cm = baselineCompile(method);
-          VM_ControllerMemory.incrementNumBase();
+	// compile with baseline compiler
+	cm = baselineCompile(method);
+	VM_ControllerMemory.incrementNumBase();
       }
     }
     return cm;
