@@ -24,7 +24,7 @@
  *
  * @author Derek Lieber
  */
-class VM_OutOfLineMachineCode implements VM_BaselineConstants {
+class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConstants {
   //-----------//
   // interface //
   //-----------//
@@ -73,7 +73,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     //
     // free registers: 0, S0
     //
- 
     asm.emitMFLR(0);                                         // save...
     asm.emitST  (0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // ...return address
       
@@ -88,12 +87,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitCAL  (S0,  0, FP);                  // S0 := old frame pointer
     asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
     asm.emitCAL  (T3, -4, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
-    spillLoop:
+    int spillLoopLabel = asm.getMachineCodeIndex();
     asm.emitAIr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
-    asm.emitBLT  (4);                           // if T0 < 0 then break
+    VM_ForwardReference fr1 = asm.emitForwardBC(LT); // if T0 < 0 then break
     asm.emitLU   (0,   4, T3);                  // R0 := *(T3 += 4)
     asm.emitSTU  (0,  -4, FP);                  // put one word of spill area
-    asm.emitB    (-4);                          // goto spillLoop:
+    asm.emitB    (spillLoopLabel, -1 /*BOGUS -1*/); // goto spillLoop:
+    fr1.resolve(asm);
       
     asm.emitSTU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
     asm.emitLVAL (T0, INVISIBLE_METHOD_ID);
@@ -105,7 +105,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       
     // load up fprs
     //
-    asm.emitBL(VOLATILE_FPRS + 1 + VOLATILE_GPRS + 6); // goto setupFPRLoader:
+    VM_ForwardReference setupFPRLoader = asm.emitForwardBL();
 
     FPRLoader:
     for (int i = LAST_VOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
@@ -117,7 +117,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       
     // load up gprs
     //
-    asm.emitBL(VOLATILE_GPRS + 14);             // goto setupGPRLoader:
+    VM_ForwardReference setupGPRLoader = asm.emitForwardBL();
 
     GPRLoader:
     for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
@@ -138,7 +138,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMTLR (S0);                                            //
     asm.emitBLR();                                                // return to caller
 
-    setupFPRLoader:
+    setupFPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
     asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
     asm.emitCAL  (T3, VOLATILE_FPRS<<2,    T3); // T3 := address of first instruction following fpr loads
@@ -148,7 +148,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitCAL  (T2, -8, T2);                  // predecrement fpr index (to prepare for update instruction)
     asm.emitBLR  ();                            // branch to fpr loading instructions
 
-    setupGPRLoader:
+    setupGPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
     asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
     asm.emitCAL  (T3, VOLATILE_GPRS<<2,    T3); // T3 := address of first instruction following gpr loads
@@ -371,22 +371,20 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitSTFD  (F3, scratchNanosecondsOffset, T3);       // scratch_nanos   := IEEEmagic
     asm.emitSTFD  (F3, scratchSecondsOffset,     T3);       // scratch_seconds := IEEEmagic
 
-  loop:
-    //-#if RVM_FOR_PPCLINUX
-    asm.emitMFTBU (T0);                                     // t0 := real time clock, upper
-    asm.emitMFTB  (T1);                                     // t1 := real time clock, lower
-    asm.emitMFTBU (T2);                                     // t2 := real time clock, upper
-    //-#else
-    asm.emitMFSPR (T0, 4 );                                 // t0 := real time clock, upper
-    asm.emitMFSPR (T1, 5 );                                 // t1 := real time clock, lower
-    asm.emitMFSPR (T2, 4 );                                 // t2 := real time clock, upper
-    //-#endif
+    int loopLabel = asm.getMachineCodeIndex();
+    if (VM.BuildForLinux) {
+      asm.emitMFTBU (T0);                                     // t0 := real time clock, upper
+      asm.emitMFTB  (T1);                                     // t1 := real time clock, lower
+      asm.emitMFTBU (T2);                                     // t2 := real time clock, upper
+    } else {
+      asm.emitMFSPR (T0, 4 );                                 // t0 := real time clock, upper
+      asm.emitMFSPR (T1, 5 );                                 // t1 := real time clock, lower
+      asm.emitMFSPR (T2, 4 );                                 // t2 := real time clock, upper
+    }
     asm.emitCMP   (T0, T2);                                 // t0 == t2?
-
     asm.emitST    (T1, scratchNanosecondsOffset + 4, T3);   // scratch_nanos_lo   := nanos
     asm.emitST    (T0, scratchSecondsOffset     + 4, T3);   // scratch_seconds_lo := seconds
-
-    asm.emitBNE   (-6);                                     // seconds have rolled over, try again
+    asm.emitBC    (NE, loopLabel);                          // seconds have rolled over, try again
 
     asm.emitLFD   (F0, scratchNanosecondsOffset, T3);       // f0 := IEEEmagic + nanos
     asm.emitLFD   (F1, scratchSecondsOffset,     T3);       // f1 := IEEEmagic + seconds
@@ -460,8 +458,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitL     (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
     asm.emitL     (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
     asm.emitLWARX (S0, 0, T3);                                            // get status for processor
-    asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);                   // are we blocked in native code
-    asm.emitBNE   (+7);                                                   // br if not blocked
+    asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);                   // are we blocked in native code?
+    VM_ForwardReference fr = asm.emitForwardBC(NE);
     //
     // if blocked in native, call C routine to do pthread_yield
     //
@@ -470,18 +468,19 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBLRL  ();                                          // call sysVirtualProcessorYield in sys.C
-    asm.emitB     ( label1 - asm.getMachineCodeIndex() ); // retest the blocked in native
+    asm.emitB     (label1, -1 /* BOGUS -1 */); // retest the blocked in native
     //
     //  br to here -not blocked in native
     //
+    fr.resolve(asm);
     asm.emitCAL   (S0,  VM_Processor.IN_JAVA, 0 );           // S0  <- new state value
     asm.emitSTWCXr(S0,  0, T3);                              // attempt to change state to java
-    asm.emitBNE   ( label1 - asm.getMachineCodeIndex() ); // br if failure -retry lwarx
+    asm.emitBC    (NE, label1);                              // br if failure -retry lwarx
     //
     // return to caller
     //
-    asm.emitL     (T3, 0 , FP);                             // get previous frame
-    asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3);   // get return address from stack frame
+    asm.emitL     (T3, 0 , FP);                                // get previous frame
+    asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
     asm.emitMTLR  (S0);
     asm.emitBLR   ();
     //
