@@ -318,9 +318,8 @@ Example usage:
 \begin{verbatim}
 rvm -X:aos:enable_recompilation=false
     -X:aos:initial_compiler=opt
-    -X:aos:insert_instruction_counters_opt=true
-    -X:opt:insert_instruction_counters_opt=true
-    -X:aos:irc:instrumentation_sampling=true
+    -X:aos:insert_instruction_counters=true
+    -X:opt:instrumentation_sampling=true
     -X:aos:counter_based_sample_interval=10 MyProgram
 \end{verbatim}
 
