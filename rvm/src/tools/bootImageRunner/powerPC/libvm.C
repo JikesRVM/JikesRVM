@@ -364,6 +364,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
      fprintf(SysTraceFile,"             fp=0x%08lx\n", save->gpr[FP]);
      fprintf(SysTraceFile,"            tid=0x%08lx\n", save->gpr[TID]);
      fprintf(SysTraceFile,"             pr=0x%08lx\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
+#if RVM_FOR_LINUX
+     fprintf(SysTraceFile,"             lr=0x%08lx\n", save->link);
+#endif
+#if RVM_FOR_AIX
+     fprintf(SysTraceFile,"             lr=0x%08lx\n", save->lr);
+#endif
      fprintf(SysTraceFile,"    exn_handler=0x%08lx\n", javaExceptionHandler);
      fprintf(SysTraceFile,"   pthread_self=0x%08lx\n", pthread_self());
      fprintf(SysTraceFile,"          instr=0x%08lx\n", *(unsigned *)ip);
@@ -449,6 +455,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 
    int      trapCode    = VM_Runtime_TRAP_UNKNOWN;
    int      trapInfo    = 0;
+   int      haveFrame   = 1;
 
    switch (signum) {
       case SIGSEGV:
@@ -503,7 +510,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  // We haven't actually bought the stackframe yet, so pretend that
 	  // we are actually trapping directly from the call instruction that invoked the 
 	  // native method that caused the stackoverflow trap.
-	  *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
+	  haveFrame = 0;
 	  break;
 	} else if ((instruction & VM_Constants_WRITE_BUFFER_OVERFLOW_MASK) == VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
 	  //!!TODO: someday use logic similar to stack guard page to force a gc
@@ -514,12 +521,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 		   ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP)) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: stack overflow trap\n");
 	  trapCode = VM_Runtime_TRAP_STACK_OVERFLOW;
-	  if ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) {
-	    // We haven't actually bought the stackframe yet, so pretend that
-	    // we are actually trapping directly from the call instruction that invoked the 
-	    // method whose prologue caused the stackoverflow trap.
-	    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
-	  }
+	  haveFrame = ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP);
 
 	  // adjust stack limit downward to give exception handler some space in which to run
 	  //
@@ -568,21 +570,33 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    save->gpr[P0] = trapCode;
    save->gpr[P1] = trapInfo;
 
-   // set link register to make it look like java exception handler was called from exception site
-   //
+   if (haveFrame) {
+     // set link register to make it look like java exception handler
+     // was called from exception site
 #ifdef RVM_FOR_LINUX
-   if (save->nip == 0)
-      ; // bad branch - use contents of link register as best guess of call site
-   else
-      save->link = save->nip + 4; // +4 so it looks like a return address
+     if (save->nip == 0)
+       ; // bad branch - use contents of link register as best guess of call site
+     else
+       save->link = save->nip + 4; // +4 so it looks like a return address
 #endif
 #ifdef RVM_FOR_AIX
-   if (save->iar == 0)
-     ; // bad branch - use contents of link register as best guess of call site
-   else
-     save->lr = save->iar + 4; // +4 so it looks like a return address
+     if (save->iar == 0)
+       ; // bad branch - use contents of link register as best guess of call site
+     else
+       save->lr = save->iar + 4; // +4 so it looks like a return address
 #endif
-   
+   } else {
+     // We haven't actually bought the stackframe yet, so pretend that
+     // we are actually trapping directly from the call instruction that 
+     // invoked the method whose prologue caused the stackoverflow.
+#if RVM_FOR_LINUX
+     *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->link;
+#endif
+#if RVM_FOR_AIX
+     *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
+#endif
+   }   
+
    // resume execution at java exception handler
    //
 #ifdef RVM_FOR_LINUX
