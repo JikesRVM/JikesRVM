@@ -77,47 +77,48 @@ print out additional information while VM is booting, using verbosity
 level \Mmeta{number}.
 
 \item[{\tt -Xms\Mmeta{number}\Mmeta{unit}}]
-set the initial heap size to \Mmeta{number}\Mmeta{unit}\footnotemark bytes
+set the initial heap size to \Mmeta{number}\Mmeta{unit}%
+  \footnote{A \Mmeta{unit} of memory size may be specified by any
+      one of the following: 
+      \begin{description}
+      %% Uncomment these lines later.  I'm about to commit the code.
+      % \item[\texttt{E}] Exabytes (Exbibytes)
+      % \item[\texttt{P}] Petabytes (Pebibytes)
+      \item[\texttt{T}] Terabytes (Tebibytes)
+      \item[\texttt{G}] Gigabytes (Gibibytes)
+      \item[\texttt{M}] Megabytes (Mebibytes)
+      \item[\texttt{pages}] Virtual memory pages of 4096 bytes
+      \item[\texttt{K}] Kilobytes (Kibibytes)
+      \item[\texttt{B}] Bytes
+      \end{description}
+
+      Historically, omitting the \Mmeta{unit} would cause the \texttt{-Xms}
+      and \texttt{-Xmx} options to assume units of megabytes.  As of this
+      writing (December 18, 2004), this may well change in the very near
+      future so that the absence of a unit means bytes, for compatibility
+      with the Sun and IBM JDKs and for consistency with the MMTk
+      (\texttt{-X:gc:}) options.  So, please always specify a unit.
+
+      As of October, 2004, parts of MMTk were still internally using a
+      32-bit integer to represent memory sizes, which means that even on a
+      64-bit platform you couldn't actually specify a five-gigabyte heap size,
+      yet.  This would be pretty easy to fix, and will be fixed as soon as
+      somebody wants to do it.
+
+      The \Mmeta{number} part of a memory size is not restricted to being an
+      integer.  You can use extended-precision floating point values and
+      hexadecimal values.  So, all three of the following arguments are
+      equivalent:
+      \texttt{-Xms0.5G} , \texttt{-Xms0x20000000B} , and \texttt{-Xms512M} .
+
+      This argument syntax can be used with all of the memory size
+      arguments that the GC subsystem has as well.
+  } %
+bytes
 
 \item[{\tt -Xmx\Mmeta{number}\Mmeta{unit}}]
 set the maximum heap size to \Mmeta{number}\Mmeta{unit} bytes
 
-\footnotetext{A \Mmeta{unit} of memory size may be specified by any
-one of the following: 
-\begin{description}
-%% Uncomment these lines later.  I'm about to commit the code.
-% \item[\texttt{E}] Exabytes (Exbibytes)
-% \item[\texttt{P}] Petabytes (Pebibytes)
-\item[\texttt{T}] Terabytes (Tebibytes)
-\item[\texttt{G}] Gigabytes (Gibibytes)
-\item[\texttt{M}] Megabytes (Mebibytes)
-\item[\texttt{pages}] Virtual memory pages of 4096 bytes
-\item[\texttt{K}] Kilobytes (Kibibytes)
-\item[\texttt{B}] Bytes
-\end{description}
-
-Historically, omitting the \Mmeta{unit} would cause the \texttt{-Xms}
-and \texttt{-Xmx} options to assume units of megabytes.  As of this
-writing (December 18, 2004), this may well change in the very near
-future so that the absence of a unit means bytes, for compatibility
-with the Sun and IBM JDKs and for consistency with the MMTk
-(\texttt{-X:gc:}) options.  So, please always specify a unit.
-
-As of October, 2004, parts of MMTk were still internally using a
-32-bit integer to represent memory sizes, which means that even on a
-64-bit platform you couldn't actually specify a five-gigabyte heap size,
-yet.  This would be pretty easy to fix, and will be fixed as soon as
-somebody wants to do it.
-
-The \Mmeta{number} part of a memory size is not restricted to being an
-integer.  You can use extended-precision floating point values and
-hexadecimal values.  So, all three of the following arguments are
-equivalent:
-\texttt{-Xms0.5G} , \texttt{-Xms0x20000000B} , and \texttt{-Xms512M} .
-
-This argument syntax can be used with all of the memory size
-arguments that the GC subsystem has as well.
-}
 
 \item[{\tt -X:sysLogfile=\Mmeta{filename}}]
 redirects messages that would go to standard error to \Mmeta{filename} instead.
