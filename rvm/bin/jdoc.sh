@@ -64,7 +64,6 @@ for f in `$FIND . -name \*.java`; do
   if [ -e `dirname $f`/`basename $f java`class ]; then
     # strip INSTRUCTION typedef (someday, maybe we'll write in Java :)
     $SED s/\\\<INSTRUCTION\\\>/$INSTRUCTION_TYPE/g $f > $f.tmp
-    $SED s/\\\<EXTENT\\\>/$ADDRESS_TYPE/g $f.tmp > $f
   else
     rm $f
   fi
