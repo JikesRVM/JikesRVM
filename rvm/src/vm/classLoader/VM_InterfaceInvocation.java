@@ -172,7 +172,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
   public static void initializeDispatchStructures(VM_Class klass) {
     // if klass is abstract, we'll never use the dispatching structures.
     if (klass.isAbstract()) return; 
-    VM_Class[] interfaces = collectInterfaces(klass);
+    VM_Class[] interfaces = klass.getAllImplementedInterfaces();
     if (interfaces.length != 0) {
       if (VM.BuildForIMTInterfaceInvocation) {
 	IMTDict d = buildIMTDict(klass, interfaces);
@@ -185,35 +185,6 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 	populateITables(klass, interfaces);
       }
     }
-  }
-  
-  /**
-   * Build up the list of interfaces that a class implements.
-   * 
-   * @param klass the VM_Class to find the interfaces for.
-   */
-  private static VM_Class[] collectInterfaces(VM_Class klass) {
-    int count = 0;
-    int [] doesImplement = klass.getDoesImplement();
-    for (int i=0; i<doesImplement.length; i++) {
-      for (int mask = doesImplement[i]; mask != 0; mask = mask >>> 1) {
-	if ((mask & 0x1) != 0) count++;
-      }
-    }
-    VM_Class[] ans = new VM_Class[count];
-    for (int i =0, idx = 0; i<doesImplement.length; i++) {
-      int mask = doesImplement[i];
-      if (mask != 0) {
-	for (int j=0; j<32; j++) {
-	  if ((mask & (1<<j)) != 0) {
-	    int id = 32 * i + j;
-	    ans[idx++] = VM_Class.getInterface(id);
-	  }
-	}
-      }
-    }
-    
-    return ans;
   }
   
   /**

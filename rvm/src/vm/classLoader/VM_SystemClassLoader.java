@@ -34,7 +34,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     // the following idiot reflection hack is because the field is final :(
     if (VM.runningVM) {
       try {
-	VM_Entrypoints.classLoaderDefinedPackages.setObjectValue(vmClassLoader, new HashMap());
+	VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(vmClassLoader, new HashMap());
       } catch (Exception e) {
 	VM.sysWriteln("failed to setup system class loader");
 	VM.sysExit(-1);

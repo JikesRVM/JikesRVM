@@ -382,10 +382,10 @@ public class VM_Runtime implements VM_Constants {
 	VM_Field f = instanceFields[i];
 	VM_TypeReference ft = f.getType();
 	if (ft.isReferenceType()) {
-	  // Do via slower "pure" reflection to enable
+	  // Do via slower "VM-internal reflection" to enable
 	  // collectors to do the right thing wrt reference counting
 	  // and write barriers.
-	  f.setObjectValue(newObj, f.getObjectValue(obj));
+	  f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
 	} else if (ft.isLongType() || ft.isDoubleType()) {
 	  int offset = f.getOffset();
 	  long bits = VM_Magic.getLongAtOffset(obj, offset);

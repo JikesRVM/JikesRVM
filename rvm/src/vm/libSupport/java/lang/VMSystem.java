@@ -63,7 +63,7 @@ final class VMSystem {
 			   VM_Atom.findOrCreateUnicodeAtom("in"), 
 			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
 
-      inField.setObjectValue(null, in);
+      inField.setObjectValueUnchecked(null, in);
     } catch (Exception e) {
       throw new Error( e.toString() );
     }
@@ -77,7 +77,7 @@ final class VMSystem {
 			   VM_Atom.findOrCreateUnicodeAtom("out"), 
 			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
-      outField.setObjectValue(null, out);
+      outField.setObjectValueUnchecked(null, out);
     } catch (Exception e) {
       throw new Error( e.toString() );
     }
@@ -91,7 +91,7 @@ final class VMSystem {
 			   VM_Atom.findOrCreateUnicodeAtom("err"), 
 			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
-      errField.setObjectValue(null, err);
+      errField.setObjectValueUnchecked(null, err);
     } catch (Exception e) {
       throw new Error( e.toString() );
     }

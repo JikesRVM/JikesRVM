@@ -15,8 +15,6 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public class OPT_InterfaceHierarchy {
 
-  private static boolean ENABLED = true;
-
   /**
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
@@ -29,18 +27,11 @@ public class OPT_InterfaceHierarchy {
    * implementors.
    */
   public static void notifyClassInitialized(VM_Class c) {
-    if (!ENABLED) return;
-
-    VM_Class klass = c;
-    if (klass.isInterface()) return;
-
-    while (klass != null) {
-      VM_Class[] declaredInterfaces = klass.getDeclaredInterfaces();
-      for (int i=0; i<declaredInterfaces.length; i++) {
-        VM_Class I = declaredInterfaces[i];
-        noteImplements(klass,I);
+    if (!c.isInterface()) {
+      VM_Class[] interfaces = c.getAllImplementedInterfaces();
+      for (int i=0; i<interfaces.length; i++) {
+	noteImplements(c, interfaces[i]);
       }
-      klass = klass.getSuperClass();
     }
   }
 
@@ -90,6 +81,7 @@ public class OPT_InterfaceHierarchy {
 
     return result;
   }
+
   /**
    * Return the set of all classes known to extend C
    */

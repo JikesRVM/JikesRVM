@@ -238,23 +238,23 @@ public class VM_Statics implements VM_Constants {
     //
 //-#if RVM_FOR_64_ADDR
     if ((description & WIDE_TAG) == 0 && slotAvailableDueToAlignment != 0) {
-			slot = slotAvailableDueToAlignment;
-			slotAvailableDueToAlignment = 0;
-	 } else 
+      slot = slotAvailableDueToAlignment;
+      slotAvailableDueToAlignment = 0;
+    } else 
 //-#endif
-    if ((description & WIDE_TAG) != 0) {
+      if ((description & WIDE_TAG) != 0) {
       	nextSlot += 2;
-    } else {
+      } else {
 //-#if RVM_FOR_64_ADDR
-			slotAvailableDueToAlignment = nextSlot + 1;
-	 		descriptions[slotAvailableDueToAlignment] = EMPTY;
-			nextSlot += 2;
+      slotAvailableDueToAlignment = nextSlot + 1;
+      descriptions[slotAvailableDueToAlignment] = EMPTY;
+      nextSlot += 2;
 //-#else				
-     		nextSlot += 1;
+      nextSlot += 1;
 //-#endif
-    }
+      }
 	 
-	 descriptions[slot] = description;
+    descriptions[slot] = description;
     if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return slot;
   }

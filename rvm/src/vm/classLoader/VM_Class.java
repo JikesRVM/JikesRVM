@@ -461,6 +461,38 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
+   * @return All of the interfaces implemented by this class either
+   * directly or by inheritance from superclass and superinterfaces
+   * recursively.
+   */
+  public final VM_Class[] getAllImplementedInterfaces() {
+    if (VM.VerifyAssertions) VM._assert(isResolved());
+    int count = 0;
+    int [] doesImplement = getDoesImplement();
+    for (int i=0; i<doesImplement.length; i++) {
+      int mask = doesImplement[i];
+      while (mask != 0) {
+	count++;
+	mask &= (mask-1); // clear lsb 1 bit
+      }
+    }
+    if (count == 0) return emptyVMClass;
+    VM_Class[] ans = new VM_Class[count];
+    for (int i =0, idx = 0; i<doesImplement.length; i++) {
+      int mask = doesImplement[i];
+      if (mask != 0) {
+	for (int j=0; j<32; j++) {
+	  if ((mask & (1<<j)) != 0) {
+	    int id = 32 * i + j;
+	    ans[idx++] = VM_Class.getInterface(id);
+	  }
+	}
+      }
+    }
+    return ans;
+  }
+
+  /**
    * Total size, in bytes, of an instance of this class 
    * (including object header).
    */
@@ -496,7 +528,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * returns zero if none.
    */
   public final int getAlignOffset() {
-	  return alignOffset;
+    return alignOffset;
   }
 
   /**
@@ -504,7 +536,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * This means that the hole is used from now on, so there ain't one left.
    */
   public final void resetAlignOffset() {
-	  alignOffset = 0;
+    alignOffset = 0;
   }
 
   /**
@@ -514,7 +546,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public final void increaseInstanceSizeAndSetAlignOffset(int numBytes) throws VM_PragmaUninterruptible {
     instanceSize += numBytes;
-	 alignOffset = VM_JavaHeader.objectEndOffset(this);
+    alignOffset = VM_JavaHeader.objectEndOffset(this);
   }
 //-#endif
 
@@ -1039,9 +1071,33 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // If this is an abstract class, then for each
       // interface that this class implements, ensure that a corresponding virtual
       // method is declared.  If one is not, then create an abstract method to fill the void.
-      if (!isInterface() && isAbstract() && declaredInterfaces.length > 0) {
+      if (!isInterface() && isAbstract()) {
 	for (int i=0; i<declaredInterfaces.length; i++) {
-	  insertMirandaMethods(declaredInterfaces[i], virtualMethods);
+	  VM_Class I = declaredInterfaces[i];
+	  VM_Method[] iMeths = I.getVirtualMethods();
+	  outer: 
+	  for (int j=0; j<iMeths.length; j++) {
+	    VM_Method iMeth = iMeths[j];
+	    VM_Atom iName = iMeth.getName();
+	    VM_Atom iDesc = iMeth.getDescriptor();
+	    for (int k=0; k<virtualMethods.size(); k++) {
+	      VM_Method vMeth = virtualMethods.elementAt(k);
+	      if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
+	    }
+	    VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
+	    virtualMethods.addElement(new VM_AbstractMethod(this, mRef, ACC_ABSTRACT | ACC_PUBLIC, 
+							    iMeth.getExceptionTypes()));
+	  }
+	}
+      }
+
+      // If this is an interface, inherit methods from its superinterfaces
+      if (isInterface()) {
+	for (int i=0; i<declaredInterfaces.length; i++) {
+	  VM_Method[] meths = declaredInterfaces[i].getVirtualMethods();
+	  for (int j=0; j<meths.length; j++) {
+	    virtualMethods.addUniqueElement(meths[j]);
+	  }
 	}
       }
       
@@ -1162,28 +1218,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   resolve " + this);
   }
-
-  private void insertMirandaMethods(VM_Class I, VM_MethodVector virtualMethods) {
-    VM_Method[] iMeths = I.getVirtualMethods();
-  outer:
-    for (int i=0; i<iMeths.length; i++) {
-      VM_Method iMeth = iMeths[i];
-      VM_Atom iName = iMeth.getName();
-      VM_Atom iDesc = iMeth.getDescriptor();
-      for (int j=0; j<virtualMethods.size(); j++) {
-	VM_Method vMeth = virtualMethods.elementAt(j);
-	if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
-      }
-      VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
-      virtualMethods.addElement(new VM_AbstractMethod(this, mRef, ACC_ABSTRACT | ACC_PUBLIC, 
-						      iMeth.getExceptionTypes()));
-    }
-    VM_Class[] parents = I.getDeclaredInterfaces();
-    for (int i=0; i<parents.length; i++) {
-      insertMirandaMethods(parents[i], virtualMethods);
-    }
-  }
-
 
   // RCGC: A reference to class is acyclic if the class is acyclic and
   // final (otherwise the reference could be to a subsequently loaded

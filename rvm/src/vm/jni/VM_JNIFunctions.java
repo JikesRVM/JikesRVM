@@ -2248,7 +2248,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        Object objVal = field.getObject(obj);
+        Object objVal = field.getObjectUnchecked(obj);
         return env.pushJNIRef(objVal);
       } else {
         return 0;
@@ -2277,7 +2277,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field==null) return 0;
-      return field.getBooleanValue(obj) ? 1 : 0;
+      return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2301,7 +2301,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getByteValue(obj);
+      return field == null ? 0 : field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2325,7 +2325,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getCharValue(obj);
+      return field == null ? 0 : field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2349,7 +2349,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getShortValue(obj);
+      return field == null ? 0 : field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2373,7 +2373,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getIntValue(obj);
+      return field == null ? 0 : field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2398,7 +2398,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getLongValue(obj);
+      return field == null ? 0 : field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2423,7 +2423,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0f : field.getFloatValue(obj);
+      return field == null ? 0f : field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2448,7 +2448,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getDoubleValue(obj);
+      return field == null ? 0 : field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2474,7 +2474,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object value =  env.getJNIRef(valueJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setObjectValue(obj,value);
+        field.setObjectValueUnchecked(obj,value);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2500,7 +2500,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setBooleanValue(obj,value);    
+        field.setBooleanValueUnchecked(obj,value);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2525,7 +2525,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setByteValue(obj,value);    
+        field.setByteValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2550,7 +2550,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setCharValue(obj,value);    
+        field.setCharValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2576,7 +2576,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setShortValue(obj,value);    
+        field.setShortValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2601,7 +2601,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setIntValue(obj,value);    
+        field.setIntValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2626,7 +2626,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setLongValue(obj,value);
+        field.setLongValueUnchecked(obj,value);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2651,7 +2651,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setFloatValue(obj,value);    
+        field.setFloatValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2677,7 +2677,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       Object obj =  env.getJNIRef(objJREF);
       VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
       if (field != null) {
-        field.setDoubleValue(obj,value);    
+        field.setDoubleValueUnchecked(obj,value);    
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
