@@ -350,6 +350,9 @@ integer BUILD_RVMRT_JAR=0
 # Should we extract java.math from the host repositories?
 integer RVM_WITH_HOST_JAVA_MATH=0
 
+# using on stack replacement 
+integer RVM_WITH_OSR=0
+
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
@@ -594,6 +597,21 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/adaptive/recompilation/instrumentation
       print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation
       print $RVM_ROOT/rvm/src/vm/adaptive/utility
+   fi
+
+   # On stack replacement components.
+   #
+   if (( RVM_WITH_OSR )); then
+     if (( RVM_FOR_IA32 )); then
+       print $RVM_ROOT/rvm/src/vm/arch/intel/executionState
+     elif (( RVM_FOR_POWERPC )); then
+       print $RVM_ROOT/rvm/src/vm/arch/powerPC/executionState
+     fi
+      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
+      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
+      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
+      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
+	  print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
    fi
 
    # architecture specific writebarrier support for baseline compilers
@@ -1645,6 +1663,21 @@ function emitImageLinker
    print "   print 'Ljava/io/FileOutputStream;'     >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/PrintStream;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/RandomAccessFile;'     >> $PRIMORDIAL_CLASSES_STR"
+
+  if (( RVM_WITH_OSR )); then
+    # on stack replacement
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_EncodedOSRMap;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_SpecialCompiler;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/OSR/OSR_PostThreadSwitch;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan;' >> $PRIMORDIAL_CLASSES_STR"
+  fi
+
    if (( RVM_WITH_GNU_CLASSPATH )); then
     print "   print 'Ljava/io/PrintWriter;'        >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/io/OutputStreamWriter;' >> $PRIMORDIAL_CLASSES_STR"
@@ -2038,7 +2071,7 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR\""
 
-	 print 'CCLIBS="-ldl -lm"'
+	 print 'CCLIBS="$EXTRA_CCLIBS -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then

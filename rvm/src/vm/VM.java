@@ -274,6 +274,11 @@ public class VM extends VM_Properties
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
     VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
 
+    //-#if RVM_WITH_OSR
+    // Notify application run start
+    VM_Callbacks.notifyAppRunStart("VM", 0);
+    //-#endif
+
     // Schedule "main" thread for execution.
     mainThread.start();
 
