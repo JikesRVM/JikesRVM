@@ -18,19 +18,27 @@ class Node2I2A {
 
   public static void computeObjectSize() {
     System.out.println("computeObjectSize entered");
-    int estimateSize = 200000;
-    long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("start = " + start);
-    Node2I2A head = new Node2I2A();
-    Node2I2A cur = head;
-    for (int i=0; i<estimateSize; i++) {
-      cur.cdr = new Node2I2A();
-      cur = cur.cdr;
+    int estimateSize = 2000000;
+    while (true) {
+      System.gc();
+      long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+      Node2I2A head = new Node2I2A();
+      Node2I2A cur = head;
+      for (int i=0; i<estimateSize; i++) {
+	cur.cdr = new Node2I2A();
+	cur = cur.cdr;
+      }
+      long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+      long used = end - start;
+      if (used > 0) {
+	measuredObjectSize = used / ((double) estimateSize);
+	objectSize = (int) (measuredObjectSize + 0.5);
+	if (objectSize > 16) 
+	  break;
+      }
+      System.out.println("GC occured since used memory decreased after allocation or implausible object size obtained.  Retrying with fewer objects.");
+      estimateSize = (int) (0.75 * estimateSize);
     }
-    long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("end = " + end);
-    measuredObjectSize = (end - start) / ((double) estimateSize);
-    objectSize = (int) (measuredObjectSize + 0.5);
   }
 
   public static Node2I2A createTree(int nodes) {
