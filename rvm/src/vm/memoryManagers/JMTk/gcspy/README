@@ -1,20 +1,101 @@
-GCSpy interface for Jikes RVM  2.3.0
+GCSpy interface for Jikes RVM  2.3.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note. 
+Notes. 
+
 In order to run GCSpy, your RVM must interact properly with pthreads. See the
 JikesRVM mailing lists for a discussion of this. Out of the box, Red Hat 7.3
 and upwards seems to work fine, but Debian did not (last time I looked).
 
 I have not tried with other architectures.
 
+We have assumed that you will place all the GCSpy code and required libraries
+in $RVM_ROOT. If you wish to change this, you'll need to modify these 
+instructions and the $RVM_ROOT/rvm/config/build/gcspy/GCSpy config file
+appropriately.
+
 1. Download
 -----------
-Download the GCSpy files from http://www.experimentalstuff.com/Technologies/GCspy/.
+Download the GCSpy files from 
+   http://www.experimentalstuff.com/Technologies/GCspy/.
+
 You want the C infrastructure (not the C++ one) and the Java visualiser. 
 The C infrastructure provides a GCSpy server to the JikesRVM.
 
-2. JikesRVM Files changed
+Note that you will also need the Java Advanced Imaging (JAI) API which you can
+get from http://java.sun.com/products/java-media/jai/.
+
+Unpack the GCSpy and JAI sources into $RVM_ROOT. You should then have 
+directories:
+     $RVM_ROOT/gcspy0.9
+ and $RVM_ROOT/jai-1_1_2.
+
+2. Installation
+---------------
+
+2.1 First, you must apply a patch to the GCSpy sources:
+    % cd $RVM_ROOT
+    % patch -p0 < $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/gcspy.patch
+
+2.2 Make the GCSpy visualiser and server.
+    % cd $RVM_ROOT/gcspy0.9/src/
+    % make install c java
+
+3. Running
+---------
+Set up your environment appropriately. We assume
+    % export GCSPY_ROOT=$RVM_ROOT/gcspy0.9
+    % export GCSPY_CLASSES=$GCSPY_ROOT/src/java/classes
+
+Here's a typical example (probably better executed from 2 windows).
+
+First, build an image:
+    [set appropriate Jikes RVM environment variables]
+    % export RVM_BUILD=<name of your build>
+    % jconfigure BaseBaseSemiSpaceGCSpy
+    % cd $RVM_BUILD
+    % ./jbuild
+
+Next, start rvm, first adding the GCSpy server library to your
+LD_LIBRARY_PATH:
+    % export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GCSPY_ROOT/src/c/lib
+    % rvm -Xms20m -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess &
+
+Then, start the GCSpy visualiser:
+    % cd $GCSPY_CLASSES
+    % java gcspy.Main -server localhost 3000
+
+and click the "Connect" button in thebottom right-hand corner of the visualiser
+(alternatively, you can give the server and port arguments in the Connect
+dialogue box).
+
+Additional arguments to rvm:
+
+-X:gc:gcspyPort=port
+	The number of the port on which to connect to the visualiser
+	[default = 0, which means don't connect].
+-X:gc:gcspyWait=[true|false]
+	Whether RVM should wait for a visualiser to connect.
+-X:gc:gcspyTilesize=size
+	How many KB are represented by 1 tile [default: 128K]
+
+4. Testing
+----------
+The easiest way to test is to connect the rvm to the GCSpy trace writing tool.
+For example, to test with rvm and the trace tool running on the same server, 
+communicating on port 3000:
+
+  % rvm -Xms80M -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess >application.out 2>&1 &
+  % cd $GCSPY_CLASSES
+  % java gcspy.tools.TerminalStoreTrace -server localhost 3000 -overwrite -output gcspy.trace >test.out
+
+In case of a GCSpy failure (e.g. something wrong with the protocol),
+. rvm will die with a non-zero exit status and (possibly) a clearly marked
+  GCSpy error;
+. the trace tool will die with a non-zero exit status and the usual Java
+  exception message and stack dump.
+
+5. JikesRVM Files changed
 -------------------------
 The following files have been changed. The JMTk classes are pure Java, i.e. no
 //-#if's, though I have left //-if's as a convenient marker (note no #). Some VM
@@ -62,7 +143,7 @@ $RVM_ROOT/rvm/src/tools/bootImageRunner/sys.C
 $RVM_ROOT/rvm/src/vm/scheduler/MainThread.java
 	To start the GCSpy server.
 
-3. The GCSpy interface
+6. The GCSpy interface
 ----------------------
 The following files comprise the GCSpy interface:
 
@@ -121,61 +202,6 @@ $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/util/ObjectMap.java
 Authors of new driver classes in $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers
 should shadow these classes in $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/.
 
-
-4. Installation
----------------
-
-4.1 Make GCSpy's visualiser.
-
-4.2 Make the C GCSpy libraries.
-Unfortunately, there are a few changes that need to be made (gcspy0.9).
-
-In the GNUmakefile, you may need to modify the line
-	ifeq ($(UNAME), unknown)
-to
-	ifeq ($(UNAME), i686)
-or whatever 'uname -p' reports on your system.
-
-In gcspy_gc_driver.c, remove the 'static' keyword from the following functions:
-	gcspy_driverInitOutput
-	gcspy_driverEndOutput
-and add the following 2 lines to gcspy_gc_driver.h
-	void gcspy_driverInitOutput (gcspy_gc_driver_t *driver);
-	void gcspy_driverEndOutput (gcspy_gc_driver_t *driver);
-
-
-Modify $RVM_ROOT/rvm/config/build/gcspy/GCSpy as necessary to refer to wherever
-you have placed the gcspy c/lib and c/include files.
-
-5.Running
----------
-You must add $GCSPY_ROOT/src/c/lib to your LD_LIBRARY_PATH.
-
-Additional arguments to rvm:
-
--X:gc:gcspyPort=port
-	The number of the port on which to connect to the visualiser
-	[default = 0, which means don't connect].
--X:gc:gcspyWait=[true|false]
-	Whether RVM should wait for a visualiser to connect.
--X:gc:gcspyTilesize=size
-	How many KB are represented by 1 tile [default: 128K]
-
-6. Testing
-----------
-The easiest way to test is to connect the rvm to the GCSpy trace writing tool.
-For example, to test with rvm and the trace tool running on the same server, 
-communicating on port 3000:
-
-  rvm -Xms80M -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess >application.out 2>&1 &
-  cd $GCSPY_CLASSES
-  java gcspy.tools.TerminalStoreTrace -server localhost 3000 -overwrite -output gcspy.trace >test.out
-
-In case of a GCSpy failure (e.g. something wrong with the protocol),
-. rvm will die with a non-zero exit status and (possibly) a clearly marked
-  GCSpy error;
-. the trace tool will  die with a non-zero exit status and the usual Java
-  exception message and stack dump.
 
 7. Performance
 --------------

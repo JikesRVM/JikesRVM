@@ -1,0 +1,107 @@
+diff -r -C2 gcspy0.9/src/c/GNUmakefile gcspy0.9-fixed/src/c/GNUmakefile
+*** gcspy0.9/src/c/GNUmakefile	Sat Oct 26 04:01:05 2002
+--- gcspy0.9-fixed/src/c/GNUmakefile	Tue Dec 16 12:11:31 2003
+***************
+*** 10,20 ****
+  ##
+  
+! UNAME=$(shell uname -p)
+! ifeq ($(UNAME), sparc)
+  	EXTRA_CC_FLAGS = -D_SPARC_
+  	EXTRA_LD_FLAGS = -lsocket
+  	DYNAMIC_FLAG = -G
+  endif
+! ifeq ($(UNAME), unknown)
+  	EXTRA_CC_FLAGS = -D_LINUX_
+  	EXTRA_LD_FLAGS = -lpthread
+--- 10,20 ----
+  ##
+  
+! UNAME=$(shell uname -s)
+! ifeq ($(UNAME), SunOS)
+  	EXTRA_CC_FLAGS = -D_SPARC_
+  	EXTRA_LD_FLAGS = -lsocket
+  	DYNAMIC_FLAG = -G
+  endif
+! ifeq ($(UNAME), Linux)
+  	EXTRA_CC_FLAGS = -D_LINUX_
+  	EXTRA_LD_FLAGS = -lpthread
+diff -r -C2 gcspy0.9/src/c/include/gcspy_gc_driver.h gcspy0.9-fixed/src/c/include/gcspy_gc_driver.h
+*** gcspy0.9/src/c/include/gcspy_gc_driver.h	Sat Oct 26 04:00:57 2002
+--- gcspy0.9-fixed/src/c/include/gcspy_gc_driver.h	Tue Dec 16 12:11:31 2003
+***************
+*** 101,104 ****
+--- 101,110 ----
+  
+  void
++ gcspy_driverInitOutput (gcspy_gc_driver_t *driver);
++ 
++ void
++ gcspy_driverEndOutput (gcspy_gc_driver_t *driver);
++ 
++ void
+  gcspy_driverResize (gcspy_gc_driver_t *driver,
+  		    int tileNum);
+diff -r -C2 gcspy0.9/src/c/src/gcspy_gc_driver.c gcspy0.9-fixed/src/c/src/gcspy_gc_driver.c
+*** gcspy0.9/src/c/src/gcspy_gc_driver.c	Sat Oct 26 04:00:56 2002
+--- gcspy0.9-fixed/src/c/src/gcspy_gc_driver.c	Tue Dec 16 12:11:31 2003
+***************
+*** 284,288 ****
+  /*************************************************************************/
+  
+! static void
+  gcspy_driverInitOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output = &driver->output;
+--- 284,288 ----
+  /*************************************************************************/
+  
+! void
+  gcspy_driverInitOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output = &driver->output;
+***************
+*** 293,297 ****
+  }
+  
+! static void
+  gcspy_driverEndOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output =
+--- 293,297 ----
+  }
+  
+! void
+  gcspy_driverEndOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output =
+diff -r -C2 gcspy0.9/src/java/GNUmakefile gcspy0.9-fixed/src/java/GNUmakefile
+*** gcspy0.9/src/java/GNUmakefile	Sat Oct 26 04:01:05 2002
+--- gcspy0.9-fixed/src/java/GNUmakefile	Tue Dec 16 12:28:43 2003
+***************
+*** 10,23 ****
+  ##
+  
+! UNAME=$(shell uname -p)
+! ifeq ($(UNAME), unknown)
+  #	JDK = /usr/local/jdk1.2.2
+! 	JDK = /usr/local/jdk
+  endif
+! ifeq ($(UNAME), sparc)
+  	JDK = /usr/j2se
+  endif
+  
+! JAVAC = $(JDK)/bin/javac -classpath $(CLASSES_DIR)
+  
+  CLASSES_DIR=classes
+--- 10,23 ----
+  ##
+  
+! UNAME=$(shell uname -s)
+! ifeq ($(UNAME), Linux)
+  #	JDK = /usr/local/jdk1.2.2
+! 	JDK = /opt/j2sdk1.4.1
+  endif
+! ifeq ($(UNAME), SunOS)
+  	JDK = /usr/j2se
+  endif
+  
+! JAVAC = $(JDK)/bin/javac -classpath $(CLASSES_DIR):$(RVM_ROOT)/jai-1_1_2/lib/jai_core.jar
+  
+  CLASSES_DIR=classes
