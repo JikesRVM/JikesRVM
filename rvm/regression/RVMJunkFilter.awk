@@ -49,11 +49,6 @@ kill_next==yes { kill_next = no; next }
 gc_mess==yes { gc_mess = no }
 
 #
-# compiler junk
-#
-/^Use without def for [a-z0-9]*\(GUARD\) in/ { next }
-
-#
 # non-fatal compiler errors
 #
 /Optimizing compiler \(via recompileWithOpt\): can't optimize/ { next }
