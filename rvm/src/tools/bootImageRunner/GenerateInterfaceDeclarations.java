@@ -264,7 +264,7 @@ class GenerateInterfaceDeclarations {
     System.out.print("static const int bootImageAddress                        = 0x"
         + Integer.toHexString(bootImageAddress) + ";\n");
 
-    // values in VM_Constants
+    // values in VM_Constants, from VM_Configuration
     //
     //-#if RVM_FOR_POWERPC
     if (VM.BuildForPowerPC) {
