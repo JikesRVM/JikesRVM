@@ -26,6 +26,10 @@ public class FinalizerThread extends VM_Thread {
 
    private final static int verbose = 0; // currently goes up to 2
 
+   public FinalizerThread() {
+     super(null);
+   }
+
    public String toString() {
      return "FinalizerThread";
    }

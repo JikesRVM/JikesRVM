@@ -23,6 +23,7 @@ import org.vmmagic.unboxed.*;
 class DebuggerThread extends VM_Thread {
 
   DebuggerThread() {
+    super(null);
     makeDaemon(true);
     //-#if RVM_WITH_OSR
     super.isSystemThread = true;
