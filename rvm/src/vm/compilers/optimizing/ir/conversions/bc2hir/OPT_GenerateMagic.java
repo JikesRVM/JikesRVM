@@ -73,34 +73,34 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 	OPT_Operand ref = bc2ir.popRef();
 	OPT_RegisterOperand offset = gc.temps.makeTempInt();
 	OPT_RegisterOperand result = gc.temps.makeTemp(VM_TypeReference.Address);
-	//-#if RVM_FOR_32_ADDR
-	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
-	bc2ir.appendInstruction(ALoad.create(INT_LOAD, result, ref, offset.copy(),
-					     new OPT_LocationOperand(VM_TypeReference.Address),
-					     new OPT_TrueGuardOperand()));
-	//-#elif RVM_FOR_64_ADDR
+	if (VM.BuildFor32Addr) {
+	  bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
+	  bc2ir.appendInstruction(Load.create(INT_LOAD, result, ref, offset.copy(),
+					       new OPT_LocationOperand(VM_TypeReference.Address),
+					       new OPT_TrueGuardOperand()));
+	} else if (VM.BuildFor64Addr) {
 	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(3)));
-	bc2ir.appendInstruction(ALoad.create(LONG_LOAD, result, ref, offset.copy(),
+	bc2ir.appendInstruction(Load.create(LONG_LOAD, result, ref, offset.copy(),
 					     new OPT_LocationOperand(VM_TypeReference.Address),
 					     new OPT_TrueGuardOperand()));
-	//-#endif
+	}
 	bc2ir.push(result.copyD2U());
     } else if (methodName == VM_MagicNames.addressArraySet) {
 	OPT_Operand val = bc2ir.pop();
 	OPT_Operand index = bc2ir.popInt();
 	OPT_Operand ref = bc2ir.popRef();
 	OPT_RegisterOperand offset = gc.temps.makeTempInt();
-	//-#if RVM_FOR_32_ADDR
-	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
-	bc2ir.appendInstruction(AStore.create(INT_STORE, val, ref, offset.copy(),
-					      new OPT_LocationOperand(VM_TypeReference.Address),
-					      new OPT_TrueGuardOperand()));
-	//-#elif RVM_FOR_64_ADDR
-	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
-	bc2ir.appendInstruction(AStore.create(LONG_STORE, val, ref, offset.copy(),
-					      new OPT_LocationOperand(VM_TypeReference.Address),
-					      new OPT_TrueGuardOperand()));
-	//-#endif
+	if (VM.BuildFor32Addr) {
+	  bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
+	  bc2ir.appendInstruction(Store.create(INT_STORE, val, ref, offset.copy(),
+					       new OPT_LocationOperand(VM_TypeReference.Address),
+					       new OPT_TrueGuardOperand()));
+	} else if (VM.BuildFor64Addr) {
+	  bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, new OPT_IntConstantOperand(2)));
+	  bc2ir.appendInstruction(Store.create(LONG_STORE, val, ref, offset.copy(),
+					       new OPT_LocationOperand(VM_TypeReference.Address),
+					       new OPT_TrueGuardOperand()));
+	}
     } else if (methodName == VM_MagicNames.getIntAtOffset) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
