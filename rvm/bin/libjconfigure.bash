@@ -72,19 +72,14 @@ function tracing() {
     [[ $TRACE_FLAG ]] || { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 1 ; }
 
     local -i dflt=1      # default answer, false  (using exit codes)
-    # If $TRACE_FLAG is set and is not in canonical form...
-    if [[ $TRACE_FLAG != ,*, ]]; then
-	# ...then canonicalize it.
-	if [[ $TRACE_FLAG = -trace ]]; then
-	    TRACE_FLAG=,most,
-	elif [[ $TRACE_FLAG != -trace=* ]]; then
-	    echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\"."
-	    echo >&2 "${ME}: Aborting execution."
-	    trap '' EXIT
-	    kill $$
-	else	        # TRACE_FLAG has the form -trace=<something>
-	    TRACE_FLAG=",${TRACE_FLAG#-trace=},";
-	fi
+    # Canonicalize $TRACE_FLAG.  Canonical form is:
+    #  -trace=,thing1,[thing-n,]*
+    if [[ $TRACE_FLAG = -trace ]]; then
+	TRACE_FLAG=-trace=most
+    fi
+    if [[ $TRACE_FLAG != -trace=,*, ]]; then
+	# TRACE_FLAG has the form -trace=<something>
+	TRACE_FLAG="-trace=,${TRACE_FLAG#-trace=},";
 	# No-all is a no-op, since we only 
 	# trace if it's explicitly requested.
 	TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
