@@ -1327,7 +1327,8 @@ static char *
 safe_fgets(char *buf, size_t buflen, FILE *fin)
 {
     unsigned i;
-    int c;
+    int c = '\0';               // We know that buflen is always > 2, but the
+                                // compiler does not, and warns.
     for (i = 0; i < buflen - 2; ) {
 	c = getc(fin);
 	// fprintf(stderr, "c == %c (%x)\n", c, c);
