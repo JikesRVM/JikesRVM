@@ -1241,7 +1241,7 @@ function emitCompiler
       TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java OptTestHarness.java"
    fi
    TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES $CONF_SPECIFIC_TOP_LEVEL_SOURCES"
-   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES|sed 's@\.java@.class@g'`
+   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES|$SED 's@\.java@.class@g'`
 
    if (( RVM_FOR_POWERPC )); then
       INSTRUCTION_TYPE="int"
@@ -1348,13 +1348,6 @@ function emitImageLinker
    print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
    print "   print VM_Process.class                 >> $EXCLUDED_CLASSES_STR"
 
-   print "   print VM_ZipFile.class               >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_ZipFile\$ZipHash.class      >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_ZipFile\$ZipMapEntry.class  >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip.class            >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip\$ZipBucket.class >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip\$Huft.class      >> $EXCLUDED_CLASSES_STR"
-
    # Add the configuration specific exclusions
    #
    for exclusion in `echo "$CONF_SPECIFIC_EXCLUSIONS_LIST"`; do
@@ -1366,13 +1359,13 @@ function emitImageLinker
       
    print "   cd $CLASSES_DIRECTORY_STR"
    if (( RVM_WITH_ALL_CLASSES )); then
-     print "   find . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+     print "   $FIND . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
    else
-     print "   find . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
-     print "   find ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+     print "   $FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+     print "   $FIND ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
    fi
-   print "   fgrep -v $EXCLUDED_CLASSES_STR $PRIMORDIAL_CLASSES_STR.1 > $PRIMORDIAL_CLASSES_STR.2"
-   print "   sed 's@./\(.*\)\.class@L\1;@' $PRIMORDIAL_CLASSES_STR.2 > $PRIMORDIAL_CLASSES_STR"
+   print "   $FGREP -v -f $EXCLUDED_CLASSES_STR $PRIMORDIAL_CLASSES_STR.1 > $PRIMORDIAL_CLASSES_STR.2"
+   print "   $SED 's@./\(.*\)\.class@L\1;@' $PRIMORDIAL_CLASSES_STR.2 > $PRIMORDIAL_CLASSES_STR"
    #print "   rm $PRIMORDIAL_CLASSES_STR.1"
    #print "   rm $PRIMORDIAL_CLASSES_STR.2"
 
