@@ -13,7 +13,7 @@ import instructionFormats.*;
  */
 abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   implements OPT_Operators, OPT_PhysicalRegisterConstants {
-
+  
   // Generic helper functions.
   // Defined here to allow us to use them in the arch-specific
   // helper functions which are the bulk of this file.
@@ -556,18 +556,56 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     
     // FP0 := value
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
-    // result := 0
-    burs.append(MIR_Move.create(IA32_MOV, result, I(0)));
 
-    // Set condition flags: set PE iff FP0 is a Nan
-    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), D(getFPR(0))));
+    // Move the JTOC into a register
+    OPT_RegisterOperand PR = R(burs.ir.regpool.
+                               getPhysicalRegisterSet().getPR());
+    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocOffset, 
+                                            DW, null, null);
+    OPT_RegisterOperand jtocR = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, jtocR, jtoc));
 
     // Convert FP0 to an integer and store in sl
     burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
 
-    // If FP0 was not classified as a NaN, then result := sl
-    burs.append(MIR_CondMove.create(IA32_CMOV, result, sl,
-                                    OPT_IA32ConditionOperand.PO()));
+    // result := sl
+    burs.append(MIR_Move.create(IA32_MOV, result, sl)); 
+    
+    // Compare FP0 with (double)Integer.MAX_VALUE
+    OPT_Operand M = OPT_MemoryOperand.BD(jtocR,
+                                         VM_Entrypoints.maxintOffset,
+                                         QW, null, null);
+    OPT_RegisterOperand fMaxInt = burs.ir.regpool.makeTempDouble();
+    burs.append(MIR_Move.create(IA32_FMOV, fMaxInt, M));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), fMaxInt));
+
+    // If FP0 >= MAX_VALUE, then result := MAX_INT
+    OPT_RegisterOperand rMaxInt = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, rMaxInt, I(Integer.MAX_VALUE)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, result, rMaxInt,
+                                    OPT_IA32ConditionOperand.LGE()));
+    
+    // Compare FP0 with (double)Integer.MIN_VALUE
+    M = OPT_MemoryOperand.BD(jtocR, VM_Entrypoints.minintOffset, QW, 
+                             null, null);
+    OPT_RegisterOperand fMinInt = burs.ir.regpool.makeTempDouble();
+    burs.append(MIR_Move.create(IA32_FMOV, fMinInt, M));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), fMinInt));
+    
+    // If FP0 <= MIN_VALUE, then result := MIN_INT
+    OPT_RegisterOperand rMinInt = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, rMinInt, I(Integer.MIN_VALUE)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, result, rMinInt,
+                                    OPT_IA32ConditionOperand.LLE()));
+    
+    // Set condition flags: set PE iff FP0 is a Nan
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), D(getFPR(0))));
+    // If FP0 was classified as a NaN, then result := 0
+    OPT_RegisterOperand zero = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, zero, I(0)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, result, zero,
+                                  OPT_IA32ConditionOperand.PE()));
+
   }
   /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT

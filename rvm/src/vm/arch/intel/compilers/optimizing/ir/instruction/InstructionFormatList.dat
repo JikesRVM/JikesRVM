@@ -41,8 +41,8 @@ MIR_Move
 
 # Conditional Move
 MIR_CondMove
-1 0 2
-"D Result OPT_Operand" "U Value OPT_Operand" "U Cond OPT_IA32ConditionOperand"
+0 1 2
+"DU Result OPT_Operand" "U Value OPT_Operand" "U Cond OPT_IA32ConditionOperand"
 
 
 # Move

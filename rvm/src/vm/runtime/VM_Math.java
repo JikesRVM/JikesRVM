@@ -291,6 +291,9 @@ public class VM_Math
   
   // largest double that can be rounded to an int
   static double maxint   =  0.5D + 0x7FFFFFFF;
+
+  // smallest 
+  static double minint   =  (double)Integer.MIN_VALUE;
   
   // largest double that can be rounded to a long
   static double maxlong  = Double.longBitsToDouble(0x43DFFFFFFFFFFFFFL);

@@ -155,6 +155,18 @@ implements OPT_Operators {
               }
             }
             break;
+          case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
+            {
+              OPT_RegisterOperand op = (OPT_RegisterOperand)MIR_CondMove.
+                                       getResult(s);
+              OPT_RegisterOperand temp = findOrCreateTemp(op, newMap, ir);
+              // move r into 'temp' before s
+              insertMoveBefore(temp.copyRO(), op.copyRO(), s);
+              // move 'temp' into r after s
+              insertMoveAfter(op.copyRO(), temp.copyRO(), s);
+              op.register = temp.register;
+            }
+            break;
           case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
             {
               OPT_RegisterOperand op = (OPT_RegisterOperand)MIR_Unary.getResult(s);

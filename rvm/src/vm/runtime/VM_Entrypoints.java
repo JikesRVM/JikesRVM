@@ -150,7 +150,10 @@ static int arrayIndexTrapParamOffset;
    static int two32Offset;       //  2.0F^32
    static int half32Offset;      //  0.5F^32
    static int billionthOffset;   //  1e-9
-   static int maxintOffset;      //  largest double that can be rounded to an int
+   static int maxintOffset;      //  largest double that can be rounded 
+                                 //  to an int
+   static int minintOffset;      //  smallest double that can be rounded to 
+                                 //  an int
    static VM_Field IEEEmagic;
    static int IEEEmagicOffset;   //  special double value for use in int <--> double conversions
    static VM_Field I2Dconstant;
@@ -445,6 +448,7 @@ static int arrayIndexTrapParamOffset;
       oneDoubleOffset             = oneDouble.getOffset();
       billionthOffset             = VM.getMember("LVM_Math;", "billionth", "D").getOffset();
       maxintOffset                = VM.getMember("LVM_Math;", "maxint", "D").getOffset();
+      minintOffset                = VM.getMember("LVM_Math;", "minint", "D").getOffset();
       IEEEmagic                   = (VM_Field)VM.getMember("LVM_Math;", "IEEEmagic", "D");
       IEEEmagicOffset             = IEEEmagic.getOffset();
       I2Dconstant                 = (VM_Field)VM.getMember("LVM_Math;", "I2Dconstant", "D");
