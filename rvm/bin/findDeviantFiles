@@ -21,33 +21,34 @@
 # @Author: Peter F. Sweeney
 # @Date: 2001/10/05
 # @Modified Steven Augart
-# @Date 2003/06/02
+# @Date 2003/06/02, 2003/07
 #	Ported to Bash
 
 usage() {
     local exitstatus="${1-1}";
     cat >&2 <<EOF
-Usage: $ME <input-subtree> <output-directory> <suffix>
+Usage: $ME <input-subtree> <output-directory> [ <suffix> ]
   or:  $ME --help
    
+  Where 
+    <input-subtree>	identifies the directory subtree to search for files, 
+    <output-directory>	indicates where to put output files, and
+    <suffix>		is a file extension appended to the output files.
+
   This script finds all files in a directory subtree 
   that don't contain either:
     1) an @author javadoc tag, 
     2) an IBM copyright notice, or
     3) an \$Id: tag.
 
-  Normally it is invoked as:
-
-    $0 input output suffix
-
-  Where 
-    input  identifies the directory subtree to search for files, 
-    output indicates where to put output files, and
-    suffix is a file extension that uniquely identifies the file.
-
   Output files:
-    "no?.suffix"      lists files that don't have the appropriate information.
-  where ? is either "author", "copyright", or "id".
+
+    "<output-directory>/noAuthors[.<suffix>]"
+	      Names of files without the @author tag
+    "<output-directory>/noCopyright[.<suffix>]"   
+	      Names of files without an IBM copyright notice
+    "<output-directory>/noId[.<suffix>]"   
+	      Names of files without an \$Id: tag.
 
 EOF
     exit ${exitstatus}
@@ -64,8 +65,16 @@ case "$1" in
     -help|--help) usage 0 ;;
 esac
 
-if (( $# != 3 )); then
+if (( $# < 2 || $# > 3 )); then
     usage 1;
+fi
+in="$1"
+out="$2"
+if (( $# == 3 )); then
+    suffix="$3"
+    [[ $suffix == .* ]] || suffix=".$suffix"
+else
+    suffix=""
 fi
 
 # Where are we?
@@ -78,6 +87,14 @@ if [[ $mydir && $mydir != $ME ]]; then
 else
     bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
 fi
+
+function croak_nonusage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.
+    echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
+    trap '' EXIT
+    exit 1
+}
 
 sanity_env="${bin_dir}/sanity-envars.bash"
 [[ -f $sanity_env ]] || croak_nonusage "Internal error: Cannot find the file sanity-envars.bash ($sanity_env); something is badly broken."
@@ -97,7 +114,7 @@ set -e # Abort on errors
 ## Create output directory if necessary.
 mkdir -p "$2"
 # cd to input directory
-cd "$1"
+cd $in
 
 
 ## Will not follow symbolic links; you'd have to say "-follow" to do it.
@@ -138,19 +155,16 @@ declare -r -a find_optsA=( \
 
 declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
-# $RVM_ROOT/rvm/bin/findFilesWithoutAuthorTag $1 $2 $3
 #echo "find all plain files without @Author tags"
 # Commented out due to trouble.
-find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
-#find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
+find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
+#find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
 
-#$RVM_ROOT/rvm/bin/findFilesWithoutCopyrights $1 $2 $3
 #echo "find all plain files with copyright notices"
-find . "${find_optsA[@]}" -exec egrep -c "\(C\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
+find . "${find_optsA[@]}" -exec egrep -c "\(C\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$out/noCopyright${suffix}"
 
-#$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
 #echo "find all plain files without \$Id: tags"
-find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$2/noId.$3"
+find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$out/noId${suffix}"
 
 
 trap '' EXIT
