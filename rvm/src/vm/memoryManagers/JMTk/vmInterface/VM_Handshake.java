@@ -96,10 +96,6 @@ public class VM_Handshake {
       VM.shutdown(-1);
     }
 
-    if (verbose >= 3) {
-	VM_Scheduler.trace("VM_Handshake:initiateCollection","dumping machine...");
-	VM_Scheduler.dumpVirtualMachine();
-    }
     if (verbose >= 2) {
       VM_Scheduler.trace("VM_Handshake:initiateCollection","collectorQueue:");
       VM_Scheduler.writeString("before waiting:"); VM_Scheduler.collectorQueue.dump();
