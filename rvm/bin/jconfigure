@@ -616,25 +616,6 @@ function load_config_file () {
 }
 
 
-function detectClasspathVersion () {
-    (( quiet )) || echo -n "(classpath version "
-    local src_dir="${RVM_ROOT}/rvm/src/tools/configuring/Classpath"
-    local defs="${SCRATCH_DIRECTORY}/classpath-version.defs"
-    local qflag="--quiet"
-    (( trace )) && qflag=""
-
-    rm -f "${defs}"
-    if ! ${GNU_MAKE} ${qflag} -C "${src_dir}" \
-	SCRATCH_DIR=${SCRATCH_DIRECTORY} SOURCE_DIR="${src_dir}" DEFS="${defs}"
-    then
-	(( quiet )) || echo "detection failed) "
-	show_mesg >&2 "Detecting the Classpath version failed -- I hope you set it properly in the config file."
-    else
-    (( quiet )) || echo -n "detected) "
-	. "${defs}"			# Load in the definitions we created
-    fi
-}
-
 
 #---------------------------------------------------------------------------#
 # SECTION 1c -- Get HOST_CLASSPATH_ROOT					    #
@@ -910,10 +891,12 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 #       revert to old default until it works again.
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
-## Classpath 0.12 is the default on all platforms.
-## The minimum required version is Classpath 0.10
+## Classpath 0.12 is the default on Linux.
+## We have build problems on AIX, so are using Classpath 0.10 on that platform
+## for now.  The minimum required version is Classpath 0.11
 
 declare -i RVM_WITH_CLASSPATH_0_10=0
+
 declare -i RVM_WITH_CLASSPATH_0_11=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
@@ -1043,7 +1026,7 @@ function croak_usage () {
     exit $Exit_Status_Bad_Args
 }
 
-declare -i quiet=0 cleanse=1 trace=0
+declare -i quiet=0 cleanse=1
 while (( $# > 0 ))
 do
     case "$1" in 
@@ -1061,10 +1044,7 @@ do
 	    export "$arg" ;;
 	
 	-quiet|--quiet ) 
-	    quiet=1 ;;
-
-	-trace|--trace ) 
-	    trace=1;;
+	    quiet=1;;
 
 	-cleanse|--cleanse ) 
 	    cleanse=1;;
@@ -1104,8 +1084,6 @@ if [[ -f "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" ]]; then
 else
     croak_usage "Unknown configuration ${CONFIGURATION_NAME}"
 fi
-
-detectClasspathVersion
 
 if (( RVM_WITH_QUICK_COMPILER )) && (( ! RVM_FOR_POWERPC )) ; then
 	    echo >&2 "\
@@ -4342,7 +4320,6 @@ chmod -x${PERM} $f
 
 # We've already read in the target environment file.
 # load_config_file ${RVM_TARGET_CONFIG}
-#  detectClasspathVersion
 # Now, generate the config files for the target.
 
 f=${BUILD_DIRECTORY}/Make.rules.target
@@ -4359,7 +4336,6 @@ chmod -x${PERM}	$f
 unsetEnvironment;		# throw out leftovers
 load_config_file ${RVM_HOST_CONFIG}
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-detectClasspathVersion
     
 f=${BUILD_DIRECTORY}/Make.rules.host
 rm -f			$f

@@ -18,10 +18,11 @@ if ! [[ ${RVM_ROOT-} ]]; then
 fi
 . $RVM_BUILD/environment.target
 
-## Put the "eclipse" binary at the head of our path.
-## If ECLIPSE_INSTALL_DIR is not set to something sane, then we hope
-## that there is an executable named "eclipse" in the user's path
+## Put the "eclipse" binary and the fake "java" program it needs at the head
+## of our path.
 export PATH="${ECLIPSE_INSTALL_DIR-}${ECLIPSE_INSTALL_DIR+:}${RVM_ROOT}/rvm/etc/eclipse-bin:${PATH}"
+# If ECLIPSE_INSTALL_DIR is not set to something sane, then we hope
+## that there is an executable named "eclipse" in the user's path
 
 ## Warning message
 echo 'Eclipse 3.0 will probably print out a message saying:'
