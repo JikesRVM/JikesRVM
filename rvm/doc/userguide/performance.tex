@@ -5,33 +5,40 @@ Jikes RVM.
 \index{configurations}
 \subsection{Which boot image should I use?}
 
-To make a long story short, use the
-\begin{itemize}
-\item {\tt FastSemispace} configuration for performance runs that invoke the optimizing compiler on every method, and
-\item {\tt FastAdaptiveSemispace} configuration for performance runs that use the adaptive compilation system.
-\end{itemize}
+To make a long story short the best performing configuration of Jikes
+RVM will almost always be {\tt FastAdaptive}{\em<some GC>}.  Unless you really
+know what you are doing, don't use any other configuration to do a 
+performance evaluation of Jikes RVM. In most cases,
+{\tt FastAdaptiveSemispace} is likely to be your best choice. You can
+use the {\tt FastSemispace} configuration if you want to force all
+dynamically loaded methods to be compiled by the optimizing compiler,
+but this configuration will have extremely poor startup behavior and
+will not perform any profile-directed optimizations. 
 
-These two configurations share the following characteristics:
-
-\begin{itemize}
-\item The code placed in the boot image is optimized.
-\item The optimizing compiler and associated support are in
-the boot image.  Other
-configurations with this characteristic begin with the prefix {\tt Full}.
-If you do not use a {\tt Fast<...>} or {\tt Full<...>} configuration, 
-the optimizing
-compiler loads at runtime, and the optimizing compiler itself will be
-baseline compiled and run slowly.
-\item Both configurations set the final static boolean
-{\tt VM.VerifyAssertions = false}.  This flag avoids expensive assertion
-checking at runtime.
-\index{garbage collection}
-\item Both configurations use the non-generational, copying (semi-space) 
-collector.  This collector has the fastest allocation sequence.  For
-applications with a large working set (eg SPECjbb2000), you may get
-better performance from the MarkSweep collector than the Semispace
-collector.  Naturally, GC research will need to build configurations
-with other collectors.
+Any bootimage you use for performance evaluation must have the
+following characterisitcs for the results to be meaningful:
+\begin{itemize} 
+\item {\tt RVM\_WITHOUT\_ASSERTIONS=1}. Unless this is set, the runtime
+system and optimizing compiler will perform fairly extensive assertion
+checking. This introduces significant runtime overhead. By convention,
+a configuration with the {\tt Fast} prefix disables assertion
+checking.
+\item {\tt RVM\_WITH\_OPT\_BOOTIMAGE\_COMPILER=1}. Unless this is set, the
+bootimage will be compiled with the baseline compiler and virtual
+machine performance will be abysmal.  Jikes RVM has been designed
+under the assumption that aggressive inlining and optimization will be
+applied to the VM source code. 
+\item Any configuration that performs opt compilation at runtime (
+{\tt RVM\_WITH\_ADAPTIVE\_SYSTEM=1} or {\tt
+RVM\_WITH\_OPT\_RUNTIME\_COMPILER=1}) should be built with {\tt
+RVM\_WITH\_ALL\_CLASSES=1}.  This includes the optimizing compiler and
+associated support classes in the bootimage where they can be
+optimized by the bootimage compiler. By convention, configurations
+that include the opt compiler in the bootimage have the {\tt Full} or
+{\tt Fast} prefix.  Configurations where {\tt RVM\_WITH\_ALL\_CLASSES}
+is not set to 1 that use the optimizing compiler will dynamically load
+it (which will force it to be baseline compiled, {\em even if
+RVM\_WITH\_OPT\_RUNTIME\_COMPILER is set to 1}).
 \end{itemize}
 
 \subsection{What commmand-line arguments should I use?}
