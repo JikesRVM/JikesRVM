@@ -8,17 +8,17 @@ platform and self contained (the entire baseline compiler must be
 included in all Jikes RVM boot images to support dynamically loading
 other compilers). 
 
-Roughly 2/3 of the baseline compiler is machine-independent and
+Roughly two thirds of the baseline compiler is machine-independent and
 located in the {\tt src/vm/compilers/baseline} directory. The main file is
 {\tt VM\_BaselineCompiler}. The main platform-dependent file (located
-in {\tt src/\-vm/\-arch/\-\{\$arch\}/\-com\-pi\-lers/\-base\-line} is {\tt VM\_\-Com\-pi\-ler}. 
+in {\tt src/\-vm/\-arch/\-\$\{arch\}/\-com\-pi\-lers/\-base\-line}) is {\tt VM\_\-Com\-pi\-ler}. 
 
 Baseline compilation consists of two main steps: GC map computation
 (discussed below) and code generation.  Code generation is
 straightforward, consisting of a single pass through the
 bytecodes of the method being compiled. {\tt VM\_BaselineCompiler}
 contains the main code generation switch statement that invokes the
-appropriate {\tt emit\_<bytecode>} method of {\tt VM\_Compiler}. 
+appropriate \texttt{emit\_}\Mmeta{bytecode} method of {\tt VM\_Compiler}. 
 
 \subsection{GC Maps}
 The baseline compiler computes GC maps by abstractly interpreting the

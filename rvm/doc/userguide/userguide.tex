@@ -85,6 +85,7 @@
 
 % package com.ibm.JikesRVM
 \newcommand{\JikesRVMJavadocURL}{{\RVMJavadocURL}/com/ibm/JikesRVM}
+\newcommand{\VMURL}{\JikesRVMJavadocURL/VM.html}
 \newcommand{\VMAbstractThreadQueueURL}{{\JikesRVMJavadocURL}/VM\_AbstractThreadQueue.html}
 \newcommand{\VMCallbacksURL}{{\JikesRVMJavadocURL}/VM\_Callbacks.html}
 \newcommand{\VMClassURL}{{\JikesRVMJavadocURL}/VM\_Class.html}
@@ -198,11 +199,10 @@
 \newcommand{\gnuMakeURL}{http://www.gnu.org/software/make/}
 \newcommand{\gnuTarURL}{http://www.gnu.org/software/tar/tar.html}
 %\newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
-\newcommand{\jikesURL}{\jikesURLHyphenated}
-\newcommand{\jikesURLHyphenated}{http://oss.software.ibm.com/\-de\-ve\-l\-o\-per\-works/\-open\-source/\-jikes}
-\newcommand{\HyperlatexURL}{http://www.cs.ruu.nl/\~{}otfried/Hyperlatex/}
-\newcommand{\AIXJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
-\newcommand{\LinuxJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
+\newcommand{\jikesURL}{http://oss.software.ibm.com/\-de\-ve\-l\-o\-perworks/\-opensource/\-jikes}
+\newcommand{\HyperlatexURL}{http://www.cs.ruu.nl/\-\~{}otfried/\-Hyperlatex/}
+\newcommand{\AIXJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-index.html}
+\newcommand{\LinuxJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-index.html}
 \newcommand{\BlackdownURL}{http://www.black\-down.org}
 \newcommand{\SystemJournalPaperURL}{{\RVMPubsURL}\#ibmsj00}
 \newcommand{\JavaGrandePaperURL}{{\RVMPubsURL}\#grande99}
@@ -215,7 +215,7 @@
 \newcommand{\VimURL}{http://\-www.vim.org}
 \newcommand{\DejavuURL}{{\JalapenoHomeURL}/\-dejavu/\-index.html}
 \newcommand{\QuicksilverURL}{http://www.research.ibm.com/people/g/gupta/oopsla00.ps}
-\newcommand{\unzipURL}{http://www.info-zip.org/pub/infozip/UnZip.html}
+\newcommand{\unzipURL}{http://www.info-zip.org/\-pub/\-infozip/\-UnZip.html}
 
 %% Html declarations: Output directory and filenames, node title
 %\htmlcss{http://www.w3.org/StyleSheets/Core/Steely}
@@ -280,6 +280,7 @@ User's Guide} \\ {\huge Post \version (CVS Head)}\\ { } \texonly{\vfill} }
 \label{hlxtoc}
 \T \tableofcontents
 \T \listoffigures
+\T \listoftables
 % This does nothing.
 % \xname{contents}
 \W \htmlmenu{6}
@@ -379,7 +380,7 @@ User's Guide} \\ {\huge Post \version (CVS Head)}\\ { } \texonly{\vfill} }
 
 \T \newpage
 \xname{profiling}
-\section{Using the \jrvm\ to Profile an Application}
+\section{Using \jrvm\ to Profile an Application}
 \input{profiling}
 
 \T \newpage

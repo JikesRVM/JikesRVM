@@ -102,7 +102,7 @@ Here's how.
 
 \begin{enumerate}
 \item Create an adaptive configuration.  For the most accurate profile
-use the {\tt production} configuration.  See Section~\ref{section:installation}
+\link{use the {\tt production} configuration.}[  See Section~\Ref, page~\Pageref.]{section:installation}
 \begin{verbatim}
 % jconfigure production
 % cd $RVM_BUILD
@@ -132,9 +132,10 @@ instrumentation lives in {\tt
 \$RVM\_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation} and {\tt
 adaptive/recompilation/instrumentation}.
 
-Section~\ref{existing_phases} describes existing instrumentation
-phases and how to run them, and Section~\ref{adding_phases}
-describes the details of how a new phase can be added.
+\link{Below, }[Section~\Ref]{existing_phases} \link{describes existing instrumentation
+phases and how to run them}{existing_phases}; \link{immediately
+following}[, Section~\Ref (page~\Pageref)]{adding_phases}
+\link{describes the details of how a new phase can be added}{adding_phases}.
 
 To instrument all dynamically compiled code, use the following command
 line arguments to force all dynamically compiled methods to be
@@ -145,9 +146,9 @@ compiled by the optimizing compiler: {\tt
 \label{existing_phases}
 There are several existing instrumentation phases that can be enabled
 by giving the adaptive optimization system command line
-arguments. These counters are {\em not} synchronized (as discussed in
-Section~\ref{adding_phases}), so they should not be considered
-precise. 
+arguments. These counters are {\em not} synchronized (as discussed \link*{later}[in
+Section~\Ref, page~\Pageref]{adding_phases}), so they should not be considered
+precise.
 \begin{enumerate}
 \item {\bf Method Invocation Counters} 
 
@@ -327,9 +328,9 @@ rvm -X:aos:enable_recompilation=false
     -X:aos:counter_based_sample_interval=10 MyProgram
 \end{verbatim}
 
-This will insert instruction counters instrumentation (as described in
-Section~\ref{counting_events}) and enable the instrumentation sampling
-framework with a sample interval of at 10, thus the instrumented code
+This will \link{insert instruction counters instrumentation}[ (as described in
+Section~\Ref, page~\Pageref)]{counting_events} and enable the instrumentation sampling
+framework with a sample interval of at 10; thus, the instrumented code
 will be executed roughtly one tenth of the time.   
 
 Relevant optimizing compiler options:

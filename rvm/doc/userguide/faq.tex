@@ -262,11 +262,12 @@ See the memory management section of the userguide.
 
 \subsubsection{How does Jikes RVM enter native code?}
 
-See the discussion in \link{the JNI section of the userguide}[ (\Ref)]{section:jni}. 
+See the discussion in \link{the JNI section of the userguide}[
+  (Section~\Ref, page~\Pageref)]{section:jni}. 
 
 \subsubsection{What happens to thread switching while a thread is
 executing native code?}
-See the discussion in \link{the JNI section}[(~\Ref)]{section:jni}. 
+See the discussion in \link{the JNI section}[ (Section~\Ref, page~\Pageref)]{section:jni}. 
 
 \subsubsection{How do the various locking and synchronization mechanisms
 relate to each other?}
@@ -278,7 +279,9 @@ building blocks for implementing monitorenter and exit. Some VM systems,
 such as thread scheduling and GC, resort to lower-level primitives for
 situations where normal Java object locking is inconvenient or illegal.
 \begin{description}
+
 \item[VM\_Magic.prepare and VM\_Magic.attempt]
+
 The RVM compiler translates these 
 \xlink{VM\_Magic}{\VMMagicURL} 
 calls into low-level
@@ -294,28 +297,34 @@ location.
 On PowerPC, the compilers implement prepare and attempt using the lwarx
 and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
 LOCK prefix to implement attempt; prepare is a normal load instruction.
+
 \item[\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
+
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Synchronization
 primitives, in turn, are implemented using VM\_Magic.prepare and attempt.
-\item[
-\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}
-]
+
+\item[\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}]
+
 This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
 (pthreads.)  It provides a non-blocking attempt to require the lock
 ({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
-\item[
-\xlink{VM\_Lock}{\VMLockURL}
-]
+
+\item[\xlink{VM\_Lock}{\VMLockURL}]
+
 This class provides the normal synchronization operations on Java objects
 between Java threads.  The implementation is a variant of Thin Locks.
+
 \item[monitorenter and monitorexit]
+
 Synchronized statements in Java source code are compiled to monitorenter
 and exit in the Java bytecode.  The RVM compilers implement these
 bytecodes by inserting calls to \xlink{{\tt VM\_Lock}}{\VMLockURL} routines; 
 the optimizing
 compiler inlines the common cases.
+
 \item[\xlink{VM\_GCLocks}{\VMGCLocksURL}]
+
 This class simply encapsulates a number of VM\_Synchronization locks 
 used for various purposes by the RVM GC system.
 

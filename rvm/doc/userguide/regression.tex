@@ -240,7 +240,8 @@ files is as follows; the sections will be discussed below:
 \end{enumerate}
 
 \begin{description}
-\item[Include the environment rules from the current build directory]\label{make-include}
+\begin{Label}{make-include}
+\item[Include the environment rules from the current build directory]
 This is simply the include statement given below.  It is required so
 that subsequent portions of the makefile can find Jikes RVM itself
 and information needed from the boot image directory.  This section
@@ -248,8 +249,10 @@ is always the one line shown below:
 \begin{verbatim}
 include         $(RVM_BUILD)/Make.rules.target
 \end{verbatim}
+\end{Label}
 
-\item[Set the benchmark name]\label{make-set}
+\begin{Label}{make-set}
+\item[Set the benchmark name]
 This is the name by which the benchmark
 is identified in the local configuration file, and this name is also
 used in some situations by {\tt{RunSanityTests}} for identifying
@@ -262,8 +265,11 @@ define the following make variables.
 one.  This means, for instance, that extra jar files specified for
 these benchmarks will also be included in this one.
 \end{description}
+\end{Label}
 
-\item[Include local configuration information, if needed]\label{make-local}
+
+\begin{Label}{make-local}
+\item[Include local configuration information, if needed]
 This is
 where any information needed to customize the benchmark to your local
 configuration is read.  It must occur after {\tt{BENCH\_NAME}} is set
@@ -273,8 +279,11 @@ following single line.
 \begin{verbatim}
 include         $(JAL_ROOT)/rvm/regression/Local.rules
 \end{verbatim}
+\end{Label}
 
-\item[Define benchmark-specific parameters]\label{make-benchmark-specific-params}
+
+\begin{Label}{make-benchmark-specific-params}
+\item[Define benchmark-specific parameters]
   This defines essential
 benchmark information such as the name of the class with which to
 start up, how much heap memory to use, what classpath to use, and the
@@ -356,8 +365,10 @@ stopping the server program.
 \item[STOP\_ARGS] is a string of the arguments to pass to the program
 that stops the server.
 \end{description}
+\end{Label}
 
-\item[Include the test harness makefile]\label{make-test-harness}
+\begin{Label}{make-test-harness}
+\item[Include the test harness makefile]
   This section loads the rules
 required to actually compile any Java files that need it, run the
 program, check the output for correctness and assess performance.
@@ -365,12 +376,15 @@ This section must always have the following single line:
 \begin{verbatim}
 include         $(JAL_ROOT)/rvm/regression/Make.rules
 \end{verbatim}
+\end{Label}
 
-\item[Define benchmark-specific rules]\label{make-benchmark-specific-rules}
+\begin{Label}{make-benchmark-specific-rules}
+\item[Define benchmark-specific rules]
   This section defines the rules
 needed for the specific benchmark; these rules will utilize the rules
 from the test harness.  The benchmark needs to define at least the
 following rules:
+
 \begin{description}
 
 \item[sanity] This rule defines what happens when someone types {\tt
@@ -409,6 +423,7 @@ directory {\tt WORKING}, where the program is actually run.  See the SPECjvm98
 benchmark makefiles for examples of this.  Another case we have
 encountered is needing explicit dependencies telling the test harness
 that some {\tt .class} files are located in a {\tt .jar} file.
+\end{Label}
 
 \end{description}
 
