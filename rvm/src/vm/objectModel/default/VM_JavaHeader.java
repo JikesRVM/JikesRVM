@@ -15,9 +15,12 @@ import instructionFormats.*;
  * One word holds a TIB pointer. <p>
  * 
  * The other word ("status word") contains an inline thin lock,
- * the object hash code (for copying collectors), and a few 
- * unallocated bits that can be used for other purposes. 
- * The layout of the status word in copying collectors is:
+ * either the hash code or hash code state, and a few unallocated 
+ * bits that can be used for other purposes. 
+ * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING} is false, 
+ * then to implement default hashcodes, Jikes RVM uses a 10 bit hash code 
+ * that is completely stored in the status word, which is laid out as 
+ * shown below:
  * <pre>
  *      TTTT TTTT TTTT TTTT TTTT HHHH HHHH HHAA
  * T = thin lock bits
@@ -25,10 +28,15 @@ import instructionFormats.*;
  * A = available for use by GCHeader and/or MiscHeader.
  * </pre>
  * 
- * The layout of the status word in noncopying collectors  is:
+ * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING ADDRESS_BASED_HASHING} is true, 
+ * then Jikes RVM uses two bits of the status word to record the hash code state in
+ * a typical three state scheme ({@link #HASH_STATE_UNHASHED}, {@link #HASH_STATE_HASHED},
+ * and {@link #HASH_STATE_HASHED_AND_MOVED}). In this case, the status word is laid
+ * out as shown below:
  * <pre>
- *      TTTT TTTT TTTT TTTT TTTT TTTT AAAA AAAA
+ *      TTTT TTTT TTTT TTTT TTTT TTHH AAAA AAAA
  * T = thin lock bits
+ * H = hash code state bits
  * A = available for use by GCHeader and/or MiscHeader.
  * </pre>
  * 
@@ -71,8 +79,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Stuff for address based hashing
    */
   private static final int HASH_STATE_UNHASHED         = 0x00000000;
-  private static final int HASH_STATE_HASHED           = 0x00000010;
-  private static final int HASH_STATE_HASHED_AND_MOVED = 0x00000030;
+  private static final int HASH_STATE_HASHED           = 0x00000100;
+  private static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
   private static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
   private static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
   private static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
