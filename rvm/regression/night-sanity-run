@@ -163,19 +163,19 @@ export CHECK_DIR=$RVM_ROOT/results
 $RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
  
 # Email results 
-# Only email to pfs at the moment
+# Only email to volations to $RESULT_MAILING_LIST
 if [[ -s $CHECK_DIR/noAuthor.rvm ]] then
- cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     pfs 
+ cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     $RESULT_MAILING_LIST
 else
  echo " " | mail -s "no files without an @author tag"     pfs 
 fi
 if [[ -s $CHECK_DIR/noId.rvm ]] then
-  cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       pfs 
+  cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       $RESULT_MAILING_LIST
 else
   echo " " | mail -s "no files without a CVS Id tag"       pfs 
 fi
 if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
-  cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" pfs 
+  cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
 else
   echo " " | mail -s "no files without a Copyright notice" pfs 
 fi
