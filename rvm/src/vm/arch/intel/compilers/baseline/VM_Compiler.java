@@ -3422,11 +3422,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.addressAsThread         ||
 	methodName == VM_MagicNames.objectAsThread          ||
 	methodName == VM_MagicNames.objectAsProcessor       ||
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-	methodName == VM_MagicNames.addressAsBlockControl   ||
-	methodName == VM_MagicNames.addressAsSizeControl    ||
-	methodName == VM_MagicNames.addressAsSizeControlArray   ||
-//-#endif
 	methodName == VM_MagicNames.threadAsCollectorThread ||
 	methodName == VM_MagicNames.addressAsRegisters      ||
 	methodName == VM_MagicNames.addressAsStack          ||

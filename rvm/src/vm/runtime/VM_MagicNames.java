@@ -103,11 +103,6 @@ public class VM_MagicNames {
   public static final VM_Atom addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
   public static final VM_Atom objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final VM_Atom objectAsProcessor             = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Atom addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
-  public static final VM_Atom addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
-  public static final VM_Atom addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");
-  //-#endif
   public static final VM_Atom threadAsCollectorThread       = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final VM_Atom addressAsRegisters            = VM_Atom.findOrCreateAsciiAtom("addressAsRegisters");
   public static final VM_Atom addressAsStack                = VM_Atom.findOrCreateAsciiAtom("addressAsStack");

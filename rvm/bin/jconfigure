@@ -281,17 +281,7 @@ integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTe
 
 # The following must be set if using any of the RVM memory managers
 #
-integer RVM_WITH_JIKESRVM_MEMORY_MANAGERS=0
 integer RVM_WITH_JMTK=0
-
-# Here are the choices for RVM memory managers
-#
-integer RVM_WITH_SEMISPACE=0
-integer RVM_WITH_COPYING_GC=0
-integer RVM_WITH_HYBRID_GC=0
-integer RVM_WITH_NONCOPYING_GC=0
-integer RVM_WITH_GENERATIONAL_GC=0
-integer RVM_WITH_NO_GC=0
 
 integer RVM_WITH_BOOT_HEAP_ONLY=0
 integer RVM_WITH_HPM=0
@@ -636,23 +626,6 @@ function emitSourceList
 
    # common allocator and collector classes for RVM memory managers
    #
-   if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/vmInterface
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/barriers
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/finalization
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/heaps
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
-      # collector specific classes
-      #
-   if (( $RVM_WITH_COPYING_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
-   elif (( $RVM_WITH_NONCOPYING_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
-   fi
-   fi
-
    if (( $RVM_WITH_JMTK )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
@@ -1644,10 +1617,6 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Type;'           >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;'  >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
-   if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_Heap;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
-   fi
    if (( RVM_WITH_JMTK )); then
      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;'                  >> $PRIMORDIAL_CLASSES_STR"
@@ -1693,13 +1662,6 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
 
    print "   print '[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
-
-
-   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC )); then
-      print "   print '[Lcom/ibm/JikesRVM/VM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'  >> $PRIMORDIAL_CLASSES_STR"
-   fi
 
    if (( RVM_WITH_OPT_COMPILER )); then
       print "   print '[[C'                       >> $PRIMORDIAL_CLASSES_STR"

@@ -7,11 +7,6 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.classloader.VM_Type;
 
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-import com.ibm.JikesRVM.memoryManagers.watson.VM_BlockControl;
-import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
-//-#endif
-
 /**
  * Magic methods for accessing raw machine memory, registers, and 
  * operating system calls.
@@ -497,41 +492,6 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
-
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  /**
-   * Cast object.
-   * To allow noncopying collectors to treat blocks array as array
-   * of ints rather than VM_BlockControl, avoiding lots of wasted
-   * scanning during gc.
-   * @param address object reference as bits 
-   * @return object reference as VM_BlockControl (no checking on cast)
-   */
-  public static VM_BlockControl addressAsBlockControl(VM_Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
-    return null;
-  }
-
-  /**
-   * Cast bits.
-   * @param address object reference as bits
-   * @return object reference as VM_SizeControl (no checking on cast)
-   */
-  public static VM_SizeControl addressAsSizeControl(VM_Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
-    return null;
-  }
-
-  /**
-   * Cast bits.
-   * @param address object reference as bits
-   * @return object reference as VM_SizeControl[] (no checking on cast)
-   */
-  public static VM_SizeControl[] addressAsSizeControlArray(VM_Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
-    return null;
-  }
-//-#endif
 
   /**
    * Cast bits. 

@@ -423,24 +423,6 @@ public class VM_CommandLineArgs {
             VM.sysExit(1);
           }
           break;
-          //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-        case WRITEBUFFER_ARG: // internal option used by Steve Smith
-          int workQueueBufferSize = 1;
-          try { workQueueBufferSize = Integer.parseInt(arg);
-          } catch (NumberFormatException e) {
-            workQueueBufferSize = -1;
-            VM.sysWrite("vm: the value of "+p.value+arg+" must be an integer, but found '"+arg+"'\n");
-            VM.sysExit(1);
-          }
-          if (workQueueBufferSize < 1) {
-            VM.sysWrite("vm: the value of "+p.value+arg+" must be a positive integer (number of entries), but found '"+arg+"'\n");
-            VM.sysExit(1);
-          }
-          VM_Interface.setWorkBufferSize(workQueueBufferSize);
-          VM.sysWrite("\nOverriding GC WORK_BUFFER_SIZE to ");
-          VM.sysWriteln(workQueueBufferSize, " entries\n");
-          break;
-          //-#endif
           // ----------------------------------------------------
           // Access nonadaptive configuration's initial runtime
           // compiler (may be baseline or optimizing).

@@ -10,12 +10,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 //-#endif
 
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-import com.ibm.JikesRVM.memoryManagers.watson.VM_ContiguousHeap;
-import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
-import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
-//-#endif
-
 /**
  * Multiplex execution of large number of VM_Threads on small 
  * number of o/s kernel threads.
@@ -675,41 +669,6 @@ implements VM_Uninterruptible, VM_Constants {
   final public Plan mmPlan = new Plan();
   //-#endif
 
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  // Chunk 1 -- see VM_Chunk.java
-  // By convention, chunk1 is used for 'normal' allocation 
-  public VM_Address startChunk1;
-  public VM_Address currentChunk1;
-  public VM_Address endChunk1;
-  public VM_ContiguousHeap backingHeapChunk1;
-
-  // Chunk 2 -- see VM_Chunk.java
-  // By convention, chunk2 is used for copying objects during collection.
-  public VM_Address startChunk2;
-  public VM_Address currentChunk2;
-  public VM_Address endChunk2;
-  public VM_ContiguousHeap backingHeapChunk2;
-
-  // For fast path of segmented list allocation -- see VM_SegmentedListFastPath.java
-  // Can either be used for 'normal' allocation in markSeep collector or
-  // copring objects during collection in the hybrid collector.
-  public VM_SizeControl[] sizes;
-  public VM_SizeControl[] GC_INDEX_ARRAY;
-  public VM_SegregatedListHeap backingSLHeap;
-
-  // Writebuffer for generational collectors
-  // contains a "remembered set" of old objects with modified object references.
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //            ^top            ^max                                ^top    ^max
-  //
-  // See also VM_WriteBuffer.java and VM_WriteBarrier.java
-  public int[]       modifiedOldObjects;          // the buffer
-  public VM_Address  modifiedOldObjectsTop;       // address of most recently filled slot
-  public VM_Address  modifiedOldObjectsMax;       // address of last available slot in buffer
-  //-#endif
-
   // More GC fields
   //
   public int    large_live;		// count live objects during gc
@@ -717,7 +676,6 @@ implements VM_Uninterruptible, VM_Constants {
   public long   totalBytesAllocated;	// used for instrumentation in allocators
   public long   totalObjectsAllocated; // used for instrumentation in allocators
   public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
-
 
   /*
    * END FREQUENTLY ACCESSED INSTANCE FIELDS
@@ -771,13 +729,12 @@ implements VM_Uninterruptible, VM_Constants {
    * threads waiting for a timeslice in which to run
    */
   VM_ThreadQueue   readyQueue;    
+
   /**
    * Threads waiting for a subprocess to exit.
    */
   VM_ThreadProcessWaitQueue processWaitQueue;
 
-  // public VM_ThreadQueue   readyQueue;    
-    
   /**
    * Lock protecting a process wait queue.
    * This is needed because a thread may need to switch
@@ -791,6 +748,7 @@ implements VM_Uninterruptible, VM_Constants {
    * threads waiting for i/o
    */
   public VM_ThreadIOQueue ioQueue;       
+
   /**
    * thread to run when nothing else to do
    */
@@ -846,6 +804,7 @@ implements VM_Uninterruptible, VM_Constants {
    * index of this processor's status word in vpStatus array
    */
   public int   vpStatusIndex;            
+
   /**
    * address of this processors status word in vpStatus array
    */
@@ -912,21 +871,12 @@ implements VM_Uninterruptible, VM_Constants {
     VM_Scheduler.writeString(" threadSwitchRequested: ");
     VM_Scheduler.writeDecimal(threadSwitchRequested); 
     VM_Scheduler.writeString("\n");
-    //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-    VM_Scheduler.writeString("Chunk1: "); 
-    VM_Scheduler.writeHex(startChunk1); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk1); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk1); VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString("Chunk2: "); 
-    VM_Scheduler.writeHex(startChunk2); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk2); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk2); VM_Scheduler.writeString("\n");
-    //-#endif
   }
 
 
   //-#if RVM_FOR_POWERPC
-  /* flag indicating this processor need synchronization.
+  /**
+   * flag indicating this processor need synchronization.
    */
   public boolean needsSync = false;
   //-#endif

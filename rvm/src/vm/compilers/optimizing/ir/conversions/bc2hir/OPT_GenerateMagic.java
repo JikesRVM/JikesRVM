@@ -294,20 +294,6 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_Type);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-      //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-    } else if (methodName == VM_MagicNames.addressAsBlockControl) {
-      OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
-							VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BlockControl;")));
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressAsSizeControl) {
-      OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
-							VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SizeControl;")));
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
-      //-#endif
     } else if (methodName == VM_MagicNames.addressAsThread) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),

@@ -159,16 +159,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
   //-#endif
 
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field modifiedOldObjectsTopField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "modifiedOldObjectsTop", "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field modifiedOldObjectsMaxField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "modifiedOldObjectsMax", "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field contiguousHeapCurrentField      = getField("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_ContiguousHeap;", "current", "Lcom/ibm/JikesRVM/VM_Address;");
-
-  public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
-  //-#endif
-
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");
   public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "Lcom/ibm/JikesRVM/VM_WordArray;");
