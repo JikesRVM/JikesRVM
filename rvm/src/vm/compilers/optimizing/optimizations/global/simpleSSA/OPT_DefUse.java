@@ -45,24 +45,25 @@ public final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  public static void computeDU(OPT_IR ir) {
+  public static void computeDU(OPT_IR ir) throws VM_PragmaNoInline {
     // Clear old register list (if any)
     clearDU(ir);
-    if (TRACE_DU_ACTIONS || DEBUG)
-      VM.sysWrite("Computing Register List\n");
     // Create register defList and useList
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-        != null; instr = instr.nextInstructionInCodeOrder()) {
-      for (OPT_OperandEnumeration defs = instr.getPureDefs(); 
-          defs.hasMoreElements();) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); 
+	 instr != null; instr = instr.nextInstructionInCodeOrder()) {
+
+      OPT_OperandEnumeration defs = instr.getPureDefs(); 
+      OPT_OperandEnumeration uses = instr.getUses(); 
+
+      for ( ; defs.hasMoreElements();) {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
 	  recordDef(rop);
         }
       }         // for ( defs = ... )
-      for (OPT_OperandEnumeration uses = instr.getUses(); 
-          uses.hasMoreElements();) {
+
+     for ( ; uses.hasMoreElements() ;) {
         OPT_Operand op = uses.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
@@ -82,8 +83,6 @@ public final class OPT_DefUse implements OPT_Operators {
         ir.regpool.removeRegister(reg);
       }
     }
-    if (DEBUG)
-      printDU(ir);
   }
 
   /**
