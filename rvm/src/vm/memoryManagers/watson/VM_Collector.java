@@ -76,7 +76,6 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * @return The amount of free memory.
    */
   public static final long freeMemory() {
-    VM_Magic.pragmaInline();
     return VM_Allocator.freeMemory();
   }
 
@@ -86,7 +85,6 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * @return The amount of total memory.
    */
   public static final long totalMemory() {
-    VM_Magic.pragmaInline();
     return VM_Allocator.totalMemory();
   }
 
