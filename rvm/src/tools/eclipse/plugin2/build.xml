@@ -68,6 +68,10 @@ $Id$
         <include name="*.properties"/>
         <include name="*.xml"/>
       </fileset>
+      <filterset>
+	<filter token="JIKESRVM.VERSION" VALUE="${jikesrvm.version}" />
+      </filterset>
+
     </copy>
     <copy todir="${build.dist}" overwrite="yes">
       <fileset dir="${etc.dir}">
