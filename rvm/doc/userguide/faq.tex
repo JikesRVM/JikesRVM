@@ -110,13 +110,13 @@ RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?}
 
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
 threading.  In $m$-to-$n$ threading
-(RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 0), the virtual machine
+(RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equals 0), the virtual machine
 multiplexes $m$ Java {\tt Thread}s
 onto $n$ virtual processors (operating system pthreads).
-In $m$-to-$1$ threading (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 1),
+In $m$-to-$1$ threading (RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equals 1),
 all $m$ Java threads run on a single virtual processor.  Jikes RVM 
 can only exploit multiple CPUs on a hardware SMP machine if 
-built with RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0.
+built with RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equal to 0.
 
 Unfortunately, $m$-to-$n$ threading is not supported on all platforms due to
 mismatches between Jikes RVM  and the host pthread implementation.  
@@ -124,7 +124,7 @@ The key issue is that because Jikes RVM multiplexes Java threads
 (each with their own stack) onto operating system threads, the
 C libraries it is linked with must not use the value of a thread's
 stackpointer/framepointer to access pthread-local storage.  The
-preferred values for RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR are as
+preferred values for RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR are as
 follows: 
 
 \begin{description}

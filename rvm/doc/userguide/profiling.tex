@@ -17,7 +17,7 @@ performance monitors (HPMs) using the {\tt bos.pmapi} interface
 included in AIX version 5. To build Jikes RVM to use
 HPMs, you must define RVM\_HPM\_DIR to be the directory containing
 the pmapi code (typically {\tt /usr/pmapi}) and RVM\_WITH\_HPM to be 1.
-See the config file {\tt \$RVM\_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U} for
+See the config file {\tt \$RVM\_\-ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U} for
 an example.
 
 After a valid configuration is built, the HPM are accessed through 
@@ -85,7 +85,7 @@ The AppStart, AppComplete, AppRunStart, and AppRunComplete monitors
 are supported for application use.  
 Support for other callbacks can be easily added following the current design.
 
-A trace file reader is available in the {\tt \$RVM\_ROOT/rvm/src/tools/HPM\_traceFileReader}
+A trace file reader is available in the {\tt \$RVM\_\-ROOT/rvm/src/tools/HPM\_traceFileReader}
 subdirectory.  Type {\tt make} on the command line to generate the class files and then 
 type {\tt java TraceFileReader} to determine what command line options are available.
 
@@ -129,7 +129,7 @@ that hides many of the implementation details of the counters, so that
 the instrumentation phases described below require an adaptive boot
 image (any one should work).  Most of the code regarding
 instrumentation lives in {\tt
-\$RVM\_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation} and {\tt
+\$RVM\_\-ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation} and {\tt
 adaptive/recompilation/instrumentation}.
 
 \link{Below, }[Section~\Ref]{existing_phases} \link{describes existing instrumentation

@@ -14,8 +14,8 @@ Java code to native code. In addition to the normal mechanism used to
 invoke a native method, Jikes RVM also supports a more restricted
 syscall mechanism that is used internally by low-level VM code to
 invoke native code. 
-\item[Integration with n-to-m threading] Attempting to get Jikes RVM's
-cooperative n-to-m threading model to work nicely (at all) with native
+\item[Integration with $m$-to-$n$ threading] Attempting to get Jikes RVM's
+cooperative $m$-to-$n$ threading model to work nicely (at all) with native
 code is a major challenge. We have gone through several major
 redesigns of the JNI support code and RVM thread system in the
 process. This is still a work in progress.
@@ -52,9 +52,9 @@ C and C++ files of the {\tt JikesRVM} executable.
 These native methods are non-blocking system calls or C library 
 services.  To implement a syscall, the RVM compilers generate a call
 sequence consistent with the platform's underlying calling convention.
-A {\tt syscall} is not a GC-safe point, so {\tt syscalls} may modify the
+A {\tt syscall} is not a GC-safe point, so {\tt syscall}s may modify the
 Java heap (eg. {\tt memcpy()}). For more details on the mechanics of adding a
-new syscall to the system, see the header comments of 
+new \texttt{syscall} to the system, see the header comments of 
 \xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.
 
 The second mechanism is JNI.  Naturally, the user writes JNI code
@@ -70,7 +70,7 @@ is a GC-safe point, since JNI code cannot freely modify the Java heap.
 page~\Pageref)]{sec:threads} for more details on the thread system
 and $m$-to-$n$ threading in Jikes RVM. 
 
-There are two ways to execute native code: {\tt syscalls} and JNI.
+There are two ways to execute native code: {\tt syscall}s and JNI.
 A Java thread that calls native code by either mechanism will never
 be preempted by \jrvm{}.  As far as \jrvm{} is concerned, a Java thread that
 enters native code has exclusive access to the underlying {\tt
@@ -82,7 +82,7 @@ So what happens when one Java thread forces a GC while another Java thread is
 executing native code?
 
 If the native code is a {\tt syscall}, then the VM stalls until the native
-code returns.  Thus, all {\tt syscalls} should be non-blocking
+code returns.  Thus, all {\tt syscall}s should be non-blocking
 operations that return fairly soon.  Note that a {\tt syscall} is 
 {\em not} a GC-safe point.
 
@@ -107,10 +107,10 @@ Supporting the combination of blocking native code and $m$-to-$n$
 threading is inherently complicated.  Unfortunately the Jikes RVM
 implementation is further complicated by the fact that too much of the
 control logic for transitions between C and Java code is embedded in
-the low-level, platform-specific {VM\_JNICompiler} classes. As a
-result the code is very hard to maintain and the JNI implementations
-on different platforms have an unfortunate tendency to diverge. 
+the low-level, platform-specific {VM\_JNICompiler} classes.  As a
+result, the code is hard to maintain and the JNI implementations
+on different platforms tend to diverge. 
 
 We have some ideas for a redesign that would enable more of the
 control logic to be embodied in shared Java code, but there are a few
-minor issues to be worked out. Hopefully this will happen eventually.
+minor issues to be worked out.  Hopefully this will happen eventually.

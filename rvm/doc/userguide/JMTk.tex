@@ -11,7 +11,7 @@ RVM-specific code factored out as far as possible.
 \subsection{Directory Structure and Packages} \label{sssec:directories}
 
 JMTk classes are contained in the
-\texttt{\$RVM\_ROOT/rvm/src/vm/memoryManagers/JMTk} directory.
+\texttt{\$RVM\_\-ROOT/rvm/src/vm/memoryManagers/JMTk} directory.
 
 In keeping with the goal of modularity and portability, as far as
 possible Jikes RVM-specific code is factored out.  Such VM-specific
@@ -126,10 +126,10 @@ The basic steps are:
 \begin{enumerate}
 \item Create a new directory within the \texttt{plan} subdirectory, such as
   ``\texttt{NewGC}''.
-\item Add a new configuration in \texttt{\$RVM\_ROOT/rvm/config/build}
+\item Add a new configuration in \texttt{\$RVM\_\-ROOT/rvm/config/build}
   which includes your new directory in the build.  Name it
   appropriately, such as ``\texttt{BaseBaseNewGC}''.
-\item Modify \texttt{\$RVM\_ROOT/rvm/bin/jconfigure} to handle the new
+\item Modify \texttt{\$RVM\_\-ROOT/rvm/bin/jconfigure} to handle the new
   collector sub-directory.
 \item Copy the contents of some existing plan directory into your new
   directory, and modify the files (\texttt{Plan.java} and

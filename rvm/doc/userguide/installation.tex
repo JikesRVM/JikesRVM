@@ -58,7 +58,7 @@ time we tried it (August 8, 2003) works fine, and sometimes generates
 better error messages than {\tt jikes-1.18}.
 
 \item Download Jikes RVM from developerWorks and unpack it.  We shall
-hereinafter call the location of the RVM distribution {\tt \$RVM\_ROOT/rvm}.
+hereinafter call the location of the RVM distribution {\tt \$RVM\_\-ROOT/rvm}.
 
 
 \index{GNU Classpath: Java class libraries}%
@@ -72,27 +72,27 @@ person installing Jikes RVM.  We expect to have these glitches ironed
 out before the next release.  If you have any difficulty, look \AtManualClasspathRootDiscussion{}
 
 \item Edit a configuration file so that it fits your machine.  One of
-the {\tt i686-pc-linux} files in {\tt \$RVM\_ROOT/rvm/config} will probably be
+the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/rvm/config} will probably be
 more-or-less right to begin with.  On Linux, most standard commands
 (and Jikes) are in {\tt /usr/bin}.  Hereinafter, we will call your edited
-file {\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}
+file {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}
 
 \index{environment variables}%
 \item Setup your environment with definitions required by Jikes RVM.
 There are four of these that you must use; in addition,
-{\tt \$RVM\_ROOT/rvm/bin} should be in your path:
+{\tt \$RVM\_\-ROOT/rvm/bin} should be in your path:
 
 \begin{description}
 
-\item[RVM\_ROOT] is the location of the Jikes RVM distribution.  It
-must be {\bf RVM\_ROOT} as given above.
+\item[RVM\_\-ROOT] is the location of the Jikes RVM distribution.  It
+must be {\bf RVM\_\-ROOT} as given above.
 
 \item[RVM\_HOST\_CONFIG] is the configuration file of the machine
 building Jikes RVM.  It must be
-{\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}.
+{\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
 \item[RVM\_TARGET\_CONFIG] is the configuration of the machine running
-Jikes RVM.  It must be {\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}.
+Jikes RVM.  It must be {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
 \item[RVM\_BUILD] is the location where Jikes RVM is to be built.  It
 can be anywhere.
@@ -139,6 +139,8 @@ have those.
   %% see the effects.
 %\resizebox{\linewidth}{!}{%
 %\begin{center}
+\typeout{You will now see an Overfull \backslash{}hbox warning, due to
+  a long table.}
 \label{prereq-table}\begin{tabular}{|l|l|p{.57\textwidth}|} \hline
 \hline {\em software} & {\em version} & {\em site} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em All platforms}                     \\ \hline
@@ -312,7 +314,7 @@ You need to set up the following shell environment variables:
 
 \begin{description}
 
-\item[\IndexTexttt{RVM\_ROOT}] the directory that contains
+\item[\IndexTexttt{RVM\_\-ROOT}] the directory that contains
   the extracted distribution
 
 \item[\IndexTexttt{RVM\_BUILD}]
@@ -329,7 +331,7 @@ configuration file used to specify the software environment where the
 system support is generated; i.e., where the ``booter'' and ``C
 runtime'' will be generated. 
 
-\item[\IndexTexttt{PATH}] your path should contain \texttt{\$RVM\_ROOT/\-rvm/\-bin} in
+\item[\IndexTexttt{PATH}] your path should contain \texttt{\$RVM\_\-ROOT/\-rvm/\-bin} in
 order to pick up various scripts and utilities
 
 \end{description}
@@ -366,23 +368,23 @@ platform, see \link{\SectionName{Cross Platform Building}}[ (sub-section~\Ref)]{
 
 \item {\bf Edit configuration scripts.}
 
-You must edit a script in the \texttt{\$RVM\_ROOT/rvm/config}  directory to set 
+You must edit a script in the \texttt{\$RVM\_\-ROOT/rvm/config}  directory to set 
 up variables used by the installation process.  
 If someone else at your site has already installed Jikes RVM, they have
 probably already done this step for you.  Consult your local Jikes RVM guru.
 
 You must edit the file(s) that define the host and target configuration
-environments in the \texttt{\$RVM\_ROOT/rvm/config} directory.  
+environments in the \texttt{\$RVM\_\-ROOT/rvm/config} directory.  
 You do not need to {\em source} these variables in your working shell; 
 variables in this file will be picked up by the installation scripts.  
 
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
 whether or not the platform will support SMP-builds of Jikes RVM. 
-For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_OSX,
-or RVM\_FOR\_AIX 
+For operating system, define one of RVM\_\-FOR\_\-LI\-NUX, RVM\_\-FOR\_\-OSX,
+or RVM\_\-FOR\_\-AIX 
 to be 1.  For architecture define either
-RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
+RVM\_FOR\_IA32 or RVM\_\-FOR\_\-POWER\-PC to be 1.  For SMP status, set
 RVM\_\-FOR\_\-SIN\-GLE\_VIR\-TU\-AL\_PRO\-CES\-SOR to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for
 RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR:
@@ -414,14 +416,14 @@ whose default values are defined with reference to \texttt{HOST\_JAVA\_HOME}.
 into some depth here.  For this example, we'll assume you downloaded
 \texttt{classpath-0.06.tgz}.  Create a directory to hold it.  You can
 name that directory anything; we'll name it 
-{\it \texttt{\$RVM\_ROOT/}classpath-0.06-build}.  
+{\it \texttt{\$RVM\_\-ROOT/}classpath-0.06-build}.  
 A command like 
 \texttt{/usr/gnu/tar -C
-  {\rm \it \texttt{\$\{RVM\_ROOT\}/}\-classpath-0.06-build} xzf classpath-0.06.tgz} 
+  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.06-build} xzf classpath-0.06.tgz} 
 will create the directory
- {\rm \it \texttt{\$\{RVM\_ROOT\}}/\-classpath-0.06-build}\texttt{/\-classpath-0.06}.  
+ {\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-classpath-0.06-build}\texttt{/\-classpath-0.06}.  
 
-You {\bf must rename} \texttt{\$\{RVM\_ROOT\}/{\it
+You {\bf must rename} \texttt{\$\{RVM\_\-ROOT\}/{\it
     class\-path-0.06-build}/\-class\-path-0.06} to \texttt{\$\{RVM\_\-ROOT\}/{\it
     class\-path-0.06-build}/\-class\-path}.  Now set your {\tt
   CLASS\-PATH\_ROOT} to \texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.06-build}}
@@ -465,7 +467,7 @@ great project to choose.
 \index{configurations}%
 \cindex[jconfigure script]{\texttt{jconfigure} script}%
 \item {\bf Choose a configuration and populate your build directory.}
-You will use the \texttt{jconfigure} script (in \texttt{\$RVM\_ROOT/rvm/bin}) to
+You will use the \texttt{jconfigure} script (in \texttt{\$RVM\_\-ROOT/rvm/bin}) to
 populate your build (\texttt{\$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
 
@@ -550,10 +552,12 @@ One of the \xlink{\texttt{jikesrvm-researchers} readers contributed
 this information on how to install Jikes RVM on a clean OS~X
 box}{\RVMResearcherMailingListArchiveURL/2003-October/002367.html}:
 \begin{quote}
-To build Jikes RVM on a clean OSX box I first installed the following:
-
-\texttt{August2003gccUpdater.dmg  Java141Developer.dmg      jikes-1.18.tar.bz2
-CHUD\_3.0.1.dmg            Dec2002DevToolsCD.dmg     dlcompat-20030629.tar.gz}
+I first installed the following: \\
+\begin{raggedright}
+\texttt{August2003gccUpdater.dmg  Java141Developer.dmg jikes-1.18.tar.bz2 \\
+CHUD\_3.0.1.dmg Dec2002DevToolsCD.dmg     dlcompat-20030629.tar.gz \\
+}
+\end{raggedright}
 
 The \texttt{*.dmg} files are freely available through the Apple
 Developer Connection 
@@ -565,7 +569,7 @@ respective websites and installed from source.
 If you want to build Jikes RVM for Mac OS~X, you will need to patch
 your copy (version 0.06 or CVS head) of GNU Classpath with the patch
 file located
-in \texttt{\$RVM\_ROOT/\-rvm/\-aux/\-gnu-classpath-on-mac-osx.patch}.  The
+in \texttt{\$RVM\_\-ROOT/\-rvm/\-aux/\-gnu-classpath-on-mac-osx.patch}.  The
 next incremental release of GNU Classpath will probably have that
 patch included in it.
 
@@ -582,7 +586,7 @@ information.
 
 This section describes Jikes\TMweb{} RVM's build configurations.
 The various build configurations are defined by files in {\tt
-\$RVM\_ROOT/rvm/config/build}.
+\$RVM\_\-ROOT/rvm/config/build}.
 
 \subsubsection{Logical Configurations}%
 \index{logical configurations}
@@ -697,7 +701,7 @@ following command:
 \end{verbatim}
 
 To view a list of configurations see 
-\texttt{\$RVM\_ROOT/rvm/config/build}.  Follow the examples in this
+\texttt{\$RVM\_\-ROOT/rvm/config/build}.  Follow the examples in this
 directory to define your own configurations with different options.  See
 the \texttt{jconfigure} file for a list of all options the builder
 understands, or type:
@@ -755,7 +759,7 @@ to run Jikes RVM.
 The building of the boot loader must occur in the same directory as
 the rest of the build.  This can either be done transparently via a
 network file system, or by copying the build directory from the first
-host to the target.  Of course \texttt{RVM\_ROOT}, \texttt{RVM\_BUILD }
+host to the target.  Of course \texttt{RVM\_\-ROOT}, \texttt{RVM\_BUILD }
 and \texttt{PATH} need not be explicitly set each time: they could have
 been set in your \texttt{.cshrc}, \texttt{.bashrc}, or other shell startup file.
 
@@ -772,16 +776,16 @@ a stream-lined process.
 \subsection{Building Documentation}
 
 The \texttt{\RVMTarFile} file contains a PostScript version of this userguide
-in \texttt{\$RVM\_ROOT/rvm/doc}.  Additionally, the 
+in \texttt{\$RVM\_\-ROOT/rvm/doc}.  Additionally, the 
 \xlink{developerWorks web page}{\RVMHomeURL} keeps an online version of
 the userguide and Javadoc API, corresponding to the latest HEAD of the CVS
 repository.
 
 If you would like to recover the userguide or Javadoc for an older release
 of RVM, you can rebuild the documentation locally.  See the Makefile in
-\texttt{\$RVM\_ROOT/rvm/doc/userguide} for rules on how to build the
+\texttt{\$RVM\_\-ROOT/rvm/doc/userguide} for rules on how to build the
 HTML userguide using
 \xlink{\texttt{hyperlatex}}{\HyperlatexURL}.  To build the Javadoc pages, use
-the \texttt{jdoc.sh} script in \texttt{\$RVM\_ROOT/rvm/bin}; this
+the \texttt{jdoc.sh} script in \texttt{\$RVM\_\-ROOT/rvm/bin}; this
 script takes as its only command-line argument the directory into
 which to output the Javadoc HTML. 
