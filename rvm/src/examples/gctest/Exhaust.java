@@ -43,10 +43,10 @@ class Exhaust {
 	  }
 	}
 	catch (OutOfMemoryError e) {
-	    System.out.println("  Caught OutOfMemory - freeing now");
-	    System.out.println("  Maximum size reached is " + size);
 	    junk = null;  // kills everything
 	    cursor = 0;
+	    System.out.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
+	    System.out.println("  Maximum size reached is " + size);
 	}
     }
     System.out.println("Overall: SUCCESS");
