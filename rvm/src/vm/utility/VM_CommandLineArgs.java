@@ -714,7 +714,26 @@ public class VM_CommandLineArgs {
         buf = new byte[buflen];
       }
       if (VM.VerifyAssertions) VM._assert(cnt != -1); 
-      return new String(buf, 0, cnt);
+      /* Implementation note: Do NOT use the line below, which uses the
+         three-argument constructor for String, the one that respects the
+         native encoding (the platform's "default character set").
+
+         Instead, we use the four-argument constructor, the one that takes a
+         HIBYTE parameter.
+
+         1) It is safe to do this; we *know* that all of the
+         legal command-line args use only characters within the ASCII
+         character set.
+
+         2) The "default character set" version below will break.  That is
+            because GNU Classpath's implementation of the
+            three-argument-constructor will fail if
+            EncodingManager.getDecoder() returns a null pointer.  And
+            EncodingManager.getDecoder() returns a null pointer if it's
+            called early on in the boot process (which the
+            default-character-set version below does). */
+      //      return new String(buf, 0, cnt);
+      return new String(buf, 0, 0, cnt);
     }
     int numArgs() {
       return sysArg(-1, buf);
