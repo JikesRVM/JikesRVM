@@ -237,6 +237,7 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field sysFloatToLongIPField           = getField("LVM_BootRecord;", "sysFloatToLongIP", "I");
   static final VM_Field sysDoubleToLongIPField          = getField("LVM_BootRecord;", "sysDoubleToLongIP", "I");
   //-#if RVM_FOR_POWERPC
+  static final VM_Field sysDoubleRemainderIPField       = getField("LVM_BootRecord;", "sysDoubleRemainderIP", "I");
   static final VM_Field sysTOCField                     = getField("LVM_BootRecord;", "sysTOC", "I");
   //-#endif
 

@@ -1876,12 +1876,12 @@ function emitBooterLinker
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
 
-	 print 'CCLIBS=-lpthread'
+	 print 'CCLIBS="-lpthread -lm"'
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1890,7 +1890,7 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR\""
 
-	 print 'CCLIBS="-ldl"'
+	 print 'CCLIBS="-ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1899,7 +1899,7 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
 
-	 print 'CCLIBS="-lpthread -ldl"'
+	 print 'CCLIBS="-lpthread -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then

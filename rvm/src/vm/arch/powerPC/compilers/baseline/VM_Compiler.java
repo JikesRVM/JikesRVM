@@ -1025,19 +1025,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the frem bytecode
    */
   protected final void emit_frem() {
-    asm.emitLFS   (F0,  0, SP);              // F0 is b
-    asm.emitLFS   (F1,  4, SP);              // F1 is a
-    asm.emitFD    (F2, F1, F0);              // F2 is a/b
-    asm.emitLFStoc(F3, VM_Entrypoints.halfFloatField.getOffset(), T0);      // F3 is 0.5
-    asm.emitFNEG  (F1, F3);                  // F1 is -0.5
-    asm.emitFSEL  (F3, F2, F3, F1);          // F3 is (a/b<0)?-0.5:0.5
-    asm.emitFS    (F2, F2, F3);              // F2 is a/b - (a/b<0)?-0.5:0.5
-    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T0); // F3 is MAGIC
-    asm.emitFA    (F2, F2, F3);              // F2 is MAGIC + a/b - (a/b<0)?-0.5:0.5
-    asm.emitFS    (F2, F2, F3);              // F2 is trunc(a/b)
-    asm.emitLFS   (F1,  4, SP);              // F1 is a
-    asm.emitFNMS  (F2, F2, F0, F1);          // F2 is a % b
-    asm.emitSTFSU (F2,  4, SP);
+    asm.emitLFS   (F1,  0, SP);              // F1 is b
+    asm.emitLFS   (F0,  4, SP);              // F0 is a
+    VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysDoubleRemainderIPField);
+    asm.emitSTFSU (F0,  4, SP);
   }
 
   /**
@@ -1099,19 +1090,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the drem bytecode
    */
   protected final void emit_drem() {
-    asm.emitLFD   (F0,  0, SP);              // F0 is b
-    asm.emitLFD   (F1,  8, SP);              // F1 is a
-    asm.emitFD    (F2, F1, F0);              // F2 a/b
-    asm.emitLFStoc(F3, VM_Entrypoints.halfFloatField.getOffset(), T0);     // F3 is 0.5
-    asm.emitFNEG  (F1, F3);                  // F1 is -0.5
-    asm.emitFSEL  (F3, F2, F3, F1);          // F3 is (a/b<0)?-0.5:0.5
-    asm.emitFS    (F2, F2, F3);              // F2 is a/b - (a/b<0)?-0.5:0.5
-    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T0); // F3 is MAGIC
-    asm.emitFA    (F2, F2, F3);              // F2 is MAGIC + a/b - 0.5
-    asm.emitFS    (F2, F2, F3);              // F2 is trunc(a/b)
-    asm.emitLFD   (F1,  8, SP);              // F1 is a
-    asm.emitFNMS  (F2, F2, F0, F1);          // F2 is a % b
-    asm.emitSTFDU (F2,  8, SP);
+    asm.emitLFD   (F1,  0, SP);              // F1 is b
+    asm.emitLFD   (F0,  8, SP);              // F0 is a
+    VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysDoubleRemainderIPField);
+    asm.emitSTFDU (F0,  8, SP);
   }
 
   /**

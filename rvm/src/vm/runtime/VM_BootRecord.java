@@ -267,6 +267,9 @@ public class VM_BootRecord {
   int sysDoubleToIntIP;
   int sysFloatToLongIP;
   int sysDoubleToLongIP;
+  //-#if RVM_FOR_POWERPC
+  int sysDoubleRemainderIP;
+  //-#endif
 
   // time
   int sysGetTimeOfDayIP;
