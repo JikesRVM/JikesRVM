@@ -34,11 +34,6 @@ function do_install
   print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
   cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
   cp -f rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
-
-  # install security properties file for classpath
-  print "$ME: Installing security properties file in $RVM_ROOT/lib/security"
-  mkdir -p $RVM_ROOT/lib/security
-  echo "security.provider.1=gnu.java.security.provider.Gnu" > $RVM_ROOT/lib/security/classpath.security
 }
 
 ##
