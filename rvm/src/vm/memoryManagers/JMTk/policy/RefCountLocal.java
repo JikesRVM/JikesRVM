@@ -35,7 +35,6 @@ final class RefCountLocal extends SegregatedFreeList
   private static SharedQueue rootPool;
   private static SharedQueue tracingPool;
 
-  private static final boolean sanityTracing = false;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -84,7 +83,7 @@ final class RefCountLocal extends SegregatedFreeList
     incBuffer = inc;
     decBuffer = dec;
     rootSet = root;
-    if (sanityTracing) {
+    if (Plan.sanityTracing) {
       tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
     }
     if (Plan.refCountCycleDetection)
@@ -100,7 +99,7 @@ final class RefCountLocal extends SegregatedFreeList
   static {
     rootPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
     rootPool.newClient();
-    if (sanityTracing) {
+    if (Plan.sanityTracing) {
       tracingPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
       tracingPool.newClient();
     }
@@ -151,18 +150,16 @@ final class RefCountLocal extends SegregatedFreeList
    * Finish up after a collection.
    */
   public final void release() {
-    if (sanityTracing) VM.sysWrite("--------- Increment --------\n");
     if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
-    if (sanityTracing) VM.sysWrite("--------- Decrement --------\n");
     VM_CollectorThread.gcBarrier.rendezvous();
-    decrementPhase = true;
     if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
-    decrementPhase = false;
-    if (Plan.refCountCycleDetection)
+    if (Plan.refCountCycleDetection) {
       cycleDetector.collectCycles();
+      if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
+    }
     restoreFreeLists();
     
-    if (sanityTracing) rcSanityCheck();
+    if (Plan.sanityTracing) rcSanityCheck();
   }
 
   private final void processIncBufs() {
@@ -181,17 +178,21 @@ final class RefCountLocal extends SegregatedFreeList
   }
   private final void processDecBufs() {
     VM_Address tgt;
+    decrementPhase = true;
     while (!(tgt = decBuffer.pop()).isZero()) {
       decrement(tgt);
     }
+    decrementPhase = false;
   }
   private final void processDecBufsAndCount() {
     VM_Address tgt;
+    decrementPhase = true;
     decCounter = 0;
     while (!(tgt = decBuffer.pop()).isZero()) {
       decrement(tgt);
       decCounter++;
     }
+    decrementPhase = false;
   }
   private final void processRootBufs() {
     VM_Address tgt;
@@ -268,7 +269,7 @@ final class RefCountLocal extends SegregatedFreeList
   // reference counts)
   //
   private final void rcSanityCheck() {
-    if (VM.VerifyAssertions) VM._assert(sanityTracing);
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     VM_Address obj;
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
@@ -289,7 +290,7 @@ final class RefCountLocal extends SegregatedFreeList
   }
   public final void postAllocImmortal(VM_Address object)
     throws VM_PragmaInline {
-    if (sanityTracing) {
+    if (Plan.sanityTracing) {
       if (rcSpace.bootImageMark)
 	RCBaseHeader.setBufferedBit(object);
       else
@@ -298,7 +299,7 @@ final class RefCountLocal extends SegregatedFreeList
   }
 
   public void rootScan(VM_Address obj) {
-    if (VM.VerifyAssertions) VM._assert(sanityTracing);
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
     if (obj.LE(Plan.RC_START) && obj.GE(Plan.BOOT_START)) {
@@ -311,7 +312,7 @@ final class RefCountLocal extends SegregatedFreeList
 
   public final void addToTraceBuffer(VM_Address root) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(sanityTracing);
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     tracingBuffer.push(VM_Magic.objectAsAddress(root));
   }
 
@@ -333,7 +334,4 @@ final class RefCountLocal extends SegregatedFreeList
     }
     VM.sysWrite(">\n");
   }
-
-//   public final FreeListVMResource getVMResource() { return rcSpace.getVMResource();}
-//   public final MemoryResource getMemoryResource() { return rcSpace.getMemoryResource();}
 }

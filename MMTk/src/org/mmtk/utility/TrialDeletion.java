@@ -120,13 +120,9 @@ final class TrialDeletion
   public final void collectCycles() {
     filterCycleBufs();
     processFreeBufs();
-    if (Plan.sanityTracing) VM.sysWrite("----------Mark Grey---------\n");
     doMarkGreyPhase();
-    if (Plan.sanityTracing) VM.sysWrite("----------- Scan -----------\n");
     doScanPhase();
-    if (Plan.sanityTracing) VM.sysWrite("---------- Collect ---------\n");
     doCollectPhase();
-    if (Plan.sanityTracing) VM.sysWrite("------------ Free ----------\n");
     processFreeBufs();
   }
  
@@ -239,7 +235,10 @@ final class TrialDeletion
       }
       break;
     case COLLECT:  
-      workQueue.push(object);
+      if (RCBaseHeader.isGreen(object))
+	plan.addToDecBuf(object); 
+      else
+	workQueue.push(object);
       break;
     default:
       if (VM.VerifyAssertions) VM._assert(false);
@@ -298,8 +297,6 @@ final class TrialDeletion
 	RCBaseHeader.makeBlack(object);
 	ScanObject.enumeratePointers(object, plan);
 	freeBuffer.push(object);
-      } else if (RCBaseHeader.isGreen(object)) {
-	plan.addToDecBuf(object); 
       }
       object = workQueue.pop();
     }

@@ -81,6 +81,8 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * boot image mark bit (use for debug tracing).
    */
   public void prepare() { 
+    if (!Options.noFinalizer)
+      VM.sysFail("-X:gc:noFinalizer must be used with RefCount Plan");
     bootImageMark = !bootImageMark;
   }
 
@@ -97,19 +99,14 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
 
-    // FIXME (why are the two following different w.r.t root?)
-    if (Plan.sanityTracing) {
+    if (Plan.sanityTracing) 
       incrementTraceCount(object);
-      if (root) {
-	increment(object);
-	VM_Interface.getPlan().addToRootSet(object); 
-      }
-    } else {
-      //	if (VM.VerifyAssertions) VM._assert(root);
+
+    if (root) {
       increment(object);
-      if (root)
-	VM_Interface.getPlan().addToRootSet(object); 
-    }
+      VM_Interface.getPlan().addToRootSet(object);
+    } // else we were called via the finalizer mechanism, we need to ignore
+
     return object;
   }
 
