@@ -526,17 +526,17 @@ public class BootImageWriter extends BootImageWriterMessages
         if (jdkObject == null)
           continue;
 
-        if (verbose >= 1) traceContext.push(jdkObject.getClass().getName(),
+        if (verbose >= 2) traceContext.push(jdkObject.getClass().getName(),
                                             getRvmStaticFieldName(i));
         int imageOffset = copyToBootImage(jdkObject, false, -1, VM_Statics.getSlotsAsIntArray());
         if (imageOffset == OBJECT_NOT_PRESENT) {
           // object not part of bootimage: install null reference
-          if (verbose >= 1) traceContext.traceObjectNotInBootImage();
+          if (verbose >= 2) traceContext.traceObjectNotInBootImage();
           bootImage.setNullAddressWord(jtocImageOffset + (i << LOG_BYTES_IN_INT)); // jtoc is int[]!
         } else
           bootImage.setAddressWord(jtocImageOffset + (i << LOG_BYTES_IN_INT), // jtoc is int[]!
                                    bootImageAddress + imageOffset);
-        if (verbose >= 1) traceContext.pop();
+        if (verbose >= 2) traceContext.pop();
       }
     } catch (IllegalAccessException e) {
       fail("unable to copy statics: "+e);
@@ -737,7 +737,6 @@ public class BootImageWriter extends BootImageWriterMessages
       // Create types.
       //
       if (verbose >= 1) say("loading");
-      // verbose = 4;		// debug XXX
       
       for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
         //
@@ -801,7 +800,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (verbose >= 1) say("resolving");
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type type = (VM_Type) e.nextElement();
-        // if (verbose >= 1) say("resolving ", type);
+        if (verbose >= 2) say("resolving " + type);
 	// The resolution is supposed to be cached already.
         type.resolve();
       }
@@ -1092,10 +1091,10 @@ public class BootImageWriter extends BootImageWriterMessages
 
           if (jdkFieldAcc == null) {
             if (jdkType != null) {
-              if (verbose >= 1) traceContext.push(rvmFieldType.toString(),
+              if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
                                                   jdkType.getName(), rvmFieldName);
-              if (verbose >= 1) traceContext.traceFieldNotInHostJdk();
-              if (verbose >= 1) traceContext.pop();
+              if (verbose >= 2) traceContext.traceFieldNotInHostJdk();
+              if (verbose >= 2) traceContext.pop();
             }
             VM_Statics.setSlotContents(rvmFieldSlot, 0);
             if (!VM.runningTool)
@@ -1346,18 +1345,18 @@ public class BootImageWriter extends BootImageWriterMessages
           if (!allocOnly) {
             for (int i = 0; i<arrayCount; ++i) {
               if (values[i] != null) {
-                if (verbose >= 1) traceContext.push(values[i].getClass().getName(),
+                if (verbose >= 2) traceContext.push(values[i].getClass().getName(),
                                                     jdkClass.getName(), i);
                 int imageOffset = copyToBootImage(values[i], allocOnly, -1, jdkObject);
                 if (imageOffset == OBJECT_NOT_PRESENT) {
                   // object not part of bootimage: install null reference
-                  if (verbose >= 1) traceContext.traceObjectNotInBootImage();
+                  if (verbose >= 2) traceContext.traceObjectNotInBootImage();
                   bootImage.setNullAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS));
                 } else {
                   bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
                                            bootImageAddress + imageOffset);
 		}
-                if (verbose >= 1) traceContext.pop();
+                if (verbose >= 2) traceContext.pop();
               }
             }
 	  }
@@ -1437,10 +1436,10 @@ public class BootImageWriter extends BootImageWriterMessages
           Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
 
           if (jdkFieldAcc == null) {
-            if (verbose >= 1) traceContext.push(rvmFieldType.toString(),
+            if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
                                                 jdkType.getName(), rvmFieldName);
-            if (verbose >= 1) traceContext.traceFieldNotInHostJdk();
-            if (verbose >= 1) traceContext.pop();
+            if (verbose >= 2) traceContext.traceFieldNotInHostJdk();
+            if (verbose >= 2) traceContext.pop();
             if (rvmFieldType.isPrimitiveType())
               switch (rvmField.getType().getSize()) {
                 case 4: bootImage.setFullWord(rvmFieldOffset, 0);       break;
@@ -1510,18 +1509,18 @@ public class BootImageWriter extends BootImageWriterMessages
             Object value = jdkFieldAcc.get(jdkObject);
             if (!allocOnly && value != null) {
               Class jdkClass = jdkFieldAcc.getDeclaringClass();
-              if (verbose >= 1) traceContext.push(value.getClass().getName(),
+              if (verbose >= 2) traceContext.push(value.getClass().getName(),
                                                   jdkClass.getName(),
                                                   jdkFieldAcc.getName());
               int imageOffset = copyToBootImage(value, allocOnly, -1, jdkObject);
               if (imageOffset == OBJECT_NOT_PRESENT) {
                 // object not part of bootimage: install null reference
-                if (verbose >= 1) traceContext.traceObjectNotInBootImage();
+                if (verbose >= 2) traceContext.traceObjectNotInBootImage();
                 bootImage.setNullAddressWord(rvmFieldOffset);
               } else
                 bootImage.setAddressWord(rvmFieldOffset,
                                          bootImageAddress + imageOffset);
-              if (verbose >= 1) traceContext.pop();
+              if (verbose >= 2) traceContext.pop();
             }
           }
         }
@@ -1533,9 +1532,9 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (!allocOnly) {
 
-        if (verbose >= 1) traceContext.push("", jdkObject.getClass().getName(), "tib");
+        if (verbose >= 2) traceContext.push("", jdkObject.getClass().getName(), "tib");
         int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), allocOnly, -1, jdkObject);
-        if (verbose >= 1) traceContext.pop();
+        if (verbose >= 2) traceContext.pop();
         if (tibImageOffset == OBJECT_NOT_ALLOCATED)
           fail("can't copy tib for " + jdkObject);
         int tibAddress = bootImageAddress + tibImageOffset;
@@ -1633,9 +1632,9 @@ public class BootImageWriter extends BootImageWriterMessages
 
     // copy object's TIB into image, if it's not there already
     if (!allocOnly) {
-      if (verbose >= 1) traceContext.push("", jdkObject.getClass().getName(), "tib");
+      if (verbose >= 2) traceContext.push("", jdkObject.getClass().getName(), "tib");
       int tibImageOffset = copyToBootImage(rvmArrayType.getTypeInformationBlock(), allocOnly, -1, jdkObject);
-      if (verbose >= 1) traceContext.pop();
+      if (verbose >= 2) traceContext.pop();
       if (tibImageOffset == OBJECT_NOT_ALLOCATED)
 	fail("can't copy tib for " + jdkObject);
       int tibAddress = bootImageAddress + tibImageOffset;
@@ -1722,10 +1721,10 @@ public class BootImageWriter extends BootImageWriterMessages
           Object values[] = (Object []) jdkObject;
           for (int i = 0; i < arrayCount; ++i) {
             if (values[i] != null) {
-              if (verbose >= 1) traceContext.push(values[i].getClass().getName(),
+              if (verbose >= 2) traceContext.push(values[i].getClass().getName(),
                                                   jdkType.getName(), i);
               traverseObject(values[i]);
-              if (verbose >= 1) traceContext.pop();
+              if (verbose >= 2) traceContext.pop();
             }
           }
         }
@@ -1779,11 +1778,11 @@ public class BootImageWriter extends BootImageWriterMessages
               size += 4;
               Object value = jdkField.get(jdkObject);
               if (value != null) {
-                if (verbose >= 1) traceContext.push(value.getClass().getName(),
+                if (verbose >= 2) traceContext.push(value.getClass().getName(),
                                                     jdkType.getName(),
                                                     jdkField.getName());
                 traverseObject(value);
-                if (verbose >= 1) traceContext.pop();
+                if (verbose >= 2) traceContext.pop();
               }
             }
           }
