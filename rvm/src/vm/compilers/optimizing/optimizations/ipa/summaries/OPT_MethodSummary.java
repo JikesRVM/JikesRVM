@@ -12,11 +12,20 @@
 public class OPT_MethodSummary {
 
   /**
+   * Is this method currently being analyzed?  Used for recursive
+   * invocations of the optimizing compiler.
+   */
+  private static boolean inProgress = false;
+
+  // Top bit is result, bits 0..63 are for parameters 0..63 respectively
+  // The default value encodes that the result escapes but that no parameter is escaping.
+  private static final long RES_ESCAPE = 0x80000000; 
+  private long summary = RES_ESCAPE;
+
+  /**
    * @param m VM_Method representing this method.
    */
-  OPT_MethodSummary (VM_Method m) {
-    vmMethod = m;
-  }
+  OPT_MethodSummary (VM_Method m) { }
 
   /**
    * Record that a parameter may or may not escape from a thread.
@@ -25,7 +34,13 @@ public class OPT_MethodSummary {
    * @param b may it escape?
    */
   public void setParameterMayEscapeThread (int p, boolean b) {
-    _parameterDoesNotEscape[p] = !b;
+    if (p > 62) return; // all params past 62 escape!
+    long mask = 1L << p;
+    if (b) {
+      summary |= mask;
+    } else {
+      summary &= (~mask);
+    }
   }
 
   /**
@@ -35,7 +50,9 @@ public class OPT_MethodSummary {
    * thread. true otherwise.
    */
   public boolean parameterMayEscapeThread (int p) {
-    return  !_parameterDoesNotEscape[p];
+    if (p > 62) return true; // all params past 62 escape!
+    long mask = 1L << p;
+    return (summary & mask) != 0;
   }
 
   /**
@@ -44,7 +61,11 @@ public class OPT_MethodSummary {
    * @param b may it escape?
    */
   public void setResultMayEscapeThread (boolean b) {
-    _resultMayEscape = b;
+    if (b) {
+      summary |= RES_ESCAPE;
+    } else {
+      summary &= ~RES_ESCAPE;
+    }
   }
 
   /**
@@ -53,14 +74,14 @@ public class OPT_MethodSummary {
    * thread. true otherwise.
    */
   public boolean resultMayEscapeThread () {
-    return  _resultMayEscape;
+    return (summary & RES_ESCAPE) != 0L;
   }
 
   /**
    * Is analysis of this method in progress?
    */
   public boolean inProgress () {
-    return  inProgress;
+    return inProgress;
   }
 
   /**
@@ -70,29 +91,6 @@ public class OPT_MethodSummary {
   public void setInProgress (boolean b) {
     inProgress = b;
   }
-
-  /**
-   * the method summarized
-   */
-  VM_Method vmMethod;
-  /**
-   * maximum number of parameters to the method supported.
-   */
-  private final static int MAX_PARAMETERS = 50;
-  /**
-   * Is this method currently being analyzed?  Used for recursive
-   * invocations of the optimizing compiler.
-   */
-  private static boolean inProgress = false;
-  /**
-   * For each parameter, have we determined the actual parameter
-   * <em> must not </em> escape?
-   */
-  boolean[] _parameterDoesNotEscape = new boolean[MAX_PARAMETERS];
-  /**
-   * Have we determined that the method result <em> may </em> escape?
-   */
-  boolean _resultMayEscape = true;
 }
 
 
