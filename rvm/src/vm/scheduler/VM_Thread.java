@@ -638,6 +638,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit(); 
 
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+    if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
+//-#endif
+
     synchronized (myThread) { // release anybody waiting on this thread - 
 
 	// begin critical section
@@ -650,10 +654,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	myThread.notifyAll();
     }
 	
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
-//-#endif
-
     //
     // if the thread terminated because of an exception, remove
     // the mark from the exception register object, or else the
