@@ -298,6 +298,7 @@ integer RVM_WITH_HPM=0
 # Use the GNU CLASSPATH library?
 #
 integer RVM_WITH_GNU_CLASSPATH=1
+export RVM_WITH_GNU_CLASSPATH
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
