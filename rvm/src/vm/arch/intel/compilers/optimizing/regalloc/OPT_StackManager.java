@@ -958,8 +958,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
               // Note that we never need scratch floating point register
               // for FMOVs, since we already have a scratch stack location
               // reserved.
-              if ((r.isFloatingPoint() && s.operator == IA32_FMOV) ||
-                 (!isScratchFreeMove(s) && (s.hasMemoryOperand()))) {
+              boolean maybeNeedsScratch = !(r.isFloatingPoint() && 
+                                            s.operator==IA32_FMOV);
+              if (maybeNeedsScratch && 
+                  (!isScratchFreeMove(s) && (s.hasMemoryOperand()))) {
                 // We must create a new scratch register.
                 boolean used = usedIn(r,s) || usesSpillLocation(r,s);
                 boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
