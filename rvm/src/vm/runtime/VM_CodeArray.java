@@ -13,11 +13,11 @@ package com.ibm.JikesRVM;
 
 final public class VM_CodeArray implements VM_Uninterruptible {
 
-  //-#ifdef BYTE_SIZED_INSTRUCTION
+  //-#if RVM_FOR_IA32
   private byte [] data;
   //-#endif
 
-  //-#ifdef INT_SIZED_INSTRUCTION
+  //-#if RVM_FOR_POWERPC
   private int [] data;
   //-#endif
 
@@ -28,10 +28,10 @@ final public class VM_CodeArray implements VM_Uninterruptible {
 
   private VM_CodeArray (int size) throws VM_PragmaInterruptible {
 
-    //-#ifdef BYTE_SIZED_INSTRUCTION
+    //-#if RVM_FOR_IA32
     data = new byte[size];
     //-#endif
-    //-#ifdef INT_SIZED_INSTRUCTION
+    //-#if RVM_FOR_POWERPC
     data = new int[size];
     //-#endif
 
@@ -39,20 +39,20 @@ final public class VM_CodeArray implements VM_Uninterruptible {
       data[i] = 0;
   }
 
-  //-#ifdef BYTE_SIZED_INSTRUCTION
+  //-#if RVM_FOR_IA32
   public byte get (int index) throws VM_PragmaInline {
   //-#endif
-  //-#ifdef INT_SIZED_INSTRUCTION
+  //-#if RVM_FOR_POWERPC
   public int get (int index) throws VM_PragmaInline {
   //-#endif
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
-  //-#ifdef BYTE_SIZED_INSTRUCTION
+  //-#if RVM_FOR_IA32
   public void set (int index, byte v) throws VM_PragmaInline {
   //-#endif
-  //-#ifdef INT_SIZED_INSTRUCTION
+  //-#if RVM_FOR_POWERPC
   public void set (int index, int v) throws VM_PragmaInline {
   //-#endif
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
