@@ -83,12 +83,12 @@ The debugger requires the following files:
 
 \begin{enumerate}
 \item The RVM boot image:
-   This file is typically {\tt \$RVM\_BUILD/Jalapeno.image} but it could
+   This file is typically {\tt \$RVM\_BUILD/RVM.image} but it could
    have other names with the {\tt .image extension}.  You can specify a
    different boot image name.
 \begin{itemize}
 \item    {\tt jdp} argument:    {-i bootImageName}
-\item   Default value:          {\tt \$RVM\_BUILD/Jalapeno.image}
+\item   Default value:          {\tt \$RVM\_BUILD/RVM.image}
 \end{itemize}
 
 \index{JTOC}
@@ -107,24 +107,24 @@ The debugger requires the following files:
    offset for the dictionaries for the remote reflection feature.
 \begin{itemize}
 \item   {\tt jdp} argument:     (none)
-\item    Default value: {\tt \$RVM\_BUILD/Jalapeno.map}
+\item    Default value: {\tt \$RVM\_BUILD/RVM.map}
 \end{itemize}
 
 \item The list of classes in the boot image:
-   {\tt jdp} looks for the file {\tt \$RVM\_BUILD/Jalapeno.primordials}
+   {\tt jdp} looks for the file {\tt \$RVM\_BUILD/RVM.primordials}
 
 \begin{itemize}
 \item   {\tt jdp} argument:     {\tt -n classListName}
-\item   Default value:  {\tt \$RVM\_BUILD/Jalapeno.primordials}
+\item   Default value:  {\tt \$RVM\_BUILD/RVM.primordials}
 \end{itemize}
 
 \item The program to load and run the RVM boot image:
-   This file is typically {\tt \$RVM\_BUILD/Jalapeno}.
+   This file is typically {\tt \$RVM\_BUILD/RVM}.
    Normally you don't have to be concerned about this file since it rarely
    changes.
 \begin{itemize}
 \item   {\tt jdp} argument:     {\tt -jdpbootrunner booterName}
-\item   Default value:  {\tt \$RVM\_BUILD/Jalapeno}
+\item   Default value:  {\tt \$RVM\_BUILD/RVM}
 \end{itemize}
 \end{enumerate}
 

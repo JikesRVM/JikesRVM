@@ -139,7 +139,7 @@ The remainder of this section describes the process in greater detail.
 \item Obtain the shadow
 
 Extract the RVM distribution into
-a directory such as {\tt \$HOME/jalapeno-1.1}
+a directory such as {\tt \$HOME/rvm2.0.0}
 
 \index{environment variables}
 \index{RVM\_ROOT}
@@ -189,7 +189,7 @@ file.  For example, for {\tt csh}, you might insert the
 following into your {\tt .cshrc} file:
 
 \begin{verbatim}
-setenv RVM_ROOT $HOME/jalapeno-1.0   # <--define your shadow directory 
+setenv RVM_ROOT $HOME/rvm2.0.0   # <--define your shadow directory 
 setenv RVM_BUILD $HOME/rvmBuild     # <--define your current build directory 
 setenv PATH $RVM_ROOT/bin:$PATH
 setenv RVM_HOST_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
@@ -295,7 +295,7 @@ the following command:
 
 Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
-{\tt \$RVM\_BUILD/Jalapeno.classes}, preprocesses these files, generates
+{\tt \$RVM\_BUILD/RVM.classes}, preprocesses these files, generates
 some code with template expansions, builds an executable C program to
 start the RVM, and writes the RVM boot image.  The boot image is the
 binary image of a ready-to-go instance of the RVM.
@@ -406,9 +406,9 @@ functionality as a non-adaptive configuration.  One image is built,
 and the runtime compiler can be specified at the command line as
 follows:
 \begin{verbatim}
-  jalapeno -X:aos:primary_strategy=baseonly
+  rvm -X:aos:primary_strategy=baseonly
             or
-  jalapeno -X:aos:primary_strategy=optonly
+  rvm -X:aos:primary_strategy=optonly
 \end{verbatim}
 
 The second choice intially compiles all methods with the
