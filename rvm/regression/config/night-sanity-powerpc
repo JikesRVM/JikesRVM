@@ -1,7 +1,7 @@
 BaseBaseSemispace -test-list nightly-tests
 BaseBaseMarkSweep -test-list nightly-tests-with-jdp
 BaseBaseHybrid -test-list nightly-tests
-BaseBaseCopyGenFixed -test-list nightly-tests 
+BaseBaseCopyGen -test-list nightly-tests 
 BaseBaseCopyGenVariable -test-list nightly-tests 
 BaseBaseConcurrent -test-list nightly-tests-short
 BaseAdaptiveSemispace -test-list nightly-tests-short

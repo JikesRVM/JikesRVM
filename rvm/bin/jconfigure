@@ -652,7 +652,7 @@ function emitSourceList
    #
    if (( $RVM_WITH_COPYING_GC )); then
       if (( $RVM_WITH_GENERATIONAL_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenFixed
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGen
       else
          print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
       fi

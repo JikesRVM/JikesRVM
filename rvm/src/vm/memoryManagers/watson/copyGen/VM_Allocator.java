@@ -4,7 +4,7 @@
 //$Id$
 
 /**
- * Copying Generational Collector/Allocator with Fixed Size Nursery
+ * Copying Generational Collector/Allocator.
  * <p>
  * Uses a writebarrier which puts references to objects, which had internal 
  * references modified, into processor local writebuffers.  For minor 
@@ -12,11 +12,12 @@
  * for the collection.  (The RVM compilers generate the barrier code when 
  * the static final constant "writeBarrier" is set to true.)
  * <p>
- * Divides the heap into 2 mature semi-spaces and a fixed size nursery.
- * the nursery size can be set on the command line by specifying
- * "-X:nh=xxx" where xxx is the nursery size in megabytes.  The nursery size
- * is subtracted from the small object heap size (-X:h=xxx) and the remainder
- * is divided into 2 equal sized mature semi-spaces.
+ * Divides the heap into 2 mature semi-spaces and a nursery.
+ * The nursery can either be a fixed size, set on the command line by 
+ * specifying "-X:nh=xxx" where xxx is the nursery size in megabytes, 
+ * or a variable size (Appel-style).  
+ * The nursery size is subtracted from the small object heap size (-X:h=xxx) 
+ * and the remainder is divided into 2 equal sized mature semi-spaces.
  * <pre>
  * Small Object Heap Layout: 
  *  + ------------+ +---------------------+ +------------------------+ +---------+

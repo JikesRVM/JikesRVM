@@ -395,10 +395,10 @@ A garbage collector may have any of the following types:
 \item[NoGC] no garbage collection is performed
 \item[Semispace] a copying semi-space collector
 \item[MarkSweep] a mark-and-sweep (non copying) collector
+\item[CopyGen] a copying generational collector with a
+fixed-size nursery
 \item[CopyGenVariable] a copying generational collector with a
 variable-size nursery
-\item[CopyGenFixed] a copying generational collector with a
-fixed-size nursery
 \item[HybridGC] a hybrid collector, semi-space for the nursery and
 mark-and-sweep for the mature space
 \item[Concurrent] a concurrent reference counting collector
