@@ -56,17 +56,30 @@ public class VM_Process extends java.lang.Process {
 	creatingProcessor = VM_Processor.getCurrentProcessor();
 	// FIXME: check for error creating process
 
+	// initialize file descriptors
+	VM_FileSystem.onCreateFileDescriptor( inputDescriptor, false );
+	VM_FileSystem.onCreateFileDescriptor( outputDescriptor, false );
+	VM_FileSystem.onCreateFileDescriptor( errorDescriptor, false );
+
 	// Create Java streams.
-	// If the user of this process doesn't close the
-	// pipes connecting the VM to the process explicitly,
-	// eventually they will be closed when the stream objects
-	// are finalized.
-	outputStream = new FileOutputStream(
-	    JikesRVMSupport.createFileDescriptor(inputDescriptor, false));
-	inputStream = new FileInputStream(
-	    JikesRVMSupport.createFileDescriptor(outputDescriptor, false));
-	errorStream = new FileInputStream(
-	    JikesRVMSupport.createFileDescriptor(errorDescriptor, false));
+	//
+	// NOTES:
+	//
+	// (1) If the user of this process doesn't close the
+	//     pipes connecting the VM to the process explicitly,
+	//     eventually they will be closed when the stream objects
+	//     are finalized.
+	//
+	// (2) We do not use File(In/Out)putStream here because we want
+	//     to use our VM-mediated non-blocking I/O, which is
+	//     currently not used by the GNU Classpath java.io code.
+	//     We want to do this so that people who communicate with
+	//     external processes, relying on blocking i/o to
+	//     synchronize will not get bitten by our threading.
+	//
+	outputStream = VM_FileSystem.getOutputStream(inputDescriptor);
+	inputStream = VM_FileSystem.getInputStream(outputDescriptor);
+	errorStream = VM_FileSystem.getInputStream(errorDescriptor);
     }
 
     /**

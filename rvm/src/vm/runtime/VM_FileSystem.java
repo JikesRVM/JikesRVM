@@ -4,6 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.IOException;
+
 /**
  * Interface to filesystem of underlying operating system.
  * These methods use nonblocking I/O for reads and writes and, if necessary,
@@ -661,5 +665,61 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
       else
 	VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
     }
+  }
+
+  static InputStream getInputStream(final int fd) {
+      return new InputStream() {
+	  public int available() throws IOException {
+	      return bytesAvailable( fd );
+	  }
+
+	  public void close() throws IOException {
+	      VM_FileSystem.close( fd );
+	  }
+	      
+	  public int read() throws IOException {
+	      return readByte( fd );
+	  }
+	      
+	  public int read(byte[] buffer) throws IOException {
+	      return readBytes(fd, buffer, 0, buffer.length);
+	  }
+	      
+	  public int read(byte[] buf, int off, int len) throws IOException {
+	      return readBytes(fd, buf, off, len);
+	  }
+
+	  protected void finalize() throws IOException {
+	      close();
+	  }
+      };
+  }
+	      
+  static OutputStream getOutputStream(final int fd) {
+      return new OutputStream() {
+	  public void write (int b) throws IOException {
+	      writeByte(fd, b);
+	  }
+
+	  public void write (byte[] b) throws IOException {
+	      writeBytes(fd, b, 0, b.length);
+	  }
+
+	  public void write (byte[] b, int off, int len) throws IOException {
+	      writeBytes(fd, b, off, len);
+	  }
+
+	  public void flush () throws IOException {
+	      sync( fd );
+	  }
+
+	  public void close () throws IOException {
+	      VM_FileSystem.close( fd );
+	  }
+
+	  protected void finalize() throws IOException {
+	      close();
+	  }
+      };
   }
 }
