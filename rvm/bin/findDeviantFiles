@@ -28,6 +28,7 @@ usage() {
     local exitstatus="${1-1}";
     cat >&2 <<EOF
 Usage: $ME <input-subtree> <output-directory> <suffix>
+  or:  $ME --help
    
   This script finds all files in a directory subtree 
   that don't contain either:
@@ -59,12 +60,12 @@ set -o nounset
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
 
-if [[ $# = 0 || $# < 3 ]]; then
-    usage 1;
-fi
+case "$1" in
+    -help|--help) usage 0 ;;
+esac
 
-if [[ "$1" = -help ]]; then
-    usage 0;
+if (( $# != 3 )); then
+    usage 1;
 fi
 
 # Where are we?
@@ -94,7 +95,7 @@ trap 'echo "$ME: An Unexpected Error happened; execution aborted" >&2' EXIT
 set -e # Abort on errors
 
 ## Create output directory if necessary.
-[ -e "$2" ] || mkdir -p "$2"
+mkdir -p "$2"
 # cd to input directory
 cd "$1"
 
@@ -138,14 +139,14 @@ declare -r -a find_optsA=( \
 declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
 # $RVM_ROOT/rvm/bin/findFilesWithoutAuthorTag $1 $2 $3
-#echo "find all plain files without @ author tags"
+#echo "find all plain files without @Author tags"
 # Commented out due to trouble.
 find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
 #find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutCopyrights $1 $2 $3
 #echo "find all plain files with copyright notices"
-find . "${find_optsA[@]}" -exec fgrep -c "(C) Copyright" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
+find . "${find_optsA[@]}" -exec egrep -c "\(C\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
 #echo "find all plain files without \$Id: tags"
