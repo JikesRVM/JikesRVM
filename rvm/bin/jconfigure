@@ -592,7 +592,57 @@ function rationalize_config_file_settings () {
 
     setFromPath UNZIP_CMD unzip
 #     export UNZIP_CMD="/usr/bin/unzip"
+}
 
+function rationalize_classpath_version () {
+    ## Now, rationalize the settings for the current Classpath version
+    if     ! (( RVM_WITH_CLASSPATH_0_10 )) \
+	&& ! (( RVM_WITH_CLASSPATH_0_11 )) \
+	&& ! (( RVM_WITH_CLASSPATH_0_12 )) \
+	&& ! (( RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD ))
+    then
+	## Set the default.
+	RVM_WITH_CLASSPATH_0_12=1
+    fi
+
+    ## Perform sanity checks.  We could consolidate these, but
+    ## breaking them into two checks lets us print better error
+    ## messages.
+
+    ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
+    local -i sum
+    let "sum=(RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
+	+ RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD)"
+    if (( sum > 1 )); then
+	show_mesg >&2 "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, and RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	trap '' EXIT
+	exit 2
+    fi
+
+    ## Now check for any unknown RVM_WITH_CLASSPATH_ variables.
+    ## If someone turns OFF an unknown RVM_WITH_CLASSPATH variable, that's OK.
+    ## But turning them ON is distinctly bad.
+
+    local unk="$(set | sed \
+			-e '/^RVM_WITH_CLASSPATH_/!d'			\
+			-e '/=0$/d'					\
+			-e '/^RVM_WITH_CLASSPATH_0_10=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_11=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_12=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD=/d' \
+		)"
+    if [[ $unk ]]; then
+	show_mesg >&2 "At least one unknown RVM_WITH_CLASSPATH_... variable is set:
+$unk
+This could mean that you're trying to use an unsupported 
+version of GNU Classpath.  Aborting."
+	trap '' EXIT
+	exit 2
+    fi
+}
+
+function rationalize_preprocessor_constants () {
+    rationalize_classpath_version;
 }
 
 function load_config_file () {
@@ -814,6 +864,17 @@ JIKESRVM_VERSION="Jikes RVM 2.3.4"
 DEFAULT_INITIAL_HEAP_SIZE=20   # in megabytes
 DEFAULT_MAXIMUM_HEAP_SIZE=100  # in megabytes
 
+## These are the preprocessor constants.  They can be reset by config
+## files and by the command-line -D option; the command-line trumps
+## config files.
+
+## We MUST define these only *after* we've read in the host
+## configuration file.  That is because we are going to override any
+## host-specific configuration variables, such as RVM_FOR_POWERPC or
+## RVM_FOR_IA32 (Consider the common case of an IA32 cross-build to
+## PowerPC -- RVM_HOST_CONFIG will define RVM_FOR_IA32, but we want
+## the RVM_FOR_POWERPC definition in RVM_TARGET_CONFIG).
+
 # Here are the choices for target architecture.
 #
 declare -i RVM_FOR_POWERPC=0  # does not imply aix, nor Linux
@@ -891,13 +952,17 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 #       revert to old default until it works again.
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
-## Classpath 0.12 is the default on Linux.
-## We have build problems on AIX, so are using Classpath 0.10 on that platform
-## for now.  The minimum required version is Classpath 0.11
+## Classpath 0.12 is the default on all platforms except for OSX/Darwin.
+## On that platform, there is difficulty building Classpath 0.12, so we
+## use Classpath 0.10.
 
 declare -i RVM_WITH_CLASSPATH_0_10=0
 
 declare -i RVM_WITH_CLASSPATH_0_11=0
+
+declare -i RVM_WITH_CLASSPATH_0_12=0
+
+declare -i RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
 ## I've surrounded them with this. --Steve Augart
@@ -1093,6 +1158,9 @@ if (( RVM_WITH_QUICK_COMPILER )) && (( ! RVM_FOR_POWERPC )) ; then
 
 fi
 
+# Now we can rationalize the preprocessor constants, since we have set them
+# in the preamble and have processed any args that would modify them.
+rationalize_preprocessor_constants; 
 
 # set the relative path to the object model.
 if (( RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL )); then
@@ -4339,6 +4407,9 @@ chmod -x${PERM}	$f
 ## read the host environment file
 unsetEnvironment;		# throw out leftovers
 load_config_file ${RVM_HOST_CONFIG}
+# Just make sure that the host and target have the same version of 
+# GNU Classpath 
+rationalize_classpath_version;
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
     
 f=${BUILD_DIRECTORY}/Make.rules.host
