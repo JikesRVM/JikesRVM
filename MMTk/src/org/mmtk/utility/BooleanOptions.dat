@@ -35,5 +35,8 @@ Should we display detailed breakdown of where GC time is spent?
 variableSizeHeap true
 Should we shrink/grow the heap to adjust to application working set?
 
+printPhaseStats false
+When printing statistics, should statistics for each gc-mutator phase be printed?
+
 gcspyWait false
 Should the VM wait for the visualiser to connect?

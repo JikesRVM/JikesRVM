@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Log;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -131,21 +132,17 @@ public class Stats implements VM_Uninterruptible {
    * Print out statistics
    */
   public static void printStats() {
-    printHeader();
-    for (int p = 0; p <= phase; p += 2) {
-      Log.write((p/2)+1); Log.write("\t");
-      for (int c = 0; c < counters; c++) {
-        if (counter[c].mergePhases()) {
-	  counter[c].printCount(p); Log.write("\t");
-        } else {
-	  counter[c].printCount(p); Log.write("\t");
-          counter[c].printCount(p+1); Log.write("\t");
-        }
-      }
-      Log.writeln();
-    }
-    // print totals
+    if (Options.printPhaseStats)
+      printPhases();
+    printTotals();
+  }
+  
+  /**
+   * Print out statistics totals
+   */
+  public static void printTotals() {
     Log.writeln("============================ MMTk Statistics Totals ============================");
+    printColumnNames();
     Log.write((phase/2)+1); Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
@@ -160,12 +157,31 @@ public class Stats implements VM_Uninterruptible {
     Plan.totalTime.printTotal(); Log.writeln(" ms");
     Log.writeln("------------------------------ End MMTk Statistics -----------------------------");
   }
-  
+
   /**
-   * Print out statistics header
+   * Print out statistics for each mutator/gc phase
    */
-  private static void printHeader() {
+  public static void printPhases() {
     Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
+    printColumnNames();
+    for (int p = 0; p <= phase; p += 2) {
+      Log.write((p/2)+1); Log.write("\t");
+      for (int c = 0; c < counters; c++) {
+        if (counter[c].mergePhases()) {
+	  counter[c].printCount(p); Log.write("\t");
+        } else {
+	  counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p+1); Log.write("\t");
+        }
+      }
+      Log.writeln();
+    }
+  }
+
+  /**
+   * Print out statistics column names
+   */
+  private static void printColumnNames() {
     Log.write("GC\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
