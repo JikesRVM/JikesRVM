@@ -15,7 +15,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Ton Ngo
  * @author Steve Smith
  */
-public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstants {
+public class VM_JNICompiler implements VM_BaselineConstants {
 
   // offsets to saved regs and addresses in java to C glue frames
   // EDI (JTOC) and EBX are nonvolatile registers in RVM
@@ -673,7 +673,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     //
     asm.emitMOV_Reg_RegDisp (EBX, EBP, (2*WORDSIZE));   // pick up arg 0 (from callers frame)
     asm.emitMOV_Reg_RegDisp (JTOC, EBX, 0);                         // JTOC<-addr of JNIFunctions[0]
-    asm.emitMOV_Reg_RegDisp (JTOC, JTOC, JNIFUNCTIONS_JTOC_OFFSET); // JTOC<-JNIFunctions[saved JTOC]
+    asm.emitMOV_Reg_RegDisp (JTOC, JTOC, VM_JNIEnvironment.getJNIFunctionsJTOCOffset()); // JTOC<-JNIFunctions[saved JTOC]
 
     // address of current processors status word is stored at jniEnv (first arg) + 4;
     asm.emitMOV_Reg_RegDisp (S0, EBX, WORDSIZE);     // S0 <- addr of status word

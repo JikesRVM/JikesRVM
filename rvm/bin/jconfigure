@@ -1672,6 +1672,7 @@ EOF
 	    BootImageInterface.class
 	    Dummy.class
 	    OptDummy.class
+	    BuildJNIFunctionTable.class
 
 	# skip: JikesRVMSocketImpl; don't load native libs unless needed
 	    JikesRVMSocketImpl.class

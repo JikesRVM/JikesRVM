@@ -18,8 +18,8 @@ import com.ibm.JikesRVM.classloader.*;
 public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements VM_JNIAIXConstants {
 
   /**
-   * This is the JNI function table, the address of this array will be
-   * passed to the native code
+   * This is the shared JNI function table used by native code
+   * to invoke methods in @link{VM_JNIFunctions}.
    */
   private static VM_CodeArray[] JNIFunctions;
 
@@ -39,14 +39,17 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
                                            // maybe need set & get functions ??
 
   /**
-   *  Initialize the array of JNI functions.
+   * Initialize the array of JNI functions.
+   * This function is called during bootimage writing.
    */
-  public static void initFunctionTable() {
+  public static void initFunctionTable(VM_CodeArray[] functions) {
     //-#if RVM_FOR_AIX
-    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT];
-    AIXLinkageTriplets = new int[FUNCTIONCOUNT][][];
+    JNIFunctions = functions;
+    AIXLinkageTriplets = new int[functions.length][][];
     //-#elif RVM_FOR_LINUX
-    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
+    // An extra entry is allocated, to hold the RVM JTOC
+    JNIFunctions = new VM_CodeArray[functions.length + 1];
+    System.arraycopy(functions, 0, JNIFunctions, 0, functions.length);
     //-#endif
 	
     // 2 words for each thread
@@ -58,19 +61,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
       AIXLinkageTriplets[i] = new int[3][];
     }
     //-#endif
-
-    // initialize JNIFunctions
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
-    VM_Class cls = (VM_Class)tRef.peekResolvedType();
-    VM_Method[] mths = cls.getDeclaredMethods();
-    for (int i=0; i<mths.length; i++) {
-      String methodName = mths[i].getName().toString();
-      int jniIndex = indexOf(methodName);
-      if (jniIndex!=-1) {
-	JNIFunctions[jniIndex] = mths[i].getCurrentInstructions();
-      } 
-    }
   }
 
   public static void boot() {
@@ -108,6 +98,11 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
   }
+
+  static int getJNIFunctionsJTOCOffset() {
+    return VM_JNIFunctions.FUNCTIONCOUNT << VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  }
+
 
   /*****************************************************************************
    * Utility function called from VM_JNIFunction

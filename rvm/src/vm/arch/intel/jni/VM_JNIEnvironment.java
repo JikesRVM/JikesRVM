@@ -15,11 +15,11 @@ import java.lang.reflect.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements VM_JNILinuxConstants {
+public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
   
   /**
-   * This is the JNI function table, the address of this array will be
-   * passed to the native code
+   * This is the shared JNI function table used by native code
+   * to invoke methods in @link{VM_JNIFunctions}.
    */
   private static VM_CodeArray[] JNIFunctions;
 
@@ -35,28 +35,18 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
                                            // maybe need set & get functions ??
 
   /**
-   *  Initialize the array of JNI functions.
+   * Initialize the array of JNI functions.
+   * This function is called during bootimage writing.
    */
-  public static void initFunctionTable() {
+  public static void initFunctionTable(VM_CodeArray[] functions) {
     // An extra entry is allocated, to hold the RVM JTOC 07/01 SES
-    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
+    JNIFunctions = new VM_CodeArray[functions.length + 1];
+    System.arraycopy(functions, 0, JNIFunctions, 0, functions.length);
 
     // First word is a pointer to the JNIFunction table
     // Second word is address of current processors vpStatus word
     // (JTOC is now stored at end of shared JNIFunctions array)
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
-    VM_Class cls = (VM_Class)tRef.peekResolvedType();
-    VM_Method[] mths = cls.getDeclaredMethods();
-    for (int i=0; i<mths.length; i++) {
-      String methodName = mths[i].getName().toString();
-      int jniIndex = indexOf(methodName);
-      if (jniIndex!=-1) {
-	JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
-      } 
-    }
   }
 
   public static void boot() {
@@ -65,7 +55,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     //
     // the array is not well typed, so forced to setMemoryAddress instead
     // TODO: this is higly bogus and needs to be removed. --dave
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
+    int offset = getJNIFunctionsJTOCOffset();
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(offset),
 			      VM_Magic.getTocPointer());
   }
 
@@ -78,6 +69,10 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
+  }
+
+  static int getJNIFunctionsJTOCOffset() {
+    return VM_JNIFunctions.FUNCTIONCOUNT << VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
   }
 
   /*****************************************************************************

@@ -841,9 +841,10 @@ public class BootImageWriter extends BootImageWriterMessages
 	}
       }
 
-      // Do the portion of JNIEnvironment initialziation that can be done
+      // Do the portion of JNIEnvironment initialization that can be done
       // at bootimage writing time.
-      VM_JNIEnvironment.initFunctionTable();
+      VM_CodeArray[] functionTable = BuildJNIFunctionTable.buildTable();
+      VM_JNIEnvironment.initFunctionTable(functionTable);
 
       //
       // Collect the VM class Field to JDK class Field correspondence

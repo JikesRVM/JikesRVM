@@ -938,7 +938,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // dereference first 
     asm.emitLAddr(JTOC, 0, FIRST_VOLATILE_GPR);
     // the JTOC is saved at the end of environment object
-    asm.emitLAddr(JTOC, VM_JNIAIXConstants.JNIFUNCTIONS_JTOC_OFFSET, JTOC);
+    asm.emitLAddr(JTOC, VM_JNIEnvironment.getJNIFunctionsJTOCOffset(), JTOC);
     //-#endif
 
     // Save AIX non-volatile GRPs and FPRs that will not be saved and restored

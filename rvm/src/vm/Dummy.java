@@ -22,6 +22,7 @@ class Dummy {
   static VM_Runtime                 d;
   static VM_Reflection              e;
   static VM_Process                 f;
+  static BuildJNIFunctionTable      g;
   static VM_SaveVolatile            i;
   static MM_Interface               l;
   static VM_JNIFunctions            m;

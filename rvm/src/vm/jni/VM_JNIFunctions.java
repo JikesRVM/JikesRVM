@@ -56,10 +56,12 @@ import java.lang.reflect.*;
  * @date 2/1/00
  */
 public class VM_JNIFunctions implements VM_NativeBridge, 
-					VM_JNIConstants, 
 					VM_SizeConstants {
   // one message for each JNI function called from native
   final static boolean traceJNI = false;
+
+  // number of JNI function entries
+  public static final int FUNCTIONCOUNT = 229;    
 
   /**
    * GetVersion: the version of the JNI
@@ -78,7 +80,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     VM_Scheduler.traceback("JNI ERROR: DefineClass not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return DEFINECLASS; 
+    return -1;
   }
 
 
@@ -5479,7 +5481,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     VM_Scheduler.traceback("JNI ERROR: RegisterNatives not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return REGISTERNATIVES; 
+    return -1; 
   }
 
 
@@ -5488,7 +5490,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     VM_Scheduler.traceback("JNI ERROR: UnregisterNatives not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return UNREGISTERNATIVES; 
+    return -1; 
   }
 
   /**
@@ -5557,70 +5559,70 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");   
     VM.sysWrite("JNI ERROR: FromReflectedMethod not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return FROMREFLECTEDMETHOD ; 
+    return -1; 
   }
 
   private static int FromReflectedField(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");   
     VM.sysWrite("JNI ERROR: FromReflectedField not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return FROMREFLECTEDFIELD ; 
+    return -1; 
   }
 
   private static int ToReflectedMethod(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");   
     VM.sysWrite("JNI ERROR: ToReflectedMethod not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return TOREFLECTEDMETHOD ; 
+    return -1; 
   }
 
   private static int ToReflectedField(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");   
     VM.sysWrite("JNI ERROR: ToReflectedField not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return TOREFLECTEDFIELD ; 
+    return -1; 
   }
 
   private static int PushLocalFrame(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");   
     VM.sysWrite("JNI ERROR: PushLocalFrame not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return PUSHLOCALFRAME ; 
+    return -1; 
   }
 
   private static int PopLocalFrame(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");   
     VM.sysWrite("JNI ERROR: PopLocalFrame not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return POPLOCALFRAME ; 
+    return -1; 
   }
 
   private static int NewLocalRef(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");   
     VM.sysWrite("JNI ERROR: NewLocalRef not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return NEWLOCALREF ; 
+    return -1; 
   }
 
   private static int EnsureLocalCapacity(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");   
     VM.sysWrite("JNI ERROR: EnsureLocalCapacity not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return ENSURELOCALCAPACITY ; 
+    return -1; 
   }
 
   private static int GetStringRegion(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");   
     VM.sysWrite("JNI ERROR: GetStringRegion not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return GETSTRINGREGION ; 
+    return -1; 
   }
 
   private static int GetStringUTFRegion(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");   
     VM.sysWrite("JNI ERROR: GetStringUTFRegion not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return GETSTRINGUTFREGION ; 
+    return -1; 
   }
 
   /**
@@ -5695,28 +5697,28 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");   
     VM.sysWrite("JNI ERROR: GetStringCritical not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return GETSTRINGCRITICAL ; 
+    return -1; 
   }
 
   private static int ReleaseStringCritical(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");   
     VM.sysWrite("JNI ERROR: ReleaseStringCritical not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return RELEASESTRINGCRITICAL ; 
+    return -1; 
   }
 
   private static int NewWeakGlobalRef(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");   
     VM.sysWrite("JNI ERROR: NewWeakGlobalRef not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return NEWWEAKGLOBALREF ; 
+    return -1; 
   }
 
   private static int DeleteWeakGlobalRef(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");   
     VM.sysWrite("JNI ERROR: DeleteWeakGlobalRef not implemented yet, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return DELETEWEAKGLOBALREF ; 
+    return -1; 
   }
 
   private static int ExceptionCheck(int envHandler) {
@@ -5729,24 +5731,24 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int reserved0(int envHandler) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return RESERVED0 ; 
+    return -1; 
   }
 
   private static int reserved1(int envHandler){
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);		       
-    return RESERVED1 ; 		       
+    return -1; 		       
   }				       
 
   private static int reserved2(int envHandler){	       
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);		       
-    return RESERVED2 ; 		       
+    return -1; 		       
   }				       				       
 
   private static int reserved3(int envHandler){	       
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);		       
-    return RESERVED3 ; 		       
+    return -1; 		       
   }				       				       				      
 }

@@ -19,11 +19,8 @@ import java.lang.reflect.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
-							  VM_RegisterConstants,
+public abstract class VM_JNIGenericEnvironment implements VM_RegisterConstants,
 							  VM_SizeConstants {
-
-  protected final static String[] names = initNames();
 
   /**
    * initial size for JNI refs, later grow as needed
@@ -93,15 +90,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
   protected Throwable pendingException;
 
   /**
-   * Saved context for thread attached to external pthread.  This context is
-   * saved by the JNIService thread and points to the point in JNIStartUp thread
-   * where it yields to the queue in the native VM_Processor.
-   * When DetachCurrentThread is called, the JNIService thread restores this context 
-   * to allow the thread to run VM_Thread.terminate on its original stack.
-   */
-  protected VM_Registers savedContextForTermination;
-
-  /**
    * Create a thread specific JNI environment.
    */
   public VM_JNIGenericEnvironment() {
@@ -141,23 +129,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
 
   public final void setSavedPRreg(VM_Processor vp) throws VM_PragmaUninterruptible  {
     savedPRreg = vp;
-  }
-
-  public final void setSavedTerminationContext(VM_Registers regs) throws VM_PragmaUninterruptible  {
-    savedContextForTermination = regs;
-  }
-
-  public final VM_Registers savedTerminationContext() throws VM_PragmaUninterruptible  {
-    return savedContextForTermination;
-  }
-
-  public final void setFromNative(VM_Address topJavaFP, 
-				  VM_Processor nativeVP, 
-				  int threadId) throws VM_PragmaUninterruptible  {
-    alwaysHasNativeFrame = true;
-    JNITopJavaFP = topJavaFP;
-    savedPRreg = nativeVP;
-    savedTIreg = threadId;
   }
 
   /**
@@ -278,256 +249,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
     return JNIEnvAddress;
   }
 
-  /**
-   * Get the JNI index for a function name.
-   * @param functionName a JNI function name
-   * @return the index for this function, -1 if not found
-   */
-  protected static int indexOf(String functionName) {
-    for (int i=0; i<FUNCTIONCOUNT; i++) {
-      if (names[i].equals(functionName))
-	return i;
-    }
-    return -1;
-  }
-
-  protected static String[] initNames() {
-    String[] names = new String[FUNCTIONCOUNT];
-    names[0]                             = "undefined";
-    names[RESERVED0]                     = "reserved0";
-    names[RESERVED1]                     = "reserved1";	  
-    names[RESERVED2]                     = "reserved2";	  
-    names[RESERVED3]                     = "reserved3";
-    names[GETVERSION]                    = "GetVersion";
-    names[DEFINECLASS]                   = "DefineClass";
-    names[FINDCLASS]                     = "FindClass";
-    names[FROMREFLECTEDMETHOD]         	 = "FromReflectedMethod"; //  JDK1.2, #7      
-    names[FROMREFLECTEDFIELD]          	 = "FromReflectedField";  //  JDK1.2, #8      
-    names[TOREFLECTEDMETHOD]           	 = "ToReflectedMethod";   //  JDK1.2, #9      
-    names[GETSUPERCLASS]                 = "GetSuperclass";
-    names[ISASSIGNABLEFROM]              = "IsAssignableFrom";
-    names[TOREFLECTEDFIELD]            	 = "ToReflectedField";    //  JDK1.2, #12      
-    names[THROW]                         = "Throw";
-    names[THROWNEW]                      = "ThrowNew";
-    names[EXCEPTIONOCCURRED]             = "ExceptionOccurred";
-    names[EXCEPTIONDESCRIBE]             = "ExceptionDescribe";
-    names[EXCEPTIONCLEAR]                = "ExceptionClear";
-    names[FATALERROR]                    = "FatalError";
-    names[PUSHLOCALFRAME]              	 = "PushLocalFrame";      //  JDK1.2, #19      
-    names[POPLOCALFRAME]               	 = "PopLocalFrame";       //  JDK1.2, #20      
-    names[NEWGLOBALREF]                  = "NewGlobalRef";
-    names[DELETEGLOBALREF]               = "DeleteGlobalRef";
-    names[DELETELOCALREF]                = "DeleteLocalRef";
-    names[ISSAMEOBJECT]                  = "IsSameObject";
-    names[NEWLOCALREF]                 	 = "NewLocalRef";         //  JDK1.2, #25      
-    names[ENSURELOCALCAPACITY]         	 = "EnsureLocalCapacity"; //  JDK1.2, #26   
-    names[ALLOCOBJECT]                   = "AllocObject";
-    names[NEWOBJECT]                     = "NewObject";	  
-    names[NEWOBJECTV]                    = "NewObjectV";	  
-    names[NEWOBJECTA]                    = "NewObjectA";	  
-    names[GETOBJECTCLASS]                = "GetObjectClass";	  
-    names[ISINSTANCEOF]                  = "IsInstanceOf";	  
-    names[GETMETHODID]                   = "GetMethodID";	  
-    names[CALLOBJECTMETHOD]              = "CallObjectMethod";	  
-    names[CALLOBJECTMETHODV]             = "CallObjectMethodV";	  
-    names[CALLOBJECTMETHODA]             = "CallObjectMethodA";	  
-    names[CALLBOOLEANMETHOD]             = "CallBooleanMethod";	  
-    names[CALLBOOLEANMETHODV]            = "CallBooleanMethodV";	  
-    names[CALLBOOLEANMETHODA]            = "CallBooleanMethodA";	  
-    names[CALLBYTEMETHOD]                = "CallByteMethod";	  
-    names[CALLBYTEMETHODV]               = "CallByteMethodV";	  
-    names[CALLBYTEMETHODA]               = "CallByteMethodA";	  
-    names[CALLCHARMETHOD]                = "CallCharMethod";	  
-    names[CALLCHARMETHODV]               = "CallCharMethodV";	  
-    names[CALLCHARMETHODA]               = "CallCharMethodA";	  
-    names[CALLSHORTMETHOD]               = "CallShortMethod";	  
-    names[CALLSHORTMETHODV]              = "CallShortMethodV";	  
-    names[CALLSHORTMETHODA]              = "CallShortMethodA";	  
-    names[CALLINTMETHOD]                 = "CallIntMethod";	  
-    names[CALLINTMETHODV]                = "CallIntMethodV";	  
-    names[CALLINTMETHODA]                = "CallIntMethodA";	  
-    names[CALLLONGMETHOD]                = "CallLongMethod";  
-    names[CALLLONGMETHODV]               = "CallLongMethodV";	  
-    names[CALLLONGMETHODA]               = "CallLongMethodA";	  
-    names[CALLFLOATMETHOD]               = "CallFloatMethod";	  
-    names[CALLFLOATMETHODV]              = "CallFloatMethodV";	  
-    names[CALLFLOATMETHODA]              = "CallFloatMethodA";	  
-    names[CALLDOUBLEMETHOD]              = "CallDoubleMethod";	  
-    names[CALLDOUBLEMETHODV]             = "CallDoubleMethodV";	  
-    names[CALLDOUBLEMETHODA]             = "CallDoubleMethodA";	  
-    names[CALLVOIDMETHOD]                = "CallVoidMethod";  
-    names[CALLVOIDMETHODV]               = "CallVoidMethodV";	  
-    names[CALLVOIDMETHODA]               = "CallVoidMethodA";
-    names[CALLNONVIRTUALOBJECTMETHOD]    = "CallNonvirtualObjectMethod";
-    names[CALLNONVIRTUALOBJECTMETHODV]   = "CallNonvirtualObjectMethodV";
-    names[CALLNONVIRTUALOBJECTMETHODA]   = "CallNonvirtualObjectMethodA";
-    names[CALLNONVIRTUALBOOLEANMETHOD]   = "CallNonvirtualBooleanMethod";
-    names[CALLNONVIRTUALBOOLEANMETHODV]  = "CallNonvirtualBooleanMethodV";
-    names[CALLNONVIRTUALBOOLEANMETHODA]  = "CallNonvirtualBooleanMethodA";
-    names[CALLNONVIRTUALBYTEMETHOD]      = "CallNonvirtualByteMethod";
-    names[CALLNONVIRTUALBYTEMETHODV]     = "CallNonvirtualByteMethodV";
-    names[CALLNONVIRTUALBYTEMETHODA]     = "CallNonvirtualByteMethodA";
-    names[CALLNONVIRTUALCHARMETHOD]      = "CallNonvirtualCharMethod";
-    names[CALLNONVIRTUALCHARMETHODV]     = "CallNonvirtualCharMethodV";
-    names[CALLNONVIRTUALCHARMETHODA]     = "CallNonvirtualCharMethodA";
-    names[CALLNONVIRTUALSHORTMETHOD]     = "CallNonvirtualShortMethod";	  
-    names[CALLNONVIRTUALSHORTMETHODV]    = "CallNonvirtualShortMethodV";	  
-    names[CALLNONVIRTUALSHORTMETHODA]    = "CallNonvirtualShortMethodA";	  
-    names[CALLNONVIRTUALINTMETHOD]       = "CallNonvirtualIntMethod";	  
-    names[CALLNONVIRTUALINTMETHODV]      = "CallNonvirtualIntMethodV";	  
-    names[CALLNONVIRTUALINTMETHODA]      = "CallNonvirtualIntMethodA";	  
-    names[CALLNONVIRTUALLONGMETHOD]      = "CallNonvirtualLongMethod";	  
-    names[CALLNONVIRTUALLONGMETHODV]     = "CallNonvirtualLongMethodV";	  
-    names[CALLNONVIRTUALLONGMETHODA]     = "CallNonvirtualLongMethodA";	  
-    names[CALLNONVIRTUALFLOATMETHOD]     = "CallNonvirtualFloatMethod";	  
-    names[CALLNONVIRTUALFLOATMETHODV]    = "CallNonvirtualFloatMethodV";	  
-    names[CALLNONVIRTUALFLOATMETHODA]    = "CallNonvirtualFloatMethodA";	  
-    names[CALLNONVIRTUALDOUBLEMETHOD]    = "CallNonvirtualDoubleMethod";	  
-    names[CALLNONVIRTUALDOUBLEMETHODV]   = "CallNonvirtualDoubleMethodV";	  
-    names[CALLNONVIRTUALDOUBLEMETHODA]   = "CallNonvirtualDoubleMethodA";	  
-    names[CALLNONVIRTUALVOIDMETHOD]      = "CallNonvirtualVoidMethod";	  
-    names[CALLNONVIRTUALVOIDMETHODV]     = "CallNonvirtualVoidMethodV";	  
-    names[CALLNONVIRTUALVOIDMETHODA]     = "CallNonvirtualVoidMethodA";	  
-    names[GETFIELDID]                    = "GetFieldID";
-    names[GETOBJECTFIELD]                = "GetObjectField";
-    names[GETBOOLEANFIELD]               = "GetBooleanField";
-    names[GETBYTEFIELD]                  = "GetByteField";
-    names[GETCHARFIELD]                  = "GetCharField";
-    names[GETSHORTFIELD]                 = "GetShortField";
-    names[GETINTFIELD]                   = "GetIntField";
-    names[GETLONGFIELD]                  = "GetLongField";
-    names[GETFLOATFIELD]                 = "GetFloatField";
-    names[GETDOUBLEFIELD]                = "GetDoubleField";
-    names[SETOBJECTFIELD]                = "SetObjectField";
-    names[SETBOOLEANFIELD]               = "SetBooleanField";
-    names[SETBYTEFIELD]                  = "SetByteField";
-    names[SETCHARFIELD]                  = "SetCharField";
-    names[SETSHORTFIELD]                 = "SetShortField";
-    names[SETINTFIELD]                   = "SetIntField";
-    names[SETLONGFIELD]                  = "SetLongField";
-    names[SETFLOATFIELD]                 = "SetFloatField";
-    names[SETDOUBLEFIELD]                = "SetDoubleField";
-    names[GETSTATICMETHODID]             = "GetStaticMethodID";
-    names[CALLSTATICOBJECTMETHOD]        = "CallStaticObjectMethod";
-    names[CALLSTATICOBJECTMETHODV]       = "CallStaticObjectMethodV";
-    names[CALLSTATICOBJECTMETHODA]       = "CallStaticObjectMethodA";
-    names[CALLSTATICBOOLEANMETHOD]       = "CallStaticBooleanMethod";	  
-    names[CALLSTATICBOOLEANMETHODV]      = "CallStaticBooleanMethodV";	  
-    names[CALLSTATICBOOLEANMETHODA]      = "CallStaticBooleanMethodA";	  
-    names[CALLSTATICBYTEMETHOD]          = "CallStaticByteMethod";	  
-    names[CALLSTATICBYTEMETHODV]         = "CallStaticByteMethodV";	  
-    names[CALLSTATICBYTEMETHODA]         = "CallStaticByteMethodA";	  
-    names[CALLSTATICCHARMETHOD]          = "CallStaticCharMethod";	  
-    names[CALLSTATICCHARMETHODV]         = "CallStaticCharMethodV";	  
-    names[CALLSTATICCHARMETHODA]         = "CallStaticCharMethodA";	  
-    names[CALLSTATICSHORTMETHOD]         = "CallStaticShortMethod";	  
-    names[CALLSTATICSHORTMETHODV]        = "CallStaticShortMethodV";
-    names[CALLSTATICSHORTMETHODA]        = "CallStaticShortMethodA";
-    names[CALLSTATICINTMETHOD]           = "CallStaticIntMethod";
-    names[CALLSTATICINTMETHODV]          = "CallStaticIntMethodV";
-    names[CALLSTATICINTMETHODA]          = "CallStaticIntMethodA";
-    names[CALLSTATICLONGMETHOD]          = "CallStaticLongMethod";
-    names[CALLSTATICLONGMETHODV]         = "CallStaticLongMethodV";
-    names[CALLSTATICLONGMETHODA]         = "CallStaticLongMethodA";
-    names[CALLSTATICFLOATMETHOD]         = "CallStaticFloatMethod";
-    names[CALLSTATICFLOATMETHODV]        = "CallStaticFloatMethodV";
-    names[CALLSTATICFLOATMETHODA]        = "CallStaticFloatMethodA";
-    names[CALLSTATICDOUBLEMETHOD]        = "CallStaticDoubleMethod";
-    names[CALLSTATICDOUBLEMETHODV]       = "CallStaticDoubleMethodV";	  
-    names[CALLSTATICDOUBLEMETHODA]       = "CallStaticDoubleMethodA";	  
-    names[CALLSTATICVOIDMETHOD]          = "CallStaticVoidMethod";
-    names[CALLSTATICVOIDMETHODV]         = "CallStaticVoidMethodV";
-    names[CALLSTATICVOIDMETHODA]         = "CallStaticVoidMethodA";	  
-    names[GETSTATICFIELDID]              = "GetStaticFieldID";
-    names[GETSTATICOBJECTFIELD]          = "GetStaticObjectField";
-    names[GETSTATICBOOLEANFIELD]         = "GetStaticBooleanField";
-    names[GETSTATICBYTEFIELD]            = "GetStaticByteField";
-    names[GETSTATICCHARFIELD]            = "GetStaticCharField";
-    names[GETSTATICSHORTFIELD]           = "GetStaticShortField";
-    names[GETSTATICINTFIELD]             = "GetStaticIntField";
-    names[GETSTATICLONGFIELD]            = "GetStaticLongField";
-    names[GETSTATICFLOATFIELD]           = "GetStaticFloatField";
-    names[GETSTATICDOUBLEFIELD]          = "GetStaticDoubleField";
-    names[SETSTATICOBJECTFIELD]          = "SetStaticObjectField";
-    names[SETSTATICBOOLEANFIELD]         = "SetStaticBooleanField";
-    names[SETSTATICBYTEFIELD]            = "SetStaticByteField";
-    names[SETSTATICCHARFIELD]            = "SetStaticCharField";
-    names[SETSTATICSHORTFIELD]           = "SetStaticShortField";
-    names[SETSTATICINTFIELD]             = "SetStaticIntField";
-    names[SETSTATICLONGFIELD]            = "SetStaticLongField";	  
-    names[SETSTATICFLOATFIELD]           = "SetStaticFloatField";	  
-    names[SETSTATICDOUBLEFIELD]          = "SetStaticDoubleField";	  
-    names[NEWSTRING]                     = "NewString";
-    names[GETSTRINGLENGTH]               = "GetStringLength";
-    names[GETSTRINGCHARS]                = "GetStringChars";
-    names[RELEASESTRINGCHARS]            = "ReleaseStringChars";
-    names[NEWSTRINGUTF]                  = "NewStringUTF";
-    names[GETSTRINGUTFLENGTH]            = "GetStringUTFLength";
-    names[GETSTRINGUTFCHARS]             = "GetStringUTFChars";
-    names[RELEASESTRINGUTFCHARS]         = "ReleaseStringUTFChars";
-    names[GETARRAYLENGTH]                = "GetArrayLength";
-    names[NEWOBJECTARRAY]                = "NewObjectArray";
-    names[GETOBJECTARRAYELEMENT]         = "GetObjectArrayElement";
-    names[SETOBJECTARRAYELEMENT]         = "SetObjectArrayElement";
-    names[NEWBOOLEANARRAY]               = "NewBooleanArray";
-    names[NEWBYTEARRAY]                  = "NewByteArray";
-    names[NEWCHARARRAY]                  = "NewCharArray";
-    names[NEWSHORTARRAY]                 = "NewShortArray";
-    names[NEWINTARRAY]                   = "NewIntArray";
-    names[NEWLONGARRAY]                  = "NewLongArray";
-    names[NEWFLOATARRAY]                 = "NewFloatArray";
-    names[NEWDOUBLEARRAY]                = "NewDoubleArray";
-    names[GETBOOLEANARRAYELEMENTS]       = "GetBooleanArrayElements";
-    names[GETBYTEARRAYELEMENTS]          = "GetByteArrayElements";
-    names[GETCHARARRAYELEMENTS]          = "GetCharArrayElements";
-    names[GETSHORTARRAYELEMENTS]         = "GetShortArrayElements";
-    names[GETINTARRAYELEMENTS]           = "GetIntArrayElements";
-    names[GETLONGARRAYELEMENTS]          = "GetLongArrayElements";
-    names[GETFLOATARRAYELEMENTS]         = "GetFloatArrayElements";
-    names[GETDOUBLEARRAYELEMENTS]        = "GetDoubleArrayElements";
-    names[RELEASEBOOLEANARRAYELEMENTS]   = "ReleaseBooleanArrayElements";
-    names[RELEASEBYTEARRAYELEMENTS]      = "ReleaseByteArrayElements";
-    names[RELEASECHARARRAYELEMENTS]      = "ReleaseCharArrayElements";
-    names[RELEASESHORTARRAYELEMENTS]     = "ReleaseShortArrayElements";
-    names[RELEASEINTARRAYELEMENTS]       = "ReleaseIntArrayElements";
-    names[RELEASELONGARRAYELEMENTS]      = "ReleaseLongArrayElements";
-    names[RELEASEFLOATARRAYELEMENTS]     = "ReleaseFloatArrayElements";
-    names[RELEASEDOUBLEARRAYELEMENTS]    = "ReleaseDoubleArrayElements";
-    names[GETBOOLEANARRAYREGION]         = "GetBooleanArrayRegion";
-    names[GETBYTEARRAYREGION]            = "GetByteArrayRegion";
-    names[GETCHARARRAYREGION]            = "GetCharArrayRegion";
-    names[GETSHORTARRAYREGION]           = "GetShortArrayRegion";
-    names[GETINTARRAYREGION]             = "GetIntArrayRegion";
-    names[GETLONGARRAYREGION]            = "GetLongArrayRegion";
-    names[GETFLOATARRAYREGION]           = "GetFloatArrayRegion";
-    names[GETDOUBLEARRAYREGION]          = "GetDoubleArrayRegion";
-    names[SETBOOLEANARRAYREGION]         = "SetBooleanArrayRegion";
-    names[SETBYTEARRAYREGION]            = "SetByteArrayRegion";
-    names[SETCHARARRAYREGION]            = "SetCharArrayRegion";
-    names[SETSHORTARRAYREGION]           = "SetShortArrayRegion";
-    names[SETINTARRAYREGION]             = "SetIntArrayRegion";
-    names[SETLONGARRAYREGION]            = "SetLongArrayRegion";
-    names[SETFLOATARRAYREGION]           = "SetFloatArrayRegion";
-    names[SETDOUBLEARRAYREGION]          = "SetDoubleArrayRegion";
-    names[REGISTERNATIVES]               = "RegisterNatives";
-    names[UNREGISTERNATIVES]             = "UnregisterNatives";
-    names[MONITORENTER]                  = "MonitorEnter";
-    names[MONITOREXIT]                   = "MonitorExit";
-    names[GETJAVAVM]                     = "GetJavaVM";
-    names[GETSTRINGREGION]             	 = "GetStringRegion";           // JDK 1.2, #220
-    names[GETSTRINGUTFREGION]         	 = "GetStringUTFRegion";        // JDK 1.2, #221
-    names[GETPRIMITIVEARRAYCRITICAL]   	 = "GetPrimitiveArrayCritical"; // JDK 1.2, #222
-    names[RELEASEPRIMITIVEARRAYCRITICAL] = "ReleasePrimitiveArrayCritical"; // JDK 1.2, #223
-    names[GETSTRINGCRITICAL]           	 = "GetStringCritical";         // JDK 1.2, # 224
-    names[RELEASESTRINGCRITICAL]       	 = "ReleaseStringCritical";     // JDK 1.2, #225
-    names[NEWWEAKGLOBALREF]            	 = "NewWeakGlobalRef";    	    // JDK 1.2, #226
-    names[DELETEWEAKGLOBALREF]         	 = "DeleteWeakGlobalRef"; 	    // JDK 1.2, #227
-    names[EXCEPTIONCHECK]              	 = "ExceptionCheck";      	    // JDK 1.2, #228
-
-    return names;
-  }
-
-
   /*
    * Utility functions called from VM_JNIFunction
    * (cannot be placed in VM_JNIFunction because methods there are specially compiled
@@ -587,5 +308,4 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
   static String createStringFromC(VM_Address stringAddress) {
     return new String(createByteArrayFromC(stringAddress));
   }
-  
 }

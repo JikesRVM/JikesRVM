@@ -10,11 +10,7 @@ package com.ibm.JikesRVM;
  * @author Ton Ngo
  * @author Steve Smith
  */
-interface VM_JNIAIXConstants extends VM_JNIConstants {
-  //-#if RVM_FOR_LINUX
-  static final int JNIFUNCTIONS_JTOC_OFFSET = FUNCTIONCOUNT * 4;
-  //-#endif
-
+interface VM_JNIAIXConstants {
   //-#if RVM_FOR_AIX
   // index of IP in the AIX linkage triplet
   static final int IP = 0;                    
