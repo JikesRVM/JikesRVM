@@ -529,7 +529,9 @@ public class VM_Allocator
 
       int objaddr;
       if (size <= GC_MAX_SMALL_SIZE) {
-	  VM_SizeControl the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size];
+	  // Use magic to avoid spurious array bounds check on common case allocation path.
+  	  int rs = VM_Magic.getIntAtOffset(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY, size << 2);
+	  VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
 	  if (the_size.next_slot != 0)
 	      objaddr = allocateSlotFast(the_size); // inlined: get available memory
 	  else
