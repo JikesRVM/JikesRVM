@@ -5,7 +5,7 @@
 # $Id$
 #
 # This shell finds plain files that have:
-#   no authorship tag: "@author", or
+#   no authorship tag: "@ author", or
 #   no copyright notice: "(C) Copyright", or
 #   no id: "$Id$".
 #
@@ -24,8 +24,10 @@
 # @Date 2003/06/02
 #	Ported to Bash
 
-if [[ $# = 0 || "$1" = -help || $# < 3 ]] then
+usage() {
+    local exitstatus="${1-1}";
     cat >&2 <<EOF
+Usage: $ME <input-subtree> <output-directory> <suffix>
    
   This script finds all files in a directory subtree 
   that don't contain either:
@@ -47,36 +49,107 @@ if [[ $# = 0 || "$1" = -help || $# < 3 ]] then
   where ? is either "author", "copyright", or "id".
 
 EOF
-    exit 1
+    exit ${exitstatus}
+}
+
+# Turns on the -u option, where we scream if trouble.
+set -o nounset
+
+# What is our name?
+# Bash internal shorthand that works like the "basename" command.
+ME="${0##*/}"
+
+if [[ $# = 0 || $# < 3 ]]; then
+    usage 1;
 fi
 
-mydir="${0%/*}"
+if [[ "$1" = -help ]]; then
+    usage 0;
+fi
 
-. "$mydir/sanity-envars.bash"
+# Where are we?
+# Bash internal shorthand that works like the "dirname" command.
+mydir="${0%/*}"			# temporary; directory we were run from
+
+if [[ $mydir && $mydir != $ME ]]; then
+    # Where to find auxiliary programs:
+    bin_dir="${mydir}"
+else
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+fi
+
+sanity_env="${bin_dir}/sanity-envars.bash"
+[[ -f $sanity_env ]] || croak_nonusage "Internal error: Cannot find the file sanity-envars.bash ($sanity_env); something is badly broken."
+[[ -r $sanity_env ]] || croak_nonusage "Internal error: Cannot read the file sanity-envars.bash ($sanity_env); something is badly broken.  You might check the file permissions or user id you used to extract Jikes RVM."
+. "${sanity_env}";		# sets ME, defines checkenv()
+
 checkenv RVM_ROOT
+bin_dir=${RVM_ROOT}/rvm/bin
 
-# Where to find auxiliary programs:
-bin_dir="$RVM_ROOT/rvm/bin"
-if [ "$mydir" != "$bin_dir" ]; then
-    echo >&2 "Something is really strange here: This program was invoked out of  the directory $mydir, but your RVM_ROOT is set to $RVM_ROOT.  What you want to do is probably not what will happen."
+if [[ "$mydir" == /* ]] && [ "$mydir" != "$bin_dir" ]; then
+    echo >&2 "Something is really strange here: This program was invoked out of  the directory $mydir, but your RVM_ROOT is set to $RVM_ROOT. You may have an inconsistent PATH and RVM_ROOT.  Going on anyway."
 fi
 
+trap 'echo "$ME: An Unexpected Error happened; execution aborted" >&2' EXIT
+set -e # Abort on errors
+
+## Create output directory if necessary.
+[ -e "$2" ] || mkdir -p "$2"
 # cd to input directory
 cd "$1"
 
-# Don't follow symbolic links, and only find plain files.
-find_opts="-links 1 -type f -print"
+
+## Will not follow symbolic links; you'd have to say "-follow" to do it.
+# Skip Emacs backup files (this might be run from the working directory of a user.
+# Skip CVS internal files used to store older revisions.
+# open a subexpression.  Must be closed in the user (look for the ")")
+# Skip CVS directories.
+# Do show normal files.
+
+# This will make the bug discussed below appear irrespective of what is going on..  That is good.  Better that this program break than not work.
+shopt -s nullglob
+### XXX This array version breaks due to what I believe is a bug in
+### Bash, whereby the expression '*~' is being expanded in the calls
+### to `find' (at least, it is being expanded whenever it might be.)
+### OK, this is a bug in BASH version "2.05a.0(1)-release".  
+### The manual page clearly states: "the special pattern characters must be quoted if they are to be matched literally".
+
+## Turn off the globbing.  This works in all BASH versions.
+set -f
+## Redundant with above
+set -o noglob
+
+## Make sure ! is not magic.  This really doesn't help, thought, since Bash
+## defines '!' as a reserved word.
+## Oddly, bash gripes even when the reserved words are quoted.  How odd.
+set +H
+
+declare -r -a find_optsA=( \
+	-name CVS -prune \
+        -o \
+	'\!' -name '*~'  \
+	'\!' -name '.*~'  \
+	'\!' -name '.#*' \
+	-type f -print \
+);
+
+## The same bug afflicts the one below:
+
+declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
 # $RVM_ROOT/rvm/bin/findFilesWithoutAuthorTag $1 $2 $3
-#echo "find all plain files without @author tags"
-find . $find_opts -exec grep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
+#echo "find all plain files without @ author tags"
+# Commented out due to trouble.
+find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
+#find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$2/noAuthor.$3"
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutCopyrights $1 $2 $3
 #echo "find all plain files with copyright notices"
-find . $find_opts -exec grep -c "(C) Copyright" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
+find . "${find_optsA[@]}" -exec fgrep -c "(C) Copyright" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
 #echo "find all plain files with \$Id: tags"
-find . $find_opts -exec grep -c '\$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$2/noId.$3"
+find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$2/noId.$3"
 
 
+trap '' EXIT
