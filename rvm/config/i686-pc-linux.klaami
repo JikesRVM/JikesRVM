@@ -21,6 +21,9 @@ export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 # the JDK jar executable
 export HOST_JAR="/opt/IBMJava2-13/bin/jar"
 
+# the JDK javadoc executable
+export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
+
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
 

@@ -2,10 +2,22 @@
  * (C) Copyright IBM Corp. 2001
  */
 
+/**
+ *  Static tables describing the format of each low-level instruction
+ * that opt compiler understands.  For each instruction, there are two
+ * static arrays:
+ * <UL>
+ *  <LI> <format>ParameterNames is the list of names of operands
+ *  <LI> <format>ParameterTypes is the list of types of operands
+ * </UL>
+ */
 class OPT_InstructionFormatTables {
 
 $$$$ FOREACH OPTYPE FORMAT_FILE
 
+    /**
+     * The parameter names of OPTYPE.NAME
+     */
     static final String[] OPTYPE.NAMEParameterNames = new String[]{
 	$$$$ LOOP PARAM OPTYPE.SIG
 	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
@@ -14,6 +26,9 @@ $$$$ FOREACH OPTYPE FORMAT_FILE
 	$$$$ END LOOP
     };
 
+    /**
+     * The parameter types of OPTYPE.NAME
+     */
     static final String[] OPTYPE.NAMEParameterTypes = new String[]{
 	$$$$ LOOP PARAM OPTYPE.SIG
 	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE

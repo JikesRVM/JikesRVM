@@ -25,7 +25,7 @@ UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
-	@echo "(built workaround zip) "
+	@print -n "(built workaround zip) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force

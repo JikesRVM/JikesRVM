@@ -9,35 +9,81 @@
  * is designed to make the method signiture computable from the opcode and the
  * operand types.  The naming convetion is as follows:
  *
- *   final void emit<opcode>\(_<operand code>\)*[_<size>](\(operand args\)*)
+ * <PRE>
+ *   final void emit<EM>opcode</EM>\(_<EM>operand code</EM>\)*[_<EM>size</EM>](\(<EM>operand arguments</EM>\)*)
+ * </PRE>
  *
  * where the following substitutions are made:
+ * <DL>
+ * <DT> <EM>opcode</EM> 
+ * <DI> is the opcode of the instruction (e.g. ADC, MOV, etc)
  *
- * <opcode> is the opcode of the instruction (e.g. ADC, MOV, etc)
+ * <DT> <EM>operand code</EM> 
+ * <DI> represents the type of the nth operand:
+ *   <DL>
+ *   <DT> "Imm"		<DI> immediate operands
+ *   <DT> "Reg" 	<DI> register operands
+ *   <DT> "RegInd"      <DI> register indirect operands
+ *   <DT> "RegDisp"	<DI> register displacement
+ *   <DT> "RegOff" 	<DI> shifted index + displacement
+ *   <DT> "RegIdx"	<DI> register base + shifted index + displacement
+ *   <DT> "Cond" 	<DI> condition codes
+ *   </DL>
  *
- * <operand code> represents the type of the nth operand:
- *          "Imm" for immediate
- *          "Reg" for register
- *          "RegInd" for register indirect
- *          "RegDisp" for register displacement
- *          "RegOff" for shifted index + displacement
- *          "RegIdx" for register base + shifted index + displacement
- *          "Cond" for condition codes
+ * <DT> <EM>size</EM> 
+ * <DI> indicates non-word-sized operations
+ *   <DL>
+ *   <DT> "Byte"	<DI> bytes
+ *   <DT> "Word"	<DI> Intel "words" (i.e. 16 bites)
+ *   <DT> "Quad" 	<DI> quad words (i.e. double-precision floating point)
+ *   </DL>
  *
- * <size> indicates non-word-sized operations
- *          "Byte" is for bytes
- *          "Word" is for Intel "words" (i.e. 16 bites)
- *          "Quad" is for quad words (i.e. double-precision floating point)
- *
- * <operand arguments> are the needed components of the operands, in order
- *          "Reg" takes one byte (register number)
- *          "RegInd" takes one byte (register number)
- *          "RegDisp" takes a byte (reg. num.) and an int (displacement)
- *          "RegIdx" takes two bytes (base and index regs), a shoert (scale), ann an int (displacement).
- *          "Imm" takes one int (immediate)
- *          "Cond" takes one byte (condition code mask)
- *
- *  
+ * <DT> <EM>operand arguments</EM>
+ * <DI> are the needed components of the operands, in order
+ *  <DL>
+ *  <DT> "Imm" 
+ *  <DI>
+ *    <UL>
+ *      <LI> immediate value (int)
+      </UL>
+ *  <DT> "Reg"	
+ *  <DI> 
+ *    <UL> 
+ *      <LI> register number (byte)
+ *    </UL>
+ *  <DT> "RegInd" 
+ *  <DI>
+ *    <UL>
+ *      <LI> register number (byte)
+ *    </UL>
+ *  <DT> "RegDisp"
+ *  <DI>
+ *    <UL>
+ *      <LI> register number (byte)
+ *      <LI> displacement (int)
+ *    </UL>
+ *  <DT> "RegOff" 
+ *  <DI> 
+ *    <UL>
+ *      <LI> index register (byte)
+ *      <LI> scale (short)
+ *      <LI> displacement (int)
+ *    </UL>
+ *  <DT> "RegIdx" 
+ *  <DI>
+ *    <UL>
+ *      <LI> base register (byte)
+ *      <LI> index register (byte)
+ *      <LI> scale (short)
+ *      <LI> displacement (int)
+ *    </UL>
+ *  <DT> "Cond" 
+ *  <DI>
+ *    <UL>
+ *      <LI> condition code mask (byte)
+ *    </UL>
+ *  </DL>
+ * </DL>
  */
 class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   
