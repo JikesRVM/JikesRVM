@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -264,10 +264,11 @@ public final class VM_NormalMethod
 
   /**
    * Sets method in state for OSR specialization, i.e, the subsequent calls
-   * of getBytecodes return the stream of specilized bytecodes.
+   * of {@link #getBytecodes} return the stream of specialized bytecodes.
+   *
    * NB: between flag and action, it should not allow GC or threadSwitch happen.
-   * @param prologue, the bytecode of prologue
-   * @param newStackHeight, the prologue may change the default height of 
+   * @param prologue   The bytecode of prologue
+   * @param newStackHeight  The prologue may change the default height of 
    *                        stack
    */
   public void setForOsrSpecialization(byte[] prologue, int newStackHeight) {
