@@ -149,8 +149,12 @@ pthread_t vm_pthreadid;
 static int
 isVmSignal(unsigned iar, unsigned jtoc)
    {
-    return VmBottom <= iar   && iar  < VmTop &&
-           VmBottom <= jtoc  && jtoc < VmTop;
+   /* get the boot record */
+   void *region1address = (void *) bootImageAddress;
+   VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
+
+    return VmBottom <= iar   && iar  < bootRecord.heapEnd &&
+           VmBottom <= jtoc  && jtoc < bootRecord.heapEnd;
    }
 
 #ifdef __linux__
@@ -952,6 +956,7 @@ createJVM(int vmInSeparateThread)
    bootRecord.endAddress  = (int)region1 + region1size;
    bootRecord.largeStart  = (int)region2;
    bootRecord.largeSize   = region2size;
+   bootRecord.heapEnd     = (int)region2 + region2size;
    bootRecord.nurserySize = nurserySize;
    
 #if 0
