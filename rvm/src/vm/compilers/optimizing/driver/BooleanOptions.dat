@@ -46,7 +46,7 @@ Reorder basic blocks for improved locality and branch prediction
 REORDER_CODE_PH 1 true
 Reorder basic blocks using Pettis and Hansen Algo2
 
-INLINE_NEW 1 true 
+INLINE_NEW 0 true 
 Inline allocation of scalars and arrays
 
 INLINE_WRITE_BARRIER 1 true 
