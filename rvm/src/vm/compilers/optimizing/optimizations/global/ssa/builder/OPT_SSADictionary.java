@@ -622,8 +622,8 @@ public final class OPT_SSADictionary implements OPT_Operators {
         break;
       case CALL_opcode:case SYSCALL_opcode:
       case MONITORENTER_opcode:case MONITOREXIT_opcode:
-      case PREPARE_INT_opcode:case PREPARE_LONG_opcode:
-      case ATTEMPT_INT_opcode:case ATTEMPT_LONG_opcode:
+      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode:
       case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
         //-#if RVM_FOR_POWERPC
       case DCBST_opcode:case ICBI_opcode:

@@ -195,3 +195,18 @@ EMIT_INSTRUCTION
                               IfCmp.getBranchProfile(P(p))));                 \
 }
 
+stm:    INT_IFCMP(ATTEMPT_ADDR(r,r),INT_CONSTANT)
+(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
+EMIT_INSTRUCTION
+{                                                                             \
+   OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
+   EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
+                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
+                                  Attempt.getLocation(PL(p)),                \
+                                  Attempt.getGuard(PL(p))));                \
+   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
+                              new OPT_PowerPCConditionOperand(c),             \
+                              IfCmp.getTarget(P(p)),                         \
+                              IfCmp.getBranchProfile(P(p))));                 \
+}
+

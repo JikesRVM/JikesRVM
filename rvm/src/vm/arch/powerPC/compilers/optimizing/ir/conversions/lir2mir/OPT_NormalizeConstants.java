@@ -158,9 +158,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         Attempt.setOffset(s, asRegInt(Attempt.getClearOffset(s),s,ir));
         break;
 
-      case ATTEMPT_LONG_opcode:
+      case ATTEMPT_ADDR_opcode:
         // On PowerPC, the value being stored must be in a register
-        Attempt.setNewValue(s, asRegLong(Attempt.getClearNewValue(s), s, ir));
+        Attempt.setNewValue(s, asRegAddress(Attempt.getClearNewValue(s), s, ir));
         Attempt.setOldValue(s, null);       // not used on powerpc.
         // Supported addressing modes are quite limited.
         Attempt.setAddress(s, asRegAddress(Attempt.getClearAddress(s),s,ir));
@@ -190,7 +190,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         break;
 
       case PREPARE_INT_opcode:
-      case PREPARE_LONG_opcode:
+      case PREPARE_ADDR_opcode:
         // Supported addressing modes are quite limited.
         Prepare.setAddress(s, asRegAddress(Prepare.getAddress(s), s, ir));
         Prepare.setOffset(s, asRegInt(Prepare.getOffset(s), s, ir));

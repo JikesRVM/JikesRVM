@@ -60,8 +60,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       case ATTEMPT_INT_opcode:
         attemptInt(s, ir);
         break;
-      case ATTEMPT_LONG_opcode:
-        attemptLong(s, ir);
+      case ATTEMPT_ADDR_opcode:
+        attemptWord(s, ir);
         break;
       }
     }
@@ -412,7 +412,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(1)));
   }
 
-  private static void attemptLong(OPT_Instruction s, OPT_IR ir) {
+  private static void attemptWord(OPT_Instruction s, OPT_IR ir) {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB4 = BB1.splitNodeAt(s, ir);
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
@@ -432,9 +432,14 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_LocationOperand location = Attempt.getLocation(s);
     OPT_Operand guard = Attempt.getGuard(s);
     OPT_RegisterOperand result = Attempt.getResult(s);
+    //-#if RVM_FOR_32_ADDR
     MIR_Store.mutate(s,PPC_STWCXr, newValue, address, offset, location,
                      guard);
-    
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    MIR_Store.mutate(s,PPC64_STDCXr, newValue, address, offset, location,
+                     guard);
+    //-#endif
     // Branch to BB3 iff the STWXC succeeds (CR(0) is EQUAL)
     // Else fall through to BB2
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();

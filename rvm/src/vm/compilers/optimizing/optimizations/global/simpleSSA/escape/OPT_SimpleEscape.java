@@ -330,8 +330,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  false;
         }
       case REF_MOVE_opcode:case ATHROW_opcode:
-      case PREPARE_INT_opcode:case PREPARE_LONG_opcode:
-      case ATTEMPT_INT_opcode:case ATTEMPT_LONG_opcode: 
+      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
       case INT_MOVE_opcode:case INT_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
@@ -462,8 +462,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         // a call instruction causes an object to escape this method.
         return  true;
       case REF_MOVE_opcode:case ATHROW_opcode:
-      case PREPARE_INT_opcode:case PREPARE_LONG_opcode:
-      case ATTEMPT_INT_opcode:case ATTEMPT_LONG_opcode: 
+      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
       case INT_MOVE_opcode:case INT_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
