@@ -27,7 +27,6 @@ ifeq ($(shell uname),Linux)
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
 #       MonitorTests            JDK hangs
-#       StackResize 		fails on RVM
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation NativeException StringFunctions \
 	TestGC t3GT3
@@ -35,7 +34,6 @@ else
 # TESTS that currently fail for one reason or another on AIX/PowerPC
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
-#       StackResize 		fails on AIX RVM
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
