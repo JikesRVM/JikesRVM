@@ -67,8 +67,8 @@ public class Throwable implements java.io.Serializable {
   }
     
   private int numWeirdErrors = 0;
-  public int maxWeirdErrors = 4;	/* just a guess.  Resettable if you
-					   really want to. */
+  /** just a guess.  Resettable if you really want to. */
+  public  int maxWeirdErrors = 4; 
   public void tallyWeirdError() {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
@@ -178,11 +178,12 @@ public class Throwable implements java.io.Serializable {
     }
   }
     
-  // Synchronized around the class Throwable.
-  static int depth = 0;		/* How deep into trace printing are we?
-				   Includes cascaded exceptions; the other
-				   tests (above) were broken. */
-  final static int maxDepth = 7;
+  /** How deep into trace printing are we? Includes cascaded exceptions; the
+    other tests (above) were broken.   Access to this is synchronized around
+    the class Throwable. */
+  static private int depth = 0;
+  /** How deep can we go? */
+  final static private int maxDepth = 7;
   
   public static synchronized int getDepth() {
     return depth;
@@ -324,7 +325,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   void printlnMyClassAndMessage(PrintLN out) {
-    out.print(classNameAsVM_Atom(this));
+    out.printClassName(classNameAsVM_Atom(this));
     /* Avoid diving into the contents of detailMessage since a subclass MIGHT
      * override getMessage(). */
     String msg = getMessage();
