@@ -158,15 +158,19 @@ sysWrite(int value, int hexToo)
 // Console write (java long).
 //
 extern "C" void
-sysWriteLong(int value1, unsigned int value2, int hexToo)
+sysWriteLong(long long value, int hexToo)
 {
-    long long value = (((long long)value1)<<32)|value2;
     if (hexToo==0 /*false*/) 
-	fprintf(SysTraceFile, "%lld", value);
-    else if (hexToo==1 /*true - also print in hex*/)
-	fprintf(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
-    else    /* hexToo==2 for only in hex */
-	fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
+      fprintf(SysTraceFile, "%lld", value);
+    else if (hexToo==1 /*true - also print in hex*/) {
+      int value1 = (value >> 32) & 0xFFFFFFFF;
+      int value2 = value & 0xFFFFFFFF;
+      fprintf(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
+    } else { /* hexToo==2 for only in hex */
+      int value1 = (value >> 32) & 0xFFFFFFFF;
+      int value2 = value & 0xFFFFFFFF;
+      fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
+    }
 }
 
 // Exit with a return code.
