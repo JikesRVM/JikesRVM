@@ -30,6 +30,18 @@ public final class MMType implements Constants, VM_Uninterruptible {
   private VM_Offset arrayOffset;
   private int [] offsets;
   private int allocator;
+  
+  // per-type statistics
+  private int allocCount;
+  private int allocBytes;
+  private int copyCount;                 
+  private int copyBytes;                 
+  private int scanCount;                 
+  private int scanBytes;
+  private int bootCount;
+  private int bootBytes; 
+  
+  private static final boolean PROFILING_STATISTICS = false;
 
   /****************************************************************************
    *
@@ -91,6 +103,47 @@ public final class MMType implements Constants, VM_Uninterruptible {
       return VM_Interface.getArrayLength(object);
     else
       return offsets.length;
+  }
+
+  /****************************************************************************
+   *
+   * Statistics
+   */
+
+  /**
+   * Account for an alloc of this type if profiling is turned on.
+   *
+   * @param size The number of bytes allocated
+   */
+  void profileAlloc(int size) throws VM_PragmaInline {
+    if (PROFILING_STATISTICS) {
+      allocCount++;
+      allocBytes += size;
+    }
+  }
+
+  /**
+   * Account for a copy of this type if profiling is turned on.
+   *
+   * @param size The number of bytes copied. 
+   */
+  public void profileCopy(int size) throws VM_PragmaInline {
+    if (PROFILING_STATISTICS) {
+      copyCount++;
+      copyBytes += size;
+    }
+  }
+
+  /**
+   * Account for a scan of this type if profiling is turned on.
+   *
+   * @param size The number of bytes scanned. 
+   */
+  void profileScan(int size) throws VM_PragmaInline {
+    if (PROFILING_STATISTICS) {
+      scanCount++;
+      scanBytes += size;
+    }
   }
 
   /****************************************************************************

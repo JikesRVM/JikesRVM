@@ -4,9 +4,10 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -73,7 +74,7 @@ public abstract class BasePlan
   protected static int exceptionReserve = 0;
 
   // Timing variables
-  protected static long bootTime;
+  protected static boolean insideHarness = false;
 
   // Meta data resources
   private static MonotoneVMResource metaDataVM;
@@ -101,12 +102,18 @@ public abstract class BasePlan
   public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
   //-endif
 
+  // Statistics
+  public static Timer totalTime;
+  static SizeCounter mark;
+  static SizeCounter cons;
+
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
+  protected static final boolean GATHER_MARK_CONS_STATS = false;
 
   protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
@@ -157,6 +164,13 @@ public abstract class BasePlan
     addSpace(BOOT_SPACE, "Boot");
     addSpace(META_SPACE, "Meta");
     addSpace(IMMORTAL_SPACE, "Immortal");
+
+    totalTime = new Timer("time");
+    if (GATHER_MARK_CONS_STATS) {
+      mark = new SizeCounter("mark");
+      cons = new SizeCounter("cons");
+    }
+    
   }
 
   /**
@@ -174,7 +188,6 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = VM_Interface.cycles();
   }
 
   /**
@@ -188,6 +201,9 @@ public abstract class BasePlan
    */
   public static void postBoot() {
     if (Options.verbose > 2) VMResource.showAll();
+    if (Options.verbose > 0) {
+      Stats.startAll();
+    }
   }
 
   public static void fullyBooted() {
@@ -666,6 +682,8 @@ public abstract class BasePlan
    * override.
    */
   public static void harnessBegin() {
+    insideHarness = true;
+    Stats.startAll();
   }
 
   /**
@@ -676,6 +694,9 @@ public abstract class BasePlan
    * override.
    */
   public static void harnessEnd() {
+    Stats.stopAll();
+    Stats.printStats();
+    insideHarness = false;
   }
 
   /**
@@ -697,7 +718,7 @@ public abstract class BasePlan
    * each GC).
    */
   public static int gcCount() { 
-    return Statistics.gcCount;
+    return Stats.gcCount();
   }
 
   /**
@@ -717,11 +738,11 @@ public abstract class BasePlan
   public void notifyExit(int value) {
     if (Options.verbose == 1) {
       Log.write("[End "); 
-      Log.write(VM_Interface.cyclesToSecs(VM_Interface.cycles() - bootTime));
+      totalTime.printTotalSecs();
       Log.writeln(" s]");
     } else if (Options.verbose == 2) {
-      Log.write("[End "); 
-      Log.write(VM_Interface.cyclesToMillis(VM_Interface.cycles() - bootTime));
+      Log.write("[End ");
+      totalTime.printTotalMillis();
       Log.writeln(" ms]");
     }
     if (Options.verboseTiming) printDetailedTiming(true);

@@ -157,7 +157,6 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     Util.boot(theBootRecord);
     Plan.boot();
     VMResource.boot();
-    Statistics.boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -333,9 +332,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
-    Statistics.gcExternalCount++;
     if (!Options.ignoreSystemGC)
-        VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
+      VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************

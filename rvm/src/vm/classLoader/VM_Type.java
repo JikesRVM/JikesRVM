@@ -140,14 +140,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   /** The memory manager's notion of this type */
   private Object mmType;
 
-  // Allocation and GC Statistics counters.
-  // TODO: Think about moving these into JMTKtype?
-  public int allocCount;
-  public int allocBytes;
-  public int copyCount;                 
-  public int copyBytes;                 
-  public int scanCount;                 
-  public int scanBytes;
+  /** Counters for boot image per-type statistics */
   public int bootCount;
   public int bootBytes; 
 

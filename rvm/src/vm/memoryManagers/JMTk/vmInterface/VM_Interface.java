@@ -849,7 +849,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, true);
       toRef = VM_Magic.objectAsAddress(toObj);
-      Statistics.profileCopy(fromObj, numBytes, tib);
+      ((MMType) type.getMMType()).profileCopy(numBytes);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
@@ -875,7 +875,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
         int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
         VM_Memory.sync(toRef, dataSize);
       }
-      Statistics.profileCopy(fromObj, numBytes, tib);
+      ((MMType) type.getMMType()).profileCopy(numBytes);
     }
     return toRef;
 
@@ -991,15 +991,20 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return VM_Time.secsToCycles(t);
   }
 
-  /* AJG: Not used. */
-//   public static int getSizeWhenCopied(VM_Address obj) {
-//     VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
-//     if (type.isClassType())
-//       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asClass());
-//     else
-//       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
-//   }
-
+  /**
+   * Returnt the size required to copy an object
+   *
+   * @param obj The object whose size is to be queried
+   * @return The size required to copy <code>obj</code>
+   */
+  public static int getSizeWhenCopied(VM_Address obj) {
+    VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
+    if (type.isClassType())
+      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asClass());
+    else
+      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
+  }
+  
   /*
    * Utilities from the VM class
    */

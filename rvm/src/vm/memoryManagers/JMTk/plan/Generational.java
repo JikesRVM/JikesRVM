@@ -4,8 +4,9 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -73,6 +74,12 @@ public abstract class Generational extends StopTheWorldGC
   protected static boolean fullHeapGC = false;  // Whether next GC will be full - set at end of last GC
   protected static boolean lastGCFull = false;  // Whether previous GC was full - set during full GC
 
+  protected static EventCounter wbFast;
+  protected static EventCounter wbSlow;
+  protected static BooleanCounter fullHeap;
+  protected static SizeCounter nurseryMark;
+  protected static SizeCounter nurseryCons;
+
   // Allocators
   protected static final byte NURSERY_SPACE = 0;
   protected static final byte MATURE_SPACE = 1;
@@ -115,9 +122,6 @@ public abstract class Generational extends StopTheWorldGC
   // write buffer (remembered set)
   protected WriteBuffer remset;
 
-  protected int wbFastPathCounter = 0;
-  protected int wbSlowPathCounter = 0;
-
   /****************************************************************************
    *
    * Initialization
@@ -142,8 +146,17 @@ public abstract class Generational extends StopTheWorldGC
       losSpace = new TreadmillSpace(losVM, losMR);
       addSpace(LOS_SPACE, "LOS Space");
     }
+    fullHeap = new BooleanCounter("majorGC", true, true);
+    if (GATHER_WRITE_BARRIER_STATS) {
+      wbFast = new EventCounter("wbFast");
+      wbSlow = new EventCounter("wbSlow");
+    }
+    if (GATHER_MARK_CONS_STATS) {
+      nurseryMark = new SizeCounter("nurseryMark");
+      nurseryCons = new SizeCounter("nurseryCons");
+    }
   }
-
+  
   /**
    * Constructor
    */
@@ -181,6 +194,7 @@ public abstract class Generational extends StopTheWorldGC
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
                                 AllocAdvice advice)
     throws VM_PragmaInline {
+    if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
@@ -251,6 +265,11 @@ public abstract class Generational extends StopTheWorldGC
                                     boolean isScalar) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (GATHER_MARK_CONS_STATS) {
+      cons.inc(bytes);
+      if (fullHeapGC) mark.inc(bytes);
+      if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
+    }
     return matureCopy(isScalar, bytes);
   }
 
@@ -384,7 +403,7 @@ public abstract class Generational extends StopTheWorldGC
     nurseryMR.reset(); // reset the nursery
     lastGCFull = fullHeapGC;
     if (fullHeapGC) {
-      Statistics.gcMajorCount++;
+      fullHeap.set();
       // prepare each of the collected regions
       if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
@@ -411,11 +430,8 @@ public abstract class Generational extends StopTheWorldGC
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
       remset.resetLocal();  // we can throw away remsets for a full heap GC
-    }
-    else {
-      if (count == NON_PARTICIPANT)
-        flushRememberedSets();
-    }
+    } else if (count == NON_PARTICIPANT)
+      flushRememberedSets();
   }
 
   /**
@@ -438,15 +454,6 @@ public abstract class Generational extends StopTheWorldGC
    * the mature space.
    */
   protected final void threadLocalRelease(int count) {
-    if (GATHER_WRITE_BARRIER_STATS) { 
-      // This is printed independently of the verbosity so that any
-      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
-      // will know---it will have a noticable performance hit...
-      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
-      Log.write(wbFastPathCounter); Log.write(" wb-fast, ");
-      Log.write(wbSlowPathCounter); Log.writeln(" wb-slow>");
-      wbFastPathCounter = wbSlowPathCounter = 0;
-    }
     if (fullHeapGC) { 
       if (Plan.usesLOS) los.release();
       threadLocalMatureRelease(count);
@@ -645,9 +652,9 @@ public abstract class Generational extends StopTheWorldGC
    */
   private final void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
-    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
-      if (GATHER_WRITE_BARRIER_STATS) wbSlowPathCounter++;
+      if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       remset.insert(src);
     }
     VM_Magic.setMemoryAddress(src, tgt);
@@ -722,6 +729,4 @@ public abstract class Generational extends StopTheWorldGC
     if (Plan.usesLOS) los.show();
     immortal.show();
   }
-
-
 }

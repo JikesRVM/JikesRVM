@@ -154,6 +154,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
                                 AllocAdvice advice)
     throws VM_PragmaInline {
+    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;

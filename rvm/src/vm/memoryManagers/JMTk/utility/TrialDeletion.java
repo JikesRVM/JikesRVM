@@ -4,10 +4,10 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
-
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -89,6 +89,12 @@ final class TrialDeletion extends CycleDetector
   private static final int GREY_VISIT_GRAIN = 100;
   private static final int FILTER_BOUND = 8192;
 
+  // Statistics
+  private static Timer greyTime;
+  private static Timer scanTime;
+  private static Timer whiteTime;
+  private static Timer freeTime;
+
   /****************************************************************************
    *
    * Instance variables
@@ -136,6 +142,11 @@ final class TrialDeletion extends CycleDetector
     cyclePoolB.newClient();
     freePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     freePool.newClient();
+
+    greyTime = new Timer("cd-grey", false, true);
+    scanTime = new Timer("cd-scan", false, true);
+    whiteTime = new Timer("cd-white", false, true);
+    freeTime = new Timer("cd-free", false, true);
   }
 
   TrialDeletion(RefCountLocal rc_, Plan plan_) {
@@ -164,7 +175,7 @@ final class TrialDeletion extends CycleDetector
     unfilteredPurpleBuffer.insert(object);
   }
 
-  final boolean collectCycles(int count, boolean time) {
+  final boolean collectCycles(int count, boolean timekeeper) {
     collectedCycles = false;
     if (count == 1 && shouldFilterPurple()) {
       long filterStart = VM_Interface.cycles();
@@ -188,7 +199,7 @@ final class TrialDeletion extends CycleDetector
           while (maturePurplePool.enqueuedPages()> 0 && !abort &&
                  (remaining > gcTimeCap/CYCLE_TIME_FRACTION ||
                   RefCountSpace.RC_SANITY_CHECK)) {
-            abort = collectSomeCycles(time, finishTarget);
+            abort = collectSomeCycles(timekeeper, finishTarget);
             remaining = finishTarget - VM_Interface.cycles();
           }
           flushFilteredPurpleBufs();
@@ -204,24 +215,25 @@ final class TrialDeletion extends CycleDetector
   }
 
 
-  private final boolean collectSomeCycles(boolean time, long finishTarget) {
+  private final boolean collectSomeCycles(boolean timekeeper,
+                                          long finishTarget) {
     collectedCycles = true;
     filterMaturePurpleBufs();
-    if (time) Statistics.cdGreyTime.start();
+    if (timekeeper) greyTime.start();
     long start = VM_Interface.cycles();
     long remaining = finishTarget - start;
     long targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
     boolean abort = doMarkGreyPhase(targetTime);
-    if (time) Statistics.cdGreyTime.stop();
-    if (time) Statistics.cdScanTime.start();
+    if (timekeeper) greyTime.stop();
+    if (timekeeper) scanTime.start();
     doScanPhase();
-    if (time) Statistics.cdScanTime.stop();
-    if (time) Statistics.cdCollectTime.start();
+    if (timekeeper) scanTime.stop();
+    if (timekeeper) whiteTime.start();
     doCollectPhase();
-    if (time) Statistics.cdCollectTime.stop();
-    if (time) Statistics.cdFreeTime.start();
+    if (timekeeper) whiteTime.stop();
+    if (timekeeper) freeTime.start();
     processFreeBufs();
-    if (time) Statistics.cdFreeTime.stop();
+    if (timekeeper) freeTime.stop();
     return abort;
   }
 
@@ -540,18 +552,5 @@ final class TrialDeletion extends CycleDetector
   }
   int getVisitCount() throws VM_PragmaInline {
     return visitCount;
-  }
-  final void printTimes(boolean totals) {
-    double time;
-    if (collectedCycles) {
-      time = (totals) ? Statistics.cdGreyTime.sum() : Statistics.cdGreyTime.lastMs();
-      Log.write(" grey: "); Log.write(time);
-      time = (totals) ? Statistics.cdScanTime.sum() : Statistics.cdScanTime.lastMs();
-      Log.write(" scan: "); Log.write(time);
-      time = (totals) ? Statistics.cdCollectTime.sum() : Statistics.cdCollectTime.lastMs();
-      Log.write(" coll: "); Log.write(time);
-      time = (totals) ? Statistics.cdFreeTime.sum() : Statistics.cdFreeTime.lastMs();
-      Log.write(" free: "); Log.write(time);
-    }
   }
 }

@@ -5,8 +5,9 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -74,7 +75,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // GC state
   private static int required;  // how many pages must this GC yeild?
   private static int lastRCPages = 0; // pages at end of last GC
-  
+  private static long timeCap = 0; // time within which this GC should finish
+
   // Allocators
   public static final byte RC_SPACE = 0;
   public static final byte LOS_SPACE = 1;
@@ -106,7 +108,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private RefCountLOSLocal los;
 
   // counters
-  private int wbFastPathCounter;
+  static EventCounter wbFast;
+  static EventCounter wbSlow;
 
   // queues (buffers)
   private AddressDeque decBuffer;
@@ -149,6 +152,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (WITH_COALESCING_RC) {
       modPool = new SharedDeque(metaDataRPA, 1);
       modPool.newClient();
+    }
+    if (GATHER_WRITE_BARRIER_STATS) {
+      wbFast = new EventCounter("wbFast");
+      wbSlow = new EventCounter("wbSlow");
     }
   }
 
@@ -371,6 +378,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
+    timeCap = VM_Interface.cycles() + VM_Interface.millisToCycles(Options.gcTimeCap);
     ImmortalSpace.prepare(immortalVM, null);
     rcSpace.prepare();
   }
@@ -401,14 +409,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     rc.release(count, Options.verboseTiming && count==1);
-    if (GATHER_WRITE_BARRIER_STATS) { 
-      // This is printed independantly of the verbosity so that any
-      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
-      // will know---it will have a noticable performance hit...
-      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
-      Log.write(wbFastPathCounter); Log.writeln(" wb-fast>");
-      wbFastPathCounter = 0;
-    }
   }
 
   /**
@@ -672,7 +672,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private final void writeBarrier(VM_Address obj, VM_Address src,
                                   VM_Address tgt) 
     throws VM_PragmaInline {
-    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(obj)) {
         coalescingWriteBarrierSlow(obj);
@@ -702,7 +702,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private final void writeBarrierOOL(VM_Address obj, VM_Address src,
                                      VM_Address tgt) 
     throws VM_PragmaNoInline {
-    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(obj)) {
         coalescingWriteBarrierSlow(obj);
@@ -735,6 +735,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaNoInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(WITH_COALESCING_RC);
+    if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
     if (Header.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
       Scan.enumeratePointers(srcObj, decEnum);
@@ -896,15 +897,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * should complete).
    */
   public static final long getTimeCap() {
-    long limit = VM_Interface.millisToCycles(Options.gcTimeCap);
-    return gcStartTime + limit;
-  }
-
-  /**
-   * Print out timing info
-   */
-  protected final void printPlanTimes(boolean totals) {
-    rc.printTimes(totals);
+    return timeCap;
   }
 
   /**

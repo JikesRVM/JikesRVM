@@ -139,6 +139,8 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
   public final VM_Address traceObject(VM_Address object, byte tag)
     throws VM_PragmaInline {
     if (MarkSweepHeader.testAndMark(object, markState)) {
+      if (Plan.GATHER_MARK_CONS_STATS)
+	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
       MarkSweepLocal.internalMarkObject(object, tag);
       VM_Interface.getPlan().enqueue(object);
     }

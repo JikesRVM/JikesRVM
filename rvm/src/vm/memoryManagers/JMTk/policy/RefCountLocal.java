@@ -4,10 +4,11 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 
 import com.ibm.JikesRVM.VM_Magic;
@@ -52,6 +53,12 @@ final class RefCountLocal extends SegregatedFreeList
   private static final int RC_BLOCK_HEADER = BYTES_IN_ADDRESS; 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
+
+  // Statistics
+  private static Timer decTime;
+  private static Timer incTime;
+  private static Timer cdTime;
+
 
   /****************************************************************************
    *
@@ -141,6 +148,9 @@ final class RefCountLocal extends SegregatedFreeList
           break;
       }
     }
+    decTime = new Timer("dec", false, true);
+    incTime = new Timer("inc", false, true);
+    cdTime = new Timer("cd", false, true);
   }
 
  /**
@@ -214,21 +224,21 @@ final class RefCountLocal extends SegregatedFreeList
   /**
    * Finish up after a collection.
    */
-  public final void release(int count, boolean time) {
+  public final void release(int count, boolean timekeeper) {
     flushFreeLists();
     VM_Interface.rendezvous(4400);
     if (!RefCountSpace.INC_DEC_ROOT) {
       processOldRootBufs();
     }
-    if (time) Statistics.rcDecTime.start();
+    if (timekeeper) decTime.start();
     if (RefCountSpace.RC_SANITY_CHECK) incSanityTrace();
     processDecBufs();
-    if (time) Statistics.rcDecTime.stop();
+    if (timekeeper) decTime.stop();
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
-      if (time) Statistics.cdTime.start();
-      if (cycleDetector.collectCycles(count, time)) 
+      if (timekeeper) cdTime.start();
+      if (cycleDetector.collectCycles(count, timekeeper)) 
         processDecBufs();
-      if (time) Statistics.cdTime.stop();
+      if (timekeeper) cdTime.stop();
     }
     VM_Interface.rendezvous(4410);
     processDeferredFreeBufs();
@@ -526,11 +536,12 @@ final class RefCountLocal extends SegregatedFreeList
     rcLiveObjects++;
   }
 
+ 
   /****************************************************************************
    *
    * Misc
    */
-
+  
   /**
    * Setter method for the purple counter.
    *
@@ -539,13 +550,13 @@ final class RefCountLocal extends SegregatedFreeList
   public final void setPurpleCounter(int purple) {
     purpleCounter = purple;
   }
-
+  
   /**
    * Print out statistics on increments, decrements, roots and
    * potential garbage cycles (purple objects).
    */
   public final void printStats() {
-    Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
+    Log.write("<GC "); Log.write(Stats.gcCount()); Log.write(" "); 
     Log.write(incCounter); Log.write(" incs, ");
     Log.write(decCounter); Log.write(" decs, ");
     Log.write(rootCounter); Log.write(" roots");
@@ -554,22 +565,5 @@ final class RefCountLocal extends SegregatedFreeList
       Log.write(purpleCounter);Log.write(" purple");
     }
     Log.writeln(">");
-  }
-
-
-  /**
-   * Print out timing info for last GC
-   */
-  public final void printTimes(boolean totals) {
-    double time;
-    time = (totals) ? Statistics.rcIncTime.sum() : Statistics.rcIncTime.lastMs();
-    Log.write(" inc: "); Log.write(time);
-    time = (totals) ? Statistics.rcDecTime.sum() : Statistics.rcDecTime.lastMs();
-    Log.write(" dec: "); Log.write(time);
-    if (Plan.REF_COUNT_CYCLE_DETECTION) {
-      time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
-      Log.write(" cd: "); Log.write(time);
-      cycleDetector.printTimes(totals);
-    }
   }
 }

@@ -5,8 +5,9 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -65,6 +66,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // GC state
   private static int required;  // how many pages must this GC yeild?
   private static int previousMetaDataPages;  // meta-data pages after last GC
+  private static long timeCap = 0; // time within which this GC should finish
 
   // Allocators
   public static final byte NURSERY_SPACE = 0;
@@ -112,9 +114,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private RCSanityEnumerator sanityEnum;
 
   // counters
-  private int wbFastPathCounter;
-  private int wbSlowPathCounter;
-  private int rcSlowPathCounter;
+  private static EventCounter wbFast;
+  private static EventCounter wbSlow;
   private int incCounter;
   private int decCounter;
   private int modCounter;
@@ -151,6 +152,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     decPool.newClient();
     rootPool = new SharedDeque(metaDataRPA, 1);
     rootPool.newClient();
+
+    if (GATHER_WRITE_BARRIER_STATS) {
+      wbFast = new EventCounter("wbFast");
+      wbSlow = new EventCounter("wbSlow");
+    }
   }
 
   /**
@@ -404,6 +410,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
+    timeCap = VM_Interface.cycles() + VM_Interface.millisToCycles(Options.gcTimeCap);
     nurseryMR.reset();
     rcSpace.prepare();
     ImmortalSpace.prepare(immortalVM, null);
@@ -434,16 +441,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     rc.release(count, Options.verboseTiming && count==1);
-    if (GATHER_WRITE_BARRIER_STATS) { 
-      // This is printed independantly of the verbosity so that any
-      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
-      // will know---it will have a noticable performance hit...
-      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
-      Log.write(wbFastPathCounter); Log.write(" wb-fast, ");
-      Log.write(wbSlowPathCounter); Log.write(" wb-slow, ");
-      Log.write(rcSlowPathCounter); Log.write(" rc-slow>\n");
-      wbFastPathCounter = wbSlowPathCounter = rcSlowPathCounter = 0;
-    }
   }
 
   /**
@@ -803,7 +800,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private final void writeBarrier(VM_Address srcObj,
                                   VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
-    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
       if (Header.needsToBeLogged(srcObj))
         writeBarrierSlow(srcObj, src, tgt);
       VM_Magic.setMemoryAddress(src, tgt);
@@ -814,6 +811,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!isNurseryObject(srcObj));
     if (Header.attemptToLog(srcObj)) {
+      if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       modBuffer.push(srcObj);
       Scan.enumeratePointers(srcObj, decEnum);
       Header.makeLogged(srcObj);
@@ -981,17 +979,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * should complete).
    */
   public static final long getTimeCap() {
-    long limit = VM_Interface.millisToCycles(Options.gcTimeCap);
-    return gcStartTime + limit;
-  }
-
-  /**
-   * Print out plan-specific timing info
-   */
-  protected final void printPlanTimes(boolean totals) {
-    double time = (totals) ? Statistics.remsetTime.sum() : Statistics.remsetTime.lastMs();
-    Log.write(" r/s: "); Log.write(time);
-    rc.printTimes(totals);
+    return timeCap;
   }
 
   /**

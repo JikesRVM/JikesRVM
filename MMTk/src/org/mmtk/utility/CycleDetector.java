@@ -19,5 +19,4 @@ abstract class CycleDetector implements VM_Uninterruptible {
 
   abstract boolean collectCycles(int count, boolean time);
   abstract void possibleCycleRoot(VM_Address object);
-  abstract void printTimes(boolean totals);
 }
