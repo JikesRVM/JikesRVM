@@ -5,7 +5,7 @@
 # $Id$
 # @author Julian Dolby
 # @modified Steven Augart
-#   (Bash conversion plus more error checking.)
+#   (Bash conversion)
 #
 trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR
 set -e
@@ -151,7 +151,7 @@ fi
 # configure and build library
 system_type=$($DEST_DIR/classpath/config.guess)
 if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
-    mkdir -p $DEST_DIR/$system_type
+    mkdir $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
     if [[ $RVM_FOR_IA32 = 1 ]]; then
@@ -164,13 +164,11 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
 fi
 
 # build classpath source jar
-cp_src_jar_dir=$RVM_ROOT/support/lib
-cp_src_jar=${cp_src_jar_dir}/classpathsrc.jar
-echo "Building ${cp_src_jar}"
-rm -f ${cp_src_jar}
-mkdir -p $cp_src_jar_dir
-touch ${cp_src_jar}
+echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
+rm -f $RVM_ROOT/support/lib/classpathsrc.jar
+mkdir -p $RVM_ROOT/support/lib
+touch $RVM_ROOT/support/lib/classpathsrc.jar
 cd $DEST_DIR/classpath
 for p in $TOP_LEVEL_PACKAGES; do
-    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf ${cp_src_jar}
+    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
 done

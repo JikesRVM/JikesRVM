@@ -9,7 +9,12 @@
 # @modified Steven Augart
 
 # This script will build the boot images
-# It then signals another script, night-sanity-run to perform the runs.
+## 
+## By giving the "-wait sem" flags to NightSanityDriver, it tells
+## NightSanityDriver to create a semaphore file in each build in the
+## images directory, upon completion of each build.  night-sanity-run
+## then uses that information to know when it's OK to start the tests
+## that use that particular image.
 
 ME="${0##*/}"
 function usage() {
@@ -46,7 +51,12 @@ set -e
 
 umask 022
 
-echo "Any further output will go to $BUILD_LOG"
+## If stdin is a terminal, then go ahead and display this message.  This means
+## that we will not display it when running under cron, which is
+## a good thing.
+if [[ -t 0 ]]; then
+    echo "Any further output will go to $BUILD_LOG"
+fi
 exec >> $BUILD_LOG 2>&1
 
 # build the boot images, but don't run any tests
@@ -60,11 +70,11 @@ echo "Using the configuration $configuration, in $config_fullpath"
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
 
 echo "OK, now we will try to build the javadoc for the FullAdaptiveSemiSpace image"
-dir="$RVM_ROOT/images/FullAdaptiveSemiSpace"
-if [[ ! -d $dir ]]; then
+fass_dir="$RVM_ROOT/images/FullAdaptiveSemiSpace"
+if [[ ! -d $fass_dir ]]; then
     echo "$ME: It looks as if you didn't make a FullAdaptiveSemiSpace build.  We'll skip jdoc.sh."
 else
-    je="$dir/jbuild.environment"
+    je="$fass_dir/jbuild.environment"
     . $je || croak "Unable to load $je"
     "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" both || croak "Trouble running jdoc.sh; sorry!"
 fi
