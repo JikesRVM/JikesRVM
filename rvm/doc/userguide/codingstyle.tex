@@ -212,6 +212,15 @@ code syntactically (this is generally a Good Thing).
 
 \end{itemize}
 
+If you use \texttt{M-x compile} to run jbuild, you will want to have
+{\tt jikes} produce error messages Emacs can parse. To do this supply
+the \texttt{+E} option in the definition of \texttt{JIKES} in your
+\texttt{\$RVM\_HOST\_CONFIG} file. For example:
+
+\begin{example}
+\tt{}export JIKES="/usr/bin/jikes +E"
+\end{example}
+
 \subsubsection{vi}%
         \label{options:vi/vim}%
         \cindex[vi]{\texttt{vi} and \texttt{vim}}
