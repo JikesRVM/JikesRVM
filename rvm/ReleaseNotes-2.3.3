@@ -29,8 +29,8 @@ Documentation is in the user's guide.
 **PowerPC/Linux/64 support with baseline compiler
 Jikes RVM now runs on 64-bit PowerPC Linux to the same extent as it
 does on 64-bit PowerPC AIX.  All regression tests pass with the
-baseline compiler, porting of the opt compiler to 64 bit PowerPC is an
-open work item; contributions welcome!
+baseline compiler.  Porting of the opt compiler to 64 bit PowerPC is
+an open work item; contributions welcome!
 
 **Startup time slashed
 The startup time for Jikes RVM to run a simple "Hello World" program
@@ -64,5 +64,10 @@ refactoring of reference processing (java.lang.ref.*).
 
 *Other notes:
 
+**Compiler DNA updated -- x86 adaptive system now uses Opt level O2 sometimes.
+The x86 Opt compiler has had some minor improvements.  The result is
+that the Adaptive system will now sometimes compile at Opt level O2.
+
 *Bug Fixes:
 ** Calls to the JNI function pair GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested . 
+** The 
