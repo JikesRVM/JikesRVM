@@ -168,9 +168,10 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
 	  VM_Interface.getPlan().addToRootSet(object); 
 	}
       } else {
-	if (VM.VerifyAssertions) VM._assert(root);
+	//	if (VM.VerifyAssertions) VM._assert(root);
 	increment(object);
-	VM_Interface.getPlan().addToRootSet(object); 
+	if (root)
+	  VM_Interface.getPlan().addToRootSet(object); 
       }
       break;
     case DECREMENT: 
@@ -271,6 +272,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   }
   public final void scanPhase() 
     throws VM_PragmaInline {
+    resetVisitCount();
     phase = SCAN;
   }
   public final void scanBlackPhase() 
@@ -314,11 +316,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     if (SimpleRCBaseHeader.makePurple(object))
       plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
   }
-
+  private int visitCount;
+  public void resetVisitCount() {
+    visitCount = 0;
+  }
+  public int getVisitCount() throws VM_PragmaInline {
+    return visitCount;
+  }
   public final void markGrey(VM_Address object)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
+      visitCount++;
       if (!SimpleRCBaseHeader.isGrey(object)) {
 	SimpleRCBaseHeader.makeGrey(object);
 	ScanObject.scan(object);

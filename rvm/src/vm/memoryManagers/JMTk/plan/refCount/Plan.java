@@ -67,8 +67,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   private static int lastRCPages = 0; // pages at end of last GC
   
   // Allocators
-  final public static byte RC_SPACE = 0;
-  final public static byte DEFAULT_SPACE = RC_SPACE;
+  public static final byte RC_SPACE = 0;
+  public static final byte DEFAULT_SPACE = RC_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -126,7 +126,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 
     // collectors
     rcSpace = new SimpleRCCollector(rcVM, rcMR);
-
     addSpace(RC_SPACE, "RC Space");
 
     // instantiate shared queues
@@ -197,7 +196,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address result;
     switch (allocator) {
-      case       RC_SPACE: result = rc.alloc(isScalar, bytes); break;
+      case       RC_SPACE: result = rc.allocOOL(isScalar, bytes); break;
       case IMMORTAL_SPACE: result = immortal.alloc(isScalar, bytes); break;
       default:             result = VM_Address.zero(); 
 	                   if (VM.VerifyAssertions) VM.sysFail("No such allocator");
@@ -224,7 +223,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       if (sanityTracing)
 	SimpleRCCollector.postAllocImmortal(VM_Magic.objectAsAddress(ref));
       Immortal.postAlloc(ref); return;
-    default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator"); return;
+    default: if (VM.VerifyAssertions) VM.sysFail("No such allocator"); return;
     }
   }
 
@@ -341,8 +340,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (gcInProgress) return false;
     if (mustCollect || 
 	getPagesReserved() > getTotalPages() ||
-	(rcMR.reservedPages() - lastRCPages) > Options.nurseryPages ||// CHANGE
-	metaDataMR.committedPages() > Options.metaDataPages) {  // CHANGE
+	(((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
+	  metaDataMR.committedPages() > Options.metaDataPages)
+	 && VM_Interface.fullyBooted())) {
+      //      VM.sysWrite(getPagesReserved()); VM.sysWrite(" res, "); VM.sysWrite(lastRCPages); VM.sysWrite(" last, "); VM.sysWrite(Options.nurseryPages); VM.sysWrite(" nur, "); VM.sysWrite(metaDataMR.committedPages()); VM.sysWrite(" md, "); VM.sysWrite(Options.metaDataPages); VM.sysWrite(" omd\n");
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
@@ -422,18 +423,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (refCountCycleDetection) {
       filterCycleBufs();
       processFreeBufs(false);
-      //       if (((getTotalPages() - getPagesReserved() - required)
-      //  	  < Options.cycleDetectionPages) ||
-      // 	  (metaDataMR.committedPages() > Options.metaDataPages)) {
-      
-      if (sanityTracing) VM.sysWrite("----------Mark Grey---------\n");
-      doMarkGreyPhase();
-      if (sanityTracing) VM.sysWrite("----------- Scan -----------\n");
-      doScanPhase();
-      if (sanityTracing) VM.sysWrite("---------- Collect ---------\n");
-      doCollectPhase();
-      if (sanityTracing) VM.sysWrite("------------ Free ----------\n");
-      processFreeBufs(true);
+//       if ((getTotalPages() - getPagesReserved() - required)
+// 	  < Options.cycleDetectionPages) {
+	if (sanityTracing) VM.sysWrite("----------Mark Grey---------\n");
+	doMarkGreyPhase();
+	if (sanityTracing) VM.sysWrite("----------- Scan -----------\n");
+	doScanPhase();
+	if (sanityTracing) VM.sysWrite("---------- Collect ---------\n");
+	doCollectPhase();
+	if (sanityTracing) VM.sysWrite("------------ Free ----------\n");
+	processFreeBufs(true);
 //       }
     }
     if (GATHER_WRITE_BARRIER_STATS) { 
@@ -459,11 +458,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     // release each of the collected regions
     rcSpace.release();
     Immortal.release(immortalVM, null);
-    if (verbose == 1) {
-      VM.sysWrite("->");
-      VM.sysWrite(Conversions.pagesToBytes(getPagesUsed())>>10);
-      VM.sysWrite("KB ");
-    }
     if (verbose == 2) {
       VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
       VM.sysWriteInt(incCounter); VM.sysWrite(" incs, ");
@@ -474,10 +468,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 	VM.sysWriteInt(purpleCounter); VM.sysWrite(" purple");
       }
       VM.sysWrite(">\n");
-    }
-    if (verbose > 2) {
-      VM.sysWrite("   After Collection: ");
-      //      showUsage();
     }
     lastRCPages = rcMR.committedPages();
     if (getPagesReserved() + required >= getTotalPages()) {
@@ -602,7 +592,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void putFieldWriteBarrier(VM_Address src, int offset,
 					 VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt, src);
+    writeBarrier(src.add(offset), tgt);
   }
 
   /**
@@ -619,7 +609,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
 					   VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt, src);
+    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
   }
 
   /**
@@ -635,7 +625,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param tgt The target of the new reference (about to become the
    * contents of src).
    */
-  private final void writeBarrier(VM_Address src, VM_Address tgt, VM_Address obj) 
+  private final void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
@@ -646,7 +636,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       decBuffer.pushOOL(old);
     if (tgt.GE(RC_START))
       incBuffer.pushOOL(tgt);
-    // VM_Magic.setMemoryAddress(src, tgt);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -738,6 +727,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     else
       cycleBufferB.push(obj);
   }
+  public final void addToFreeBuf(VM_Address object) 
+   throws VM_PragmaInline {
+    freeBuffer.push(object);
+  }
 
   private final void processIncBufs() {
     VM_Address tgt;
@@ -804,10 +797,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     }
   }
 
-  final public void addToFreeBuf(VM_Address object) 
-   throws VM_PragmaInline {
-    freeBuffer.push(object);
-  }
   private final void filterCycleBufs() {
     VM_Address obj;
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
@@ -839,16 +828,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       rcSpace.free(obj, rc);
     }
   }
+  static final int CYCLE_PROCESS_LIMIT = 1<<30;
   private final void doMarkGreyPhase() {
     VM_Address obj;
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
     rcSpace.markGreyPhase();
-    while (!(obj = src.pop()).isZero()) {
+    int objsProcessed = 0;
+    while (!(obj = src.pop()).isZero() && objsProcessed < CYCLE_PROCESS_LIMIT){
       if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
       if (SimpleRCBaseHeader.isPurple(obj)) {
 	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isLiveRC(obj));
 	rcSpace.markGrey(obj);
+	objsProcessed++;
 	tgt.push(obj);
       } else {
  	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isGrey(obj));
