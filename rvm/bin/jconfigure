@@ -1722,7 +1722,7 @@ function emitImageLinker
    fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   OPT_ARGS="$OPT_ARGS -X:bc:verbose=true"'
+   print '   OPT_ARGS="$OPT_ARGS -X:bc:verbose=true -X:bc:phases=true"'
    print 'fi'
    print ""
 
