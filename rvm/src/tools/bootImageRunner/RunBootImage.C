@@ -295,10 +295,24 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                     break;
                 }
             }
-            // canonicalize the argument
-            char *buf = (char *) malloc(20); 
-            sprintf(buf, "-X:gc:verbose=%ld", level);
-            CLAs[n_JCLAs++]=buf;
+            /* Canonicalize the argument, and pass it on to the heavy-weight
+             * Java code that parses -X:gc:verbose */
+            const size_t bufsiz = 20;
+            char *buf = (char *) malloc(bufsiz); 
+            int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
+            if (ret < 0) {
+                fprintf(stderr, "Internal error processing the argument"
+                        " \"%s\"\n", token);
+                exit(1);
+            }
+            if (ret >= bufsiz) {
+                fprintf(SysTraceFile, "%s: \"%s\": %ld is too big a number"
+                        " to process internally\n", Me, token, level);
+                *fastExit = true;
+                continue;
+            }
+            
+            CLAs[n_JCLAs++]=buf; // Leave buf allocated!
             continue;
         }
 
