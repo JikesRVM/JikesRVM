@@ -32,7 +32,7 @@ all:
 
 
 ifdef RVM_BUILD
-   GENSRC:=$(RVM_BUILD)/RVM.generatedSources
+   GENSRC:=$(RVM_BUILD)/RVM.generatedSources $(RVM_BUILD)/RVM.scratch
 else
    GENSRC:=
 endif
