@@ -13,8 +13,12 @@ V maxSystemTroubleRecursionDepth int  3
 If we get deeper than this in one of the System Trouble functions, try to die.
 
 
-V schedulingQuantum int 10
-Thread scheduling quantum in ms
+V interruptQuantum int 10
+Timer interrupt scheduling quantum in ms
+
+
+V schedulingMultiplier int 1
+Scheduling quantum = interruptQuantum * schedulingMultiplier
 
 
 V TraceThreadScheduling int 0 traceThreadScheduling
