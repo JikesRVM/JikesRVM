@@ -5,7 +5,8 @@
 
 /**
  * Class that supports scanning thread stacks for references during
- * collections and processing those references
+ * collections. References are located using GCMapIterators and are
+ * processed by invoking the processPtrField method of VM_Allocator.
  *
  * @author Stephen Smith
  */  
@@ -19,11 +20,11 @@ public class VM_ScanStack
   // MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
   // use these when running with PROCESSORS=1
 
-  // includes in output dump of contents of each frame
+  // includes in output a dump of the contents of each frame
   // forces DUMP_STACK_REFS & TRACE_STACKS on (ie. everything!!)
   static final boolean DUMP_STACK_FRAMES = false;
 
-  // includes in output dump of refs reported by map iterators
+  // includes in output the refs reported by map iterators
   // forces TRACE_STACKS on 
   static final boolean DUMP_STACK_REFS = DUMP_STACK_FRAMES || false;
 
@@ -71,11 +72,9 @@ public class VM_ScanStack
     iteratorGroup.newStackWalk(t);
     
     if (TRACE_STACKS) {
-      VM_Scheduler.trace("entering VM_ScanStack", " ");
-      VM.sysWrite("\n--- Starting Stack Scan --- Thread id ");
-      VM.sysWrite(t.getIndex(),false);
+      VM_Scheduler.trace("VM_ScanStack", "Thread id", t.getIndex());
       if ( relocate_code )
-	VM.sysWrite(" relocate_code\n");
+	VM.sysWrite("(relocate_code)\n");
       else
 	VM.sysWrite("\n");
     }
@@ -112,6 +111,13 @@ public class VM_ScanStack
 
     if ( fp != STACKFRAME_SENTINAL_FP) {
 
+    if (VM.VerifyAssertions) {
+      if (t.hardwareExceptionRegisters.inuse) {
+	VM.sysWrite("VM_ScanStack: Unexpected hardwareExceptionRegisters.inuse!\n");
+	VM_Scheduler.dumpStack( ip, fp );
+      }
+    }
+
     if (DUMP_STACK_REFS) {
       VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
     }
@@ -131,7 +137,7 @@ public class VM_ScanStack
       //
       if (compiledMethodId == VM_Constants.INVISIBLE_METHOD_ID) {
 	
-	if (TRACE_STACKS) VM.sysWrite("--- METHOD --- <invisible method>\n");
+	if (TRACE_STACKS) VM.sysWrite("\n--- METHOD --- <invisible method>\n");
 	
 	// skip "invisible" frame
 	prevFp = fp;
@@ -144,31 +150,26 @@ public class VM_ScanStack
       
       VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
       VM_Method         method = compiledMethod.getMethod();
-      
-      if (TRACE_STACKS) {
-	VM_Scheduler.outputMutex.lock();
-	VM.sysWrite("--- METHOD --- ");
-	VM.sysWrite(method); VM.sysWrite(".\n");
-	VM_Scheduler.outputMutex.unlock();
-      }
-
-      if (DUMP_STACK_FRAMES) {
-	if (prevFp == 0) {
-	  VM.sysWrite("dumping 20 words of top frame\n");
-	  dumpStackFrame( fp, fp - 20*WORDSIZE );
-	}
-	else {
-	  dumpStackFrame( fp, prevFp );
-	}
-      }
-      if (DUMP_STACK_REFS)
-	VM.sysWrite("--- Refs Reported By GCMap Iterator ---\n");
 
       // initialize MapIterator for this frame
       int offset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
       iterator = iteratorGroup.selectIterator(compiledMethod);
       iterator.setupIterator(compiledMethod, offset, fp);
       
+      if (TRACE_STACKS) {
+	VM_Scheduler.outputMutex.lock();
+	VM.sysWrite("\n--- METHOD --- ");
+	VM.sysWrite(method);
+	VM.sysWrite(" at offset ");
+	VM.sysWrite(offset,false);
+	VM.sysWrite(".\n");
+	VM_Scheduler.outputMutex.unlock();
+      }
+      if (DUMP_STACK_FRAMES) dumpStackFrame( fp, prevFp );
+
+      if (DUMP_STACK_REFS) 
+	VM.sysWrite("--- Refs Reported By GCMap Iterator ---\n");
+
       // scan the map for this frame and process each reference
       //
       for (refaddr = iterator.getNextReferenceAddress();  refaddr != 0;
@@ -179,18 +180,16 @@ public class VM_ScanStack
 	  if (!VM_GCUtil.validRef(ref)) {
 	    VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	    VM.sysWrite("--- METHOD --- ");
-	    VM.sysWrite(method); VM.sysWrite(".\n");
+	    VM.sysWrite(method);
+	    VM.sysWrite(" at offset ");
+	    VM.sysWrite(offset,false);
+	    VM.sysWrite(".\n");
 	    VM.sysWrite(" fp = "); VM.sysWriteHex(fp);
 	    VM.sysWrite(" ip = "); VM.sysWriteHex(ip); VM.sysWrite("\n");
 	    // dump out bad ref
 	    VM.sysWriteHex(refaddr); VM.sysWrite(":"); VM_GCUtil.dumpRef(ref);
 	    // dump out contents of frame
-	    if (prevFp == 0) {
-	      VM.sysWrite("dumping 20 words of top frame\n");
-	      dumpStackFrame( fp, fp - 20*WORDSIZE );
-	    }
-	    else
-	      dumpStackFrame( fp, prevFp );
+	    dumpStackFrame( fp, prevFp );
 	    // dump stack starting at current frame
 	    VM.sysWrite("\nDumping stack starting at frame with bad ref:\n");
 	    VM_Scheduler.dumpStack( ip, fp );
@@ -306,24 +305,42 @@ public class VM_ScanStack
 
   static void
   dumpStackFrame( int fp, int prevFp ) {
-    VM.sysWrite("--- stack frame from fp = ");
+    int start,end;
+//-#if RVM_FOR_IA32
+    if (prevFp==0) {
+      start = fp - 20*WORDSIZE;
+      VM.sysWrite("--- 20 words of stack frame with fp = ");
+    }
+    else {
+      start = prevFp;    // start at callee fp
+      VM.sysWrite("--- stack frame with fp = ");
+    }
     VM.sysWriteHex(fp);
-    VM.sysWrite(" to previous fp = ");
-    VM.sysWriteHex(prevFp);
     VM.sysWrite(" ----\n");
-    for ( int loc = fp; loc >= prevFp; loc-=WORDSIZE ) {
-      VM.sysWrite(fp-loc,false);
+    end = fp;            // end at fp
+//-#endif
+//-#if RVM_FOR_POWERPC
+    VM.sysWrite("--- stack frame with fp = ");
+    VM.sysWriteHex(fp);
+    VM.sysWrite(" ----\n");
+    start = fp;                         // start at fp
+    end = VM_Magic.getMemoryWord(fp);   // stop at callers fp
+//-#endif
+
+    for ( int loc = start; loc <= end; loc+=WORDSIZE ) {
+      VM.sysWrite(loc-start,false);
       VM.sysWrite(" ");
       VM.sysWriteHex(loc);
       VM.sysWrite(" ");
       int value = VM_Magic.getMemoryWord(loc);
       VM.sysWriteHex(value);
       VM.sysWrite(" ");
-      if ( VM_GCUtil.referenceInVM(value) && (loc!=fp) && (loc!=prevFp) )
+      if ( VM_GCUtil.referenceInVM(value) && (loc!=start) && (loc!=end) )
 	VM_GCUtil.dumpRef(value);
       else
 	VM.sysWrite("\n");
     }
+    VM.sysWrite("\n");
   }
 
 }   // VM_GCUtil
