@@ -92,9 +92,6 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 %.gif:	%.ps
 	${PS2GIF} -res 50 $< $@
 
-userguide.tex:  main.tex
-		cp $< $@
-
 .INTERMEDIATE:	userguide.tex userguide.dvi ${GENERATOR}.java
 
 clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} $(HTML_GRAPHICS)
