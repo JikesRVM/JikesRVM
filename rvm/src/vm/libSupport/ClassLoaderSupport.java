@@ -57,11 +57,11 @@ public class ClassLoaderSupport {
    * @exception	SecurityException    if the library was not allowed to be loaded
    */
   public static void load(String pathName) {
-      SecurityManager smngr = System.getSecurityManager();
-      if (smngr != null)
-	  smngr.checkLink(pathName);
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null)
+      smngr.checkLink(pathName);
       
-      VM_ClassLoader.load(pathName);
+    VM_ClassLoader.load(pathName);
   }
     
   /**
@@ -73,11 +73,11 @@ public class ClassLoaderSupport {
    * @exception	SecurityException       if the library was not allowed to be loaded
    */
   public static void loadLibrary(String libName) {
-      SecurityManager smngr = System.getSecurityManager();
-      if (smngr != null)
-	  smngr.checkLink(libName);
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null)
+      smngr.checkLink(libName);
       
-      VM_ClassLoader.loadLibrary( libName );
+    VM_ClassLoader.loadLibrary( libName );
   }
 
   /**
@@ -91,7 +91,8 @@ public class ClassLoaderSupport {
    * @see	java.lang.ClassLoader
    */
   public static ClassLoader getClassLoader(Class C) {
-      return java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getClassLoader();
+    ClassLoader cl = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getClassLoader();
+    return cl == VM_SystemClassLoader.getVMClassLoader() ? null : cl;
   }
   /**
    * Constructs a new class from an array of bytes containing a
@@ -194,25 +195,25 @@ public class ClassLoaderSupport {
    *					if a security manager exists and it does not
    *					allow access to the system class loader.
    */
-    public static ClassLoader getSystemClassLoader () {
-	return VM_SystemClassLoader.getVMClassLoader();
-    }
+  public static ClassLoader getSystemClassLoader () {
+    return VM_SystemClassLoader.getVMClassLoader();
+  }
     
-    public static ClassLoader getClassLoaderFromStackFrame(int depth) {
-	return VM_Class.getClassLoaderFromStackFrame(depth+1);
-    }
+  public static ClassLoader getClassLoaderFromStackFrame(int depth) {
+    return VM_Class.getClassLoaderFromStackFrame(depth+1);
+  }
 
-    public static ClassLoader getNonSystemClassLoader() {
-	ClassLoader cl = null;
-	VM_StackBrowser sb = new VM_StackBrowser();
-	VM.disableGC();
-	sb.init();
-	while ((cl=sb.getCurrentClass().getClassLoader())==VM_SystemClassLoader.getVMClassLoader() && sb.hasMoreFrames())
-	    sb.up();
-	VM.enableGC();
-	if (cl!=VM_SystemClassLoader.getVMClassLoader())
-	    return cl;
-	else
-	    return null;
-    }
+  public static ClassLoader getNonSystemClassLoader() {
+    ClassLoader cl = null;
+    VM_StackBrowser sb = new VM_StackBrowser();
+    VM.disableGC();
+    sb.init();
+    while ((cl=sb.getCurrentClass().getClassLoader())==VM_SystemClassLoader.getVMClassLoader() && sb.hasMoreFrames())
+      sb.up();
+    VM.enableGC();
+    if (cl!=VM_SystemClassLoader.getVMClassLoader())
+      return cl;
+    else
+      return null;
+  }
 }
