@@ -121,7 +121,7 @@ opt_options.tex:	${GENERATOR_FILES} options.template ${OPT_DAT_FILES}
 adaptive_options.tex:	${GENERATOR_FILES} options.template $(ADAPT_DAT_FILES)
 			$(HOST_JAVA) ${GENERATOR} options.template \
 			  adaptive_options.tex \
-			  BOOLEAN_DAT_FILES="$(ADAPTIVE_BOOLEAN_DAT_FILES)" \
-			  VALUE_DAT_FILES="$(ADAPTIVE_VALUE_DAT_FILES)" \
+			  BOOLEAN_DAT_FILES="$(ADAPT_BOOLEAN_DAT_FILES)" \
+			  VALUE_DAT_FILES="$(ADAPT_VALUE_DAT_FILES)" \
 			  OPTPREFIX="-X:aos" \
 			  USE_OPT_LEVELS="NO"
