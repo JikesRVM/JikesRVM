@@ -103,7 +103,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
    * To be called when the application starts a run
    * @param value the exit value
    */
-  public void notifyAppRunStart(int value) throws VM_PragmaUninterruptible {
+  public void notifyAppRunStart(String app, int value) throws VM_PragmaUninterruptible {
     if (VM_Allocator.verbose >= 1) VM.sysWrite("Clearing VM_Allocator statistics\n");
     clearSummaryStatistics();
   }

@@ -142,7 +142,7 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
     return b;
   }
 
-  static void notifyAppRunStart(int value) {
+  static void notifyAppRunStart(String app, int value) {
     if (!STATS) return;
     lockNumber = 0;
     lockOperations = 0;

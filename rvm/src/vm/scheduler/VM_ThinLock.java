@@ -390,7 +390,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   static int fastLocks;
   static int slowLocks;
 
-  static void notifyAppRunStart (int value) {
+  static void notifyAppRunStart (String app, int value) {
     if (!STATS) return;
     fastLocks = 0;
     slowLocks = 0;

@@ -33,6 +33,10 @@ import java.util.Enumeration;
  * <li> BootImageWriting  - called when boot image writing is started
  * <li> Startup           - called when the VM has completed booting
  * <li> Exit              - called when the VM is about to exit
+ * <li> AppStart          - called before the application starts executing
+ *                          all runs -- needs application support)
+ * <li> AppComplete       - called after the application completes executing
+ *                          all runs --- needs application support)
  * <li> AppRunStart       - called before the application starts a run
  *                          (many applications have several runs -- needs
  *                          application support)
@@ -787,14 +791,122 @@ public final class VM_Callbacks {
   }
 
   /**
+   * Interface for monitoring when an application starts executing
+   */
+  public static interface AppStartMonitor {
+    /**
+     * Notify the monitor that the application has started executing
+     * @param app application name
+     */
+    public void notifyAppStart(String app);
+  }
+
+  /**
+   * Application Start executing callback list.
+   */
+  private static CallbackList appStartCallbacks = null;
+  private static Object appStartLock = new Object();
+
+  /**
+   * Register a callback for when the application starts executing
+   * @param cb the object to notify when event happens
+   */
+  public static void addAppStartMonitor(AppStartMonitor cb) {
+    synchronized (appStartLock) {
+      if (TRACE_ADDMONITOR || TRACE_APP_START) {
+        VM.sysWrite("adding application start monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      appStartCallbacks = new CallbackList(cb, appStartCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the application started executing
+   * Will return once all the callbacks are invoked.
+   * @param app name of application
+   */
+  public static void notifyAppStart(String app) {
+    synchronized (appStartLock) {
+      if (appStartCallbacks == null) return;
+      if (TRACE_APP_START) {
+        VM.sysWrite("invoking application start monitors\n");
+      }
+      for (CallbackList l = appStartCallbacks; l != null; l = l.next) {
+	if (TRACE_APP_START) {
+	  VM.sysWrite("    ");
+	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
+	  VM.sysWrite("\n");
+	}
+	((AppStartMonitor) l.callback).notifyAppStart(app);
+      }
+    }
+  }
+
+  /**
+   * Interface for monitoring when an application completes executing
+   */
+  public static interface AppCompleteMonitor {
+    /**
+     * Notify the monitor that the application has completed executing
+     * @param app  name of application
+     */
+    public void notifyAppComplete(String app);
+  }
+
+  /**
+   * Application Execution Complete callback list.
+   */
+  private static CallbackList appCompleteCallbacks = null;
+  private static Object appCompleteLock = new Object();
+
+  /**
+   * Register a callback for when the application completes executing
+   * @param cb the object to notify when event happens
+   */
+  public static void addAppCompleteMonitor(AppCompleteMonitor cb) {
+    synchronized (appCompleteLock) {
+      if (TRACE_ADDMONITOR || TRACE_APP_COMPLETE) {
+        VM.sysWrite("adding application complete monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      appCompleteCallbacks = new CallbackList(cb, appCompleteCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the application completed executing
+   * Will return once all the callbacks are invoked.
+   */
+  public static void notifyAppComplete(String app) {
+    synchronized (appCompleteLock) {
+      if (appCompleteCallbacks == null) return;
+      if (TRACE_APP_COMPLETE) {
+        VM.sysWrite("invoking application complete monitors for application ");VM.sysWrite(app);VM.sysWrite("\n");
+      }
+      for (CallbackList l = appCompleteCallbacks; l != null; l = l.next) {
+	if (TRACE_APP_COMPLETE) {
+	  VM.sysWrite("    ");
+	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
+	  VM.sysWrite("\n");
+	}
+	((AppCompleteMonitor) l.callback).notifyAppComplete(app);
+      }
+    }
+  }
+
+  /**
    * Interface for monitoring when an application starts a run
    */
   public static interface AppRunStartMonitor {
     /**
      * Notify the monitor that the application has started a run
-     * @param num run number
+     * @param app application name
+     * @param run run number
      */
-    public void notifyAppRunStart(int num);
+    public void notifyAppRunStart(String app, int run);
   }
 
   /**
@@ -809,7 +921,7 @@ public final class VM_Callbacks {
    */
   public static void addAppRunStartMonitor(AppRunStartMonitor cb) {
     synchronized (appRunStartLock) {
-      if (TRACE_ADDMONITOR || TRACE_APPRUNCOMPLETE) {
+      if (TRACE_ADDMONITOR || TRACE_APP_RUN_START) {
         VM.sysWrite("adding application run start monitor: ");
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
@@ -822,21 +934,21 @@ public final class VM_Callbacks {
    * Notify the callback manager that the application started a run
    * Will return once all the callbacks are invoked.
    */
-  public static void notifyAppRunStart(int i) {
+  public static void notifyAppRunStart(String app, int run) {
     synchronized (appRunStartLock) {
       if (appRunStartCallbacks == null) return;
-      if (TRACE_APPRUNCOMPLETE) {
+      if (TRACE_APP_RUN_START) {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
-        VM.sysWrite("invoking application run start monitors\n");
+        VM.sysWrite("invoking the start monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run);VM.sysWrite("\n");
       }
       for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
-	if (TRACE_APPRUNCOMPLETE) {
+	if (TRACE_APP_RUN_START) {
 	  VM.sysWrite("    ");
 	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
 	  VM.sysWrite("\n");
 	}
-	((AppRunStartMonitor) l.callback).notifyAppRunStart(i);
+	((AppRunStartMonitor) l.callback).notifyAppRunStart(app, run);
       }
     }
   }
@@ -847,9 +959,10 @@ public final class VM_Callbacks {
   public static interface AppRunCompleteMonitor {
     /**
      * Notify the monitor that the application has completed a run
-     * @param num run number
+     * @param app name of application
+     * @param run run number
      */
-    public void notifyAppRunComplete(int num);
+    public void notifyAppRunComplete(String app, int run);
   }
 
   /**
@@ -864,7 +977,7 @@ public final class VM_Callbacks {
    */
   public static void addAppRunCompleteMonitor(AppRunCompleteMonitor cb) {
     synchronized (appRunCompleteLock) {
-      if (TRACE_ADDMONITOR || TRACE_APPRUNCOMPLETE) {
+      if (TRACE_ADDMONITOR || TRACE_APP_RUN_COMPLETE) {
         VM.sysWrite("adding application run complete monitor: ");
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
@@ -876,22 +989,24 @@ public final class VM_Callbacks {
   /**
    * Notify the callback manager that the application completed a run
    * Will return once all the callbacks are invoked.
+   * @param app name of application
+   * @param run run number
    */
-  public static void notifyAppRunComplete(int i) {
+  public static void notifyAppRunComplete(String app, int run) {
     synchronized (appRunCompleteLock) {
       if (appRunCompleteCallbacks == null) return;
-      if (TRACE_APPRUNCOMPLETE) {
+      if (TRACE_APP_RUN_COMPLETE) {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
-        VM.sysWrite("invoking application run complete monitors\n");
+        VM.sysWrite("invoking the complete monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run,false);VM.sysWrite("\n");
       }
       for (CallbackList l = appRunCompleteCallbacks; l != null; l = l.next) {
-	if (TRACE_APPRUNCOMPLETE) {
+	if (TRACE_APP_RUN_COMPLETE) {
 	  VM.sysWrite("    ");
 	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
 	  VM.sysWrite("\n");
 	}
-	((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(i);
+	((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(app, run);
       }
     }
   }
@@ -932,7 +1047,10 @@ public final class VM_Callbacks {
   private final static boolean TRACE_BOOTIMAGE         = false;
   private final static boolean TRACE_STARTUP           = false;
   private final static boolean TRACE_EXIT              = false;
-  private final static boolean TRACE_APPRUNCOMPLETE    = false;
+  private final static boolean TRACE_APP_RUN_START     = false;
+  private final static boolean TRACE_APP_RUN_COMPLETE  = false;
+  private final static boolean TRACE_APP_START         = false;
+  private final static boolean TRACE_APP_COMPLETE      = false;
 
   /**
    * Return class name of the object.

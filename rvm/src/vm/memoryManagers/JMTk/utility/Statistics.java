@@ -107,7 +107,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
    * To be called when the application starts a run
    * @param value the exit value
    */
-  public void notifyAppRunStart(int value) throws VM_PragmaUninterruptible {
+  public void notifyAppRunStart(String app, int value) throws VM_PragmaUninterruptible {
     if (VM_Interface.verbose() >= 1) VM.sysWrite("Clearing memory management statistics\n");
     clearSummaryStatistics();
   }

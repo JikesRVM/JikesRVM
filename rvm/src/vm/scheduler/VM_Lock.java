@@ -638,7 +638,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   }
 
   static final class AppRunStartMonitor implements VM_Callbacks.AppRunStartMonitor {
-    public void notifyAppRunStart (int value) {
+    public void notifyAppRunStart (String app, int value) {
       if (! STATS) return;
       waitOperations = 0;
       timedWaitOperations = 0;
@@ -648,8 +648,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       unlockOperations = 0;
       deflations = 0;
 
-      VM_ThinLock.notifyAppRunStart(0);
-      VM_LockNursery.notifyAppRunStart(0);
+      VM_ThinLock.notifyAppRunStart("", 0);
+      VM_LockNursery.notifyAppRunStart("", 0);
     }
   }
 
