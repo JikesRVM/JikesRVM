@@ -179,6 +179,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.String");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
+    runClassInitializer("java.util.WeakHashMap");
     //-#endif
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("java.lang.Math");
@@ -196,6 +197,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
     //-#if RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("gnu.java.locale.Calendar");
     runClassInitializer("java.util.Date");
     //-#endif
     //-#if RVM_WITH_ALL_CLASSES
@@ -248,6 +250,7 @@ public class VM extends VM_Properties
     // Run class intializers that require fully booted VM
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
+    runClassInitializer("java.util.PropertyPermission");
     //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("com.ibm.oti.util.Msg");
     //-#endif
