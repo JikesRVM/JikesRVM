@@ -76,9 +76,10 @@ be kept in mind:
 
 \begin{enumerate}
 \item{} Do not pass a {\tt VM\_Address} instance where an {\tt Object}
-is expected. This will type-check but it not what you want.  A
-corollary is to avoid overloading a method on both {\tt Object} or a
-{\tt VM\_Address}. 
+is expected. This will type-check, but it is {\em not} what you want.  A
+corollary is to avoid overloading a method where the two overloaded
+versions of the method can only be distinguished by operating on an
+{\tt Object}  versus a {\tt VM\_Address}. 
 \item{} Do not synchronize on a {\tt VM\_Address} instance.
 \item{} Due to a current shortcoming in the way {\tt VM\_Address} works, do not make an
 array of {VM\_Address} values.  Instead make a
@@ -121,12 +122,16 @@ subsystem is a bad idea.
 there will be no timer-driven thread switches while executing it.  So,
 if possible, one should avoid ``long running'' uninterruptible methods
 outside of the GC subsystem.
+
 \item{} Certain bytecodes are forbidden in uninterruptible code,
 because Jikes RVM cannot implement them in a manner that ensures
-uninterruptibility. The forbidden bytecodes are: aastore,
-invokeinterface, new, newarray, anewarray, athrow, checkcast and
-instanceof unless the LHS type is a final class, monitorenter,
-monitorexit, mulitanewarray. 
+uninterruptibility. The forbidden bytecodes are: {\instruction aastore};
+{\instruction invokeinterface}; {\instruction new}; {\instruction
+newarray}; {\instruction anewarray}; {\instruction athrow};
+{\instruction checkcast} and
+{\instruction instanceof} unless the LHS type is a final class;
+{\instruction monitorenter},
+{\instruction monitorexit}, {\instruction multianewarray}. 
 \item{} Uninterruptible code cannot cause class loading and thus must
 not contain unresolved getstatic, putstatic, getfield, putfield,
 invokevirtual, or invokestatic bytecodes. 
@@ -135,6 +140,7 @@ code. As a consequence, it is illegal to override an uninterruptible
 virtual method with an interruptible method.
 \item{} Uninterruptible methods cannot be synchronized. 
 \end{enumerate}
+
 We have augmented the baseline compiler to print a warning message
 when one of these restrictions is violated.  Because there are still a
 small number of violations in Jikes RVM, this checking is not enabled
