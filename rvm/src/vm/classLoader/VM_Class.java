@@ -12,8 +12,8 @@ import java.io.InputStream;
 /**
  *  Description of a java "class" type.
  * 
- *  This description is read from a ".class" file as classes/field/methods
- *  referenced by the running program need to be bound in to the running image.
+ * <p> This description is read from a ".class" file as classes/field/methods
+ * referenced by the running program need to be bound in to the running image.
  * 
  * @see VM_Array
  * @see VM_Primitive
@@ -32,20 +32,23 @@ public class VM_Class extends VM_Type
   //                   The following are always available.            //
   //------------------------------------------------------------------//
 
-  // Name - something like "java.lang.String".
-  //
+  /**
+   * Name - something like "java.lang.String".
+   */ 
   public final String getName() {
     return descriptor.classNameFromDescriptor();
   }
 
-  // Stack space requirement.
-  //
+  /**
+   * Stack space requirement.
+   */ 
   public final int getStackWords() {
     return 1;
   }
 
-  // Is this class part of the virtual machine's boot image?
-  //
+  /**
+   * Is this class part of the virtual machine's boot image?
+   */ 
   public final boolean isInBootImage() {
     return inBootImage;
   }
@@ -60,36 +63,41 @@ public class VM_Class extends VM_Type
   // Attributes.
   //
 
-  // An "interface" description rather than a "class" description?
-  //
+  /**
+   * An "interface" description rather than a "class" description?
+   */ 
   public final boolean isInterface() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
 
-  // Usable from other packages?
-  //
+  /**
+   * Usable from other packages?
+   */ 
   final boolean isPublic() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
-  // Non-subclassable?
-  //
+  /**
+   * Non-subclassable?
+   */ 
   final boolean isFinal()     { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0; 
   }
 
-  // Non-instantiable?
-  //
+  /**
+   * Non-instantiable?
+   */ 
   final boolean isAbstract()  { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
 
-  // Use new-style "invokespecial" semantics for method calls in this class?
-  //
+  /**
+   * Use new-style "invokespecial" semantics for method calls in this class?
+   */ 
   final boolean isSpecial() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_SPECIAL) != 0; 
@@ -99,63 +107,74 @@ public class VM_Class extends VM_Type
     return modifiers;
   }
 
-  // Name of source file from which class was compiled - 
-  // something like "c:\java\src\java\lang\Object.java".
-  // (null --> "unknown - wasn't recorded by compiler").
+  /**
+   * Name of source file from which class was compiled - 
+   * something like "c:\java\src\java\lang\Object.java".
+   * (null --> "unknown - wasn't recorded by compiler").
+   */
   final VM_Atom getSourceName() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return sourceName;
   }
 
-  // Superclass of this class (null means "no superclass", 
-  // ie. class is "java/lang/Object").
+  /**
+   * Superclass of this class (null means "no superclass", 
+   * ie. class is "java/lang/Object").
+   */
   public final VM_Class getSuperClass() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return superClass;
   }
 
-  // Currently loaded classes that "extend" this class.
-  //
+  /**
+   * Currently loaded classes that "extend" this class.
+   */ 
   final VM_Class[] getSubClasses() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return subClasses;
   }
 
-  // Interfaces implemented directly by this class 
-  // (ie. not including superclasses).
-  //
+  /**
+   * Interfaces implemented directly by this class 
+   * (ie. not including superclasses).
+   */
   public final VM_Class[] getDeclaredInterfaces() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredInterfaces;
   }
 
-  // Fields defined directly by this class (ie. not including superclasses).
-  //
+  /**
+   * Fields defined directly by this class (ie. not including superclasses).
+   */ 
   public final VM_Field[] getDeclaredFields() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredFields;
   }
 
-  // Methods defined directly by this class (ie. not including superclasses).
-  // TODO: must prevent user access.
+  /**
+   * Methods defined directly by this class (ie. not including superclasses).
+   * TODO: must prevent user access.
+   */
   public final VM_Method[] getDeclaredMethods() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredMethods;
   }
 
-  // Static initializer method for this class (null -> no static initializer
-  //  or initializer already been run).
-  //
+  /**
+   * Static initializer method for this class (null -> no static initializer
+   *  or initializer already been run).
+   */ 
   final VM_Method getClassInitializerMethod() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return classInitializerMethod;
   }
 
-  // Find description of a field of this class.
-  // Taken:    field name - something like "foo"
-  //           field descriptor - something like "I"
-  // Returned: description (null --> not found)
-  //
+  /** 
+   * Find description of a field of this class.
+   * @param fieldName field name - something like "foo"
+   * @param fieldDescriptor field descriptor - something like "I"
+   * @return description (null --> not found)
+   */ 
   final VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     for (int i = 0, n = declaredFields.length; i < n; ++i) {
@@ -167,11 +186,12 @@ public class VM_Class extends VM_Type
     return null;
   }
 
-  // Find description of a method of this class.
-  // Taken:    method name - something like "foo"
-  //           method descriptor - something like "()I"
-  // Returned: description (null --> not found)
-  //
+  /** 
+   * Find description of a method of this class.
+   * @param methodName method name - something like "foo"
+   * @param methodDescriptor method descriptor - something like "()I"
+   * @return description (null --> not found)
+   */ 
   final VM_Method findDeclaredMethod(VM_Atom methodName, 
                                      VM_Atom methodDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
@@ -184,11 +204,11 @@ public class VM_Class extends VM_Type
     return null;
   }
 
-  // Find description of "public static void main(String[])" 
-  // method of this class.
-  // Taken:    nothing
-  // Returned: description (null --> not found)
-  //
+  /**
+   * Find description of "public static void main(String[])" 
+   * method of this class.
+   * @return description (null --> not found)
+   */ 
   final VM_Method findMainMethod() {
     VM_Atom   mainName       = VM_Atom.findOrCreateAsciiAtom(("main"));
     VM_Atom   mainDescriptor = VM_Atom.findOrCreateAsciiAtom
@@ -213,72 +233,88 @@ public class VM_Class extends VM_Type
   // Items are fetched by specifying their "constant pool index".
   //
 
-  // Get offset of a literal constant, in bytes.
-  // Offset is with respect to virtual machine's "table of contents" (jtoc).
-  //
+  /**
+   * Get offset of a literal constant, in bytes.
+   * Offset is with respect to virtual machine's "table of contents" (jtoc).
+   */ 
   final int getLiteralOffset(int constantPoolIndex) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     // jtoc slot number --> jtoc offset
     return constantPool[constantPoolIndex] << 2; 
   }
 
-  // Get description of a literal constant.
-  //
+  /**
+   * Get description of a literal constant.
+   */ 
   final byte getLiteralDescription(int constantPoolIndex) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     // jtoc slot number --> description
     return VM_Statics.getSlotDescription(constantPool[constantPoolIndex]); 
   }
 
-  // Get contents of a "typeRef" constant pool entry.
-  // Returned: id of type that was referenced, for use 
-  // by "VM_TypeDictionary.getValue()"
+  /**
+   * Get contents of a "typeRef" constant pool entry.
+   * @return id of type that was referenced, for use 
+   * by "VM_TypeDictionary.getValue()"
+   */
   final int getTypeRefId(int constantPoolIndex) {
     return constantPool[constantPoolIndex];
   }
 
-  // Get contents of a "typeRef" constant pool entry.
-  // Returned: type that was referenced
+  /**
+   * Get contents of a "typeRef" constant pool entry.
+   * @return type that was referenced
+   */
   final VM_Type getTypeRef(int constantPoolIndex) {
     return VM_TypeDictionary.getValue(getTypeRefId(constantPoolIndex));
   }
 
-  // Get contents of a "fieldRef" constant pool entry.
-  // Returned: id of field that was referenced, for use by 
-  // "VM_FieldDictionary.getValue()"
+  /**
+   * Get contents of a "fieldRef" constant pool entry.
+   * @return id of field that was referenced, for use by 
+   * "VM_FieldDictionary.getValue()"
+   */
   final int getFieldRefId(int constantPoolIndex) {
     return constantPool[constantPoolIndex];
   }
 
-  // Get contents of a "fieldRef" constant pool entry.
-  // Returned: field that was referenced
+  /**
+   * Get contents of a "fieldRef" constant pool entry.
+   * @return field that was referenced
+   */
   final VM_Field getFieldRef(int constantPoolIndex) {
     return VM_FieldDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
-  // Get contents of a "methodRef" constant pool entry.
-  // Returned: id of method that was referenced, for use by 
-  // "VM_MethodDictionary.getValue()"
-  //
+  /**
+   * Get contents of a "methodRef" constant pool entry.
+   * @return id of method that was referenced, for use by 
+   * "VM_MethodDictionary.getValue()"
+   */ 
   final int getMethodRefId(int constantPoolIndex) {
     return constantPool[constantPoolIndex];
   }
 
-  // Get contents of a "methodRef" constant pool entry.
-  // Returned: method that was referenced
+  /**
+   * Get contents of a "methodRef" constant pool entry.
+   * @return method that was referenced
+   */
   final VM_Method getMethodRef(int constantPoolIndex) {
     return VM_MethodDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
-  // Get contents of a "utf" constant pool entry.
+  /**
+   * Get contents of a "utf" constant pool entry.
+   */
   final VM_Atom getUtf(int constantPoolIndex) {
     return VM_AtomDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
-  // Should the methods of this class be compiled with 
-  // thread switching prologue?
-  // See also: VM_Uninterruptible
-  //
+  /**
+   * Should the methods of this class be compiled with 
+   * thread switching prologue?
+   * @see VM_Uninterruptible
+   */ 
   final boolean isInterruptible () {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
@@ -286,9 +322,11 @@ public class VM_Class extends VM_Type
     return true; // does not (directly) implement VM_Uninterruptible
   }
 
-  // Should the methods of this class be compiled with special 
-  // register save/restore logic?
-  // See also: VM_DynamicBridge
+  /**
+   * Should the methods of this class be compiled with special 
+   * register save/restore logic?
+   * @see VM_DynamicBridge
+   */
   final boolean isDynamicBridge () {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
@@ -296,9 +334,11 @@ public class VM_Class extends VM_Type
     return false;
   }
 
-  // The methods of this class are only called from native code, 
-  // they are compiled with
-  // a special prolog to interface with the native stack frame
+  /**
+   * The methods of this class are only called from native code, 
+   * they are compiled with
+   * a special prolog to interface with the native stack frame.
+   */
   final boolean isBridgeFromNative() {
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
@@ -312,8 +352,10 @@ public class VM_Class extends VM_Type
     return false;
   }
 
-  // Should the methods of this class save incoming registers ?
-  // See also: VM_SaveVolatile
+  /**
+   * Should the methods of this class save incoming registers ?
+   * @see VM_SaveVolatile
+   */
   final boolean isSaveVolatile() {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
@@ -326,70 +368,90 @@ public class VM_Class extends VM_Type
   // The following are available after the class has been "resolved".   //
   //--------------------------------------------------------------------//
 
-  // Which class loader loaded this class?  (null => system class loader):CRA 
-  // final ClassLoader 
+  /**
+   * Which class loader loaded this class?  (null => system class loader):CRA 
+   * final ClassLoader 
+   */
   public ClassLoader getClassLoader () { 
     return classloader; 
   } 
 
-  // Does this class override java.lang.Object.finalize()?
+  /**
+   * Does this class override java.lang.Object.finalize()?
+   */
   public final boolean hasFinalizer() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return (finalizeMethod != null);
   }
 
-  // Get finalize method that overrides java.lang.Object.finalize(), 
-  // if one exists
+  /**
+   * Get finalize method that overrides java.lang.Object.finalize(), 
+   * if one exists
+   */
   public final VM_Method getFinalizer() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return finalizeMethod;
   }
 
-  // Static fields of this class.
-  // Values in these fields are shared by all class instances.
+  /**
+   * Static fields of this class.
+   * Values in these fields are shared by all class instances.
+   */
   public final VM_Field[] getStaticFields() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return staticFields;
   }
 
-  // Non-static fields of this class (composed with supertypes, if any).
-  // Values in these fields are distinct for each class instance.
+  /**
+   * Non-static fields of this class (composed with supertypes, if any).
+   * Values in these fields are distinct for each class instance.
+   */
   public final VM_Field[] getInstanceFields() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return instanceFields;
   }
 
-  // Statically dispatched methods of this class.
+  /**
+   * Statically dispatched methods of this class.
+   */
   public final VM_Method[] getStaticMethods() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return staticMethods;
   }
 
-  // Virtually dispatched methods of this class 
-  // (composed with supertypes, if any).
+  /**
+   * Virtually dispatched methods of this class 
+   * (composed with supertypes, if any).
+   */
   public final VM_Method[] getVirtualMethods() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return virtualMethods;
   }
 
-  // Total size, in bytes, of an instance of this class 
-  // (including object header).
+  /**
+   * Total size, in bytes, of an instance of this class 
+   * (including object header).
+   */
   public final int getInstanceSize() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return instanceSize;
   }
 
-  // Offsets of reference-containing instance fields of this class type.
-  // Offsets are with respect to object pointer -- see VM_Field.getOffset().
+  /**
+   * Offsets of reference-containing instance fields of this class type.
+   * Offsets are with respect to object pointer -- see VM_Field.getOffset().
+   */
   public final int[] getReferenceOffsets() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return referenceOffsets;
   }
 
-  // Find specified virtual method description.
-  // Taken:    method name - something like "foo"
-  //           method descriptor - something like "I" or "()I"
-  // Returned: method description (null --> not found)
+  /**
+   * Find specified virtual method description.
+   * @param memberName   method name - something like "foo"
+   * @param memberDescriptor method descriptor - something like "I" or "()I"
+   * @return method description (null --> not found)
+   */
   final VM_Method findVirtualMethod(VM_Atom memberName, 
                                     VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
@@ -403,10 +465,12 @@ public class VM_Class extends VM_Type
     return null;
   }
 
-  // Find specified static method description.
-  // Taken:    method name - something like "foo"
-  //           method descriptor - something like "I" or "()I"
-  // Returned: method description (null --> not found)
+  /**
+   * Find specified static method description.
+   * @param memberName method name - something like "foo"
+   * @param memberDescriptor method descriptor - something like "I" or "()I"
+   * @return method description (null --> not found)
+   */
   final VM_Method findStaticMethod(VM_Atom memberName, 
                                    VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
@@ -420,9 +484,11 @@ public class VM_Class extends VM_Type
     return null;
   }
 
-  // Find specified initializer method description.
-  // Taken:    init method descriptor - something like "(I)V"
-  // Returned: method description (null --> not found)
+  /**
+   * Find specified initializer method description.
+   * @param    init method descriptor - something like "(I)V"
+   * @return method description (null --> not found)
+   */
   final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     VM_Method methods[] = getStaticMethods();
@@ -435,7 +501,9 @@ public class VM_Class extends VM_Type
     return null;
   }
 
-  // Runtime type information for this class type.
+  /**
+   * Runtime type information for this class type.
+   */
   public final Object[] getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return typeInformationBlock;
@@ -452,15 +520,18 @@ public class VM_Class extends VM_Type
   //---------------------------------------------------------------------//
 
 
-  // Support for user-written class loaders:
-  // It's required to find the classloader of the class
-  // whose method requires another class to be loaded;
-  // the initiating loader of the required class is the
-  // defining loader of the requiring class.
-  //
-  // frames specifies the number of frames back from the 
-  // caller to the method whose class's loader is required
-  // CRA
+  /**
+   * Support for user-written class loaders:
+   * It's required to find the classloader of the class
+   * whose method requires another class to be loaded;
+   * the initiating loader of the required class is the
+   * defining loader of the requiring class.
+   *
+   * @author CRA
+   * 
+   * @param frames specifies the number of frames back from the 
+   * caller to the method whose class's loader is required
+   */
   public static ClassLoader getClassLoaderFromStackFrame(int frames) {
     int i;
     int fp = VM_Magic.getFramePointer();
@@ -483,9 +554,11 @@ public class VM_Class extends VM_Type
     return theclassloader;
   }
 
-  // Load, resolve, instantiate, and initialize specified class.
-  // Taken:    class name - something like "java.lang.String"
-  // Returned: class description
+  /**
+   * Load, resolve, instantiate, and initialize specified class.
+   * @param className class name - something like "java.lang.String"
+   * @return class description
+   */
   public static VM_Class forName(String className) 
     throws VM_ResolutionException {
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom
@@ -500,15 +573,19 @@ public class VM_Class extends VM_Type
     return cls;
   }
 
-  // Find specified method using "invokespecial" lookup semantics.
-  // Taken:    method sought
-  // Returned: method found (null --> not found)
-  // There are three kinds of "special" method invocation:
-  //   - an instance initializer method, eg. <init>
-  //   - a non-static but private and/or final method in the current class
-  //   - a non-static method for which the non-overridden (superclass) 
-  //   version is desired
-  //
+  /**
+   * Find specified method using "invokespecial" lookup semantics.
+   * <p> There are three kinds of "special" method invocation:
+   * <ul>
+   *   <li> an instance initializer method, eg. <init>
+   *   <li> a non-static but private and/or final method in the current class
+   *   <li> a non-static method for which the non-overridden (superclass) 
+   *   version is desired
+   * </ul>
+   *
+   * @param sought method sought
+   * @return method found (null --> not found)
+   */ 
   static VM_Method findSpecialMethod(VM_Method sought) {
     if (sought.isObjectInitializer())
       return sought;   // <init>
@@ -518,7 +595,8 @@ public class VM_Class extends VM_Type
       return sought;   // old-style invokespecial semantics
 
     for (; cls != null; cls = cls.getSuperClass()) {
-      VM_Method found = cls.findDeclaredMethod(sought.getName(), sought.getDescriptor());
+      VM_Method found = cls.findDeclaredMethod(sought.getName(), 
+                                               sought.getDescriptor());
       if (found != null)
 	return found; // new-style invokespecial semantics
     }
@@ -570,18 +648,39 @@ public class VM_Class extends VM_Type
 
   // --- Field size and offset information --- //
   //
-  private VM_Field[]   staticFields;           // fields shared by all instances of class
-  private VM_Field[]   instanceFields;         // fields distinct for each instance of class
-  private int          instanceSize;           // total size of per-instance data, in bytes
-  private int[]        referenceOffsets;       // offsets of reference-containing instance fields
+  /**
+   * fields shared by all instances of class
+   */
+  private VM_Field[]   staticFields;           
+  /**
+   * fields distinct for each instance of class
+   */
+  private VM_Field[]   instanceFields;         
+  /**
+   * total size of per-instance data, in bytes
+   */
+  private int          instanceSize;           
+  /**
+   * offsets of reference-containing instance fields
+   */
+  private int[]        referenceOffsets;       
   //
   // --- Method-dispatching information ---    //
   //
-  private VM_Method[]  staticMethods;          // static methods of class
-  private VM_Method[]  virtualMethods;         // virtual methods of class
+  /**
+   * static methods of class
+   */
+  private VM_Method[]  staticMethods;          
+  /**
+   * virtual methods of class
+   */
+  private VM_Method[]  virtualMethods;         
 
-  private VM_Method    finalizeMethod;         // method that overrides java.lang.Object.finalize()
-  // null => class does not have a finalizer
+  /**
+   * method that overrides java.lang.Object.finalize()
+   * null => class does not have a finalizer
+   */
+  private VM_Method    finalizeMethod;         
 
   //
   // The following are valid only when "state >= IS_INSTANTIATED".
@@ -593,16 +692,19 @@ public class VM_Class extends VM_Type
   private Object[]     typeInformationBlock;   
 
 
-  // Only intended to be used by the BootImageWriter
+  /**
+   * Only intended to be used by the BootImageWriter
+   */
   void markAsBootImageClass() {
     inBootImage = true;
   }
 
-  // To guarantee uniqueness, only the VM_ClassLoader class may 
-  // construct VM_Class instances.
-  // All VM_Class creation should be performed by calling 
-  // "VM_ClassLoader.findOrCreate" methods.
-  //
+  /**
+   * To guarantee uniqueness, only the VM_ClassLoader class may 
+   * construct VM_Class instances.
+   * All VM_Class creation should be performed by calling 
+   * "VM_ClassLoader.findOrCreate" methods.
+   */ 
   private VM_Class() { }
 
   VM_Class(VM_Atom descriptor, int dictionaryId) {
@@ -622,8 +724,9 @@ public class VM_Class extends VM_Type
     VM_Statics.setSlotContents(tibSlot, tib);
   }
 
-  // Read this class's description from its .class file.
-  //
+  /**
+   * Read this class's description from its .class file.
+   */ 
   public final void load() throws VM_ResolutionException {
     if (isLoaded())
       return;
@@ -655,8 +758,9 @@ public class VM_Class extends VM_Type
     if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   load " + descriptor + "\n");
   }
 
-  // Read this class's description from specified data stream.
-  //
+  /**
+   * Read this class's description from specified data stream.
+   */ 
   final void load(VM_BinaryData input) throws ClassFormatError {
     if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
@@ -721,7 +825,8 @@ public class VM_Class extends VM_Type
 	  {
 	    int classDescriptorIndex         = input.readUnsignedShort();
 	    int memberNameAndDescriptorIndex = input.readUnsignedShort();
-	    tmpPool[i] = (classDescriptorIndex << 16) | memberNameAndDescriptorIndex;
+	    tmpPool[i] = (classDescriptorIndex << 16) | 
+              memberNameAndDescriptorIndex;
 	    break; 
 	  }
 
@@ -895,11 +1000,12 @@ public class VM_Class extends VM_Type
                                           descriptor + "\n");
   }
 
-  // Generate size and offset information for members of this class and
-  // allocate space in jtoc for static fields, static methods, and virtual 
-  // method table. 
-  // Side effects: superclasses and superinterfaces are resolved.
-  //
+  /**
+   * Generate size and offset information for members of this class and
+   * allocate space in jtoc for static fields, static methods, and virtual 
+   * method table. 
+   * Side effects: superclasses and superinterfaces are resolved.
+   */ 
   public final void resolve() throws VM_ResolutionException {
     if (isResolved())
       return;
@@ -1173,8 +1279,10 @@ public class VM_Class extends VM_Type
     }
   }
 
-  // Compile this class's methods, build type information block, populate jtoc.
-  // Side effects: superclasses are instantiated.
+  /**
+   * Compile this class's methods, build type information block, populate jtoc.
+   * Side effects: superclasses are instantiated.
+   */
   public final void instantiate() {
     if (isInstantiated())
       return;
@@ -1244,10 +1352,11 @@ public class VM_Class extends VM_Type
                                           + descriptor + "\n");
   }
 
-  // Execute this class's static initializer, <clinit>.
-  // Side effects: superclasses are initialized, static fields receive 
-  // initial values.
-  //
+  /**
+   * Execute this class's static initializer, <clinit>.
+   * Side effects: superclasses are initialized, static fields receive 
+   * initial values.
+   */ 
   public final synchronized void initialize() {
     if (isInitialized())
       return;
@@ -1345,8 +1454,9 @@ public class VM_Class extends VM_Type
   //-#endif
 
 
-  // Add to list of classes that derive from this one.
-  //
+  /**
+   * Add to list of classes that derive from this one.
+   */
   private void addSubClass(VM_Class sub) {
     int        n    = subClasses.length;
     VM_Class[] tmp  = new VM_Class[n + 1];
@@ -1366,10 +1476,12 @@ public class VM_Class extends VM_Type
   static OPT_ClassLoadingDependencyManager OptCLDepManager;
   //-#endif
 
-  // This method is invoked from VM_Class.initialize() immediately before 
-  // 'this' is marked as INITIALIZED.  Note: VM_ClassLoader.lock is held 
-  // when this method is invoked, so some care must be taken to 
-  // avoid doing too much work.
+  /**
+   * This method is invoked from VM_Class.initialize() immediately before 
+   * 'this' is marked as INITIALIZED.  Note: VM_ClassLoader.lock is held 
+   * when this method is invoked, so some care must be taken to 
+   * avoid doing too much work.
+   */
   private void reportInitialize() {
     //-#if RVM_WITH_OPT_COMPILER
     if (OptCLDepManager != null)
@@ -1377,8 +1489,10 @@ public class VM_Class extends VM_Type
     //-#endif
   }
 
-  // return a newly-compiled version of the method (if lazy compilation
-  // is off) or the lazy compilation stub.
+  /**
+   * return a newly-compiled version of the method (if lazy compilation
+   * is off) or the lazy compilation stub.
+   */
   private INSTRUCTION[] getInitialInstructions(VM_Method m) {
     if (VM.BuildForLazyCompilation && !VM.writingBootImage)
       return VM_Method.getLazyMethodInvokerInstructions();
@@ -1386,16 +1500,20 @@ public class VM_Class extends VM_Type
       return m.compile(); // must compile now
   }
 
-  // return a newly-compiled version of the method corresponding to the
-  // given compiled method (if lazy compilation is off) or the lazy
-  // compilation stub.
+  /**
+   * return a newly-compiled version of the method corresponding to the
+   * given compiled method (if lazy compilation is off) or the lazy
+   * compilation stub.
+   */
   private INSTRUCTION[] getInitialInstructions(VM_CompiledMethod cm) {
     return getInitialInstructions(cm.getMethod());
   }
 
-  // If cm is the current compiled version of a static method, then 
-  // reset its jtoc slot to point to a newly-compiled version of the
-  // method (if lazy compilation is off) or the lazy compilation stub.
+  /**
+   * If cm is the current compiled version of a static method, then 
+   * reset its jtoc slot to point to a newly-compiled version of the
+   * method (if lazy compilation is off) or the lazy compilation stub.
+   */
   void resetStaticMethod(VM_CompiledMethod cm) {
     resetStaticMethod(cm, getInitialInstructions(cm));
   }
@@ -1411,8 +1529,10 @@ public class VM_Class extends VM_Type
       VM_Statics.setSlotContents(slot, code);
   }
 
-  // Given a static method, reset its jtoc slot to point to the given
-  // instruction array
+  /**
+   * Given a static method, reset its jtoc slot to point to the given
+   * instruction array
+   */
   synchronized void resetStaticMethod(VM_Method m, INSTRUCTION[] code) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (VM.VerifyAssertions)
@@ -1422,11 +1542,13 @@ public class VM_Class extends VM_Type
     VM_Statics.setSlotContents(slot, code);
   }
 
-  // If cm is the current compiled version of a virtual method for this 
-  // class tib then reset its tib slot to point to a newly-compiled
-  // version of the method (if lazy compilation is off) or the lazy
-  // compilation stub.
-  // Also scan the IMT for cm and reset it if necessary.
+  /**
+   * If cm is the current compiled version of a virtual method for this 
+   * class tib then reset its tib slot to point to a newly-compiled
+   * version of the method (if lazy compilation is off) or the lazy
+   * compilation stub.
+   * Also scan the IMT for cm and reset it if necessary.
+   */
   void resetTIBEntry(VM_CompiledMethod cm) {
     resetTIBEntry(cm, getInitialInstructions(cm));
   }
@@ -1477,8 +1599,10 @@ public class VM_Class extends VM_Type
     }
   }
 
-  // Given a virtual method, reset its TIB entry to point to the given
-  // instruction array
+  /**
+   * Given a virtual method, reset its TIB entry to point to the given
+   * instruction array
+   */
   synchronized void resetTIBEntry(VM_Method m, INSTRUCTION[] code) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (VM.VerifyAssertions)
@@ -1526,10 +1650,12 @@ public class VM_Class extends VM_Type
     }
   }
 
-  // If cm is the current compiled version of a virtual method, then 
-  // reset its TIB slot in this class and all subclasses that don't
-  // override the method to point to a newly-compiled version of the
-  // method (if lazy compilation is off) or the lazy compilation stub.
+  /**
+   * If cm is the current compiled version of a virtual method, then 
+   * reset its TIB slot in this class and all subclasses that don't
+   * override the method to point to a newly-compiled version of the
+   * method (if lazy compilation is off) or the lazy compilation stub.
+   */
   void resetVirtualMethod(VM_CompiledMethod cm) {
     resetVirtualMethod(cm, getInitialInstructions(cm));
   }
@@ -1557,11 +1683,13 @@ public class VM_Class extends VM_Type
       subClasses[i].resetVirtualMethod(m, code);
   }
 
-  // If cm is the current compiled version of a method, then 
-  // reset its TIB slot in this class (and all subclasses that don't
-  // override the method) if it's virtual or its jtoc slot if it's
-  // static to point to a newly-compiled version of the method (if lazy
-  // compilation is off) or the lazy compilation stub.
+  /**
+   * If cm is the current compiled version of a method, then 
+   * reset its TIB slot in this class (and all subclasses that don't
+   * override the method) if it's virtual or its jtoc slot if it's
+   * static to point to a newly-compiled version of the method (if lazy
+   * compilation is off) or the lazy compilation stub.
+   */
   void resetMethod(VM_CompiledMethod cm) {
     resetMethod(cm, getInitialInstructions(cm), true);
   }
@@ -1585,9 +1713,11 @@ public class VM_Class extends VM_Type
     }
   }
 
-  // Given a method, reset its TIB slot in this class (and all
-  // subclasses that don't override the method) if it's virtual or its
-  // jtoc slot if it's static to point to the given instruction array.
+  /**
+   * Given a method, reset its TIB slot in this class (and all
+   * subclasses that don't override the method) if it's virtual or its
+   * jtoc slot if it's static to point to the given instruction array.
+   */
   void resetMethod(VM_Method m, INSTRUCTION[] code) {
     resetMethod(m, code, false);
   }
@@ -1625,10 +1755,11 @@ public class VM_Class extends VM_Type
     return interfaceCount;
   }
 
-  // VM_Classes used as Interfaces get assigned an interface id
-  //   if the class is not an interface, attempting to use this
-  //   id will cause an IncompatibleClassChangeError to be thrown
-  //
+  /**
+   * VM_Classes used as Interfaces get assigned an interface id
+   *   if the class is not an interface, attempting to use this
+   *   id will cause an IncompatibleClassChangeError to be thrown
+   */ 
   int getInterfaceId () {
     if (interfaceId == -1) {
       synchronized (interfaceCountLock) {
@@ -1638,7 +1769,9 @@ public class VM_Class extends VM_Type
     return interfaceId;
   }
 
-  // Return the index of the interface method m in the itable
+  /**
+   * Return the index of the interface method m in the itable
+   */
   int getITableIndex(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForITableInterfaceInvocation);
     if (VM.VerifyAssertions) VM.assert(isLoaded() && isInterface());
@@ -1648,9 +1781,11 @@ public class VM_Class extends VM_Type
     return -1;
   }
 
-  // Add an element to the specified IMS list.
-  // We maintain the lists sorted in ascending order of signatureId to support
-  // generation of binary-search based conflict resolution stubs.
+  /**
+   * Add an element to the specified IMS list.
+   * We maintain the lists sorted in ascending order of signatureId to support
+   * generation of binary-search based conflict resolution stubs.
+   */
   void addIMTslotElement(int index, int id, VM_Method vm) {
     VM_InterfaceMethodSignature.Link p = IMTslotLists[index];
     if (p == null || p.signatureId > id) {
@@ -1665,7 +1800,10 @@ public class VM_Class extends VM_Type
     }
   }
 
-  // Return the number of interface signatures assigned to the specified IMTSlot.
+  /**
+   * Return the number of interface signatures assigned to the specified 
+   * IMTSlot.
+   */
   int getIMTslotPopulation(int index) {
     if (IMTslotLists == null) return 0;
     VM_InterfaceMethodSignature.Link p = IMTslotLists[index];

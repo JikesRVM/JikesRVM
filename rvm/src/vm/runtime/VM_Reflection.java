@@ -12,24 +12,24 @@
  */
 public class VM_Reflection implements VM_Constants {
 
-  //-----------//
-  // interface //
-  //-----------//
-   
-  // Call a method.
-  // Taken:    method to be called
-  //           "this" argument (ignored if method is static)
-  //           remaining arguments
-  //           isNonvirtual flag is false if the method of the real class of this object is
-  //                        to be invoked; true if a method of a superclass may be invoked
-  // Returned: return value (wrapped if primitive)
-  // See also: java/lang/reflect/Method.invoke()
-  //
-  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs) {
+  /**
+   * Call a method.
+   * @param method method to be called
+   * @param thisArg "this" argument (ignored if method is static)
+   * @param otherArgs remaining arguments
+   * 
+   * isNonvirtual flag is false if the method of the real class of this 
+   * object is to be invoked; true if a method of a superclass may be invoked
+   * @return return value (wrapped if primitive)
+   * See also: java/lang/reflect/Method.invoke()
+   */ 
+  public static Object invoke(VM_Method method, Object thisArg, 
+                              Object[] otherArgs) {
     return invoke(method, thisArg, otherArgs, false);
   }
 
-  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+  public static Object invoke(VM_Method method, Object thisArg, 
+                              Object[] otherArgs, boolean isNonvirtual) {
     // choose actual method to be called
     //
     VM_Method targetMethod;
@@ -70,7 +70,8 @@ public class VM_Reflection implements VM_Constants {
     int[]   Spills = new int[spillCount];
 
     if (firstUse) { 
-      // force dynamic link sites in unwrappers to get resolved, before disabling gc.
+      // force dynamic link sites in unwrappers to get resolved, 
+      // before disabling gc.
       // this is a bit silly, but I can't think of another way to do it [--DL]
       unwrapBoolean(wrapBoolean(0));
       unwrapByte(wrapByte((byte)0));
@@ -85,7 +86,8 @@ public class VM_Reflection implements VM_Constants {
 
     // now for real...
     VM.disableGC();
-    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, Spills);
+    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
+                                           FPRs, Spills);
     VM.enableGC();
      
     if (!returnIsPrimitive) {

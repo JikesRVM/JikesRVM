@@ -16,14 +16,16 @@ public class VM_ResolutionException extends Exception {
   // interface //
   //-----------//
    
-   // Get (descriptor for) type that was trying to be resolved.
-   //
+  /**
+   * Get (descriptor for) type that was trying to be resolved.
+   */ 
   public final VM_Atom getTargetTypeDescriptor() {
     return targetTypeDescriptor;
   }
    
-  // Get exception that prevented resolution.
-  //
+  /**
+   * Get exception that prevented resolution.
+   */ 
   public final Throwable getException() {
     return exception;
   }
@@ -32,8 +34,14 @@ public class VM_ResolutionException extends Exception {
   // implementation //
   //----------------//
    
-  VM_Atom   targetTypeDescriptor; // descriptor for type whose resolution caused the problem
-  Throwable exception;            // exception that prevented resolution
+  /**
+   * descriptor for type whose resolution caused the problem
+   */
+  VM_Atom   targetTypeDescriptor; 
+  /**
+   * exception that prevented resolution
+   */
+  Throwable exception;            
    
   VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception) {
     this.targetTypeDescriptor = targetTypeDescriptor;
