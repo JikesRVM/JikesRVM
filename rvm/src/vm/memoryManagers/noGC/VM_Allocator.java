@@ -1,12 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Non-collecting version of allocator.
  * <p>
  * Trivial implementation for illustrative purposes, not for production use.
- * Allocates space by moving a freespace pointer sequentially from the beginning
- * of the heap to the end.  Ignores requests for garbage collection.
+ * Allocates space by moving a freespace pointer sequentially from the 
+ * beginning of the heap to the end.  Ignores requests for garbage collection.
  * Produces an OutOfMemeryError message when it reaches the end of the heap.
  *
  * @author Derek Lieber

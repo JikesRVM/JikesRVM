@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class that supports scanning thread stacks for references during
  * collections and processing those references

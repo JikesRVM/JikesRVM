@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A collector thread which does not participate in GC, useful for
  * VM_Processors which should not participate in GC.

@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id
+//$Id$
 
 /**
  * An object that returns an estimate of the relative cost of spilling a 

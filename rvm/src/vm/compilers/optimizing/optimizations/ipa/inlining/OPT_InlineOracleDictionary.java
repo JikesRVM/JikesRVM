@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 import  java.io.*;
-
 
 /**
  * This class (a singleton) maintains a mapping from VM_Method to
@@ -11,7 +12,6 @@ import  java.io.*;
  *
  * @author Stephen Fink
  */
-
 class OPT_InlineOracleDictionary {
 
   /** 

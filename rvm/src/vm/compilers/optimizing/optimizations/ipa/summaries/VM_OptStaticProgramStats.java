@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A class that encapsulates various static program characteristics.
  *

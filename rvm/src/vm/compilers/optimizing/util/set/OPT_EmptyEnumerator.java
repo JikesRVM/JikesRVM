@@ -1,14 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Enumeration that doesn't have any elements.
  * Use the EMPTY object to access.
  * 
  * @author Igor Pechtchanski
  */
-
-
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 

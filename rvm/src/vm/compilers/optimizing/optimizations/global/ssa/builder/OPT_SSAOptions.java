@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import  java.util.*;
+
 /**
  * This module defines parameters to the SSA construction process.
  * This is used to pass information between compiler phases.  
@@ -8,14 +12,6 @@
  *            actual options held by the IR object.
  *
  * @author Stephen Fink
- */
-
-
-import  java.util.*;
-
-
-/**
- * put your documentation comment here
  */
 class OPT_SSAOptions {
   /**

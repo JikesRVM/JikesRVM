@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class provides a generic interface to collector calls.  All
  * calls by the VM runtime and compilers to the collector should be

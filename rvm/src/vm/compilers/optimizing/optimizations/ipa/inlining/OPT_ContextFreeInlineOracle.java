@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.io.*;
 import  java.util.*;
 
@@ -13,7 +15,6 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-
 class OPT_ContextFreeInlineOracle extends OPT_GenericInlineOracle
     implements OPT_InlineOracleDictionaryPopulator {
 

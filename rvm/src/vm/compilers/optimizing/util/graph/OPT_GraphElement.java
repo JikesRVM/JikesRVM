@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 
 /**
  *  Many clients of graph methods expect their graph nodes to

@@ -1,14 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Copying Generational Collector/Allocator with Fixed Size Nursery
  * <p>
- * Uses a writebarrier which puts references to objects, which had internal references
- * modified, into processor local writebuffers.  For minor collections, objects in
- * the writebuffers become part of the root set for the collection.
- * (The RVM compilers generate the barrier code when the static final
- * constant "writeBarrier" is set to true.)
+ * Uses a writebarrier which puts references to objects, which had internal 
+ * references modified, into processor local writebuffers.  For minor 
+ * collections, objects in the writebuffers become part of the root set 
+ * for the collection.  (The RVM compilers generate the barrier code when 
+ * the static final constant "writeBarrier" is set to true.)
  * <p>
  * Divides the heap into 2 mature semi-spaces and a fixed size nursery.
  * the nursery size can be set on the command line by specifying
@@ -25,11 +27,12 @@
  * At any point in time, one of the mature spaces is being used (is "current")
  * and the other is reserved.  Minor collections collect the Nursery.  Objects
  * in the Nursery reachable from the Roots are copied into the current mature
- * space.  If at the end of a Minor collection, the mature space pointer reaches
- * some selected "delta" of the other mature space, then a Major collection
- * is performed immediately.  Major collections collect the current mature space.
- * Objects reachable from the Roots (not including the writebuffers) are copied
- * to the other mature space, which then becomes the new "current" mature space.
+ * space.  If at the end of a Minor collection, the mature space pointer 
+ * reaches some selected "delta" of the other mature space, then a Major 
+ * collection is performed immediately.  Major collections collect the current
+ * mature space.  Objects reachable from the Roots (not including the 
+ * writebuffers) are copied to the other mature space, which then becomes the 
+ * new "current" mature space.
  * <pre>
  * Space in mature space 1 is allocated left to right.
  * Space in mature space 2 is allocated right to left.

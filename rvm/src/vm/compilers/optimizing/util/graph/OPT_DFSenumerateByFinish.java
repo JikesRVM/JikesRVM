@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 import  java.util.*;
-
 
 /**
  * This class implements depth-first search over a OPT_Graph,

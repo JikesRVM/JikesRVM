@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 import  java.util.*;
-
 
 /**
  *  This class implements a graph vertex that holds a

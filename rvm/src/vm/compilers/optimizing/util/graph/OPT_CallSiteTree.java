@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 import  java.util.*;
-
 
 /**
  *  This class represents the set of inlined method calls that are

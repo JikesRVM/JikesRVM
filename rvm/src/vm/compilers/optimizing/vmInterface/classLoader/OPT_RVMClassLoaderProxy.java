@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An implementation of {@link OPT_ClassLoaderProxy} for the RVM.
  * Use (install) by doing:  

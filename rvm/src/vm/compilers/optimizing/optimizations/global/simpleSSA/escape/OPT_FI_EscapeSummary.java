@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class holds the results of a flow-insensitive escape analysis
  * for a method.

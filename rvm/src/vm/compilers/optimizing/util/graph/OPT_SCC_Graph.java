@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 import  java.util.*;
-
 
 /**
  * This class implements a graph where each node is a strongly

@@ -1,8 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Vector;
 
+/**
+ * @author Julian Dolby
+ */
 class VM_SpecializationCallSites {
 
     static class CallSiteKey {

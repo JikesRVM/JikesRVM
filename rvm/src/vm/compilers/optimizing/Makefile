@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# @author Stephen Fink
+# @author David Grove
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
 MakeTemplates:;	(cd ir/instruction && $(MAKE))

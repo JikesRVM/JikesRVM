@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Buffer used by reference counting collector (currently under development).
  * incDecBuffer stores increments and decrements that occur during reference

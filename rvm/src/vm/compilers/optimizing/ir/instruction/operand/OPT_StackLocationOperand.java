@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id 
+//$Id$
 
 /**
  * Represents a symbolic name for a stack location.

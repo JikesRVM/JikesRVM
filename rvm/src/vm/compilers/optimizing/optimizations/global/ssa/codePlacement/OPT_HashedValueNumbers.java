@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import instructionFormats.*;
+
 /**
  * This class provides global value numbers based on hashing.
  *

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Simple Semi-Space Copying Allocator/Collector
  * <p>

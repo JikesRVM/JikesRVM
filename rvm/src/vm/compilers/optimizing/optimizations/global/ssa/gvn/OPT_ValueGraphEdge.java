@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import  java.util.*;
+
 /**
  * This class implements an edge in the value graph used in global value 
  * numbering
@@ -8,14 +12,6 @@
  * discussion.
  *
  * @author Stephen Fink
- */
-
-
-import  java.util.*;
-
-
-/**
- * put your documentation comment here
  */
 class OPT_ValueGraphEdge extends OPT_SpaceEffGraphEdge {
 

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class holds, for each interface, the set of initialized classes
  * that implement the interface.

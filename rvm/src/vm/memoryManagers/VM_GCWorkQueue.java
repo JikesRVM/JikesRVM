@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class that manages work buffers of references to objects that need to
  * be scanned during a collection.  Each GC thread (a VM_CollectorThread)

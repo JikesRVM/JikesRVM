@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class that supports scanning statics (the JTOC) for references
  * and processing those references

@@ -1,12 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Reverse the order of an enumeration.
  * 
  * @author Stephen Fink
  */
-
 import  java.util.Enumeration;
 import  java.util.Vector;
 import  java.util.NoSuchElementException;

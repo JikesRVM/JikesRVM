@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// $id$
+//$Id$
 
 import instructionFormats.*;
 import java.util.Vector;

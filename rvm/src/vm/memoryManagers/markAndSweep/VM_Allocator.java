@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  *    Noncopying nongenerational memory manager.  The heap
  *    is divided into chunks of size GC_BLOCKSIZE bytes (see
@@ -34,7 +36,6 @@
  * @modified by Stephen Smith
  * 
  */
-
 public class VM_Allocator
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor
   {

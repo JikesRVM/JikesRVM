@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Enumeration;
+
 /**
  * This abstract class provides a set of useful architecture-independent 
  * methods for

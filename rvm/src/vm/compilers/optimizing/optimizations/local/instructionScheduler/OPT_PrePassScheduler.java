@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// OPT_PrePassScheduler.java
+//$Id$
+
+import  java.io.*;
+import  java.util.Enumeration;
+
 /**
  * Pre-pass Instruction Scheduling Phase
  *
@@ -9,15 +13,6 @@
  * are "final" too.      
  *
  * @author Igor Pechtchanski
- */
-
-
-import  java.io.*;
-import  java.util.Enumeration;
-
-
-/**
- * put your documentation comment here
  */
 final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 

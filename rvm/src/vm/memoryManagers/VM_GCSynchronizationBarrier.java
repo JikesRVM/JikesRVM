@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A synchronization barrier used to synchronize collector threads,
  * and the VM_Processors they are running on, during parallel collections.

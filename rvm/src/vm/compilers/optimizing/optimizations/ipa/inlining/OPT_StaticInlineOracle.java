@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Inlining oracle using static size heuristics during on-the-fly compilation.
  *

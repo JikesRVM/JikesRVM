@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 
 /**
@@ -15,7 +17,6 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-
 public class OPT_SummaryDatabase {
 
   /** 

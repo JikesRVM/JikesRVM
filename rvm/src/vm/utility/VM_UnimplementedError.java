@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This error is thrown when the VM encounters an operation
  * that is not yet implemented.

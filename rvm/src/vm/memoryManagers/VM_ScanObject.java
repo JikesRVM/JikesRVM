@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class that supports scanning Objects or Arrays for references
  * during Collection and processing those references

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Used by noncopying memory managers: There is 1 VM_BlockControl
  * for each GC_BLOCKSIZE (see VM_GCConstants.java in this directory)

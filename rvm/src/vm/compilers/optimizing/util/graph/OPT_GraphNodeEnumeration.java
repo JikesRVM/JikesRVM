@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 
 /**
  *  Generic interface for enumerations of graph nodes.  All graph

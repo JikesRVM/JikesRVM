@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /** 
  * OPT_BitSet.java
  *
@@ -9,7 +11,6 @@
  *
  * @author by Stephen Fink
  */
-
 public final class OPT_BitSet {
 
   /**

@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import  java.util.*;
+
 /**
  * This class implements a vertex in the value graph used in global 
  * value numbering
@@ -8,14 +12,6 @@
  * discussion.
  *
  * @author Stephen Fink
- */
-
-
-import  java.util.*;
-
-
-/**
- * put your documentation comment here
  */
 class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   Object name;        // the name of the variable defined by this node

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 
 /**
@@ -28,7 +30,6 @@ import  java.util.*;
  * @author Stephen Fink
  * @author Dave Grove
  */
-
 public final class OPT_InvalidationDatabase {
 
   ///////////////////// 

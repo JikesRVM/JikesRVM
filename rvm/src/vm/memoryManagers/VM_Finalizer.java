@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class manages finalization.  When an object is created
  * if its class has a finalize() method, addElement below is 
@@ -21,7 +23,6 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-
 public class VM_Finalizer
 {
 

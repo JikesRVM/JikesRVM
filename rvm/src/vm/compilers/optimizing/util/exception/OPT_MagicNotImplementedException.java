@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Use this exception when the opt compiler attempts to 
  * compile an unsupported magic.  

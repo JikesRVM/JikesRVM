@@ -1,9 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_ResourceReservation.java
-
-
+//$Id$
 
 /**
  * Describes a reservation on a particular resource.

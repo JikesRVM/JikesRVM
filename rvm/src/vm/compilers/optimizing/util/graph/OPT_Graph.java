@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 
 /**
  * An abstract interface for generic graphs; general graph utilities

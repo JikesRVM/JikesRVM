@@ -1,13 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /** 
  * An object that implements a bijection between whole numbers and
  * objects.
  *
  * @author Stephen Fink
  */
-
 public interface OPT_BitSetMapping {
   /**
    * Return the object numbered n.

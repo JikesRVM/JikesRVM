@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.io.*;
 
 /**
@@ -9,7 +11,6 @@ import  java.io.*;
  *
  * @author Stephen Fink
  */
-
 interface OPT_InlineOracleDictionaryPopulator {
 
   /**

@@ -1,9 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// OPT_DefaultPriority.java
-
-
+//$Id$
 
 /**
  * Default (IR-order) instruction list

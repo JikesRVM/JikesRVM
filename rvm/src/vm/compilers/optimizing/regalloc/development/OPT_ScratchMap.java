@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id
+//$Id$
 
 import java.util.Vector;
 import java.util.Enumeration;

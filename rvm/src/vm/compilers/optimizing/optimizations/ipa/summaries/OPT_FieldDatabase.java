@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * database to hold field-level information
  * this is a mapping from VM_Field -> FieldDatabaseEntry

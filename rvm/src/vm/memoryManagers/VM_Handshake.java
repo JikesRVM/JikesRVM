@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * VM_Handshake handles mutator requests to initiate a collection, 
  * and wait for a collection to complete.  It implements the process

@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
+
 /**
  * Suppose the following inlining actions have been taken 
  * <pre>

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.io.*;
 import  java.util.*;
 
@@ -23,8 +25,6 @@ import  java.util.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-
-
 class OPT_CCInlineComponent {
   /**
    * Print verbose debugging information?

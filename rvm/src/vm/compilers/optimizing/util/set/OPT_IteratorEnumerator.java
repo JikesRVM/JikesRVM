@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An <code>IteratorEnumerator</code> converts an <code>Iterator</code>
  * into an <code>Enumeration</code>.

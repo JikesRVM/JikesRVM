@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 
 /**
  *  This class is used only for the pre-allocated empty enumeration in
@@ -14,7 +16,6 @@
  *
  * @author Julian Dolby 
  */
- 
 class OPT_EmptyInstructionEnumeration implements OPT_InstructionEnumeration {
 
     public boolean hasMoreElements() { return false; }

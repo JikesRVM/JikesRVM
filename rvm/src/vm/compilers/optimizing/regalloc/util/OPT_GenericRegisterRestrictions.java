@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Vector;
 import java.util.Enumeration;
+
 /**
  * An instance of this class provides a mapping from symbolic register to
  * a set of restricted registers.

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.io.*;
 import  java.util.*;
 
@@ -12,7 +14,6 @@ import  java.util.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-
 class OPT_CCInlineNode extends OPT_TreeNode {
   /**
    * the target  method of the call site

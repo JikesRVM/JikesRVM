@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Oracle interface: the compiler queries this oracle to decide whether
  * to inline a call site.

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class contains the Java code that the opt compiler will
  * inline at every (1) ref_astore, (2) putfield of reference type 
@@ -20,7 +22,6 @@
  * @see VM_RCBarriers (baseline compiler implementation of RC write barriers)
  *
  */
-
 class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
 
   /**

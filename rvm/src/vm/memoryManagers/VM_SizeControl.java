@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An array of VM_SizeControls - one for each slotsize (see VM_GCConstants.java)
  * is associated with each Virtual Processor. This object supports

@@ -1,20 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import  java.util.*;
+import instructionFormats.*;
+
 /**
  * This class implements the redundant load elimination by
  * Fink, Knobe && Sarkar.  See SAS 2000 paper for details.
  *
  * @author Stephen Fink
- */
-
-
-import  java.util.*;
-import instructionFormats.*;
-
-
-/**
- * put your documentation comment here
  */
 final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
     implements OPT_Operators {

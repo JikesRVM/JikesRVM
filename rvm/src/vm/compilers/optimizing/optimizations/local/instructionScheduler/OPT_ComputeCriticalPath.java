@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// OPT_ComputeCriticalPath.java
+//$Id$
+
+import  java.io.*;
+import  java.util.Enumeration;
+
 /**
  * A compiler phase to compute and print the critical path
  * of each basic block.
@@ -10,15 +14,6 @@
  * are "final" too.      
  *
  * @author Igor Pechtchanski
- */
-
-
-import  java.io.*;
-import  java.util.Enumeration;
-
-
-/**
- * put your documentation comment here
  */
 final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
     implements OPT_IREnumeration {

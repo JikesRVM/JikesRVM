@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.Vector;
 import  java.util.Enumeration;
 
@@ -11,7 +13,6 @@ import  java.util.Enumeration;
  * @author Rajesh Bordawekar
  * @modified Stephen Fink
  */
-
 public class OPT_SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;

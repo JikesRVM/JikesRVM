@@ -1,10 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class that represents a pair of methods 
+ *
  * @author Stephen Fink
- * @modifications Peter Sweeney moved from OPT_ContextFreeInlinePlan.java.
+ * @modified Peter Sweeney 
+ * moved from OPT_ContextFreeInlinePlan.java.
  */
 class OPT_MethodPair {
   VM_Method a;

@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * OPT_ValueNumberPairSetCell.java
- *
  * OPT_ValueNumberPairSetCell is a lattice cell that
  * represents a set of value number pairs.
  *

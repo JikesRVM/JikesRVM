@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Common code for inline oracles.
  * This class's shouldInline method factors out the basic logic

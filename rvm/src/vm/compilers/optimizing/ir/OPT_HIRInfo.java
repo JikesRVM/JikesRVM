@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR
  *

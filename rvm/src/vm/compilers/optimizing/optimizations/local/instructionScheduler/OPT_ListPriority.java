@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// OPT_ListPriority.java
+//$Id$
+
+import  java.util.Vector;
+
 /**
  * List instruction priority representation
  * Used by the scheduler to enumerate over instructions
@@ -9,14 +12,6 @@
  * @see OPT_Priority
  * @see OPT_Scheduler
  * @author Igor Pechtchanski
- */
-
-
-import  java.util.Vector;
-
-
-/**
- * put your documentation comment here
  */
 abstract class OPT_ListPriority extends OPT_Priority {
   /**

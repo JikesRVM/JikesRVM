@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 import  instructionFormats.*;
 
@@ -8,7 +10,8 @@ import  instructionFormats.*;
  * This class does the job. It is a subphase of OPT_GCP.
  * 
  * @author Martin Trapp
- * @modified Stephen Fink */
+ * @modified Stephen Fink 
+ */
 class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
   /**

@@ -1,9 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// OPT_SchedulingInfo.java
-
-
+//$Id$
 
 /**
  * Object containing scheduling information

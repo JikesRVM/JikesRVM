@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
+
 /**
  * Database to store multiple specialized versions for a given method.
  *
@@ -17,7 +20,6 @@ import  java.util.*;
  * @author Rajesh Bordawekar
  * @author Stephen Fink
  */
-
 public final class OPT_SpecializationDatabase {
 
   /**

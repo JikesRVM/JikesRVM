@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 
 /**
  * A generic interface for graph nodes.  All graph utilities should be

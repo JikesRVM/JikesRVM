@@ -1,15 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$ID:$
+//$Id$
 
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 
-
 /**
- * put your documentation comment here
- *
  * @author Michael Hind
  */
 class OPT_LiveSetEnumerator

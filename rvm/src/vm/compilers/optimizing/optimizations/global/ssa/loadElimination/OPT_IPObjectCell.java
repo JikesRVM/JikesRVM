@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An OPT_IPObjectCell is a lattice cell for the index propagation 
  * problem, used in redundant load elimination for fields.

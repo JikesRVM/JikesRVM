@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 
 /**
@@ -8,7 +10,6 @@ import  java.util.*;
  *
  * @author Peter Sweeney
  */
-
 class OPT_InlinePlanComparator
     implements java.util.Comparator {
   public static boolean debug = false;

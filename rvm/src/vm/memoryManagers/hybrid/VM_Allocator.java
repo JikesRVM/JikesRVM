@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Hybrid Generational Collector/Allocator with Fixed Size Nursery
  * <p>

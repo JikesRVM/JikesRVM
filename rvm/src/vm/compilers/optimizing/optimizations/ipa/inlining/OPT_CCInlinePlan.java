@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.io.*;
 import  java.util.*;
-
 
 /**
  * This class represents an "Inline Plan with calling context".
@@ -21,9 +22,8 @@ import  java.util.*;
  * with a call to B and the call site at bytecode 15 with a call to C.
  *
  * @author Stephen Fink
- * @modifications Peter Sweeney
+ * @modified Peter Sweeney
  */
-
 class OPT_CCInlinePlan {
   /**
    * verbose debugging output?

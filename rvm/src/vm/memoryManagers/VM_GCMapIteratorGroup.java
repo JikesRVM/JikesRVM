@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 
  * by collection threads when scanning thread stacks to locate object references

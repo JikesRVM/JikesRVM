@@ -1,8 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Math library.
-//
+//$Id$
+
+/**
+ * Math library.
+ *
+ * @author Bowen Alpern
+ * @author Mauricio Serrano
+ * @author John Whaley
+ */
 public class VM_Math
    implements VM_Uninterruptible /* see "NB:" note, below */
    {
@@ -228,10 +235,10 @@ public class VM_Math
     return result;
   }
 
-/* Standard Math methods
-   author Bowen Alpern
-*/
-
+  /**
+   * Standard Math methods
+   * @author Bowen Alpern
+   */
   public static double ceil (double x) {
     //-#if RVM_FOR_IA32
     // on IA32, use the baseline compiler to simulate strict IEEE
@@ -256,17 +263,17 @@ public class VM_Math
     return (x<r) ? (r-1.0D) : r;
   }
 
- /* 
+ /**
   * added this constant for 32-bit Signed integer to floating-point code
   * conversion, taken from: "The PowerPC Compiler Writer's Guide"
-  * author Mauricio Serrano
+  * @author Mauricio Serrano
   */
   static double I2Dconstant = Double.longBitsToDouble(0x4330000080000000L);
 
-/* Math stuff used by the compiler 
-   author Bowen Alpern
-*/
-  
+  /**
+   * Math stuff used by the compiler 
+   * @author Bowen Alpern
+   */
   static double IEEEmagic = Double.longBitsToDouble(0x4338000000000000L);
 
   static long   longOne  =  1L;

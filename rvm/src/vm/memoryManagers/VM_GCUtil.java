@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Common utility functions used by various garbage collectors
+ *
  * @author Stephen Smith
  */  
 public class VM_GCUtil

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Compute a simple, fast, intraprocedural summary of a method
  * via a single pass over its bytecode array.

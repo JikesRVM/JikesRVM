@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$ID:$
+//$Id$
 
 import  java.util.Iterator;
 import  java.util.HashSet;

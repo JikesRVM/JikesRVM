@@ -1,21 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.*;
 
-
 /**
-  * This class implements depth-first search over a OPT_Graph,
-  * and stores the discover and finish numbers for each vertex
-  * See Cormen, Leiserson, Rivest Ch. 23
-  *
-  * TODO: this implementation is not terribly efficient
-  * (hopefully, I have fixed this to some degree -- Julian)
-  *
-  * @author Stephen Fink
-  * @author Julian Dolby
-  */
-
+ * This class implements depth-first search over a OPT_Graph,
+ * and stores the discover and finish numbers for each vertex
+ * See Cormen, Leiserson, Rivest Ch. 23
+ *
+ * TODO: this implementation is not terribly efficient
+ * (hopefully, I have fixed this to some degree -- Julian)
+ *
+ * @author Stephen Fink
+ * @author Julian Dolby
+ */
 class OPT_DFS extends OPT_Stack {
     // Interface 
 

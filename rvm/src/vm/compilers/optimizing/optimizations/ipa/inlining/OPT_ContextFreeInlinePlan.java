@@ -1,22 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import  java.io.*;
+import  java.util.*;
+
 /**
  * An object of this class represents a set of triples <a,x,b>.
  * Each <a,x,b>, denotes the rule "inline b into a at bytecode b".
  *
  * @author Stephen Fink
- * @modifications Peter Sweeney
- * @modifications Matthew Arnold
- */
-
-
-import  java.io.*;
-import  java.util.*;
-
-
-/**
- * put your documentation comment here
+ * @modified Peter Sweeney
+ * @modified Matthew Arnold
  */
 class OPT_ContextFreeInlinePlan {
 

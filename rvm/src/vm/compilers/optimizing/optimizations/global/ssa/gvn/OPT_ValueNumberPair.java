@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * OPT_ValueNumberPair.java
- *
  * utility class: represents a pair of value numbers.
  *
  * @author Stephen Fink
