@@ -370,7 +370,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           }
         } 
         else if (c.source instanceof OPT_ConstantOperand) {
-          ci = OPT_SSA.makeMoveInstruction(ir, r, (OPT_ConstantOperand)c.source);
+          if (c.source instanceof OPT_UnreachableOperand) {
+            ci = null;
+          } else {
+            ci = OPT_SSA.makeMoveInstruction(ir, r, (OPT_ConstantOperand)c.source);
+          }
         } 
         else if (c.source instanceof OPT_RegisterOperand) {
           if (shouldSplitBlock) {
@@ -578,17 +582,19 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
       int values = Phi.getNumberOfValues (inst);
       for (int i = 0;  i < values;  ++i) {
         OPT_Operand op = Phi.getValue (inst, i);
-        if (! (op instanceof OPT_RegisterOperand)) {
+        if (!(op instanceof OPT_RegisterOperand)) {
           if (op instanceof OPT_TrueGuardOperand) {
-            OPT_BasicBlock bb = Phi.getPred (inst, i).block;
+            OPT_BasicBlock bb = Phi.getPred(inst,i).block;
             OPT_Instruction move = Move.create (GUARD_MOVE,
                                                 res.asRegister().copyD2D(),
                                                 new OPT_TrueGuardOperand());
             move.position = ir.gc.inlineSequence;
             move.bcIndex = SSA_SYNTH_BCI;
-            bb.appendInstructionRespectingTerminalBranchOrPEI (move); 
+            bb.appendInstructionRespectingTerminalBranchOrPEI(move); 
+          } else if (op instanceof OPT_UnreachableOperand) {
+            // do nothing
           } else {
-            if (VM.VerifyAssertions) VM.assert (false);
+            if (VM.VerifyAssertions) VM.assert(false);
           }
         }
       }
@@ -609,18 +615,20 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   private void unSSAGuardsDetermineReg(OPT_IR ir) {
     OPT_Instruction inst = guardPhis;
     while (inst != null) {
-      OPT_Register r = Phi.getResult (inst).asRegister().register;
-      int values = Phi.getNumberOfValues (inst);
-      for (int i = 0;  i < values;  ++i) {
-        OPT_Operand op = Phi.getValue (inst, i);
+      OPT_Register r = Phi.getResult(inst).asRegister().register;
+      int values = Phi.getNumberOfValues(inst);
+      for (int i = 0;  i < values; ++i) {
+        OPT_Operand op = Phi.getValue(inst, i);
         if (op instanceof OPT_RegisterOperand) {
-          guardUnion (op.asRegister().register, r);
+          guardUnion(op.asRegister().register, r);
         } else {
-          if (VM.VerifyAssertions)
-            VM.assert (op instanceof OPT_TrueGuardOperand);
+          if (VM.VerifyAssertions) {
+            VM.assert(op instanceof OPT_TrueGuardOperand ||
+                      op instanceof OPT_UnreachableOperand);
+          }
         }
       }
-      inst = (OPT_Instruction) inst.scratchObject;
+      inst = (OPT_Instruction)inst.scratchObject;
     }
   }
 

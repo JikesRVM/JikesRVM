@@ -788,18 +788,8 @@ implements OPT_Operators, OPT_Constants {
             if (r2 == null) {
               // in this case, the register is never defined along
               // this particular control flow path into the basic
-              // block.  So, null out the operand to indicate that
-              // that case will never happen.
-              if (r1.isValidation()) {
-                Phi.setValue(s, j, new OPT_TrueGuardOperand());
-              } else {
-                if (ir.IRStage == ir.LIR) {
-                  Phi.setValue(s, j, new OPT_IntConstantOperand(0));
-                } 
-                else {
-                  Phi.setValue(s, j, new OPT_NullConstantOperand());
-                }
-              }
+              // block.  
+              Phi.setValue(s, j, new OPT_UnreachableOperand());
             } else {
               OPT_RegisterOperand rop = r2.copyRO();
               Phi.setValue(s,j,rop);
@@ -1023,7 +1013,9 @@ implements OPT_Operators, OPT_Constants {
   private final static int FOUND_NULL_TYPE = 1;
   private void rectifyPhiTypes() {
     if (DEBUG) System.out.println("Rectify phi types.");
+    removeAllUnreachablePhis(scalarPhis);
     while (!scalarPhis.isEmpty()) {
+      boolean didSomething = false;
       for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
         OPT_Instruction phi = (OPT_Instruction)i.next();
         phi.scratch = NO_NULL_TYPE;
@@ -1031,18 +1023,69 @@ implements OPT_Operators, OPT_Constants {
         VM_Type meet = meetPhiType(phi);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
+          didSomething = true;
           if (phi.scratch == NO_NULL_TYPE) i.remove();
           OPT_RegisterOperand result = (OPT_RegisterOperand)Phi.getResult(phi);
           result.type = meet;
-          for (Enumeration e = OPT_DefUse.uses(result.register);
-               e.hasMoreElements(); ) { 
+          for (Enumeration e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) { 
             OPT_RegisterOperand rop = (OPT_RegisterOperand)e.nextElement();
             rop.type = meet;
           }
         }
       }
+      if (!didSomething) {
+        // iteration has bottomed out.
+        return;
+      }
     }
   }
+
+  /**
+   * Remove all phis that are unreachable
+   */
+  private void removeAllUnreachablePhis(HashSet scalarPhis) {
+outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
+      OPT_Instruction phi = (OPT_Instruction)i.next();
+      for (int j=0; j<Phi.getNumberOfValues(phi); j++) {
+        OPT_Operand op = Phi.getValue(phi,j);
+        if (!(op instanceof OPT_UnreachableOperand)) {
+          continue outer;
+        }
+      }
+      i.remove();
+    }
+  }
+  /**
+   * Remove all unreachable operands from scalar phi functions
+   */
+  /* NOT CURRENTLY USED
+  private void removeUnreachableOperands(HashSet scalarPhis) {
+    for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
+      OPT_Instruction phi = (OPT_Instruction)i.next();
+      boolean didSomething = true;
+      while (didSomething) {
+        didSomething = false;
+        for (int j = 0; j < Phi.getNumberOfValues(phi); j++) {
+          OPT_Operand v = Phi.getValue(phi,j);
+          if (v instanceof OPT_UnreachableOperand) {
+            // rewrite the phi instruction to remove the unreachable
+            // operand
+            didSomething = true;
+            OPT_Instruction tmpPhi = phi.copyWithoutLinks();
+            Phi.mutate(phi,PHI,Phi.getResult(tmpPhi),Phi.getNumberOfValues(phi)-1);
+            int m = 0;
+            for (int k = 0; k < Phi.getNumberOfValues(phi); k++) {
+              if (k == j) continue;
+              Phi.setValue(phi,m,Phi.getValue(tmpPhi,k));
+              Phi.setPred(phi,m,Phi.getPred(tmpPhi,k));
+              m++;
+            }
+          }
+        }
+      }
+    }
+  }
+  */
 
   /**
    * Return the meet of the types on the rhs of a phi instruction
@@ -1057,6 +1100,7 @@ implements OPT_Operators, OPT_Constants {
     VM_Type result = null;
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       OPT_Operand val = Phi.getValue(s,i);
+      if (val instanceof OPT_UnreachableOperand) continue;
       VM_Type t = val.getType();
       if (t == null) {
         s.scratch = FOUND_NULL_TYPE;

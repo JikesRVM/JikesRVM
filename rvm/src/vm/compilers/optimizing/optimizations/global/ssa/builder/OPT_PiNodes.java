@@ -108,7 +108,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   /** 
    *  Insert PI nodes corresponding to compare operations.
    *  Pi-nodes are represented as dummy assignments with a single 
-   *  argument inserted long each outedge of the conditional.
+   *  argument inserted along each outedge of the conditional.
    * 
    *  @param ir the governing IR
    */

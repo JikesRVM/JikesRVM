@@ -591,6 +591,8 @@ class OPT_ValueGraph implements OPT_Operators {
       name = op;
     } else if (op instanceof OPT_TrueGuardOperand) {
       name = op;
+    } else if (op instanceof OPT_UnreachableOperand) {
+      name = op;
     } else {
       throw  new OPT_OptimizingCompilerException(
           "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand");
