@@ -136,7 +136,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
-	    inline(inst, ir);
+            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	  }
 	}
 	break;
@@ -224,7 +224,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
-	    inline(inst, ir);
+            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	  } 
 	}
 	break;
@@ -288,7 +288,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
 			 new OPT_IntConstantOperand(refType.thinLockOffset));
-	    inline(inst, ir);
+            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	  } else {
 	    Call.mutate1(inst, CALL, null, null, 
 			 OPT_MethodOperand.STATIC(VM_Entrypoints.lockMethod),
@@ -310,7 +310,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			     MonitorOp.getClearGuard(inst), 
 			     ref,
 			     new OPT_IntConstantOperand(refType.thinLockOffset));
-		inline(inst, ir);
+                if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	    } else {
 		Call.mutate1(inst, CALL, null, null, 
 			     OPT_MethodOperand.STATIC(VM_Entrypoints.unlockMethod),
@@ -403,7 +403,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			   AStore.getClearArray(inst), 
 			   AStore.getClearIndex(inst), 
 			   AStore.getClearValue(inst));
-	      inline(inst, ir);
+              if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	  }
           //-#endif
 	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
@@ -601,7 +601,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 						    VM_Entrypoints.RCGC_unresolvedPutstaticMethod),
 			   new OPT_IntConstantOperand(isResolved ? field.getOffset() : field.getDictionaryId()),
 			   PutStatic.getClearValue(inst));
-	      inline(inst, ir);
+            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
 	  }
 	  //-#endif
 	}
