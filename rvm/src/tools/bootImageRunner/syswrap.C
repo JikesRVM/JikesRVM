@@ -361,12 +361,42 @@ DestroyJavaVM(JavaVM UNUSED * vm)
     return JNI_ERR;
 }
 
+/* This is the JNI Invocation Interface function.
+   "Trying to attach a thread that is already attached is a no-op"
+ * */
 static
 jint 
-AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
 {
-    fprintf(stderr, "JikesRVM: Unimplemented JNI call AttachCurrentThread\n");
-    return JNI_ERR;
+    JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
+    jint version;
+    if (args == NULL) {
+        version = JNI_VERSION_1_1;
+    } else {
+        version = aargs->version ;
+        /* We'd like to handle aargs->name and aargs->group */
+    }
+
+    // Handled for us by GetEnv().  We do it here anyway so that we avoid
+    // printing an error message further along in this function.
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+    
+    /* If we're already attached, we're gold. */
+    register jint retval = GetEnv(vm, penv, version);
+    if (retval == JNI_OK)
+        return retval;
+    else if (retval == JNI_EDETACHED) {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+        goto failed;
+    } else {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    }
+
+failed:
+    // Upon failure:
+    *penv = NULL;               // Make sure we don't yield a bogus one to use.
+    return JNI_EDETACHED;
 }
 
 static
@@ -411,7 +441,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 /** JNI 1.4 */
 static
 jint 
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
     fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
     return JNI_ERR;
