@@ -1,5 +1,9 @@
 #!/bin/sh
 # This is a silly script to test XSLTMark at watson
+# (C) Copyright IBM Corp. 2002
+#
+# $Id$
+# @author Stephen Fink
 
 CONTRIB=/homes/meriadoc/jalapeno/contrib/benchmarks
 
@@ -17,5 +21,4 @@ export PATH
 
 [ -d testcases ] && make -s -C testcases clean
 #cd $CONTRIB/XSLTMark-2.1.0/xsltmark && java com.datapower.xsltmark.XSLTMark $ARGS
-echo $CLASSPATH
 cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
