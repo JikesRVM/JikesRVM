@@ -2,6 +2,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Derek Lieber
+
 # Search rvm source files for specified word.
 # If no word is specified, list names of all rvm source files.
 

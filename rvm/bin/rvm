@@ -2,13 +2,19 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# Invoke Jikes RVM virtual machine that was created by "jbuild".
-# See also: $RVM_ROOT/rvm/bin/jconfigure -help
-# 04 Feb 2000 Derek Lieber
-# 15 Jan 2001 Peter Sweeney eliminate dependence on option order.
-#
 # $Id$
 #
+# Invoke Jikes RVM virtual machine that was created by "jbuild".
+# See also: $RVM_ROOT/rvm/bin/jconfigure -help
+#
+# @author Derek Lieber
+# @date 04 Feb 2000
+#
+# @modified Peter Sweeney
+# @date 15 Jan 2001 
+#    eliminate dependence on option order.
+#
+
 ME=`basename $0`
 
 # Place where RVM bootimage, booter, and runtime support files reside.

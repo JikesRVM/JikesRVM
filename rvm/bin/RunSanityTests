@@ -3,4 +3,7 @@
 # (C) Copyright IBM Corp. 2001
 #
 # $Id$
+#
+# @author Steve Fink
+#
 exec $RVM_ROOT/rvm/regression/RunSanityTests "$@"

@@ -8,7 +8,7 @@
 #
 # Invocation:  jCheckLibs
 #
-# Authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
+# @authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
 
 # Stop immediately if any programs we call return errors.
 #

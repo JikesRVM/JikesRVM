@@ -1,6 +1,11 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
+
 # 
 # rules, etc in this file should be site independent
 #

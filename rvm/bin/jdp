@@ -2,11 +2,14 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
 # set -v -x
 # Run jdp in "raw tty" mode, so it can do command retrieval and completion
 # Usage: jdp program_name
-# 10 Dec 1998 Derek Lieber
-# 15 Dec 1998 Ton Ngo (adapted for jdp)
+#
+# @author Ton Ngo
+# @date   15 Dec 1998
 # 24 May 2000 Ton Ngo (adapted for new builder)
 # 24 Aug 2000 Manu Sridharan (adapted to work with GUI)
 # 12 Jan 2001 Ton Ngo (update for new University release)

@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
 include $(RVM_ROOT)/rvm/Make.generic.rules
 include $(RVM_BUILD)/Make.rules
 

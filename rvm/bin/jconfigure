@@ -15,7 +15,8 @@
 #    - definitions of functions
 #    - mainline code that does the work
 #
-# 19 Jan 2000 Derek Lieber
+# @author Derek Lieber
+# @date   19 Jan 2000
 
 # Stop immediately if any programs we call return errors.
 #
