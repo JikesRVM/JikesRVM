@@ -47,7 +47,7 @@ extern pthread_key_t IsVmProcessorKey;
 // FIXME: should not hardcode name of C library
 //        should be determined by build system
 // FIXME: this works for recent Linux, need to update for AIX
-#define C_LIBRARY_NAME "libc.so"
+#define C_LIBRARY_NAME "libc.so.6"
 
 // Pointers to actual syscall functions from C library.
 static SelectFunc libcSelect;
