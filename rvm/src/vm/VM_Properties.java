@@ -40,6 +40,11 @@ public class VM_Properties extends VM_Options {
    * are we in the boot-image-writing portion of boot-image-creation
    */
   public static boolean writingImage = false;
+  /**
+   * is the running VM fully booted?
+   * Set by VM.boot when the VM is fully booted.
+   */
+  public static boolean fullyBooted = false;
 
   /**
    * If true, don't exit from the process.  As of July, 2003, this has not

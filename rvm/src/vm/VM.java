@@ -250,6 +250,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("VM is now fully booted");
     
     // Inform interested subsystems that VM is fully booted.
+    VM.fullyBooted = true;
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
 
