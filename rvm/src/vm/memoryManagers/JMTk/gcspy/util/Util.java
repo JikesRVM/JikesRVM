@@ -6,7 +6,7 @@
 package org.mmtk.vm.gcspy;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_Magic;
