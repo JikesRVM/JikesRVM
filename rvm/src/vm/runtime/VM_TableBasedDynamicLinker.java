@@ -58,7 +58,13 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */
   public static void resolveMethod(int methodId) throws VM_ResolutionException {
     VM_Method target = VM_MethodDictionary.getValue(methodId);
-    resolve(target);
+    VM_Class declaringClass = target.getDeclaringClass();
+    VM_Runtime.initializeClassForDynamicLink(declaringClass);
+    VM_Method rt = target.resolve();
+    if (rt.getDictionaryId() != methodId) {
+      // ghost reference hack
+      methodOffsets[methodId] = rt.getOffset();
+    }
   }
       
   /**
@@ -68,57 +74,19 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */
   public static void resolveField(int fieldId) throws VM_ResolutionException {
     VM_Field target = VM_FieldDictionary.getValue(fieldId);
-    resolve(target);
-  }
-
-  /**
-   * Perform the dynamic linking required to access the
-   * argument VM_Method. Will raise linking errors as necessary.
-   * The indirection tables are updated as a side-effect of calling 
-   * initializeClassForDynamicLink.
-   * 
-   * @param target the VM_Method to link.
-   */
-  public static void resolve(VM_Method target) throws VM_ResolutionException {
     VM_Class declaringClass = target.getDeclaringClass();
     VM_Runtime.initializeClassForDynamicLink(declaringClass);
-
-    // Check for a ghost reference and patch the extra table entry if necessary.
-    // The call to resolve is also responsible for raising linking errors
-    // such as NoSuchField/MethodError.
-    VM_Method rt = target.resolve();
-    if (rt != target) {
-      setMethodOffset(target, rt.getOffset());
-    }
-  }
-
-  /**
-   * Perform the dynamic linking required to access the
-   * argument VM_Field. Will raise linking errors as necessary.
-   * The indirection tables are updated as a side-effect of calling 
-   * initializeClassForDynamicLink.
-   * 
-   * @param target the VM_Field to link.
-   */
-  public static void resolve(VM_Field target) throws VM_ResolutionException {
-    VM_Class declaringClass = target.getDeclaringClass();
-    VM_Runtime.initializeClassForDynamicLink(declaringClass);
-
-    // Check for a ghost reference and patch the extra table entry if necessary.
-    // The call to resolve is also responsible for raising linking errors
-    // such as NoSuchField/MethodError.
     VM_Field rt = target.resolve();
-    if (rt != target) {
-      setFieldOffset(target, rt.getOffset());
+    if (rt.getDictionaryId() != fieldId) {
+      // ghost reference hack
+      fieldOffsets[fieldId] = rt.getOffset();
     }
   }
-
 
 
   /*
    * Methods invoked from VM_ClassLoader to maintain and update 
    * offset tables
-   * 
    */
 
   /**
