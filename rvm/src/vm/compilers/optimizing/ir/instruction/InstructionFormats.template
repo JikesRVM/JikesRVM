@@ -326,7 +326,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * instruction.
    * @param i the instruction in which to store the operand
    * @param k the index of the operand 
-   * @param NAME the operand to store
+   * @param o the operand to store
    */
   public static void setNAME(OPT_Instruction i, int k, TYPE o) {
            $$$$ IF VERIFY_INSTRUCTION_FORMATS != ""
