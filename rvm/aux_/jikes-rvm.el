@@ -4,10 +4,13 @@
 ;;;
 ;;; $Id$
 
-;;; C, C++, and Java style for coding Jikes RVM.  
+;;; C, C++, and Java style for editing Jikes RVM source code.  This
+;;; customizes Java mode, C++ mode, and C mode.  Since this file will
+;;; probably improve with time, I recommend you load it in rather
+;;; than cutting and pasting its contents into your ~/.emacs file.
 ;;;
 ;;; @author Steven Augart
-;;; @date May 20, 2003, through Oct 9, 2003 (work in progress)
+;;; @date May 20, 2003, through November 21, 2003 (work in progress)
 
 ;;; This style is designed to work nicely with the functions
 ;;; `c-toggle-auto-state' and `c-toggle-hungry-state'.
@@ -18,7 +21,6 @@
 (add-hook 'java-mode-hook #'jikes-rvm-java-buffer-setup)
 (add-hook 'c-mode-hook #'jikes-rvm-c-buffer-setup)
 (add-hook 'c++-mode-hook #'jikes-rvm-c++-buffer-setup)
-
 
 (defun jikes-rvm-c-buffer-setup ()
   (interactive)
@@ -148,5 +150,12 @@ even if they appear in C or C++ programs.")
 	      (when (boundp 'c-font-lock-keywords-3)
 		(add-to-list 'c-font-lock-keywords-3
 			     jikes-rvm-javadoc-font-lock-keywords))))
+
+;;; As of Jikes RVM 2.3.1, we will only use spaces for indentation.
+(add-hook 'c-mode-common-hook
+	  #'(lambda () 
+	      ;; TAB will only insert spaces, not literal TAB characters.
+	      (setq indent-tabs-mode nil)))
+
 
 (provide 'jikes-rvm)
