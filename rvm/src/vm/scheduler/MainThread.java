@@ -7,12 +7,6 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.*;
 
 import java.net.*;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileDescriptor;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
@@ -53,29 +47,6 @@ class MainThread extends Thread {
    * Run "main" thread.
    */
   public void run() {
-    // Create file descriptors for stdin, stdout, stderr
-    VM_FileSystem.prepareStandardFd( 0 );
-    VM_FileSystem.prepareStandardFd( 1 );
-    VM_FileSystem.prepareStandardFd( 2 );
-
-    // Set up System.in, System.out, System.err
-    FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
-    FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
-    FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
-    System.setIn(new BufferedInputStream(fdIn));
-    System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
-    System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
-    VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
-	public void notifyExit(int value) {
-	  try {
-	    System.err.flush();
-	    System.out.flush();
-	  } catch (Throwable e) {
-	    VM.sysWrite("vm: error flushing stdout, stderr");
-	  }
-	}
-      });
-
     //-#if RVM_WITH_GNU_CLASSPATH
     // set up JikesRVM socket I/O
     try {
@@ -91,7 +62,7 @@ class MainThread extends Thread {
 	    throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
 	  }});
     } catch (java.io.IOException e) {
-	VM.sysWrite("trouble setting socket impl factories");
+      VM.sysWrite("trouble setting socket impl factories");
     }
     //-#endif
 

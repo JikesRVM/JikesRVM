@@ -4,9 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Interface to filesystem of underlying operating system.
@@ -61,11 +59,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall2(bootRecord.sysStatIP, 
                          VM_Magic.objectAsAddress(asciiName).toInt(), kind);
-    // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
@@ -122,11 +118,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int fd = VM.sysCall2(bootRecord.sysOpenIP, 
                          VM_Magic.objectAsAddress(asciiName).toInt(), how);
-    // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
@@ -447,15 +441,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     int    len;
     for (int max = 1024;;) {
       asciiList = new byte[max];
-
-      // PIN(asciiName);
-      // PIN(asciiList);
       len = VM.sysCall3(bootRecord.sysListIP, 
                         VM_Magic.objectAsAddress(asciiName).toInt(), 
                         VM_Magic.objectAsAddress(asciiList).toInt(), max);
-      // UNPIN(asciiName);
-      // UNPIN(asciiList);
-
       if (len < max)
         break;
 
@@ -620,7 +608,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
    * it as blocking, then we enable a kluge that will allow us
    * to cope later on.
    */
-  static void prepareStandardFd(int fd) {
+  private static void prepareStandardFd(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
     int isTTY = VM.sysCall1(bootRecord.sysIsTTYIP, fd);
@@ -634,65 +622,92 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
       if (rc == 0) {
 	// Groovy
 	standardFdIsNonblocking[fd] = true;
-      }
-      else
+      } else {
 	VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+      }
     }
   }
+  
+  /**
+   * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
+   * and java.lang.System.err
+   */
+  static void initializeStandardStreams() {
+    VM_FileSystem.prepareStandardFd(0);
+    VM_FileSystem.prepareStandardFd(1);
+    VM_FileSystem.prepareStandardFd(2);
+    FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
+    FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
+    FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
+    System.setIn(new BufferedInputStream(fdIn));
+    System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
+    System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
+    VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
+	public void notifyExit(int value) {
+	  try {
+	    System.err.flush();
+	    System.out.flush();
+	  } catch (Throwable e) {
+	    VM.sysWrite("vm: error flushing stdout, stderr");
+	  }
+	}
+      });
+  }
+
 
   static InputStream getInputStream(final int fd) {
-      return new InputStream() {
-	  public int available() throws IOException {
-	      return bytesAvailable( fd );
-	  }
+    return new InputStream() {
+	public int available() throws IOException {
+	  return bytesAvailable( fd );
+	}
+	
+	public void close() throws IOException {
+	  VM_FileSystem.close( fd );
+	}
+	      
+	public int read() throws IOException {
+	  return readByte( fd );
+	}
+	      
+	public int read(byte[] buffer) throws IOException {
+	  return readBytes(fd, buffer, 0, buffer.length);
+	}
+	      
+	public int read(byte[] buf, int off, int len) throws IOException {
+	  return readBytes(fd, buf, off, len);
+	}
 
-	  public void close() throws IOException {
-	      VM_FileSystem.close( fd );
-	  }
-	      
-	  public int read() throws IOException {
-	      return readByte( fd );
-	  }
-	      
-	  public int read(byte[] buffer) throws IOException {
-	      return readBytes(fd, buffer, 0, buffer.length);
-	  }
-	      
-	  public int read(byte[] buf, int off, int len) throws IOException {
-	      return readBytes(fd, buf, off, len);
-	  }
-
-	  protected void finalize() throws IOException {
-	      close();
-	  }
+	protected void finalize() throws IOException {
+	  close();
+	}
       };
   }
 	      
   static OutputStream getOutputStream(final int fd) {
-      return new OutputStream() {
-	  public void write (int b) throws IOException {
-	      writeByte(fd, b);
-	  }
+    return new OutputStream() {
+	public void write (int b) throws IOException {
+	  writeByte(fd, b);
+	}
 
-	  public void write (byte[] b) throws IOException {
-	      writeBytes(fd, b, 0, b.length);
-	  }
+	public void write (byte[] b) throws IOException {
+	  writeBytes(fd, b, 0, b.length);
+	}
 
-	  public void write (byte[] b, int off, int len) throws IOException {
-	      writeBytes(fd, b, off, len);
-	  }
+	public void write (byte[] b, int off, int len) throws IOException {
+	  writeBytes(fd, b, off, len);
+	}
 
-	  public void flush () throws IOException {
-	      sync( fd );
-	  }
+	public void flush () throws IOException {
+	  sync( fd );
+	}
 
-	  public void close () throws IOException {
-	      VM_FileSystem.close( fd );
-	  }
+	public void close () throws IOException {
+	  VM_FileSystem.close( fd );
+	}
 
-	  protected void finalize() throws IOException {
-	      close();
-	  }
+	protected void finalize() throws IOException {
+	  close();
+	}
       };
   }
 }

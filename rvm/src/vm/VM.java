@@ -252,6 +252,9 @@ public class VM extends VM_Properties
     runClassInitializer("com.ibm.oti.util.Msg");
     //-#endif
 
+    // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
+    VM_FileSystem.initializeStandardStreams();
+
     // Allow profile information to be read in from a file
     VM_EdgeCounts.boot();
 
