@@ -45,6 +45,7 @@
 /\.properties$/ { next }
 /\.properties\.sample$/ { next }
 /README$/ { next }
+/\.txt$/ { next }
 
 #
 # print everything else
