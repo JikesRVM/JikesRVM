@@ -27,7 +27,10 @@
 #    Converted from "ksh" to Bash
 #
 
-ME=${0##*/}
+# Sanity checks
+# What is our name?
+# Bash internal shorthand that works like the "basename" command.
+ME="${0##*/}"
 
 function usage() {
     local exitstatus=${1-"1"};
@@ -63,8 +66,8 @@ rvm_root=$1;  shift;  # Used to be $RVM_ROOT
 rvm_build=$1; shift;  # Used to be $RVM_BUILD
 
 
-# TODO: This portion of the gdbrvm program should be consolidated with
-# the originally-identical part of the runrvm program.
+## If you change anything below this point, you probably want to 
+## change runrvm as well.
 
 # Load up where the RVM bootimage, booter, and runtime support files reside:
 env="$rvm_build/environment"
@@ -87,7 +90,8 @@ done
 ## These are the first set of defines (we used to 
 ## set these before checking user args, for some odd reason).
 
-declare -a sys_args=("-X:i=$rvm_build/RVM.image" "-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
+declare -a sys_args=("-X:i=$rvm_build/RVM.image" \
+		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
 		"-Djava.home=$rvm_root"					\
@@ -99,4 +103,5 @@ declare -a sys_args=("-X:i=$rvm_build/RVM.image" "-X:vmClasses=$rvm_build/RVM.cl
 prog="$rvm_build/JikesRVM"
 [[ -f $prog ]] || croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
 [[ -x $prog ]] || croak_nonusage "Cannot execute the file named \"$prog\"; some sort of permissions problem.  Something weird is happening.  Maybe somebody with a highly restrictive \"umask\" compiled Jikes RVM?"
+
 exec "$prog" "${sys_args[@]}" "${user_args[@]}" 
