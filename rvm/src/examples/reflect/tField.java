@@ -8,8 +8,7 @@ import java.util.*;
 /**
  * @author unascribed
  */
-public class tField
-   {
+public class tField {
    public static boolean sboolean = true;
    public static byte sbyte = 127;
    public static short sshort = 1;
@@ -26,153 +25,137 @@ public class tField
    public        float mfloat = 1.0F;
    public        double mdouble = 1.0;
 
+  public static void main(String args[]) throws Exception {
+    tField t = new tField();
 
+    Class tf_type = Class.forName("tField");
+    Field fields[] = tf_type.getFields();
+    Arrays.sort(fields, new Comparator() {
+	public int compare(Object x, Object y) {
+	  return x.toString().compareTo( y.toString() );
+	}
+      });
+    
+    t.printFields(fields);
 
+    t.testBoolean(fields);
+    t.testByte(fields);
+    t.testShort(fields);
+    t.testInt(fields);
+    t.testLong(fields);
+    t.testFloat(fields);
+    t.testDouble(fields);
 
-   public static void main(String args[]) throws Exception
-      {
-      tField t = new tField();
+    t.printFields(fields);
+  }
 
-      Class tf_type = Class.forName("tField");
-      Field fields[] = tf_type.getFields();
-      Arrays.sort(fields, new Comparator() {
-	      public int compare(Object x, Object y) {
-		  return x.toString().compareTo( y.toString() );
-	      }
-	  });
+  private void printFields(Field[] fields) throws Exception {
+    System.out.println("\n** Current value of fields is **\n");
+    for (int i = 0; i < fields.length; i++) {
+      System.out.println(i+"\t "+fields[i]+" = "+fields[i].get(this));
+    }
+  }
 
-      for (int i = 0; i < fields.length; i++)
-	 {
-	 System.out.println(i+"\t "+fields[i]+" = "+fields[i].get(t));
-	 }
+  private void testBoolean(Field[] fields) throws Exception {
+    System.out.println("\n** Set Booleans to false **\n");
 
-      System.out.println("\n** Set Booleans to false **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setBoolean(t, false); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      System.out.println("\n** Set bytes to 12 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setByte(t, (byte)12); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      System.out.println("\n** Set shorts to 2 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setShort(t, (short)2); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      System.out.println("\n** Set int to 2 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setInt(t, 2); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 } 
-   
-      System.out.println("\n** Set long to 2 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setLong(t, 2); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      System.out.println("\n** Set float to 2.0 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setFloat(t, 2.0F); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      System.out.println("\n** Set double to 2.0 **\n");
-
-      for (int j = 0; j < fields.length; j++)
-	 {
-	 try 
-	    {
-	    fields[j].setDouble(t, 2.0); 
-	    System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(t));	
-	    }
-	 catch(Exception e)
-	    {
-	    System.out.print(j+"\t "+fields[j]+" \t ");
-	    System.out.println(e);
-	    }
-	 }
-
-      for (int i = 0; i < fields.length; i++)
-	 {
-	 System.out.println(i+"\t "+fields[i]+" = "+fields[i].get(t));
-	 }
-
-
-/* ?? Is there any way to get a Field whose type is not loaded and then try to act on it?? 
-      System.out.println("\n** ** Test unloaded class semantics **  **\n");
-      
-      Class hf = Class.forName("HasFieldOfUnloadedType");
-      Field hff[] = hf.getFields();
-      hff[0].setInt(null, 3);
-      */      
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setBoolean(this, false); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
       }
-   }
+    }
+  }
+
+  private void testByte(Field[] fields) throws Exception {
+    System.out.println("\n** Set bytes to 12 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setByte(this, (byte)12); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    }
+  }
+
+  private void testShort(Field[] fields) throws Exception {
+    System.out.println("\n** Set shorts to 2 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setShort(this, (short)2); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    }
+  }
+
+  private void testInt(Field[] fields) throws Exception {
+    System.out.println("\n** Set int to 3 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setInt(this, 3); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    } 
+  }
+   
+  private void testLong(Field[] fields) throws Exception {
+    System.out.println("\n** Set long to 4 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setLong(this, 4); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    }
+  }
+
+  private void testFloat(Field[] fields) throws Exception {
+    System.out.println("\n** Set float to 5.0 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setFloat(this, 5.0F); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    }
+  }
+
+  private void testDouble(Field[] fields) throws Exception {
+    System.out.println("\n** Set double to 6.0 **\n");
+
+    for (int j = 0; j < fields.length; j++) {
+      try {
+	fields[j].setDouble(this, 6.0); 
+	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+      } catch(Exception e) {
+	System.out.print(j+"\t "+fields[j]+" \t ");
+	System.out.println(e);
+      }
+    }
+  }
+
+
+}
 
 
 
