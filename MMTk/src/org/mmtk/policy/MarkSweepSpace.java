@@ -25,12 +25,13 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  *
+ *  $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
 public final class MarkSweepSpace implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   /****************************************************************************
    *

@@ -21,6 +21,8 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  *
+ * $Id$ 
+ *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -28,8 +30,6 @@ import org.vmmagic.pragma.*;
  */
 public final class ImmortalSpace extends BasePolicy 
   implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
-
 
   /****************************************************************************
    *

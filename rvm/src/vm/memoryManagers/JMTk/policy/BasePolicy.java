@@ -13,12 +13,12 @@ import org.mmtk.utility.heap.VMResource;
 import org.vmmagic.unboxed.*;
 
 /**
+ * $Id$
+ *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-abstract public class BasePolicy { // implements HeaderConstants {
-  
-  public final static String Id = "$Id$"; 
+abstract public class BasePolicy {
 
   /*
    * If these where instance methods they would be declared abstract.
