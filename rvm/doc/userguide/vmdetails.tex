@@ -110,7 +110,7 @@ as well as has pointers to the class' virtual methods.
 A compiled method body is an array of machine instructions (stored as
 {\tt int}s). 
 While the pointers for static fields and methods are stored in the 
-{\em Jalapeno Table of Contents} (JTOC),
+{\em JikesRVM Table of Contents} (JTOC),
 pointers for instance fields and virtual methods are stored in the class's TIB.
 Consequently the dispatch mechanism is different for static and virtual 
 methods.
@@ -234,7 +234,7 @@ categorized into four types:
 \item[Dedicated]
      Reserved registers with known contents:
 \begin{description}
-\item [JTOC - Jalapeno Table Of Contents]
+\item [JTOC - JikesRVM Table Of Contents]
         Globally accessible data: constants, static fields and methods.
 
 \item [FP - Frame Pointer]
