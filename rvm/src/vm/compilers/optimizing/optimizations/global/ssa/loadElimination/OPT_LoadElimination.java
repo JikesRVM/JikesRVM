@@ -310,7 +310,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    *
    * @param heapType a VM_TypeReference identifying the array SSA
    *                    heap type
-   * @param v1, v2 valueNumbers
+   * @param v1 first value number
+   * @param v2 second value number
    * @param registers a mapping from value number to temporary register
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register

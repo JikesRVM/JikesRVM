@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -340,7 +340,7 @@ public class OPT_LiveSet {
    * Copy the newElement into a new object and add it to the list 
    * after prevElement.  If prevElement is null, update the "start"
    * data member by inserting at the begining.
-   * @param  newElement the element to copy and insert
+   * @param  register the element to copy and insert
    * @param  prevElement the element on the current list to insert after
    *                     or null, indicating insert at the front
    * @return the element that is prior to the newly inserted element
