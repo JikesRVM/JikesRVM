@@ -105,7 +105,7 @@ public class VM_Handshake {
     if (debug_native) {
       //      VM_Scheduler.trace("VM_Handshake:initiateCollection","dumping machine...");
       //      VM_Scheduler.dumpVirtualMachine();
-      VM_Scheduler.trace("\nVM_Handshake:initiateCollection","collectorQueue:");
+      VM_Scheduler.trace("VM_Handshake:initiateCollection","collectorQueue:");
       VM_Scheduler.writeString("before waiting:"); VM_Scheduler.collectorQueue.dump();
     }
 
@@ -220,6 +220,8 @@ public class VM_Handshake {
     }
     lock.release();  
     
+    if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
+
     // allow a gc thread to run
     VM_Thread.getCurrentThread().yield();
     
