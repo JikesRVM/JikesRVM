@@ -8,7 +8,10 @@
 
 static const char short_help_msg[] = ""
 "Usage: %s [--help]\n"
-"        [ --disable-modification-exit-status ] [--trace]\n"
+"	 [--trace]\n"
+"	 [--[no-]undefined-constants-in-conditions\n"
+"	 [--[no-]only-boolean-constants-in-conditions\n"
+"        [ --disable-modification-exit-status ] \n"
 "        [ -D<name>[ =1 | =0 | =<string-value> ] ]... \n"
 "	 [ -- ] <output directory> [ <input file> ]...\n";
 
@@ -23,8 +26,10 @@ static const char long_help_msg[] = ""
 "   with preprocessing.\n"
 "\n"
 "   Invocation parameters:\n"
-"      - zero or more preprocessor directives of the form \"-D<name>=1\", of the\n"
-"        equivalent shorthand form \"-D<name>\", of the form \"-D<name>=0\",\n"
+"      - zero or more definitions of preprocessor constants\n"
+"	 of the form \"-D<name>=1\",\n"
+"        of the equivalent shorthand form \"-D<name>\", \n"
+"	 of the form \"-D<name>=0\",\n"
 "	 and/or of the form \"-D<name>=<string-value>\".\n"
 "      - name of directory to receive output files\n"
 "      - names of zero or more input files\n"
@@ -41,34 +46,47 @@ static const char long_help_msg[] = ""
 "   always means trouble.  This is handy inside Makefiles.\n"
 "\n"
 "\n"
-"   --trace  The preprocessor prints a '.' for each file that did\n"
-"	  not need to be changed and a '+' for each file that needed\n"
-"	  preprocessing again.\n"
+"   --trace  The preprocessor prints a \n"
+"         '.' for each file that did not need to be changed and a \n"
+"	  '+' for each file that needed preprocessing."
 "\n"
 "   --verbose, -v  The preprocessor prints a message for each file\n"
 "         examined, and prints a summary at the end \n"
 "\n"
 "   --help, -h  Show this long help message and exit with status 0.\n"
 "\n"
-"   -D<name>=0 is a no-op; equivalent to never defining <name>.\n"
+"   -D<name>=0 is historically a no-op; equivalent to never defining <name>.\n"
+"   The intent is that <name> be a constant usable \n"
+"   in an //-#if <name> directive.\n"
 "\n"
 "   -D<name>=1 and -D<name> are equivalent.\n"
 "\n"
 "   -D<name>=<any-string-value-but-0-or-1> will define a constant that is\n"
-"       usable in a //-#value dirctive.\n"
+"       usable in a //-#value directive.\n"
 "\n"
 "   The following preprocessor directives are recognized\n"
 "   in source files.  They must be the first non-whitespace characters\n"
 "   on a line of input.\n"
 "\n"
 "      //-#if    <name>\n"
-"	    It is not an error for <name> to be undefined.  Only checks\n"
-"	    whether <name> is defined.\n"
+"	    Historically, it is not an error for <name> have never been\n"
+"	    defined; it's equivalent to -D<name>=0.  This is currently \n"
+"	    experimentally promoted to an error with the flag\n"
+"	    --noundefined-constants-in-conditions.  The historical\n"
+"	    behavior is explicitly requested with "
+"--undefined-constants-in-conditions\n"
+"	    \n"
+"	    Historically, //-#if only checks whether <name> is defined.\n"
+"	    If you specify --only-boolean-constants-in-conditions, then\n"
+"	    you get stricter behavior where <name> must've been defined with\n"
+"	    -D<name>=1 or -D<name>=0.\n"
 "\n"
 "	    \"//-#if\" also supports the constructs '!' (invert the sense of \n"
 "	    the next test), '&&', and '||'.  '!' binds more tightly \n"
-"	    than '&&' and '||' do.   '&&' and '||' are at the same precedence.\n"
-"	    The preprocessor does not support parentheses in //-#if constructs\n"
+"	    than '&&' and '||' do.   '&&' and '||' are at the same precedence,\n"
+"	    and are short-circuit evaluated in left-to-right order.\n"
+"\n"
+"	    The preprocessor does not support parentheses in //-#if constructs.\n"
 "	    If you don't mix '&&' and '||' in the same line, you'll be OK.\n"
 "\n"
 "      //-#elif  <name>\n"
@@ -84,8 +102,8 @@ static const char long_help_msg[] = ""
 "\n"
 "	    It is an error for <preprocessor-symbol> not to be defined.\n"
 "\n"
-"	    It is an error for <preprocessor-symbol> to have been defined with\n"
-"	    -D<name>=1 or with -D<name>\n"
+"	    It is an error for <preprocessor-symbol> to have been defined\n"
+"	    with -D<name>=1 or with -D<name>\n"
 "\n"
 "	   (This is an odd restriction, but is the way the code was written\n"
 "           when I found it.  You're free to rewrite it if you want it to act\n"
@@ -133,10 +151,10 @@ static const char license[] =
 
 char *Me; // name to appear in error messages
 
-bool const config_non_tf_directives_ok_in_conditions = true; /* historical behavior */
-// bool config_non_tf_directives_ok_in_conditions = false; /* Strict behaviour */
-bool const config_undefined_directives_ok_in_conditionals = true; /* Historical behavior */
-// bool config_undefined_directives_ok_in_conditionals = false; /* Strict behavior */
+//bool only_boolean_constants_in_conditions = true; /* strict behav. */
+bool only_boolean_constants_in_conditions = false; /* historical behaviour */
+bool undefined_constants_in_conditions = true; /* Historical behavior */
+//bool undefined_constants_in_conditions = false; /* Strict behavior */
 bool exit_with_status_1_if_files_modified = true; /* Historical behavior */
 
 
@@ -152,9 +170,9 @@ bool exit_with_status_1_if_files_modified = true; /* Historical behavior */
 //
 #define MAXLINE       4000 /* longest input line we can handle */
 #define MAXNESTING    100  /* maximum #if nesting we can handle */
-#define MAXDIRECTIVES 100  /* maximum number of -D<name> directives we can handle */
+#define MAXCONSTANTS 100  /* maximum number of -D<name> constants we can handle */
 
-// Preprocessor directives that have been set via "-D<name>".
+// Preprocessor constants that have been set via "-D<name>".
 //
 struct def {
     const char *Name;
@@ -166,7 +184,7 @@ struct def {
     // -D<Name>=0 and
     // -D<Name>=1.    Otherwise
     // it's UNINIT
-} Directive[MAXDIRECTIVES];
+} Constant[MAXCONSTANTS];
 
 // This kludge gets around the fact that an enum tag is scoped in its defining
 // context in C++, whereas in standard C, enum tags are global identifiers.
@@ -176,7 +194,7 @@ struct def {
 #define membof(o)
 #endif
 
-int   Directives;                    // number thereof
+int   Constants;                    // number thereof
 
 // Source file currently being processed.
 //
@@ -196,7 +214,7 @@ char *PutIntoPackage = NULL;	// points to memory that's part of argv.
 int  preprocess(const char *srcFile, const char *destinationFile);
 void reviseState(void);
 #if DEBUG
-void printState(FILE *fout, char *directive, char *line);
+void printState(FILE *fout, char *constant, char *line);
 #endif
 bool eval(char *p);
 int  evalReplace(char *cursor);
@@ -230,7 +248,7 @@ enum scan_token scan(const char *srcFile, char *line, int *valuep);
 
 
 // Values of tokens returned by scan() (in *valuep) for IF and ELIF.
-// For some cases, an index into DirectiveValue is returned.
+// For some cases, an index into ConstantValue is returned.
 #define VV_FALSE 0
 #define VV_TRUE  1
 
@@ -262,8 +280,8 @@ main(int argc, char **argv)
 
     // gather arguments
     //
-    int trace = 0;
-    int verbose = 0;
+    bool trace = false;
+    bool verbose = false;
     for (; **argv == '-'; ++argv, --argc) {
 	char *arg   = *argv;
 	
@@ -288,17 +306,37 @@ main(int argc, char **argv)
 	}
       
 	if (streql(arg, "-trace")) {
-	    trace = 1;
+	    trace = true;
 	    continue;
 	}
 	
 	if (streql(arg, "-verbose") || streql(arg, "-v")) {
-	    trace = 1;
+	    verbose = true;
+	    continue;
+	}
+
+	if (streql(arg, "-undefined-constants-in-conditions")) {
+	    undefined_constants_in_conditions = true;
+	    continue;
+	}
+	  
+	if (streql(arg, "-no-undefined-constants-in-conditions")) {
+	    undefined_constants_in_conditions = false;
+	    continue;
+	}
+	  
+	if (streql(arg, "-only-boolean-constants-in-conditions")) {
+	    only_boolean_constants_in_conditions = true;
+	    continue;
+	}
+	  
+	if (streql(arg, "-no-only-boolean-constants-in-conditions")) {
+	    only_boolean_constants_in_conditions = false;
 	    continue;
 	}
 	  
 	if (strneql(arg, "-D", 2)) {
-	    struct def *dp = Directive + Directives;
+	    struct def *dp = Constant + Constants;
 	    arg += 2;
 	    
 	    dp->Name = arg;
@@ -313,11 +351,11 @@ main(int argc, char **argv)
 		val = NULL;	// Special sentinel value.
 	    }
 	    
-	    if (++Directives >= MAXDIRECTIVES) {
+	    if (++Constants >= MAXCONSTANTS) {
 		fprintf(stderr, "\
-%s: Too many (%d) -D directives; recompile with a larger\n" 
-			"value of MAXDIRECTIVES.\n",
-			Me, Directives);
+%s: Too many (%d) -D constants; recompile with a larger\n" 
+			"value of MAXCONSTANTS.\n",
+			Me, Constants);
 		exit(3);
 	    }
 
@@ -329,7 +367,7 @@ main(int argc, char **argv)
 	    if (*(dp->Name) == '\0') {
 		fprintf(stderr, "%s: The -D<name>[=<value>] flag needs\n"
 			"at least a <name>!  None found in definition # %d.\n",
-			Me , Directives);
+			Me , Constants);
 		shorthelp(stderr);
 		exit(2);
 	    }
@@ -346,7 +384,7 @@ main(int argc, char **argv)
 	    // -D<name>=0.  Special case.   Used to be equivalent to never
 	    // setting. 
 	    if (streql(val, "0")) {
-		// should always be initialized to NULL, since Directives is
+		// should always be initialized to NULL, since Constants is
 		// global (BSS) space.
 		assert(dp->Value == NULL);
 		dp->isset = membof(dp->) UNSET;
@@ -356,7 +394,7 @@ main(int argc, char **argv)
 
 	    // Must be -D<name>=<value>
 	    dp->Value = val;
-	    // should always be initialized to UNINIT, since Directives is
+	    // should always be initialized to UNINIT, since Constants is
 	    // global (BSS) space.
 	    assert(dp->isset == membof(dp->) UNINIT);
 	    continue;
@@ -508,10 +546,10 @@ preprocess(const char *srcFile, const char *dstFile)
     }
 
 #if DEBUG
-    for (int i = 0; i < Directives; ++i) {
-	struct def *dp = Directives + i;
+    for (int i = 0; i < Constants; ++i) {
+	struct def *dp = Constants + i;
 	fprintf(fout, "[%s=%s]\n", dp->Name, 
-		Directive[i].Value ? : 
+		Constant[i].Value ? : 
 		( dp->isset == membof(dp->) SET ? "1 (*SET*)" : "0 (*UNSET*)"));
     }
 	
@@ -594,7 +632,7 @@ preprocess(const char *srcFile, const char *dstFile)
 #if DEBUG
 	    printState(fout, "REPLACE ", line);
 #endif
-	    fputs(PassLines ? Directive[value].Value : "\n", fout);
+	    fputs(PassLines ? Constant[value].Value : "\n", fout);
 	    continue;
 
 	case TT_IF:
@@ -658,7 +696,7 @@ preprocess(const char *srcFile, const char *dstFile)
 	    continue;
 
 	case TT_UNRECOGNIZED:
-	    inputErr("unrecognized preprocessor directive: %s", line);
+	    inputErr("unrecognized preprocessor constant: %s", line);
 	    return Trouble; 
 
 	default:
@@ -670,7 +708,7 @@ preprocess(const char *srcFile, const char *dstFile)
     /* NOTREACHED */
 }
 
-// Compute new preprocessor state after scanning a directive.
+// Compute new preprocessor state after scanning a constant.
 // Taken:    Value[]
 //           Nesting
 // Returned: PassLines
@@ -686,12 +724,12 @@ void reviseState(void)
 #if DEBUG
 // Print preprocessor state (for debugging).
 // Taken:    output file
-//           current directive
+//           current constant
 //           current input line
 // Returned: nothing
 //
 void
-printState(FILE *fout, char *directive, char *line)
+printState(FILE *fout, char *constant, char *line)
 {
     fprintf(fout, "[stack=");
 
@@ -702,7 +740,7 @@ printState(FILE *fout, char *directive, char *line)
     for (; i < 5; ++i)
 	fprintf(fout, "..");
    
-    fprintf(fout, "%s] %s %s", PassLines ? "pass" : "hide", directive, line);
+    fprintf(fout, "%s] %s %s", PassLines ? "pass" : "hide", constant, line);
 }
 #endif
 
@@ -800,11 +838,11 @@ scan(const char *srcFile, char *line, int *valuep)
 }
 
 // Evaluate <name> appearing in an `if' or `elif' directive.
-// Taken:    `//-#if <conditional>'
+// Taken:    `//-#if <condition>'
 //                  ^cursor
-//    or:    `//-#elif <conditional>'
+//    or:    `//-#elif <condition>'
 //                    ^cursor
-//		where conditional is name <&& name> <|| name>
+//		where condition is name <&& name> <|| name>
 //			(!name toggles the sense)
 //  Returns the name of the token, but NOT null terminated
 //    Upon return, *c points to the cursor, the character immediately after
@@ -842,8 +880,8 @@ bool getBoolean(char **cursorp)
 }
 
 
-/* Returns an index into Directive[i], which our caller derefs. for
- * Directive[i].Value. */ 
+/* Returns an index into Constant[i], which our caller derefs. for
+ * Constant[i].Value. */ 
 int 
 evalReplace(char *cursor) 
 {
@@ -853,18 +891,18 @@ evalReplace(char *cursor)
     if (len == 0)
 	inputErr("The //-#value <name> preprocessor construct needs a <name>");
 	
-    for (int i = 0; i < Directives; ++i) {
-	const char *directiveName = Directive[i].Name;
-	if (strlen(directiveName) == len && strneql(name, directiveName, len))
+    for (int i = 0; i < Constants; ++i) {
+	const char *constantName = Constant[i].Name;
+	if (strlen(constantName) == len && strneql(name, constantName, len))
 	{
-	    if (Directive[i].Value == NULL)
+	    if (Constant[i].Value == NULL)
 		inputErr(
-		    "//-#value used on non-value (true/false) directive '%s'", 
-		    directiveName);
+		    "//-#value used on non-value (true/false) constant '%s'", 
+		    constantName);
 	    return i;
 	}
     }
-    inputErr("//-#value used on undefined directive '%*.*s'", (int) len, (int) len, name);
+    inputErr("//-#value used on undefined constant '%*.*s'", (int) len, (int) len, name);
     /* NOTREACHED */
 }
 
@@ -872,7 +910,8 @@ evalReplace(char *cursor)
 bool
 eval(char *cursor) 
 {
-    int match;
+    int match;			// -1 if not found, 1 if defined true (1), 
+				// 0 if defined 0 (false).
     for (;;) {
 	match = -1;
 	char *name = getToken( &cursor );
@@ -884,19 +923,19 @@ eval(char *cursor)
 	assert(cursor >= name);
 	size_t len = cursor - name;
 	if (len == 0)
-	    inputErr("missing <name> in preprocessor conditional");
-	for (int i = 0; i < Directives; ++i)
+	    inputErr("missing <name> in preprocessor condition");
+	for (int i = 0; i < Constants; ++i)
 	{
-	    struct def *dp = Directive + i;
+	    struct def *dp = Constant + i;
 	    if (strlen(dp->Name) == len && memcmp(dp->Name, name, len) == 0) 
 	    {
 		/* Matched the token.  Now evaluate. */
 		if (dp->Value) {
-		    if (!config_non_tf_directives_ok_in_conditions)
+		    if (only_boolean_constants_in_conditions)
 			inputErr(
-			    "The directive name %*.*s is a Value directive;\n"
-			    "     preprocessor conditionals require a"
-			    "True/False directive", (int) len, (int) len, dp->Name);
+			    "The constant name %*.*s is a Value constant;\n"
+			    "     preprocessor conditions require a"
+			    " True/False constant.", (int) len, (int) len, dp->Name);
 		    match = 1;
 		} else {
 		    assert(!dp->Value);
@@ -908,9 +947,9 @@ eval(char *cursor)
 	    }
 	}
 	if (match < 0) {
-	    if (! config_undefined_directives_ok_in_conditionals)
-		inputErr("Undefined directive name %*.*s"
-			 " in preprocessor conditional", (int) len, (int) len, name);
+	    if (! undefined_constants_in_conditions)
+		inputErr("Undefined constant name %*.*s"
+			 " in preprocessor condition", (int) len, (int) len, name);
 	    match = 0;
 	}
 	
@@ -919,10 +958,11 @@ eval(char *cursor)
 	if ( !getBoolean( &cursor ) ) 
 	    break;
 	if ( cursor[0] == '|' ) {
-	    if ( match ) 
+	    if ( match ) 	// skip further syntax checking; whoops!
 		return true;
 	} else {
-	    if ( !match ) 
+	    assert(*cursor == '&');
+	    if ( !match ) 	// skip further checking.
 		return false;
 	}
 	cursor += 2;		// skip && or ||
@@ -931,7 +971,7 @@ eval(char *cursor)
 	++cursor;
     if (*cursor) {
 	inputErr("Garbage characters (\"%s\") are at the"
-		 "end of a preprocessor conditional.", cursor);
+		 "end of a preprocessor condition.", cursor);
 	exit(2);
     }
     return match;
