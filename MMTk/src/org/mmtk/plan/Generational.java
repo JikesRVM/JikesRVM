@@ -91,9 +91,9 @@ public abstract class Generational extends StopTheWorldGC
   // Note: The write barrier depends on the nursery being the highest
   // memory region.
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final VM_Extent MATURE_SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3)));
+  protected static final VM_Extent MATURE_SS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 3.3)));
   protected static final VM_Extent   NURSERY_SIZE = MATURE_SS_SIZE;
-  protected static final VM_Extent       LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3 * 0.3)));
+  protected static final VM_Extent       LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 3.3 * 0.3)));
   public    static final VM_Extent       MAX_SIZE = MATURE_SS_SIZE.add(MATURE_SS_SIZE);
   protected static final VM_Address     LOS_START = PLAN_START;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
