@@ -6,6 +6,8 @@ Highlights of this release include:
  + syscall changes
  + logical configurations
  + growable heaps
+ + preprocessor documented, and more robust
+ + soft, weak, and phantom references
  + changes to runtime compiler (opt only in adaptive configs)
 
 Other notes:
@@ -13,3 +15,40 @@ Other notes:
 A number of other miscellaneous bugs in version 2.2.2
 are fixed in the 2.2.3 release.  See the developerWorks bug 
 tracking software tool and CVS history for details.
+
+We fixed the 587 Javadoc warnings in the source code. 
+
+Expansions of some of the material above:
+
+There were several enhancements to the Java preprocessor:
+
++ preprocessor documented, and more robust:
+
+The preprocessor is now documented, both in the User's Guide and via a
+--help option.  It is also a lot more robust than it used to be.
+We wrote up-to-date documentation for the preprocessor.  We also fixed
+some deficiencies where certain errors in using the preprocessor would
+lead to silent failures.  The preprocessor was generating incorrect
+exit status codes under some failure conditions; these are fixed.  All
+buffer overflows are now caught and fixed.  All GCC warnings fixed in
+the preprocessor.
+
++ improvements in build process to make it stop on errors:
+
+Any error occurring during a build of Jikes RVM now cause the build
+process to immediately abort.  We had, in the past, at least twice a
+month received reports that a built RVM failed to work, where upon
+investigation we discovered that the build process had encountered
+errors earlier, and these earlier errors were the real source of the
+problem.
+
++ Soft, weak, and phantom references
+
+We now handle them the way the spec says, instead of just treating
+soft and weak refs. as if they were regular (hard/strong) references.
+Yaay.
+
+ + ksh => bash
+
+Jikes RVM's build process is now entirely free of KSH.  This makes it
+more convenient for Linux users to install the system.  
