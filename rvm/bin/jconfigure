@@ -597,13 +597,22 @@ function load_config_file () {
 
 
 
-#---------------------------------------#
-# SECTION 1c -- Get HOST_CLASSPATH_ROOT #
-#---------------------------------------#
+#---------------------------------------------------------------------------#
+# SECTION 1c -- Get HOST_CLASSPATH_ROOT					    #
+#---------------------------------------------------------------------------#
 
 load_config_file "${RVM_HOST_CONFIG}"
 
+## We normally check for a variable named CLASSPATH_ROOT in the config file.
+## An EXPERIMENTAL alternative is to set
+## CLASSPATH_INSTALLATION in your config file.  If you've run "make install"
+## in the default configuration, then CLASSPATH_INSTALLATION will be
+## "/usr/local/classpath".
+##
+## This does not have the checks in it that we normally get
+
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
+[[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r HOST_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION} # XXX Experimental
 
 
 
@@ -909,6 +918,7 @@ function unsetEnvironment() {
     unset WGET XARGS UNZIP 
     unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
+    unset CLASSPATH_INSTALLATION # XXX Experimental
     unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
     unset BENCHMARK_ROOT
     set $flags;			# turn back on -e, if it was off.
@@ -924,6 +934,7 @@ function unsetEnvironment() {
 unsetEnvironment;
 load_config_file "${RVM_TARGET_CONFIG}"
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r TARGET_CLASSPATH_ROOT=${CLASSPATH_ROOT}
+[[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r TARGET_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION}
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
@@ -1487,6 +1498,7 @@ EOF
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
+    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"	# XXX Experimental
     echo ""
     # For self-booting with Jikes RVM (work in progress)
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
@@ -1729,18 +1741,31 @@ function emitController () {
 
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
-	# Ensure that we have the right version of the class libraries
-	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
 
 	# Copy the GNU Classpath JAR file:
 	#
 	# Copy over rvmrt.jar; we need that to get a working compiler
-	# (at least when we're operating in open-source mode, under the Jikes 
-	# compiler, which doesn't have a default bootclasspath)
-	
+	# (at least when we're operating in open-source mode, under the 
+	# Jikes compiler, which doesn't have a default bootclasspath)
+EOF
+    if [[ ${CLASSPATH_INSTALLATION-} ]]; then
+	cat <<- EOF
+	# XXX Experimental; use a built GNU Classpath that was installed
+	# with "make install".
+	echo "SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip"
+EOF
+    else
+	## The classic, stable, documented, and recommended way
+	cat <<- EOF
+	# Ensure that we have the right version of the class libraries
+	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
+
 	CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
 	SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
 	SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
+EOF
+    fi
+    cat <<- EOF
 	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
 	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
 EOF
@@ -3128,7 +3153,9 @@ function emitBooterLinker () {
     emitCheckIfIAmTheTarget
     echo ""
 
-    if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
+    if	   [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]] \
+	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION} ]]
+    then
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
 
@@ -3167,6 +3194,17 @@ cat <<- EOF
 	done
 	unset oldbase dest_lib _library || :
 EOF
+    elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+	local -r shlib_suffix=.so
+cat <<- EOF
+	## On Linux, dynamically loaded libraries end in .so.
+	## The classpath builder conveniently generates them with that suffix.
+	for _library in ${TARGET_CLASSPATH_INSTALLATION}/lib/classpath/*.so
+	do
+	    copyIfNewer "\$_library" ${BUILD_DIRECTORY_STR}
+	done
+	unset oldbase dest_lib _library || :
+EOF
     elif (( RVM_FOR_LINUX )); then
 	local -r shlib_suffix=.so
 cat <<- EOF
@@ -3176,6 +3214,7 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
+	unset oldbase dest_lib _library || :
 EOF
     else
 	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
