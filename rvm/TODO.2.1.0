@@ -2,8 +2,7 @@ A TODO list for the 2.1.0 release.  Please add more items that you are
 aware of and delete items as they are completed.
 
 (1) Stabilize system
-     opt bug
-     race condition
+     race conditions introduced by removing VM_ClassLoader.lock
 
 (2) Userguide: large sections of the userguide need to be updated for
     the 2.1.0 release.  See the TODO list in doc/userguide.
@@ -15,7 +14,7 @@ DONE (ie close enough for now) (3) Memory Manager restructuring:
 
 (4) One word object model: ensure that all configurations measured in
     the ecoop'02 paper still work.
-  Dave, Steve, Dave
+  Dave G -- working on it now
 
 (5) All files must have copyright, id, and author tags.  Some of the
     files added since 2.0.3 are missing them.
