@@ -2031,7 +2031,7 @@ function emitBooterLinker () {
     echo ""
     echo "rm -f libjni.a"
     echo "cd $SCRATCH_DIRECTORY_STR"
-    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
+    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles"
     echo 'echo -n "(booter cleaned) "'
     echo "if [[ \$1 = -clean ]]; then"
 
@@ -2068,6 +2068,10 @@ function emitBooterLinker () {
         echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
     fi
     echo -e "\necho -n '(classpath native libraries copied) '"
+
+    # Make a target platform preprocessor for use in gctest
+    echo "${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+    echo "cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.tool.prep"
 
     # Create RunBootImage.h file.
     echo "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
@@ -2354,7 +2358,7 @@ function emitToolPreprocessor () {
     echo '    exit 1'
     echo 'fi'
 
-    echo 'exec "$RVM_BUILD/jbuild.prep"' $PREPROCESSOR_DEFINITIONS '"$@"'
+    echo 'exec "$RVM_BUILD/jbuild.tool.prep"' $PREPROCESSOR_DEFINITIONS '"$@"'
 }
   
 function emitPluginBuilder () {
