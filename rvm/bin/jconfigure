@@ -1480,6 +1480,11 @@ EOF
     # skip: don't put application class loader in, due to static data issues
     echo "   echo ApplicationClassLoader.class     >> ${EXCLUDED_CLASSES_STR}"
 
+    # We can't carry these from bootimage writing to runtime without special treatment
+    echo "   echo java/lang/ref/PhantomReference.class     >> ${EXCLUDED_CLASSES_STR}"
+    echo "   echo java/lang/ref/SoftReference.class     >> ${EXCLUDED_CLASSES_STR}"
+    echo "   echo java/lang/ref/WeakReference.class     >> ${EXCLUDED_CLASSES_STR}"
+
     # Add any configuration specific exclusions
     for exclusion in ${CONF_SPECIFIC_EXCLUSIONS_LIST}; do
 	echo "   echo '${exclusion}'                  >> ${EXCLUDED_CLASSES_STR}"
@@ -1609,7 +1614,7 @@ EOF
 
     # class loaders
     #
-    echo "    echo 'java/lang/ClassLoader'   	                        >> $PRIMORDIAL_CLASSES_STR.1"
+    echo "    echo 'java/lang/ClassLoader'   	                     >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/lang/VMClassLoader'                         >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/lang/VMSecurityManager'                     >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'gnu/java/io/PlatformHelper'                      >> $PRIMORDIAL_CLASSES_STR.1"
@@ -1618,8 +1623,7 @@ EOF
     echo "    echo 'java/security/PermissionCollection'              >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/security/Permissions'                       >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/security/Principal'                         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/locale/Calendar'		        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/ref/SoftReference'			>> $PRIMORDIAL_CLASSES_STR.1"
+    echo "    echo 'gnu/java/locale/Calendar'		             >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/lang/reflect/InvocationTargetException'     >> $PRIMORDIAL_CLASSES_STR.1"
 
     # class loading from regular files
