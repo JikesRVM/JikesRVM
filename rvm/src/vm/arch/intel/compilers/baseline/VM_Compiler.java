@@ -2301,13 +2301,19 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param dictionaryId, the dictionaryId of typeRef
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
+    // Calculate the offset from FP on entry to newarray: 
+    //      1 word for each parameter, plus 1 for return address on
+    //      stack and 1 for code technique in VM_Linker
+    final int PARAMETERS = 4;
+    final int OFFSET_WORDS = PARAMETERS + 2;
+
     // setup parameters for newarrayarray routine
-    asm.emitPUSH_Imm (method.getId());                     // caller
-    asm.emitPUSH_Imm (dimensions);                     // dimension of arays
-    asm.emitPUSH_Imm (typeRef.getId());                   // type of array elements               
-    asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
-    // NOTE: 6 extra words- 4 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
-    genParameterRegisterLoad(4);                   // pass 4 parameter words
+    asm.emitPUSH_Imm (method.getId());           // caller
+    asm.emitPUSH_Imm (dimensions);               // dimension of arays
+    asm.emitPUSH_Imm (typeRef.getId());          // type of array elements
+    asm.emitPUSH_Imm ((dimensions + OFFSET_WORDS)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
+    
+    genParameterRegisterLoad(PARAMETERS);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffset()); 
     for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
     asm.emitPUSH_Reg(T0);                              // push array ref on stack
