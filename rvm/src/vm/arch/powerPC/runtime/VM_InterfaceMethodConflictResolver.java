@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.
@@ -12,12 +13,12 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
-						    VM_AssemblerConstants {
+public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
+							   VM_AssemblerConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
+  public static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
     VM_Assembler asm = new VM_Assembler(numEntries); // pretend each entry is a bytecode

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
@@ -20,11 +21,11 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_InterfaceMethodConflictResolver implements VM_Constants {
+public class VM_InterfaceMethodConflictResolver implements VM_Constants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
+  public static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
     VM_Assembler asm = new VM_Assembler(numEntries); 

@@ -47,10 +47,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method deliverHardwareExceptionMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "deliverHardwareException", "(II)V");
   public static final VM_Method unlockAndThrowMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
-  public static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
-  public static final VM_Method findItableMethod                               = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
-  public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)V");
-  public static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
+  public static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Method findItableMethod                               = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
+  public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)V");
+  public static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
   public static final VM_Method instanceOfUnresolvedMethod         = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfUnresolved", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)Z");
   public static final VM_Method instanceOfArrayMethod              = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfArray", "(Lcom/ibm/JikesRVM/classloader/VM_Class;ILcom/ibm/JikesRVM/classloader/VM_Type;)Z");

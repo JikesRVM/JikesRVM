@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.VM;
 import java.io.File;
 import java.util.StringTokenizer;
 import java.net.*;
@@ -16,7 +17,7 @@ import java.net.*;
 public class ApplicationClassLoader extends URLClassLoader {
 
   public ApplicationClassLoader(String specifiedClassPath) {
-    super( new URL[0] );
+    super(new URL[0]);
 
     try {
       if (specifiedClassPath == null)

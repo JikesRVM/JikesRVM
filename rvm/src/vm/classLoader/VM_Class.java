@@ -1693,7 +1693,7 @@ public final class VM_Class extends VM_Type
   private static int          interfaceCount     = 0;
   private static VM_Class[]   interfaces         = new VM_Class[100];
   private int                 interfaceId        = -1; 
-  public VM_Method[]          noIMTConflictMap; // used by VM_InterfaceInvocation to support resetTIB
+  VM_Method[]                 noIMTConflictMap; // used by VM_InterfaceInvocation to support resetTIB
 
   /**
    * VM_Classes used as Interfaces get assigned an interface id.
