@@ -720,14 +720,14 @@ final class OPT_GenerationContext implements OPT_Constants,
   }
 
   private boolean requiresUnintMarker() {
-    if (method.getDeclaringClass().isInterruptible()) return false;
+    if (method.isInterruptible()) return false;
     
     // supress redundant markers by detecting when we're inlining
     // one Uninterruptible method into another one.
     for (OPT_InlineSequence p = inlineSequence.getCaller();
 	 p != null;
 	 p = p.getCaller()) {
-      if (!p.getMethod().getDeclaringClass().isInterruptible()) return false;
+      if (!p.getMethod().isInterruptible()) return false;
     }
 
     return true;

@@ -474,7 +474,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register R0 = phys.getTemp();
     OPT_Register S0 = phys.getGPR(FIRST_SCRATCH_GPR);
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
-    boolean interruptible = ir.method.getDeclaringClass().isInterruptible();
+    boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
     boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
       ir.stackManager.hasPrologueYieldpoint();
@@ -554,7 +554,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register TSR= phys.getTSR();
     OPT_Register R0 = phys.getTemp();
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
-    boolean interruptible = ir.method.getDeclaringClass().isInterruptible();
+    boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
     boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
       ir.stackManager.hasPrologueYieldpoint();

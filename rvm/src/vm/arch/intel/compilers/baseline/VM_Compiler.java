@@ -2709,7 +2709,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     /*
      * generate stacklimit check
      */
-    if (klass.isInterruptible()) {
+    if (method.isInterruptible()) {
       // S0<-limit
        VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
                                                  VM_Entrypoints.activeThreadStackLimitField.getOffset());
@@ -3026,7 +3026,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    *       EPILOGUE?
    */
   private final void genThreadSwitchTest (int whereFrom) {
-    if (!klass.isInterruptible()) {
+    if (!method.isInterruptible()) {
       return;
     } else if (VM.BuildForDeterministicThreadSwitching) {
       // decrement the deterministic thread switch count field in the

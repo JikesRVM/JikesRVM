@@ -3054,7 +3054,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     // Generate trap if new frame would cross guard page.
     //
-    if (klass.isInterruptible()) {
+    if (method.isInterruptible()) {
       asm.emitStackOverflowCheck(frameSize);                            // clobbers R0, S0
     } else {
       // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page

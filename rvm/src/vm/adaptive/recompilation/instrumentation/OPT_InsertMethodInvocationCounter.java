@@ -43,7 +43,7 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
 
      // Don't insert counters in uninterruptible methods, 
      // or when instrumentation is disabled
-     if (!ir.method.getDeclaringClass().isInterruptible() ||
+     if (!ir.method.isInterruptible() ||
 	 !VM_Instrumentation.instrumentationEnabled())
        return;
 

@@ -1866,7 +1866,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    if (type != OPT_ClassLoaderProxy.JavaLangObjectType)
 	      assertIsAssignable(OPT_ClassLoaderProxy.JavaLangThrowableType, type);
 	  }
-	  if (!gc.method.getDeclaringClass().isInterruptible()) {
+	  if (!gc.method.isInterruptible()) {
 	    // prevent code motion in or out of uninterruptible code sequence
 	    appendInstruction(Empty.create(UNINT_END));
 	  }

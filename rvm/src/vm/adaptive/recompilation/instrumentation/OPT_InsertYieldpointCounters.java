@@ -16,8 +16,7 @@ import instructionFormats.*;
  * the counters.
  *
  * @author Matthew Arnold 
- *
- **/
+ */
 
 class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
@@ -39,7 +38,7 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
 
      // Don't insert counters in uninterruptible methods, 
      // the boot image, or when instrumentation is disabled
-     if (!ir.method.getDeclaringClass().isInterruptible() ||
+     if (!ir.method.isInterruptible() ||
 	 ir.method.getDeclaringClass().isInBootImage() ||
 	 !VM_Instrumentation.instrumentationEnabled())
        return;

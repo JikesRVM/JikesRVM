@@ -303,7 +303,7 @@ implements OPT_Operators {
    * @param plg the prologue instruction
    */
   private void insertNormalStackOverflowCheck(OPT_Instruction plg) {
-    if (!ir.method.getDeclaringClass().isInterruptible()) {
+    if (!ir.method.isInterruptible()) {
       plg.remove();
       return;
     }
@@ -336,7 +336,7 @@ implements OPT_Operators {
    * @param plg the prologue instruction
    */
   private void insertBigFrameStackOverflowCheck(OPT_Instruction plg) {
-    if (!ir.method.getDeclaringClass().isInterruptible()) {
+    if (!ir.method.isInterruptible()) {
       plg.remove();
       return;
     }

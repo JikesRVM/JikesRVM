@@ -298,6 +298,15 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     lineNumberMap = lnm;
   }
 
+  /**
+   * Is this method interruptible?
+   * @return true unless this method can throw {@link VM_PragmaUninterruptible}
+   * <EM>or</EM> its declaring class implements {@link VM_Uninterruptible}
+   * (specification at the class level may be phased out)
+   */
+  final boolean isInterruptible() {
+    return (!VM_PragmaUninterruptible.declaredBy(this)) && declaringClass.isInterruptible();
+  }
 
   //------------------------------------------------------------------//
   //                        Section 2.                                //

@@ -304,7 +304,11 @@ public class VM_Class extends VM_Type
   /**
    * Should the methods of this class be compiled with 
    * thread switching prologue?
+   * almost deprecated: Use {@link VM_Method#isInterruptible()} which respects
+   * per-method <CODE>throws VM_PragmaUninterruptible</CODE> as well as
+   * class-wide (almost deprecated) <CODE>implements VM_Uninterruptible</CODE>.
    * @see VM_Uninterruptible
+   * @see VM_PragmaUninterruptible
    */ 
   final boolean isInterruptible () {
     VM_Class[] interfaces = getDeclaredInterfaces();
