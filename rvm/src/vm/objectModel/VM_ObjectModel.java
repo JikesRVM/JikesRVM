@@ -224,8 +224,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param jdpService
    * @param address address of the object
    */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
-    return VM_JavaHeader.getTIB(jdpService,ptr);
+  public static int getTIB(JDPServiceInterface jdpService, int ptr) {
+    return VM_JavaHeader.getTIB(jdpService, VM_Address.fromInt(ptr)).toInt();
   }
 
   /**
