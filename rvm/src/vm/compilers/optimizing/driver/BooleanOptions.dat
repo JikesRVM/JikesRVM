@@ -61,10 +61,10 @@ Inline allocation of scalars and arrays
 INLINE 0 true
 Inline statically resolvable calls
 
-GUARDED_INLINE 1 true
+GUARDED_INLINE 0 true
 Guarded inlining of non-final virtual calls
 
-GUARDED_INLINE_INTERFACE 1 true
+GUARDED_INLINE_INTERFACE 0 true
 Speculatively inline non-final interface calls
 
 STATIC_SPLITTING 1 true
@@ -73,7 +73,7 @@ CFG splitting to create hot traces based on static heuristics
 REDUNDANT_BRANCH_ELIMINATION 2 true
 Eliminate redundant conditional branches
 
-PREEX_INLINE 1 true
+PREEX_INLINE 0 true
 Pre-existence based inlining
 
 SSA 2 false
