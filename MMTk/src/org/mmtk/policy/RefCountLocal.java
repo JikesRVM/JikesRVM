@@ -13,7 +13,6 @@ import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
-import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
@@ -70,7 +69,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * Instance variables
    */
   private RefCountSpace rcSpace;
-  private RefCountLOSLocal los;
+  private LargeRCObjectLocal los;
 
   private AddressDeque incBuffer;
   private AddressDeque decBuffer;
@@ -163,11 +162,11 @@ public final class RefCountLocal extends SegregatedFreeList
    * associated.
    * @param plan The plan with which this local thread is associated.
    */
-  public RefCountLocal(RefCountSpace space, RefCountLOSLocal los_, 
+  public RefCountLocal(RefCountSpace space, LargeRCObjectLocal los, 
                        AddressDeque dec, AddressDeque root) {
-    super(space.getVMResource(), space.getMemoryResource());
+    super(space);
     rcSpace = space;
-    los = los_;
+    this.los = los;
 
     decBuffer = dec;
     newRootSet = root;
@@ -388,10 +387,8 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   public final void free(Address object) 
     throws InlinePragma {
-    Address ref = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(ref);
-    if (space == Plan.LOS_SPACE)
-      los.free(ref);
+    if (Space.isInSpace(Plan.LOS, object))
+      los.free(ObjectModel.refToAddress(object));
     else
       deadObject(object);
   }
@@ -506,11 +503,9 @@ public final class RefCountLocal extends SegregatedFreeList
   }
 
   final void checkForImmortal(Address object) {
-    byte space = VMResource.getSpace(ObjectModel.refToAddress(object));
-    if (space == Plan.IMMORTAL_SPACE || space == Plan.BOOT_SPACE) {
+    if (Space.getSpaceForObject(object) instanceof ImmortalSpace) 
       addImmortalObject(object);
     }
-  }
 
   /**
    * An allocation has occured, so increment the count of live objects.

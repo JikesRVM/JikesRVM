@@ -10,13 +10,13 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.deque.*;
@@ -56,21 +56,17 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
 
-  // memory resources
-  private static MonotoneVMResource nurseryVM;
-  private static MemoryResource nurseryMR;
-  
   // GC state
   private static int previousMetaDataPages;  // meta-data pages after last GC
 
   // Allocators
-  public static final byte NURSERY_SPACE = 1;
-  public static final byte DEFAULT_SPACE = NURSERY_SPACE;
+  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
+  public static final int ALLOC_RC = BASE_ALLOCATORS;
+  public static final int ALLOCATORS = ALLOC_RC + 1;
 
-  protected static final Extent   NURSERY_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.2)));
-  protected static final Address NURSERY_START = LOS_END;
-  protected static final Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
-  protected static final Address      HEAP_END = NURSERY_END;
+  // Spaces
+  protected static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
+  protected static final int NS = nurserySpace.getID();
 
   /****************************************************************************
    *
@@ -96,19 +92,13 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * are allocated.  These instances will be incorporated into the
    * boot image by the build process.
    */
-  static {
-    // memory resources
-    nurseryMR = new MemoryResource("nursery", POLL_FREQUENCY);
-
-    // virtual memory resources
-    nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR, NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-  }
+  static {}
 
   /**
    * Constructor
    */
   public GenRC() {
-    nursery = new BumpPointer(nurseryVM);
+    nursery = new BumpPointer(nurserySpace);
   }
 
   /****************************************************************************
@@ -128,17 +118,17 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     if (STEAL_NURSERY_GC_HEADER
-	&& allocator == NURSERY_SPACE) {
+	&& allocator == ALLOC_NURSERY) {
       // this assertion is unguarded so will even fail in FastAdaptive!
       // we need to abstract the idea of stealing nursery header bytes,
       // but we want to wait for the forward object model first...
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     switch (allocator) {
-    case  NURSERY_SPACE: return nursery.alloc(bytes, align, offset);
-    case       RC_SPACE: return rc.alloc(bytes, align, offset, false);
-    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
-    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    case  ALLOC_NURSERY: return nursery.alloc(bytes, align, offset);
+    case       ALLOC_RC: return rc.alloc(bytes, align, offset, false);
+    case ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      ALLOC_LOS: return los.alloc(bytes, align, offset);
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
@@ -158,16 +148,16 @@ public class GenRC extends RefCountBase implements Uninterruptible {
                               int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case NURSERY_SPACE: return;
-    case RC_SPACE:
+    case ALLOC_NURSERY: return;
+    case ALLOC_RC:
       RefCountLocal.unsyncLiveObject(ref);
-    case LOS_SPACE:
+    case ALLOC_LOS:
       modBuffer.push(ref);
       RefCountSpace.initializeHeader(ref, typeRef, true);
       decBuffer.push(ref);
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
       return;
-    case IMMORTAL_SPACE: 
+    case ALLOC_IMMORTAL: 
       if (RefCountSpace.RC_SANITY_CHECK) rc.addImmortalObject(ref);
       modBuffer.push(ref);
       return;
@@ -210,18 +200,38 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     }
   }
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == nursery) return DEFAULT_SPACE;
-    if (a == rc) return RC_SPACE;
-    if (a == los) return LOS_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == nursery) return nurserySpace;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return nursery;
-    if (s == RC_SPACE) return rc;
-    if (s == LOS_SPACE) return los;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == nurserySpace) return nursery;
+    return super.getAllocatorFromSpace(space);
   }
 
   /**
@@ -242,25 +252,29 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * @param mustCollect True if a this collection is forced.
-   * @param mr The memory resource that triggered this collection.
-   * @return True if a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr)
+  public final boolean poll(boolean mustCollect, Space space)
     throws LogicallyUninterruptiblePragma {
     if (collectionsInitiated > 0 || !initialized) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
-    int newMetaDataPages = metaDataMR.committedPages() - previousMetaDataPages;
+    boolean nurseryFull = nurserySpace.reservedPages() > Options.maxNurseryPages;
+    int newMetaDataPages = metaDataSpace.committedPages() - previousMetaDataPages;
     if (mustCollect || heapFull || nurseryFull ||
         (progress && (newMetaDataPages > Options.metaDataPages))) {
-      if (mr == metaDataMR) {
+      if (space == metaDataSpace) {
         awaitingCollection = true;
         return false;
       }
-      required = mr.reservedPages() - mr.committedPages();
-      if (mr == nurseryMR) required = required<<1;  // account for copy reserve
+      required = space.reservedPages() - space.committedPages();
+      if (space == nurserySpace) required = required<<1;  // account for copy reserve
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -292,9 +306,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   protected final void globalPrepare() {
     timeCap = Statistics.cycles() + Statistics.millisToCycles(Options.gcTimeCap);
-    nurseryMR.reset();
+    nurserySpace.prepare(true);
     rcSpace.prepare();
-    ImmortalSpace.prepare(immortalVM, null);
+    immortalSpace.prepare();
   }
 
   /**
@@ -307,7 +321,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     rc.prepare(Options.verboseTiming && count==1);
-    nursery.rebind(nurseryVM);
+    nursery.rebind(nurserySpace);
   }
 
   /**
@@ -333,12 +347,12 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * whether the GC made progress.
    */
   protected final void globalRelease() {
-    nurseryVM.release();
+    nurserySpace.release();
     rcSpace.release();
-    ImmortalSpace.release(immortalVM, null);
+    immortalSpace.release();
     if (Options.verbose > 2) rc.printStats();
     progress = (getPagesReserved() + required < getTotalPages());
-    previousMetaDataPages = metaDataMR.committedPages();
+    previousMetaDataPages = metaDataSpace.committedPages();
   }
 
   /****************************************************************************
@@ -374,29 +388,27 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public static final Address traceObject(Address object, boolean root) {
     if (object.isZero()) return object;
     Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END)) {
-      if (RefCountSpace.RC_SANITY_CHECK && root) 
-        Plan.getInstance().rc.incSanityTraceRoot(object);
-      if (addr.GE(NURSERY_START)) {
-        Address rtn = CopySpace.traceObject(object);
-        // every incoming reference to the from-space object must inc the
-        // ref count of forwarded (to-space) object...
-        if (root) {
-          if (RefCountSpace.INC_DEC_ROOT) {
-            RefCountSpace.incRC(rtn);
-            Plan.getInstance().addToRootSet(rtn);
-          } else if (RefCountSpace.setRoot(rtn)) {
-            Plan.getInstance().addToRootSet(rtn);
-          }
-        } else
-          RefCountSpace.incRC(rtn);
-        return rtn;
-      } else if (addr.GE(RC_START)) {
-        if (root)
-          return rcSpace.traceObject(object);
-        else
-          RefCountSpace.incRC(object);
-      }
+    if (RefCountSpace.RC_SANITY_CHECK && root) 
+      Plan.getInstance().rc.incSanityTraceRoot(object);
+    if (Space.isInSpace(NS, object)) {
+      Address rtn = CopySpace.forwardAndScanObject(object);
+      // every incoming reference to the from-space object must inc the
+      // ref count of forwarded (to-space) object...
+      if (root) {
+	if (RefCountSpace.INC_DEC_ROOT) {
+	  RefCountSpace.incRC(rtn);
+	  Plan.getInstance().addToRootSet(rtn);
+	} else if (RefCountSpace.setRoot(rtn)) {
+	  Plan.getInstance().addToRootSet(rtn);
+	}
+      } else
+	RefCountSpace.incRC(rtn);
+      return rtn;
+    } else if (isRCObject(object)) {
+      if (root)
+	return rcSpace.traceObject(object);
+      else
+	RefCountSpace.incRC(object);
     }
     // else this is not a rc heap pointer
     return object;
@@ -416,26 +428,18 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   public final void incSanityTrace(Address object, Address location,
                                    boolean root) {
-    Address addr = ObjectModel.refToAddress(object);
-    Address oldObject = object;
-
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());        
     // if nursery, then get forwarded RC object
-    if (addr.GE(NURSERY_START)) {
+    if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
-      addr = ObjectModel.refToAddress(object);
     }
 
-    if (addr.GE(RC_START)) {
-      if (RefCountSpace.incSanityRC(object, root)) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(NURSERY_START));
+    if (isRCObject(object)) {
+      if (RefCountSpace.incSanityRC(object, root))
         Scan.enumeratePointers(object, sanityEnum);
-      }
-    } else if (RefCountSpace.markSanityRC(object)) {
+    } else if (RefCountSpace.markSanityRC(object))
       Scan.enumeratePointers(object, sanityEnum);
-    } else if (object.EQ(Address.fromIntZeroExtend(0x43080334))) {
-      Log.writeln("scanned by marked already!");
-    }
   }
   
   /**
@@ -452,17 +456,14 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(Address object, Address location) {
-    Address addr = ObjectModel.refToAddress(object);
-    Address oldObject = object;
-
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());        
     // if nursery, then get forwarded RC object
-    if (addr.GE(NURSERY_START)) {
+    if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
-      addr = ObjectModel.refToAddress(object);
     }
 
-   if (addr.GE(RC_START)) {
+   if (isRCObject(object)) {
      if (RefCountSpace.checkAndClearSanityRC(object)) {
        Scan.enumeratePointers(object, sanityEnum);
        rc.addLiveSanityObject(object);
@@ -485,8 +486,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
     Address object = location.loadAddress();
-    Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
+    if (!object.isZero() && Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
       location.store(CopySpace.forwardObject(object));
     }
@@ -517,8 +517,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return The forwarded value for <code>object</code>.
    */
   public static final Address getForwardedReference(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else
@@ -532,16 +532,15 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return True if <code>object</code> is a live object.
    */
   public static final boolean isLive(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-        return CopySpace.isLive(object);
-      else if (addr.GE(RC_START))
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Space.isInSpace(NS, object))
+      return nurserySpace.isLive(object);
+    else if (isRCObject(object))
         return RefCountSpace.isLiveRC(object);
-      else if (addr.GE(BOOT_START))
-        return true;
-    }
+    else if (Space.isInSpace(META, object))
     return false;
+    else
+      return true;
   }
 
   /**
@@ -553,15 +552,14 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * to it.
    */
   public static final boolean isFinalizable(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-        return !CopySpace.isLive(object);
-      else if (addr.GE(RC_START))
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Space.isInSpace(NS, object))
+      return !nurserySpace.isLive(object);
+    else if (isRCObject(object))
         return RefCountSpace.isFinalizable(object);
-      else if (addr.GE(BOOT_START))
-        return false;
-    }
+    else if (!Space.isInSpace(META, object))
+      return true;
+    else
     return false;
   }
 
@@ -576,25 +574,18 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return The object (no copying is performed).
    */
   public static Address retainFinalizable(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-        return CopySpace.traceObject(object);
-      else if (addr.GE(RC_START))
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Space.isInSpace(NS, object))
+      return nurserySpace.traceObject(object);
+    else if (isRCObject(object))
         RefCountSpace.clearFinalizer(object);
-    }
     return object;
   }
 
-  public static boolean willNotMove (Address object) {
-   Address addr = ObjectModel.refToAddress(object);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-        return nurseryVM.inRange(addr);
-    }
-    return true;
+  public static boolean willNotMove(Address object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    return !(Space.isInSpace(NS, object));
   }
-
 
   /****************************************************************************
    *
@@ -617,8 +608,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  public final void writeBarrier(Address src, Address slot, 
-                                 Address tgt, int metaDataA, int metaDataB, int mode) 
+  public final void writeBarrier(Address src, Address slot, Address tgt,
+                                 int metaDataA, int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(src))
@@ -692,7 +683,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    return getPagesUsed() + nurseryMR.reservedPages();  // copy reserve
+    return getPagesUsed() + nurserySpace.reservedPages();  // copy reserve
   }
 
   /**
@@ -704,10 +695,10 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = nurseryMR.reservedPages();
-    pages += rcMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = nurserySpace.reservedPages();
+    pages += rcSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -719,8 +710,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * all future allocation is to the nursery</i>.
    */
   public static int getPagesAvail() {
-    int nurseryTotal = getTotalPages() - rcMR.reservedPages() - immortalMR.reservedPages() - metaDataMR.reservedPages();
-    return (nurseryTotal>>1) - nurseryMR.reservedPages();
+    int nurseryTotal = getTotalPages() - rcSpace.reservedPages() - immortalSpace.reservedPages() - metaDataSpace.reservedPages();
+    return (nurseryTotal>>1) - nurserySpace.reservedPages();
   }
 
 
@@ -743,11 +734,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     throws InlinePragma {
     Address object = objLoc.loadAddress();
     if (!object.isZero()) {
-      Address addr = ObjectModel.refToAddress(object);
-      if (addr.GE(NURSERY_START)) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LE(NURSERY_END));
+      if (Space.isInSpace(NS, object))
         remset.push(objLoc);
-      } else if (addr.GE(RC_START))
+      else if (isRCObject(object))
         RefCountSpace.incRC(object);
     }
   }
@@ -768,18 +757,6 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   }
 
   /**
-   * Return true if the object resides within the RC space
-   *
-   * @param object An object reference
-   * @return True if the object resides within the RC space
-   */
-  public static final boolean isRCObject(Address object)
-    throws InlinePragma {
-    Address addr = ObjectModel.refToAddress(object);
-    return addr.GE(RC_START) && addr.LT(NURSERY_START);
-  }
-
-  /**
    * Return true if the object resides within the nursery
    *
    * @param object An object reference
@@ -789,13 +766,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     throws InlinePragma {
     if (object.isZero()) 
       return false;
-    else {
-      Address addr = ObjectModel.refToAddress(object);
-      if (addr.GE(NURSERY_START)) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(NURSERY_END));
-        return true;
-      } else
-        return false;
-    }
+    else 
+      return Space.isInSpace(NS, object);
   }
 }

@@ -6,8 +6,8 @@
  */
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.LazyMmapper;
-import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Memory;
@@ -52,7 +52,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean validType(Address typeAddress)
     throws UninterruptiblePragma {
-     if (!mappedVMRef(typeAddress))
+     if (!Space.mappedObject(typeAddress))
       return false;  // type address is outside of heap
 
     // check if types tib is one of three possible values
@@ -95,10 +95,10 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     throws UninterruptiblePragma {
 
     if (ref.isZero()) return true;
-     if (!mappedVMRef(ref)) {
+    if (!Space.mappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref); VM.sysWrite("\n");
-      VMResource.showAll();
+      Space.showVMMap();
       return false;
     }
     if (MM_Interface.MOVES_OBJECTS) {
@@ -113,7 +113,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     
     Object[] tib = VM_ObjectModel.getTIB(ref);
     Address tibAddr = VM_Magic.objectAsAddress(tib);
-    if (!mappedVMRef(ref)) {
+    if (!Space.mappedObject(ref)) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
@@ -144,7 +144,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
 
   public static boolean mappedVMRef (Address ref)
     throws UninterruptiblePragma {
-    return VMResource.refInVM(ref) && LazyMmapper.refIsMapped(ref);
+    return Space.isInVM(ref) && LazyMmapper.refIsMapped(ref);
   }
 
   public static void dumpRef(Address ref) throws UninterruptiblePragma {
@@ -178,7 +178,6 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
   }
 
   public static boolean addrInBootImage(Address addr) {
-    return (addr.GE(Memory.bootImageStart()))
-      && (addr.LT(Memory.bootImageEnd()));
+    return (addr.GE(BOOT_IMAGE_START) && addr.LT(BOOT_IMAGE_END));
   }
 } 

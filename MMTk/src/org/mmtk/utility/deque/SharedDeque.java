@@ -4,7 +4,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.heap.RawPageAllocator;
+import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
@@ -36,8 +36,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * Constructor
    *
    */
-  public SharedDeque(RawPageAllocator rpa, int arity) {
-    this.rpa = rpa;
+  public SharedDeque(RawPageSpace rps, int arity) {
+    this.rps = rps;
     this.arity = arity;
     lock = new Lock("SharedDeque");
     completionFlag = 0;
@@ -119,14 +119,14 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   final Address alloc() throws InlinePragma {
-    Address rtn = rpa.alloc(PAGES_PER_BUFFER);
+    Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
   final void free(Address buf) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
-    rpa.free(buf);
+    rps.release(buf);
   }
 
   public final int enqueuedPages() throws InlinePragma {
@@ -137,7 +137,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    *
    * Private instance methods and fields
    */
-  private RawPageAllocator rpa;
+  private RawPageSpace rps;
   private int arity;
   private int completionFlag; //
   private int numClients; //

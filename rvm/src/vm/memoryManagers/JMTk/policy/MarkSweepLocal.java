@@ -112,11 +112,10 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * Constructor
    *
    * @param space The mark-sweep space to which this allocator
-   * instances is bound.  The space's VMResource and MemoryResource
-   * are used to initialize the superclass.
+   * instances is bound.
    */
   public MarkSweepLocal(MarkSweepSpace space) {
-    super(space.getVMResource(), space.getMemoryResource());
+    super(space);
     msSpace = space;
     utilization = new int[FRAG_PERCENTILES];
     totUtilization = new int[FRAG_PERCENTILES];

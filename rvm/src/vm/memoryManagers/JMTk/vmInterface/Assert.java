@@ -6,6 +6,8 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.policy.Space;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Scheduler;
 
@@ -23,6 +25,19 @@ import org.vmmagic.pragma.*;
  */
 public class Assert implements Uninterruptible {
   public static final boolean VERIFY_ASSERTIONS = VM.VerifyAssertions;
+
+
+  /**
+   * This method should be called whenever an error is encountered.
+   *
+   * @param str A string describing the error condition.
+   */
+  public static void error(String str) {
+    Space.showUsagePages();
+    Space.showUsageMB();
+    fail(str);
+  }
+
   /**
    * Logs a message and traceback, then exits.
    *

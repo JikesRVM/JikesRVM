@@ -5,7 +5,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.utility.heap.FreeListVMResource;
 import org.mmtk.utility.Memory;
 import org.mmtk.vm.Constants;
 

@@ -7,11 +7,10 @@ package org.mmtk.plan;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.heap.FreeListVMResource;
-import org.mmtk.utility.heap.VMResource;
+import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -59,13 +58,11 @@ public class GenMS extends Generational implements Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean copyMature = false;
+  protected static final boolean COPY_MATURE() { return false; }
   
-  // virtual memory resources
-  private static FreeListVMResource matureVM;
-
-  // mature space collector
-  private static MarkSweepSpace matureSpace;
+  // mature space
+  private static MarkSweepSpace matureSpace= new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  private static final int MS = matureSpace.getID();
 
   /****************************************************************************
    *
@@ -87,8 +84,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
-    matureSpace = new MarkSweepSpace(matureVM, matureMR);
+    activeMatureSpace = matureSpace;
   }
 
   /**
@@ -141,15 +137,40 @@ public class GenMS extends Generational implements Uninterruptible {
     return mature.alloc(bytes, align, offset, matureSpace.inMSCollection());
   }
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == mature) return MATURE_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == mature) return matureSpace;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == MATURE_SPACE) return mature;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == matureSpace) return mature;
+    return super.getAllocatorFromSpace(space);
   }
+
 
   /****************************************************************************
    *
@@ -163,7 +184,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * <i>only one thread</i> executes this.
    */
   protected final void globalMaturePrepare() {
-    matureSpace.prepare(matureVM, matureMR);
+    matureSpace.prepare();
   }
 
   /**
@@ -206,16 +227,15 @@ public class GenMS extends Generational implements Uninterruptible {
    * involves the <code>traceObject</code> method of the mature
    * collector.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * @param object The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final Address traceMatureObject(byte space,
-                                                   Address obj,
-                                                   Address addr) {
-    if (Assert.VERIFY_ASSERTIONS && space != MATURE_SPACE)
-      spaceFailure(obj, space, "Plan.traceMatureObject()");
-    return matureSpace.traceObject(obj);
+  protected static final Address traceMatureObject(Address object) {
+    if (Space.isInSpace(MS, object))
+      return matureSpace.traceObject(object);
+    else
+      return Space.getSpaceForObject(object).traceObject(object);
   }
 
   /**  
@@ -247,8 +267,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param space The space in which the referent object resides.
    */
   protected static void forwardMatureObjectLocation(Address location,
-                                                    Address object,
-                                                    byte space) {}
+                                                    Address object) {}
 
   /**
    * If the object in question has been forwarded, return its
@@ -259,8 +278,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedMatureReference(Address object,
-                                                          byte space) {
+  public static final Address getForwardedMatureReference(Address object) {
     return object;
   }
 
@@ -268,34 +286,40 @@ public class GenMS extends Generational implements Uninterruptible {
    * Return true if the object resides in a copying space (in this
    * case only nursery objects are in a copying space).
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if the object resides in a copying space.
    */
-  public final static boolean isCopyObject(Address obj) {
-    Address addr = ObjectModel.refToAddress(obj);
-    return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
+  public final static boolean isCopyObject(Address object) {
+    return object.GE(NURSERY_START);
   }
 
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final static boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case NURSERY_SPACE:   return CopySpace.isLive(obj);
-    case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
-    case LOS_SPACE:       return losSpace.isLive(obj);
-    case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:        return true;
-    case META_SPACE:        return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
-      return false;
+  public final static boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    if (!fullHeapGC) {
+      if (object.GE(NURSERY_START))
+ 	return nurserySpace.isLive(object);
+      else
+ 	return true;
+    } else {
+      Space space = Space.getSpaceForObject(object);
+      if (space == nurserySpace)
+ 	return nurserySpace.isLive(object);
+      else if (space == matureSpace)
+ 	return matureSpace.isLive(object);
+      else if (space == loSpace)
+	 return loSpace.isLive(object);
+      else if (space == null) {
+ 	if (Assert.VERIFY_ASSERTIONS) {
+ 	  Log.write("space failure: "); Log.writeln(object);
+ 	}
+      }
+      return true;
     }
   }
 

@@ -3193,9 +3193,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private VM_TypeReference getRefTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
-    // op must be a RegisterOperand or StringConstantOperand
+    // op must be a RegisterOperand or some ConstantOperand
     if (op instanceof OPT_StringConstantOperand)
       return VM_TypeReference.JavaLangString; 
+    else if (op instanceof OPT_AddressConstantOperand)
+      return VM_TypeReference.Address;
     else 
       return op.asRegister().type;
   }

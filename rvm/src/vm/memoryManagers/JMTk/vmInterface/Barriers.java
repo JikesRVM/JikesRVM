@@ -82,13 +82,11 @@ public class Barriers implements Constants, Uninterruptible {
   }
 
   /**
-   * Gets an element of a char array without invoking any read
-   * barrier.  This method is called by the Log method, as it will be
-   * used during garbage collection and needs to manipulate character
-   * arrays without causing a read barrier operation.
+   * Gets an element of a char array without invoking any read barrier
+   * or performing bounds check.
    *
    * @param src the source array
-   * @param index the index of the element to get
+   * @param index the natural array index of the element to get
    * @return the new value of element
    */
   public static char getArrayNoBarrier(char [] src, int index) {
@@ -99,18 +97,46 @@ public class Barriers implements Constants, Uninterruptible {
   }
 
   /**
-   * Gets an element of a byte array without invoking any read
-   * barrier.  This method is called by the Log method, as it will be
-   * used during garbage collection and needs to manipulate character
-   * arrays without causing a read barrier operation.
+   * Gets an element of a byte array without invoking any read barrier
+   * or bounds check.
    *
    * @param src the source array
-   * @param index the index of the element to get
+   * @param index the natural array index of the element to get
    * @return the new value of element
    */
   public static byte getArrayNoBarrier(byte [] src, int index) {
     if (Assert.runningVM())
       return VM_Magic.getByteAtOffset(src, index);
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of an int array without invoking any read barrier
+   * or performing bounds checks.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static int getArrayNoBarrier(int [] src, int index) {
+    if (Assert.runningVM())
+      return VM_Magic.getIntAtOffset(src, index<<LOG_BYTES_IN_INT);
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of an Object array without invoking any read
+   * barrier or performing bounds checks.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static Object getArrayNoBarrier(Object [] src, int index) {
+    if (Assert.runningVM())
+      return VM_Magic.getObjectAtOffset(src, index<<LOG_BYTES_IN_ADDRESS);
     else
       return src[index];
   }

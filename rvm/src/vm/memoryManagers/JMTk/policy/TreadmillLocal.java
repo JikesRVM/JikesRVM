@@ -59,7 +59,9 @@ public final class TreadmillLocal extends LargeObjectAllocator
    * bound.  The space's VMResource and MemoryResource are used.
    */
   public TreadmillLocal(TreadmillSpace space_) {
-    super(space_.getVMResource(), space_.getMemoryResource());
+    //    super(space_.getVMResource(), space_.getMemoryResource());
+    super(null);
+    Assert._assert(false);  // depricated.  This class only exists to allow compilation to proceed
     space = space_;
     treadmill = new Treadmill(VMResource.BYTES_IN_PAGE, true);
   }

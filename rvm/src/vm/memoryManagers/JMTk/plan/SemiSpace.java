@@ -6,8 +6,6 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.TreadmillSpace;
-import org.mmtk.policy.TreadmillLocal;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -68,9 +66,9 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
                               int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case  DEFAULT_SPACE: return;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(object); return;
-    case LOS_SPACE: losSpace.initializeHeader(object); return;
+    case  ALLOC_DEFAULT: return;
+    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); return;
+    case      ALLOC_LOS: loSpace.initializeHeader(object); return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
     }

@@ -4,7 +4,7 @@
   */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.heap.RawPageAllocator;
+import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.TraceInterface;
 
 import org.vmmagic.unboxed.*;
@@ -29,11 +29,11 @@ final public class SortTODSharedDeque extends SortSharedDeque
   /**
    * Constructor
    *
-   * @param rpa The allocator from which the instance should obtain buffers.
+   * @param rps The space from which the instance should obtain buffers.
    * @param airty The arity of the data to be enqueued
    */
-  public SortTODSharedDeque(RawPageAllocator rpa, int arity) {
-    super(rpa, arity);
+  public SortTODSharedDeque(RawPageSpace rps, int arity) {
+    super(rps, arity);
   }
   
   /**

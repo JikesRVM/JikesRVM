@@ -6,8 +6,7 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.TreadmillSpace;
-import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -61,42 +60,18 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
   public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
 
-  // virtual memory resources
-  protected static FreeListVMResource losVM;
-  protected static MonotoneVMResource ss0VM;
-  protected static MonotoneVMResource ss1VM;
-
-  // memory resources
-  protected static MemoryResource ssMR;
-  protected static MemoryResource losMR;
-
-  // large object space (LOS) collector
-  protected static TreadmillSpace losSpace;
-
   // GC state
   protected static boolean hi = false; // True if allocing to "higher" semispace
 
   // Allocators
-  protected static final byte LOW_SS_SPACE = 0;
-  protected static final byte HIGH_SS_SPACE = 1;
-  public static final byte DEFAULT_SPACE = 2; // logical space that maps to either LOW_SS_SPACE or HIGH_SS_SPACE
+  protected static final int ALLOC_SS = ALLOC_DEFAULT;
+  public static final int ALLOCATORS = BASE_ALLOCATORS;
 
-  // Miscellaneous constants
-  protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  
-  // Memory layout constants
-  public  static final long            AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final Extent         SS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
-  protected static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
-  public  static final Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
-
-  protected static final Address      LOS_START = PLAN_START;
-  protected static final Address        LOS_END = LOS_START.add(LOS_SIZE);
-  protected static final Address       SS_START = LOS_END;
-  protected static final Address   LOW_SS_START = SS_START;
-  protected static final Address  HIGH_SS_START = SS_START.add(SS_SIZE);
-  protected static final Address         SS_END = HIGH_SS_START.add(SS_SIZE);
-  protected static final Address       HEAP_END = SS_END;
+  // Spaces
+  protected static CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.35, false);
+  protected static CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.35, true);
+  protected static final int SS0 = copySpace0.getID();
+  protected static final int SS1 = copySpace1.getID();
 
   /****************************************************************************
    *
@@ -105,7 +80,6 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
 
   // allocators
   public BumpPointer ss;
-  protected TreadmillLocal los;
 
   /****************************************************************************
    *
@@ -118,26 +92,13 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {
-    ssMR = new MemoryResource("ss", POLL_FREQUENCY);
-    losMR = new MemoryResource("los", POLL_FREQUENCY);
-    ss0VM = new MonotoneVMResource(LOW_SS_SPACE, "Lower SS", ssMR, LOW_SS_START, SS_SIZE, VMResource.MOVABLE);
-    ss1VM = new MonotoneVMResource(HIGH_SS_SPACE, "Upper SS", ssMR, HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-    losSpace = new TreadmillSpace(losVM, losMR);
-
-    addSpace(LOW_SS_SPACE, "Lower Semi-Space");
-    addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
-    addSpace(LOS_SPACE, "LOS Space");
-    // DEFAULT_SPACE is logical and does not actually exist
-  }
+  static {}
 
   /**
    * Constructor
    */
   public SemiSpaceBase() {
-    ss = new BumpPointer(ss0VM);
-    los = new TreadmillLocal(losSpace);
+    ss = new BumpPointer(copySpace0);
   }
 
   /**
@@ -165,27 +126,48 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case  DEFAULT_SPACE: return ss.alloc(bytes, align, offset);
-    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
-    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    case  ALLOC_DEFAULT: return ss.alloc(bytes, align, offset);
+    case ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      ALLOC_LOS: return los.alloc(bytes, align, offset);
     default: 
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
       return Address.zero();
     }
   }
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == ss) return DEFAULT_SPACE;
-    if (a == los) return LOS_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == ss) return (hi) ? copySpace1 : copySpace0;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return ss;
-    if (s == LOS_SPACE) return los;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == copySpace0 || space == copySpace1) return ss;
+    return super.getAllocatorFromSpace(space);
   }
-
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -224,18 +206,23 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * @param mustCollect True if a this collection is forced.
-   * @param mr The memory resource that triggered this collection.
-   * @return True if a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
+    if (collectionsInitiated > 0 || !initialized || space == metaDataSpace)
       return false;
     mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
-      required = mr.reservedPages() - mr.committedPages();
-      if (mr == ssMR) required = required<<1; // must account for copy reserve
+      required = space.reservedPages() - space.committedPages();
+      if (space == copySpace0 || space == copySpace1)
+	required = required<<1; // must account for copy reserve
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -265,13 +252,14 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * In this case, it means flipping semi-spaces, resetting the
    * semi-space memory resource, and preparing each of the collectors.
    */
-  protected final void globalPrepare() {
+  protected void globalPrepare() {
     hi = !hi;        // flip the semi-spaces
-    ssMR.reset();    // reset the semispace memory resource, and
+    //    ssMR.reset();    // reset the semispace memory resource, and
     // prepare each of the collected regions
-    CopySpace.prepare(((hi) ? ss0VM : ss1VM), ssMR);
-    ImmortalSpace.prepare(immortalVM, null);
-    losSpace.prepare(losVM, losMR);
+    copySpace0.prepare(hi);
+    copySpace1.prepare(!hi);
+    immortalSpace.prepare();
+    loSpace.prepare();
   }
 
   /**
@@ -282,9 +270,9 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * In this case, it means resetting the semi-space and large object
    * space allocators.
    */
-  protected final void threadLocalPrepare(int count) {
+  protected void threadLocalPrepare(int count) {
     // rebind the semispace bump pointer to the appropriate semispace.
-    ss.rebind(((hi) ? ss1VM : ss0VM)); 
+    ss.rebind(((hi) ? copySpace1 : copySpace0)); 
     los.prepare();
   }
 
@@ -298,7 +286,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * triggers the sweep phase of the treadmill collector used by the
    * LOS).
    */
-  protected final void threadLocalRelease(int count) {
+  protected void threadLocalRelease(int count) {
     los.release();
   }
 
@@ -310,12 +298,11 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * In this case, it means releasing each of the spaces and checking
    * whether the GC made progress.
    */
-  protected final void globalRelease() {
+  protected void globalRelease() {
     // release each of the collected regions
-    losSpace.release();
-    ((hi) ? ss0VM : ss1VM).release();
-    CopySpace.release(((hi) ? ss0VM : ss1VM), ssMR);
-    ImmortalSpace.release(immortalVM, null);
+    loSpace.release();
+    (hi ? copySpace0 : copySpace1).release();
+    immortalSpace.release();
     progress = (getPagesReserved() + required < getTotalPages());
   }
 
@@ -324,7 +311,6 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    *
    * Object processing and tracing
    */
-
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -335,23 +321,15 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj)
-    throws InlinePragma {
-    if (obj.isZero()) return obj;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case LOW_SS_SPACE:   return   hi  ? CopySpace.traceObject(obj) : obj;
-    case HIGH_SS_SPACE:  return (!hi) ? CopySpace.traceObject(obj) : obj;
-    case LOS_SPACE:      return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:     return ImmortalSpace.traceObject(obj);
-    case META_SPACE:     return obj;
-    default:  
-      if (Assert.VERIFY_ASSERTIONS)
-	spaceFailure(obj, space, "Plan.traceObject()");
-      return obj;
-    }
+  public static Address traceObject(Address object) throws InlinePragma {
+    if (object.isZero())
+      return object;
+    else if (Space.isInSpace(SS0, object))
+      return hi ? copySpace0.forwardAndScanObject(object) : object;
+    else if (Space.isInSpace(SS1, object))
+      return hi ? object: copySpace1.forwardAndScanObject(object);
+    else
+      return Space.getSpaceForObject(object).traceObject(object);
   }
 
   /**
@@ -365,7 +343,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj, boolean root) {
+  public static Address traceObject(Address obj, boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
@@ -392,12 +370,11 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    */
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
-    Address obj = location.loadAddress();
-    if (!obj.isZero()) {
-      Address addr = ObjectModel.refToAddress(obj);
-      byte space = VMResource.getSpace(addr);
-      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
-        location.store(CopySpace.forwardObject(obj));
+    Address object = location.loadAddress();
+    if (!object.isZero()) {
+      if ((hi && Space.isInSpace(SS0, object)) || 
+ 	  (!hi && Space.isInSpace(SS1, object)))
+ 	location.store(CopySpace.forwardObject(object));
     }
   }
 
@@ -410,10 +387,10 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    */
   public static final Address getForwardedReference(Address object) {
     if (!object.isZero()) {
-      Address addr = ObjectModel.refToAddress(object);
-      byte space = VMResource.getSpace(addr);
-      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
-	if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
+      if ((hi && Space.isInSpace(SS0, object)) || 
+          (!hi && Space.isInSpace(SS1, object))) {
+	if (Assert.VERIFY_ASSERTIONS) 
+          Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       }
     }
@@ -424,38 +401,36 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * Return true if the given reference is to an object that is within
    * one of the semi-spaces.
    *
-   * @param ref The object in question
+   * @param object The object in question
    * @return True if the given reference is to an object that is within
    * one of the semi-spaces.
    */
-  public static final boolean isSemiSpaceObject(Address ref) {
-    Address addr = ObjectModel.refToAddress(ref);
-    return (addr.GE(SS_START) && addr.LE(SS_END));
+  public static final boolean isSemiSpaceObject(Address object) {
+    return Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object);
   }
 
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case LOW_SS_SPACE:    return CopySpace.isLive(obj);
-    case HIGH_SS_SPACE:   return CopySpace.isLive(obj);
-    case LOS_SPACE:       return losSpace.isLive(obj);
-    case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:      return true;
-    case META_SPACE:      return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS) 
-        spaceFailure(obj, space, "Plan.isLive()");
-      return false;
+  public static boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    Space space = Space.getSpaceForObject(object);
+    if (space == copySpace0)
+      return copySpace0.isLive(object);
+    else if (space == copySpace1)
+      return copySpace1.isLive(object);
+    else if (space == loSpace)
+      return loSpace.isLive(object);
+    else if (space == null) {
+      if (Assert.VERIFY_ASSERTIONS) {
+ 	Log.write("space failure: "); Log.writeln(object);
     }
   }
+    return true;
+ }
 
   /**
    * Return true if the object is either forwarded or being forwarded
@@ -472,11 +447,9 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   }
 
   // XXX Missing Javadoc comment.
-  public static boolean willNotMove (Address obj) {
-   boolean movable = VMResource.refIsMovable(obj);
-   if (!movable) return true;
-   Address addr = ObjectModel.refToAddress(obj);
-   return (hi ? ss1VM : ss0VM).inRange(addr);
+  public static boolean willNotMove (Address object) {
+    return (hi && !Space.isInSpace(SS0, object))
+       || (!hi && !Space.isInSpace(SS1, object));  
   }
 
   /****************************************************************************
@@ -494,7 +467,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   protected static final int getPagesReserved() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
-    return ssMR.reservedPages() + getPagesUsed();
+    return (hi ? copySpace1 : copySpace0).reservedPages() + getPagesUsed();
   }
 
   /**
@@ -506,10 +479,10 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = ssMR.reservedPages();
-    pages += losMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = (hi ? copySpace1 : copySpace0).reservedPages();
+    pages += loSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -521,9 +494,9 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * all future allocation is to the semi-space</i>.
    */
   protected static final int getPagesAvail() {
-    int semispaceTotal = getTotalPages() - losMR.reservedPages() 
-      - immortalMR.reservedPages();
-    return (semispaceTotal>>1) - ssMR.reservedPages();
+    int semispaceTotal = getTotalPages() - loSpace.reservedPages() 
+      - immortalSpace.reservedPages();
+    return (semispaceTotal>>1) - (hi ? copySpace1 : copySpace0).reservedPages();
   }
 
 

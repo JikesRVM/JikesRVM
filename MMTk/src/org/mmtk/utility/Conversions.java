@@ -13,19 +13,20 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
+import com.ibm.JikesRVM.VM_Offset;
  * Conversions between different units.
  *
  * @author Perry Cheng
  */
 public class Conversions implements Constants, Uninterruptible {
 
-  public static Address roundDownVM(Address addr) {
-    return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
-  }
+//   public static Address roundDownVM(Address addr) {
+//     return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
+//   }
 
-  public static Extent roundDownVM(Extent bytes) {
-    return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
-  }
+//   public static Extent roundDownVM(Extent bytes) {
+//     return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
+//   }
 
   public static Address roundDownMB(Address addr) {
     return roundDown(addr.toWord(), LOG_BYTES_IN_MBYTE).toAddress();
@@ -43,10 +44,10 @@ public class Conversions implements Constants, Uninterruptible {
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {
-    if (VMResource.LOG_BYTES_IN_PAGE <= LOG_BYTES_IN_MBYTE)
-      return (megs << (LOG_BYTES_IN_MBYTE - VMResource.LOG_BYTES_IN_PAGE));
+    if (LOG_BYTES_IN_PAGE <= LOG_BYTES_IN_MBYTE)
+      return (megs << (LOG_BYTES_IN_MBYTE - LOG_BYTES_IN_PAGE));
     else
-      return (megs + ((VMResource.BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (VMResource.LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
+      return (megs + ((BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
   public static int bytesToMmapChunksUp(Extent bytes) {
@@ -86,6 +87,14 @@ public class Conversions implements Constants, Uninterruptible {
     return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 
+  public static int pagesToMBytes(int pages) {
+    return pages >> (LOG_BYTES_IN_MBYTE - LOG_BYTES_IN_PAGE);
+  }
+
+  public static int pagesToKBytes(int pages) {
+    return pages << (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_KBYTE);
+  }
+
   /**
     @deprecated : use int bytesToPagesUp(Extent bytes) if possible
   */
@@ -110,11 +119,26 @@ public class Conversions implements Constants, Uninterruptible {
     return pages;
   }
 
+  public static int bytesToPages(Offset bytes) {
+    if (Assert.VERIFY_ASSERTIONS) {
+      long val = bytes.toLong();
+      Assert._assert(val >= MIN_INT && val <= MAX_INT);
+    }
+    if (bytes.sGE(Offset.zero()))
+      return bytesToPagesUp(bytes.toInt());
+    else
+      return -bytesToPagesUp(-bytes.toInt());
+  }
+  
   public static Address mmapChunksToAddress(int chunk) {
     return Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toAddress();
   }
 
   public static Address pageAlign(Address address) {
     return address.toWord().rshl(LOG_BYTES_IN_PAGE).lsh(LOG_BYTES_IN_PAGE).toAddress();
+  }
+
+  public static boolean isPageAligned(Address address) {
+    return pageAlign(address).EQ(address);
   }
 }

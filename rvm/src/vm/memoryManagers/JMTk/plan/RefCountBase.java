@@ -6,9 +6,10 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.LargeRCObjectLocal;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
-import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -35,7 +36,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class RefCountBase extends StopTheWorldGC implements Uninterruptible {
+public abstract class RefCountBase extends StopTheWorldGC 
+  implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -47,16 +49,6 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
   public static final boolean SUPPORTS_PARALLEL_GC = false;
   protected static final boolean WITH_COALESCING_RC = true;
 
-  // virtual memory resources
-  protected static FreeListVMResource losVM;
-  protected static FreeListVMResource rcVM;
-
-  // RC collection space
-  protected static RefCountSpace rcSpace;
-
-  // memory resources
-  protected static MemoryResource rcMR;
-
   // shared queues
   protected static SharedDeque decPool;
   protected static SharedDeque modPool;
@@ -66,21 +58,9 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
   protected static int required;  // how many pages must this GC yeild?
   protected static long timeCap = 0; // time within which this GC should finish
 
-  // Allocators
-  public static final byte RC_SPACE = 0;
-
-  // Miscellaneous constants
-  protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-
- // Memory layout constants
-  public    static final long           AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final Extent         RC_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.6)));
-  protected static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.2)));
-  public    static final Extent       MAX_SIZE = RC_SIZE;
-  protected static final Address      RC_START = PLAN_START;
-  protected static final Address        RC_END = RC_START.add(RC_SIZE);
-  protected static final Address     LOS_START = RC_END;
-  protected static final Address       LOS_END = LOS_START.add(LOS_SIZE);
+  // Spaces
+  protected static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  protected static final int RC = rcSpace.getID();
 
   /****************************************************************************
    *
@@ -89,7 +69,7 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
 
   // allocators
   public RefCountLocal rc;
-  protected RefCountLOSLocal los;
+  protected LargeRCObjectLocal los;
 
   // queues (buffers)
   protected AddressDeque decBuffer;
@@ -118,25 +98,14 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
    * boot image by the build process.
    */
   static {
-    // memory resources
-    rcMR = new MemoryResource("rc", POLL_FREQUENCY);
-
-    // virtual memory resources
-    rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountLocal.META_DATA_PAGES_PER_REGION);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-
-    // collectors
-    rcSpace = new RefCountSpace(rcVM, rcMR);
-    addSpace(RC_SPACE, "RC Space");
-
     // instantiate shared queues
     if (WITH_COALESCING_RC) {
-      modPool = new SharedDeque(metaDataRPA, 1);
+      modPool = new SharedDeque(metaDataSpace, 1);
       modPool.newClient();
     }
-    decPool = new SharedDeque(metaDataRPA, 1);
+    decPool = new SharedDeque(metaDataSpace, 1);
     decPool.newClient();
-    rootPool = new SharedDeque(metaDataRPA, 1);
+    rootPool = new SharedDeque(metaDataSpace, 1);
     rootPool.newClient();
 
     if (GATHER_WRITE_BARRIER_STATS) {
@@ -153,7 +122,7 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
     if (WITH_COALESCING_RC) modEnum = new RCModifiedEnumerator();
     decBuffer = new AddressDeque("dec buf", decPool);
     newRootSet = new AddressDeque("root set", rootPool);
-    los = new RefCountLOSLocal(losVM, rcMR);
+    los = new LargeRCObjectLocal(loSpace);
     rc = new RefCountLocal(rcSpace, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator();
     if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
@@ -191,6 +160,48 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
     return null;
   }
 
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.<p>
+   *
+   * Note that we override <code>los</code>, so we must account for it
+   * here (rather than in our superclass).
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected Space getSpaceFromAllocator(Allocator a) {
+    if (a == rc) return rcSpace;
+    else if (a == los) return loSpace;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.<p>
+   *
+   * Note that we override <code>los</code>, so we must account for it
+   * here (rather than in our superclass).
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected Allocator getAllocatorFromSpace(Space space) {
+    if (space == rcSpace) return rc;
+    else if (space == loSpace) return los;
+    return super.getAllocatorFromSpace(space);
+  }
+
   /****************************************************************************
    *
    * Collection
@@ -219,10 +230,10 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
    */
   protected final void processModBufs() {
     modBuffer.flushLocal();
-    Address obj = Address.zero();
-    while (!(obj = modBuffer.pop()).isZero()) {
-      RefCountSpace.makeUnlogged(obj);
-      Scan.enumeratePointers(obj, modEnum);
+    Address object = Address.zero();
+    while (!(object = modBuffer.pop()).isZero()) {
+      RefCountSpace.makeUnlogged(object);
+      Scan.enumeratePointers(object, modEnum);
     }
   }
 
@@ -255,7 +266,7 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
    * @return The number of pages consumed by meta data.
    */
   public static final int getMetaDataPagesUsed() {
-    return metaDataMR.reservedPages();
+    return metaDataSpace.reservedPages();
   }
 
   /****************************************************************************
@@ -269,13 +280,13 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
    * must have their counts decremented).  If the field points to the
    * RC space, decrement the count for the referent.
    *
-   * @param objLoc The address of a reference field with an object
+   * @param location The address of a reference field with an object
    * being enumerated.
    */
-  public final void enumerateDecrementPointerLocation(Address objLoc)
+  public final void enumerateDecrementPointerLocation(Address location)
     throws InlinePragma {
-    Address object = objLoc.loadAddress();
-    if (Plan.isRCObject(object))
+    Address object = location.loadAddress();
+    if (isRCObject(object))
       decBuffer.push(object);
   }
 
@@ -302,6 +313,19 @@ public abstract class RefCountBase extends StopTheWorldGC implements Uninterrupt
   public final void addToRootSet(Address root) 
     throws InlinePragma {
     newRootSet.push(root);
+  }
+
+  /**
+   * Return true if the object resides within the RC space
+   *
+   * @param object An object reference
+   * @return True if the object resides within the RC space
+   */
+  public static final boolean isRCObject(Address object)
+    throws InlinePragma {
+    if (object.isZero()) 
+      return false;
+    else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
   }
 
   /****************************************************************************

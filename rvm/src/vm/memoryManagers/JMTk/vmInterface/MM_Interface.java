@@ -10,6 +10,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
@@ -158,10 +159,10 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static final void boot (VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
+    LazyMmapper.boot(BOOT_IMAGE_START, BOOT_IMAGE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
     Plan.boot();
-    VMResource.boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -318,7 +319,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
      */
     if (Plan.gcInProgressProper()) {
         Address ref = VM_Magic.objectAsAddress(obj);
-        if (VMResource.refIsMovable(ref)) {
+        if (Space.isMovable(ref)) {
             VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
             VM.sysWriteln("  obj = ", ref);
             VM_Type t = VM_Magic.getObjectType(obj);
@@ -417,7 +418,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean addrInVM(Address address)
     throws UninterruptiblePragma, InlinePragma {
-    return VMResource.addrInVM(address);
+    return Space.mappedAddress(address);
   }
 
   /**
@@ -433,7 +434,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean refInVM(Address ref)
     throws UninterruptiblePragma, InlinePragma {
-    return VMResource.refInVM(ref);
+    return Space.mappedObject(ref);
   }
 
   /***********************************************************************
@@ -502,12 +503,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       if (Plan.WITH_GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-	  return Plan.GCSPY_SPACE;
+	  return Plan.ALLOC_GCSPY;
         }
       }
       if (isPrefix("Lorg/mmtk/", clsBA) 
 	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
-        return Plan.IMMORTAL_SPACE;
+        return Plan.ALLOC_IMMORTAL;
       }
     }
     MMType t = (MMType) type.getMMType();
@@ -523,18 +524,18 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   private static int pickAllocatorForType(VM_Type type)
     throws InterruptiblePragma {
-    int allocator = Plan.DEFAULT_SPACE;
+    int allocator = Plan.ALLOC_DEFAULT;
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (Plan.WITH_GCSPY) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
 	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
-	allocator = Plan.GCSPY_SPACE;
+	allocator = Plan.ALLOC_GCSPY;
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
 	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
-      allocator = Plan.IMMORTAL_SPACE;
+      allocator = Plan.ALLOC_IMMORTAL;
     return allocator;
   }
 
@@ -751,7 +752,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       Object [] stackTib = stackType.getTypeInformationBlock();
 
       return (byte[]) allocateArray(bytes, width, headerSize, stackTib,
-                                    Plan.IMMORTAL_SPACE, align, offset);
+                                    Plan.ALLOC_IMMORTAL, align, offset);
     }
   }
 
@@ -773,7 +774,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
     Object result = allocateArray(n, objectArrayType.getLogElementSize(),
                                   VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-                                  objectArrayTib, Plan.IMMORTAL_SPACE, align, offset);
+                                  objectArrayTib, Plan.ALLOC_IMMORTAL, align, offset);
     return (Object []) result;
   }
 
@@ -983,7 +984,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean mightBeTIB (Address obj)
     throws InlinePragma, UninterruptiblePragma {
-    return VMResource.refIsImmortal(obj);
+    return Space.isImmortal(obj);
   }
 
   /**
@@ -1007,6 +1008,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   * Deprecated and/or broken.  The following need to be expunged.
   */
 
+  
   /**
    * Returns the maximum number of heaps that can be managed.
    *
@@ -1017,7 +1019,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
      *  The boot record has a table of address ranges of the heaps,
      *  the maximum number of heaps is used to size the table.
      */
-    return VMResource.getMaxVMResource();
+     return Space.MAX_SPACES;
   }
 
   /**

@@ -11,7 +11,7 @@
 package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
-import org.mmtk.utility.heap.FreeListVMResource;
+//import org.mmtk.utility.heap.FreeListVMResource;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -408,7 +408,7 @@ public class TreadmillDriver extends AbstractDriver
 
 //-#else
   public TreadmillDriver(String name,
-		     FreeListVMResource losVM,
+                         //		     FreeListVMResource losVM,
 		     int blockSize,
 		     Address start, 
 		     Address end,

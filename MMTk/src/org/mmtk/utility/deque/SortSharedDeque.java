@@ -4,7 +4,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.heap.RawPageAllocator;
+import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
@@ -40,10 +40,10 @@ public abstract class SortSharedDeque extends SharedDeque
   /**
    * Constructor
    *
-   * @param rpa The allocator from which the instance should obtain buffers.
+   * @param rps The space from which the instance should obtain buffers.
    */
-  public SortSharedDeque(RawPageAllocator rpa, int arity) {
-    super(rpa, arity);
+  public SortSharedDeque(RawPageSpace rps, int arity) {
+    super(rps, arity);
     stackBase = AddressArray.create(MAX_STACK_SIZE);
     stackLoc = 0;
   }

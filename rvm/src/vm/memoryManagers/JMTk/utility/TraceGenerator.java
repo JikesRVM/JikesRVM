@@ -4,6 +4,7 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.TraceInterface;
@@ -36,6 +37,10 @@ public final class TraceGenerator
   /* Type of lifetime analysis to be used */
   public  static final boolean MERLIN_ANALYSIS = true;
 
+  /* include the notion of build-time allocation to our list of allocators */
+  private static final int ALLOC_BOOT = Plan.ALLOCATORS;
+  private static final int ALLOCATORS = ALLOC_BOOT + 1;
+
   /* Fields for tracing */
   private static SortTODSharedDeque tracePool;     // Buffers to hold raw trace
   private static TraceBuffer trace;
@@ -47,6 +52,8 @@ public final class TraceGenerator
   private static SortTODSharedDeque workListPool;  // Holds objs to process
   private static SortTODAddressStack worklist;     // Objs to process
   private static Word    agePropagate;  // Death time propagating
+
+
 
   static {
     traceBusy = false;
@@ -81,7 +88,7 @@ public final class TraceGenerator
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
     tracePool.newClient();
-    objectLinks = AddressArray.create(Plan.UNUSED_SPACE);
+    objectLinks = AddressArray.create(Space.MAX_SPACES);
   }
 
   /**
@@ -136,7 +143,7 @@ public final class TraceGenerator
   public static final void boot(Address bootStart) {
     Word nextOID = TraceInterface.getOID();
     Address trav = TraceInterface.getBootImageLink().add(bootStart.toInt());
-    objectLinks.set(Plan.BOOT_SPACE, trav);
+    objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
     while (!trav.isZero()) {
       Address next = TraceInterface.getLink(trav);
@@ -270,8 +277,8 @@ public final class TraceGenerator
       /* Start with an empty stack. */
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
-      for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
-	Address thisRef = objectLinks.get(region);
+      for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
+	Address thisRef = objectLinks.get(allocator);
 	/* Start at the top of each linked list */
 	while (!thisRef.isZero()) {
 	  /* Add the unreachable objects onto the worklist. */
@@ -286,8 +293,8 @@ public final class TraceGenerator
       computeTransitiveClosure();
     }
     /* Output the death times for each object */
-    for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
-      Address thisRef = objectLinks.get(region);
+    for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
+      Address thisRef = objectLinks.get(allocator);
       Address prevRef = Address.zero(); // the last live object seen
       while (!thisRef.isZero()) {
 	Address nextRef = 
@@ -313,7 +320,7 @@ public final class TraceGenerator
 	thisRef = nextRef;
       }
       /* Purge the list of unreachable objects... */
-      objectLinks.set(region, prevRef);
+      objectLinks.set(allocator, prevRef);
     }
   }
   

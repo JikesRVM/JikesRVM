@@ -67,7 +67,7 @@ public class BootImage extends BootImageWriterMessages
    * @param t turn tracing on?
    */
   BootImage(boolean ltlEndian, boolean t) {
-    bootImage = new byte[endOffset = IMAGE_SIZE];
+    bootImage = new byte[endOffset = BOOT_IMAGE_SIZE.toInt()];
     littleEndian = ltlEndian;
     trace = t;
   }

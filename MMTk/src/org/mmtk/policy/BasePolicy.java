@@ -3,13 +3,13 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-
 package org.mmtk.policy;
-import org.mmtk.vm.Assert;
 
 import org.mmtk.utility.heap.MemoryResource;
 import org.mmtk.utility.heap.VMResource;
+import org.mmtk.vm.Assert;
 
+import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -18,7 +18,9 @@ import org.vmmagic.unboxed.*;
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-abstract public class BasePolicy {
+public class BasePolicy implements Uninterruptible {
+  protected boolean immortal;
+  protected boolean movable;
 
   /*
    * If these where instance methods they would be declared abstract.
@@ -27,18 +29,24 @@ abstract public class BasePolicy {
    * can be used as templates for the classes that extend BasePolicy.
    * Maybe the whole class is unnecessary.
    */
-  public static void prepare(VMResource vm, MemoryResource mr) {
+  public void prepare(VMResource vm, MemoryResource mr) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
-  public static void release(VMResource vm, MemoryResource mr) {
+  public void release(VMResource vm, MemoryResource mr) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
   }
-  public static Address traceObject(Address object) { 
+  public Address traceObject(Address object) { 
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
     return Address.zero(); 
   }
-  public static    boolean isLive(Address obj) {
+  public  boolean isLive(Address object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
     return false; 
+  }
+  public  boolean isImmortal() {
+    return immortal; 
+  }
+  public  boolean isMovable() {
+    return movable;
   }
 }

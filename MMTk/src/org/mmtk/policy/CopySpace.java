@@ -2,7 +2,6 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-
 package org.mmtk.policy;
 
 import org.mmtk.utility.heap.*;
@@ -21,6 +20,8 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
+ * $Id$ 
+ *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author David Bacon
@@ -30,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class CopySpace extends BasePolicy 
+public final class CopySpace extends Space
   implements Constants, Uninterruptible {
 
   /****************************************************************************
@@ -46,8 +47,51 @@ public final class CopySpace extends BasePolicy
   private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).sub(Word.one());  // ...11
   private static final Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
 
-  public static void prepare(VMResource vm, MemoryResource mr) { }
-  public static void release(VMResource vm, MemoryResource mr) { }
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  private boolean fromSpace = true;
+  
+  /****************************************************************************
+   *
+   * Initialization
+   */
+  public CopySpace(String name, int pageBudget, Address start,
+   		   Extent bytes, boolean fromSpace) {
+    super(name, true, false, start, bytes);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public CopySpace(String name, int pageBudget, int mb, boolean fromSpace) {
+    super(name, true, false, mb);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public CopySpace(String name, int pageBudget, int mb, boolean top, 
+   		   boolean fromSpace) {
+    super(name, true, false, mb, top);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public CopySpace(String name, int pageBudget, float frac, boolean fromSpace) {
+    super(name, true, false, frac);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public CopySpace(String name, int pageBudget, float frac, boolean top,
+		   boolean fromSpace) {
+    super(name, true, false, frac, top);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public void prepare(boolean fromSpace) { this.fromSpace = fromSpace; }
+  public void release() { ((MonotonePageResource) pr).reset(); }
 
   /**
    * Trace an object under a copying collection policy.
@@ -58,9 +102,12 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be traced.
    * @return The forwarded object.
    */
-  public static Address traceObject(Address object) 
+  public final Address traceObject(Address object) 
     throws InlinePragma {
+    if (fromSpace)
     return forwardObject(object, true);
+    else
+      return object;
   }
 
   /**
@@ -71,8 +118,7 @@ public final class CopySpace extends BasePolicy
    */
   public static void markObject(Address object, Word markState) 
     throws InlinePragma {
-    if (testAndMark(object, markState)) 
-      Plan.enqueue(object);
+    if (testAndMark(object, markState)) Plan.enqueue(object);
   }
 
   /**
@@ -127,12 +173,11 @@ public final class CopySpace extends BasePolicy
     } else {
       Plan.enqueueForwardedUnscannedObject(newObject);
     }
-
     return newObject;
   }
 
 
-  public static boolean isLive(Address obj) {
+  public final boolean isLive(Address obj) {
     return isForwarded(obj);
   }
 

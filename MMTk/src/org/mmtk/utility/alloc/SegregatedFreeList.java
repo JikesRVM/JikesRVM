@@ -4,6 +4,7 @@
  */
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
@@ -115,8 +116,8 @@ public abstract class SegregatedFreeList extends Allocator
    * @param mr The memory resource against which memory consumption
    * for this free list allocator will be accounted.
    */
-  public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr) {
-    blockAllocator = new BlockAllocator(vmr, mr);
+  public SegregatedFreeList(Space space) {
+    blockAllocator = new BlockAllocator(space);
     freeList = AddressArray.create(SIZE_CLASSES);
     firstBlock = AddressArray.create(SIZE_CLASSES);
     lastBlock = AddressArray.create(SIZE_CLASSES);
@@ -762,9 +763,7 @@ public abstract class SegregatedFreeList extends Allocator
   /**
    * Clear all live bits
    */
-  public static final void zeroLiveBits(FreeListVMResource vm) {
-    Address start = vm.getStart();
-    Address end = vm.getHighWater();
+  public static final void zeroLiveBits(Address start, Address end) {
     Extent bytes = Extent.fromInt(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
     while (start.LT(end)) {
       Address metadata = EmbeddedMetaData.getMetaDataBase(start).add(SegregatedFreeList.META_DATA_OFFSET);

@@ -4,6 +4,7 @@
  */
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
@@ -65,8 +66,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    *
    * Instance variables
    */
-  private FreeListVMResource vmResource;
-  private MemoryResource memoryResource;
+  private Space space;
   private AddressArray freeList;
   private int[] freeBlocks;
   private int[] usedBlocks;
@@ -75,9 +75,8 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    *
    * Initialization
    */
-  BlockAllocator(FreeListVMResource vmr, MemoryResource mr) {
-    vmResource = vmr;
-    memoryResource = mr;
+  BlockAllocator(Space space) {
+    this.space = space;
     freeList = AddressArray.create(FREE_LIST_ENTRIES);
     freeBlocks = new int[FREE_LIST_ENTRIES];
     usedBlocks = new int[FREE_LIST_ENTRIES];
@@ -131,7 +130,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       if (decInUseCount(block) == 0) {
         /* now completely free, so take blocks off free list and free page */
 	block = unlinkSubPageBlocks(block, blockSizeClass);
-        vmResource.release(block, memoryResource);
+        space.release(block);
         if (PARANOID)
           freeBlocks[blockSizeClass] -= BYTES_IN_PAGE/blockSize(blockSizeClass);
         if (PARANOID) sanity(false);
@@ -144,7 +143,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
         freeList.set(blockSizeClass, block);
       }
     } else // whole page or pages, so simply return it to the resource
-      vmResource.release(block, memoryResource);
+      space.release(block);
     if (PARANOID) sanity(false);
   }
 
@@ -184,7 +183,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   private final Address allocSlow(int blockSizeClass) {
     Address rtn;
     int pages = pagesForSizeClass(blockSizeClass);
-    if (!(rtn = vmResource.acquire(pages, memoryResource)).isZero()) {
+    if (!(rtn = space.acquire(pages)).isZero()) {
       setBlkSizeClass(rtn, (short) blockSizeClass);
       if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
 	populatePage(rtn, blockSizeClass);

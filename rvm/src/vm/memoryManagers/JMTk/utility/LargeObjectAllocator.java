@@ -5,8 +5,10 @@
 
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -40,8 +42,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    *
    * Instance variables
    */
-  protected FreeListVMResource vmResource;
-  protected MemoryResource memoryResource;
+  protected LargeObjectSpace space;
 
   /****************************************************************************
    *
@@ -56,9 +57,8 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @param mr The memory resource against which memory consumption
    * for this free list allocator will be accounted.
    */
-  public LargeObjectAllocator(FreeListVMResource vmr, MemoryResource mr) {
-    vmResource = vmr;
-    memoryResource = mr;
+  public LargeObjectAllocator(LargeObjectSpace space) {
+    this.space = space;
   }
 
   /****************************************************************************
@@ -102,10 +102,9 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of BYTES_IN_PARTICLE
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
     int pages = (maxbytes + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
-    Address sp = allocSuperPage(pages);
+    Address sp = space.acquire(pages);
     if (sp.isZero()) return sp;
     Address cell = sp.add(header);
-    Memory.zero(cell, Extent.fromIntZeroExtend(maxbytes));
     return cell;
   }
 
@@ -126,7 +125,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    */
   public final void free(Address cell)
     throws InlinePragma {
-    freeSuperPage(getSuperPage(cell));
+    space.release(getSuperPage(cell));
   }
 
   /****************************************************************************
@@ -136,28 +135,6 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
 
   abstract protected int superPageHeaderSize();
   abstract protected int cellHeaderSize();
-
-  /**
-   * Allocate a super page.
-   *
-   * @param pages The size of the superpage in pages.
-   * @return The address of the first word of the superpage.  May return zero.
-   */
-  private final Address allocSuperPage(int pages) {
-    return vmResource.acquire(pages, memoryResource);
-  }
-
-  /**
-   * Return a superpage to the global page pool by freeing it with the
-   * vm resource.  Before this is done the super page is unlinked from
-   * the linked list of super pages for this free list
-   * instance.
-   *
-   * @param sp The superpage to be freed.
-   */
-  protected final void freeSuperPage(Address sp) {
-    vmResource.release(sp, memoryResource);
-  }
 
   /**
    * Return the superpage for a given cell.  If the cell is a small

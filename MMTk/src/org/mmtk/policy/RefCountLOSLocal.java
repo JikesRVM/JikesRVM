@@ -5,8 +5,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.utility.heap.FreeListVMResource;
-import org.mmtk.utility.heap.MemoryResource;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -22,8 +21,9 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
   implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  public RefCountLOSLocal(FreeListVMResource vmr, MemoryResource mr) {
-    super(vmr, mr);
+   public RefCountLOSLocal(LargeObjectSpace space) {
+     super(space);
+     Assert._assert(false);
   }
 
   /****************************************************************************

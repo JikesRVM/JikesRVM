@@ -2943,8 +2943,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
 	[Lorg/mmtk/vm/SynchronizedCounter;
 	[Lorg/mmtk/vm/Plan;
-	[Lorg/mmtk/utility/heap/VMResource;
-	[Lorg/mmtk/utility/heap/MemoryResource;
+	[Lorg/mmtk/policy/Space;
 	[Lorg/mmtk/utility/statistics/Stats;
 	[Lorg/mmtk/utility/statistics/Counter;
 	[Lorg/mmtk/utility/statistics/EventCounter;

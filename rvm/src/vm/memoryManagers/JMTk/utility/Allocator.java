@@ -5,14 +5,13 @@
 
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
-
-import com.ibm.JikesRVM.VM_Memory;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -169,14 +168,14 @@ public abstract class Allocator implements Constants, Uninterruptible {
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
-      current = Plan.getOwnAllocator(current);
+      current = Plan.getInstance().getOwnAllocator(current);
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
     Log.write(bytes);
-    Log.write(" on space "); Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
+    Log.write(" on space "); Log.writeln(Plan.getSpaceNameFromAllocatorAnyPlan(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
-    MemoryResource.showUsage(Plan.MB);
+    Space.showUsageMB();
     Assert.dumpStack(); 
     Assert.failWithOutOfMemoryError();
     /* NOTREACHED */

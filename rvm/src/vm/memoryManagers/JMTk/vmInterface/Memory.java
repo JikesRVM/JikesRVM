@@ -6,8 +6,11 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.policy.ImmortalSpace;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_HeapLayoutConstants;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 
@@ -23,51 +26,41 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Memory implements Constants, Uninterruptible {
- /**
-   * Returns the start of the boot image.
+public class Memory 
+  implements Constants, VM_HeapLayoutConstants, Uninterruptible {
+
+  public static Address HEAP_START() { return BOOT_IMAGE_START; }
+  public static Address HEAP_END() { return MAXIMUM_MAPPABLE; }
+  public static Address AVAILABLE_START() { return BOOT_IMAGE_END; }
+  public static Address AVAILABLE_END() { return MAXIMUM_MAPPABLE; }
+
+  private static ImmortalSpace bootSpace;
+  
+  /* FIXME the following was established via trial and error :-( */
+  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
+
+  /**
+   * Return the space associated with/reserved for the VM.  In the
+   * case of Jikes RVM this is the boot image space.<p>
    *
-   * @return the address of the start of the boot image
-   */
-  public static Address bootImageStart() throws UninterruptiblePragma {
-    return  VM_BootRecord.the_boot_record.bootImageStart;
-  }
-
-  /**
-   * Return the end of the boot image.
+   * The boot image space must be mapped at the start of available
+   * virtual memory, hence we use the constructor that requests the
+   * lowest address in the address space.  The address space awarded
+   * to this space depends on the order in which the request is made.
+   * If this request is not the first request for virtual memory then
+   * the Space allocator will die with an error stating that the
+   * request could not be satisfied.  The remedy is to ensure it is
+   * initialized first.
    *
-   * @return the address of the end of the boot image
+   * @return The space managed by the virtual machine.  In this case,
+   * the boot image space is returned.
    */
-  public static Address bootImageEnd() throws UninterruptiblePragma {
-    return  VM_BootRecord.the_boot_record.bootImageEnd;
+  public static ImmortalSpace getVMSpace() throws InterruptiblePragma {
+    if (bootSpace == null)
+      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, 
+				    BOOT_SEGMENT_MB, false);
+    return bootSpace;
   }
-
-  /**
-   * The address of the start of the boot image.
-   */
-  public static final Address bootImageAddress = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value BOOTIMAGE_LOAD_ADDRESS
-     );
-
-  /**
-   * The address in virtual memory that is the highest that can be mapped.
-   */
-  public static Address MAXIMUM_MAPPABLE = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value MAXIMUM_MAPPABLE_ADDRESS
-     );
-
 
   /**
    * Sets the range of addresses associated with a heap.
@@ -76,8 +69,7 @@ public class Memory implements Constants, Uninterruptible {
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
-  public static void setHeapRange(int id, Address start, Address end)
-    throws UninterruptiblePragma {
+  public static void setHeapRange(int id, Address start, Address end) {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 

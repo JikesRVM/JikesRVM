@@ -8,8 +8,7 @@ import org.mmtk.plan.RefCountBase;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
-import org.mmtk.utility.heap.MemoryResource;
-import org.mmtk.utility.heap.FreeListVMResource;
+import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
@@ -37,7 +36,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class RefCountSpace implements Constants, Uninterruptible {
+public final class RefCountSpace extends Space
+  implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -100,8 +100,6 @@ public final class RefCountSpace implements Constants, Uninterruptible {
    *
    * Instance variables
    */
-  private FreeListVMResource vmResource;
-  private MemoryResource memoryResource;
   public boolean bootImageMark = false;
 
   /****************************************************************************
@@ -111,15 +109,31 @@ public final class RefCountSpace implements Constants, Uninterruptible {
 
   /**
    * Constructor
-   *
-   * @param vmr The virtual memory resource through which allocations
-   * for this collector will go.
-   * @param mr The memory resource against which allocations
-   * associated with this collector will be accounted.
    */
-  public RefCountSpace(FreeListVMResource vmr, MemoryResource mr) {
-    vmResource = vmr;
-    memoryResource = mr;
+  public RefCountSpace(String name, int pageBudget, Address start,
+			Extent bytes) {
+    super(name, false, false, start, bytes);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
+  }
+
+  public RefCountSpace(String name, int pageBudget, int mb) {
+    super(name, false, false, mb);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  public RefCountSpace(String name, int pageBudget, int mb, boolean top) {
+    super(name, false, false, mb, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
+  }
+  
+  public RefCountSpace(String name, int pageBudget, float frac) {
+    super(name, false, false, frac);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  public RefCountSpace(String name, int pageBudget, float frac, boolean top) {
+    super(name, false, false, frac, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
 
   /****************************************************************************
@@ -140,8 +154,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
   /**
    * A new collection increment has completed.
    */
-  public void release() {
-  }
+  public void release() {}
 
   /****************************************************************************
    *
@@ -165,6 +178,10 @@ public final class RefCountSpace implements Constants, Uninterruptible {
       Plan.getInstance().addToRootSet(object);
     }
     return object;
+  }
+
+  public void release(Address start) {
+    ((FreeListPageResource) pr).releasePages(start); 
   }
 
   /****************************************************************************
@@ -668,7 +685,4 @@ public final class RefCountSpace implements Constants, Uninterruptible {
    *
    * Misc
    */
-
-  public final FreeListVMResource getVMResource() { return vmResource;}
-  public final MemoryResource getMemoryResource() { return memoryResource;}
 }

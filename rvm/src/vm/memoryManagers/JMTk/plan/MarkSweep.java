@@ -7,8 +7,7 @@ package org.mmtk.plan;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.policy.TreadmillSpace;
-import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -58,43 +57,23 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
   public static final int GC_HEADER_BITS_REQUIRED = MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
   public static final int GC_HEADER_BYTES_REQUIRED = MarkSweepSpace.GC_HEADER_BYTES_REQUIRED;
 
-  // virtual memory resources
-  private static FreeListVMResource msVM;
-  private static FreeListVMResource losVM;
-
-  // memory resources
-  private static MemoryResource msMR;
-  private static MemoryResource losMR;
-
-  // MS collector
-  private static MarkSweepSpace msSpace;
-  private static TreadmillSpace losSpace;
-
   // GC state
   private static int msReservedPages;
   private static int availablePreGC;
 
   // Allocators
-  public static final byte MS_SPACE = 0;
-  public static final byte DEFAULT_SPACE = MS_SPACE;
+  public static final int ALLOC_MS = ALLOC_DEFAULT;
+  public static final int ALLOCATORS = BASE_ALLOCATORS;
+
+  // Spaces
+  private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  private static final int MS = msSpace.getID();
+
 
   // Miscellaneous constants
   // XXX 512<<10 should be a named constant
   private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
   private static final double MS_RESERVE_FRACTION = 0.1;
-  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-
-  // Memory layout constants
-  public  static final long            AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
-  private static final Extent         MS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
-  public  static final Extent        MAX_SIZE = MS_SIZE;
-
-  private static final Address      LOS_START = PLAN_START;
-  private static final Address        LOS_END = LOS_START.add(LOS_SIZE);
-  private static final Address       MS_START = LOS_END;
-  private static final Address         MS_END = MS_START.add(MS_SIZE);
-  private static final Address       HEAP_END = MS_END;
 
   /****************************************************************************
    *
@@ -103,7 +82,6 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
 
   // allocators
   private MarkSweepLocal ms;
-  private TreadmillLocal los;
 
   /****************************************************************************
    *
@@ -116,24 +94,13 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {
-    msMR = new MemoryResource("ms", POLL_FREQUENCY);
-    losMR = new MemoryResource("los", POLL_FREQUENCY);
-    msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-    msSpace = new MarkSweepSpace(msVM, msMR);
-    losSpace = new TreadmillSpace(losVM, losMR);
-
-    addSpace(MS_SPACE, "Mark-sweep Space");
-    addSpace(LOS_SPACE, "LOS Space");
-  }
+  static {}
 
   /**
    * Constructor
    */
   public MarkSweep() {
     ms = new MarkSweepLocal(msSpace);
-    los = new TreadmillLocal(losSpace);
   }
 
   /**
@@ -164,9 +131,9 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case       MS_SPACE: return ms.alloc(bytes, align, offset, false);
-    case      LOS_SPACE: return los.alloc(bytes, align, offset);
-    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    case       ALLOC_MS: return ms.alloc(bytes, align, offset, false);
+    case      ALLOC_LOS: return los.alloc(bytes, align, offset);
+    case ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
@@ -186,9 +153,9 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
                               int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case  MS_SPACE: msSpace.initializeHeader(ref); return;
-    case LOS_SPACE: losSpace.initializeHeader(ref); return;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    case       ALLOC_MS: msSpace.initializeHeader(ref); return;
+    case      ALLOC_LOS: loSpace.initializeHeader(ref); return;
+    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(ref); return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
@@ -239,16 +206,38 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
     return null;
   }
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == ms) return DEFAULT_SPACE;
-    if (a == los) return LOS_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == ms) return msSpace;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return ms;
-    if (s == LOS_SPACE) return los;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == msSpace) return ms;
+    return super.getAllocatorFromSpace(space);
   }
 
   /**
@@ -269,19 +258,23 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * XXX No Javadoc params.
-   *
-   * @return Whether a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr)
+  public final boolean poll(boolean mustCollect, Space space)
     throws LogicallyUninterruptiblePragma {
-    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
+    if (collectionsInitiated > 0 || !initialized || space == metaDataSpace)
       return false;
     mustCollect |= stressTestGCRequired() || ms.mustCollect();
     availablePreGC = getTotalPages() - getPagesReserved();
-    int reserve = (mr == msMR) ? msReservedPages : 0;
+    int reserve = (space == msSpace) ? msReservedPages : 0;
     if (mustCollect || availablePreGC <= reserve) {
-      required = mr.reservedPages() - mr.committedPages();
+      required = space.reservedPages() - space.committedPages();
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -311,9 +304,9 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * In this case, it means preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    msSpace.prepare(msVM, msMR);
-    ImmortalSpace.prepare(immortalVM, null);
-    losSpace.prepare(losVM, losMR);
+    msSpace.prepare();
+    immortalSpace.prepare();
+    loSpace.prepare();
   }
 
   /**
@@ -354,9 +347,9 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalRelease() {
     // release each of the collected regions
-    losSpace.release();
+    loSpace.release();
     msSpace.release();
-    ImmortalSpace.release(immortalVM, null);
+    immortalSpace.release();
     int available = getTotalPages() - getPagesReserved();
 
     progress = (available > availablePreGC) && (available > exceptionReserve);
@@ -382,25 +375,17 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * @param object The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj) {
-    if (obj.isZero()) return obj;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case MS_SPACE:        return msSpace.traceObject(obj);
-    case LOS_SPACE:       return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:      return ImmortalSpace.traceObject(obj);
-    case META_SPACE:      return obj;
-    default:
-      if (Assert.VERIFY_ASSERTIONS)
-	spaceFailure(obj, space, "Plan.traceObject()");
-      return obj;
-    }
+  public static final Address traceObject(Address object) {
+    if (object.isZero()) 
+      return object;
+    else if (Space.isInSpace(MS, object))
+      return msSpace.traceObject(object);
+    else
+      return Space.getSpaceForObject(object).traceObject(object);
   }
 
   /**
@@ -408,38 +393,36 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i>
+   * @param object The object reference to be traced.  This is <i>NOT</i>
    * an interior pointer.
    * @param root True if this reference to <code>obj</code> was held
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj, boolean root) {
-    return traceObject(obj);  // root or non-root is of no consequence here
+  public static final Address traceObject(Address object, boolean root) {
+    return traceObject(object);  // root or non-root is of no consequence here
   }
 
 
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case MS_SPACE:        return msSpace.isLive(obj);
-    case LOS_SPACE:       return losSpace.isLive(obj);
-    case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:      return true;
-    case META_SPACE:      return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS)
-        spaceFailure(obj, space, "Plan.isLive()");
-      return false;
+  public static final boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    Space space = Space.getSpaceForObject(object);
+    if (space == msSpace)
+      return msSpace.isLive(object);
+    else if (space == loSpace)
+      return loSpace.isLive(object);
+    else if (space == null) {
+      if (Assert.VERIFY_ASSERTIONS) {
+  	Log.write("space failure: "); Log.writeln(object);
+      }
     }
+    return true;
   }
 
   /****************************************************************************
@@ -466,10 +449,10 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = msMR.reservedPages();
-    pages += losMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = msSpace.reservedPages();
+    pages += loSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -479,7 +462,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation.
    */
   protected static final int getPagesAvail() {
-    return getTotalPages() - msMR.reservedPages() - losMR.reservedPages() - immortalMR.reservedPages();
+    return getTotalPages() - msSpace.reservedPages() - loSpace.reservedPages() - immortalSpace.reservedPages();
   }
 
 

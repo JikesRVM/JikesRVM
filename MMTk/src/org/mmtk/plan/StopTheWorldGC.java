@@ -4,6 +4,8 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Finalizer;
@@ -54,11 +56,11 @@ public abstract class StopTheWorldGC extends BasePlan
    * Class variables
    */
   // Global pools for load-balancing queues
-  protected static SharedDeque valuePool = new SharedDeque(metaDataRPA, 1);
-  protected static SharedDeque remsetPool = new SharedDeque(metaDataRPA, 1);
-  protected static SharedDeque forwardPool = new SharedDeque(metaDataRPA, 1);
-  protected static SharedDeque rootLocationPool = new SharedDeque(metaDataRPA, 1);
-  protected static SharedDeque interiorRootPool = new SharedDeque(metaDataRPA, 2);
+  protected static SharedDeque valuePool = new SharedDeque(metaDataSpace, 1);
+  protected static SharedDeque remsetPool = new SharedDeque(metaDataSpace, 1);
+  protected static SharedDeque forwardPool = new SharedDeque(metaDataSpace, 1);
+  protected static SharedDeque rootLocationPool = new SharedDeque(metaDataSpace, 1);
+  protected static SharedDeque interiorRootPool = new SharedDeque(metaDataSpace, 2);
 
   // Statistics
   static Timer initTime = new Timer("init", false, true);
@@ -138,7 +140,7 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected static final boolean stressTestGCRequired()
     throws InlinePragma {
-    long pages = MemoryResource.getCumulativeCommittedPages();
+    long pages = Space.cumulativeCommittedPages();
     if (initialized &&
         ((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
       lastStressCumulativeCommittedPages = pages;
@@ -225,7 +227,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (Plan.WITH_GCSPY) gcspyPostRelease();
     if (timekeeper) finishTime.stop();
     if (timekeeper) Stats.endGC();
-    if (timekeeper) printStats();
+    if (timekeeper) printPostStats();
   }
 
   /**
@@ -267,34 +269,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param start The time that this GC started
    */
   private final void baseGlobalPrepare(long start) {
-    if ((Options.verbose == 1) || (Options.verbose == 2)) {
-      Log.write("[GC "); Log.write(Stats.gcCount());
-      if (Options.verbose == 1) {
-        Log.write(" Start "); 
-        totalTime.printTotalSecs();
-        Log.write(" s");
-      } else {
-        Log.write(" Start "); 
-        totalTime.printTotalMillis();
-        Log.write(" ms");
-      }
-      Log.write("   ");
-      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
-      Log.write(" KB ");
-      Log.flush();
-    }
-    if (Options.verbose > 2) {
-      Log.write("Collection "); Log.write(Stats.gcCount());
-      Log.write(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);
-      Log.writeln();
-      Log.write("  Before Collection: ");
-      MemoryResource.showUsage(MB);
-      if (Options.verbose >= 4) {
-        Log.write("                     ");
-        MemoryResource.showUsage(PAGES);
-      }
-    }
+    printPreStats();
     globalPrepare();
   }
 
@@ -455,9 +430,42 @@ public abstract class StopTheWorldGC extends BasePlan
   protected void printPlanTimes(boolean totals) {}
 
   /**
-   * Print out statistics for last GC
+   * Print out statistics at the start of a GC
    */
-  private final void printStats() {
+  private void printPreStats() {
+    if ((Options.verbose == 1) || (Options.verbose == 2)) {
+      Log.write("[GC "); Log.write(Stats.gcCount());
+      if (Options.verbose == 1) {
+        Log.write(" Start "); 
+        totalTime.printTotalSecs();
+        Log.write(" s");
+      } else {
+        Log.write(" Start "); 
+        totalTime.printTotalMillis();
+        Log.write(" ms");
+      }
+      Log.write("   ");
+      Log.write(Conversions.pagesToKBytes(Plan.getPagesUsed()));
+      Log.write("KB ");
+      Log.flush();
+    }
+    if (Options.verbose > 2) {
+      Log.write("Collection "); Log.write(Stats.gcCount()); 
+      Log.write(":        "); 
+      printUsedPages();
+      Log.write("  Before Collection: ");
+      Space.showUsageMB();
+      if (Options.verbose >= 4) {
+        Log.write("                     ");
+        Space.showUsagePages();
+      }
+    }
+  }
+
+  /**
+   * Print out statistics at the end of a GC
+   */
+  private final void printPostStats() {
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("-> ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
@@ -473,17 +481,30 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (Options.verbose > 2) {
       Log.write("   After Collection: ");
-      MemoryResource.showUsage(MB);
+      Space.showUsageMB();
       if (Options.verbose >= 4) {
           Log.write("                     ");
-          MemoryResource.showUsage(PAGES);
+          Space.showUsagePages();
       }
-      Log.write("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);
-      Log.writeln();
+      Log.write("                     ");
+      printUsedPages();
       Log.write("    Collection time: ");
       totalTime.printLast();
       Log.writeln(" seconds");
     }
+  }
+  
+  private final void printUsedPages() {
+      Log.write("reserved = "); 
+      Log.write(Conversions.pagesToMBytes(Plan.getPagesReserved()));
+      Log.write(" MB (");
+      Log.write(Plan.getPagesReserved());
+      Log.write(" pgs)");
+      Log.write("      total = ");
+      Log.write(Conversions.pagesToMBytes(getTotalPages()));
+      Log.write(" MB (");
+      Log.write(getTotalPages());
+      Log.write(" pgs)");
+      Log.writeln();
   }
 }

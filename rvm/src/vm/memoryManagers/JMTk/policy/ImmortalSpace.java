@@ -5,6 +5,7 @@
 
 package org.mmtk.policy;
 
+import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
@@ -23,13 +24,36 @@ import org.vmmagic.pragma.*;
  *
  * $Id$ 
  *
+ * $Id$
+ *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public final class ImmortalSpace extends BasePolicy 
+public final class ImmortalSpace extends Space 
   implements Constants, Uninterruptible {
+
+  public ImmortalSpace(String name, int pageBudget, Address start,
+		       Extent bytes) {
+    super(name, false, true, start, bytes);
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public ImmortalSpace(String name, int pageBudget, int mb) {
+    super(name, false, true, mb);
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+  
+  public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
+    super(name, false, true, mb, top);
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+
+  public ImmortalSpace(String name, int pageBudget, float frac) {
+    super(name, false, true, frac);
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
 
   /****************************************************************************
    *
@@ -90,8 +114,8 @@ public final class ImmortalSpace extends BasePolicy
    *
    * @param object The object to be traced.
    */
-
-  public static Address traceObject(Address object) {
+  public final Address traceObject(Address object) 
+    throws InlinePragma {
     if (testAndMark(object, immortalMarkState)) 
       Plan.enqueue(object);
     return object;
@@ -106,14 +130,14 @@ public final class ImmortalSpace extends BasePolicy
    * collector we must flip the state of the mark bit between
    * collections.
    */
-  public static void prepare(VMResource vm, MemoryResource mr) { 
+  public void prepare() { 
     immortalMarkState = GC_MARK_BIT_MASK.sub(immortalMarkState);
   }
 
-  public static void release(VMResource vm, MemoryResource mr) { 
+  public void release() { 
   }
 
-  public static boolean isLive(Address obj) {
+  public boolean isLive(Address obj) {
     return true;
   }
 

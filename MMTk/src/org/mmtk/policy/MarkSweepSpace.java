@@ -7,6 +7,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.vm.Assert;
@@ -32,7 +33,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MarkSweepSpace implements Constants, Uninterruptible {
+public final class MarkSweepSpace extends Space
+  implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -48,8 +50,6 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    * Instance variables
    */
   private Word markState;
-  private FreeListVMResource vmResource;
-  private MemoryResource memoryResource;
   public boolean inMSCollection = false;
 
   /****************************************************************************
@@ -60,14 +60,31 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
   /**
    * Constructor
    *
-   * @param vmr The virtual memory resource through which allocations
-   * for this collector will go.
-   * @param mr The memory resource against which allocations
-   * associated with this collector will be accounted.
    */
-  public MarkSweepSpace(FreeListVMResource vmr, MemoryResource mr) {
-    vmResource = vmr;
-    memoryResource = mr;
+  public MarkSweepSpace(String name, int pageBudget, Address start,
+			Extent bytes) {
+    super(name, false, false, start, bytes);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+
+  public MarkSweepSpace(String name, int pageBudget, int mb) {
+    super(name, false, false, mb);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  public MarkSweepSpace(String name, int pageBudget, int mb, boolean top) {
+    super(name, false, false, mb, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+  
+  public MarkSweepSpace(String name, int pageBudget, float frac) {
+    super(name, false, false, frac);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  public MarkSweepSpace(String name, int pageBudget, float frac, boolean top) {
+    super(name, false, false, frac, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
   }
 
   /****************************************************************************
@@ -85,12 +102,11 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    * collector we must flip the state of the mark bit between
    * collections.
    *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void prepare(FreeListVMResource vm, MemoryResource mr) { 
+  public void prepare() { 
     markState = MARK_BIT_MASK.sub(markState);
-    MarkSweepLocal.zeroLiveBits(vm);
+    
+    MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     inMSCollection = true;
   }
 
@@ -98,8 +114,6 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
    *
-   * @param vm (unused)
-   * @param mr (unused)
    */
   public void release() {
     inMSCollection = false;
@@ -113,6 +127,10 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
   public boolean inMSCollection() 
     throws InlinePragma {
     return inMSCollection;
+  }
+
+  public void release(Address start) {
+    ((FreeListPageResource) pr).releasePages(start); 
   }
 
   /****************************************************************************
@@ -212,12 +230,5 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
     ObjectModel.writeAvailableBitsWord(object, newValue);
   }
-
-  /****************************************************************************
-   *
-   * Misc
-   */
-  public final FreeListVMResource getVMResource() { return vmResource;}
-  public final MemoryResource getMemoryResource() { return memoryResource;}
 
 }

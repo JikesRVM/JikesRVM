@@ -9,6 +9,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -50,8 +51,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
   public static final int GC_HEADER_BITS_REQUIRED = RefCountSpace.LOCAL_GC_BITS_REQUIRED;
   private static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
 
-  public static final byte DEFAULT_SPACE = RC_SPACE;
-  private static final Address       HEAP_END = LOS_END;
+  public static final int ALLOC_RC = ALLOC_DEFAULT;
+  public static final int ALLOCATORS = BASE_ALLOCATORS;
 
   protected static int lastRCPages = 0; // pages at end of last GC
 
@@ -76,8 +77,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
   /**
    * Constructor
    */
-  public RefCount() {
-  }
+  public RefCount() {}
 
   /****************************************************************************
    *
@@ -96,9 +96,9 @@ public class RefCount extends RefCountBase implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case       RC_SPACE: return rc.alloc(bytes, align, offset, false);
-    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
-    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    case       ALLOC_RC: return rc.alloc(bytes, align, offset, false);
+    case ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      ALLOC_LOS: return los.alloc(bytes, align, offset);
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
       return Address.zero();
@@ -118,15 +118,15 @@ public class RefCount extends RefCountBase implements Uninterruptible {
                               int allocator)
     throws NoInlinePragma {
     switch (allocator) {
-    case RC_SPACE:
+    case ALLOC_RC:
       RefCountLocal.unsyncLiveObject(object);
-    case LOS_SPACE: 
+    case ALLOC_LOS: 
       if (WITH_COALESCING_RC) modBuffer.push(object);
       decBuffer.push(object);
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(object); 
       RefCountSpace.initializeHeader(object, typeRef, true);
       return;
-    case IMMORTAL_SPACE: 
+    case ALLOC_IMMORTAL: 
       if (WITH_COALESCING_RC)
 	modBuffer.push(object);
       else
@@ -164,19 +164,6 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   public final void postCopy(Address ref, Address typeRef, int bytes) {}
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == rc) return DEFAULT_SPACE;
-    if (a == los) return LOS_SPACE;
-    return super.getSpaceFromAllocator(a);
-  }
-
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return rc;
-    if (s == LOS_SPACE) return los;
-    return super.getAllocatorFromSpace(s);
-  }
-
-
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -195,22 +182,26 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * @param mustCollect True if a this collection is forced.
-   * @param mr The memory resource that triggered this collection.
-   * @return True if a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public final boolean poll(boolean mustCollect, Space space)
     throws LogicallyUninterruptiblePragma {
     if (collectionsInitiated > 0 || !initialized) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
         (progress &&
-         ((rcMR.committedPages() - lastRCPages) > Options.maxNurseryPages ||
-          metaDataMR.committedPages() > Options.metaDataPages))) {
-      if (mr == metaDataMR) {
+         ((rcSpace.committedPages() - lastRCPages) > Options.maxNurseryPages ||
+          metaDataSpace.committedPages() > Options.metaDataPages))) {
+      if (space == metaDataSpace) {
         awaitingCollection = true;
         return false;
       }
-      required = mr.reservedPages() - mr.committedPages();
+      required = space.reservedPages() - space.committedPages();
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -243,7 +234,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   protected final void globalPrepare() {
     timeCap = Statistics.cycles() + Statistics.millisToCycles(Options.gcTimeCap);
-    ImmortalSpace.prepare(immortalVM, null);
+    immortalSpace.prepare();
     rcSpace.prepare();
   }
 
@@ -285,9 +276,9 @@ public class RefCount extends RefCountBase implements Uninterruptible {
   protected final void globalRelease() {
     // release each of the collected regions
     rcSpace.release();
-    ImmortalSpace.release(immortalVM, null);
+    immortalSpace.release();
     if (Options.verbose > 2) rc.printStats();
-    lastRCPages = rcMR.committedPages();
+    lastRCPages = rcSpace.committedPages();
   }
 
   /****************************************************************************
@@ -303,9 +294,9 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-   public static final Address traceObject(Address obj) 
+   public static final Address traceObject(Address object) 
      throws InlinePragma {
-     return obj;
+     return object;
    }
   
   /**
@@ -323,19 +314,13 @@ public class RefCount extends RefCountBase implements Uninterruptible {
   public static final Address traceObject(Address object, boolean root) {
     if (object.isZero() || !root) 
       return object;
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    
     if (RefCountSpace.RC_SANITY_CHECK) 
       Plan.getInstance().rc.incSanityTraceRoot(object);
 
-    if (space == RC_SPACE || space == LOS_SPACE)
+    if (isRCObject(object))
       return rcSpace.traceObject(object);
     
-    if (Assert.VERIFY_ASSERTIONS && space != BOOT_SPACE 
-        && space != IMMORTAL_SPACE && space != META_SPACE) 
-      spaceFailure(object, space, "Plan.traceObject()");
-    // else this is not a rc heap pointer
+    // else this is not an rc heap pointer
     return object;
   }
 
@@ -353,10 +338,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   public final void incSanityTrace(Address object, Address location,
                             boolean root) {
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    
-    if (space == RC_SPACE || space == LOS_SPACE) {
+    if (isRCObject(object)) {
       if (RefCountSpace.incSanityRC(object, root))
         Scan.enumeratePointers(object, sanityEnum);
     } else if (RefCountSpace.markSanityRC(object))
@@ -377,10 +359,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(Address object, Address location) {
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    
-    if (space == RC_SPACE || space == LOS_SPACE) {
+    if (isRCObject(object)) {
       if (RefCountSpace.checkAndClearSanityRC(object))
         Scan.enumeratePointers(object, sanityEnum);
     } else if (RefCountSpace.unmarkSanityRC(object))
@@ -394,14 +373,12 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    if (space == RC_SPACE || space == LOS_SPACE)
+    if (isRCObject(object))
       return RefCountSpace.isLiveRC(object);
-    else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
-      return true;
-    else
+    else if (Space.isInSpace(META, object))
       return false;
+    else
+      return true;
   }
 
   /**
@@ -413,14 +390,12 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * to it.
    */
   public static boolean isFinalizable(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    if (space == RC_SPACE || space == LOS_SPACE)
+    if (isRCObject(object))
       return RefCountSpace.isFinalizable(object);
-    else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
-      return false;
-    else
+    else if (!Space.isInSpace(META, object))
       return true;
+    else
+      return false;
   }
 
   /**
@@ -434,9 +409,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @return The object (no copying is performed).
    */
   public static Address retainFinalizable(Address object) {
-    Address addr = ObjectModel.refToAddress(object);
-    byte space = VMResource.getSpace(addr);
-    if (space == RC_SPACE || space == LOS_SPACE)
+    if (isRCObject(object))
       RefCountSpace.clearFinalizer(object);
     return object;
   }
@@ -468,8 +441,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic)
    */
-  public final void writeBarrier(Address src, Address slot,
-                                 Address tgt, int metaDataA, int metaDataB, int mode) 
+  public final void writeBarrier(Address src, Address slot, Address tgt,
+				 int metaDataA, int metaDataB, int mode) 
     throws InlinePragma {
     if (INLINE_WRITE_BARRIER)
       writeBarrierInternal(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -506,10 +479,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
       Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {      
       Address old = Barriers.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
-      if (old.GE(RC_START))
-        decBuffer.pushOOL(old);
-      if (tgt.GE(RC_START))
-        RefCountSpace.incRCOOL(tgt);
+      if (isRCObject(old)) decBuffer.pushOOL(old);
+      if (isRCObject(tgt)) RefCountSpace.incRCOOL(tgt);
     }
   }
 
@@ -537,10 +508,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
       Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {
       Address old = Barriers.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
-      if (old.GE(RC_START))
-        decBuffer.push(old);
-      if (tgt.GE(RC_START))
-        RefCountSpace.incRC(tgt);
+      if (isRCObject(old)) decBuffer.push(old);
+      if (isRCObject(tgt)) RefCountSpace.incRC(tgt);
     }
   }
 
@@ -567,9 +536,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * left to the caller (this depends on which style of barrier is
    * being used).
    */
-  public boolean writeBarrier(Address src, int srcOffset,
-			      Address dst, int dstOffset,
-			      int bytes) {
+  public boolean writeBarrier(Address src, int srcOffset, Address dst, 
+			      int dstOffset, int bytes) {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (RefCountSpace.logRequired(dst))
@@ -582,10 +550,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
 	do {
 	  old = dst.prepareAddress();
 	} while (!dst.attempt(old, tgt));
-	if (old.GE(RC_START))
-	  decBuffer.push(old);
-	if (tgt.GE(RC_START))
-	  RefCountSpace.incRC(tgt);
+	if (isRCObject(old)) decBuffer.push(old);
+	if (isRCObject(tgt)) RefCountSpace.incRC(tgt);
 	src = src.add(BYTES_IN_ADDRESS);
 	dst = dst.add(BYTES_IN_ADDRESS);
 	bytes -= BYTES_IN_ADDRESS;
@@ -634,11 +600,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(WITH_COALESCING_RC);
     Address object = objLoc.loadAddress();
-    if (!object.isZero()) {
-      Address addr = ObjectModel.refToAddress(object);
-      if (addr.GE(RC_START))
-        RefCountSpace.incRC(object);
-    }
+    if (isRCObject(object)) RefCountSpace.incRC(object);
   }
 
   /****************************************************************************
@@ -665,9 +627,10 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * allocation.
    */
   protected static int getPagesUsed() {
-    int pages = rcMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = rcSpace.reservedPages();
+    pages += loSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -695,26 +658,6 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     rc.show();
     los.show();
     immortal.show();
-  }
-
-  /**
-   * Return true if the object resides within the RC space
-   *
-   * @param object An object reference
-   * @return True if the object resides within the RC space
-   */
-  public static final boolean isRCObject(Address object)
-    throws InlinePragma {
-    if (object.isZero()) 
-      return false;
-    else {
-      Address addr = ObjectModel.refToAddress(object);
-      if (addr.GE(RC_START)) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(HEAP_END));
-        return true;
-      } else 
-        return false;
-    }
   }
 }
 

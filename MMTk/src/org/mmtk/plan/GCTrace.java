@@ -9,8 +9,8 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.TreadmillSpace;
-import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -93,76 +93,28 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCTrace extends StopTheWorldGC implements Uninterruptible {
+public class GCTrace extends SemiSpaceBase implements Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = true;
-  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean GENERATE_GC_TRACE = true;
 
-  /* virtual memory resources */
-  private static FreeListVMResource losVM;
-  private static MonotoneVMResource ss0VM;
-  private static MonotoneVMResource ss1VM;
-
-  /* memory resources */
-  private static MemoryResource ssMR;
-  private static MemoryResource losMR;
-
-  /* large object space (LOS) collector */
-  private static TreadmillSpace losSpace;
-
   /* GC state */
-  private static boolean hi = false; // True if allocing to "higher" semispace
   private static boolean traceInducedGC = false; // True if trace triggered GC
   private static boolean deathScan = false;
   private static boolean finalDead = false;
 
-  /* Tracing stuff */
-  protected static MemoryResource traceMR;
-  private static MonotoneVMResource traceVM;
-  protected static RawPageAllocator traceRPA;
-
-  /* Allocators */
-  private static final byte LOW_SS_SPACE = 0;
-  private static final byte HIGH_SS_SPACE = 1;
-  public static final byte DEFAULT_SPACE = 2; // logical space that maps to either LOW_SS_SPACE or HIGH_SS_SPACE
-  private static final byte TRACE_SPACE = 3;
-
-  /* Miscellaneous constants */
-  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  
-  /* Memory layout constants */
-  private static final Extent      TRACE_SIZE = META_DATA_SIZE;
-  private static final Address    TRACE_START = PLAN_START;
-  private static final Address      TRACE_END = TRACE_START.add(TRACE_SIZE);
-  public  static final long         AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(TRACE_END).toLong();
-  private static final Extent         SS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
-  private static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
-  public  static final Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
-
-  private static final Address      LOS_START = TRACE_END;
-  private static final Address        LOS_END = LOS_START.add(LOS_SIZE);
-  private static final Address       SS_START = LOS_END;
-  private static final Address   LOW_SS_START = SS_START;
-  private static final Address  HIGH_SS_START = SS_START.add(SS_SIZE);
-  private static final Address         SS_END = HIGH_SS_START.add(SS_SIZE);
-  private static final Address       HEAP_END = SS_END;
-
+  /* Spaces */
+  protected static RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  protected static final int TRACE = traceSpace.getID();
 
   /****************************************************************************
    *
    * Instance variables
    */
-
-  /* Allocators */
-  public BumpPointer ss;
-  private TreadmillLocal los;
 
   /****************************************************************************
    *
@@ -176,53 +128,27 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    /* Setup the "off-book" space for tracing */
-    traceMR = new MemoryResource("trace", META_DATA_POLL_FREQUENCY);
-    traceVM = new MonotoneVMResource(TRACE_SPACE, "Trace data", traceMR,
-                                      TRACE_START, TRACE_SIZE,
-                                      VMResource.META_DATA);
-    traceRPA = new RawPageAllocator(traceVM, traceMR);
-    SortTODSharedDeque workList = new SortTODSharedDeque(traceRPA, 1);
-    SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceRPA, 1); 
+    SortTODSharedDeque workList = new SortTODSharedDeque(traceSpace, 1);
+    SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceSpace, 1); 
     TraceGenerator.init(workList, traceBuf);
-
-    /* Now initialize the normal program heap */
-    ssMR = new MemoryResource("ss", POLL_FREQUENCY);
-    losMR = new MemoryResource("los", POLL_FREQUENCY);
-    ss0VM = new MonotoneVMResource(LOW_SS_SPACE, "Lower SS", ssMR, LOW_SS_START,
-				   SS_SIZE, VMResource.MOVABLE);
-    ss1VM = new MonotoneVMResource(HIGH_SS_SPACE, "Upper SS", ssMR, 
-				   HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, 
-				   VMResource.IN_VM);
-    losSpace = new TreadmillSpace(losVM, losMR);
-
-    addSpace(LOW_SS_SPACE, "Lower Semi-Space");
-    addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
-    addSpace(LOS_SPACE, "LOS Space");
-    addSpace(TRACE_SPACE, "Trace Space");
-    /* DEFAULT_SPACE is logical and does not actually exist */
   }
 
   /**
    * Constructor
    */
-  public GCTrace() {
-    ss = new BumpPointer(ss0VM);
-    los = new TreadmillLocal(losSpace);
-  }
+  public GCTrace() {}
 
   /**
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public static final void boot() { 
+  public static final void boot() throws InterruptiblePragma { 
     StopTheWorldGC.boot();
   }
 
   /**
-   * The planExit method is called at RVM termination to allow the trace process
-   * to finish.
+   * The planExit method is called at RVM termination to allow the
+   * trace process to finish.
    */
    public final void planExit(int value) {
     finalDead = true;
@@ -234,27 +160,6 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    *
    * Allocation
    */
-
-  /**
-   * Allocate space (for an object)
-   *
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator number to be used for this allocation
-   * @return The address of the first byte of the allocated region
-   */
-  public final Address alloc(int bytes, int align, int offset, int allocator)
-    throws InlinePragma {
-    switch (allocator) {
-    case  DEFAULT_SPACE: return ss.alloc(bytes, align, offset);
-    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
-    case      LOS_SPACE: return los.alloc(bytes, align, offset);
-    default: 
-      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
-      return Address.zero();
-    }
-  }
 
   /**
    * Perform post-allocation actions.  For many allocators none are
@@ -271,15 +176,15 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
     switch (allocator) {
-    case  DEFAULT_SPACE: break;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(object); break;
-    case      LOS_SPACE: losSpace.initializeHeader(object); break;
+    case  ALLOC_DEFAULT: break;
+    case ALLOC_IMMORTAL: immortalSpace.postAlloc(object); break;
+    case      ALLOC_LOS: loSpace.initializeHeader(object); break;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
     /* Now have the trace process aware of the new allocation. */
     traceInducedGC = TraceGenerator.MERLIN_ANALYSIS;
-    TraceGenerator.traceAlloc(allocator == IMMORTAL_SPACE, object, typeRef, bytes);
+    TraceGenerator.traceAlloc(allocator == ALLOC_IMMORTAL, object, typeRef, bytes);
     traceInducedGC = false;
   }
 
@@ -313,37 +218,6 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
     CopySpace.clearGCBits(object);
   } // do nothing
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == ss) return DEFAULT_SPACE;
-    if (a == los) return LOS_SPACE;
-    return super.getSpaceFromAllocator(a);
-  }
-
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return ss;
-    if (s == LOS_SPACE) return los;
-    return super.getAllocatorFromSpace(s);
-  }
-  
-  /**
-   * Give the compiler/runtime statically generated alloction advice
-   * which will be passed to the allocation routine at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return Allocation advice to be passed to the allocation routine
-   * at runtime
-   */
-  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
-					  CallSite callsite,
-					  AllocAdvice hint) {
-    return null;
-  }
-
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -362,18 +236,23 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * @param mustCollect True if a this collection is forced.
-   * @param mr The memory resource that triggered this collection.
-   * @return True if a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR) 
+    if (collectionsInitiated > 0 || !initialized || space == metaDataSpace)
       return false;
     mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
-      required = mr.reservedPages() - mr.committedPages();
-      if (mr == ssMR) required = required<<1; // must account for copy reserve
+      required = space.reservedPages() - space.committedPages();
+      if (space == copySpace0 || space == copySpace1)
+	required = required<<1; // must account for copy reserve
       traceInducedGC = false;
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
@@ -384,9 +263,8 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
   /****************************************************************************
    *
    * Collection
-   */
-
-  /* Important notes:
+   *
+   * Important notes:
    *   . Global actions are executed by only one thread
    *   . Thread-local actions are executed by all threads
    *   . The following order is guaranteed by BasePlan, with each
@@ -406,14 +284,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    if (!traceInducedGC) {
-      hi = !hi;        // flip the semi-spaces
-      ssMR.reset();    // reset the semispace memory resource, and
-      /* prepare each of the collected regions */
-      CopySpace.prepare(((hi) ? ss0VM : ss1VM), ssMR);
-      ImmortalSpace.prepare(immortalVM, null);
-      losSpace.prepare(losVM, losMR);
-    }
+    if (!traceInducedGC) super.globalPrepare();
   }
 
   /**
@@ -425,11 +296,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * space allocators.
    */
   protected final void threadLocalPrepare(int count) {
-    if (!traceInducedGC) {
-      /* rebind the semispace bump pointer to the appropriate semispace. */
-      ss.rebind(((hi) ? ss1VM : ss0VM)); 
-      los.prepare();
-    }
+    if (!traceInducedGC) super.threadLocalPrepare(count);
   }
 
   /**
@@ -443,9 +310,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    if (!traceInducedGC) {
-      los.release();
-    }
+    if (!traceInducedGC) super.threadLocalRelease(count);
   }
 
   /**
@@ -463,11 +328,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
       TraceGenerator.postCollection();
       deathScan = false;
       /* release each of the collected regions */
-      losSpace.release();
-      ((hi) ? ss0VM : ss1VM).release();
-      CopySpace.release(((hi) ? ss0VM : ss1VM), ssMR);
-      ImmortalSpace.release(immortalVM, null);
-      progress = (getPagesReserved() + required < getTotalPages());
+      super.globalRelease();
     } else {
       /* Clean up following a trace induced scan */
       progress = true;
@@ -485,49 +346,20 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies (such as those needed for trace generation)
    * and taking the appropriate actions.
    *
-   * @param obj The object reference to be traced.  In certain cases, this should
-   * <i>NOT</i> be an interior pointer.
+   * @param object The object reference to be traced.  In certain
+   * cases, this should <i>NOT</i> be an interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj)
-    throws InlinePragma {
-    if (obj.isZero()) return obj;
+  public static final Address traceObject(Address object) throws InlinePragma {
+    if (object.isZero()) return object;
     if (traceInducedGC) {
-      TraceGenerator.rootEnumerate(obj);
-      return obj;
+      TraceGenerator.rootEnumerate(object);
+      return object;
     } else if (deathScan) {
-      TraceGenerator.propagateDeathTime(obj);
-      return obj;
-    } else {
-      return followObject(obj);
-    }
-  }
-
-  /**
-   * Promote a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>trace</code> method.
-   *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
-   * interior pointer.
-   * @return The possibly moved reference.
-   */
-  public static final Address followObject(Address obj)
-    throws InlinePragma {
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case LOW_SS_SPACE:   return   hi  ? CopySpace.traceObject(obj) : obj;
-    case HIGH_SS_SPACE:  return (!hi) ? CopySpace.traceObject(obj) : obj;
-    case LOS_SPACE:      return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:     return ImmortalSpace.traceObject(obj);
-    case META_SPACE:     return obj;
-    default:  
-      if (Assert.VERIFY_ASSERTIONS) 
-	spaceFailure(obj, space, "Plan.traceObject()");
-      return obj;
-    }
+      TraceGenerator.propagateDeathTime(object);
+      return object;
+    } else
+      return SemiSpaceBase.traceObject(object);
   }
 
   /**
@@ -535,26 +367,14 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i>
+   * @param object The object reference to be traced.  This is <i>NOT</i>
    * an interior pointer.
    * @param root True if this reference to <code>obj</code> was held
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj, boolean root) {
-    return traceObject(obj);  // root or non-root is of no consequence here
-  }
-
-
-  /**
-   * Scan an object that was previously forwarded but not scanned.
-   * The separation between forwarding and scanning is necessary for
-   * the "pre-copying" mechanism to function properly.
-   *
-   * @param object The object to be scanned.
-   */
-  protected final void scanForwardedObject(Address object) {
-    Scan.scanObject(object);
+  public static final Address traceObject(Address object, boolean root) {
+    return traceObject(object);  // root or non-root is of no consequence here
   }
 
   /**
@@ -570,105 +390,54 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
     if (traceInducedGC) {
-      Address obj = location.loadAddress();
-      if (!obj.isZero()) {
-        TraceGenerator.rootEnumerate(obj);
-      }
-    } else {
-      Address obj = location.loadAddress();
-      if (!obj.isZero()) {
-        Address addr = ObjectModel.refToAddress(obj);
-        byte space = VMResource.getSpace(addr);
-        if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
-          location.store(CopySpace.forwardObject(obj));
-      }
-    }
-  }
-
-  /**
-   * If the object in question has been forwarded, return its
-   * forwarded value.<p>
-   *
-   * @param object The object which may have been forwarded.
-   * @return The forwarded value for <code>object</code>.
-   */
-  public static final Address getForwardedReference(Address object) {
-    if (!object.isZero()) {
-      Address addr = ObjectModel.refToAddress(object);
-      byte space = VMResource.getSpace(addr);
-      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
-        return CopySpace.getForwardingPointer(object);
-      }
-    }
-    return object;
-  }
-  
-  /**
-   * Return true if the given reference is to an object that is within
-   * one of the semi-spaces.
-   *
-   * @param ref The object in question
-   * @return True if the given reference is to an object that is within
-   * one of the semi-spaces.
-   */
-  public static final boolean isSemiSpaceObject(Address ref) {
-    if (traceInducedGC) return true;
-    Address addr = ObjectModel.refToAddress(ref);
-    return (addr.GE(SS_START) && addr.LE(SS_END));
+      Address object = location.loadAddress();
+      if (!object.isZero())
+        TraceGenerator.rootEnumerate(object);
+    } else
+      SemiSpaceBase.forwardObjectLocation(location);
   }
 
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    if (traceInducedGC) return true;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case LOW_SS_SPACE:    return CopySpace.isLive(obj);
-    case HIGH_SS_SPACE:   return CopySpace.isLive(obj);
-    case LOS_SPACE:       return losSpace.isLive(obj);
-    case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:	  return true;
-    case META_SPACE:	  return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
-      return false;
-    }
+  public static final boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    if (traceInducedGC)
+      return true;
+    else
+      return SemiSpaceBase.isLive(object);
   }
 
  /**
    * Return true if <code>obj</code> is a reachable object.
    *
    * @param obj The object in question
-   * @return True if <code>obj</code> is a reachable object; unreachable objects
-   *         may still be live, however
+   * @return True if <code>obj</code> is a reachable object;
+   * unreachable objects may still be live, however
    */
-  public final boolean isReachable(Address obj) {
+  public final boolean isReachable(Address object) {
     if (finalDead) return false;
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case LOW_SS_SPACE:    return ((hi) ? CopySpace.isLive(obj) : true);
-    case HIGH_SS_SPACE:   return ((!hi) ? CopySpace.isLive(obj) : true);
-    case LOS_SPACE:       return losSpace.isLive(obj); 
-    }
-    return super.isReachable(obj);
+    if (object.isZero()) return false;
+    Space space = Space.getSpaceForObject(object);
+    if (space == copySpace0)
+      return ((hi) ? copySpace0.isLive(object) : true);
+    else if (space == copySpace1)
+      return ((!hi) ? copySpace1.isLive(object) : true);
+    else if (space == loSpace)
+      return loSpace.isLive(object);
+    else
+      return super.isReachable(object);
   }
 
   // XXX Missing Javadoc comment.
-  public static boolean willNotMove (Address obj) {
-   if (traceInducedGC) return true;
-   boolean movable = VMResource.refIsMovable(obj);
-   if (!movable) return true;
-   Address addr = ObjectModel.refToAddress(obj);
-   return (hi ? ss1VM : ss0VM).inRange(addr);
+  public static boolean willNotMove(Address object) {
+    if (traceInducedGC)
+      return true;
+    else
+      return SemiSpaceBase.willNotMove(object);
   }
 
   /****************************************************************************
@@ -688,7 +457,8 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param locationMetadata an int that encodes the source location being modified
+   * @param locationMetadata an int that encodes the source location
+   * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(Address src, Address slot,
@@ -740,48 +510,6 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.  This <i>includes</i> space reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
-   */
-  protected static final int getPagesReserved() {
-    /* We must account for the number of pages required for copying,
-       which equals the number of semi-space pages reserved */
-    return ssMR.reservedPages() + getPagesUsed();
-  }
-
-  /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.  This is <i>exclusive of</i> space reserved for
-   * copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
-   */
-  protected static final int getPagesUsed() {
-    int pages = ssMR.reservedPages();
-    pages += losMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
-    return pages;
-  }
-
-  /**
-   * Return the number of pages available for allocation, <i>assuming
-   * all future allocation is to the semi-space</i>.
-   *
-   * @return The number of pages available for allocation, <i>assuming
-   * all future allocation is to the semi-space</i>.
-   */
-  protected static final int getPagesAvail() {
-    int semispaceTotal = getTotalPages() - losMR.reservedPages() 
-      - immortalMR.reservedPages();
-    return (semispaceTotal>>1) - ssMR.reservedPages();
-  }
-
-  /**
    * @return Since trace induced collections are not called to free up memory,
    * their failure to return memory isn't cause for concern.
    */
@@ -793,13 +521,4 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
    *
    * Miscellaneous
    */
-
-  /**
-   * Show the status of each of the allocators.
-   */
-  public final void show() {
-    ss.show();
-    los.show();
-    immortal.show();
-  }
 }

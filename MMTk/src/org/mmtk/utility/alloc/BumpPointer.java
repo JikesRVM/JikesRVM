@@ -5,6 +5,7 @@
 
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Constants;
@@ -37,8 +38,8 @@ public final class BumpPointer extends Allocator
    * @param mr The memory resource from which this bump pointer will
    * acquire memory.
    */
-  public BumpPointer(MonotoneVMResource vmr) {
-    vmResource = vmr;
+  public BumpPointer(Space space) {
+    this.space = space;
     reset();
   }
 
@@ -55,9 +56,9 @@ public final class BumpPointer extends Allocator
    * @param vmr The virtual memory resouce with which this bump
    * pointer is to be associated.
    */
-  public void rebind(MonotoneVMResource vmr) {
+  public void rebind(Space space) {
     reset();
-    vmResource = vmr;
+    this.space = space;
   }
 
   /**
@@ -77,13 +78,15 @@ public final class BumpPointer extends Allocator
       if (newCursor.GT(limit))
       return allocSlow(bytes, align, offset);
     cursor = newCursor;
+    //    Log.write("a["); Log.write(oldCursor); Log.writeln("]");
     return oldCursor;
   }
 
   final protected Address allocSlowOnce(int bytes, int align, int offset, 
                                            boolean inGC) {
     Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
-    Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
+    Address start;
+    start = space.acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
 
@@ -104,7 +107,7 @@ public final class BumpPointer extends Allocator
    * @param driver the GCSpy driver for this space
    */
   public void gcspyGatherData(int event, AbstractDriver driver) {
-    vmResource.gcspyGatherData(event, driver);
+    //    vmResource.gcspyGatherData(event, driver);
   }
 
   /****************************************************************************
@@ -113,7 +116,7 @@ public final class BumpPointer extends Allocator
    */
   private Address cursor;
   private Address limit;
-  private MonotoneVMResource vmResource;
+  private Space space;
 
   /****************************************************************************
    *
@@ -122,6 +125,6 @@ public final class BumpPointer extends Allocator
    * Must ensure the bump pointer will go through slow path on (first)
    * alloc of initial value
    */
-  private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
+  private static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
   private static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).sub(Word.one());
 }

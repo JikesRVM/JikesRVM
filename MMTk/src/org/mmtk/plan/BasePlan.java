@@ -5,6 +5,10 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.policy.LargeObjectLocal;
+import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Conversions;
@@ -66,47 +70,43 @@ public abstract class BasePlan
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
+  // GC state and control variables
   public static final int NOT_IN_GC = 0;   // this must be zero for C code
   public static final int GC_PREPARE = 1;  // before setup and obtaining root
   public static final int GC_PROPER = 2;
-
-  // GC state and control variables
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
   protected static int collectionsInitiated = 0;
   private static int gcStatus = NOT_IN_GC; // shared variable
   protected static int exceptionReserve = 0;
+  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
 
-  // Timing variables
-  protected static boolean insideHarness = false;
+  // Spaces
+  protected static final int IMMORTAL_MB = 32;
+  protected static final int META_DATA_MB = 32;
+  protected static final float LOS_FRAC = (float) 0.1;
+  protected static Space vmSpace = Memory.getVMSpace();
+  protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  protected static final int IMMORTAL = immortalSpace.getID();
+  protected static RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  protected static final int META = metaDataSpace.getID();
+  protected static LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
+  public static final int LOS = loSpace.getID();
 
-  // Meta data resources
-  private static MonotoneVMResource metaDataVM;
-  protected static MemoryResource metaDataMR;
-  protected static RawPageAllocator metaDataRPA;
-  public static MonotoneVMResource bootVM;
-  public static MemoryResource bootMR;
-  public static MonotoneVMResource immortalVM;
-  protected static MemoryResource immortalMR;
-  public static MonotoneVMResource gcspyVM;
-  protected static MemoryResource gcspyMR;
-  // 
-  // Space constants
-  private static final String[] spaceNames = new String[128];
-  public static final byte UNUSED_SPACE = 127;
-  public static final byte BOOT_SPACE = 126;
-  public static final byte META_SPACE = 125;
-  public static final byte IMMORTAL_SPACE = 124;
-  public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
-  public static final byte LOS_SPACE = 123;
+  // Allocators
+  public static final int ALLOC_DEFAULT = 0;
+  public static final int ALLOC_IMMORTAL = 1;
+  public static final int ALLOC_LOS = 2;
+  public static final int ALLOC_GCSPY = 3;
+  public static final int BASE_ALLOCATORS = 4;
 
   // Statistics
+  protected static boolean insideHarness = false;
   public static Timer totalTime;
   public static SizeCounter mark;
   public static SizeCounter cons;
 
   // Miscellaneous constants
-  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int LOS_SIZE_THRESHOLD = 8 * 1024;
   public    static final int NON_PARTICIPANT = 0;
@@ -115,17 +115,6 @@ public abstract class BasePlan
   public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
-  // Memory layout constants
-  protected static final Extent     SEGMENT_SIZE = Extent.fromIntZeroExtend(0x10000000);
-  public    static final Address      BOOT_START = Memory.bootImageAddress;
-  protected static final Extent        BOOT_SIZE = SEGMENT_SIZE;
-  protected static final Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final Extent    IMMORTAL_SIZE = Extent.fromIntZeroExtend(32 * 1024 * 1024);
-  protected static final Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
-  protected static final Address META_DATA_START = IMMORTAL_END;
-  protected static final Extent  META_DATA_SIZE  = Extent.fromIntZeroExtend(32 * 1024 * 1024);
-  protected static final Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
-  protected static final Address      PLAN_START = META_DATA_END;
 
   /****************************************************************************
    *
@@ -133,6 +122,7 @@ public abstract class BasePlan
    */
   private int id = 0;                     // Zero-based id of plan instance
   public BumpPointer immortal;
+  protected LargeObjectLocal los;
   Log log;
 
   /****************************************************************************
@@ -147,21 +137,6 @@ public abstract class BasePlan
    * into the boot image by the build process.
    */
   static {
-    metaDataMR = new MemoryResource("meta", META_DATA_POLL_FREQUENCY);
-    metaDataVM = new MonotoneVMResource(META_SPACE, "Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
-    metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
-
-    bootMR = new MemoryResource("boot", META_DATA_POLL_FREQUENCY);
-    bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
-
-    immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
-    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE);
-
-    addSpace(UNUSED_SPACE, "Unused");
-    addSpace(BOOT_SPACE, "Boot");
-    addSpace(META_SPACE, "Meta");
-    addSpace(IMMORTAL_SPACE, "Immortal");
-
     totalTime = new Timer("time");
     if (Stats.GATHER_MARK_CONS_STATS) {
       mark = new SizeCounter("mark", true, true);
@@ -176,7 +151,8 @@ public abstract class BasePlan
   BasePlan() {
     id = planCount++;
     plans[id] = (Plan) this;
-    immortal = new BumpPointer(immortalVM);
+    immortal = new BumpPointer(immortalSpace);
+    los = new LargeObjectLocal(loSpace);
     log = new Log();
   }
 
@@ -185,8 +161,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws InterruptiblePragma {
-    if (Plan.GENERATE_GC_TRACE)
-      TraceGenerator.boot(BOOT_START);
+    if (Plan.GENERATE_GC_TRACE) TraceGenerator.boot(Memory.HEAP_START());
   }
 
   /**
@@ -199,7 +174,7 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (Options.verbose > 2) VMResource.showAll();
+    if (Options.verbose > 2) Space.showVMMap();
     if (Options.verbose > 0) Stats.startAll();
   }
 
@@ -227,52 +202,122 @@ public abstract class BasePlan
    */
   public static int checkAllocator(int bytes, int align, int allocator) 
     throws InlinePragma {
-    if (allocator == Plan.DEFAULT_SPACE && 
+    if (allocator == ALLOC_DEFAULT && 
         Allocator.getMaximumAlignedSize(bytes, align) > LOS_SIZE_THRESHOLD)
-      return LOS_SPACE;
+      return ALLOC_LOS;
     else 
       return allocator;
   }
 
-  protected byte getSpaceFromAllocator(Allocator a) {
-    if (a == immortal) return IMMORTAL_SPACE;
-    return UNUSED_SPACE;
-  }
-
-  public static byte getSpaceFromAllocatorAnyPlan(Allocator a) {
-    for (int i=0; i<plans.length; i++) {
-      byte space = plans[i].getSpaceFromAllocator(a);
-      if (space != UNUSED_SPACE)
-        return space;
-    }
-    return UNUSED_SPACE;
-  }
-
-  protected Allocator getAllocatorFromSpace (byte s) {
-    if (s == BOOT_SPACE) Assert.fail("BasePlan.getAllocatorFromSpace given boot space");
-    if (s == META_SPACE) Assert.fail("BasePlan.getAllocatorFromSpace given meta space");
-    if (s == IMMORTAL_SPACE) return immortal;
-    Assert.fail("BasePlan.getAllocatorFromSpace given unknown space");
-    return null;
-  }
-
-  public static Allocator getOwnAllocator (Allocator a) {
-    byte space = getSpaceFromAllocatorAnyPlan(a);
-    if (space == UNUSED_SPACE)
+  /**
+   * Given an allocator, <code>a</code>, determine the space into
+   * which <code>a</code> is allocating and then return an allocator
+   * (possibly <code>a</code>) associated with <i>this plan
+   * instance</i> which is allocating into the same space as
+   * <code>a</code>.<p>
+   *
+   * The need for the method is subtle.  The problem arises because
+   * application threads may change their affinity with
+   * processors/posix threads, and this may happen during a GC (at the
+   * point at which the scheduler performs thread switching associated
+   * with the GC). At the end of a GC, the thread that triggered the
+   * GC may now be bound to a different processor and thus the
+   * allocator instance on its stack may be no longer be valid
+   * (i.e. it may pertain to a different plan instance).<p>
+   *
+   * This method allows the correct allocator instance to be
+   * established and associated with the thread {@link
+   * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
+   * boolean).
+   *
+   * @see org.mmtk.utility.alloc.Allocator
+   * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
+   * boolean)
+   * @param a An allocator instance.
+   * @return An allocator instance associated with <i>this plan
+   * instance</i> that allocates into the same space as <code>a</code>
+   * (this may in fact be <code>a</code>).
+   */
+  public final Allocator getOwnAllocator(Allocator a) {
+    Space space = getSpaceFromAllocatorAnyPlan(a);
+    if (space == null)
       Assert.fail("BasePlan.getOwnAllocator could not obtain space");
-    Plan plan = Plan.getInstance();
-    return plan.getAllocatorFromSpace(space);
+    return getAllocatorFromSpace(space);
   }
 
   /**
-   * Return true if the object is either forwarded or being forwarded
+   * Return the name of the space into which an allocator is
+   * allocating.  The allocator, <code>a</code> may be assocaited with
+   * any plan instance.
    *
-   * @param object
-   * @return True if the object is either forwarded or being forwarded
+   * @param a An allocator
+   * @return The name of the space into which <code>a</code> is
+   * allocating, or "<null>" if there is no space associated with
+   * <code>a</code>.
    */
-  public static boolean isForwardedOrBeingForwarded(Address object) 
-    throws InlinePragma {
-    return false;
+  public static String getSpaceNameFromAllocatorAnyPlan(Allocator a) {
+    Space space = getSpaceFromAllocatorAnyPlan(a);
+    if (space == null)
+      return "<null>";
+    else
+      return space.name();
+  }
+
+  /** 
+   * Return the space into which an allocator is allocating.  The
+   * allocator, <code>a</code> may be assocaited with any plan
+   * instance.
+   *
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  private static Space getSpaceFromAllocatorAnyPlan(Allocator a) {
+    for (int i=0; i<plans.length; i++) {
+      Space space = plans[i].getSpaceFromAllocator(a);
+      if (space != null)
+        return space;
+    }
+    return null;
+  }
+
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.
+   *
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected Space getSpaceFromAllocator(Allocator a) {
+    if (a == immortal) return immortalSpace;
+    else if (a == los) return loSpace;
+    return null;
+  }
+
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.
+   *
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected Allocator getAllocatorFromSpace(Space space) {
+    if (space == immortalSpace) return immortal;
+    else if (space == loSpace) return los;
+    else if (space == metaDataSpace)
+      Assert.fail("BasePlan.getAllocatorFromSpace given meta space");
+    else if (space != null)
+      Assert.fail("BasePlan.getAllocatorFromSpace given invalid space");
+    else
+      Assert.fail("BasePlan.getAllocatorFromSpace given null space");
+    return null;
   }
 
   /**
@@ -305,6 +350,17 @@ public abstract class BasePlan
   public static final void enqueue(Address obj)
     throws InlinePragma {
     Plan.getInstance().values.push(obj);
+  }
+
+  /**
+   * Return true if the object is either forwarded or being forwarded
+   *
+   * @param object
+   * @return True if the object is either forwarded or being forwarded
+   */
+  public static boolean isForwardedOrBeingForwarded(Address object) 
+    throws InlinePragma {
+    return false;
   }
 
   /**
@@ -385,9 +441,19 @@ public abstract class BasePlan
    * location is within the object being scanned by ScanObject.
    */
   public void enumeratePointerLocation(Address location) {}
-  // XXX Javadoc comment missing.
-  public static boolean willNotMove(Address obj) {
-    return !VMResource.refIsMovable(obj);
+
+  /**
+   * Return true if an object is known to be immovable.  This method
+   * should be refined by subclasses.  At this level we simply make a
+   * conservative check whether the object resides in a space that is
+   * declared to be immovable.
+   *
+   * @param object The object whose movability is being tested
+   * @return True if the object resides in a space that is known to be
+   * immovable.
+   */
+  public static boolean willNotMove(Address object) {
+    return !Space.isMovable(object);
   }
 
   /**
@@ -551,25 +617,22 @@ public abstract class BasePlan
    * <i> For this method to be accurate, collectors must override this method
    * to define results for the spaces they create.</i>
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a reachable object in a space known by
    *         the class; unreachable objects may still be live, however.  False 
    *         will be returned if it cannot be determined if the object is 
    *         reachable (e.g., resides in a space unknown to the class).
    */
-  public boolean isReachable(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case IMMORTAL_SPACE:  return ImmortalSpace.isReachable(obj);
-    case BOOT_SPACE:      return ImmortalSpace.isReachable(obj);
-    default:
+  public boolean isReachable(Address object) {
+    if (object.isZero()) return false;
+    if (Space.isImmortal(object)) {
+      Space space = Space.getSpaceForObject(object);
+      return ImmortalSpace.isReachable(object);
+    }
       if (Assert.VERIFY_ASSERTIONS)
 	Assert.fail("BasePlan.isReachable given object from unknown space");
       return false;
     }
-  }
 
   /**
    * Follow a reference during GC.  This involves determining which
@@ -591,16 +654,6 @@ public abstract class BasePlan
    *
    * Space management
    */
-
-  static public void addSpace (byte sp, String name) throws InterruptiblePragma {
-    if (spaceNames[sp] != null) Assert.fail("addSpace called on already registed space");
-    spaceNames[sp] = name;
-  }
-
-  static public String getSpaceName (byte sp) {
-    if (spaceNames[sp] == null) Assert.fail("getSpace called on unregisted space");
-    return spaceNames[sp];
-  }
 
   /**
    * Return the amount of <i>free memory</i>, in bytes (where free is
@@ -782,17 +835,6 @@ public abstract class BasePlan
   }
 
   /**
-   * This method should be called whenever an error is encountered.
-   *
-   * @param str A string describing the error condition.
-   */
-  public void error(String str) {
-    MemoryResource.showUsage(PAGES);
-    MemoryResource.showUsage(MB);
-    Assert.fail(str);
-  }
-
-  /**
    * Return the GC count (the count is incremented at the start of
    * each GC).
    *
@@ -808,8 +850,8 @@ public abstract class BasePlan
    *
    * @return The <code>RawPageAllocator</code> being used.
    */
-  public static RawPageAllocator getMetaDataRPA() {
-    return metaDataRPA;
+  public static RawPageSpace getMetaDataRPA() {
+    return metaDataSpace;
   }
 
   /**
@@ -856,29 +898,6 @@ public abstract class BasePlan
    *
    * Miscellaneous
    */
-
-  final static int PAGES = 0;
-  public final static int MB = 1;
-  final static int PAGES_MB = 2;
-  final static int MB_PAGES = 3;
-
-  /**
-   * Print out the number of pages and or megabytes, depending on the mode.
-   * A prefix string is outputted first.
-   *
-   * @param prefix A prefix string
-   * @param pages The number of pages
-   */
-  public static void writePages(int pages, int mode) {
-    double mb = Conversions.pagesToBytes(pages).toWord().rshl(20).toInt();
-    switch (mode) {
-      case PAGES: Log.write(pages); Log.write(" pgs"); break; 
-      case MB:    Log.write(mb); Log.write(" Mb"); break;
-      case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
-    case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
-      default: Assert.fail("writePages passed illegal printing mode");
-    }
-  }
 
   /**
    * Print a failure message for the case where an object in an

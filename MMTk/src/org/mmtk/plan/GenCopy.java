@@ -6,12 +6,11 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.MMType;
-import org.mmtk.utility.heap.MonotoneVMResource;
-import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
 
@@ -60,28 +59,24 @@ public class GenCopy extends Generational implements Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean copyMature = true;
-
-  // virtual memory resources
-  private static MonotoneVMResource mature0VM;
-  private static MonotoneVMResource mature1VM;
+  protected static final boolean COPY_MATURE() { return true; }
 
   // GC state
   private static boolean hi = false; // True if copying to "higher" semispace 
 
-  // Memory layout constants
-  public static final byte LOW_MATURE_SPACE = 10;
-  public static final byte HIGH_MATURE_SPACE = 11;
-  private static final Address MATURE_LO_START = MATURE_START;
-  private static final Address MATURE_HI_START = MATURE_START.add(MATURE_SS_SIZE);
+  // spaces
+  private static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.3, false);
+  private static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.3, true);
+  private static final int MS0 = matureSpace0.getID();
+  private static final int MS1 = matureSpace1.getID();
+
 
   /****************************************************************************
    *
    * Instance variables
    */
-
-  // allocators
   private BumpPointer mature;
+
 
   /****************************************************************************
    *
@@ -95,8 +90,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    mature0VM  = new MonotoneVMResource(LOW_MATURE_SPACE, "Higher gen lo", matureMR, MATURE_LO_START, MATURE_SS_SIZE, VMResource.MOVABLE);
-    mature1VM  = new MonotoneVMResource(HIGH_MATURE_SPACE, "Higher gen hi", matureMR, MATURE_HI_START, MATURE_SS_SIZE, VMResource.MOVABLE);
+    activeMatureSpace = matureSpace0; // initially alloc into this space
   }
 
   /**
@@ -104,7 +98,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    */
   public GenCopy() {
     super();
-    mature = new BumpPointer(mature0VM);
+    mature = new BumpPointer(matureSpace0);
   }
 
 
@@ -150,14 +144,38 @@ public class GenCopy extends Generational implements Uninterruptible {
     // nothing to be done
   }
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == mature) return MATURE_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == mature) return (hi) ? matureSpace1 : matureSpace0;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == MATURE_SPACE) return mature;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == matureSpace0 || space == matureSpace1) return mature;
+    return super.getAllocatorFromSpace(space);
   }
 
 
@@ -174,8 +192,10 @@ public class GenCopy extends Generational implements Uninterruptible {
    */
   protected final void globalMaturePrepare() {
     if (fullHeapGC) {
-      matureMR.reset(); // reset the nursery semispace memory resource
       hi = !hi;         // flip the semi-spaces
+      activeMatureSpace = (hi ? matureSpace1 : matureSpace0);
+      matureSpace0.prepare(hi);
+      matureSpace1.prepare(!hi);
     }
   }
 
@@ -186,7 +206,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    * <i>all threads</i> execute this.
    */
   protected final void threadLocalMaturePrepare(int count) {
-    if (fullHeapGC) mature.rebind(((hi) ? mature1VM : mature0VM)); 
+    if (fullHeapGC) mature.rebind(((hi) ? matureSpace1 : matureSpace0)); 
   }
 
   /**
@@ -205,8 +225,9 @@ public class GenCopy extends Generational implements Uninterruptible {
    * <i>only one</i> thread executes this.<p>
    */
   protected final void globalMatureRelease() {
-    if (fullHeapGC) ((hi) ? mature0VM : mature1VM).release();
+    if (fullHeapGC) ((hi) ? matureSpace0 : matureSpace1).release();
   }
+
 
   /****************************************************************************
    *
@@ -226,11 +247,10 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param space The space in which the referent object resides.
    */
   protected static final void forwardMatureObjectLocation(Address location,
-                                                          Address object,
-                                                          byte space) {
+                                                          Address object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
-    if ((hi && space == LOW_MATURE_SPACE) || 
-        (!hi && space == HIGH_MATURE_SPACE))
+    if ((hi && Space.isInSpace(MS0, object)) || 
+        (!hi && Space.isInSpace(MS1, object)))
       location.store(CopySpace.forwardObject(object));
   }
 
@@ -242,17 +262,16 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedMatureReference(Address object,
-                                                      byte space) {
+  public static final Address getForwardedMatureReference(Address object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
-    if ((hi && space == LOW_MATURE_SPACE) || 
-        (!hi && space == HIGH_MATURE_SPACE)) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
+    if ((hi && Space.isInSpace(MS0, object)) || 
+        (!hi && Space.isInSpace(MS1, object))) {
+      if (Assert.VERIFY_ASSERTIONS)
+	Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
-    } else {
+    } else
       return object;
     }
-  }
 
   /**
    * Trace a reference into the mature space during GC.  This involves
@@ -260,80 +279,84 @@ public class GenCopy extends Generational implements Uninterruptible {
    * calling the <code>traceObject</code> method of the Copy
    * collector.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * @param object The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final Address traceMatureObject(byte space,
-                                                      Address obj,
-                                                      Address addr) {
-    if (Assert.VERIFY_ASSERTIONS && space != LOW_MATURE_SPACE
-        && space != HIGH_MATURE_SPACE)
-      spaceFailure(obj, space, "Plan.traceMatureObject()");
-    if ((!IGNORE_REMSET || fullHeapGC) && ((hi && addr.LT(MATURE_HI_START)) ||
-					   (!hi && addr.GE(MATURE_HI_START))))
-      return CopySpace.traceObject(obj);
-    else if (IGNORE_REMSET)
-      CopySpace.markObject(obj, ImmortalSpace.immortalMarkState);
-    return obj;
+  protected static final Address traceMatureObject(Address object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC || IGNORE_REMSET);
+    if (IGNORE_REMSET && !fullHeapGC &&
+	(Space.isInSpace(MS0, object) || Space.isInSpace(MS1, object))) {
+      CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
+      return object;
+    } else
+      return Space.getSpaceForObject(object).traceObject(object);
   }
 
   /**  
    * Perform any post-copy actions.
    *
-   * @param ref The newly allocated object
+   * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address ref, Address typeRef, int size)
+  public final void postCopy(Address object, Address typeRef, int size)
     throws InlinePragma {
-    CopySpace.clearGCBits(ref);
-    if (IGNORE_REMSET)
-      ImmortalSpace.postAlloc(ref);
-  }
-
-  /**
-   * Return true if the object resides in a copying space (in this
-   * case mature and nursery objects are in a copying space).
-   *
-   * @param obj The object in question
-   * @return True if the object resides in a copying space.
-   */
-  public static final boolean isCopyObject(Address base) {
-    Address addr = ObjectModel.refToAddress(base);
-    return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
+    CopySpace.clearGCBits(object);
+    if (IGNORE_REMSET) CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
   }
 
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case NURSERY_SPACE:       return CopySpace.isLive(obj);
-    case LOW_MATURE_SPACE:    return (!fullHeapGC) || CopySpace.isLive(obj);
-    case HIGH_MATURE_SPACE:   return (!fullHeapGC) || CopySpace.isLive(obj);
-    case LOS_SPACE:           return losSpace.isLive(obj);
-    case IMMORTAL_SPACE:      return true;
-    case BOOT_SPACE:          return true;
-    case META_SPACE:          return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
-      return false;
+  public static final boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    if (!fullHeapGC) {
+      if (object.GE(NURSERY_START))
+	return nurserySpace.isLive(object);
+      else
+	return true;
+    } else {
+      Space space = Space.getSpaceForObject(object);
+      if (space == nurserySpace)
+	return nurserySpace.isLive(object);
+      else if (space == matureSpace0)
+	return matureSpace0.isLive(object);
+      else if (space == matureSpace1)
+	return matureSpace1.isLive(object);
+      else if (space == loSpace)
+	return loSpace.isLive(object);
+      else if (space == null) {
+	if (Assert.VERIFY_ASSERTIONS) {
+	  Log.write("space failure: "); Log.writeln(object);
+	}
+      }
+      return true;
     }
   }
 
-  public static boolean willNotMove (Address obj) {
-   boolean movable = VMResource.refIsMovable(obj);
-   if (!movable) return true;
-   Address addr = ObjectModel.refToAddress(obj);
-   return (hi ? mature1VM : mature0VM).inRange(addr);
+  /**
+   * Return true if this object is guaranteed not to move during this
+   * collection (i.e. this object is defintely not an unforwarded
+   * object).
+   *
+   * @param object
+   * @return True if this object is guaranteed not to move during this
+   * collection.
+   */
+  public static boolean willNotMove(Address object) {
+    if (fullHeapGC) {
+      if (hi)
+        return !(Space.isInSpace(NS, object) || Space.isInSpace(MS0, object));
+      else
+        return !(Space.isInSpace(NS, object) || Space.isInSpace(MS1, object));
+    } else
+      return object.LT(NURSERY_START);
   }
+
 
   /****************************************************************************
    *

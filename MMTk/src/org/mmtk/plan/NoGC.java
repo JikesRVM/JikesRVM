@@ -5,6 +5,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -37,27 +38,12 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
   public static final int GC_HEADER_BITS_REQUIRED = 0;
   public static final int GC_HEADER_BYTES_REQUIRED = 0;
 
-  // virtual memory resources
-  private static MonotoneVMResource defaultVM;
-
-  // memory resources
-  private static MemoryResource defaultMR;
-
   // Allocators
-  public static final byte DEFAULT_SPACE = 0;
+  public static final int ALLOCATORS = BASE_ALLOCATORS;
 
-  // Miscellaneous constants
-  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  
-  // Memory layout constants
-  public  static final long            AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final Extent    DEFAULT_SIZE = Extent.fromIntZeroExtend((int)(AVAILABLE));
-  public  static final Extent        MAX_SIZE = DEFAULT_SIZE;
-
-  private static final Address  DEFAULT_START = PLAN_START;
-  private static final Address    DEFAULT_END = DEFAULT_START.add(DEFAULT_SIZE);
-  private static final Address       HEAP_END = DEFAULT_END;
-
+  // spaces
+  private static ImmortalSpace defaultSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  private static final int DS = defaultSpace.getID();
 
   /****************************************************************************
    *
@@ -78,18 +64,13 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {
-    defaultMR = new MemoryResource("def", POLL_FREQUENCY);
-    defaultVM = new MonotoneVMResource(DEFAULT_SPACE, "default", defaultMR, DEFAULT_START, DEFAULT_SIZE, VMResource.IN_VM);
-
-    addSpace(DEFAULT_SPACE, "Default Space");
-  }
+  static {}
 
   /**
    * Constructor
    */
   public NoGC() {
-    def = new BumpPointer(defaultVM);
+    def = new BumpPointer(defaultSpace);
   }
 
   /**
@@ -119,9 +100,9 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case      LOS_SPACE:  // no los, so use default allocator
-    case  DEFAULT_SPACE:  return def.alloc(bytes, align, offset);
-    case IMMORTAL_SPACE:  return immortal.alloc(bytes, align, offset);
+    case      ALLOC_LOS:  // no los, so use default allocator
+    case  ALLOC_DEFAULT:  return def.alloc(bytes, align, offset);
+    case ALLOC_IMMORTAL:  return immortal.alloc(bytes, align, offset);
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
@@ -141,9 +122,9 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
                               int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case      LOS_SPACE: // no los, so use default allocator
-    case  DEFAULT_SPACE: return;
-    case IMMORTAL_SPACE: return;
+    case      ALLOC_LOS: // no los, so use default allocator
+    case  ALLOC_DEFAULT: return;
+    case ALLOC_IMMORTAL: return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
@@ -179,16 +160,39 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
     Assert.fail("no postCopy in noGC");
   } 
 
-  protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == def) return DEFAULT_SPACE;
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected final Space getSpaceFromAllocator(Allocator a) {
+    if (a == def) return defaultSpace;
     return super.getSpaceFromAllocator(a);
   }
 
-  protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return def;
-    return super.getAllocatorFromSpace(s);
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link BasePlan#getOwnAllocator(Allocator)}.
+   *
+   * @see BasePlan#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected final Allocator getAllocatorFromSpace(Space space) {
+    if (space == defaultSpace) return def;
+    return super.getAllocatorFromSpace(space);
   }
-
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -240,14 +244,18 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * @param mustCollect True if a this collection is forced.
-   * @param mr The memory resource that triggered this collection.
-   * @return True if a collection is triggered
+   * @see org.mmtk.policy.Space#acquire(int)
+   * @param mustCollect if <code>true</code> then a collection is
+   * required and must be triggered.  Otherwise a collection is only
+   * triggered if we deem it necessary.
+   * @param space the space that triggered the polling (i.e. the space
+   * into which an allocation is about to occur).
+   * @return This method always returns false because this plan will
+   * never trigger a GC.
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public final boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (getPagesReserved() > getTotalPages())
-      error("Out of memory");
+    if (getPagesReserved() > getTotalPages()) Assert.error("Out of memory");
     return false;
   }
 
@@ -342,23 +350,12 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
   /**
    * Return true if <code>obj</code> is a live object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address obj) {
-    if (obj.isZero()) return false;
-    Address addr = ObjectModel.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case     LOS_SPACE:   return true;
-    case DEFAULT_SPACE:   return true;
-    case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:      return true;
-    case META_SPACE:      return true;
-    default:
-      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
-      return false;
-    }
+  public static final boolean isLive(Address object) {
+    if (object.isZero()) return false;
+    return true;
   }
 
 
@@ -379,9 +376,9 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    int pages = defaultMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = defaultSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -394,9 +391,9 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = defaultMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
+    int pages = defaultSpace.reservedPages();
+    pages += immortalSpace.reservedPages();
+    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -408,8 +405,8 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * all future allocation is to the semi-space</i>.
    */
   protected static final int getPagesAvail() {
-    return (getTotalPages() - defaultMR.reservedPages() 
-            - immortalMR.reservedPages());
+    return (getTotalPages() - defaultSpace.reservedPages() 
+            - immortalSpace.reservedPages());
   }
 
 
