@@ -5,6 +5,9 @@
 # @author Derek Lieber
 
 include		$(RVM_BUILD)/Make.rules.host
+SHELL=${BASH}			# Set shell to bash because we use 'echo -n' 
+			        # below, and /bin/sh on AIX does not support
+                                # 'echo -n'.
 
 HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
