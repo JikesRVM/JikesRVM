@@ -86,10 +86,12 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     //-#endif
   }
 
-  // Instance:  create a thread specific JNI environment.  threadSlot = creating threads
-  // thread id == index of its entry in Scheduler.threads array
-  //
-  public VM_JNIEnvironment(int threadSlot) {
+  /**
+   * Create a thread specific JNI environment.
+   * @param threadSlot index of creating thread in Schedule.threads array (thread id)
+   */
+  void initializeState(int threadSlot) {
+    initializeState();
     // as of 8/22 SES - let JNIEnvAddress be the address of the JNIFunctionPtr to be
     // used by the creating thread.  Passed as first arg (JNIEnv) to native C functions.
 

@@ -63,8 +63,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
    * Create a thread specific JNI environment.
    * @param threadSlot index of creating thread in Schedule.threads array (thread id)
    */
-  public VM_JNIEnvironment (int threadSlot) {
-    super();
+  void initializeState(int threadSlot) {
+    initializeState();
     JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(JNIFunctions));
     JNIFunctionPointers.set((threadSlot * 2)+1, VM_Address.zero());
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*(2*BYTES_IN_ADDRESS));

@@ -100,7 +100,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   }
 
   public final void initializeJNIEnv() throws VM_PragmaInterruptible {
-    jniEnv = new VM_JNIEnvironment(threadSlot);
+    jniEnv = VM_JNIEnvironment.allocateEnvironment(threadSlot);
   }
 
   /**
@@ -883,6 +883,11 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM.sysExit(0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
+    
+    if (myThread.jniEnv != null) {
+      VM_JNIEnvironment.deallocateEnvironment(myThread.jniEnv);
+      myThread.jniEnv = null;
+    }
 
     // become another thread
     // begin critical section
@@ -1251,7 +1256,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // threadSlot determines which jni function pointer is passed to native C
 
     if (VM.runningVM)
-      jniEnv = new VM_JNIEnvironment(threadSlot);
+      jniEnv = VM_JNIEnvironment.allocateEnvironment(threadSlot);
 
     //-#if RVM_WITH_OSR
     onStackReplacementEvent = new OSR_OnStackReplacementEvent();

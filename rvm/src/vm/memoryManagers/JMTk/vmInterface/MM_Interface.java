@@ -446,7 +446,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA))
+	isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
+	isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;
     t.initialized = true;
     t.allocator = allocator;

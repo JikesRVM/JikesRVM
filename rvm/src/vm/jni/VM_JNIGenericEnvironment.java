@@ -89,14 +89,52 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
   protected Throwable pendingException;
 
   /**
-   * Create a thread specific JNI environment.
+   * We allocate VM_JNIEnvironments in the immortal heap (so we 
+   * can hand them directly to C code).  Therefore, we must do some
+   * kind of pooling of VM_JNIEnvironment instances.
+   * This is the free list of unused instances
    */
-  public VM_JNIGenericEnvironment() {
+  protected VM_JNIEnvironment next;
+
+  /**
+   * Pool of available VM_JNIEnvironments
+   */
+  protected static VM_JNIEnvironment pool;
+
+  /**
+   * Initialize a thread specific JNI environment.
+   */
+  protected void initializeState() {
     JNIRefs = VM_AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
     JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
     alwaysHasNativeFrame = false;
+  }
+
+  /*
+   * Allocation and pooling
+   */
+
+  /**
+   * Create a thread specific JNI environment.
+   * @param threadSlot index of creating thread in Schedule.threads array (thread id)
+   */
+  public static synchronized VM_JNIEnvironment allocateEnvironment(int threadSlot) {
+    VM_JNIEnvironment env;
+    if (pool != null) {
+      env = pool;
+      pool = pool.next;
+    } else {
+      env = new VM_JNIEnvironment();
+    }
+    env.initializeState(threadSlot);
+    return env;
+  }
+
+  public static synchronized void deallocateEnvironment(VM_JNIEnvironment env) {
+    env.next = pool;
+    pool = env;
   }
 
   /*
