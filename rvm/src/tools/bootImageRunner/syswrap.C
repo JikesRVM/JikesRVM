@@ -397,7 +397,6 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
         fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
     }
 
-failed:
     // Upon failure:
     *penv = NULL;               // Make sure we don't yield a bogus one to use.
     return retval;
