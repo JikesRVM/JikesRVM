@@ -169,7 +169,7 @@ public class VM_WriteBuffer implements VM_Constants,
       
       while ( start.LE(end) ) {
 	VM_Address wbref = VM_Magic.getMemoryAddress( start );
-	
+/*	
 	if (start.EQ(VM_WriteBarrier.xxx)) {
 	    com.ibm.JikesRVM.VM.sysWrite(start.toInt(), true);
 	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
@@ -177,7 +177,7 @@ public class VM_WriteBuffer implements VM_Constants,
 	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
 	    VM_WriteBarrier.xxx = VM_Address.zero();
 	}
-
+*/
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
 	// Call method in specific collector to process write buffer entry
