@@ -207,7 +207,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   public static void threadSwitch(int whereFrom) {
     VM_Magic.pragmaNoInline();
-    VM_Magic.clearThreadSwitchBit();
+    if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
     if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) { 
