@@ -392,45 +392,44 @@ static void emitcase(Term p, int ntnumber) {
 	Rule r;
 
         if (p->arity == -1) return;
-	print("%1case %S_opcode:\n", p);
+	print("private void label_%S(OPT_BURS_TreeNode p) {\n%1int c;\n", p);
+        print("%1p.word0 = 0;\n");
+        print("%1p.initCost();\n"); 
+        print("%1OPT_BURS_TreeNode lchild, rchild;\n");
+        print("%1lchild = p.child1;\n");
+        print("%1rchild = p.child2;\n"); 
+
 	switch (p->arity) {
 	case 0: 
 		break;
 	case 1:
-                /*
-		print("%2lchild = p.child1;\n"); 
-                */
-		print("%2label(lchild);\n");
+		print("%1label(lchild);\n");
 		break;
 	case 2:
-                /*
-                print("%2lchild = p.child1;\n");
-                print("%2rchild = p.child2;\n");
-                */
-		print("%2label(lchild);\n");
-		print("%2label(rchild);\n");
+		print("%1label(lchild);\n");
+		print("%1label(rchild);\n");
 		break;
 	default: assert(0);
 	}
 	for (r = p->rules; r; r = r->next) {
-		char *indent = "\t\t\0";
+		char *indent = "\t\0";
 		switch (p->arity) {
 		case 0: case -1:
-			print("%2// %R\n", r);
+			print("%1// %R\n", r);
 			if (r->cost == -1) {
-				print("%2c = %s;\n", r->code);
-				emitrecord("\t\t", r, "c", 0);
+				print("%1c = %s;\n", r->code);
+				emitrecord("\t", r, "c", 0);
 			} else
-				emitrecord("\t\t", r, r->code, 0);
+				emitrecord("\t", r, r->code, 0);
 			break;
 		case 1:
 			if (r->pattern->nterms > 1) {
-				print("%2if (%1// %R\n", r);
+				print("%1if (%1// %R\n", r);
 				emittest(r->pattern->left, "lchild", " ");
-				print("%2) {\n");
-				indent = "\t\t\t";
+				print("%1) {\n");
+				indent = "\t\t";
 			} else
-				print("%2// %R\n", r);
+				print("%1// %R\n", r);
 			if (r->pattern->nterms == 2 && r->pattern->left
 			&&  r->pattern->right == NULL)
 				emitrecalc(indent, r->pattern->op, r->pattern->left->op);
@@ -438,31 +437,31 @@ static void emitcase(Term p, int ntnumber) {
 			emitcost(r->pattern->left, "lchild");
 			print("%s;\n", r->code);
 			emitrecord(indent, r, "c", 0);
-			if (indent[2])
-				print("%2}\n");
+			if (indent[1])
+				print("%1}\n");
 			break;
 		case 2:
 			if (r->pattern->nterms > 1) {
-				print("%2if (%1// %R\n", r);
+				print("%1if (%1// %R\n", r);
 				emittest(r->pattern->left,  "lchild",
 					r->pattern->right->nterms ? " && " : " ");
 				emittest(r->pattern->right, "rchild", " ");
-				print("%2) {\n");
-				indent = "\t\t\t";
+				print("%1) {\n");
+				indent = "\t\t";
 			} else
-				print("%2// %R\n", r);
+				print("%1// %R\n", r);
 			print("%sc = ", indent);
 			emitcost(r->pattern->left,  "lchild");
 			emitcost(r->pattern->right, "rchild");
 			print("%s;\n", r->code);
 			emitrecord(indent, r, "c", 0);
-			if (indent[2])
-				print("%2}\n");
+			if (indent[1])
+				print("%1}\n");
 			break;
 		default: assert(0);
 		}
 	}
-	print("%2break;\n");
+	print("}\n\n");
 }
 
 /* emitclosure - emit the closure functions */
@@ -636,48 +635,26 @@ static void emitlabel(Term terms, Nonterm start, int ntnumber) {
 	Term p;
         Nonterm ntsc;
 
-/* obsolete
-        print("static void free(OPT_BURS_TreeNode a) {\n");
-        print("%1STATE(a) = null;\n");
-        print("}\n\n");
-*/
-
-	print("public void label(OPT_BURS_TreeNode p) {\n%1int c;\n");
-/*
-"%1%PTreeNode p;\n\n");
-*/
-/* no need: Java has nullpointer exception
-"%1if (a == null)\n%2fatal(\"label\", \"Null tree\", 0);\n");
-*/
-       /*
-        print("%1if (STATE(a) == null) \n");
-	print("%2STATE(a) = new %PState();\n");
-        */
-        /* print("%1p = STATE(a);\n"); */
-        /*print("%1p.stm = 0;\n");*/
-        print("%1p.word0 = 0;\n");
-        /*
-	for (i = 1; i <= ntnumber; i++)
-		print("%1p.cost[%d] =\n", i);
-	print("%20x7fff;\n");
-        */
         if (!nts->link) {
            oneterminal = 1;
         }
+
+	/* Emit a function for each opcode */
+	for (p = terms; p; p = p->link) {
+	  emitcase(p, ntnumber);
+	}
+
+	/* Emit master case statement */
+	print("public void label(OPT_BURS_TreeNode p) {\n");
         print("%1p.initCost();\n"); 
-        print("%1OPT_BURS_TreeNode lchild, rchild;\n");
-
-        print("%2lchild = p.child1;\n");
-        print("%2rchild = p.child2;\n"); 
-
         print("%1switch (p.getOpcode()) {\n");
-	for (p = terms; p; p = p->link)
-		emitcase(p, ntnumber);
+	for (p = terms; p; p = p->link) {
+	  if (p->arity != -1) {
+	    print("%1case %S_opcode: label_%S(p); break;\n",p,p);
+	  }
+	}
 	print("%1default:\n");
         print("%2throw new OPT_OptimizingCompilerException(\"BURS\",\"terminal not in grammar:\",OPT_OperatorNames.operatorName[p.getOpcode()]);");
-/*
-"%2fatal(\"label\", \"Bad terminal \", p.getOpcode());\n");
-*/
         print("%1}\n}\n\n");
 }
 
@@ -997,7 +974,7 @@ static void emittest(Tree t, char *v, char *suffix) {
 	Term p = t->op;
 
 	if (p->kind == TERMINAL) {
-		print("%3%s.getOpcode() == %S_opcode%s\n", v, p,
+		print("%2%s.getOpcode() == %S_opcode%s\n", v, p,
 			t->nterms > 1 ? " && " : suffix);
 		if (t->left)
 			emittest(t->left, stringf("%s.child1",  v),
