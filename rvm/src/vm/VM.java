@@ -248,10 +248,6 @@ public class VM extends VM_Properties
     MM_Interface.fullyBootedVM();
     if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
     String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
-    if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: please specify a class to execute\n");
-      VM.sysExit(1);
-    }
 
     // Allow Baseline compiler to respond to command line arguments.
     // The baseline compiler ignores command line arguments until all are processed
@@ -273,6 +269,13 @@ public class VM extends VM_Properties
     // and thread switching should be enabled.
     if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
 
+    // Do this late in boot process to allow compilers to responds to command line
+    // arguments before VM exits.  This supports the following useful idiom:
+    // rvm -X:irc 
+    if (applicationArguments.length == 0) {  
+      VM.sysWrite("vm: please specify a class to execute\n");
+      VM.sysExit(1);
+    }
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
