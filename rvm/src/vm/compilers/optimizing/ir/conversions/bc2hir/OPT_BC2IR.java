@@ -2979,6 +2979,15 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     if (ref instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)ref;
+      if ( BC_ANNOTATIONS &&
+	   bcInfo.queryAnnotation(instrIndex, VM_Method.annotationNullCheck)) {
+        if ( DBG_ANNOTATIONS )
+	  db("\tEliminate null check of "+ref+" based on annotations\n" );
+	OPT_Operand guard = new OPT_TrueGuardOperand();
+        setCurrentGuard(guard);
+	setGuard(rop, guard);
+        return false;
+      }
       if (hasGuard(rop)) {
         OPT_Operand guard = getGuard(rop);
         setCurrentGuard(guard);
@@ -3059,6 +3068,12 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     // Unsafely eliminate all bounds checks
     if (gc.options.NO_BOUNDS_CHECK)
       return false;
+    if ( BC_ANNOTATIONS &&
+	bcInfo.queryAnnotation(instrIndex, VM_Method.annotationBoundsCheck )) {
+      if ( DBG_ANNOTATIONS )
+	db("\tEliminate bounds check of "+ref+" based on annotations\n" );
+      return false;
+    } 
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(), 
 					 index.copy(), getCurrentGuard()));
