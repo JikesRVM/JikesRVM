@@ -97,30 +97,36 @@ echo -n "$ME: "
 # match package names
 cd $RVM_BUILD/RVM.classes || croak "Unable to change directory to $RVM_BUILD/RVM.classes; something is badly broken."
 
-# Strip out INSTRUCTION typedef and remove all .java files that
-# were not actually compiled in this build.
-## uname -m is "machine type" -- the processor's architecture.
-if [[ $(uname -m) == i?86 ]]; then
-    INSTRUCTION_TYPE=byte
+if [[ -f sources-processed ]]; then
+    echo "(sources already processed) "
+    
 else
-    INSTRUCTION_TYPE=int
-fi
-
-ADDRESS_TYPE=int
-
-for f in $($FIND . -name \*.java); do
-    # Preprocess and preserve only the files we compiled for this build
-    if [[ -e ${f%.java}.class ]]; then
-        # strip INSTRUCTION typedef; it causes Java to complain.
-	$SED -e 's/\<INSTRUCTION\>/'$INSTRUCTION_TYPE'/g' $f > $f.tmp
-	mv -f $f.tmp $f
+    # Strip out INSTRUCTION typedef and remove all .java files that
+    # were not actually compiled in this build.
+    ## uname -m is "machine type" -- the processor's architecture.
+    if [[ $(uname -m) == i?86 ]]; then
+	INSTRUCTION_TYPE=byte
     else
-	## delete anything that wasn't compiled for this build.
-	rm $f
+	INSTRUCTION_TYPE=int
     fi
-done
 
-echo -n "(sources processed) "
+    ADDRESS_TYPE=int
+
+    for f in $($FIND . -name \*.java); do
+	# Preprocess and preserve only the files we compiled for this build
+	if [[ -e ${f%.java}.class ]]; then
+	    # strip INSTRUCTION typedef; it causes Java to complain.
+	    $SED -e 's/\<INSTRUCTION\>/'$INSTRUCTION_TYPE'/g' $f > $f.tmp
+	    mv -f $f.tmp $f
+	else
+	    ## delete anything that wasn't compiled for this build.
+	    rm $f
+	fi
+    done
+    touch sources-processed
+    echo -n "(sources processed) "
+fi
+    
 
 # collect the JikesRVM packages; for these packages we want all files, so
 # we will just use the package name.
@@ -157,7 +163,9 @@ echo -n "(javadoc complete) "
 cd $DEST_DIR
 
 if [[ "$DEBUG" ]] || [[ -t 0 ]]; then
-    echo >&2 "Because we're debugging, the directory $RVM_BUILD is remaining untouched."
+    echo ""
+    echo >&2 "$ME: Because we're debugging, the directory $RVM_BUILD is remaining untouched."
+    echo -n "$ME:"
 else
     rm -rf $RVM_BUILD
 fi
@@ -229,6 +237,8 @@ if (( STRIP_CLASSES  ==  1 )) \
 	|| (( STRIP_METHODS == 1 ))
 then
     echo -n "(postprocessing done) "
+else
+    echo -n "(no postprocessing necessary) "
 fi
 
 echo
