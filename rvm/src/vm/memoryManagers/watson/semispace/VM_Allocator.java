@@ -179,10 +179,10 @@ public class VM_Allocator
 
     if (verbose >= 2) VM.sysWriteln("Attaching heaps");
     VM_Heap.boot(bootHeap, bootrecord);
-    immortalHeap.attach(immortalSize);
-    largeHeap.attach(largeSize);
     fromHeap.attach(oneHeapSize);
     toHeap.attach(oneHeapSize);
+    immortalHeap.attach(immortalSize);
+    largeHeap.attach(largeSize);
 
     // Allocation of small objects are from from-space
     areaCurrentAddress = fromHeap.start;
@@ -197,7 +197,7 @@ public class VM_Allocator
     if (COMPILE_FOR_TIMING_RUN) {
       if (verbose >= 2) VM.sysWriteln("Touching toHeap, largeSpace, and fromHeap");
       toHeap.touchPages();
-      largeHeap.touchPages();
+      // largeHeap.touchPages();
       fromHeap.touchPages();
     }
 
