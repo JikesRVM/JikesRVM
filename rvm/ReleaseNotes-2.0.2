@@ -26,7 +26,8 @@ Highlights include:
   -- Redundant conditional branch elimination based on
      global value numbers and dominator information.
   -- Code-patch guard for guarded inlining (IA32 only).
-
+  -- Adaptive configurations now GC dead code.
+  
 
 To see more details on other miscellaneous bug fixes, see
 the developerWorks bug tracking software tool.  
@@ -35,3 +36,9 @@ The following bugs in version 2.0.1 are fixed in 2.0.2:
   -- 2493 Cross-platform linux builds broken
   -- 2501 race condition in VM_Type.getClassForType
   -- 2044 LINTEL: VM_Magic.resumeThreadExecution
+  -- 2412 JVM_FOR_SINGLE_VIRTUAL_PROCESSOR does not compile
+  -- 2035 LINTEL: clear FP state when delivering an exception
+  -- 2455 LINTEL: O0 compilation of _202_jess
+  -- 2368 LINTEL: FastBaseBaseSemispace build takes forever
+  -- 2391 Expression Folding Fast image bug
+  -- miscellaneous latent bugs with SSA construction after CFG transformations
