@@ -113,7 +113,7 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 
 
 # Finally!  Send the mail message to those who care
-echo "mailing status to jikesrvm-regression@www-124.ibm.com"
+# echo "mailing status to jikesrvm-regression@www-124.ibm.com"
 cat MSG >> $RUN_LOG
 
 ARCH=`uname`
