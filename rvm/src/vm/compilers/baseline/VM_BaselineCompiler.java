@@ -1747,14 +1747,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	    } else if (type.isResolved() && !type.asClass().isInterface()) {
 	      emit_checkcast_resolvedClass(type);
 	      break;
-	    }
+	    } // else fall through to emit_checkcast
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
 		(elemType.isClassType() && elemType.asClass().isFinal())) {
 	      emit_checkcast_final(type);
 	      break;
-	    }
+	    } // else fall through to emit_checkcast
 	  } else {
 	    // checkcast to a primitive. Must be a word type.
 	    if (VM.VerifyAssertions) VM._assert(type.isWordType());
