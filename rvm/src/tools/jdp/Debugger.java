@@ -2216,7 +2216,7 @@ class Debugger implements jdpConstants {
       ret.append("The value for Frame Pointer may be specified in <hexval>\n");
       
     } else if (command.equals("preference") || command.equals("pref")) {
-      ret.append("Format:  < preference | pref> <string>\n");
+      ret.append("Format:  < preference | pref> <string> <value>\n");
       ret.append("Set user preferences\n");
       ret.append("To display integer in hex or decimal, specify:  int  < hex | x | dec | d > \n");
       ret.append("To display stack with/without a decimal column, specify: stack < hex | x | dec | d > \n");
