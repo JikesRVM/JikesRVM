@@ -481,6 +481,46 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     return true;
   }
 
+  public static int getDefaultAllocator() { return Plan.ALLOC_DEFAULT; }
+
+  /**
+   * Determine whether an allocation is a code array from the baseline
+   * compiler. 
+   * 
+   * @param method The method allocating the array.
+   */
+  private static boolean isBaseCodeArrayAllocSite(VM_Method method) 
+    throws InterruptiblePragma, InlinePragma {
+    if (method != null) {
+      VM_Class cls = method.getDeclaringClass();
+      byte[] clsBA = cls.getDescriptor().toByteArray();
+      byte[] mthBA = method.getName().toByteArray();
+      return ((isPrefix("Lcom/ibm/JikesRVM/VM_Assembler", clsBA) && 
+	       isPrefix("getMachineCodes", mthBA)) ||
+	      (isPrefix("Lcom/ibm/JikesRVM/VM_MachineCode", clsBA) && 
+	       isPrefix("finish", mthBA)));
+    } else
+      return false;
+  }
+
+  /**
+   * Determine whether an allocation is a code array from the opt
+   * compiler.
+   * 
+   * @param method The method allocating the array.
+   */
+  private static boolean isOptCodeArrayAllocSite(VM_Method method) 
+    throws InterruptiblePragma, InlinePragma {
+    if (method != null) {
+      VM_Class cls = method.getDeclaringClass();
+      byte[] clsBA = cls.getDescriptor().toByteArray();
+      byte[] mthBA = method.getName().toByteArray();
+      return (isPrefix("Lcom/ibm/JikesRVM/opt/OPT_ConvertMIRtoMC", clsBA) &&
+	      isPrefix("perform", mthBA));
+    } else
+      return false;
+  }
+
   /**
    * Returns the appropriate allocation scheme/area for the given type
    * and given method requesting the allocation.
@@ -496,10 +536,18 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
      * places.  A better implementation would be call-site specific
      * which is strictly more refined.
      */
+    if (type.isArrayType()) {
+      if (isBaseCodeArrayAllocSite(method))
+	return Plan.ALLOC_COLD_CODE;
+      else if (isOptCodeArrayAllocSite(method))
+	return Plan.ALLOC_HOT_CODE;
+    }
+
     if (method != null) {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
+      byte[] methBA = method.getDescriptor().toByteArray();
       if (Plan.WITH_GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
@@ -728,10 +776,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param n The number of instructions to allocate
    * @return The  array
    */
-  public static VM_CodeArray newInstructions(int n)
-    throws InlinePragma, InterruptiblePragma {
-    return VM_CodeArray.create(n);
-  }
+  /*
+    public static VM_CodeArray newInstructions(int n)
+     throws InlinePragma, InterruptiblePragma {
+     return VM_CodeArray.create(n);
+   }
+  */
 
   /**
    * Allocate a stack

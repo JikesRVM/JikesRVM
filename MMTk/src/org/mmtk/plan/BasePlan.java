@@ -98,6 +98,8 @@ public abstract class BasePlan
   public static final int ALLOC_IMMORTAL = 1;
   public static final int ALLOC_LOS = 2;
   public static final int ALLOC_GCSPY = 3;
+  public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
+  public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
   public static final int BASE_ALLOCATORS = 4;
 
   // Statistics

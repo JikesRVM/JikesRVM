@@ -290,6 +290,8 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @return a copy of the generated code.
    */
   public final VM_CodeArray getMachineCodes () {
+      /* NOTE: MM_Interface.pickAllocator() depends on the name of
+         this class and method to identify code allocation */
       VM_CodeArray trimmed = VM_CodeArray.create(getMachineCodeIndex());
       for(int i = 0; i < getMachineCodeIndex(); i++) {
 	  trimmed.set(i, machineCodes[i]);
