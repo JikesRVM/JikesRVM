@@ -52,6 +52,8 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   SimpleRCCollector(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
+    workQueue = new AddressQueue("cycle detection workqueue", workPool);
+    blackQueue = new AddressQueue("cycle detection black workqueue", blackPool);
   }
 
   /**
@@ -153,18 +155,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     case MARK_GREY: 
       if (VM.VerifyAssertions) VM._assert(SimpleRCHeader.isLiveRC(object));
       SimpleRCHeader.decRC(object);
-      markGrey(object); 
+      workQueue.push(object);
       break;
     case SCAN: 
-      scan(object); 
+      workQueue.push(object);
       break;
     case SCAN_BLACK: 
       SimpleRCHeader.incRC(object);
       if (!SimpleRCHeader.isBlack(object))
-	scanBlack(object);
+	blackQueue.push(object);
       break;
     case COLLECT:  
-      collectWhite(object, VM_Interface.getPlan()); 
+      workQueue.push(object);
       break;
     default:
       if (VM.VerifyAssertions) VM._assert(false);
@@ -172,44 +174,6 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     return object;
   }
  
-  public final void markGrey(VM_Address object)
-    throws VM_PragmaInline {
-    if (!SimpleRCHeader.isGrey(object)) {
-      SimpleRCHeader.makeGrey(object);
-      ScanObject.scan(object);
-    }
-  }
-  public final void scan(VM_Address object)
-    throws VM_PragmaInline {
-    if (SimpleRCHeader.isGrey(object)) {
-      if (SimpleRCHeader.isLiveRC(object)) {
-	phase = SCAN_BLACK;
-	scanBlack(object);
-	phase = SCAN;
-      } else {
-	SimpleRCHeader.makeWhite(object);
-	ScanObject.scan(object);
-      }
-    }
-  }
-
-  public final void scanBlack(VM_Address object) 
-    throws VM_PragmaInline {
-    SimpleRCHeader.makeBlack(object);
-    ScanObject.scan(object);
-  }
-
-  public final void collectWhite(VM_Address object, Plan plan)
-    throws VM_PragmaInline {
-    if (SimpleRCHeader.isWhite(object) && 
-	!SimpleRCHeader.isBuffered(object)) {
-      SimpleRCHeader.makeBlack(object);
-      ScanObject.scan(object);
-      plan.addToFreeBuf(object);
-    }
-  }
-
-
   /**
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit and a small
@@ -242,7 +206,6 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     if (!Plan.refCountCycleDetection) {
       if (SimpleRCHeader.decRC(object)) {
 	// this object is now dead, scan it for recursive decrement
-	//       VM.sysWrite(object); VM.sysWrite(" k\n");
 	ScanObject.scan(object);
 	if (VM.VerifyAssertions) VM._assert(allocator != null);
 	free(object, allocator);
@@ -298,10 +261,83 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
 
   ////////////////////////////////////////////////////////////////////////////
   //
+  // Methods relating to synchronous cyclic garbage collection.  See
+  // Bacon & Rajan ECOOP 2002, Fig 2.
+  //
+  // Not that there appears to be an error in their encoding of
+  // MarkRoots which allows it to over-zealously free a grey object
+  // with a RC of zero which is also unprocessed in the root set.  I
+  // believe the correct encoding is as follows:
+  //
+  //  MarkRoots()
+  //    for S in Roots
+  //      if (color(S) == purple)
+  //        if (RC(S) > 0)
+  //          MarkGray(S)
+  //        else
+  //          Free(S)
+  //      else
+  //        buffered(S) = false
+  //        remove S from Roots
+  //
+  //
+  // Aside from the use of queues to avoid deep recursion, the
+  // following closely mirrors the encoding of the above algorithm
+  // that appears in Fig 2 of that paper.
+  //
+  public final void markGrey(VM_Address object)
+    throws VM_PragmaInline {
+    while (!object.isZero()) {
+      if (!SimpleRCHeader.isGrey(object)) {
+	SimpleRCHeader.makeGrey(object);
+	ScanObject.scan(object);
+      }
+      object = workQueue.pop();
+    }
+  }
+  public final void scan(VM_Address object)
+    throws VM_PragmaInline {
+    while (!object.isZero()) {
+      if (SimpleRCHeader.isGrey(object)) {
+	if (SimpleRCHeader.isLiveRC(object)) {
+	  phase = SCAN_BLACK;
+	  scanBlack(object);
+	  phase = SCAN;
+	} else {
+	  SimpleRCHeader.makeWhite(object);
+	  ScanObject.scan(object);
+	}
+      }
+      object = workQueue.pop();
+    }
+  }
+  public final void scanBlack(VM_Address object) 
+    throws VM_PragmaInline {
+    while (!object.isZero()) {
+      SimpleRCHeader.makeBlack(object);
+      ScanObject.scan(object);
+      object = blackQueue.pop();
+    }
+  }
+  public final void collectWhite(VM_Address object, Plan plan)
+    throws VM_PragmaInline {
+    while (!object.isZero()) {
+      if (SimpleRCHeader.isWhite(object) && 
+	  !SimpleRCHeader.isBuffered(object)) {
+	SimpleRCHeader.makeBlack(object);
+	ScanObject.scan(object);
+	plan.addToFreeBuf(object);
+      }
+      object = workQueue.pop();
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
   // Protected and private methods
   //
 
-  
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // The following methods, declared as abstract in the superclass, do
@@ -310,6 +346,17 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private int phase;
+
+  private AddressQueue workQueue;
+  private AddressQueue blackQueue;
+  private static SharedQueue workPool;
+  private static SharedQueue blackPool;
+  static {
+    workPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
+    workPool.newClient();
+    blackPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
+    blackPool.newClient();
+  }
 
   private static final int    PROCESS = 0;
   private static final int  DECREMENT = 1;

@@ -34,7 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = true;
-  public static final boolean refCountCycleDetection = false;
+  public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -478,7 +478,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite(rootCounter, false); VM.sysWrite(" roots");
       if (refCountCycleDetection) {
 	VM.sysWrite(", "); 
-	VM.sysWrite(purpleCounter, false); VM.sysWriteln(" purple");
+	VM.sysWrite(purpleCounter, false); VM.sysWrite(" purple");
       }
       VM.sysWrite(">\n");
     }
@@ -570,24 +570,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
       if (SimpleRCHeader.isPurple(obj) && SimpleRCHeader.isLiveRC(obj)) {
 	if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGrey(obj));
-// 	VM.sysWrite(obj);
-// 	VM.sysWrite(" ");
-// 	SimpleRCHeader.print(obj);
-// 	VM.sysWrite(" markgrey\n");
 	rcCollector.markGrey(obj);
 	tgt.push(obj);
-      } else {
-	//if (VM.VerifyAssertions) VM._assert(false);
-// 	VM.sysWrite(obj);
-// 	VM.sysWrite(" ");
-// 	SimpleRCHeader.print(obj);
+      } else 
  	SimpleRCHeader.clearBufferedBit(obj);
-// 	if (!SimpleRCHeader.isLiveRC(obj)) {
-// 	  VM.sysWrite(" d\n");
-// 	} else {
-// 	  VM.sysWrite(" l\n");
-// 	}
-      }
     } 
     cycleBufferAisOpen = !cycleBufferAisOpen;
   }
@@ -598,10 +584,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     rcCollector.scanPhase();
     while (!(obj = src.pop()).isZero()) {
       if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
-//       VM.sysWrite(obj);
-//       VM.sysWrite(" ");
-//       SimpleRCHeader.print(obj);
-//       VM.sysWrite(" scan\n");
 
       rcCollector.scan(obj);
       tgt.push(obj);
@@ -615,13 +597,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     while (!(obj = src.pop()).isZero()) {
       if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
       SimpleRCHeader.clearBufferedBit(obj);
-//       VM.sysWrite(obj);
-//       VM.sysWrite(" ");
-//       SimpleRCHeader.print(obj);
-//       VM.sysWrite(" collect\n");
       rcCollector.collectWhite(obj, this);
     }
-    //    processFreeBufs();
+    processFreeBufs();
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -683,7 +661,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public static final int RC_ALLOCATOR = 0;
   public static final int IMMORTAL_ALLOCATOR = 1;
   public static final int DEFAULT_ALLOCATOR = RC_ALLOCATOR;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
+  public static final int TIB_ALLOCATOR = IMMORTAL_ALLOCATOR;
 
 
   /**

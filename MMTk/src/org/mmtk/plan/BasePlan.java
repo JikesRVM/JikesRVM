@@ -130,6 +130,10 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     return gcCount;
   }
 
+  static public RawPageAllocator getMetaDataRPA() {
+    return metaDataRPA;
+  }
+
   /**
    * Prepare for a collection.  In this case, it means flipping
    * semi-spaces and preparing each of the collectors.
