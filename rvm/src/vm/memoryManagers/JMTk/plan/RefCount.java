@@ -119,7 +119,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     throws InlinePragma {
     switch (allocator) {
     case RC_SPACE:
-      RefCountLocal.liveObject(object);
+      RefCountLocal.unsyncLiveObject(object);
     case LOS_SPACE: 
       if (WITH_COALESCING_RC) modBuffer.pushOOL(object);
       decBuffer.pushOOL(object);

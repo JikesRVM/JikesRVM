@@ -602,7 +602,7 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * @param object The object whose live bit is to be set.
    */
-  protected static final void unsyncLiveObject(Address object)
+  public static final void unsyncLiveObject(Address object)
     throws InlinePragma {
     liveAddress(ObjectModel.refToAddress(object), false);
   }

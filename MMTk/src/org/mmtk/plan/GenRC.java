@@ -160,7 +160,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     switch (allocator) {
     case NURSERY_SPACE: return;
     case RC_SPACE:
-      RefCountLocal.liveObject(ref);
+      RefCountLocal.unsyncLiveObject(ref);
     case LOS_SPACE:
       modBuffer.push(ref);
       RefCountSpace.initializeHeader(ref, typeRef, true);
@@ -204,7 +204,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     CopySpace.clearGCBits(object);
     RefCountSpace.initializeHeader(object, typeRef, false);
     RefCountSpace.makeUnlogged(object);
-    RefCountLocal.liveObject(object);
+    RefCountLocal.unsyncLiveObject(object);
     if (RefCountSpace.RC_SANITY_CHECK) {
       RefCountLocal.sanityAllocCount(object); 
     }
