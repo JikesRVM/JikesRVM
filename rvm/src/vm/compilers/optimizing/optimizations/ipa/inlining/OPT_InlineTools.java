@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 public abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
-   * Does class A directly implement the interface B?
+   * Does class <code>A</code> directly implement the interface <code>B</code>?
    */
   public static boolean implementsInterface(Class A, Class B) {
     Class[] interfaces = A.getInterfaces();
@@ -33,8 +33,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
    * Does the callee method have a body?
-   * @param callee the callee method
-   * @return true if it has bytecodes, false otherwise.
+   * @param callee The callee method
+   * @return <code>true</code> if it has bytecodes, false otherwise.
    */
   public static boolean hasBody(VM_Method callee) {
     return !(callee.isNative() || callee.isAbstract());
@@ -184,7 +184,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   }
 
   /**
-   * Is it safe to speculatively inline the callee into the caller.
+   * Is it safe to speculatively inline the callee into the caller?
+   *
    * Some forms of speculative inlining are unsafe to apply to 
    * methods of the core virtual machine because if we are forced to 
    * invalidate the methods, we will be unable to compile their 
@@ -192,10 +193,11 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * The current test is overly conservative, but past attempts at
    * defining a more precise set of "third rail" classes have
    * always resulted in missing some (only to discover them later
-   * when Jikes RVM hangs or crashes.
+   * when Jikes RVM hangs or crashes.)
+   *
    * @param caller the caller method
-   * @param calleee the callee method
-   * @return whether or not we are allowed to speculatively inline
+   * @param callee the callee method
+   * @return Whether or not we are allowed to speculatively inline
    *         the callee into the caller.
    */
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
