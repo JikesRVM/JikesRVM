@@ -3259,6 +3259,9 @@ EOF
 		CCLIBS="-lpthread -lm"
 		IMAGE=
 EOF
+	if (( $RVM_WITH_GCSPY )); then
+	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
+	fi
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
@@ -3372,26 +3375,26 @@ EOF
 
 		echo >&2 -n "(build RunBootImage.o) "		
 		chdir $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1 \
+		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \$GCSPY_INCLUDES -DRVM_WITH_HPM=1 \
 		$DLCOMPAT_DEFINE_FLAG \
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
 
 		chdir ${SCRATCH_DIRECTORY_STR} &&\
 		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
-		    libvm.o sys.o bootThread.o \$CCLIBS \
+		    libvm.o sys.o bootThread.o \$GCSPY_LIBS \$CCLIBS \
 		    -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
 EOF
 	else
 	    cat <<- EOF
 	    echo >&2 -n "(build RunBootImage.o) "		
 	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
+		\${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
 		${DLCOMPAT_DEFINE_FLAG} \
 		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 	    
 	    chdir ${SCRATCH_DIRECTORY_STR} &&\
 		\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-		libvm.o sys.o bootThread.o \${CCLIBS}
+		libvm.o sys.o bootThread.o \$GCSPY_LIBS \${CCLIBS}
 EOF
 	fi
 	echo 'linkedit=1'

@@ -83,7 +83,7 @@ public class ServerSpace
    * @param start the starting address of the tile
    * @param end the end address
    */
-  public void setTilename(int i, int start, int end) {
+  public void setTilename(int i, VM_Address start, VM_Address end) {
     VM_SysCall.gcspyDriverSetTileName(driver_, i, start, end);
   }
 

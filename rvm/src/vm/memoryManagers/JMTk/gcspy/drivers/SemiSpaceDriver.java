@@ -235,20 +235,20 @@ public class SemiSpaceDriver extends AbstractDriver
    */
   private void setTilenames(int numTiles) {
     int tile = 0;
-    int start0 = subspace[0].getStart().toInt();
+    VM_Address start0 = subspace[0].getStart();
     int first0 = subspace[0].getFirstIndex();
     int bs0 = subspace[0].getBlockSize();
-    int start1 = subspace[1].getStart().toInt();
+    VM_Address start1 = subspace[1].getStart();
     int first1 = subspace[1].getFirstIndex();
     int bs1 = subspace[1].getBlockSize();
 
     for (int i = 0; i < numTiles; ++i) {
       if (subspace[0].indexInRange(i)) 
-        space.setTilename(i, start0 + (i - first0) * bs0, 
-	                     start0 + (i + 1 - first0) * bs0);
+        space.setTilename(i, start0.add((i - first0) * bs0), 
+	                     start0.add((i + 1 - first0) * bs0));
       else if (subspace[1].indexInRange(i)) 
-        space.setTilename(i, start1 + (i - first1) * bs1, 
-	                     start1 + (i + 1 - first1) * bs1);
+        space.setTilename(i, start1.add((i - first1) * bs1), 
+	                     start1.add((i + 1 - first1) * bs1));
     }
 
   }

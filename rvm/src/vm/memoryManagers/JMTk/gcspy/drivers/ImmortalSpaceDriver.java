@@ -160,14 +160,14 @@ public class ImmortalSpaceDriver extends AbstractDriver
    */
   private void setTilenames(int numTiles) {
     int tile = 0;
-    int start = subspace.getStart().toInt();
+    VM_Address start = subspace.getStart();
     int first = subspace.getFirstIndex();
     int bs = subspace.getBlockSize();
 
     for (int i = 0; i < numTiles; ++i) {
       if (subspace.indexInRange(i)) 
-        space.setTilename(i, start + (i - first) * bs, 
-	                     start + (i + 1 - first) * bs);
+        space.setTilename(i, start.add((i - first) * bs), 
+	                     start.add((i + 1 - first) * bs));
     }
   }
    

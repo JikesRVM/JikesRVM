@@ -278,7 +278,7 @@ public class VM_SysCall implements VM_Uninterruptible {
 			       VM_Address unused, int mainSpace) {}
   public static void gcspyDriverInitOutput (VM_Address driver) {}
   public static void gcspyDriverResize (VM_Address driver, int size) {}
-  public static void gcspyDriverSetTileName (VM_Address driver, int i, int start, int end) {}
+  public static void gcspyDriverSetTileName (VM_Address driver, int i, VM_Address start, VM_Address end) {}
   public static void gcspyDriverSpaceInfo (VM_Address driver, VM_Address info) {}
   public static void gcspyDriverStartComm (VM_Address driver) {}
   public static void gcspyDriverStream (VM_Address driver, int id, int len) {}

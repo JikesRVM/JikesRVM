@@ -3318,9 +3318,13 @@ gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
 }
 
 extern "C" void
-gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, int start, int end) {
+gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
   char name[256];
+#ifdef RVM_FOR_64_ADDR
+  sprintf(name, "   [%016llx-%016llx)", start, end);
+#else
   sprintf(name, "   [%08x-%08x)", start, end); 
+#endif
   if (GCSPY_TRACE)
     fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
   gcspy_driverSetTileName(driver, tile, name);
@@ -3483,10 +3487,10 @@ gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
 
 extern "C" void
 gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
-#ifndef __linux__
-  printf("I am not Linux!");
-  exit(-1);
-#endif __linux__
+//#ifndef __linux__
+//  printf("I am not Linux!");
+//  exit(-1);
+//#endif __linux__
   if (GCSPY_TRACE)
     fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
   pthread_t tid;

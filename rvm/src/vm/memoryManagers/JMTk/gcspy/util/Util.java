@@ -141,7 +141,7 @@ public class Util
 	//-#endif
 	shift += BITS_IN_BYTE;
       }
-      VM_Magic.setMemoryWord(rtn.add(offset), VM_Word.fromInt(value));
+      VM_Magic.setMemoryInt(rtn.add(offset), value);
     }
     if (DEBUG_) {
       VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size);

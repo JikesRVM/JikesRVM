@@ -16,6 +16,7 @@ import org.mmtk.vm.gcspy.Util;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_SizeConstants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -104,29 +105,29 @@ public class ObjectMap
   // 
   // Bits
   // private static final int LOG_BITS_IN_INT =                                                  //    5
-  private static final int LOG_OBJECT_ALIGNMENT = LOG_BYTES_IN_ADDRESS;                          //    2
-  private static final int WORD_OFFSET = LOG_BITS_IN_INT + LOG_OBJECT_ALIGNMENT;                 //    7
+  private static final int LOG_OBJECT_ALIGNMENT = LOG_BYTES_IN_ADDRESS;                          //    2 - 3
+  private static final int WORD_OFFSET = LOG_BITS_IN_INT + LOG_OBJECT_ALIGNMENT;                 //    7 - 8
   // BITMAP_SIZE *must* map precisely 1 VMResource.PAGE because we release whole bitmaps for efficiency
-  private static final int LOG_INTS_IN_BITMAP = LOG_PAGE_SIZE - WORD_OFFSET;                     //    5
-  private static final int INTS_IN_BITMAP = 1 << LOG_INTS_IN_BITMAP;                             //   32
-  private static final int BITMAP_SIZE = INTS_IN_BITMAP << LOG_BYTES_IN_INT;                     //  128
+  private static final int LOG_INTS_IN_BITMAP = LOG_PAGE_SIZE - WORD_OFFSET;                     //    5 - 4
+  private static final int INTS_IN_BITMAP = 1 << LOG_INTS_IN_BITMAP;                             //   32 - 16
+  private static final int BITMAP_SIZE = INTS_IN_BITMAP << LOG_BYTES_IN_INT;                     //  128 - 64
+  private static final int SLOT_OFFSET = WORD_OFFSET + LOG_INTS_IN_BITMAP;                       //   12 - 12
   
   // Page map
   // LOG_PAGES_PER_PAGEMAP is the only parameter that can be varied
-  private static final int LOG_PAGES_PER_PAGEMAP = 0; 
-  private static final int LOG_PAGEMAP_SIZE = LOG_PAGE_SIZE + LOG_PAGES_PER_PAGEMAP;             //   12
-  private static final int PAGEMAP_SIZE =  1 << LOG_PAGEMAP_SIZE;                                // 4096
+  private static final int LOG_PAGES_PER_PAGEMAP = 0 + LOG_BYTES_IN_ADDRESS - LOG_BYTES_IN_INT;  //    0 - 1
+  private static final int LOG_PAGEMAP_SIZE = LOG_PAGE_SIZE + LOG_PAGES_PER_PAGEMAP;             //   12 - 13
+  private static final int PAGEMAP_SIZE =  1 << LOG_PAGEMAP_SIZE;                                // 4096 - 8192
   private static final int LOG_BITMAPS_IN_PAGEMAP = LOG_PAGEMAP_SIZE -  LOG_BYTES_IN_ADDRESS;    //   10
   private static final int BITMAPS_IN_PAGEMAP = 1 << LOG_BITMAPS_IN_PAGEMAP;                     // 1024
-  private static final int SLOT_OFFSET = WORD_OFFSET + LOG_INTS_IN_BITMAP;                       //   12
+  private static final int PAGE_OFFSET = LOG_BITMAPS_IN_PAGEMAP + SLOT_OFFSET;                   //   22
   
   // Object map
   private static final int LOG_HEAPEND = 32; 
-  private static final int PAGE_OFFSET = LOG_BITMAPS_IN_PAGEMAP + SLOT_OFFSET;                   //   22
   private static final int LOG_PAGEMAPS_IN_OBJECTMAP =  LOG_HEAPEND - PAGE_OFFSET;               //   10
   private static final int PAGEMAPS_IN_OBJECTMAP = 1 << LOG_PAGEMAPS_IN_OBJECTMAP;               // 1024
-  private static final int LOG_OBJECTMAP_SIZE = LOG_PAGEMAPS_IN_OBJECTMAP + LOG_BYTES_IN_ADDRESS;//   12
-  private static final int OBJECTMAP_SIZE = 1 << LOG_OBJECTMAP_SIZE;                             // 4096
+  private static final int LOG_OBJECTMAP_SIZE = LOG_PAGEMAPS_IN_OBJECTMAP + LOG_BYTES_IN_ADDRESS;//   12 - 13
+  private static final int OBJECTMAP_SIZE = 1 << LOG_OBJECTMAP_SIZE;                             // 4096 - 8192
 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -856,10 +857,10 @@ public class ObjectMap
       if (!inHeap) 
         debugln(0, "Bad address: ", addr);
       VM_Interface._assert(inHeap, "Address is outside the heap");
-      VM_Interface._assert(((addr.toInt() >> PAGE_OFFSET)) < PAGEMAPS_IN_OBJECTMAP);
+      VM_Interface._assert(((addr.toWord().rshl(PAGE_OFFSET).toInt()) < PAGEMAPS_IN_OBJECTMAP));
     }
       
-    return (addr.toInt() >>> PAGE_OFFSET); 
+    return addr.toWord().rshl(PAGE_OFFSET).toInt();
   }
 
   /**
@@ -877,7 +878,7 @@ public class ObjectMap
         debugln(0, "Bad address: ", addr);
       VM_Interface._assert(inHeap, "Address is outside the heap");
     }   
-    return (addr.toInt() >> SLOT_OFFSET) & (BITMAPS_IN_PAGEMAP - 1);
+    return (addr.toWord().rshl(SLOT_OFFSET).toInt() & (BITMAPS_IN_PAGEMAP - 1));
   }
   
   /**
@@ -888,7 +889,7 @@ public class ObjectMap
    */
   private static final int addressToWord(VM_Address addr) //throws VM_PragmaInline 
   {
-    return (addr.toInt() >> WORD_OFFSET) & (INTS_IN_BITMAP - 1);
+    return (addr.toWord().rshl(WORD_OFFSET).toInt() & (INTS_IN_BITMAP - 1));
   }
   
   /**
@@ -899,7 +900,7 @@ public class ObjectMap
    */
   private static final int addressToBit(VM_Address addr)  //throws VM_PragmaInline 
   {
-    return ((addr.toInt() >> LOG_OBJECT_ALIGNMENT) & (BITS_IN_INT - 1));
+    return (addr.toWord().rshl(LOG_OBJECT_ALIGNMENT).toInt() & (BITS_IN_INT - 1));
   }
 
   /**
@@ -911,13 +912,12 @@ public class ObjectMap
    * @param bit The number of the bit in the bit mask
    */
   private static VM_Address bitmapToAddress(int page, int slot, int word, int bit) {
-    int pageAddr  = page << PAGE_OFFSET;
-    int chunkAddr = slot << SLOT_OFFSET;
-    int wordAddr  = word << WORD_OFFSET;
-    int bitAddr   = bit  << LOG_OBJECT_ALIGNMENT;
-    int rv = pageAddr | chunkAddr | wordAddr | wordAddr | bitAddr;
-    //debugln(3, "bitmapToAddress: ", rv);
-    VM_Address addr = VM_Address.fromInt(rv);
+    VM_Word pageAddr  = VM_Word.fromIntZeroExtend(page).lsh(PAGE_OFFSET);
+    VM_Word chunkAddr  = VM_Word.fromIntZeroExtend(slot).lsh(SLOT_OFFSET);
+    VM_Word wordAddr  = VM_Word.fromIntZeroExtend(word).lsh(WORD_OFFSET);
+    VM_Word bitAddr  = VM_Word.fromIntZeroExtend(bit).lsh(LOG_OBJECT_ALIGNMENT);
+    
+    VM_Address addr = pageAddr.or(chunkAddr).or(wordAddr).or(wordAddr).or(bitAddr).toAddress();
 
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page == addressToPage(addr));
@@ -971,7 +971,7 @@ public class ObjectMap
 
   public void testTranslation() {
     // trivial example
-    VM_Address HIGH_SS_START = VM_Address.fromInt(0x92500000);
+    VM_Address HIGH_SS_START = VM_Address.fromIntZeroExtend(0x92500000);
     testTranslation(HIGH_SS_START);
     testTranslation(HIGH_SS_START.add(252));
     testTranslation(HIGH_SS_START.sub(744));
