@@ -851,6 +851,14 @@ declare host_jikes_version=""
 ## to jconfigure.
 declare JIKES_WARNING_FLAGS=
 
+## Encoding to use with Jikes?
+## Jikes will probably always take iso-8859-1 (iso-latin-1) input without
+## griping.  And, we have experienced problems on AIX/ppc32, where Jikes
+## complained that it could not find the encoding iso-8859-1.  So,
+## this is staying unset for now.  If we ever find ourselves in a
+## situation where we need it, we will have to perform more
+## auto-detection.
+declare jikes_encoding_flag="" # "-encoding iso-8859-1"
 
 
 # The +U option is used to ensure that the source code in files in
@@ -868,7 +876,16 @@ declare JIKES_WARNING_FLAGS=
 # other piece of scripting that made sure that our source files for
 # java.* are found instead of the class files in the jar.
 declare jikes_dependency_flag=+U
-JAVAC_WARNING_FLAGS=-nowarn
+
+## Similar to the flags for Jikes, let's define some for Sun's Javac.
+declare JAVAC_WARNING_FLAGS="-nowarn"
+
+## This is here to shut up a problem that Brian Carlstrom reported
+## when building on Linux/PowerPC, while his locale was set to
+## en_US.utf-8.  
+declare javac_encoding_flag="-encoding iso-8859-1"
+
+
 
 ## Set this to 1 if we find that the host is using Jikes 1.13, which does not
 ## support the -sourcepath argument, or (TODO) if we're building with
@@ -1881,11 +1898,11 @@ function emitEnvironmentBash () {
 	fi
 
 	
-	export HOST_JIKES='$JIKES -encoding iso-8859-1'		# Deprecated
-	export $JIKES_STR1='$JIKES -encoding iso-8859-1'
+	export HOST_JIKES='$JIKES $jikes_encoding_flag'		# Deprecated
+	export $JIKES_STR1='$JIKES $jikes_encoding_flag'
 	export $HOST_JAVA_STR1='${HOST_VM_RT}'	# Deprecated
 	export $HOST_VM_RT_STR1='${HOST_VM_RT}'
-	export $HOST_JAVAC_STR1='$HOST_JAVAC'
+	export $HOST_JAVAC_STR1='$HOST_JAVAC $javac_encoding_flag'
 EOF
     # Javadoc is optional; we won't always have free alternatives installed
     if [[ ${HOST_JAVADOC-} ]]; then
@@ -1989,8 +2006,8 @@ function emitMakefile () {
 	    ${BUILD_DIRECTORY_STR1}:=${RVM_BUILD}
 	endif
 	
-	HOST_JIKES = $JIKES  -encoding iso-8859-1	# Deprecated
-	$JIKES_STR1 = $JIKES -encoding iso-8859-1
+	HOST_JIKES = $JIKES  $jikes_encoding_flag	# Deprecated
+	$JIKES_STR1 = $JIKES $jikes_encoding_flag
 EOF
 	
     # The configuration for building the user guide.
@@ -2022,7 +2039,7 @@ EOF
 	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
 	HOST_VM_RT = ${HOST_VM_RT}
 	HOST_VM_TYPE := ${HOST_VM_TYPE}
-	HOST_JAVAC = $HOST_JAVAC -encoding iso-8859-1
+	HOST_JAVAC = $HOST_JAVAC $javac_encoding_flag
 	HOST_JAR := ${JAR}	# Deprecated
 	JAR = $JAR
 	HOST_JAVA_REPOSITORIES = $HOST_REPOSITORIES # Deprecated
