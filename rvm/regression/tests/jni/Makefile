@@ -22,10 +22,7 @@ BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
-# TESTS that currently fail for one reason or another and are excluded
-#       TEST			REASON FOR EXCLUSION
-# 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
-TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
+TESTS = Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
 
