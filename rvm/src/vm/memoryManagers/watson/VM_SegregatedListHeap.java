@@ -71,9 +71,6 @@ final class VM_SegregatedListHeap extends VM_Heap
   private int    highest_block;    // number of highest available block
   private int    blocks_available;  // number of free blocks for small obj's
 
-  // private int[] countSmallFree;        // bytes allocated by size
-  // private int[] countSmallBlocksAlloc;  // blocks allocated by size
-
   private int[] accum;
   private int[] total;
 
@@ -130,9 +127,6 @@ final class VM_SegregatedListHeap extends VM_Heap
 	st.GC_INDEX_ARRAY[j] = st.sizes[i];
       }
     }
-
-    // countSmallFree = new int[GC_SIZES];
-    // countSmallBlocksAlloc = new int[GC_SIZES];
 
     st.backingSLHeap = this;
   }
@@ -229,7 +223,7 @@ final class VM_SegregatedListHeap extends VM_Heap
       // slow path: find a new block to allocate from
       return VM_Processor.getCurrentProcessor().backingSLHeap.allocateSlot(the_size, size); 
     } else {
-      // inlined slow path: get available memory
+      // inlined fast path: get slot from block
       return allocateSlotFast(the_size, next_slot); 
     }
   }
@@ -248,20 +242,25 @@ final class VM_SegregatedListHeap extends VM_Heap
     
     if (this_block.mark[slotndx] != 0) return true;
     
-    byte tbyte = (byte)1;
-    int  temp, temp1;
-    do  {
-      // get word with proper byte from map
-      temp1 = VM_Magic.prepare(this_block.mark, ((slotndx>>2)<<2));
-      if (this_block.mark[slotndx] != 0) return true;
-      //-#if RVM_FOR_IA32    
-      int index = slotndx%4; // get byte in word - little Endian
-      //-#else 
-      int index = 3 - (slotndx%4); // get byte in word - big Endian
-      //-#endif
-      int mask = tbyte << (index * 8); // convert to bit in word
-      temp  = temp1 | mask;        // merge into existing word
-    }  while (!VM_Magic.attempt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
+    if (false) {
+      // store byte into byte array
+      this_block.mark[slotndx] = 1;
+    } else {
+      byte tbyte = (byte)1;
+      int  temp, temp1;
+      do  {
+	// get word with proper byte from map
+	temp1 = VM_Magic.prepare(this_block.mark, ((slotndx>>2)<<2));
+	if (this_block.mark[slotndx] != 0) return true;
+	//-#if RVM_FOR_IA32    
+	int index = slotndx%4; // get byte in word - little Endian
+	//-#else 
+	int index = 3 - (slotndx%4); // get byte in word - big Endian
+	//-#endif
+	int mask = tbyte << (index * 8); // convert to bit in word
+	temp  = temp1 | mask;        // merge into existing word
+      }  while (!VM_Magic.attempt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
+    }
 
     // TODO: move this code to generic GC code!
     // if (VM_Allocator.GC_COUNT_LIVE_OBJECTS) VM_Processor.getCurrentProcessor().small_live++;
@@ -408,7 +407,14 @@ final class VM_SegregatedListHeap extends VM_Heap
     // Finally, try to allocate a free block and format it to the given size
     if (getnewblock(the_size.ndx) == 0) {
       the_size.current_block = the_block.nextblock;
-      build_list_for_new_block(blocks[the_size.current_block], the_size);
+      int idx = the_size.current_block;
+      if (idx < 0 || idx >= blocks.length) {
+	VM.sysWriteln("idx out of range ",idx);
+	VM.sysWriteln("; len is ",blocks.length);
+	VM.sysWriteln("Processor ", VM_Processor.getCurrentProcessor().id);
+	VM.sysFail("killing VM");
+      }
+      build_list_for_new_block(blocks[idx], the_size);
       return allocateSlotFast(the_size, the_size.next_slot);
     }
   
@@ -796,26 +802,13 @@ final class VM_SegregatedListHeap extends VM_Heap
     return round;
   }
 
+  public long freeMemory () {
+    return freeBlocks() * GC_BLOCKSIZE;
+  }
 
-  public  long freeSmallSpace (VM_Processor st) {
-    int  total = 0;
-    for (int i = 0; i < GC_SIZES; i++) {
-      total_blocks_in_use += blocksToCurrent(st.sizes[i]);
-      VM_BlockControl this_block  = blocks[st.sizes[i].current_block];
-      VM_Address current_pointer = st.sizes[i].next_slot;
-      total += emptyOfCurrentBlock(this_block, current_pointer); 
-      int next  = this_block.nextblock;
-      while (next != OUT_OF_BLOCKS) {
-	if (GCDEBUG_FREESPACE) 
-	  VM_Scheduler.trace(" In freesmallspace ", "next = ", next);
-	this_block  = blocks[next];
-	total_blocks_in_use++;
-	
-	total  += emptyof(i, this_block.mark);
-	next  = this_block.nextblock;
-      }
-    }
-    return  total;
+  public long partialBlockFreeMemory() {
+    VM.sysWrite("WARNING: partialBlockFreeMemory not implemented; returning 0\n");
+    return 0;
   }
 
   protected int emptyOfCurrentBlock(VM_BlockControl the_block, VM_Address current_pointer) {
@@ -873,10 +866,39 @@ final class VM_SegregatedListHeap extends VM_Heap
 	
 
   void setupProcessor (VM_Processor st) {
-    //  Get VM_SizeControl array 
-    st.sizes  =  new VM_SizeControl[GC_SIZES];
+    VM_Array scArrayType = VM_SizeControl.TYPE.getArrayTypeForElementType();
+    int scArraySize = scArrayType.getInstanceSize(GC_SIZES);
+    int scSize = VM_SizeControl.TYPE.getInstanceSize();
+    int regionSize = scArraySize + scSize * GC_SIZES;
+
+    // Allocate objects for processor-local meta data from backing malloc heap.
+    VM.disableGC();
+    VM_Address region = mallocHeap.allocate(regionSize);
+    st.sizes = 
+      (VM_SizeControl[])VM_ObjectModel.initializeArray(region, 
+						       scArrayType.getTypeInformationBlock(), 
+						       GC_SIZES, scArraySize);
+    region = region.add(scArraySize);
     for (int i = 0; i < GC_SIZES; i++) {
-      st.sizes[i] = new VM_SizeControl();
+      st.sizes[i] = 
+	(VM_SizeControl)VM_ObjectModel.initializeScalar(region, 
+							VM_SizeControl.TYPE.getTypeInformationBlock(), 
+							scSize);
+      region = region.add(scSize);
+    }
+
+    regionSize = scArrayType.getInstanceSize(GC_MAX_SMALL_SIZE + 1);
+    region = mallocHeap.allocate(regionSize);
+    st.GC_INDEX_ARRAY = 
+      (VM_SizeControl[])VM_ObjectModel.initializeArray(region, 
+						       scArrayType.getTypeInformationBlock(), 
+						       GC_MAX_SMALL_SIZE + 1, 
+						       regionSize);
+
+    VM.enableGC();
+
+    // Finish setting up the size controls and index arrays
+    for (int i = 0; i<GC_SIZES; i++) {
       int ii = getnewblockx(i);
       st.sizes[i].first_block = ii;   // 1 block/size initially
       st.sizes[i].current_block = ii;
@@ -884,8 +906,6 @@ final class VM_SegregatedListHeap extends VM_Heap
       build_list_for_new_block(blocks[ii], st.sizes[i]);
     }
 	
-    //  set up GC_INDEX_ARRAY for this Processor
-    st.GC_INDEX_ARRAY  = new VM_SizeControl[GC_MAX_SMALL_SIZE + 1];
     st.GC_INDEX_ARRAY[0]  = st.sizes[0];  // for size = 0
     int  j = 1;
     for (int i = 0; i < GC_SIZES; i++) {
