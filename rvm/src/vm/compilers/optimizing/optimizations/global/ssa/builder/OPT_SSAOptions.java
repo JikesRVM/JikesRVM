@@ -12,6 +12,7 @@ import  java.util.*;
  *            actual options held by the IR object.
  *
  * @author Stephen Fink
+ * @author Martin Trapp
  */
 class OPT_SSAOptions {
   /**
@@ -25,6 +26,7 @@ class OPT_SSAOptions {
   // analysis?
   private boolean insertUsePhis;      // constuct Heap SSA with uPhi functions?
   private boolean insertPEIDeps;      // constuct Heap SSA with PEI deps?
+  private boolean excludeGuards;      // ignore guards (validation regs) ?
   private java.util.Set heapTypes;    // restrict Heap SSA to this set of types?
   private boolean heapValid;          // is Heap SSA info valid?
   private boolean scalarValid;        // is Scalar SSA info valid?
@@ -43,6 +45,10 @@ class OPT_SSAOptions {
 
   final boolean getInsertPEIDeps () {
     return  insertPEIDeps;
+  }
+
+  final boolean getExcludeGuards () {
+    return  excludeGuards;
   }
 
   final java.util.Set getHeapTypes () {
@@ -69,6 +75,10 @@ class OPT_SSAOptions {
     insertUsePhis = b;
   }
 
+  final void setExcludeGuards (boolean b) {
+    excludeGuards = b;
+  }
+  
   final void setInsertPEIDeps (boolean b) {
     insertPEIDeps = b;
   }
@@ -97,6 +107,8 @@ class OPT_SSAOptions {
     this.backwards = backwards;
     this.insertUsePhis = insertUsePhis;
     this.heapTypes = heapTypes;
+    this.insertPEIDeps = false;
+    this.excludeGuards = false;
     scalarValid = false;
     heapValid = false;
   }
@@ -109,6 +121,8 @@ class OPT_SSAOptions {
     this.backwards = false;
     this.insertUsePhis = false;
     this.heapTypes = null;
+    this.insertPEIDeps = false;
+    this.excludeGuards = false;
     scalarValid = false;
     heapValid = false;
   }
@@ -135,6 +149,10 @@ class OPT_SSAOptions {
     if (backwards != d.getBackwards())
       return  false;
     if (insertUsePhis != d.getInsertUsePhis())
+      return  false;
+    if (insertPEIDeps != d.getInsertPEIDeps())
+      return  false;
+    if (excludeGuards != d.getExcludeGuards())
       return  false;
     if (heapTypes != d.getHeapTypes())
       return  false;

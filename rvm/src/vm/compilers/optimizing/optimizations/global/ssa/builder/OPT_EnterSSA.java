@@ -27,7 +27,8 @@ import instructionFormats.*;
  * @see OPT_LTDominators
  *
  * @author Stephen Fink
- * @modified Julian Dolby
+ * @author Julian Dolby
+ * @author Martin Trapp
  */
 class OPT_EnterSSA extends OPT_CompilerPhase
     implements OPT_Operators, OPT_Constants {
@@ -99,6 +100,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     java.util.Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
     boolean insertUsePhis = ir.desiredSSAOptions.getInsertUsePhis();
     boolean insertPEIDeps = ir.desiredSSAOptions.getInsertPEIDeps();
+    boolean excludeGuards = ir.desiredSSAOptions.getExcludeGuards();
+
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed)
       throw  new OPT_OptimizingCompilerException("Need dominators for SSA");
@@ -112,7 +115,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     if (ir.options.PRINT_SSA)
       OPT_SSA.printInstructions(ir);
     computeSSA(ir, scalarsOnly, backwards, heapTypes,
-	       insertUsePhis, insertPEIDeps);
+	       insertUsePhis, insertPEIDeps, excludeGuards);
     // reset the SSAOptions
     ir.actualSSAOptions = new OPT_SSAOptions();
     ir.actualSSAOptions.setScalarsOnly(scalarsOnly);
@@ -120,6 +123,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     ir.actualSSAOptions.setHeapTypes(heapTypes);
     ir.actualSSAOptions.setInsertUsePhis(insertUsePhis);
     ir.actualSSAOptions.setInsertPEIDeps(insertPEIDeps);
+    ir.actualSSAOptions.setExcludeGuards(excludeGuards);
   }
 
   /**
@@ -131,9 +135,12 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    */
   private void prepare () {
     if (ir.options.PRUNED_SSA) {
-      live = new OPT_LiveAnalysis(false,  // don't create GC maps
-				  true);  // skip (final) local propagation step
-                                          // of live analysis
+      live = new OPT_LiveAnalysis(false, // don't create GC maps
+				  true,  // skip (final) local propagation step
+                                         // of live analysis
+				  false, // don't store live at handlers
+				  ir.desiredSSAOptions.getExcludeGuards());
+                                         // don't skip guards 
       live.perform(ir);
     } 
     else if (ir.options.SEMI_PRUNED_SSA) {
@@ -279,9 +286,11 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param insertPEIDeps: Should we model exceptions with an explicit
    * heap variable for exception state? This option is useful for global
    * code placement algorithms.
+   * @param excludeGuards: Should we exclude guard registers from SSA?
    */
   private void computeSSA (OPT_IR ir, boolean scalarsOnly, boolean backwards, 
-      java.util.Set heapTypes, boolean insertUsePhis, boolean insertPEIDeps) {
+			   java.util.Set heapTypes, boolean insertUsePhis,
+			   boolean insertPEIDeps, boolean excludeGuards) {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
 
@@ -313,7 +322,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     // 4. Insert phi functions for scalars
     if (DEBUG)
       System.out.println("Insert phi functions...");
-    insertPhiFunctions(ir, defSets, symbolicRegisters);
+    insertPhiFunctions(ir, defSets, symbolicRegisters, excludeGuards);
     // 5. Insert heap variables into the Array SSA form
     if (!scalarsOnly) {
       insertHeapVariables(ir, backwards);
@@ -528,7 +537,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase
    * @param symbolics symbolics[i] is symbolic register number i
    */
   private void insertPhiFunctions(OPT_IR ir, OPT_BitVector[] defs, 
-                                  OPT_Register[] symbolics) {
+                                  OPT_Register[] symbolics,
+				  boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
       if (symbolics[r] == null)
         continue;
@@ -536,7 +546,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
         continue;
       if (symbolics[r].isPhysical())
         continue;
-      //if (symbolics[r].isValidation()) continue;
+      if (excludeGuards && symbolics[r].isValidation()) continue;
       if (DEBUG)
         System.out.println("Inserting phis for register " + r);
       if (DEBUG)
@@ -814,12 +824,16 @@ class OPT_EnterSSA extends OPT_CompilerPhase
               // this particular control flow path into the basic
               // block.  So, null out the operand to indicate that
               // that case will never happen.
-              if (ir.IRStage == ir.LIR) {
-                Phi.setValue(s, j, new OPT_IntConstantOperand(0));
-              } 
-              else {
-                Phi.setValue(s, j, new OPT_NullConstantOperand());
-              }
+	      if (r1.isValidation()) {
+		Phi.setValue(s, j, new OPT_TrueGuardOperand());
+	      } else {
+		if (ir.IRStage == ir.LIR) {
+		  Phi.setValue(s, j, new OPT_IntConstantOperand(0));
+		} 
+		else {
+		  Phi.setValue(s, j, new OPT_NullConstantOperand());
+		}
+	      }
             } 
             else {
               rop.register = r2.register;

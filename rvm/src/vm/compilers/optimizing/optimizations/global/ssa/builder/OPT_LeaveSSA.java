@@ -15,11 +15,12 @@ import instructionFormats.*;
  * @see OPT_LTDominators
  *
  * @author Stephen Fink
- * @modified Julian Dolby
+ * @author Julian Dolby
+ * @author Martin Trapp
  */
 class OPT_LeaveSSA extends OPT_CompilerPhase
-    implements OPT_Operators, OPT_Constants {
-
+  implements OPT_Operators, OPT_Constants {
+  
   /**
    *  verbose debugging flag 
    */ 
@@ -366,6 +367,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @param ir the IR in SSA form
    */
   public void translateFromSSA (OPT_IR ir) {
+    // 0. Deal with guards (validation registers)
+    unSSAGuards (ir);
+    
     // 1. re-compute dominator tree in case of control flow changes
     //    (parmeter specifies we want regular dominators, not post-doms)
     OPT_LTDominators.perform(ir, true);
@@ -399,6 +403,146 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
       if (Phi.conforms(s))
         s.remove();
     }
+  }
+
+  /**
+   * Special treatment for guard registers:
+   * Remove guard-phis by evaluating operands into same register.
+   * If this target register is not unique, unite the alternatives.
+   */
+  private void unSSAGuards (OPT_IR ir) {
+    // 0. initialization
+    unSSAGuardsInit (ir);
+    // 1. Determine target registers
+    unSSAGuardsDetermineReg (ir);
+    // 2. Rename targets and remove Phis
+    unSSAGuardsFinalize (ir);
+  }
+
+  OPT_Instruction guardPhis = null;
+  
+  /**
+   * Initialization for removal of guard phis.
+   */
+  private void unSSAGuardsInit (OPT_IR ir) {
+    guardPhis = null;
+    OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
+
+    // visit all instructions, looking for guard phis
+    
+    while (e.hasMoreElements()) {
+      OPT_Instruction inst = e.next();
+      if (! Phi.conforms (inst)) continue;
+      OPT_Operand res = Phi.getResult(inst);
+      if (! (res instanceof OPT_RegisterOperand)) continue;
+      OPT_Register r = res.asRegister().register;
+      if (!r.isValidation()) continue;
+
+      // force all operands of Phis into registers.
+
+      inst.scratchObject = guardPhis;
+      guardPhis = inst;
+      
+      int values = Phi.getNumberOfValues (inst);
+      for (int i = 0;  i < values;  ++i) {
+	OPT_Operand op = Phi.getValue (inst, i);
+	if (! (op instanceof OPT_RegisterOperand)) {
+	  if (! (op instanceof OPT_TrueGuardOperand)) {
+	    VM.sysWrite ("!!! "+op.getClass()+"\n");
+	  }
+	}
+      }
+    }
+
+    // visit all guard registers, init union/find
+    
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+      if (!r.isValidation()) continue;
+      r.scratch = 1;
+      r.scratchObject = r;
+    }
+  }
+
+  /**
+   * Determine target register for guard phi operands
+   */
+  private void unSSAGuardsDetermineReg (OPT_IR ir) {
+    OPT_Instruction inst = guardPhis;
+    while (inst != null) {
+      OPT_Register r = Phi.getResult (inst).asRegister().register;
+      int values = Phi.getNumberOfValues (inst);
+      for (int i = 0;  i < values;  ++i) {
+	OPT_Operand op = Phi.getValue (inst, i);
+	if (op instanceof OPT_RegisterOperand) {
+	  guardUnion (op.asRegister().register, r);
+	} else {
+	  if (VM.VerifyAssertions)
+	    VM.assert (op instanceof OPT_TrueGuardOperand);
+	}
+      }
+      inst = (OPT_Instruction) inst.scratchObject;
+    }
+  }
+
+  /**
+   * Rename registers and delete Phis.
+   */
+  private void unSSAGuardsFinalize (OPT_IR ir) {
+    OPT_DefUse.computeDU (ir);
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+      if (!r.isValidation()) continue;
+      OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses (r);
+      while (uses.hasMoreElements()) {
+	OPT_RegisterOperand use = uses.next();
+	use.register = guardFind (use.register);
+      }
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs (r);
+      while (defs.hasMoreElements()) {
+	OPT_RegisterOperand def = defs.next();
+	def.register = guardFind (def.register);
+      }
+    }
+    OPT_Instruction inst = guardPhis;
+    while (inst != null) {
+      inst.remove();
+      inst = (OPT_Instruction) inst.scratchObject;
+    }
+  }
+
+  /**
+   * union step of union/find for guard registers during unSSA
+   */
+  private OPT_Register guardUnion (OPT_Register from, OPT_Register to)
+  {
+    OPT_Register a = guardFind (from);
+    OPT_Register b = guardFind (to);
+    if (a == b) return a;
+    if (a.scratch == b.scratch) {
+      a.scratch++;
+      b.scratchObject = a;
+      return a;
+    }
+    if (a.scratch > b.scratch) {
+      b.scratchObject = a;
+      return a;
+    }
+    a.scratchObject = b;
+    return b;
+  }
+  
+  /**
+   * find step of union/find for guard registers during unSSA
+   */
+  private OPT_Register guardFind (OPT_Register r)
+  {
+    OPT_Register start = r;
+    if (VM.VerifyAssertions) VM.assert (r.scratchObject != null);
+    while (r.scratchObject != r) r = (OPT_Register) r.scratchObject;
+    while (start.scratchObject != r) {
+      start.scratchObject = r;
+      start = (OPT_Register) start.scratchObject;
+    }
+    return r;
   }
 }
 
