@@ -71,7 +71,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   public VM_Address acquire(int request) {
-    VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(false);
     return VM_Address.zero();
   }
 

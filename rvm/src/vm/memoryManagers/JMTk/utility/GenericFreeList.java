@@ -201,12 +201,10 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    if (VM.VerifyAssertions) 
-      VM._assert((next >= HEAD) && (next <= MAX_UNITS));
-    if (next == HEAD) 
-      setHiEntry(unit, (getHiEntry(unit) | NEXT_MASK));
-    else
-      setHiEntry(unit, (getHiEntry(unit) & ~NEXT_MASK) | next);
+    if (VM.VerifyAssertions) VM._assert((next >= HEAD) && (next <= MAX_UNITS));
+    int oldValue = getHiEntry(unit);
+    int newValue = (next == HEAD) ? (oldValue | NEXT_MASK) : ((oldValue & ~NEXT_MASK) | next);
+    setHiEntry(unit, newValue);
   }
 
   /**
@@ -228,8 +226,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    if (VM.VerifyAssertions) 
-      VM._assert((prev >= HEAD) && (prev <= MAX_UNITS));
+    if (VM.VerifyAssertions) VM._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
       setLoEntry(unit, (getLoEntry(unit) | PREV_MASK));
     else

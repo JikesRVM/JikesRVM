@@ -184,7 +184,7 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    VM._assert(basesize > size);
+    if (VM.VerifyAssertions) VM._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);

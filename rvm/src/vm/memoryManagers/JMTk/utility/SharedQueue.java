@@ -93,8 +93,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   public final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
-    VM._assert(head.isZero());
-    VM._assert(tail.isZero());
+    if (VM.VerifyAssertions) VM._assert(head.isZero() && tail.isZero());
   }
 
   public final void newClient() {

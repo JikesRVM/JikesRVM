@@ -120,7 +120,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     else if (GCType == MINOR)
       minorBytesCopied.addSample(copied);
     else
-      VM._assert(false);
+      VM.sysFail("Statistics.updateGCStats given unknown GC type");
   }
 
   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {

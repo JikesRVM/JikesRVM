@@ -42,8 +42,7 @@ final class FreeList extends BaseFreeList implements Constants, VM_Uniterruptibl
    */
   protected final int pagesForClassSize(int sizeClass) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) 
-      VM._assert(sizeClass != LARGE_SIZE_CLASS);
+    if (VM.VerifyAssertions) VM._assert(sizeClass != LARGE_SIZE_CLASS);
 
     return sizeClassPages[sizeClass];
   }
@@ -73,8 +72,7 @@ final class FreeList extends BaseFreeList implements Constants, VM_Uniterruptibl
    */
   protected final int cellSize(int sizeClass) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) 
-      VM._assert(sizeClass != LARGE_SIZE_CLASS);
+    if (VM.VerifyAssertions) VM._assert(sizeClass != LARGE_SIZE_CLASS);
 
     return cellSize[sizeClass];
   }

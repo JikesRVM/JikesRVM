@@ -58,8 +58,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       if (mapped[chunk] == PROTECTED) {
 	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.release();
- 	  VM.sysWriteln("ensureMapped (unprotect) failed");
-	  VM._assert(false);
+ 	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
 	}
 	else {
 	  if (verbose) {
@@ -83,8 +82,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
 	if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.release();
-	  VM.sysWriteln("mprotect failed");
-	  VM._assert(false);
+	  VM.sysFail("LazyMmapper.mprotect failed");
 	}
 	else {
 	  if (verbose) {

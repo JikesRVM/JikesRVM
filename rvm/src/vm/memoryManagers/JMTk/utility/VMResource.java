@@ -44,8 +44,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
 
   public static void showAll () {
-    VM.sysWriteln("showAll not implemented");
-    VM._assert(false);
+    VM.sysFail("VM_Interface.showAll not implemented");
   }
 
   public static boolean refInVM(VM_Address ref) throws VM_PragmaUninterruptible {

@@ -363,9 +363,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    */
   protected static final int getSizeClass(boolean isScalar, EXTENT bytes)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) {
-      VM._assert(bytes >= 0);
-    }
+    if (VM.VerifyAssertions) VM._assert(bytes >= 0);
+
     int sz1 = bytes - 1;
     int offset = 0;  // = isScalar ? BASE_SIZE_CLASSES : 0;
     return ((sz1 <=   63) ? offset +      (sz1 >>  2): //    4 bytes apart
@@ -387,10 +386,9 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    */
   protected static final int getBaseCellSize(int sc) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) {
-      VM._assert(sc != LARGE_SIZE_CLASS);
-      VM._assert(sc < BASE_SIZE_CLASSES);
-    }
+    if (VM.VerifyAssertions) 
+      VM._assert(sc != LARGE_SIZE_CLASS && sc < BASE_SIZE_CLASSES);
+
     return ((sc < 16) ? (sc +  1) <<  2:
 	    (sc < 24) ? (sc -  7) <<  3:
 	    (sc < 32) ? (sc - 15) <<  4:
@@ -417,10 +415,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 						      int cellSize,
 						      int spHeaderSize) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) {
-      VM._assert(sizeClass > MAX_SMALL_SIZE_CLASS);
-      VM._assert(sizeClass < BASE_SIZE_CLASSES);
-    }
+    if (VM.VerifyAssertions) 
+      VM._assert(sizeClass > MAX_SMALL_SIZE_CLASS && sizeClass < BASE_SIZE_CLASSES);
 
     int size = spHeaderSize;
     int pages = 1;

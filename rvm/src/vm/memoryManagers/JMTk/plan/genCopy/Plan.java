@@ -221,8 +221,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || (getPagesReserved() > getTotalPages())) {
-      if (VM.VerifyAssertions)
-	VM._assert(mr != metaDataMR);
+      if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       fullHeapGC = mustCollect || fullHeapGC;
       VM_Interface.triggerCollection();
       return true;
