@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
+import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -84,6 +85,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     Statistics.boot();
     SynchronizedCounter.boot();
     Monitor.boot();
+    HeapGrowthManager.boot();
   }
 
   /**

@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
+import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -230,22 +231,39 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM.sysWrite("[Forced GC]");
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
-    long start = System.currentTimeMillis();
+    double start = VM_Time.now();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
-    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
-					(int) (System.currentTimeMillis() - start));
-
+    double end = VM_Time.now();
+    double gcTime = end - start;
+    HeapGrowthManager.recordGCTime(gcTime);
+    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", VM_Time.toMilliSecs(gcTime));
+    
     if (Plan.isLastGCFull()) {
-      int before = Options.getCurrentHeapSize(); 
-      boolean heapGrew = Options.updateCurrentHeapSize((int) Plan.reservedMemory()); 
-      if (heapGrew) { 
+      int oldSize = Options.getCurrentHeapSize(); 
+      double liveRatio = Plan.reservedMemory() / ((double) Plan.totalMemory());
+      int newSize = oldSize;
+      if (Options.variableSizeHeap && why != EXTERNALLY_TRIGGERED_GC) {
+	double ratio = HeapGrowthManager.computeHeapChangeRatio(liveRatio);
+	newSize = (int)(ratio * (double)oldSize);
+	if (newSize > 10 * (1<<20)) {
+	  newSize = (newSize + (1<<20)) >> 20 << 20;
+	} else {
+	  newSize = (newSize + (1<<10)) >> 10 << 10;
+	}
+	int maxSize = Options.getMaxHeapSize();
+	if (newSize > maxSize) newSize = maxSize;
+      }
+      HeapGrowthManager.reset();
+      if (newSize != oldSize) {
+	// Heap size is going to change
+	Options.setCurrentHeapSize(newSize);
 	if (Options.verbose >= 2) { 
-	  VM.sysWrite("Heap grew from ", (int) (before / 1024)); 
-	  VM.sysWrite("KB to ", (int) (Options.getCurrentHeapSize() / 1024)); 
+	  VM.sysWrite("Heap changed from ", (int) (oldSize / 1024)); 
+	  VM.sysWrite("KB to ", (int) (newSize / 1024)); 
 	  VM.sysWriteln("KB"); 
 	} 
-      } 
-      else { 
+      } else {
+	// Heap size did not change
         double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
 	if (usage > OUT_OF_MEMORY_THRESHOLD) {
 	if (why == INTERNALLY_TRIGGERED) {

@@ -1945,6 +1945,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Z
 	[[I
 	[[B
+        [[D
 	[[[I
 
 	# These next arrays are really arrays of primitves to Jikes RVM 
@@ -1982,7 +1983,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
-		[[D
 		[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;
 		[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;
 		[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;

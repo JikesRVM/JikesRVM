@@ -33,6 +33,10 @@ public final class Options implements VM_Uninterruptible, Constants {
     return currentHeapSize;
   }
 
+  public static void setCurrentHeapSize(int heapSize) {
+    currentHeapSize = heapSize;
+  }
+  
   /**
    * Return the max heap size in bytes (as set by -Xmx).
    *
@@ -61,24 +65,6 @@ public final class Options implements VM_Uninterruptible, Constants {
     if (initialHeapSize > maxHeapSize) 
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
-  }
-
-  public static boolean updateCurrentHeapSize(int usedHeapSize) {
-    double liveRatio = ((double) usedHeapSize) / currentHeapSize;
-    if (liveRatio > growThreshold) {
-      int newSize = (int) (growRatio * currentHeapSize);
-      if (newSize > 10 * (1<<20)) {
-	newSize = (newSize + (1<<20)) >> 20 << 20;
-      }
-      else 
-	newSize = (newSize + (1<<10)) >> 10 << 10;
-      if (newSize > maxHeapSize) newSize = maxHeapSize;
-      if (newSize > currentHeapSize) {
-	currentHeapSize = newSize;
-	return true;
-      }
-    }
-    return false;
   }
 
    // Begin template-specified options

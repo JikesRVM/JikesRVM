@@ -31,16 +31,6 @@ if (val2 <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
 val = val2;
 
 
-V growThreshold double 0.8
-Grow the heap when live ratio exceeds this value
-if (val <= 0.0 || val >= 1.0) VM_Interface.sysFail("Unreasonable growThreshold " + val);
-
-
-V growRatio double 1.2
-Grow the heap by this ratio
-if (val < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + val);
-
-
 V metaDataPages int 4096 metaDataLimit
 Trigger a GC if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
