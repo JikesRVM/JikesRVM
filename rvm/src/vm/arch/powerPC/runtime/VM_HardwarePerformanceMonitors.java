@@ -10,9 +10,16 @@ import com.ibm.JikesRVM.VM_CommandLineArgs;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+
 //-#if RVM_WITH_HPM
 import com.ibm.JikesRVM.Java2HPM;
 //-#endif
+
+//BEGIN HRM
+import com.ibm.JikesRVM.classloader.VM_MemberReference;
+import com.ibm.JikesRVM.classloader.VM_Atom;
+//END HRM
+
 /**
  * This class provides support to hardware performance monitors
  * without making any assumption of what PowerPC architecture Jikes RVM is running on.
@@ -48,6 +55,9 @@ public class VM_HardwarePerformanceMonitors
   static private int MACHINE_TYPE_RECORD = 1;
   static private int        EVENT_RECORD = 2;
   static private int       THREAD_RECORD = 3;
+  //BEGIN HRM
+  static private int       METHOD_RECORD = 4;
+  //END HRM
 
   // Set true in VM_HPMs.setUpHPMinfo() to tell VM_Processor when it is safe to collect hpm data!  
   static public  boolean safe = false;
@@ -58,8 +68,10 @@ public class VM_HardwarePerformanceMonitors
   static public  int     SIZE_OF_BYTE       = 1;
   static public  int     SIZE_OF_INT        = 4;
   static public  int     SIZE_OF_LONG       = 8;
-  // FORMAT(int), (buffer_code & VP)(int), global_tid(int), tid(int), real_time(long), delta(long)
-  static public  int     SIZE_OF_HEADER     = 24; 
+  //BEGIN HRM
+  // (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), global_tid(int), startOfWallTime(long), endOfWallTime(long), mid1(int), mid2(int), counters(long)*
+  static public  int     SIZE_OF_HEADER     = 40; 
+  //END HRM
 
   static private int     record_size        = 0;     // in bytes, record size
   /**
@@ -531,7 +543,7 @@ public class VM_HardwarePerformanceMonitors
     byte[] buffer = new byte[machine_type.length()+8];
     // write record format number
     VM_Magic.setIntAtOffset(buffer, index, MACHINE_TYPE_RECORD);	index += SIZE_OF_INT;
-    index += writeStringToBuffer(buffer, index, machine_type.getBytes());
+    index = writeStringToBuffer(buffer, index, machine_type.getBytes());
     // write buffer to file
     writeFileOutputStream(buffer, index);
   }
@@ -611,7 +623,7 @@ public class VM_HardwarePerformanceMonitors
     // write local thread id
     VM_Magic.setIntAtOffset(buffer, index, tid);    		index += SIZE_OF_INT;
     // write event name
-    index += writeStringToBuffer(buffer, index, name.getBytes());
+    index = writeStringToBuffer(buffer, index, name.getBytes());
     // write buffer to file
     writeFileOutputStream(buffer, index);
   }
@@ -642,10 +654,53 @@ public class VM_HardwarePerformanceMonitors
     // write event number
     VM_Magic.setIntAtOffset(buffer, index, id);    		index += SIZE_OF_INT;
     // write event name
-    index += writeStringToBuffer(buffer, index, name.getBytes());
+    index = writeStringToBuffer(buffer, index, name.getBytes());
     // write buffer to file
     writeFileOutputStream(buffer, index);
   }
+  //BEGIN HRM
+  /**
+   * Write a method record to the trace ((header)) file
+   * A method record's format is:
+   *  METHOD_RECORD(int), mid(int), length(int), className(byte[]), length(int), methodName(byte[]), length(int), methodDescriptor(byte[])
+   *
+   * @param mid               method id
+   * @param className         name of class (e.g. "Ljava/lang/String;")
+   * @param methodName        name of method (e.g. "equals")
+   * @param methodDescriptor  descriptor (argument and return types) (e.g. "(Ljava/lang/Object;)Z")
+   */
+  private final static void writeMethod(int mid, VM_Atom className, VM_Atom methodName, VM_Atom methodDescriptor) {
+    if (verbose>2) {
+      VM.sysWrite("VM_HPMs.writeMethod(", mid, ",");
+      VM.sysWrite(className);
+      VM.sysWrite(", ");
+      VM.sysWrite(methodName);
+      VM.sysWrite(", ");
+      VM.sysWrite(methodDescriptor);
+      VM.sysWriteln(")");
+    }
+    final byte[] classNameBytes = className.toByteArray();
+    final byte[] methodNameBytes = methodName.toByteArray();
+    final byte[] methodDescriptorBytes = methodDescriptor.toByteArray();
+
+    int index = 0;
+    byte[] buffer = new byte[classNameBytes.length+methodNameBytes.length+methodDescriptorBytes.length+5*SIZE_OF_INT];
+
+    // write record format number
+    VM_Magic.setIntAtOffset(buffer, index, METHOD_RECORD);    	index += SIZE_OF_INT;
+    // write mid
+    VM_Magic.setIntAtOffset(buffer, index, mid);   		index += SIZE_OF_INT;
+    // write class name
+    index = writeStringToBuffer(buffer, index, classNameBytes);
+    // write method name
+    index = writeStringToBuffer(buffer, index, methodNameBytes);
+    // write method descriptor
+    index = writeStringToBuffer(buffer, index, methodDescriptorBytes);
+    // write buffer to file
+    writeFileOutputStream(buffer, index);
+  }
+  //END HRM
+
 
   /*
    * Write a buffer of length length to FileOutputStream!
@@ -671,6 +726,39 @@ public class VM_HardwarePerformanceMonitors
       e.printStackTrace(); VM.shutdown(VM.exitStatusHPMTrouble);
     }
   }
+  //BEGIN HRM
+  /**
+   * Dump a map from method id to method signature
+   * of all known methods into the trace header file.
+   */
+  private final static void dumpMethods() {
+    if (verbose>2) {
+      VM.sysWriteln("VM_HPMs.dumpMethods()");
+    }
+    if (hpm_trace) {
+      final int numberOfMethodReferenceEntries = VM_MemberReference.getNextId();
+      if (verbose>2) VM.sysWriteln("Number of member reference entries: ", numberOfMethodReferenceEntries);
+      for (int mid=0; mid<numberOfMethodReferenceEntries; mid++) {
+	if (verbose>2) VM.sysWrite("mid: ", mid);
+        VM_MemberReference mr = VM_MemberReference.getMemberRef(mid);
+        if (mr!=null) {
+          if (mr.isMethodReference()) {
+	    if (verbose>2) VM.sysWriteln("(method)");
+            final VM_Atom className = mr.getType().getName();
+            final VM_Atom methodName = mr.getName();
+            final VM_Atom methodDescriptor = mr.getDescriptor();            
+            writeMethod(mid, className, methodName, methodDescriptor);
+          } else {
+	    if (verbose>2) VM.sysWriteln("(not a method reference)");
+          }
+        } else {
+          if (verbose>2) VM.sysWriteln("(empty)");
+	}
+      }
+    }
+  }
+  //END HRM
+  
   /**
    * Set up callbacks.
    * Manages aggregate HPM values for VM_Threads and VM_Processor.
@@ -751,6 +839,9 @@ public class VM_HardwarePerformanceMonitors
 	      stopUpdateAndReset();
 	    }
 	  }
+	  //BEGIN HRM
+	  dumpMethods();
+	  //END HRM
 	  if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyExit(",value,") finished");
         }
     });
@@ -851,6 +942,8 @@ public class VM_HardwarePerformanceMonitors
   static private void stop_Update_reset() {
     stop();
 
+    // capture MID's
+    captureCallChainCMIDs(false);
     // update hpm counters of current processor and thread.
     VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), null, 
 							     false, false);

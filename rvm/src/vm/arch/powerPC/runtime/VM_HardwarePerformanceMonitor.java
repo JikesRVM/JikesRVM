@@ -6,6 +6,10 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//BEGIN HRM
+import com.ibm.JikesRVM.classloader.VM_Method;
+//END HRM
+
 /**
  * This class provides support for HPM related operations at thread switch time.  
  * In particular, this class reads the HPM counter values at each thread switch.  
@@ -28,6 +32,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * 
  * @author Peter F. Sweeney
  * @date 2/6/2003
+ * @modified Matthias Hauswirth (8/8/2003) added support to collect method IDs
  */
 public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 {
@@ -101,6 +106,27 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   // keep count of number of thread switches
   private int  n_threadSwitches = 0;
   
+  //BEGIN HRM
+  // error codes used in MID field of trace counter records, if MID can't be obtained
+  private final static int UNAVAILABLE_MID                    = -1;
+  private final static int CMID_WITHOUT_COMPILED_METHOD_MID   = -2;
+  private final static int COMPILED_METHOD_WITHOUT_METHOD_MID = -3;
+  private final static int CMID_IS_STACKFRAME_SENTINEL_MID    = -4;
+  private final static int CMID_IS_INVISIBLE_METHOD_ID_MID    = -5;
+  private final static int CMID_OUT_OF_BOUNDS_MID             = -6;
+
+  // variables for communicating cmids from the various VM_Thread methods, 
+  // where we capture those cmids, to this object
+  public boolean cmidAvailable = false;
+  // callee Compiled Method ID
+  public int callee_CMID;
+  // caller Compiled Method ID
+  public int caller_CMID;
+  // the following two lines exist for debugging purposes
+  private long cmidAvailableCount   = 0;
+  private long cmidUnavailableCount = 0;
+  //END HRM
+
   /*
    * Constructor
    * There is one VM_HardwarePerformanceMonitor object per VM_Processor.
@@ -230,7 +256,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * Record HPM counter values.
    * Trace record contains:
    *   (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), 
-   *   global_tid(int), startOfWallTime(long), endOfWallTime(long), counters(long)*
+   *   global_tid(int), startOfWallTime(long), endOfWallTime(long), mid1(int), mid2(int) counters(long)*
    *
    * CONSTRAINT: only called if VM_HardwarePerformanceMonitors.hpm_trace is true.
    * CONSTRAINT: only write to buffer when a valid buffer is found.
@@ -257,6 +283,81 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 
     // buffer != null only if active==true
 
+    //BEGIN HRM
+    if (VM_HardwarePerformanceMonitors.verbose>=6) VM.sysWriteln("begin method stuff");
+    int callee_MID;
+    int caller_MID;
+    if (cmidAvailable) {
+      if (callee_CMID<1 || callee_CMID>=VM_CompiledMethods.numCompiledMethods()) {
+	callee_MID = CMID_OUT_OF_BOUNDS_MID;
+	VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_OUT_OF_BOUNDS_MID*** ",callee_CMID);
+	VM.sysExit(-1);
+      } else {
+	final VM_CompiledMethod cm1 = VM_CompiledMethods.getCompiledMethod(callee_CMID);
+	if (cm1==null) {
+	  callee_MID = CMID_WITHOUT_COMPILED_METHOD_MID;
+	  VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_COMPILED_METHOD_MID*** ",callee_CMID);
+	  VM.sysExit(-1);
+	} else {
+	  final VM_Method m1 = cm1.getMethod();
+	  if (m1==null) {
+	    callee_MID = COMPILED_METHOD_WITHOUT_METHOD_MID;
+	    VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_METHOD_MID*** ",callee_CMID);
+	    VM.sysExit(-1);
+	  } else {
+	    callee_MID = m1.getId();
+	    /**
+	    VM.sysWrite("m1: ["); VM.sysWrite(m1.getId()); VM.sysWrite("] ");
+	    VM.sysWrite(m1.getDeclaringClass().getDescriptor());
+	    VM.sysWrite(m1.getName()); VM.sysWrite(m1.getDescriptor()); VM.sysWriteln();
+	    **/
+	  }
+	}
+      }
+      if (caller_CMID<1 || caller_CMID>=VM_CompiledMethods.numCompiledMethods()) {
+	caller_MID = CMID_OUT_OF_BOUNDS_MID;
+	VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_OUT_OF_BOUNDS_MID*** ",caller_CMID);
+	VM.sysExit(-1);
+      } else {
+	final VM_CompiledMethod cm2 = VM_CompiledMethods.getCompiledMethod(caller_CMID);
+	if (cm2==null) {
+	  caller_MID = CMID_WITHOUT_COMPILED_METHOD_MID;
+	  VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_WITHOUT_COMPILED_METHOD_MID*** ",caller_CMID);
+	  VM.sysExit(-1);
+	} else {
+	  final VM_Method m2 = cm2.getMethod();
+	  if (m2==null) {
+	    caller_MID = COMPILED_METHOD_WITHOUT_METHOD_MID;
+	    VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_WITHOUT_METHOD_MID*** ",caller_CMID);
+	    VM.sysExit(-1);
+	  } else {
+	    caller_MID = m2.getId();
+	    /**
+	    VM.sysWrite("m2: ["); VM.sysWrite(m2.getId()); VM.sysWrite("] ");
+	    VM.sysWrite(m2.getDeclaringClass().getDescriptor());
+	    VM.sysWrite(m2.getName()); VM.sysWrite(m2.getDescriptor()); VM.sysWriteln();
+	    **/
+	  }
+	}
+      }
+      //VM_Thread.dumpCallStack();
+      cmidAvailableCount++;
+      cmidAvailable = false;
+    } else {
+      cmidUnavailableCount++;
+      VM.sysWrite("***VM_HPM.tracing() cmidAvailable == false***");
+      VM.sysWrite("cmidAvailableCount:   ");
+      VM.sysWriteln(cmidAvailableCount);
+      VM.sysWrite("cmidUnavailableCount:   ");
+      VM.sysWriteln(cmidUnavailableCount);
+      //VM.sysWriteln("cmid NOT available");
+      VM_Thread.dumpCallStack();
+      callee_MID = UNAVAILABLE_MID;
+      caller_MID = UNAVAILABLE_MID;
+    }
+    if (VM_HardwarePerformanceMonitors.verbose>=6) VM.sysWriteln("end method stuff");
+    //END HRM
+
     int thread_switch = (threadSwitch==true?1:0);
     int encoding = (tid  << 16) + (buffer_code << 15) + (thread_switch << 14) + 
                    (vpid <<  4) + TRACE_FORMAT;
@@ -274,6 +375,10 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       VM.sysWrite(" SWT ");    VM.sysWriteLong(startOfWallTime);
       if(n_counters > 4) VM.sysWrite("\n  ");
       VM.sysWrite(" EWT " ); VM.sysWriteLong(endOfWallTime);
+      //BEGIN HRM
+      VM.sysWrite(" CALLEE_MID ", callee_MID);
+      VM.sysWrite(" CALLER_MID ", caller_MID);
+      //END HRM
     }
     if (buffer != null) { // write record header
       n_records++;
@@ -285,6 +390,12 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
       VM_Magic.setLongAtOffset(buffer, index,   endOfWallTime);	// end   of global time
       index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
+      //BEGIN HRM
+      VM_Magic.setIntAtOffset( buffer, index, callee_MID);	// callee MID
+      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      VM_Magic.setIntAtOffset( buffer, index, caller_MID);	// caller MID
+      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      //END HRM
     }
     for(int i=1; i<=n_counters; i++) {
       long value = counters.counters[i];

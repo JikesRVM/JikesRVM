@@ -24,6 +24,8 @@ import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
  * A java thread's execution context.
  *  
  * @author Derek Lieber
+ * @modified Peter F. Sweeney (2003) added support for accessing HPM counter values
+ * @modified Matthias Hauswirth (August, 2003) collect mid's with HPM counter values
  */
 public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
@@ -55,13 +57,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   private int global_tid = GLOBAL_TID_INITIAL_VALUE;
   public final int getGlobalIndex() { return global_tid; }
   // globally unique thread id counter.  Increment ever time a thread is created.
-  static private Integer global_hpm_tid = new Integer(1);
+  static private int global_hpm_tid = 1;
+  // globally unique thread id counter.  Increment ever time a thread is created.
+  static private Object global_hpm_tid_LOCK = new Object();
   // generate a globally unique thread id (only called from constructors)
   private final void assignGlobalTID() throws VM_PragmaLogicallyUninterruptible
   {
-    synchronized (global_hpm_tid) {
-      global_tid = global_hpm_tid.intValue();
-      global_hpm_tid = new Integer(global_hpm_tid.intValue()+1);
+    synchronized (global_hpm_tid_LOCK) {
+      global_tid = global_hpm_tid;
+      global_hpm_tid++;
     }
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
       VM.sysWrite(" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
@@ -75,16 +79,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   public VM_Thread () {
     this(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
-
-    //-#if RVM_WITH_HPM
-    if (hpm_counters == null) hpm_counters = new HPM_counters();
-    if (global_tid == GLOBAL_TID_INITIAL_VALUE) {
-      assignGlobalTID();
-      if (VM_HardwarePerformanceMonitors.hpm_trace) {
-	VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
-      }
-    }
-    //-#endif
   }
 
   /**
@@ -318,6 +312,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     //-#if RVM_WITH_HPM
     if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
+      captureCallChainCMIDs(true);
       // sample HPM counter values at every interrupt or a thread switch.
       if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
@@ -511,10 +506,113 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     morph(true);
   }
 
+  //BEGIN HRM
+  //-#if RVM_WITH_HPM
+  /**
+   * Capture the CMIDs of 
+   * a) this method's caller, and the caller's caller, or
+   * b) this method's caller's caller, and the caller's caller's caller (if startWithCallersCaller is true)
+   *
+   * @param startWithCallersCaller walk to next activation record if true
+   * @throws  do not inline
+   */ 
+  public static final void captureCallChainCMIDs (final boolean startWithCallersCaller) 
+    throws VM_PragmaNoInline 
+  {
+    final VM_Address myFp = VM_Magic.getFramePointer();
+    final VM_Address callerFp = VM_Magic.getCallerFramePointer(myFp);
+    // choose frame pointer of first frame to get cmid from
+    VM_Address startFp;
+    if (startWithCallersCaller) {
+      startFp = VM_Magic.getCallerFramePointer(callerFp);
+    } else {
+      startFp = callerFp;
+    }
+    // get cmid1
+    final VM_Address fp1 = startFp;
+    final int callee_CMID = VM_Magic.getCompiledMethodID(fp1);
+    if (fp1.EQ(STACKFRAME_SENTINEL_FP)) {
+      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() fp1 == STACKFRAME_SENTINEL_FP***");
+      dumpCallStack(); VM.sysExit(-1);
+    }
+    if (callee_CMID == INVISIBLE_METHOD_ID) {
+      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() callee_CMID == INVISIBLE_METHOD_ID***");
+      dumpCallStack(); VM.sysExit(-1);
+    }
+
+    // get cmid2
+    final VM_Address fp2 = VM_Magic.getCallerFramePointer(startFp);
+    final int caller_CMID = VM_Magic.getCompiledMethodID(fp2);
+    if (fp2.EQ(STACKFRAME_SENTINEL_FP)) {
+      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() fp2 == STACKFRAME_SENTINEL_FP***");
+      dumpCallStack(); VM.sysExit(-1);
+    }
+    if (caller_CMID==INVISIBLE_METHOD_ID) {
+      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() caller_CMID == INVISIBLE_METHOD_ID***");
+      dumpCallStack(); VM.sysExit(-1);
+    }
+    // save CMIDs in VM_Processor's HPM object
+    VM_Processor.getCurrentProcessor().hpm.callee_CMID = callee_CMID;
+    VM_Processor.getCurrentProcessor().hpm.caller_CMID = caller_CMID;
+    VM_Processor.getCurrentProcessor().hpm.cmidAvailable = true;
+  }
+  /**
+   * Crawl the threads stack and print out activation records.
+   *
+   * @throws do not inline this method
+   */
+  public static final void dumpCallStack () throws VM_PragmaNoInline 
+  {
+    VM.sysWriteln("dumpCallStack()");
+    VM_Address fp = VM_Magic.getFramePointer();
+    int cmid = VM_Magic.getCompiledMethodID(fp);
+    while (cmid!=VM_Constants.STACKFRAME_SENTINEL_FP.toInt() && cmid!=VM_Constants.INVISIBLE_METHOD_ID) {
+      VM.sysWrite("  ",cmid);
+      final VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+      if (cm==null) {
+	VM.sysWriteln(" cm==null!");
+	return;
+      } else {
+	final VM_Method m = cm.getMethod();
+	if (m==null) {
+	  VM.sysWriteln(" m==null");
+	  return;
+	} else {
+	  VM.sysWrite(" m: [",m.getId(),"] ");
+	  VM.sysWrite(m.getDeclaringClass().getDescriptor());
+	  VM.sysWrite(m.getName());
+	  VM.sysWrite(m.getDescriptor());
+	  VM.sysWrite("  ");
+	  if (m.getDeclaringClass().isBridgeFromNative()) {
+	    VM.sysWriteln("isBridgeFromNative!");
+	    return;
+	  } else {
+	    VM.sysWriteln();
+	    fp = VM_Magic.getCallerFramePointer(fp);
+	    cmid = VM_Magic.getCompiledMethodID(fp);
+	  }
+	}
+      }
+    }
+  }
+  //-#endif
+  //END HRM
+
   /**
    * Suspend execution of current thread, in favor of some other thread.
    */ 
-  public static void yield () {
+  public static void yield () throws VM_PragmaNoInline {
+    //BEGIN HRM
+    //-#if RVM_WITH_HPM
+    captureCallChainCMIDs(false);
+    // sample HPM counter values at every yield
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      VM_Thread myThread = getCurrentThread();
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+    }
+    //-#endif
+    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
@@ -526,7 +624,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param q queue to put thread onto (must be processor-local, ie. 
    * not guarded with a lock)
   */
-  public static void yield (VM_AbstractThreadQueue q) {
+  public static void yield (VM_AbstractThreadQueue q)  throws VM_PragmaNoInline {
+    //BEGIN HRM
+    //-#if RVM_WITH_HPM
+    captureCallChainCMIDs(false);
+    // sample HPM counter values at every yield
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      VM_Thread myThread = getCurrentThread();
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+    }
+    //-#endif
+    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -538,7 +647,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param q queue to put thread onto
    * @param l lock guarding that queue (currently locked)
    */ 
-  public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) {
+  public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) throws VM_PragmaNoInline  {
+    //BEGIN HRM
+    //-#if RVM_WITH_HPM
+    captureCallChainCMIDs(false);
+    // sample HPM counter values at every yield
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      VM_Thread myThread = getCurrentThread();
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+    }
+    //-#endif
+    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -557,7 +677,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param q2 the VM_ProxyWakeupQueue upon which to wait for timeout
    * @param l2 the VM_ProcessorLock guarding q2 (currently locked)
    */ 
-  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) {
+  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) throws VM_PragmaNoInline {
+    //BEGIN HRM
+    //-#if RVM_WITH_HPM
+    captureCallChainCMIDs(false);
+    // sample HPM counter values at every yield
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      VM_Thread myThread = getCurrentThread();
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+    }
+    //-#endif
+    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
@@ -583,7 +714,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   // the native processor get upset, for ex. skip the idle thread in the
   // transfer queue, look at its idle queue, and find it empty, and barf???
   //
-  static void yield (VM_Processor p) {
+  static void yield (VM_Processor p) throws VM_PragmaNoInline {
+    //BEGIN HRM
+    //-#if RVM_WITH_HPM
+    captureCallChainCMIDs(false);
+    // sample HPM counter values at every yield
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      VM_Thread myThread = getCurrentThread();
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+    }
+    //-#endif
+    //END HRM
     VM_Thread myThread = getCurrentThread();
     if (VM.VerifyAssertions) {
       VM._assert(p.processorMode==VM_Processor.NATIVE);

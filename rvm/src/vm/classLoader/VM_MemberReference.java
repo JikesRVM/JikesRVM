@@ -93,6 +93,12 @@ public abstract class VM_MemberReference {
     return key;
   }
 
+  //BEGIN HRM
+  public static final int getNextId() {
+    return nextId;
+  }
+  //END HRM
+
   public static VM_MemberReference getMemberRef(int id) throws VM_PragmaUninterruptible {
     return members[id];
   }
