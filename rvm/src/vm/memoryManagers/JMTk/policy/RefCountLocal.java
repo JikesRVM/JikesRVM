@@ -92,10 +92,10 @@ final class RefCountLocal extends SegregatedFreeList
     incBuffer = inc;
     decBuffer = dec;
     rootSet = root;
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
     }
-    if (Plan.refCountCycleDetection)
+    if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
   }
 
@@ -108,7 +108,7 @@ final class RefCountLocal extends SegregatedFreeList
   static {
     rootPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
     rootPool.newClient();
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       tracingPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
       tracingPool.newClient();
     }
@@ -169,7 +169,7 @@ final class RefCountLocal extends SegregatedFreeList
     if (time) Statistics.rcDecTime.start();
     processDecBufs();
     if (time) Statistics.rcDecTime.stop();
-    if (Plan.refCountCycleDetection) {
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
       if (time) Statistics.cdTime.start();
       if (cycleDetector.collectCycles(time)) 
 	processDecBufs();
@@ -177,7 +177,7 @@ final class RefCountLocal extends SegregatedFreeList
     }
     restoreFreeLists();
     
-    if (Plan.sanityTracing) rcSanityCheck();
+    if (Plan.REF_COUNT_SANITY_TRACING) rcSanityCheck();
   }
 
   /**
@@ -261,9 +261,9 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!object.isZero());
 
-    if (!Plan.refCountCycleDetection || decrementPhase)
+    if (!Plan.REF_COUNT_CYCLE_DETECTION || decrementPhase)
       decBuffer.push(object);
-    else if (Plan.refCountCycleDetection)
+    else if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector.enumeratePointer(object);
   }
   
@@ -281,7 +281,7 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     if (RCBaseHeader.decRC(object))
       release(object);
-    else if (Plan.refCountCycleDetection)
+    else if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -300,7 +300,7 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
     ScanObject.enumeratePointers(object, plan.enum);
-    if (!Plan.refCountCycleDetection ||	!RCBaseHeader.isBuffered(object)) 
+    if (!Plan.REF_COUNT_CYCLE_DETECTION ||	!RCBaseHeader.isBuffered(object)) 
       free(object);
   }
 
@@ -340,7 +340,7 @@ final class RefCountLocal extends SegregatedFreeList
    * established during the sanity scan.
    */
   private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     VM_Address obj;
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
@@ -369,7 +369,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void postAllocImmortal(VM_Address object)
     throws VM_PragmaInline {
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       if (rcSpace.bootImageMark)
 	RCBaseHeader.setBufferedBit(object);
       else
@@ -388,7 +388,7 @@ final class RefCountLocal extends SegregatedFreeList
    * during a root scan.
    */
   public void rootScan(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
     if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
@@ -407,7 +407,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
@@ -434,7 +434,7 @@ final class RefCountLocal extends SegregatedFreeList
     VM_Interface.sysWriteInt(incCounter); VM_Interface.sysWrite(" incs, ");
     VM_Interface.sysWriteInt(decCounter); VM_Interface.sysWrite(" decs, ");
     VM_Interface.sysWriteInt(rootCounter); VM_Interface.sysWrite(" roots");
-    if (Plan.refCountCycleDetection) {
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
       VM_Interface.sysWrite(", "); 
       VM_Interface.sysWriteInt(purpleCounter); VM_Interface.sysWrite(" purple");
     }
@@ -451,7 +451,7 @@ final class RefCountLocal extends SegregatedFreeList
     VM_Interface.sysWrite(" inc: "); VM_Interface.sysWrite(time);
     time = (totals) ? Statistics.rcDecTime.sum() : Statistics.rcDecTime.lastMs();
     VM_Interface.sysWrite(" dec: "); VM_Interface.sysWrite(time);
-    if (Plan.refCountCycleDetection) {
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
       time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
       VM_Interface.sysWrite(" cd: "); VM_Interface.sysWrite(time);
     }

@@ -116,7 +116,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-    if (Plan.sanityTracing) 
+    if (Plan.REF_COUNT_SANITY_TRACING) 
       incrementTraceCount(object);
 
     increment(object);
@@ -168,7 +168,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @return The object (a no-op in this case).
    */
   public final VM_Address traceBootObject(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
       RCBaseHeader.setBufferedBit(object);
       Plan.enqueue(object);
@@ -192,7 +192,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final void increment(VM_Address object) 
     throws VM_PragmaInline {
     RCBaseHeader.incRC(object);
-    if (Plan.refCountCycleDetection && !RCBaseHeader.isGreen(object))
+    if (Plan.REF_COUNT_CYCLE_DETECTION && !RCBaseHeader.isGreen(object))
       RCBaseHeader.makeBlack(object);
   }
 

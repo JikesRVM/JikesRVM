@@ -35,7 +35,7 @@ public class RCHeader extends RCBaseHeader {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
-    if (Plan.refCountCycleDetection && VM_Interface.isAcyclic(tib))
+    if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))
       initialValue |= GREEN;
     
     VM_Magic.setIntAtOffset(ref, RC_HEADER_OFFSET, initialValue);

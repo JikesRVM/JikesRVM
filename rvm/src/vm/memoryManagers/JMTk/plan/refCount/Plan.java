@@ -34,13 +34,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
   // Class variables
   //
-  public static final boolean needsWriteBarrier = true;
-  public static final boolean needsPutStaticWriteBarrier = false;
-  public static final boolean needsTIBStoreWriteBarrier = false;
-  public static final boolean refCountCycleDetection = true;
-  public static final boolean movesObjects = false;
-  public static final boolean sanityTracing = false;
-  private static final boolean inlineWriteBarrier = false;
+  public static final boolean NEEDS_WRITE_BARRIER = true;
+  public static final boolean MOVES_OBJECTS = false;
+  public static final boolean REF_COUNT_CYCLE_DETECTION = true;
+  public static final boolean REF_COUNT_SANITY_TRACING = false;
+
+  private static final boolean INLINE_WRITE_BARRIER = false;
 
   // virtual memory resources
   private static FreeListVMResource losVM;
@@ -462,7 +461,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       return rcSpace.traceObject(obj, root);
-    else if (sanityTracing && (space == BOOT_SPACE || space == IMMORTAL_SPACE))
+    else if (REF_COUNT_SANITY_TRACING && (space == BOOT_SPACE || space == IMMORTAL_SPACE))
       return rcSpace.traceBootObject(obj);
     
     // else this is not a rc heap pointer
@@ -545,7 +544,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void putFieldWriteBarrier(VM_Address src, int offset,
 					 VM_Address tgt)
     throws VM_PragmaInline {
-    if (inlineWriteBarrier)
+    if (INLINE_WRITE_BARRIER)
       writeBarrier(src.add(offset), tgt);
     else
       writeBarrierOOL(src.add(offset), tgt);
@@ -565,7 +564,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
 					   VM_Address tgt)
     throws VM_PragmaInline {
-    if (inlineWriteBarrier)
+    if (INLINE_WRITE_BARRIER)
       writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
     else
       writeBarrierOOL(src.add(index<<LOG_WORD_SIZE), tgt);

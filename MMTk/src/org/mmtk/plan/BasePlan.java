@@ -48,6 +48,12 @@ public abstract class BasePlan
   //
   // Class variables
   //
+  public static final boolean NEEDS_WRITE_BARRIER = false;
+  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
+  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
+  public static final boolean REF_COUNT_CYCLE_DETECTION = false;
+  public static final boolean REF_COUNT_SANITY_TRACING = false;
+
   public  static int verbose = 0;
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];

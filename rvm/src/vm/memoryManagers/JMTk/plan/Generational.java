@@ -56,11 +56,8 @@ public abstract class Generational extends StopTheWorldGC
   //
   // Class variables
   //
-  public static final boolean needsWriteBarrier = true;
-  public static final boolean needsPutStaticWriteBarrier = false;
-  public static final boolean needsTIBStoreWriteBarrier = false;
-  public static final boolean refCountCycleDetection = false;
-  public static final boolean movesObjects = true;
+  public static final boolean NEEDS_WRITE_BARRIER = true;
+  public static final boolean MOVES_OBJECTS = true;
 
   // virtual memory resources
   protected static MonotoneVMResource nurseryVM;

@@ -194,11 +194,11 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     // if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
   }
 
-  public static final boolean NEEDS_WRITE_BARRIER = Plan.needsWriteBarrier;
-  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Plan.needsPutStaticWriteBarrier;
-  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = Plan.needsTIBStoreWriteBarrier;
-  public static final boolean MOVES_OBJECTS = Plan.movesObjects;
-  public static final boolean RC_CYCLE_DETECTION = Plan.refCountCycleDetection;
+  public static final boolean NEEDS_WRITE_BARRIER = Plan.NEEDS_WRITE_BARRIER;
+  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Plan.NEEDS_PUTSTATIC_WRITE_BARRIER;
+  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = Plan.NEEDS_TIB_STORE_WRITE_BARRIER;
+  public static final boolean MOVES_OBJECTS = Plan.MOVES_OBJECTS;
+  public static final boolean RC_CYCLE_DETECTION = Plan.REF_COUNT_CYCLE_DETECTION;
 
 
   public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {

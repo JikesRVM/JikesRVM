@@ -92,7 +92,7 @@ public abstract class RCBaseHeader implements Constants {
 
   public static boolean isLiveRC(VM_Address obj) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       return (VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) & INCREMENT_MASK) >= INCREMENT;
     } else
       return VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) >= INCREMENT;
@@ -106,7 +106,7 @@ public abstract class RCBaseHeader implements Constants {
   public static boolean decRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int result = changeRC(object, -INCREMENT);
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       return (result & INCREMENT_MASK) < INCREMENT;
     } else
       return (result < INCREMENT);
@@ -114,7 +114,7 @@ public abstract class RCBaseHeader implements Constants {
 
   public static int getRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       int rc = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & INCREMENT_MASK;
       return rc>>INCREMENT_SHIFT;
     } else {
@@ -128,12 +128,12 @@ public abstract class RCBaseHeader implements Constants {
   }
   public static int getTracingRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>SANITY_SHIFT;
   }
   public static void clearTracingRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     int old = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, old & ~SANITY_MASK);
   }
@@ -283,11 +283,11 @@ public abstract class RCBaseHeader implements Constants {
   private static final int     CYCLIC_MATURE = 0x10; //  .. 1xxxx
   private static final int BITS_USED = 5;
 
-  private static final int CYCLE_DETECTION_BITS = (Plan.refCountCycleDetection) ? BITS_USED : 0;
+  private static final int CYCLE_DETECTION_BITS = (Plan.REF_COUNT_CYCLE_DETECTION) ? BITS_USED : 0;
   protected static final int INCREMENT_SHIFT = CYCLE_DETECTION_BITS;
   protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
   protected static final int AVAILABLE_BITS = WORD_BITS - CYCLE_DETECTION_BITS;
-  protected static final int INCREMENT_BITS = (Plan.sanityTracing) ? AVAILABLE_BITS>>1 : AVAILABLE_BITS;
+  protected static final int INCREMENT_BITS = (Plan.REF_COUNT_SANITY_TRACING) ? AVAILABLE_BITS>>1 : AVAILABLE_BITS;
   protected static final int INCREMENT_MASK = ((1<<INCREMENT_BITS)-1)<<INCREMENT_SHIFT;
   protected static final int SANITY_SHIFT = INCREMENT_SHIFT + INCREMENT_BITS;
   protected static final int SANITY_INCREMENT = 1<<SANITY_SHIFT;
