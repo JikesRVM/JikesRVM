@@ -558,6 +558,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     if (seqEnd != null) ir.cfg.breakCodeOrder(seqStart, seqEnd);
     OPT_BasicBlock seqLast = seqStart;
     OPT_BasicBlock firstHeaderCopy = null;
+    OPT_BasicBlock currentBlock = seqLast;
     
     for (int i = 1;  i < unrollFactor ;  ++i) {
 
@@ -572,37 +573,43 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       }
  
       // redirect internal branches
-      OPT_BasicBlock cb = seqLast;
+      currentBlock = seqLast;
       for (int j = 0; j < bodyBlocks; ++j) {
-	cb.recomputeNormalOut(ir);
-	OPT_BasicBlockEnumeration be = cb.getOut();
+	currentBlock.recomputeNormalOut(ir);
+	OPT_BasicBlockEnumeration be = currentBlock.getOut();
 	while (be.hasMoreElements()) {
 	  OPT_BasicBlock out = be.next();
 	  if (out != t.header && OPT_CFGTransformations.inLoop (out, nloop)) {
-	    cb.redirectOuts (out, (OPT_BasicBlock) out.scratchObject, ir);
+	    OPT_BasicBlock outCopy = (OPT_BasicBlock) out.scratchObject;
+	    currentBlock.redirectOuts (out, outCopy, ir);
 	  }
 	}
-	cb.recomputeNormalOut(ir);
-	cb = cb.prevBasicBlockInCodeOrder();
+	currentBlock.recomputeNormalOut(ir);
+	currentBlock = currentBlock.prevBasicBlockInCodeOrder();
       }
       
       if (i != 1) {
 	// redirect the branches to the header in the (i-1)th copy
 	for (int j = 0; j < bodyBlocks; ++j) {
-	  OPT_BasicBlockEnumeration be = cb.getOut();
+	  OPT_BasicBlockEnumeration be = currentBlock.getOut();
 	  while (be.hasMoreElements()) {
 	    OPT_BasicBlock out = be.next();
 	    if (out == t.header) {
-	      cb.redirectOuts (t.header, (OPT_BasicBlock) t.header.scratchObject, ir);
+	      OPT_BasicBlock headerCopy;
+	      headerCopy = (OPT_BasicBlock) t.header.scratchObject;
+	      currentBlock.redirectOuts (t.header, headerCopy, ir);
 	    }
 	  }
-	  cb.recomputeNormalOut(ir);
-	  cb = cb.prevBasicBlockInCodeOrder();
+	  currentBlock.recomputeNormalOut(ir);
+	  currentBlock = currentBlock.prevBasicBlockInCodeOrder();
 	}
       }
     }
+    if (seqEnd != null) ir.cfg.linkInCodeOrder (seqLast, seqEnd);
     
-    // redirect the branches to the header in the original loop
+    // in the original loop, redirect branches that go to the header
+    // and make them point to the first header copy
+    
     for (int j = 0; j < bodyBlocks; ++j) {
       OPT_BasicBlockEnumeration be = body[j].getOut();
       while (be.hasMoreElements()) {
@@ -613,9 +620,38 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       }
       body[j].recomputeNormalOut(ir);
     }
-    if (seqEnd != null) ir.cfg.linkInCodeOrder (seqLast, seqEnd);
-  }
 
+    // the following loop redirects backedges that start in the last
+    // copy to point to the first copy instead and not to the original
+    // header.
+    //                |                    |    
+    // Thus we get   [ ]     instead of	  [ ]<-.   
+    //                | 		   |   | 
+    //               [ ]<-.		  [ ]  |
+    //                |   |		   |   |
+    //               [ ]  |		  [ ]  |
+    //                |   |		   |   |
+    //               [ ]  |		  [ ]  |
+    //                |\_/   		   |\_/
+    //
+    // Instead of 2^(unroll_log) we only have 2^(unroll_log-1) bodies
+    // in the unrolled loop, but there is one copy of the loop's body
+    // that dominates the unrolled version. Peeling of this first
+    // version should have benefits for global code placement.
+    currentBlock = seqLast;
+    for (int j = 0; j < bodyBlocks; ++j) {
+      OPT_BasicBlockEnumeration be = currentBlock.getOut();
+      while (be.hasMoreElements()) {
+	OPT_BasicBlock out = be.next();
+	if (out == t.header) {
+	  currentBlock.redirectOuts (t.header, firstHeaderCopy, ir);
+	}
+      }
+      currentBlock.recomputeNormalOut(ir);
+      currentBlock = currentBlock.prevBasicBlockInCodeOrder();
+    }
+  }
+  
   
   
   static void report (String s) {
