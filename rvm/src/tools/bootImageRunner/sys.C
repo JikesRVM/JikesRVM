@@ -1544,12 +1544,14 @@ double maxint  = 0.5 + (double)0x7fffffff;
 extern "C" int sysFloatToInt(float a) {
   if (maxint <= a) return 0x7fffffff;
   if (a <= -maxint) return 0x80000000;
+  if (a != a) return 0; // NaN => 0
   return (int)a;
 }
 
 extern "C" int sysDoubleToInt(double a) {
   if (maxint <= a) return 0x7fffffff;
   if (a <= -maxint) return 0x80000000;
+  if (a != a) return 0; // NaN => 0
   return (int)a;
 }
 
