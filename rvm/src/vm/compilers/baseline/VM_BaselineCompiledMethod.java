@@ -97,6 +97,9 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
+  /**
+   * @return The line number, a positive integer.  Zero means unable to find.
+   */
   public final int findLineNumberForInstruction (int instructionOffset) throws UninterruptiblePragma {
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH; 
     int bci = findBytecodeIndexForInstruction(instructionIndex);
