@@ -98,6 +98,13 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   //-#endif
 
   /**
+   * zero-arg constructor for backwards compatibility.
+   */
+  public VM_Thread () {
+    this(null);
+  }
+
+  /**
    * Create a thread with default stack.
    */ 
   public VM_Thread (Thread thread) {
