@@ -3,10 +3,10 @@
  */
 //$Id$
 
- class VM_GCStatistics implements VM_GCConstants, 
-                                VM_Uninterruptible,
-                                VM_Callbacks.ExitMonitor, 
-                                VM_Callbacks.AppRunStartMonitor {
+class VM_GCStatistics implements VM_GCConstants, 
+				 VM_Uninterruptible,
+				 VM_Callbacks.ExitMonitor, 
+				 VM_Callbacks.AppRunStartMonitor {
 
 
   // Number and types of GC
@@ -354,12 +354,21 @@
   }
 
   static void profileAlloc (VM_Address addr, int size, Object[] tib) {
+    if (!(COUNT_BY_TYPE || 
+	  COUNT_ALLOCATIONS ||
+	  VERIFY_ALIGNMENT ||
+	  VERIFY_ZEROED_ALLOCATIONS)) {
+      // only force inlining when this method is empty.
+      // otherwise the code space impact is too large --dave.
       VM_Magic.pragmaInline();
+    }
+
       if (COUNT_BY_TYPE) {
           VM_Type t = VM_Magic.objectAsType(tib[0]);
 	  t.allocCount++;
 	  t.allocBytes += size;
       }
+
       if (COUNT_ALLOCATIONS) {
 	  VM_Processor st = VM_Processor.getCurrentProcessor();
 	  st.totalBytesAllocated += size;
