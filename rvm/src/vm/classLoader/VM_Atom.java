@@ -64,7 +64,17 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return findOrCreate(utf8);
+    return findOrCreate(utf8, true);
+  }
+
+  /**
+   * Find an atom.
+   * @param str atom value, as string literal whose characters are unicode
+   * @return atom or null if it doesn't already exist
+   */
+  public static VM_Atom findUnicodeAtom(String str) {
+    byte[] utf8 = VM_UTF8Convert.toUTF8(str);
+    return findOrCreate(utf8, false);
   }
 
   /**
@@ -77,7 +87,20 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     int    len   = str.length();
     byte[] ascii = new byte[len];
     str.getBytes(0, len, ascii, 0);
-    return findOrCreate(ascii);
+    return findOrCreate(ascii, true);
+  }
+   
+  /**
+   * Find an atom.
+   * @param str atom value, as string literal whose characters are from 
+   *            ascii subset of unicode (not including null)
+   * @return atom or null if it doesn't already exist
+   */ 
+  public static VM_Atom findAsciiAtom(String str) {
+    int    len   = str.length();
+    byte[] ascii = new byte[len];
+    str.getBytes(0, len, ascii, 0);
+    return findOrCreate(ascii, false);
   }
    
   /**
@@ -86,7 +109,16 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom
    */
   public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
-    return findOrCreate(utf8);
+    return findOrCreate(utf8, true);
+  }
+
+  /**
+   * Find an atom.
+   * @param utf8 atom value, as utf8 encoded bytes
+   * @return atom or null it it doesn't already exisit
+   */
+  public static VM_Atom findUtf8Atom(byte[] utf8) {
+    return findOrCreate(utf8, false);
   }
 
   /**
@@ -101,13 +133,13 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     byte val[] = new byte[len];
     for (int i = 0; i < len; ++i)
       val[i] = utf8[off++];
-    return findOrCreate(val);
+    return findOrCreate(val, true);
   }
 
-  private static synchronized VM_Atom findOrCreate(byte[] bytes) {
+  private static synchronized VM_Atom findOrCreate(byte[] bytes, boolean create) {
     Key key = new Key(bytes);
     VM_Atom val = (VM_Atom)dictionary.get(key);
-    if (val != null)  return val;
+    if (val != null || !create)  return val;
     val = new VM_Atom(key, nextId++);
     if (val.id == atoms.length) {
       VM_Atom[] tmp = new VM_Atom[atoms.length+1000];
@@ -148,7 +180,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
-    return findOrCreate(sig);
+    return findOrCreate(sig, true);
   }
 
   /**
@@ -163,7 +195,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
     sig[sig.length - 1] = (byte)';';
-    return findOrCreate(sig);
+    return findOrCreate(sig, true);
   }
 
   /**
