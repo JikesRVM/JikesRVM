@@ -81,6 +81,12 @@ ifeq (${HOST_VM_TYPE},Sun)
 				 -Xbootclasspath/a:$(LIB_JAR)
 endif
 
+ifeq (${HOST_VM_TYPE},gij)
+   host_mem_size_arg := 	   --mx=$(HOST_MEM_MAX)
+else
+   host_mem_size_arg := 	   -Xmx$(HOST_MEM_MAX)
+endif
+
 $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 ifeq (${HOST_VM_TYPE},Kaffe)
 	$(RM) $(phony_home_dir)/.kafferc
@@ -89,7 +95,7 @@ endif
 	$(host_vm_envars) \
 	$(HOST_VM_RT) \
 	   $(host_vm_bootclasspath_args) \
-	   -Xmx$(HOST_MEM_MAX) \
+		$(host_mem_size_arg) \
 	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
