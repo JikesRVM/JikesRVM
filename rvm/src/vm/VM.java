@@ -114,11 +114,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     VM_CommandLineArgs.fetchCommandLineArguments();
 
-    // 6. Allow Collector to respond to command line arguments
-    //
-    VM_Collector.postBoot();
-
-    // 7. Initialize class loader.
+    // 6. Initialize class loader.
     //
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
@@ -177,13 +173,17 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_RuntimeCompiler.boot();
  
     
-    // Process virtual machine directives.
+    // 7. Process virtual machine directives.
     //
     String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
     if (applicationArguments.length == 0) {  
       VM.sysWrite("vm: please specify a class to execute\n");
       VM.sysExit(1);
     }
+
+    // 8. Allow Collector to respond to command line arguments
+    //
+    VM_Collector.postBoot();
 
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].

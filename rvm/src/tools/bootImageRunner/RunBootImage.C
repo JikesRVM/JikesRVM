@@ -159,6 +159,8 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
+  fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
   fprintf(SysTraceFile,"    -X:record  run under DejaVu control and produce a trace file for replay\n");
   fprintf(SysTraceFile,"    -X:replay  replay the application under DejaVu control using a previous trace file\n");
   fprintf(SysTraceFile,"\n");
@@ -423,7 +425,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     //
 
     // All VM directives that take one token
-    if (!strncmp(token, "-D", 2) ||
+    if (!strncmp(token, "-D", 2) || !strncmp(token, "-X:gc", 5) ||
 	!strncmp(token, "-X:aos",6)   || !strncmp(token, "-X:irc", 6) ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
 	!strcmp(token, "-verbose:gc") ||
