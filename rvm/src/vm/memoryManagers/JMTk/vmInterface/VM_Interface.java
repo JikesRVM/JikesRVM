@@ -221,7 +221,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
-    // VM_Scheduler.dumpStack();
+    if (Plan.verbose >= 4) {
+      VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
+      VM_Scheduler.dumpStack();
+    }
     if ((Plan.verbose == 1 || Plan.verbose == 2) 
 	&& (why == EXTERNALLY_TRIGGERED_GC)) {
       VM.sysWrite("[Forced GC]");
