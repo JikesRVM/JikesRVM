@@ -64,7 +64,7 @@ export SED="/bin/sed"
 export DIFF="/usr/bin/diff"
 export TAR="/bin/tar"
 export XARGS="/usr/bin/xargs"
-export WGET=
+export WGET="/usr/bin/wget"
 export MD5SUM=
 export GNU_TAR=/bin/tar
 
