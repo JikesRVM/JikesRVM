@@ -178,7 +178,7 @@ function archiveResults() {
 	## the tar archive instead.  So we keep them online for 
 	## almost 24 hours. --Steve Augart, July 28 2003 
 	# find $RVM_ROOT/results -name cp -exec rm -rf {} \;
-	$GNU_TAR -C$RVM_ROOT --exclude 'cp' -czv -f $tarfile results
+	$GNU_TAR -C$RVM_ROOT --exclude 'cp' --exclude verbose.log -czv -f $tarfile results
 	status=$?
 	if (( status )); then
 	    echo "$ME: GNU_TAR of $RVM_ROOT/results into $tarfile failed.  Could not archive."
