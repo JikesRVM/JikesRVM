@@ -18,7 +18,8 @@ access the internal data structures as if it resides inside the RVM.
 
 {\tt jdp} is written in Java\trademark and JNI with native code in C.  {\tt jdp}
 uses the
-AIX {\tt ptrace} interface and the standard Unix process support (fork,
+AIX\AIXTMFootnote {\tt ptrace} interface and the standard Unix process
+support (fork, 
 wait, ...).  When porting to another platform, this native portion
 (called from Platform.java) will have to be rewritten.  Since {\tt jdp} and
 the RVM being debugged are two separate processes, an interpreter is
@@ -31,6 +32,8 @@ customized for RVM but is easily extendable.
    Because the optimizing compiler does not currently provide all of
    the mapping support required, {\tt jdp} functionality is limited in
    opt-compiled code. 
+
+\AIXTMFooter
 
 \subsection{Getting started}
 
@@ -163,7 +166,7 @@ In addition to these files, the following setting can be made:
 \item Process ID:
    This is used for attaching {\tt jdp} to a currently running RVM.  After 
    initializing itself, {\tt jdp} will send an interrupt to the running process 
-   to gain control.  The process ID is from the "{\tt ps}" command in AIX.
+   to gain control.  The process ID is from the "{\tt ps}" command in AIX\AIXTMFootnote.
 \begin{itemize}
 \item   {\tt jdp} argument:     {\tt -jdpattachXXXX} where XXXX is the process ID
 \item    Default value:         (none)
@@ -179,7 +182,7 @@ boot image (they arise from the base compiler convention):
    method.
 
 \item The end of the prolog of the instruction block is marked by a code pattern.
-For AIX/PowerPC, it is:
+For AIX/PowerPC\PowerPCTMFootnote, it is:
 \begin{verbatim}
           4ffffb82      
 \end{verbatim}
@@ -195,6 +198,9 @@ For Linux/Intel, it is:
    which is the NOP instruction:
 \end{enumerate}
 
+\AIXTMFooter
+
+\PowerPCTMFooter
 
 \subsection {{\tt jdp} commands}
 
@@ -221,7 +227,7 @@ wmem          & wm  & write memory                                              
 reg           & r   & display registers                                         \\ 
 wreg          & wr  & write register                                            \\ 
 printclass    & pc  & print the class statics or the type of an object address  \\ 
-print         & p   & print local variables or cast an address as an object     \\ 
+ymacroprint         & p   & print local variables or cast an address as an object     \\ 
 listi         & li  & list machine instruction                                  \\ 
 listt         & lt  & list threads                                              \\ \hline 
 
@@ -243,7 +249,7 @@ To get more information on a specific command, type:
 A jdp macro is a text file that has the {\tt .jdp} suffix and contains a sequence of normal {\tt jdp} commands
 
 \begin{itemize}
-\item When you type {\tt mymacro} at the command line, {\tt jdp} will look for 
+\item When you type {\tt m} at the command line, {\tt jdp} will look for 
 {\tt mymacro.jdp}
  in the normal class path and execute each line in the macro file as if 
  they are entered at the command line.
@@ -398,7 +404,7 @@ This should be convenient for:
   for native codes that are interspersed via JNI.  {\tt jdp}
   displays the C procedure names in the stack traceback and stepping by 
   machine code is possible.  You can also view the raw C stack frame and 
-  its registers, but native variables and line numbers are not available.
+id  its registers, but native variables and line numbers are not available.
   For C program that creates the RVM via the JNI\_CreateJavaVM call, 
   {\tt jdp} can be used by specifying the initial breakpoint (see the 
   {\tt jdp} script).
@@ -417,7 +423,7 @@ This should be convenient for:
         become corrupted.  This message does not mean that {\tt jdp}
         has crashed; you should be able to continue debugging.
 
-\item {\tt jid}:
+\item {\tt j}:
         In the general debugging mode (running with the interpreter),
         this means that the interpreter has encountered an internal 
         error and has entered its own internal debugging mode.  At this 

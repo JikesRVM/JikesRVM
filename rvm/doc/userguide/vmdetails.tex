@@ -32,7 +32,8 @@ The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generate a NullPointerException.  In the RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The AIX operating system permits loads from low memory, but accesses
+The AIX\AIXTMFootnote operating system permits loads from low memory,
+but accesses 
 to very high memory, at small {\em negative} offsets from a null
 pointer, normally cause hardware interrupts.\footnote{In AIX, it is at
 least theoretically possible for another process to cause a shared
@@ -72,6 +73,8 @@ be shifted to get a byte index.  The access itself is accomplished
 using base-index addressing.
 
 \JavaTMFooter
+
+\AIXTMFooter 
 
 \subsection{Object headers} \label{sssec:headers}
 \index{object header}
@@ -150,7 +153,8 @@ A
 virtual method dispatch entails loading the TIB pointer at a fixed
 offset off the object reference, loading the address of the method
 body at a given offset off the TIB pointer, moving this address to the
-PowerPC ``link-register'', and executing a branch-and-link --- four
+PowerPC\PowerPCTMFootnote ``link-register'', and executing a
+branch-and-link --- four 
 instructions.
 
 \paragraph{Static Fields and Methods} 
@@ -195,15 +199,20 @@ stub} is inserted in the IMT. Conflict resolution stubs are
 custom-generated machine code sequences that test the value of a
 hidden parameter to dispatch to the desired interface method.
 
+\PowerPCTMFooter
 
 \subsection{VM Conventions}
-\subsubsection{AIX VM Conventions} \label{aix-conventions}
+
+%% footnotes not allowed in section headings, so we specialize
+\htmlonly{\subsubsection{AIX\trademark VM Conventions}} \label{aix-conventions}
+\texonly{\subsubsection{AIX\trademark VM Conventions}} \label{aix-conventions}
+
 \index{stack conventions}
 \index{register conventions}
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-RVM on PowerPC.
+RVM on PowerPC\PowerPCTMFootnote.
 
 Stackframe layout and calling conventions may evolve as our understanding
 of the RVM's performance improves.  Where possible API's should be used
@@ -405,6 +414,10 @@ The first two areas of the callee's stackframe (see above) have been
 \end{description}
 
 \JavaTMFooter
+
+\AIXTMFooter
+
+\PowerPCTMFooter
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
