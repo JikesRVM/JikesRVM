@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_CommandLineArgs;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -162,28 +163,16 @@ public class VM_HardwarePerformanceMonitors
       if (name.equals("event")) {
 	String num = arg.substring(split-1,split);
 	String value = arg.substring(split+1);
-	try {
-	  int eventNum = Integer.parseInt(num);
-	  int eventVal = Integer.parseInt(value);
-	  hpm_info.ids[eventNum] = eventVal;
-	} catch (Exception e) {
-	  VM.sysWriteln("HPM: can't translate value of events for Hardware Performance Monitor");
-	  VM.sysWriteln("     arg was -X:hpm:",arg,"\n");
-	  printHelp();
-	}
+	int eventNum = VM_CommandLineArgs.primitiveParseInt(num);
+	int eventVal = VM_CommandLineArgs.primitiveParseInt(value);
+	hpm_info.ids[eventNum] = eventVal;
 	if (!enabled) {
 	  enabled = true;
 	}
       } else if (name2.equals("mode")) {
 	String value = arg.substring(split+1);
-	try {
-	  int mode = Integer.parseInt(value);
-	  hpm_info.mode = mode;
-	} catch (Exception e) {
-	  VM.sysWriteln("HPM: can't translate value of mode for Hardware Performance Monitor");
-	  VM.sysWriteln("     arg was -X:hpm:",arg,"\n");
-	  printHelp();
-	}
+	int mode = VM_CommandLineArgs.primitiveParseInt(value);
+	hpm_info.mode = mode;
       } else if (name2.equals("filename")) {
 	hpm_info.filenamePrefix = arg.substring(split+1);
 	if(verbose>=2)VM.sysWriteln("VM_HPMs.processArgs() filename prefix found \""+
@@ -201,34 +190,22 @@ public class VM_HardwarePerformanceMonitors
       } else if (name2.equals("trace_verbose")) {
 	String value = arg.substring(split+1);
 	
-	try {
-	  int pid = Integer.parseInt(value);
-	  if (pid < 0) {
-	    VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:trace_verbose=PID where PID >= 0 is the correct syntax, and 0 has null functionality.");
-	    VM.shutdown(VM.exitStatusBogusCommandLineArg);
-	  }
-	  hpm_trace_verbose = pid;
-	} catch (Exception e) {
-	  VM.sysWriteln("HPM: can't translate value of trace_verbose for Hardware Performance Monitor");
-	  VM.sysWriteln("     arg was -X:hpm:",arg,"\n");
-	  printHelp();
-	} 
+	int pid = VM_CommandLineArgs.primitiveParseInt(value);
+	if (pid < 0) {
+	  VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:trace_verbose=PID where PID >= 0 is the correct syntax, and 0 has null functionality.");
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
+	}
+	hpm_trace_verbose = pid;
       } else if (name2.equals("processor")) {
 	hpm_processor = true;
       } else if (name2.equals("verbose")) {
 	String value = arg.substring(split+1);
-	try {
-	  int verbose_level = Integer.parseInt(value);
-	  if (verbose_level < -1) {
-	    VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:verbose=verbose_level where verbose_level >= -1 is the correct syntax");
-	    VM.shutdown(VM.exitStatusBogusCommandLineArg);
-	  }
-	  verbose = verbose_level;
-	} catch (Exception e) {
-	  VM.sysWriteln("HPM: can't translate value of verbose for Hardware Performance Monitor");
-	  VM.sysWriteln("     arg was -X:hpm:",arg,"\n");
-	  printHelp();
+	int verbose_level = VM_CommandLineArgs.primitiveParseInt(value);
+	if (verbose_level < -1) {
+	  VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:verbose=verbose_level where verbose_level >= -1 is the correct syntax");
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
+	verbose = verbose_level;
       } else if (name2.equals("listAll")) {
 	String value = arg.substring(split+1);
 	if (value.compareTo("true")==0) {
