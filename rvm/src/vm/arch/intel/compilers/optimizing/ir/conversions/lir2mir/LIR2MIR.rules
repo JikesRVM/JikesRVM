@@ -613,6 +613,47 @@ EQ_NE(BooleanCmp.getCond(P(p)))?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)));
 
+## chaining of boolcmps
+r:	BOOLEAN_CMP(boolcmp, ONE)
+BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), consumeCOND());
+
+boolcmp:	BOOLEAN_CMP(boolcmp, ONE)
+BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
+NOFLAGS
+// use already pushed condition
+
+r:	BOOLEAN_CMP(boolcmp, ONE)
+BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
+
+boolcmp:	BOOLEAN_CMP(boolcmp, ONE)
+BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
+EMIT_INSTRUCTION
+pushCOND(consumeCOND().flipCode()); // invert already pushed condition
+
+r:	BOOLEAN_CMP(boolcmp, ZERO)
+BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), consumeCOND());
+
+boolcmp:	BOOLEAN_CMP(boolcmp, ZERO)
+BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
+NOFLAGS
+// use already pushed condition
+
+r:	BOOLEAN_CMP(boolcmp, ZERO)
+BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
+
+boolcmp: BOOLEAN_CMP(boolcmp, ZERO)
+BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
+EMIT_INSTRUCTION
+pushCOND(consumeCOND().flipCode()); // invert already pushed condition
+
 ### Memory operands ###
 r:	BOOLEAN_CMP(load32,riv)
 41
