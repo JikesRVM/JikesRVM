@@ -5,6 +5,8 @@
 
 # @author Peter Sweeney
 # @date 11/1/2001
+# @modified Steven Augart
+# @date 6/9/2003
 
 ## Auxiliary AWK program to help out rvm/bin/findDeviantFiles.  You should
 ## never run this directly; to discourage people from doing so, this is not an
