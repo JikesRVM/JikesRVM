@@ -34,7 +34,7 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/usr/java14_64"
+export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
 export HOST_JAVA="${HOST_JAVA_HOME}/jre/bin/java"
@@ -62,7 +62,7 @@ export CLASSPATH_ROOT=/home/jalapeno/classpath-0.07
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
+export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.19
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"

@@ -62,7 +62,7 @@ export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.07
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
+export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.19
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
