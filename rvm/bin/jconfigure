@@ -2314,7 +2314,10 @@ EOF
 	    fi
 
 	    open_paren 'building jksvm.jar'
-	    rm -f jksvm.jar
+	    ## We do not want Dummy.class or OptDummy.class to go into 
+	    ## jksvm.jar -- otherwise, "rvm Dummy" or "rvm OptDummy" would run
+	    ## that class!  And that's NOT what the user expects :)
+	    run rm -f jksvm.jar Dummy.class OptDummy.class
 	    ## NB: "fastjar", the open-source program, has a broken -u flag,
 	    ## at least temporarily.  However, it DOES have a very nice @ flag,
 	    ## which the Sun-derived JDKs lack.
@@ -2324,7 +2327,10 @@ EOF
 	        ## The Sun JAR manual page claims that '-O' (the letter Oh) 
 	        ## is the flag for no-compression.  It is actually
 	        ## '0' (the number zero), not the letter 'O'.
-	        $JAR_STR -c0f jksvm.jar Dummy.class
+
+		## Create a blank .jar file
+		run touch jksvm.jar
+		## Then populate it.
 	        \$FIND . -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
 	    fi
 	    close_paren 'jksvm.jar built'
@@ -2334,8 +2340,7 @@ EOF
 	    if [[ \${FASTJAR-} ]]; then
  	        \$FIND . -name '*.java' | \$FASTJAR -c0@f jksvmsrc.jar
 	    else
-	        run $JAR_STR -c0f jksvmsrc.jar Dummy.java
-	        ## -r is XARGS's no-run-if-empty flag.
+	        run touch jksvmsrc.jar
 	        \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
 	    fi
 	    close_paren 'jksvmsrc.jar built'
