@@ -12,18 +12,16 @@
 
 -->
 <plugin
-   id="com.ibm.jikesrvm.eclipse.jdt.launching"
    name="%pluginName"
-   version="1.0"
-   provider-name="JikesRVM"
+   id="com.ibm.jikesrvm.eclipse.jdt.launching"
+   version="2.2.2"
+   provider-name="%providerName"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
   <!-- Required plugins -->
   <requires>
      <import plugin="org.eclipse.core.runtime"/>
      <import plugin="org.eclipse.ui"/>
-     <import plugin="org.eclipse.jdt.debug"/>
-     <import plugin="org.eclipse.debug.core"/>
      <import plugin="org.eclipse.core.resources"/>
      <import plugin="org.eclipse.jdt.core"/>
      <import plugin="org.eclipse.jdt.launching"/>
@@ -39,14 +37,17 @@
   
   <!-- Extensions -->
   <!-- Extension points -->
-  <extension point="org.eclipse.jdt.launching.vmInstallTypes">  
+  <extension point="org.eclipse.jdt.launching.vmInstallTypes"
+		name="%launching"
+	id="launching">  
      <vmInstallType
            class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMInstallType"
            id="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMType">
      </vmInstallType>
   </extension>
 
-  <extension point="org.eclipse.ui.preferencePages">
+  <extension point="org.eclipse.ui.preferencePages" id="prefpage"
+		name="%prefPage">
     <page id="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage"
           name="Jikes RVM"
 	  class="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage">
