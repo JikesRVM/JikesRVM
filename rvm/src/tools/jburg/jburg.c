@@ -1137,8 +1137,9 @@ verify_chars(int ret, size_t bufsz, const char *bp_)
     size_t nwrote;
     assert(ret >= 0);
     nwrote = ret;
+    // The %z modifier appears in ANSI C '99, for "size_t".
     if (nwrote >= bufsz) {
-	fprintf(stderr, "Needed %d chars of space; had only %u\n", ret + 1, nwrote);
+	fprintf(stderr, "Needed %d chars of space; had only %zu\n", ret + 1, nwrote);
 	/* skip on */
     }
 }
