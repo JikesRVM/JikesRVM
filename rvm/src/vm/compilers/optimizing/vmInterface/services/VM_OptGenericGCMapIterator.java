@@ -73,8 +73,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param instructionOffset the place in the method we current are
    * @param framePtr the current frame pointer
    */
-  public void setupIterator(VM_CompiledMethod cm, 
-			    int instructionOffset, VM_Address framePtr) {
+  public final void setupIterator(VM_CompiledMethod cm, 
+				  int instructionOffset, 
+				  VM_Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
@@ -133,7 +134,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * Returns the next address that contains a reference
    * @return the value of the next reference
    */
-  public VM_Address getNextReferenceAddress() {
+  public final VM_Address getNextReferenceAddress() {
     if (DEBUG) {   VM.sysWrite("  next => ");    }
 
     // make sure we have a map entry to look at 
@@ -241,7 +242,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  code moves.)
    * @return the next code pointer or 0 if no more exist
    */
-  public VM_Address getNextReturnAddressAddress() {
+  public final VM_Address getNextReturnAddressAddress() {
     // Since the Opt compiler inlines JSRs, this method will always return 0
     //  signaling the end of the list of such pointers.
     if (DEBUG) {
@@ -254,7 +255,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * scan of this frame is complete
    * clean up any pointers to allow GC to reclaim dead objects
    */
-  public void cleanupPointers() {
+  public final void cleanupPointers() {
     // primitive types aren't worth reinitialing because setUpIterator
     //   will take care of this.
     map = null;
@@ -265,14 +266,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * lets GC ask what type of iterator without using instanceof which can
    * cause an allocation
    */
-  public int getType() {
+  public final int getType() {
     return VM_CompiledMethod.OPT;
   }
 
   /**
    * Externally visible method called to reset internal state
    */
-  public void reset() {
+  public final void reset() {
     currentRegister = FIRST_GCMAP_REG;
     spillLoc = VM_Address.zero();
   }
@@ -281,14 +282,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * return the current register we are processing
    * @return the current register we are processing
    */
-  public int getCurrentRegister() {
+  public final int getCurrentRegister() {
     return currentRegister;
   }
 
   /**
    * update the state of the current register we are processing
    */
-  public void updateCurrentRegister() {
+  public final void updateCurrentRegister() {
     currentRegister++;
   }
 
@@ -297,7 +298,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * processed all registers
    * @return whether the currentRegister is valid
    */
-  public boolean currentRegisterIsValid() {
+  public final boolean currentRegisterIsValid() {
     return currentRegister <= LAST_GCMAP_REG;
   }
 
@@ -336,7 +337,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * This method inspects the "current" register for values that look like refs.
    */
-  void checkCurrentRegisterForMissedReferences() {
+  final void checkCurrentRegisterForMissedReferences() {
     int currentReg = getCurrentRegister();
     if (VERBOSE) {
       VM.sysWrite(" Inspecting Regs: ");
@@ -349,7 +350,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * This method inspects all the registers for values that look like refs.
    */
-  void checkAllRegistersForMissedReferences() {
+  final void checkAllRegistersForMissedReferences() {
     if (VERBOSE) {
       VM.sysWrite(" Inspecting Regs: ");
       VM.sysWrite(FIRST_GCMAP_REG);
@@ -366,7 +367,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param firstReg first reg to check
    * @param lastReg  last reg to check
    */
- void checkRegistersForMissedReferences(int firstReg, int lastReg) {
+  final void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
       VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
       int regValue = VM_Magic.getMemoryWord(regLocation);
@@ -390,7 +391,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param old the last spill found as a reference
    * @param new the next spill found as a reference
    */
-  void checkForMissedSpills(VM_Address ref1, VM_Address ref2) {
+  final void checkForMissedSpills(VM_Address ref1, VM_Address ref2) {
     if (ref1.isZero()) {
       // Search from start of spill area
       ref1 = getFirstSpillLoc();
