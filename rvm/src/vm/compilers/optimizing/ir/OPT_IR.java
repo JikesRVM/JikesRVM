@@ -204,9 +204,9 @@ public final class OPT_IR implements OPT_Operators {
   public void setHasSysCall(boolean b) { hasSysCall = b; }
   
   /**
-   * @param meth the method to compile
-   * @param ip   the inlining oracle to use for the compilation
-   * @param opts the options to use for the compilation
+   * @param m    The method to compile
+   * @param ip   The inlining oracle to use for the compilation
+   * @param opts The options to use for the compilation
    */
   public OPT_IR(VM_NormalMethod m, OPT_InlineOracle ip, OPT_Options opts) {
     method = m;

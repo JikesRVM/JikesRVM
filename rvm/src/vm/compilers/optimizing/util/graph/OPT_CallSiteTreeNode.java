@@ -39,7 +39,7 @@ public class OPT_CallSiteTreeNode extends OPT_TreeNode {
   /**
    * construct a a call site tree node corresponding to a given
    * inlined call site
-   * @param   OPT_InlineSequence seq an inlined call site
+   * @param   seq an inlined call site
    */
   public OPT_CallSiteTreeNode (OPT_InlineSequence seq) {
     callSite = seq;
