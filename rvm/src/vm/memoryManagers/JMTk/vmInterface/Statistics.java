@@ -191,7 +191,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     int np = VM_Scheduler.numProcessors;
     // showParameter();
-    if (Options.verbose >= 1) {
+    if (Options.verbose >= 3) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
       if (gcCount != 0) {
         if (minorGCTime.count() > 0) {
