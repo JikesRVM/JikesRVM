@@ -38,15 +38,19 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
       } 
       return shouldInlineInterfaceInternal(caller, callee, state);
     } else {
-      // invokestatic, invokevirtual, invokestatic
+      // invokestatic, invokevirtual, invokespecial
       // perform generic checks to test common inlining cases.
       
       // Is inlining forbidden?
-      if (!legalToInline(caller, callee))
+      if (!legalToInline(caller, callee) || callee.isNative())
         return OPT_InlineDecision.NO("illegal inlining");
       if (hasNoInlinePragma(callee, state))
         return OPT_InlineDecision.NO("pragmaNoInline");
 
+      if (callee.isAbstract()) {
+	return shouldInlineAbstractMethodInternal(caller, callee, state);
+      }
+      
       // Some callee methods should always be inlined, even if 
       // dynamically this call site is never executed.  If the 
       // callee is sufficiently small and can be inlined without a guard
@@ -55,8 +59,8 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
       boolean guardless = state.getComputedTarget() != null || !needsGuard(callee);
       if (inlinedSizeEstimate < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
 	  guardless &&
-          !state.getSequence().containsMethod(callee)) { 
-        return OPT_InlineDecision.YES(callee, "trivial inline");
+	  !state.getSequence().containsMethod(callee)) { 
+	return OPT_InlineDecision.YES(callee, "trivial inline");
       }
 	
       if (state.getOptions().getOptLevel() == 0) {
@@ -93,6 +97,14 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 								      OPT_CompilationState state);
   
   /**
+   * Children must implement this method.
+   * It contains the non-generic decision making portion of the oracle for invokeinterface.
+   */
+  protected abstract OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller, 
+									   VM_Method callee, 
+									   OPT_CompilationState state);
+  
+  /**
    * Logic to select the appropriate guarding mechanism for the edge
    * from caller to callee according to the controlling OPT_Options.
    * If we are using IG_CODE_PATCH, then these method also records 
@@ -124,7 +136,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 
     if (guard == OPT_Options.IG_METHOD_TEST && 
 	callee.getDeclaringClass().isFinal()) {
-      // method test is more efficient and just as effective
+      // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
     }
     return guard;

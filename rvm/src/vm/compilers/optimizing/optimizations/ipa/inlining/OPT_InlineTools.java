@@ -41,14 +41,14 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     if (!callee.getDeclaringClass().isLoaded()) {
       return false;
     }
-
     if (OPT_ClassLoaderProxy.needsDynamicLink(callee, caller.getDeclaringClass())) {
       return false;  // Can't inline due to class loading state of callee
     }
-    if (callee.isAbstract() || callee.isNative()) {
-      return false;            // No body to inline
-    }
     return true;
+  }
+
+  public static boolean hasBody(VM_Method callee) {
+    return !(callee.isNative() || callee.isAbstract());
   }
 
   /**

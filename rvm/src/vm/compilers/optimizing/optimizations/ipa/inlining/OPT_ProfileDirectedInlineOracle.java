@@ -193,6 +193,13 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     return null; // placate jikes.
   }
 
+  protected OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller, 
+								  VM_Method callee, 
+								  OPT_CompilationState state) {
+    OPT_OptimizingCompilerException.UNREACHABLE();
+    return null; // placate jikes.
+  }
+
   protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
     // by default; nothing to do
   }
