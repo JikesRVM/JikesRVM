@@ -88,6 +88,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
+  // Note:  The write barrier depends on the nursery being the highest memory region.
+  //
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   protected static final VM_Extent MATURE_SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3)));
   protected static final VM_Extent   NURSERY_SIZE = MATURE_SS_SIZE;
