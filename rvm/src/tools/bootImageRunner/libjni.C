@@ -68,7 +68,7 @@ JNIEnv * lookupPair(JavaVM_ *, int);
  */
 #define JNI_ARG_INDEX 5
 #define PID_ARG_INDEX 6
-char *defaultStartUpProgramName[8] = {"-X:vmClasses=/u/tango/rvmBuild/RVM.classes",
+char *defaultStartUpProgramName[8] = {"-X:vmClasses=~/rvmBuild/RVM.classes",
 				      "-X:processors=1",
 				      "-classpath", ".",
 				      "VM_JNIStartUp", 
