@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-public abstract class SimpleRCBaseHeader implements VM_Constants, Constants {
+public abstract class RCBaseHeader implements VM_Constants, Constants {
 
   /**
    * How many bytes are used by all GC header fields?

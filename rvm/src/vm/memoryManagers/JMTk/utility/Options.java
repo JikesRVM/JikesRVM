@@ -25,6 +25,7 @@ public class Options implements VM_Uninterruptible, Constants {
   static int heapSize         = 0; // deprecated
   static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = MAX_INT;  // default to variable nursery
+  static int metaDataPages    = MAX_INT;  // default to no meta data limit
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
 
@@ -66,6 +67,11 @@ public class Options implements VM_Uninterruptible, Constants {
       String tmp = arg.substring(13);
       nurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
       if (nurseryPages <= 0) VM.sysFail("Unreasonable nursery size " + tmp);
+    }
+    else if (arg.startsWith("metadata_limit=")) {
+      String tmp = arg.substring(15);
+      metaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
+      if (nurseryPages <= 0) VM.sysFail("Unreasonable metadata limit " + tmp);
     }
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);

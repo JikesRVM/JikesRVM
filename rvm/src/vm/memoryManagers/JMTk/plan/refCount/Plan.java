@@ -43,44 +43,46 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public static final boolean sanityTracing = false;
 
   // virtual memory resources
+  private static FreeListVMResource losVM;
   private static FreeListVMResource rcVM;
 
   // RC collection space
-  private static SimpleRCCollector rcSpace;
+  private static RefCountSpace rcSpace;
 
   // memory resources
   private static MemoryResource rcMR;
+  private static MemoryResource losMR;
 
   // shared queues
   private static SharedQueue incPool;
   private static SharedQueue decPool;
   private static SharedQueue rootPool;
-  private static SharedQueue cyclePoolA;
-  private static SharedQueue cyclePoolB;
-  private static SharedQueue freePool;
-  private static SharedQueue tracingPool;
 
   // GC state
   private static boolean progress = true;  // are we making progress?
   private static int required;  // how many pages must this GC yeild?
-  private static boolean cycleBufferAisOpen = true;
   private static int lastRCPages = 0; // pages at end of last GC
   
   // Allocators
   public static final byte RC_SPACE = 0;
+  public static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = RC_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  private static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT            RC_SIZE = (int) AVAILABLE;
+  private static final EXTENT            RC_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.7));
+  private static final EXTENT           LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.3));
   public  static final int              MAX_SIZE = RC_SIZE;
 
-  private static final VM_Address       RC_START = PLAN_START;
+  public  static final VM_Address       RC_START = PLAN_START;
   private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
-  private static final VM_Address       HEAP_END = RC_END;
+  private static final VM_Address      LOS_START = RC_END;
+  private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
+  private static final VM_Address       HEAP_END = LOS_END;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -88,23 +90,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   //
 
   // allocator
-  private SimpleRCAllocator rc;
+  private RefCountLocal rc;
+  private RefCountLOSLocal los;
 
   // counters
-  private int incCounter;
-  private int decCounter;
-  private int rootCounter;
-  private int purpleCounter;
   private int wbFastPathCounter;
 
   // queues (buffers)
   private AddressQueue incBuffer;
   private AddressQueue decBuffer;
   private AddressQueue rootSet;
-  private AddressQueue cycleBufferA;
-  private AddressQueue cycleBufferB;
-  private AddressQueue freeBuffer;
-  private AddressQueue tracingBuffer;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -120,12 +115,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   static {
     // memory resources
     rcMR = new MemoryResource("rc", POLL_FREQUENCY);
+    losMR = new MemoryResource("los", POLL_FREQUENCY);
 
     // virtual memory resources
     rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM);
+    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
 
     // collectors
-    rcSpace = new SimpleRCCollector(rcVM, rcMR);
+    rcSpace = new RefCountSpace(rcVM, rcMR);
     addSpace(RC_SPACE, "RC Space");
 
     // instantiate shared queues
@@ -135,36 +132,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     decPool.newClient();
     rootPool = new SharedQueue(metaDataRPA, 1);
     rootPool.newClient();
-    if (refCountCycleDetection) {
-      cyclePoolA = new SharedQueue(metaDataRPA, 1);
-      cyclePoolA.newClient();
-      cyclePoolB = new SharedQueue(metaDataRPA, 1);
-      cyclePoolB.newClient();
-      freePool = new SharedQueue(metaDataRPA, 1);
-      freePool.newClient();
-    }
-    if (sanityTracing) {
-      tracingPool = new SharedQueue(metaDataRPA, 1);
-      tracingPool.newClient();
-    }
   }
 
   /**
    * Constructor
    */
   public Plan() {
-    rc = new SimpleRCAllocator(rcSpace);
     incBuffer = new AddressQueue("inc buf", incPool);
     decBuffer = new AddressQueue("dec buf", decPool);
     rootSet = new AddressQueue("root set", rootPool);
-    if (refCountCycleDetection) {
-      cycleBufferA = new AddressQueue("cycle buf A", cyclePoolA);
-      cycleBufferB = new AddressQueue("cycle buf B", cyclePoolB);
-      freeBuffer = new AddressQueue("free buffer", freePool);
-    }
-    if (sanityTracing) {
-      tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
-    }
+    los = new RefCountLOSLocal(losVM, losMR);
+    rc = new RefCountLocal(rcSpace, this, los, incBuffer, decBuffer, rootSet);
   }
 
   /**
@@ -194,12 +172,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    VM_Address result;
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
+      allocator = LOS_SPACE;
+    VM_Address result = VM_Address.zero();
     switch (allocator) {
-      case       RC_SPACE: result = rc.allocOOL(isScalar, bytes); break;
+      case       RC_SPACE: result = rc.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: result = immortal.alloc(isScalar, bytes); break;
-      default:             result = VM_Address.zero(); 
-	                   if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      case      LOS_SPACE: result = los.alloc(isScalar, bytes); break;
+      default:  if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
     return result;
   }
@@ -218,11 +198,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-    case RC_SPACE: decBuffer.pushOOL(VM_Magic.objectAsAddress(ref)); return;
+    case RC_SPACE: 
+    case LOS_SPACE: decBuffer.pushOOL(VM_Magic.objectAsAddress(ref)); return;
     case IMMORTAL_SPACE: 
-      if (sanityTracing)
-	SimpleRCCollector.postAllocImmortal(VM_Magic.objectAsAddress(ref));
-      Immortal.postAlloc(ref); return;
+      rc.postAllocImmortal(VM_Magic.objectAsAddress(ref));
+      ImmortalSpace.postAlloc(ref); return;
     default: if (VM.VerifyAssertions) VM.sysFail("No such allocator"); return;
     }
   }
@@ -274,11 +254,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == rc) return DEFAULT_SPACE;
+    if (a == los) return LOS_SPACE;
     return super.getSpaceFromAllocator(a);
   }
 
   protected final Allocator getAllocatorFromSpace (byte s) {
     if (s == DEFAULT_SPACE) return rc;
+    if (s == LOS_SPACE) return los;
     return super.getAllocatorFromSpace(s);
   }
 
@@ -302,17 +284,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   }
 
   /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
+   * Return the initial header value for a newly allocated instance.
    *
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(EXTENT bytes)
+  public static final int getInitialHeaderValue(EXTENT bytes) 
     throws VM_PragmaInline {
     return rcSpace.getInitialHeaderValue(bytes);
   }
-
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -342,8 +322,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 	getPagesReserved() > getTotalPages() ||
 	(((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
 	  metaDataMR.committedPages() > Options.metaDataPages)
-	 && VM_Interface.fullyBooted())) {
-      //      VM.sysWrite(getPagesReserved()); VM.sysWrite(" res, "); VM.sysWrite(lastRCPages); VM.sysWrite(" last, "); VM.sysWrite(Options.nurseryPages); VM.sysWrite(" nur, "); VM.sysWrite(metaDataMR.committedPages()); VM.sysWrite(" md, "); VM.sysWrite(Options.metaDataPages); VM.sysWrite(" omd\n");
+	 && VM_Interface.fullyInitialized())) {
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
@@ -377,7 +356,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    Immortal.prepare(immortalVM, null);
+    ImmortalSpace.prepare(immortalVM, null);
     rcSpace.prepare();
   }
 
@@ -391,8 +370,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   protected final void threadLocalPrepare(int count) {
     rc.prepare();
-    // decrements from previous collection
-    if (verbose == 2) processRootBufsAndCount(); else processRootBufs(); 
   }
 
   /**
@@ -414,27 +391,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    if (sanityTracing) VM.sysWrite("--------- Increment --------\n");
-    if (verbose == 2) processIncBufsAndCount(); else processIncBufs();
-    if (sanityTracing) VM.sysWrite("--------- Decrement --------\n");
-    rcSpace.decrementPhase();
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (verbose == 2) processDecBufsAndCount(); else processDecBufs();
-    if (refCountCycleDetection) {
-      filterCycleBufs();
-      processFreeBufs(false);
-//       if ((getTotalPages() - getPagesReserved() - required)
-// 	  < Options.cycleDetectionPages) {
-	if (sanityTracing) VM.sysWrite("----------Mark Grey---------\n");
-	doMarkGreyPhase();
-	if (sanityTracing) VM.sysWrite("----------- Scan -----------\n");
-	doScanPhase();
-	if (sanityTracing) VM.sysWrite("---------- Collect ---------\n");
-	doCollectPhase();
-	if (sanityTracing) VM.sysWrite("------------ Free ----------\n");
-	processFreeBufs(true);
-//       }
-    }
+    rc.release();
     if (GATHER_WRITE_BARRIER_STATS) { 
       // This is printed independantly of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
@@ -443,7 +400,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       VM.sysWriteInt(wbFastPathCounter); VM.sysWrite(" wb-fast>\n");
       wbFastPathCounter = 0;
     }
-    if (sanityTracing) rcSanityCheck();
   }
 
   /**
@@ -457,18 +413,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   protected final void globalRelease() {
     // release each of the collected regions
     rcSpace.release();
-    Immortal.release(immortalVM, null);
-    if (verbose == 2) {
-      VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
-      VM.sysWriteInt(incCounter); VM.sysWrite(" incs, ");
-      VM.sysWriteInt(decCounter); VM.sysWrite(" decs, ");
-      VM.sysWriteInt(rootCounter); VM.sysWrite(" roots");
-      if (refCountCycleDetection) {
-	VM.sysWrite(", "); 
-	VM.sysWriteInt(purpleCounter); VM.sysWrite(" purple");
-      }
-      VM.sysWrite(">\n");
-    }
+    ImmortalSpace.release(immortalVM, null);
+    if (verbose == 2) rc.printStats();
     lastRCPages = rcMR.committedPages();
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
@@ -511,27 +457,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
     if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END) && addr.GE(RC_START))
+    byte space = VMResource.getSpace(addr);
+    if (space == RC_SPACE || space == LOS_SPACE)
       return rcSpace.traceObject(obj, root);
-    else if (sanityTracing && addr.LE(HEAP_END) && addr.GE(BOOT_START))
+    else if (sanityTracing && (space == BOOT_SPACE || space == IMMORTAL_SPACE))
       return rcSpace.traceBootObject(obj);
     
     // else this is not a rc heap pointer
     return obj;
   }
-  public static void rootScan(VM_Address obj) {
-    if (sanityTracing) {
-      // this object has been explicitly scanned as part of the root scanning
-      // process.  Mark it now so that it does not get re-scanned.
-      if (obj.LE(RC_START) && obj.GE(BOOT_START)) {
-	if (SimpleRCCollector.bootMark)
-	  SimpleRCBaseHeader.setBufferedBit(obj);
-	else
-	  SimpleRCBaseHeader.clearBufferedBit(obj);
-      }
-    }
-  }
-
 
   /**
    * Return true if <code>obj</code> is a live object.
@@ -541,13 +475,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   public static final boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(RC_START))
- 	return rcSpace.isLive(obj);
-      else if (addr.GE(BOOT_START))
- 	return true;
-    } 
-    return false;
+    byte space = VMResource.getSpace(addr);
+    if (space == RC_SPACE || space == LOS_SPACE)
+      return rcSpace.isLive(obj);
+    else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
+      return true;
+    else
+      return false;
   }
 
   /**
@@ -691,186 +625,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   public final void show() {
     rc.show();
+    los.show();
     immortal.show();
   }
 
   ////////////////////////////////////////////////////////////////////////////
   //
-  // RC methods (should be moved out of this class!)
+  // RC methods
   //
 
-  public final SimpleRCAllocator getAllocator() {
-    return rc;
-  }
   public final void addToDecBuf(VM_Address obj)
     throws VM_PragmaInline {
     decBuffer.push(obj);
   }
-  public final void addToIncBuf(VM_Address obj)
-    throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(false);
-  }
   public final void addToRootSet(VM_Address root) 
     throws VM_PragmaInline {
-    rootSet.push(VM_Magic.objectAsAddress(root));
+    rootSet.push(root);
   }
   public final void addToTraceBuffer(VM_Address root) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(sanityTracing);
-    tracingBuffer.push(VM_Magic.objectAsAddress(root));
+    rc.addToTraceBuffer(root);
   }
-  public final void addToCycleBuf(VM_Address obj)
-    throws VM_PragmaInline {
-    if (VM.VerifyAssertions && !refCountCycleDetection) VM._assert(false);
-    if (cycleBufferAisOpen)
-      cycleBufferA.push(obj);
-    else
-      cycleBufferB.push(obj);
-  }
-  public final void addToFreeBuf(VM_Address object) 
-   throws VM_PragmaInline {
-    freeBuffer.push(object);
-  }
-
-  private final void processIncBufs() {
-    VM_Address tgt;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-    }
-  }
-  private final void processIncBufsAndCount() {
-    VM_Address tgt;
-    incCounter = 0;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-      incCounter++;
-    }
-  }
-  private final void rcSanityCheck() {
-    if (VM.VerifyAssertions) VM._assert(sanityTracing);
-    VM_Address obj;
-    int checked = 0;
-    while (!(obj = tracingBuffer.pop()).isZero()) {
-      checked++;
-      int rc = SimpleRCBaseHeader.getRC(obj);
-      int sanityRC = SimpleRCBaseHeader.getTracingRC(obj);
-      SimpleRCBaseHeader.clearTracingRC(obj);
-      if (rc != sanityRC) {
-	VM.sysWrite("---> ");
-	VM.sysWrite(checked);
-	VM.sysWrite(" roots checked, RC mismatch: ");
-	VM.sysWrite(obj); VM.sysWrite(" -> ");
-	VM.sysWrite(rc); VM.sysWrite(" (rc) != ");
-	VM.sysWrite(sanityRC); VM.sysWrite(" (sanity)\n");
-	if (VM.VerifyAssertions) VM._assert(false);
-      }
-    }
-  }
-
-  private final void processDecBufs() {
-    VM_Address tgt;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      rcSpace.decrement(tgt, rc, this);
-    }
-  }
-  private final void processDecBufsAndCount() {
-    VM_Address tgt;
-    decCounter = 0;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      rcSpace.decrement(tgt, rc, this);
-      decCounter++;
-    }
-  }
-
-  // FIXME this is inefficient!
-  private final void processRootBufs() {
-    VM_Address tgt;
-    while (!(tgt = rootSet.pop()).isZero())
-      decBuffer.push(tgt);
-  }
-  private final void processRootBufsAndCount() {
-    VM_Address tgt;
-    rootCounter = 0;
-    while (!(tgt = rootSet.pop()).isZero()) {
-      decBuffer.push(tgt);
-      rootCounter++;
-    }
-  }
-
-  private final void filterCycleBufs() {
-    VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
-    purpleCounter = 0;
-    while (!(obj = src.pop()).isZero()) {
-      purpleCounter++;
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
-      if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isBuffered(obj));
-      if (SimpleRCBaseHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
-	if (SimpleRCBaseHeader.isPurple(VM_Magic.addressAsObject(obj)))
-	  tgt.push(obj);
-	else {
-	  SimpleRCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
-	}
-      } else {
-	SimpleRCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
-	freeBuffer.push(obj);
-      }
-    }
-    cycleBufferAisOpen = !cycleBufferAisOpen;
-  }
-  private final void processFreeBufs(boolean print) {
-    VM_Address obj;
-    while (!(obj = freeBuffer.pop()).isZero()) {
-      if (print) {
-	//	VM.sysWrite(obj); VM.sysWrite(" fr\n");
-      }
-      rcSpace.free(obj, rc);
-    }
-  }
-  static final int CYCLE_PROCESS_LIMIT = 1<<30;
-  private final void doMarkGreyPhase() {
-    VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
-    rcSpace.markGreyPhase();
-    int objsProcessed = 0;
-    while (!(obj = src.pop()).isZero() && objsProcessed < CYCLE_PROCESS_LIMIT){
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
-      if (SimpleRCBaseHeader.isPurple(obj)) {
-	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isLiveRC(obj));
-	rcSpace.markGrey(obj);
-	objsProcessed++;
-	tgt.push(obj);
-      } else {
- 	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isGrey(obj));
-	SimpleRCBaseHeader.clearBufferedBit(obj); // FIXME Why? Why not above?
-      }
-    } 
-    cycleBufferAisOpen = !cycleBufferAisOpen;
-  }
-  private final void doScanPhase() {
-    VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
-    rcSpace.scanPhase();
-    while (!(obj = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
-      rcSpace.scan(obj);
-      tgt.push(obj);
-    }
-    cycleBufferAisOpen = !cycleBufferAisOpen;
-  }
-  private final void doCollectPhase() {
-    VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    rcSpace.collectPhase();
-    while (!(obj = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
-      SimpleRCBaseHeader.clearBufferedBit(obj);
-      rcSpace.collectWhite(obj, this);
-    }
-  }
-
 }
 

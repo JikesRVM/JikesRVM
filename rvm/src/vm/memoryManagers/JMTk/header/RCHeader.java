@@ -12,10 +12,7 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -24,7 +21,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-public class SimpleRCHeader extends SimpleRCBaseHeader implements VM_Constants {
+public class RCHeader extends RCBaseHeader implements VM_Constants {
   /**
    * Perform any required initialization of the GC portion of the header.
    * 
