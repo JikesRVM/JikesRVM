@@ -54,7 +54,7 @@ if trap -- 'xited=$?; echo >&2 "$ME: some command we just ran (probably with a
 then
     have_err_trap=yes
 else
-    echo >&2 "ME: You are under a version of Bash 
+    echo >&2 "$ME: You are under a version of Bash 
     ($BASH_VERSION; probably pre-2.05) that
     does not support
     the ERR trap.  You may not get as much diagnostic info as you would like."
