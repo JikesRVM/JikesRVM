@@ -87,8 +87,11 @@ static void vwriteFmt(int fd, const char fmt[], va_list ap)
     __attribute__((nonnull (2), format (printf, 2, 0)));
 static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
     __attribute__((nonnull(3), format (printf, 3, 0)));
+#if 0				// this isn't needed right now, but may be in
+				// the future.
 static void writeTrace(const char fmt[], ...)
     __attribute__((nonnull(1), format (printf, 1, 2)));
+#endif
 static void writeErr(const char fmt[], ...)
     __attribute__((nonnull(1), format (printf, 1, 2)));
 
