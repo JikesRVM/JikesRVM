@@ -33,96 +33,104 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  */  
 public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 
-  // quietly validates each ref reported by map iterators
+  /**
+   * quietly validates each ref reported by map iterators
+   */
   static final boolean VALIDATE_STACK_REFS = true;
 
-  // debugging options to produce printout during scanStack
-  // MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
-  // use these when running with PROCESSORS=1
-
+  /**
+   * debugging options to produce printout during scanStack
+   * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
+   * use these when running with PROCESSORS=1
+   */
   static int DUMP_STACK = 0;
 
-  // Threads, stacks,  jni environments,  and register objects  have a
-  // complex  interaction  in terms  of  scanning.   The operation  of
-  // scanning the  stack reveals not  only roots inside the  stack but
-  // also the  state of the register  objects's gprs and  the JNI refs
-  // array.  They are all associated  via the thread object, making it
-  // natural for  scanThread to be considered a  single operation with
-  // the  method  directly  accessing  these objects  via  the  thread
-  // object's fields.
-  //
-  // One pitfall occurs when scanning the thread object (plus
-  // dependents) when not all of the objects have been copied.  Then
-  // it may be that the innards of the register object has not been
-  // copied while the stack object has.  The result is that an
-  // inconsistent set of slots is reported.  In this case, the copied
-  // register object may not be correct if the copy occurs after the
-  // root locations are discovered but before those locations are
-  // processed. In essence, all of these objects form one logical unit
-  // but are physically separated so that sometimes only part of it
-  // has been copied causing the scan to be incorrect.
-  //
-  // The caller of this routine must ensure that all of these
-  // components's descendants are consistent (all copied) when this
-  // method is called.
-  //
-  //   t
-  //   t.stack (if stack moving is enabled)
-  //   t.jniEnv.jniRefs (t.jniEnv might be null)      
-  //   t.contextRegisters 
-  //   t.contextRegisters.gprs
-  //   t.hardwareExceptionRegisters
-  //   t.hardwareExceptionRegisters.gprs 
-  //
-  public static void scanThread(VM_Thread t, AddressQueue rootLocations, AddressPairQueue codeLocations) {
+  /**
+   * Threads, stacks,  jni environments,  and register objects  have a
+   * complex  interaction  in terms  of  scanning.   The operation  of
+   * scanning the  stack reveals not  only roots inside the  stack but
+   * also the  state of the register  objects's gprs and  the JNI refs
+   * array.  They are all associated  via the thread object, making it
+   * natural for  scanThread to be considered a  single operation with
+   * the  method  directly  accessing  these objects  via  the  thread
+   * object's fields. <p>
+   *
+   * One pitfall occurs when scanning the thread object (plus
+   * dependents) when not all of the objects have been copied.  Then
+   * it may be that the innards of the register object has not been
+   * copied while the stack object has.  The result is that an
+   * inconsistent set of slots is reported.  In this case, the copied
+   * register object may not be correct if the copy occurs after the
+   * root locations are discovered but before those locations are
+   * processed. In essence, all of these objects form one logical unit
+   * but are physically separated so that sometimes only part of it
+   * has been copied causing the scan to be incorrect. <p>
+   *
+   * The caller of this routine must ensure that all of these
+   * components's descendants are consistent (all copied) when this
+   * method is called. <p>
+   *
+   *   t
+   *   t.stack (if stack moving is enabled)
+   *   t.jniEnv.jniRefs (t.jniEnv might be null)      
+   *   t.contextRegisters 
+   *   t.contextRegisters.gprs
+   *   t.hardwareExceptionRegisters
+   *   t.hardwareExceptionRegisters.gprs 
+   */
+  public static void scanThread(VM_Thread t, AddressQueue rootLocations, 
+				AddressPairQueue codeLocations) {
 	
     Plan plan = VM_Interface.getPlan();
 
-	// An additional complication is that when a stack is copied,
-	// special adjustments relating to SP values have to be made.
-	// These are not handled by GC maps.  We are ensured that the
-	// thread, before scanning, still refers to the original stack
-	// object, whether it has already been copied or will be
-	// copied by the scan.  queued for later scanning.
-	int[] oldstack = t.stack;    
-	ScanObject.rootScan(t);
-	if (t.jniEnv != null) ScanObject.rootScan(t.jniEnv);
-	ScanObject.rootScan(t.contextRegisters);
-	ScanObject.rootScan(t.hardwareExceptionRegisters);
-	if (oldstack != t.stack) 
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
+    if (VM.VerifyAssertions) {
+      // Currently we do not allow stacks to be moved.
+      // If a stack contains native stack frames, then it is impossible
+      // for us to safely move it.
+      // Prior to the implementation of JNI, Jikes RVM did allow the GC
+      // system to move thread stacks, and called a special fixup routine,
+      // thread.fixupMovedStack to adjust all of the special interior
+      // pointers (SP, FP).
+      // If we implement split C & Java stacks then we could allow 
+      // the Java stacks to be moved, but we can't move the native stack.
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
+    }				  
+
+    ScanObject.rootScan(t);
+    if (t.jniEnv != null) ScanObject.rootScan(t.jniEnv);
+    ScanObject.rootScan(t.contextRegisters);
+    ScanObject.rootScan(t.hardwareExceptionRegisters);
 	
-	if (VM.VerifyAssertions) {
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
-	  VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
-	  VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.refsArray())));
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
-	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
-	}
+    if (VM.VerifyAssertions) {
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
+      VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
+      VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.refsArray())));
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
+      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
+    }
 
-	// all threads in "unusual" states, such as running threads in
-	// SIGWAIT (nativeIdleThreads, nativeDaemonThreads,
-	// passiveCollectorThreads), set their ContextRegisters before
-	// calling SIGWAIT so that scans of their stacks will start at
-	// the caller of SIGWAIT
-	// fp = -1 case, which we need to add support for again this
-	// is for "attached" threads that have returned to C, but have
-	// been given references which now reside in the JNIEnv
-	// sidestack
-
-	scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
-	if (failed == t) {
-	    VM.sysWriteln("RESCANNING with verbose on");
-	    DUMP_STACK = 3;
-	    scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
-	    VM._assert(false);
-	}
+    // all threads in "unusual" states, such as running threads in
+    // SIGWAIT (nativeIdleThreads, nativeDaemonThreads,
+    // passiveCollectorThreads), set their ContextRegisters before
+    // calling SIGWAIT so that scans of their stacks will start at
+    // the caller of SIGWAIT
+    // fp = -1 case, which we need to add support for again this
+    // is for "attached" threads that have returned to C, but have
+    // been given references which now reside in the JNIEnv
+    // sidestack
+    scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
+    if (failed == t) {
+      VM.sysWriteln("RESCANNING with verbose on");
+      DUMP_STACK = 3;
+      scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
+      VM._assert(false);
+    }
   }
 
-    static VM_Thread failed = null;
+  static VM_Thread failed = null;
 
   private static void codeLocationsPush (AddressPairQueue codeLocations,
 					 VM_Address code, VM_Address ipLoc, 
@@ -164,7 +172,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     }
     else
       VM.sysWriteln("   Method is uncompiled - ip = ", ip);
-}
+  }
 
   static private VM_Address sentinelFP = STACKFRAME_SENTINEL_FP;
 
