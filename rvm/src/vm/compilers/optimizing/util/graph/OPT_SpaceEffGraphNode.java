@@ -91,32 +91,28 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   // return the first in/out edge
 
-  public final OPT_SpaceEffGraphEdge firstInEdge()  { return _inEdgeStart;  }
-  public final OPT_SpaceEffGraphEdge firstOutEdge() { return _outEdgeStart; }
-
-  public final OPT_SpaceEffGraphNode firstInNode()  { return _inEdgeStart.fromNode();}
-  public final OPT_SpaceEffGraphNode firstOutNode() { return _outEdgeStart.toNode(); }
-
-  /**
-   * Number the predecessors of this basic block, and return the
-   * number corresponding to basic block x.  If x is not a predecessor
-   * of this block, return -1
-   */
-  public final int whichPred(OPT_SpaceEffGraphNode x) {
-    int count = 0;
-    for (OPT_SpaceEffGraphEdge e=_inEdgeStart; e != null; e = e.nextIn) {
-      if (e.fromNode() == x)
-        return count;
-      count++;
-    }
-    return -1;
+  public final OPT_SpaceEffGraphEdge firstInEdge()  { 
+    return _inEdgeStart;  
+  }
+  public final OPT_SpaceEffGraphEdge firstOutEdge() { 
+    return _outEdgeStart; 
+  }
+  public final OPT_SpaceEffGraphNode firstInNode()  { 
+    return _inEdgeStart.fromNode();
+  }
+  public final OPT_SpaceEffGraphNode firstOutNode() { 
+    return _outEdgeStart.toNode(); 
   }
 
-  // clear the in/out set of edges
-
+  /**
+   * clear the in set of edges
+   */
   final void clearIn() {
     _inEdgeStart = _inEdgeEnd = null;
   }
+  /**
+   * clear the out set of edges
+   */
   final void clearOut() {
     _outEdgeStart= _outEdgeEnd = null;
   }
