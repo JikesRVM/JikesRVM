@@ -1266,36 +1266,33 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /** Dump this thread's info.  The <code>verbosity</code> argument is ignored.
    * We do not use any spacing or newline characters.  Callers are responsible
-   * for space-separating or newline-terminating output.   Strangely enough,
-   * we use VM_Scheduler.write*() here, but sysWrite everywhere else.  They
-  end up mapping onto the same thing anyway, so it really doesn't matter, but
-  it is kind of weird from an abstraction point of view. */
+   * for space-separating or newline-terminating output. */
   public void dump(int verbosity) {
-    VM_Scheduler.writeDecimal(getIndex());   // id
+    VM.sysWriteInt(getIndex());   // id
     if (isDaemon)              
-      VM_Scheduler.writeString("-daemon");     // daemon thread?
+      VM.sysWrite("-daemon");     // daemon thread?
     if (isNativeIdleThread)    
-      VM_Scheduler.writeString("-nativeidle");    // NativeIdle
+      VM.sysWrite("-nativeidle");    // NativeIdle
     if (isIdleThread)          
-      VM_Scheduler.writeString("-idle");       // idle thread?
+      VM.sysWrite("-idle");       // idle thread?
     if (isGCThread)            
-      VM_Scheduler.writeString("-collector");  // gc thread?
+      VM.sysWrite("-collector");  // gc thread?
     if (isNativeDaemonThread)  
-      VM_Scheduler.writeString("-nativeDaemon");  
+      VM.sysWrite("-nativeDaemon");  
     if (beingDispatched)       
-      VM_Scheduler.writeString("-being_dispatched");
-    // VM_Scheduler.writeString("\n");
+      VM.sysWrite("-being_dispatched");
+    // VM.sysWrite("\n");
   }
 
   public static void dumpAll(int verbosity) {
     for (int i=0; i<VM_Scheduler.threads.length; i++) {
       VM_Thread t = VM_Scheduler.threads[i];
       if (t == null) continue;
-      VM_Scheduler.writeString("Thread ");
-      VM_Scheduler.writeDecimal(i);
-      VM_Scheduler.writeString(":  ");
-      VM_Scheduler.writeHex(VM_Magic.objectAsAddress(t));
-      VM_Scheduler.writeString("   ");
+      VM.sysWrite("Thread ");
+      VM.sysWriteInt(i);
+      VM.sysWrite(":  ");
+      VM.sysWriteHex(VM_Magic.objectAsAddress(t));
+      VM.sysWrite("   ");
       t.dump(verbosity);
       // This is here to compensate for t.dump() not newline-terminating info.
       VM.sysWriteln();

@@ -589,21 +589,22 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * Reports the state of a heavy-weight lock.
    */
   void dump() {
-    if (!active) return;
-    VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");
-    VM_Scheduler.writeString(" lockedObject: 0x"); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject)); 
-    VM_Scheduler.writeString("   thin lock = "); 
-    VM_Scheduler.writeHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
-    VM_Scheduler.writeString("\n");
+    if (!active) 
+      return;
+    VM.sysWrite("Lock "); VM.sysWriteInt(index); VM.sysWrite(":\n");
+    VM.sysWrite(" lockedObject: 0x"); VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject)); 
+    VM.sysWrite("   thin lock = "); 
+    VM.sysWriteHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
+    VM.sysWrite("\n");
 
-    VM_Scheduler.writeString(" ownerId: "); VM_Scheduler.writeDecimal(ownerId); VM_Scheduler.writeString(" recursionCount: "); VM_Scheduler.writeDecimal(recursionCount); VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString(" entering: "); entering.dump();
-    VM_Scheduler.writeString(" waiting: ");  waiting.dump();
+    VM.sysWrite(" ownerId: "); VM.sysWriteInt(ownerId); VM.sysWrite(" recursionCount: "); VM.sysWriteInt(recursionCount); VM.sysWrite("\n");
+    VM.sysWrite(" entering: "); entering.dump();
+    VM.sysWrite(" waiting: ");  waiting.dump();
 
-    VM_Scheduler.writeString(" mutexLatestContender: ");
-    if (mutex.latestContender == null) VM_Scheduler.writeString("<null>");
-    else                     VM_Scheduler.writeHex(mutex.latestContender.id);
-    VM_Scheduler.writeString("\n");
+    VM.sysWrite(" mutexLatestContender: ");
+    if (mutex.latestContender == null) VM.sysWrite("<null>");
+    else                     VM.sysWriteHex(mutex.latestContender.id);
+    VM.sysWrite("\n");
   }
 
 

@@ -96,7 +96,8 @@ public class VM_Handshake {
 
     if (verbose >= 2) {
       VM_Scheduler.trace("VM_Handshake:initiateCollection","collectorQueue:");
-      VM_Scheduler.writeString("before waiting:"); VM_Scheduler.collectorQueue.dump();
+      VM.sysWrite("before waiting:"); 
+      VM_Scheduler.collectorQueue.dump();
     }
 
     // Get the number of GC threads.  Include NativeDaemonProcessor collector thread in the count.

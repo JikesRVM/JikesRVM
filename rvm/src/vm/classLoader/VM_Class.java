@@ -1342,7 +1342,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Side effects: superclasses are initialized, static fields receive 
    * initial values.
    */ 
-  public final synchronized void initialize() {
+  public final synchronized void initialize() 
+    // Doesn't really need declaring.
+    throws ExceptionInInitializerError
+  {
     if (isInitialized())
       return;
 
@@ -1372,7 +1375,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "+this+"]\n");
 
-      VM_Magic.invokeClassInitializer(cm.getInstructions());
+      try {
+	VM_Magic.invokeClassInitializer(cm.getInstructions());
+      } catch (Error e) {
+	throw e;
+      } catch (Throwable t) {
+	ExceptionInInitializerError eieio 
+	  = new ExceptionInInitializerError("While initializing " + this);
+	eieio.initCause(t);
+	throw eieio;
+      }
 
       // <clinit> is no longer needed: reclaim space by removing references to it
       classInitializerMethod.invalidateCompiledMethod(cm);
