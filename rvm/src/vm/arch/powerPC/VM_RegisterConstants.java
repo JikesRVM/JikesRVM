@@ -47,8 +47,8 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int FIRST_RVM_RESERVED_NV_GPR  = VM.BuildFor64Addr? 14 : 13;
   static final int PROCESSOR_REGISTER         = FIRST_RVM_RESERVED_NV_GPR;
   static final int KLUDGE_TI_REG              = PROCESSOR_REGISTER + 1; // migration aid while killing TI
-  static final int LAST_RVM_RESERVED_NV_GPR   = 16; // migration kludge; should be KLUDGE_TI_REG
-  static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1; // AIX is 13/14
+  static final int LAST_RVM_RESERVED_NV_GPR   = KLUDGE_TI_REG; // will become PR when KLUDGE_TI dies.
+  static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1;
   //                                            ...
   static final int LAST_NONVOLATILE_GPR       = LAST_OS_NONVOLATILE_GPR;
   static final int NUM_GPRS                   = 32;
