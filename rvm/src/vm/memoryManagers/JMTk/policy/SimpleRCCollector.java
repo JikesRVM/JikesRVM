@@ -146,23 +146,13 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   }
   public final VM_Address traceBootObject(VM_Address object) {
     if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
-    //    VM.sysWrite("tb["); VM.sysWrite(object); 
-    if (object.EQ(Plan.TARGET_OBJ)) {
-      VM.sysWrite("tbo["); VM.sysWrite(object);
-      //	  VM_Scheduler.dumpStack();
-    }
     if (bootMark && !SimpleRCBaseHeader.isBuffered(object)) {
       SimpleRCBaseHeader.setBufferedBit(object);
-      if (object.EQ(Plan.TARGET_OBJ))
-	VM.sysWrite(" e]\n");
       Plan.enqueue(object);
     } else if (!bootMark && SimpleRCBaseHeader.isBuffered(object)) {
       SimpleRCBaseHeader.clearBufferedBit(object);
-      if (object.EQ(Plan.TARGET_OBJ))
-	VM.sysWrite(" e]\n");
       Plan.enqueue(object);
-    } else if (object.EQ(Plan.TARGET_OBJ))
-      VM.sysWrite("]\n");
+    }
     return object;
   }
   /**
@@ -179,10 +169,6 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     case PROCESS:  
       if (Plan.sanityTracing) {
 	incrementTraceCount(object);
-	if (object.EQ(Plan.TARGET_OBJ)) {
-	  VM.sysWrite("to["); VM.sysWrite(object); VM.sysWrite(root ? " R]\n" : "]\n");
-	  //	  VM_Scheduler.dumpStack();
-	}
 	if (root) {
 	  increment(object);
 	  VM_Interface.getPlan().addToRootSet(object); 
@@ -198,25 +184,16 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
       break;
     case MARK_GREY: 
       if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isLiveRC(object));
-      if (object.EQ(Plan.TARGET_OBJ)) {
-	VM.sysWrite("mgp["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-      }
       if (!SimpleRCBaseHeader.isGreen(object)) {
 	SimpleRCBaseHeader.decRC(object);
 	workQueue.push(object);
       }
       break;
     case SCAN: 
-      if (object.EQ(Plan.TARGET_OBJ)) {
-	VM.sysWrite("scp["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-      }
       workQueue.push(object);
       break;
     case SCAN_BLACK: 
       SimpleRCBaseHeader.incRC(object);
-      if (object.EQ(Plan.TARGET_OBJ)) {
-	VM.sysWrite("sbp["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-      }
       if (!SimpleRCBaseHeader.isBlack(object))
 	blackQueue.push(object);
       break;
@@ -255,9 +232,6 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public final void increment(VM_Address object) 
     throws VM_PragmaInline {
     SimpleRCBaseHeader.incRC(object);
-//     if (object.EQ(Plan.TARGET_OBJ)) {
-//       VM.sysWrite("inx["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-//     }
     if (Plan.refCountCycleDetection && !SimpleRCBaseHeader.isGreen(object))
       SimpleRCBaseHeader.makeBlack(object);
   }
@@ -352,18 +326,8 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (!SimpleRCBaseHeader.isGrey(object)) {
-	if (object.EQ(Plan.TARGET_OBJ)) {
-	  VM.sysWrite("mga["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	}
 	SimpleRCBaseHeader.makeGrey(object);
 	ScanObject.scan(object);
-	if (object.EQ(Plan.TARGET_OBJ)) {
-	  VM.sysWrite("mgb["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	}
-      } else {
-	if (object.EQ(Plan.TARGET_OBJ)) {
-	  VM.sysWrite("mgc["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	}
       }
       object = workQueue.pop();
     }
@@ -374,30 +338,14 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     while (!object.isZero()) {
       if (SimpleRCBaseHeader.isGrey(object)) {
 	if (SimpleRCBaseHeader.isLiveRC(object)) {
-	  if (object.EQ(Plan.TARGET_OBJ)) {
-	    VM.sysWrite("sca["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	  }
 	  phase = SCAN_BLACK;
 	  scanBlack(object);
 	  phase = SCAN;
-	  if (object.EQ(Plan.TARGET_OBJ)) {
-	    VM.sysWrite("scb["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	  }
 	} else {
-	  if (object.EQ(Plan.TARGET_OBJ)) {
-	    VM.sysWrite("scc["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	  }
 	  SimpleRCBaseHeader.makeWhite(object);
 	  ScanObject.scan(object);
-	  if (object.EQ(Plan.TARGET_OBJ)) {
-	    VM.sysWrite("scd["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	  }
 	}
-      } else {
-	  if (object.EQ(Plan.TARGET_OBJ)) {
-	    VM.sysWrite("sce["); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(object)); VM.sysWrite("]\n");
-	  }
-      }
+      } 
       object = workQueue.pop();
     }
   }
