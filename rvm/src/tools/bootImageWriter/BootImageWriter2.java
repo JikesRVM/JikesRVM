@@ -30,7 +30,6 @@ import java.lang.reflect.Field;
  *    -demographics            show summary of how boot space is used
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
- *    -sf <filename>           OBSOLETE compatibility aid
  *    -xclasspath <path>       OBSOLETE compatibility aid
  * </pre>
  * @author Derek Lieber
@@ -39,8 +38,8 @@ import java.lang.reflect.Field;
  * reflection)
  */
 public class BootImageWriter2 extends BootImageWriterMessages
-  implements BootImageWriterConstants
-{
+  implements BootImageWriterConstants {
+
   /**
    * How much talking while we work?
    */
@@ -291,12 +290,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
         }
         continue;
       }
-      // file containing names of fields to be nulled in bootimage
-      if (args[i].equals("-sf")) {
-        say("-sf not supported (OBSOLETE)");
-        ++i;
-        continue;
-      }
       // bootimage compiler argument
       if (args[i].startsWith("-X:bc:")) {
         String[] nbca = new String[bootImageCompilerArgs.length+1];
@@ -336,10 +329,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
       // write words to bootimage in little endian format
       if (args[i].equals("-littleEndian")) {
         littleEndian = true;
-        continue;
-      }
-      if (args[i].equals("-demographics")) {
-	demographics = true;
         continue;
       }
       fail("unrecognized command line argument: " + args[i]);
