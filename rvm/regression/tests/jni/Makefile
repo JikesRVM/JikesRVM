@@ -37,7 +37,7 @@ TESTS_12 := JNI12 StringRegion
 
 TESTS := $(TESTS_11) $(TESTS_12)
 
-LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
+LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) $(TESTS:%=lib%.jnilib) 
 
 sanity: $(LIBS) $(TESTS)
 	@$(MAKE) START_NAME="jni" do-sanity-finish
@@ -47,7 +47,7 @@ check:
 	@$(FGREP) -v "FAIL:" < $(OUT)
 
 
-ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
+ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so) $(ONE_TEST:%=lib%.jnilib)
 
 single:	$(ONE_TEST_LIB)
 	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
@@ -63,6 +63,9 @@ lib%.a:	%.c %.h
 	$(LDSHARED) $(CXXFLAGS) -o $(BENCH_CLASS_CP)/$@ -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o
 
 %.so:	%.a
+	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
+
+%.jnilib:	%.a
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :
