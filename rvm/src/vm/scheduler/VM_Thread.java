@@ -898,13 +898,15 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
   
   /**
-   * Get this thread's index in VM_Scheduler.threads[]
+   * Get this thread's index in {@link VM_Scheduler#threads}[].
    */ 
   public final int getIndex()  throws LogicallyUninterruptiblePragma
   { return threadSlot; }
   
   /**
-   * Get this thread's id for use in lock ownership tests.
+   * Get this thread's id for use in lock ownership tests.  
+   * This is just the thread's index as returned by {@link #getIndex()},
+   * shifted appropriately so it can be directly used in the ownership tests. 
    */ 
   public final int getLockingId() { 
     return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; 
@@ -913,7 +915,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   private static final boolean traceAdjustments = false;
   
   /**
-   * Change size of currently executing thread's stack.
+   * Change the size of the currently executing thread's stack.
    * @param newSize    new size (in bytes)
    * @param exceptionRegisters register state at which stack overflow trap 
    * was encountered (null --> normal method call, not a trap)
@@ -1096,8 +1098,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   /**
-   * initialize new stack with live portion of stack 
-   * we're currently running on
+   * Initialize a new stack with the live portion of the stack 
+   * we're currently running on.
    *
    * <pre>
    *  lo-mem                                        hi-mem
@@ -1277,7 +1279,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
   
   /**
-   * Find an empty slot in threads[] array and bind it to this thread.
+   * Find an empty slot in the {@link threads}[] array and bind it to this thread.
    * Assumption: call is guarded by threadCreationMutex.
    */
   private void assignThreadSlot() {
@@ -1467,15 +1469,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /** Copy a String into a character array.
    *
    *  This function may be called during GC and may be used in conjunction
-   *  with the Log class.   It avoids write barriers and allocation.
-   *
+   *  with the MMTk {@link Log} class.   It avoids write barriers and allocation.
+   *  <p>
    *  XXX This function should probably be moved to a sensible location where
    *   we can use it as a utility.   Suggestions welcome.
+   *  <P>
    *
-   *  XXX This method's implementation is stolen from Log.java -- really, the
-   *      method there should probably call this.  The only reason it doesn't
-   *      is that I don't want to mess with the API.
-   *   
    * @param dest char array to copy into.
    * @param destOffset Offset into <code>dest</code> where we start copying
    *
@@ -1491,7 +1490,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    *
    * @return  -1 if <code>offset</code> is negative.
    *
-   * @author Steven Augart
+   * @author Steven Augart (who swiped the implementation from 
+   * the MMTk {@link Log} class). 
    */
   public static int sprintf(char[] dest, int destOffset, String s) {
     final char[] sArray = java.lang.JikesRVMSupport.getBackingCharArray(s);
@@ -1544,13 +1544,11 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    *  
    *  This function may be called during GC and may be used in conjunction
    *  with the Log class.   It avoids write barriers and allocation.
-   *
+   *  <p>
    *  XXX This function should probably be moved to a sensible location where
    *   we can use it as a utility.   Suggestions welcome.
-   *
-   *  XXX This method's implementation is stolen from Log.java -- really, the
-   *      method there should probably call this.  The only reason it doesn't
-   *      is that I don't want to mess with the API.
+   * <p>
+   *  XXX This method's implementation is stolen from the {@link Log} class.
    *   
    * @param dest char array to copy into.
    * @param offset Offset into <code>dest</code> where we start copying
@@ -1604,18 +1602,20 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
   
   /**
-   * map of hexadecimal digit values to their character representations
-   *
+   * A map of hexadecimal digit values to their character representations.
+   * <P>
    * XXX We currently only use '0' through '9'.  The rest are here pending
-   * possibly merging this code with the similar code in Log.java.
+   * possibly merging this code with the similar code in Log.java, or breaking
+   * this code out into a separate utility class.
    */
   private static final char [] hexDigitCharacter =
   { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
     'f' };
 
   /**
-   * characters in buffer for building string representations of
-   * longs.  A long is a signed 64-bit integer in the range -2^63 to
+   * How many characters we need to have in a buffer for building string
+   * representations of <code>long</code>s, such as {@link #intBuffer}.  A <code>long</code> is a signed
+   * 64-bit integer in the range -2^63 to 
    * 2^63+1.  The number of digits in the decimal representation of
    * 2^63 is ceiling(log10(2^63)) == ceiling(63 * log10(2)) == 19.  An
    * extra character may be required for a minus sign (-).  So the
@@ -1623,16 +1623,20 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */
   private static final int INT_BUFFER_SIZE = 20;
 
-  /** buffer for building string representations of longs */
+  /** A buffer for building string representations of <code>long</code>s */
   private static char [] intBuffer = new char[INT_BUFFER_SIZE];
 
+  /** A lock for {@link #intBuffer} */
   private static int intBufferLock = 0;
-  /** Reset at boot time. */
+
+  /** The offset of {@link #intBufferLock} in this class's TIB.
+   *  This is set properly at boot time, even though it's a
+   *  <code>private</code> variable. . */
   private static int intBufferLockOffset = -1;
 
   /**
-   * gets exclusive access to the buffer for building string representations
-   * of integers. 
+   * Get exclusive access to {@link #intBuffer}, the buffer for building
+   * string representations of integers. 
    */
   private static char [] grabIntBuffer() {
     if (intBufferLockOffset != -1) {
@@ -1644,7 +1648,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   /**
-   * Release the buffer for building string representations of integers.
+   * Release {@link #intBuffer}, the buffer for building string
+   * representations of integers. 
    */
   private static void releaseIntBuffer() {
     if (intBufferLockOffset != -1) {
@@ -1653,7 +1658,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     }
   }
 
-  /** Dump info for all threads.  Each thread's info is newline-terminated.
+  /** Dump information for all threads, via {@link VM#sysWrite}.  Each
+   * thread's info is newline-terminated. 
    *
    * @param verbosity Ignored.
    */
@@ -1676,25 +1682,25 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   // Instance fields //
   //-----------------//
 
-  // support for suspend and resume
-  //
+  /** Support for suspend and resume */
   VM_ProcessorLock suspendLock;
   boolean          suspendPending;
   boolean          suspended;
   
   /**
-   * Index of this thread in "VM_Scheduler.threads"
-   * Value must be non-zero because it is shifted 
-   * and used in Object lock ownership tests.
+   * Index of this thread in {@link VM_Scheduler#threads}[].
+   * This value must be non-zero because it is shifted 
+   * and used in {@link Object} lock ownership tests.
    */
   private int threadSlot;
+
   /**
    * Proxywait/wakeup queue object.  
    */
   VM_Proxy proxy;
   
   /**
-   * Has this thread been suspended via (java/lang/Thread).suspend()
+   * Has this thread been suspended via {@link java.lang.Thread#suspend()}?
    */
   protected volatile boolean isSuspended; 
  
@@ -1730,8 +1736,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /**
    * Execution stack for this thread.
    */ 
-  public byte[] stack;      // machine stack on which to execute this thread
-  public Address   stackLimit; // address of stack guard area
+  /** The machine stack on which to execute this thread. */
+  public byte[] stack;
+  /** The {@link Address} of the guard area for {@link stack}. */
+  public Address stackLimit;
   
   /**
    * Place to save register state when this thread is not actually running.
@@ -1745,12 +1753,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   public VM_Registers hardwareExceptionRegisters;
   
   /**
-   * Place to save/restore this thread's monitor state during "wait" 
-   * and "notify".
+   * Place to save/restore this thread's monitor state during 
+   * {@link Object#wait} and {@link Object#notify}.
    */ 
-  Object waitObject; // object on which this thread is blocked, waiting for a
-                     // notification 
-  int    waitCount;  // lock recursion count for this thread's monitor
+  Object waitObject;
+  /** Lock recursion count for this thread's monitor. */
+  int    waitCount;
   
   /**
    * If this thread is sleeping, when should it be awakened?
@@ -1765,9 +1773,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   
   /**
    * Scheduling priority for this thread.
-   * Note that: java.lang.Thread.MIN_PRIORITY <= priority <= MAX_PRIORITY
+   * Note that: {@link java.lang.Thread#MIN_PRIORITY} <= priority 
+   * <= {@link java.lang.Thread#MAX_PRIORITY}. 
    *
-   * Public so that java.lang.Thread can set it.
+   * Public so that {@link java.lang.Thread} can set it.
    */
   public int priority;
    
@@ -1784,19 +1793,19 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   public boolean beingDispatched;
 
   /**
-   * This thread's successor on a VM_ThreadQueue.
+   * This thread's successor on a {@link VM_ThreadQueue}.
    */ 
   public VM_Thread next;       
   
   /* These status variables are used exclusively for debugging, via the
-   * VM_Thread.dump() function. 
+   * {@link VM_Thread#dump} method. 
    */
 
   /**
    * A thread is "alive" if its start method has been called and the 
    * thread has not yet terminated execution.
-   * Set by:   java.lang.Thread.start()
-   * Unset by: VM_Thread.terminate()
+   * Set by:   {@link java.lang.Thread#start()}
+   * Unset by: {@link VM_Thread#terminate()}
    */ 
   protected boolean isAlive;
 
@@ -1807,17 +1816,19 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   public boolean isBootThread;
 
 
-  /** The Main Thread is the one created to run static main(String[] args)
+  /** The Main Thread is the one created to run 
+   * <code>static main(String[] args)</code> 
    */
   public boolean isMainThread;
   
   /**
-   * A thread is a "gc thread" if it's an instance of VM_CollectorThread
+   * A thread is a "gc thread" if it's an instance of 
+   * {@link VM_CollectorThread}
    */ 
   public boolean isGCThread;
 
   /**
-   * A thread is an "idle thread" if it's an instance of VM_IdleThread
+   * A thread is an "idle thread" if it's an instance of {@link VM_IdleThread}.
    */ 
   boolean isIdleThread;
 
@@ -1840,7 +1851,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   protected boolean isDaemon;
        
   /**
-   * id of processor to run this thread (cycles for load balance)
+   * ID of processor to run this thread (cycles for load balance)
    */
   public int chosenProcessorId; 
 
@@ -1859,7 +1870,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   private long totalCycles;  
 
   /**
-   * Accumulate the interval from startCycles to the result
+   * Accumulate the interval from {@link #startCycle} to the result
    * of calling {@link VM_Time#cycles()} into {@link #totalCycles}
    * returning the new value of totalCycles.
    * @return totalCycles
@@ -1880,7 +1891,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   /**
-   * Called from VM_Processor.dispatch when a thread is about to stop
+   * Called from {@link VM_Processor#dispatch} when a thread is about to stop
    * executing.
    */
   void endQuantum(long now) {
@@ -1888,39 +1899,48 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     startCycle = 0;
   }
 
+  /** @return The value of {@link #totalCycles}, converted to milliseconds */
   public double getCPUTimeMillis() {
     return VM_Time.cyclesToMillis(totalCycles);
   }
 
+  /** @return The value of {@link #totalCycles} */
   public long getTotalCycles() {
     return totalCycles;
   }
 
+  /** @return The value of {@link #isBootThread} */
   public boolean isBootThread() {
     return isBootThread;
   }
 
+  /** @return The value of {@link #isMainThread} */
   public boolean isMainThread() {
     return isMainThread;
   }
 
+  /** @return The value of {@link #isIdleThread}. */
   public boolean isIdleThread() {
     return isIdleThread;
   }
 
+  /** @return The value of {@link #isGCThread}. */
   public boolean isGCThread() {
     return isGCThread;
   }
 
+  /** Returns the value of {@link #isDaemon}. */
   public boolean isDaemonThread() throws InterruptiblePragma {
     return isDaemon;
   }
 
+  /** Returns the value of {@link #isAlive}. */
   public boolean isAlive() throws InterruptiblePragma {
     return isAlive;
   }
 
   //-#if RVM_WITH_OSR
+  /** Returns the value of {@link #isSystemThread}. */
   public boolean isSystemThread() {
     return isSystemThread;
   }
