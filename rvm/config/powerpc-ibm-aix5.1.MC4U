@@ -28,7 +28,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000
 
 # Hardware performance monitor api available in AIX5.1 (bos.pmapi)
 export RVM_HPM_DIR="/usr/pmapi"
-export RVM_WITH_HPM=1
+export RVM_WITH_HPM=0
 
 ##########
 # PART II: Where to find tools and resources on this target
@@ -93,4 +93,7 @@ export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
 export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
-export UNZIP_CMD="/usr/contrib/bin/unzip"
+
+#export UNZIP_CMD="/usr/contrib/bin/unzip"
+export ZIP_CMD="/usr/bin/zip"
+export UNZIP_CMD="/usr/bin/unzip"
