@@ -1778,6 +1778,7 @@ function emitImageLinker
    print "   print '[[B'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
 
+   print "   print 'Lcom/ibm/JikesRVM/MainThread;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Class;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
