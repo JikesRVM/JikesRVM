@@ -14,7 +14,7 @@
 <plugin
    name="%pluginName"
    id="com.ibm.jikesrvm.eclipse.jdt.launching"
-   version="2.2.2"
+   version="@JIKESRVM.VERSION@"
    provider-name="%providerName"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
