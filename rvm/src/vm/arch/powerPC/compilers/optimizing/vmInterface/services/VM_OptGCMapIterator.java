@@ -15,7 +15,8 @@
  */
 final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
-  // Constructor 
+  private final static boolean DEBUG = false;
+
   VM_OptGCMapIterator(int[] registerLocations) {
     super(registerLocations);
   }

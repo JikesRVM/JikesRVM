@@ -44,7 +44,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * just used for debugging, all output statements use VM.syswrite
    */
-  static final boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /**
    * just used for verbose debugging, all output statements use VM.syswrite

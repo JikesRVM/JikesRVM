@@ -15,7 +15,8 @@
  */
 final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
-  // Constructor 
+  private static final boolean DEBUG = false;
+ 
   VM_OptGCMapIterator(int[] registerLocations) {
     super(registerLocations);
   }
@@ -68,6 +69,13 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 	  // determine what register index corresponds to this location
 	  int registerIndex = NONVOLATILE_GPRS[i];
 	  registerLocations[registerIndex] = location.toInt();
+          if (DEBUG) {
+            VM.sysWrite("UpdateRegisterLocations: Register ");
+            VM.sysWrite(registerIndex);
+            VM.sysWrite(" to Location ");
+            VM.sysWrite(location.toInt());
+            VM.sysWrite("\n");
+          }
 	  location = location.sub(4);
 	}
       }
@@ -81,11 +89,15 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 	  // determine what register index corresponds to this location
 	  int registerIndex = VOLATILE_GPRS[i];
 	  registerLocations[registerIndex] = location.toInt();
+          if (DEBUG) {
+            VM.sysWrite("UpdateRegisterLocations: Register ");
+            VM.sysWrite(registerIndex);
+            VM.sysWrite(" to Location ");
+            VM.sysWrite(location.toInt());
+            VM.sysWrite("\n");
+          }
 	  location = location.sub(4);
 	}
-	
-	// the scratch register is also considered a volatile, 
-	// so it is already updated
       }
     }
   }
@@ -125,5 +137,4 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
   final static int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
   final static int SAVE_VOL_SIZE = VOL_SIZE + VM.FPU_STATE_SIZE;
-
 }
