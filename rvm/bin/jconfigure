@@ -1433,6 +1433,7 @@ function emitImageLinker
    #
    print "   print 'java/io/File'              >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/io/DataInputStream'   >> $PRIMORDIAL_CLASSES_STR.1"
+   print "   print 'java/io/DataOutputStream'  >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/io/FilterInputStream' >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/io/InputStream'       >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/io/FileInputStream'   >> $PRIMORDIAL_CLASSES_STR.1"
