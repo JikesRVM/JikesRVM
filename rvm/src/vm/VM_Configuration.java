@@ -97,15 +97,6 @@ public abstract class VM_Configuration {
           false;
 	//-#endif
 
-  // Don't spin on a shared address when contending for a low-level lock.
-  //
-  public static final boolean BuildForMCSProcessorLocks =
-	//-#if RVM_FOR_MCS_PROCESSOR_LOCKS
-	  true;
-	//-#else
-	  false;
-	//-#endif
-
   // Dynamic type checking implementations.
   // We have two:
   //  (1) FastDynamicTypeCheck as described in Alpern, Cocchi, & Grove JVM'01
