@@ -860,43 +860,46 @@ function emitBoilerplate () {
 	# Returns false (exit 1) if we are not.
     cat <<- 'EOF'
 	function tracing() {
-	    set +v +x
-	    [[ $TRACE_FLAG ]] || { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 1 ; }
+	    set +vx
+	    # We go through some skulduggery here so that running jbuild
+	    # with -v or -x won't generate lots of junk output.
+	    [[ $TRACE_FLAG ]] || { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 1 ; }
 
 	    local -i dflt=1      # default answer, false  (using exit codes)
-	    # Canonicalize.
+	    # If $TRACE_FLAG is not in canonical form...
 	    if [[ $TRACE_FLAG != ,*, ]]; then
-		if [[ $TRACE_FLAG = -trace ]]; then
-		    TRACE_FLAG=,most,
-		elif [[ $TRACE_FLAG != -trace=* ]]; then
-		    echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\".   Aborting execution."
-		    trap '' EXIT
-		    kill $$
-		else
-	    # It's -trace=<something>
-		    TRACE_FLAG=",${TRACE_FLAG#-trace=},";
-		fi
-		# Actually, though, no-all is really a no-op, since we only trace if
-		# it's explicitly requested.
-		TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
-		TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
+	        # ...then canonicalize it.
+	        if [[ $TRACE_FLAG = -trace ]]; then
+	            TRACE_FLAG=,most,
+	        elif [[ $TRACE_FLAG != -trace=* ]]; then
+	            echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\"."
+	            echo >&2 "${ME}: Aborting execution."
+	            trap '' EXIT
+	            kill $$
+	        else	        # TRACE_FLAG has the form -trace=<something>
+	            TRACE_FLAG=",${TRACE_FLAG#-trace=},";
+	        fi
+	        # No-all is a no-op, since we only 
+	        # trace if it's explicitly requested.
+	        TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
+	        TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
 	    fi
 	    # TRACE_FLAG is now in canonical form.
 	    if [[ $TRACE_FLAG == *,all,* ]]; then
-		dflt=0  # true
+	        dflt=0  # true
 	    fi
 	    if (( $# > 0 )); then
-		local arg="$1"
-		# If an exact match, return YES.
-		if [[ $TRACE_FLAG == *,${arg},* ]]; then
-	   	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 0; }
-		# If an exact anti-match, return NO
-		elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
-	   	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 1; }
-		fi
+	        local arg="$1"
+	        # If an exact match, return YES.
+	        if [[ $TRACE_FLAG == *,${arg},* ]]; then
+	            { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 0; }
+	        # If an exact anti-match, return NO
+	        elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
+	            { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 1; }
+	        fi
 	    fi 
 	    # Give in to the default, whatever that is.
-	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return $dflt; }
+	    { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return $dflt; }
 	}
 	## END inline Bash boilerplate.
 	EOF
@@ -1670,27 +1673,27 @@ EOF
 	    jikes_invocation="$HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
 	    $(emit_disable_exit_on_error)
 	    if \${jikes_invocation}; then
-		echo -n '(classes compiled) '
+	        echo -n '(classes compiled) '
 	    else
-		status=\$?
-		echo >&2 "\$ME: The Jikes compiler exited with status \${status} while we were building the source file(s): $TOP_LEVEL_SOURCES"
-		echo >&2 "\$ME: We invoked the Jikes compiler in the directory $CLASSES_DIRECTORY_STR"
-		echo >&2 "\$ME: With the command-line: \$jikes_invocation"
-		exit \$status
+	        status=\$?
+	        echo >&2 "\$ME: The Jikes compiler exited with status \${status} while we were building the source file(s): $TOP_LEVEL_SOURCES"
+	        echo >&2 "\$ME: We invoked the Jikes compiler in the directory $CLASSES_DIRECTORY_STR"
+	        echo >&2 "\$ME: With the command-line: \$jikes_invocation"
+	        exit \$status
 	    fi
 	    $(emit_enable_exit_on_error)
 	    rm -f jksvm.jar
 	    ## The Sun JAR manual page claims that '-O' is the flag for
 	    ## no-compression.  It's actually '0' (zero), not the letter 'O'.
-	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class # > /dev/null 2>&1
+	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class
 
-	    \$FIND . -name '*.class' | \$XARGS -r $HOST_JAR_STR -u0f jksvm.jar # > /dev/null 2>&1
+	    \$FIND . -name '*.class' | \$XARGS -r $HOST_JAR_STR -u0f jksvm.jar
 	    echo -n '(jksvm.jar built) '
 
 	    rm -f jksvmsrc.jar
-	    $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java # > /dev/null 2>&1
-	    ## -r is the no-run-if-empty flag.
-	    \$FIND . -name '*.java' | \$XARGS -r $HOST_JAR_STR -u0f jksvmsrc.jar # > /dev/null 2>&1
+	    $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java
+	    ## -r is XARGS's no-run-if-empty flag.
+	    \$FIND . -name '*.java' | \$XARGS -r $HOST_JAR_STR -u0f jksvmsrc.jar
 	    echo -n '(jksvmsrc.jar built) '
 
 	else
