@@ -872,12 +872,15 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
 	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       } else {
+	return false; // value == 0xFFFF8000; code sequence below does not work --dave 7/25/02
+	/*
 	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
 	burs.append(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
 	burs.append(MIR_Binary.create(PPC_ADDC, R(zero), one.copyRO(), R(zero)));
 	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
+	*/
       }
       break;
     case OPT_ConditionOperand.HIGHER:
