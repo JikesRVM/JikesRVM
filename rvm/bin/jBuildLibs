@@ -49,7 +49,7 @@ cd $RVM_BUILD
 ./jbuild.copy
 
 # Copy the library sources 
-cp -r $RVM_ROOT/rvmSupport/lib/src/* $RVM_BUILD/Jalapeno.classes
+cp -r $RVM_ROOT/support/lib/src/* $RVM_BUILD/Jalapeno.classes
 
 # Compile the RVM sources
 ./jbuild.compile
