@@ -576,7 +576,7 @@ CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
 # Because uload is only used for booleans (0/1) we can get away
 # with this for both signed and unsigned loads.
 r:	CMOV(load8, OTHER_OPERAND(iv, arg))
-FITS(IfCmp.getVal2(P(p)), 8, (15 + 30))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
 EMIT_INSTRUCTION
 CMOV_CMP(burs, P(p), consumeMO(), CondMove.getVal2(P(p))); \
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
@@ -601,7 +601,7 @@ CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(sload16, OTHER_OPERAND(iv, arg))
-FITS(IfCmp.getVal2(P(p)), 8, (15 + 30))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
 EMIT_INSTRUCTION
 CMOV_CMP(burs, P(p), consumeMO(), CondMove.getVal2(P(p))); \
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
@@ -710,64 +710,64 @@ CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCod
 # CMOV((czr, 0), tv ,fv); condition code already set
 r:	CMOV(czr, OTHER_OPERAND(ZERO, arg))
 30
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMOV((szpr, 0), tv ,fv); condition code already set
 r:	CMOV(szpr, OTHER_OPERAND(ZERO, arg))
 30
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMOV((BooleanCmp(czr, ZERO), ZERO/ONE), tv, fv); condition code already set.
 r:	CMOV(BOOLEAN_CMP(czr, ZERO), OTHER_OPERAND(ZERO, arg))
 (CondMove.getCond(P(p)).isNOT_EQUAL())?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(czr, ZERO), OTHER_OPERAND(ZERO, arg))
 (CondMove.getCond(P(p)).isEQUAL())?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(czr, ZERO), OTHER_OPERAND(ONE, arg))
 (CondMove.getCond(P(p)).isEQUAL())?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(czr, ZERO), OTHER_OPERAND(ONE, arg))
 (CondMove.getCond(P(p)).isNOT_EQUAL())?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMOV((BooleanCmp(szpr, ZERO), ZERO/ONE), tv, fv); condition code already set.
 r:	CMOV(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(ZERO, arg))
 (CondMove.getCond(P(p)).isNOT_EQUAL()&&(BooleanCmp.getCond(PL(p)).isEQUAL() || BooleanCmp.getCond(PL(p)).isNOT_EQUAL()))?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(ZERO, arg))
 (CondMove.getCond(P(p)).isEQUAL()&&(BooleanCmp.getCond(PL(p)).isEQUAL() || BooleanCmp.getCond(PL(p)).isNOT_EQUAL()))?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(ONE, arg))
 (CondMove.getCond(P(p)).isEQUAL()&&(BooleanCmp.getCond(PL(p)).isEQUAL() || BooleanCmp.getCond(PL(p)).isNOT_EQUAL()))?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r:	CMOV(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(ONE, arg))
 (CondMove.getCond(P(p)).isNOT_EQUAL()&&(BooleanCmp.getCond(PL(p)).isEQUAL() || BooleanCmp.getCond(PL(p)).isNOT_EQUAL()))?30:INFINITE
-EMIT_INSTRUCTION
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
@@ -3117,34 +3117,178 @@ EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 #####
 # FLOAT_IFCMPL
 #####
-stm:	FLOAT_IFCMPL(r,r)
+stm:	FLOAT_IFCMPL(fp0,r)
 30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPL(r,fp0)
+30
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPL(pfp0,r)
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPL(r,pfp0)
+35
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPL(r,r)
+p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPL(r,r)
+p.child2.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # FLOAT_IFCMPG
 #####
-stm:	FLOAT_IFCMPG(r,r)
+stm:	FLOAT_IFCMPG(fp0,r)
 30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPG(r,fp0)
+30
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPG(pfp0,r)
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPG(r,pfp0)
+35
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPG(r,r)
+p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	FLOAT_IFCMPG(r,r)
+p.child2.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # DOUBLE_IFCMPL
 #####
-stm:	DOUBLE_IFCMPL(r,r)
+stm:	DOUBLE_IFCMPL(fp0,r)
 30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPL(r,fp0)
+30
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPL(pfp0,r)
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPL(r,pfp0)
+35
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPL(r,r)
+p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPL(r,r)
+p.child2.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # DOUBLE_IFCMPG
 #####
-stm:	DOUBLE_IFCMPG(r,r)
+stm:	DOUBLE_IFCMPG(fp0,r)
 30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPG(r,fp0)
+30
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPG(pfp0,r)
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPG(r,pfp0)
+35
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+EMIT(MIR_Compare.create(IA32_FCOMIP, myFP0(), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPG(r,r)
+p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+
+stm:	DOUBLE_IFCMPG(r,r)
+p.child2.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getVal2(P(p)))); \
+EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getVal1(P(p)))); \
+IfCmp.getCond(P(p)).flipOperands(); \
+EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # LONG_CMP
