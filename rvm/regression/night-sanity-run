@@ -124,13 +124,13 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 
 
 # Finally!  Send the mail message to those who care
-# echo "mailing status to jikesrvm-regression@www-124.ibm.com"
+# echo "mailing status to $RESULT_MAILING_LIST"
 cat MSG >> $RUN_LOG
 
 if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
-  cat $MSG | mail -s "[$ARCH] regression SUCCEEDED" jikesrvm-regression@www-124.ibm.com
+  cat $MSG | mail -s "[$ARCH] regression SUCCEEDED" $RESULT_MAILING_LIST 
 else
-  cat $MSG | mail -s "[$ARCH] regression FAILED $numfailed tests" jikesrvm-regression@www-124.ibm.com
+  cat $MSG | mail -s "[$ARCH] regression FAILED $numfailed tests" $RESULT_MAILING_LIST
 fi
 
 #
