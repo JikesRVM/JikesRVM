@@ -88,7 +88,7 @@ public class BumpPointer extends Allocator
    * @param space The space to associate the bump pointer with.
    */
   public void rebind(Space space) {
-    this.reset();
+    reset();
     this.space = space;
   }
 
@@ -104,17 +104,17 @@ public class BumpPointer extends Allocator
    */
   final public Address alloc(int bytes, int align, int offset) 
     throws InlinePragma {
-    Address oldCursor = alignAllocation(this.cursor, align, offset);
+    Address oldCursor = alignAllocation(cursor, align, offset);
     Address newCursor = oldCursor.add(bytes);
-      if (newCursor.GT(this.limit))
-      return this.allocSlow(bytes, align, offset);
-    this.cursor = newCursor;
+      if (newCursor.GT(limit))
+      return allocSlow(bytes, align, offset);
+    cursor = newCursor;
     //    Log.write("a["); Log.write(oldCursor); Log.writeln("]");
     return oldCursor;
   }
 
   final protected Address allocSlowOnce(int bytes, int align, int offset, 
-                                           boolean inGC) {
+					boolean inGC) {
     // Ensure the selected chunk size can accomodate the largest object.
     Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK)
                        .and(CHUNK_MASK.not()).toExtent();
@@ -125,31 +125,31 @@ public class BumpPointer extends Allocator
 
     if (!allowScanning) { 
       // simple allocator
-      if (start.NE(this.limit)) this.cursor = start;
-      this.limit = start.add(chunkSize);
+      if (start.NE(limit)) cursor = start;
+      limit = start.add(chunkSize);
 
     } else {
       if (initialRegion.isZero()) {
         // first allocation
-        this.initialRegion = start;
-        this.region = start;
-        this.cursor = region.add(DATA_START_OFFSET);
-      } else if (this.limit.add(BYTES_IN_ADDRESS).NE(start) 
-                 || this.region.diff(start.add(chunkSize)).toWord().toExtent()
+        initialRegion = start;
+        region = start;
+        cursor = region.add(DATA_START_OFFSET);
+      } else if (limit.add(BYTES_IN_ADDRESS).NE(start) 
+                 || region.diff(start.add(chunkSize)).toWord().toExtent()
                     .GT(maximumRegionSize())) {
         // non contiguous or maximum size, initialize new region
-        this.region.add(NEXT_REGION_OFFSET).store(start);
-        this.region.add(DATA_END_OFFSET).store(this.cursor);
+        region.add(NEXT_REGION_OFFSET).store(start);
+        region.add(DATA_END_OFFSET).store(cursor);
       
-        this.region = start;
-        this.cursor = start.add(DATA_START_OFFSET);
+        region = start;
+        cursor = start.add(DATA_START_OFFSET);
       }
 
-      this.limit = start.add(chunkSize.sub(BYTES_IN_ADDRESS));
-      this.region.add(REGION_LIMIT_OFFSET).store(this.limit);
+      limit = start.add(chunkSize.sub(BYTES_IN_ADDRESS));
+      region.add(REGION_LIMIT_OFFSET).store(limit);
     }
 
-    return this.alloc(bytes, align, offset);
+    return alloc(bytes, align, offset);
   }
 
   /**
@@ -158,12 +158,12 @@ public class BumpPointer extends Allocator
    * @param scanner The scan object to delegate to.
    */
   public void linearScan(LinearScan scanner) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(this.allowScanning);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(allowScanning);
 
     // Has this allocator ever allocated anything?
     if (initialRegion.isZero()) return;
 
-    Address start = this.initialRegion;
+    Address start = initialRegion;
     
     // Loop through active regions or until the last region
     while(!start.isZero()) {
@@ -172,7 +172,7 @@ public class BumpPointer extends Allocator
       Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
 
       // dataEnd = zero represents the current region.
-      Address currentLimit = (dataEnd.isZero() ? this.cursor : dataEnd);
+      Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
       ObjectReference current =
         ObjectModel.getObjectFromStartAddress(start.add(DATA_START_OFFSET));
       Address currentAddress = ObjectModel.refToAddress(current);
@@ -205,7 +205,7 @@ public class BumpPointer extends Allocator
    */
   public void show() {
     Log.write("cursor = "); Log.write(cursor);
-    if (this.allowScanning) {
+    if (allowScanning) {
       Log.write(" region = "); Log.write(region);
     }
     Log.write(" limit = "); Log.writeln(limit);
