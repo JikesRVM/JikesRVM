@@ -1226,7 +1226,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // final (otherwise the reference could be to a subsequently loaded
   // cyclic subclass).
   //
-  protected final boolean isAcyclicReference() {
+  public final boolean isAcyclicReference() {
     return acyclic && isFinal();
   }
 

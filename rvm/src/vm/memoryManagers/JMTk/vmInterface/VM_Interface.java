@@ -726,6 +726,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return type.isClassType();
   }
 
+  public static boolean isAcyclic(Object[] tib) {
+    return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
+  }
+
   public static int getSizeWhenCopied(VM_Address obj) {
     VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
     if (type.isClassType())

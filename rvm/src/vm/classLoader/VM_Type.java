@@ -307,7 +307,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * RCGC: Is a reference of this type contained 
    * in another object inherently acyclic?
    */ 
-  protected boolean isAcyclicReference() {
+  public boolean isAcyclicReference() throws VM_PragmaUninterruptible {
     return acyclic;
   }
 
