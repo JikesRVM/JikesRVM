@@ -1,0 +1,18 @@
+#! /bin/sh
+#
+# Run this script from a directory in your CVS shadow.  This script
+# emits a file, 'doit', holding the skeleton of a bunch of cvs commit
+# commands to update the master repository according to the changes you've
+# made.  You will need to edit the file to insert your own log message.
+#
+# You will need to update the cvs path, below
+cvs=/homes/fury5/jalapeno/bin/cvs
+echo "#! /bin/sh" > doit
+echo "cvs=/homes/fury5/jalapeno/bin/cvs" >> doit
+
+$cvs -q -n update -Idoit -I\*.class -I\*.html -I\*.gif $* | \
+grep -v "^[UP]" | \
+sed -e 's/^M /\$cvs commit -m "MSG" /' |\
+sed -e 's/^A /\$cvs commit -m "Initial Revision" /' |\
+sed -e 's/^R /\$cvs commit -m "deleted" /' >> doit
+chmod u+x doit
