@@ -39,22 +39,22 @@ available}[ at {\tt \RVMTeachingResourcesURL}]{\RVMTeachingResourcesURL}.
 
 \subsubsection{Whom can I contact with questions?}
 
-\xlink{Use the {\tt jikesrvm-researchers} mailing list}[, available at {\tt \RVMDownloadURL}]{\RVMDownloadURL}.
+\xlink{Use the {\tt jikesrvm-researchers} mailing list}[, available at {\tt \RVMResearcherMailingListURL}]{\RVMResearcherMailingListURL}.
 
 \subsubsection{Which mailing list(s) should I subscribe to?}
 
 We currently have the following four mailing lists:
 
 \begin{description}
-\item[jikesrvm-researchers]
+\item[\xlink{\texttt{jikesrvm-researchers}}{\RVMResearcherMailingListURL}]
     General discussion of Jikes RVM design, implementation, issues, and
     plans.
-\item[jikesrvm-regression]
+\item[\xlink{\texttt{jikesrvm-regression}}{\RVMRegressionMailingListURL}]
    Automatic mail messages and subsequent discussion regarding nightly
    regression runs.
-\item[jikesrvm-announce]
+\item[\xlink{\texttt{jikesrvm-announce}}{\RVMAnnounceMailingListURL}]
   Infrequent announcements and news items.
-\item[jikesrvm-core]
+\item[\xlink{\texttt{jikesrvm-core}}{\RVMCoreMailingListURL}]
   Discussion of day-to-day development and design among Jikes RVM  core team
   members.
 \end{description}
@@ -126,20 +126,61 @@ C libraries it is linked with must not use the value of a thread's
 stackpointer/framepointer to access pthread-local storage.  The
 preferred values for RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR are as
 follows: 
-\begin{itemize}
-\item {\tt AIX/PowerPC}: 0 (SMP is supported)
-\item {\tt OS~X/PowerPC}:  1 (SMP is not supported)
-\item {\tt Linux/PowerPC}:  1 (SMP is not supported)
-\item {\tt Linux 2.2/IA32}: 1 (SMP is not supported)
-\item {\tt Linux 2.4/IA32}: 0 (SMP is supported), but with the
-additional restriction that you must link with a version of glibc that
+
+\begin{description}
+
+\item[{\tt AIX/PowerPC}] 0 (SMP is supported)
+
+\item[{\tt OS~X/PowerPC}]  1 (SMP is not supported)
+
+\item[{\tt Linux/PowerPC}]  1 (SMP is not supported)
+
+\item[{\tt Linux 2.2/IA32}] 1 (SMP is not supported)
+
+\item[{\tt Linux 2.4/IA32}] 0 (SMP is supported), but with the
+additional restriction that you must link with a version of \texttt{glibc} that
 was compiled to use the GS segment register to access pthread-specific
-state.  Depending on your Linux distribution, this may not be the
-default for glibc. See a discussion in the archives for
-jikesrvm-researchers from November of 2001. If your version of glibc
-is not compiled this way, Jikes RVM  will usually fail by 'hanging' when
+state.  Depending on your Linux\Rweb{} distribution, this may not be the
+default for \texttt{glibc}.  If your version of \texttt{glibc}
+is not compiled this way, Jikes RVM will usually fail by ``hanging'' when
 it is run.
-\end{itemize}                
+
+This is further discussed in the next two
+questions.  You can also see a discussion in \xlink{the archives for
+jikesrvm-researchers from November of 2001}{\JikesRVMResearcherArchiveURL/2001-November/000041.html}. 
+
+\end{description}                
+
+\subsubsection{Why does Jikes RVM care about what version of \texttt{glibc} my x86 system uses?}
+
+In
+order for our $m$:$n$ threading scheme to work, we need to be able to swap
+stacks for a single pthread.  This only works if glibc is built with an
+option to use the GS segment register to address certain pthread-specific
+state.  Otherwise, \texttt{glibc} attempts to use stack-pointer
+arithmetic to find pthread-specific state, which fails once we bash the stack.
+
+On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, glibc is built with this option by
+default, but it is possible that other Linux distributions do not do
+this.  On Red Hat Linux, the libs built with GS segment addressing are
+located in /lib/i686/*.so, and one can use \texttt{ldd
+  \$RVM\_BUILD/JikesRVM'} to check whether the \texttt{JikesRVM} boot
+image runner is linked against those libraries or not.
+
+\subsubsection{How do I know if my x86 \texttt{glibc} uses the GS
+  segment register to access pthread-specific state?}
+
+Start by trying to determine whether your \texttt{glibc} has been
+built to use the GS segment 
+or not.  The easiest way to do this is to disassemble the function
+\texttt{pthread\_self()} in the \texttt{libpthread.so} that JikesRVM is using, and see if it has
+anything that looks like it is using GS-segment addressing, such as:
+\begin{verbatim}
+mov %gs:0x50,%eax
+\end{verbatim}
+If it does not, then you have a bad version of \texttt{glibc}.   You
+can use \texttt{objdump} to disassemble.
+
 
 \subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
