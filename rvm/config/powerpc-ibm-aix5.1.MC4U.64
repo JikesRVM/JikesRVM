@@ -13,7 +13,7 @@
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #########
-# target architecture is PowerPC
+# target architecture is 64 bit PowerPC
 export RVM_FOR_POWERPC=1
 export RVM_FOR_64_ADDR=1
 
@@ -24,7 +24,7 @@ export RVM_FOR_AIX=1
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS=0x30000000
-export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000L
 
 # Hardware performance monitor api available in AIX5.1 (bos.pmapi)
 export RVM_HPM_DIR="/usr/pmapi"
