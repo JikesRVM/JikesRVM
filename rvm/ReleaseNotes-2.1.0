@@ -11,6 +11,9 @@ IMPORTANT NOTE: We are aware of a bug in the IBM DK for
   Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
   version v1.3.0 until this bug can be resolved.
 
+IMPORTANT NOTE: The concurrent collector is no longer 
+  functional in Jikes RVM 2.1.0.
+
 Highlights of this release include:
  - Introduction of a plug-in parameterized object model, as
    described in the ECOOP 2002 paper by Bacon, Fink & Grove. 
