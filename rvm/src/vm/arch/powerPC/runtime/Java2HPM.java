@@ -26,21 +26,29 @@ public class Java2HPM
   public static native int    setModeUser();
   public static native int    setModeKernel();
   public static native int    setModeBoth();
-  public static native int    setSettings();
-  public static native int    deleteSettings();
-  public static native int    getSettings();
-  public static native int    startCounting();
-  public static native int    stopCounting();
-  public static native int    resetCounters();
+  public static native int    setProgramMyThread();
+  public static native int    setProgramMyGroup();
+  public static native int    deleteProgramMyThread();
+  public static native int    deleteProgramMyGroup();
+  public static native int    getProgramMyThread();
+  public static native int    getProgramMyGroup();
+  public static native int    startMyThread();
+  public static native int    startMyGroup();
+  public static native int    stopMyThread();
+  public static native int    stopMyGroup();
+  public static native int    resetMyThread();
+  public static native int    resetMyGroup();
+  public static native int    getMyThread();
+  public static native int    getMyGroup();
   public static native int    getNumberOfCounters();
-  
-  public static native int    getCounters();
-  public static native long   getCounterValue(  int counter);
+  public static native long   getCounterMyThread(int counter);
+  public static native long   getCounterMyGroup( int counter);
   public static native void   listAllEvents();
   public static native void   listSelectedEvents();
   public static native int    getEventId(       int counter);
   public static native String getEventShortName(int counter);
-  public static native int    print(int processorId);
+  public static native int    printMyThread(int processorId);
+  public static native int    printMyGroup( int processorId);
   public static native int    test();
   public static native String getProcessorName();
   public static native int    isPower4();
@@ -56,7 +64,13 @@ public class Java2HPM
   static {
     if (VM.BuildForHPM) {
       if(debug>=1)VM.sysWrite("Java2HPM static initializer calling System.loadLibrary(\"Java2HPM\")\n");
-      System.loadLibrary("Java2HPM");
+      try {
+	System.loadLibrary("Java2HPM");
+      } catch (Exception e) {
+	VM.sysWriteln("\nJava2HPM.<init>() Exception with System.loadLibrary(Java2HPM)\n");
+	VM.shutdown(-1);
+      }
+      if(debug>=1)VM.sysWrite("Java2HPM static initializer called System.loadLibrary(\"Java2HPM\")\n");
     }
   }
 /**************************************************************************/    
@@ -124,11 +138,11 @@ public class Java2HPM
     // time in seconds
     double startTime = VM_Time.now();
     if (jni == JNI) {
-      Java2HPM.resetCounters();
-      Java2HPM.startCounting();
+      Java2HPM.resetMyThread();
+      Java2HPM.startMyThread();
     } else {
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
     }
 
     for (int i = 0; i < iterations; i++) {	
@@ -141,9 +155,9 @@ public class Java2HPM
 
     long cycles;
     if (jni == JNI) {
-      cycles = Java2HPM.getCounterValue(cycle_counter);
+      cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,cycle_counter);
+      cycles = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
     }
 
     double endTime = VM_Time.now();
@@ -181,27 +195,27 @@ public class Java2HPM
     // time in seconds
     double startTime = VM_Time.now();
     if (jni == JNI) {
-      Java2HPM.resetCounters();
-      Java2HPM.startCounting();
+      Java2HPM.resetMyThread();
+      Java2HPM.startMyThread();
     } else {
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
     }
 
     long count;
     for (int i = 0; i < iterations; i++) {	
       if (jni == JNI) {
-	count = Java2HPM.getCounterValue(counter);
+	count = Java2HPM.getCounterMyThread(counter);
       } else {
-	count = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,counter);
+	count = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,counter);
       }
     }
 
     long cycles;
     if (jni == JNI) {
-      cycles = Java2HPM.getCounterValue(cycle_counter);
+      cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,cycle_counter);
+      cycles = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
     }
 
     double endTime       = VM_Time.now();

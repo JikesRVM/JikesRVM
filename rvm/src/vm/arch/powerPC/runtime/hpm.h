@@ -10,7 +10,7 @@
 extern int errno;
 
 /* 
- * Header for hpm.c file 
+ * Header file for hpm.c 
  * @author Peter F. Sweeney
  */
 
@@ -27,109 +27,62 @@ extern int errno;
 #define MODE_PROCTREE    32	/* turns process tree counting on */
 #define MODE_UPPER_BOUND 63	/* upper bound */
 
-/*
- * This routine initializes the Performance Monitor APIs, and 
- * must be called before any other API calls can be made.
- * If filter == PM_UNVERIFIED, accept anything.  Other alternatives are:
- *	PM_VERIFIED, PM_CAVEAT
- */
 extern "C" int   hpm_init(int my_filter);
-extern "C" int   hpm_number_of_counters();
+extern "C" int   hpm_get_number_of_counters();
 extern "C" char *hpm_get_processor_name();
 extern "C" int   hpm_isPower4();
 extern "C" int   hpm_isPower3II();
 extern "C" int   hpm_isPower3();
 extern "C" int   hpm_isRS64III();
 extern "C" int   hpm_is604e();
-extern "C" int   hpm_get_event_id(        int counter);
-extern "C" char *hpm_get_event_short_name(int counter);
-/*
- * This routine is called to set, in local variable setprog, the events to watch.
- * Must be called after hpm_init!
- * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
- */
+
 extern "C" int hpm_set_event(int e1, int e2, int e3, int e4);
-/*
- * This routine is called to set, in local variable setprog, the events to watch.
- * Must be called after hpm_init!
- * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
- */
 extern "C" int hpm_set_event_X(int e5, int e6, int e7, int e8);
-/*
- * Set the mode, in local variable setprog.
- * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
- *
- * Valid parameter values:
- *  PM_USER	4	turns user mode counting on
- *  PM_KERNEL	8	turns kernel mode counting on
- */
 extern "C" int hpm_set_mode(int mode);
 
-/*
- * After init is called, and events and modes are set in the local variable setprog, 
- * call this routine to set HPM settings.
- * May not make two consecutive calls to this routine without an intervening call to
- * hpm_delete_settings.
- */
-extern "C" int hpm_set_settings();
-/*
- * After hpm_set_settings is called, this routine unsets settings
- * making it possible to call hpm_set_settings again.
- */
-extern "C" int hpm_delete_settings();
-/*
- * This routine retrieves the HPM settings into the local variable setprog.
- * May be called only after a hpm_set_settings() is called.
- */
-extern "C" int hpm_get_settings();
-/*
- * Starts counting.
- */
-extern "C" int hpm_start_counting();
-/*
- * Stop counting.
- * After successful completion, counters no longer enabled.
- * Assumes that hpm_start_countingx completed correctly.
- */
-extern "C" int hpm_stop_counting();
-/*
- * Reset counters to zero.
- * Must be called after hpm_init!
- */
-extern "C" int hpm_reset_counters();
-extern "C" int hpm_get_counters();
-/*
- * Get the value of a counter.
- * Assume events already set.
- * Assume called stopped counting previously (is this required?).
- * Only returns if value found.
- * specify counter in range [1..maxCounters].
- */
-extern "C" long long hpm_get_counter(int counter);
-/*
- * print hardware performance monitors
- * Assumes
- */
-extern "C" int hpm_print();
-/*
- * test interface to HPM
- */
+extern "C" int hpm_set_program_mythread();
+extern "C" int hpm_set_program_mygroup();
+
+extern "C" int   hpm_get_event_id(        int counter);
+extern "C" char *hpm_get_event_short_name(int counter);
+
+extern "C" int hpm_delete_program_mythread();
+extern "C" int hpm_delete_program_mygroup();
+
+extern "C" int hpm_get_program_mythread();
+extern "C" int hpm_get_program_mygroup();
+
+extern "C" int hpm_start_mythread();
+extern "C" int hpm_start_mygroup();
+
+extern "C" int hpm_stop_mythread();
+extern "C" int hpm_stop_mygroup();
+
+extern "C" int hpm_reset_mythread();
+extern "C" int hpm_reset_mygroup();
+extern "C" int hpm_get_mythread();
+extern "C" int hpm_get_mygroup();
+
+extern "C" long long hpm_get_counter_mythread(int);
+extern "C" long long hpm_get_counter_mygroup(int);
+
+extern "C" int hpm_print_mythread();
+extern "C" int hpm_print_mygroup();
+extern "C" int hpm_print_events();
+
+extern "C" int print_events(int*);
 extern "C" int hpm_test();
-/*
- * List the machines available events.
- */
+
 extern "C" void hpm_list_events();
 
 extern "C" void hpm_list_all_events();
 
 extern "C" void hpm_list_selected_events();
 
-/*
- * dump out the events.
- */
-extern "C" void hpm_dumpEvents();
+extern "C" void hpm_print_data(pm_data_t *);
+extern "C" void hpm_print_header(pm_mode_t, int);
+
+extern "C" int* hpm_get_group_event_list(int);
+extern "C" void hpm_print_group_event_list(int);
 
 #endif

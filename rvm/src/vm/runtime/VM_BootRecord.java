@@ -348,12 +348,18 @@ public class VM_BootRecord {
   public VM_Address sysHPMsetEventIP;
   public VM_Address sysHPMsetEventXIP;
   public VM_Address sysHPMsetModeIP;
-  public VM_Address sysHPMsetSettingsIP;
-  public VM_Address sysHPMstartCountingIP;
-  public VM_Address sysHPMstopCountingIP;
-  public VM_Address sysHPMresetCountersIP;
-  public VM_Address sysHPMgetCountersIP;
-  public VM_Address sysHPMgetCounterIP;
+  public VM_Address sysHPMgetNumberOfCountersIP;
   public VM_Address sysHPMtestIP;
+  public VM_Address sysHPMsetProgramMyThreadIP;
+  public VM_Address sysHPMstartMyThreadIP;
+  public VM_Address sysHPMstopMyThreadIP;
+  public VM_Address sysHPMresetMyThreadIP;
+  public VM_Address sysHPMgetCounterMyThreadIP;
+  public VM_Address sysHPMsetProgramMyGroupIP;
+  public VM_Address sysHPMstartMyGroupIP;
+  public VM_Address sysHPMstopMyGroupIP;
+  public VM_Address sysHPMresetMyGroupIP;
+  public VM_Address sysHPMgetCounterMyGroupIP;
+  public VM_Address sysHPMprintMyGroupIP;
   //-#endif
 }
