@@ -18,7 +18,7 @@ $(GEN_FILES_DIR)/OPT_Options.java:	OPT_Options.template \
 					../../utility/MasterOptions.template \
 					$(BOOLEAN_DAT_FILES) \
 					$(VALUE_DAT_FILES)
-	$(HOST_JAVA) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_Options.template \
 	$(GEN_FILES_DIR)/OPT_Options.java \
         BOOLEAN_DAT_FILES="$(BOOLEAN_DAT_FILES)" \
