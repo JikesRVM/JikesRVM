@@ -1,15 +1,16 @@
-#!/bin/ksh
+#!/bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2002, 2003
 #
 # $Id$
 #
-# Invoke Jikes RVM virtual machine that was created by "jbuild".
+# Invoke the Jikes RVM virtual machine that "jbuild" created.
 # See also: $RVM_ROOT/rvm/bin/jconfigure -help
-#
-# This is the 'rvm' script except the variables are specified using
-# parameters instead of environment variables.  Now, 'rvm' passes this
-# script parameters using values defined by environment variables.
+
+# This file, 'runrvm', is the old (as of Sept. 2002) 'rvm' script,
+# except the variables are specified using parameters instead of
+# environment variables.  'rvm' passes parameters to 'runrvm', using
+# values defined by environment variables.
 #
 # @author Jeffrey Palm
 # @date 25 Jun 2002
@@ -21,57 +22,59 @@
 # @date 15 Jan 2001 
 #    eliminate dependence on option order.
 #
+# @modified Steven Augart
+# @date 2003 Jun 01
+#    Converted from "ksh" to Bash
+#
 
-ME=`basename $0`
+ME=${0##*/}
 
-if [[ $# -lt 3 ]]; then
-    echo "Usage: $ME <home> <rvm_root> <rvm_build> [<options>]"
-    exit 1
-fi
+function usage() {
+    local exitstatus=${1-"1"};
+    shift;
+    # If exit status is non-zero, redirect to stderr.
+    (( $1 != 0 )) && exec >&2
+    [ "$*" ] && echo "$@"
+    echo "Usage: $ME <home> <rvm_root> <rvm_build> [<options>...]";
+    exit $exitstatus;
+}
 
+# Just to be sure we're being run properly.
+[[ $# -lt 3 ]] && usage 1 "Too few arguments.  This program is designed to be run indirectly by the 'rvm' command."
+    
+
+## These have already been err-checked for us by "rvm".
 home=$1;      shift;  # Used to be $HOME
 rvm_root=$1;  shift;  # Used to be $RVM_ROOT
 rvm_build=$1; shift;  # Used to be $RVM_BUILD
 
-# Sanity checks for $homeE and $RVM_ROOT, because these may not be
-# set if we invoke this scripts from someplace other than a shell
-if [[ x$home = "x" ]]; then
-   print "$ME: please set your HOME environment variable (eg. /home/me)"
-   exit 1
-fi
-if [[ x$rvm_root = "x" ]]; then
-   print "$ME: please set your RVM_ROOT environment variable (eg. $home/rvmRoot)"
-   exit 1
-fi
 
-# Place where RVM bootimage, booter, and runtime support files reside.
-#
-if [[ x$rvm_build = "x" ]]; then
-   print "$ME: please set your rvm_build environment variable (eg. $home/rvmBuild)"
-   exit 1
-fi
-
+# TODO: This portion of the gdbrvm should be consolidated with the originally-identical part of runrvm.
+# Where the RVM bootimage, booter, and runtime support files reside.
 . $rvm_build/environment
 
-ARGS="-X:i=$rvm_build/RVM.image -X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar"
-
-for arg in $*; do
-   if   [[ $arg = --   ]]; then
-     print "$ME: the command line option \"--\" is no longer used!"
-   fi
+declare -a user_args=("$@")
+for arg in "${user_args[@]}"; do
+    if   [[ $arg = --   ]]; then
+	print "$ME: the command line option \"--\" is no longer used!"
+    fi
 done
 
-#
-# Need to make some more defines
-#
-ARGS="$ARGS -Drvm.root=$rvm_root"
-ARGS="$ARGS -Drvm.build=$rvm_build"
-ARGS="$ARGS -Djava.home=$rvm_root"
-ARGS="$ARGS -Dgnu.classpath.home.url=file:${rvm_build}"
-ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
+# Add arguments to the invocation line for $rvm_build/JikesRVM.  We
+# put these before any user-specified arguments, so that any flags
+# that the user may have explicitly specified will override our defaults.
 
-ARGS="$ARGS -Duser.home=$home -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+## These are the first set of defines (we used to 
+## set these before checking user args, for some odd reason).
+
+declare -a sys_args=("-X:i=$rvm_build/RVM.image" "-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
+		    \
+		"-Drvm.root=$rvm_root"					\
+		"-Drvm.build=$rvm_build"				\
+		"-Djava.home=$rvm_root"					\
+		"-Dgnu.classpath.home.url=file:${rvm_build}"		\
+		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
+		"-Duser.home=$home" "-Duser.dir=$(pwd)" "-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)" "-Dos.arch=$(uname -m)" )
 
 # Now execute the VM
-exec $rvm_build/JikesRVM $ARGS "$@"
-
+exec "$rvm_build/JikesRVM" "${sys_args[@]}" "${user_args[@]}" 

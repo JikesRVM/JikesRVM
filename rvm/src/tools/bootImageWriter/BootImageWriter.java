@@ -1806,8 +1806,9 @@ public class BootImageWriter extends BootImageWriterMessages
     BufferedOutputStream bos = new BufferedOutputStream(fos, 128);
     PrintStream out = new PrintStream(bos, false);
 
-    out.println("#!/bin/ksh");
-    out.println("# Note: to sort by \"code\" address, type \"ksh <name-of-this-file>\".");
+    out.println("#! /bin/bash");
+    out.println("# This is a method address map, for use with the ``dbx'' debugger.");
+    out.println("# To sort by \"code\" address, type \"bash <name-of-this-file>\".");
     out.println();
     out.println("(/bin/grep 'code     0x' | /bin/sort -k 4.3,4) << EOF-EOF-EOF");
     out.println();

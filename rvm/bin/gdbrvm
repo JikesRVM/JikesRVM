@@ -1,39 +1,39 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2003
 #
 # $Id$
 #
-# Run Jikes RVM on the gdb debugger.
-# The script handles passing command line arguments
-# to the Jikes RVM executable and executing a standard gdb macro 
-# file that does some common setup tasks.
+# Run Jikes RVM under the gdb debugger.
+#
+# The script handles passing command line arguments to the Jikes RVM
+# executable and executing a standard gdb macro file that does some
+# common setup tasks.
 #
 # @author Dave Grove
-#
+# @modified Steven Augart
+#    Converted to Bash.
 
-# Sanity checks for $HOME and $RVM_ROOT, because these may not be
-# set if we invoke this scripts from someplace other than a shell
-if [[ x$HOME = "x" ]]; then
-   print "$ME: please set your HOME environment variable (eg. /$HOME/me)"
-   exit 1
-fi
+# Sanity checks
+# Where are we?
+# 
+mydir="${0%/*}"
 
-if [[ x$RVM_ROOT = "x" ]]; then
-   print "$ME: please set your RVM_ROOT environment variable (eg. $HOME/rvmRoot)"
-   exit 1
-fi
+## Load aux. functions
+. $mydir/sanity-envars.bash
 
-if [[ $RVM_BUILD = "" ]]; then
-   print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
-   exit 1
-fi
+
+checkenv HOME
+checkenv RVM_ROOT
+checkenv RVM_BUILD
+
+# TODO: This portion of the gdbrvm should be consolidated with the originally-identical part of runrvm.
 
 . $RVM_BUILD/environment
 
 ARGS="-X:i=$RVM_BUILD/RVM.image -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
 
-for arg in $*; do
+for arg in "$@"; do
    if   [[ $arg = --   ]]; then
      print "$ME: the command line option \"--\" is no longer used!"
    fi
@@ -48,7 +48,7 @@ ARGS="$ARGS -Djava.home=$RVM_ROOT"
 ARGS="$ARGS -Dgnu.classpath.home.url=file:${RVM_BUILD}"
 ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
 
-ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+ARGS="$ARGS -Duser.home=$HOME -Duser.dir=${PWD} -Dos.name=$(uname -s) -Dos.version=$(uname -r) -Dos.arch=$(uname -m)"
 
 # Now execute the VM
 echo set args $ARGS "$@" > $RVM_BUILD/gdb.commandlineArgs

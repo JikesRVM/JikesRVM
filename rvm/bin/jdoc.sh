@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 #
 # (C) Copyright IBM Corp. 2001
 #

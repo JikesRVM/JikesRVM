@@ -1,13 +1,16 @@
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 
 # @author Peter Sweeney
 # @date 11/1/2001
 
+## Auxiliary AWK program to help out rvm/bin/findDeviantFiles.  You should
+## never run this directly; to discourage people from doing so, this is not an
+## executable file.
 #
-# Files that don't have a CVS Ids tag
+# Files that don't have a CVS/RCS $Id tag.
 #
 /\/bin\/classpath.stamp/ { next }
 /\/bin\/ids\/rvmrt.stamp/ { next }
