@@ -1,2 +1,2 @@
-   . $1/FullOptMarkSweep
-   export RVM_WITHOUT_ASSERTIONS=1 
+. $1/MarkSweep
+. $1/Fast

@@ -1,2 +1,0 @@
-   . $1/BaseBaseSemispace
-   export RVM_WITHOUT_LAZY_COMPILATION=1          

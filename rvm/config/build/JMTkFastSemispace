@@ -1,2 +1,0 @@
-   . $1/JMTkFullOptSemispace
-   export RVM_WITHOUT_ASSERTIONS=1 

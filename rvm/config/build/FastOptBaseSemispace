@@ -1,3 +1,0 @@
-   . $1/OptBaseSemispace
-    export RVM_WITHOUT_ASSERTIONS=1 
-    export RVM_WITH_ALL_CLASSES=1 

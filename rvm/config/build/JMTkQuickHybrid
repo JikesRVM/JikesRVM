@@ -1,3 +1,0 @@
-   . $1/JMTkFastHybrid
-   DEBUG_ARGS='-X:bc:include=JMTk'
-

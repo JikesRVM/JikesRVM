@@ -1,0 +1,2 @@
+. $1/OptOptSemiSpace
+export RVM_WITH_EXTREME_ASSERTIONS=1 
