@@ -254,8 +254,8 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
       Throwable e = env.getException();
       if (e != null) {
-        e.printStackTrace();
         env.recordException(null);
+        e.printStackTrace(System.err);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -5903,9 +5903,9 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
   private static int ExceptionCheck(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");   
-    VM.sysWrite("JNI ERROR: ExceptionCheck not implemented yet, exiting ...\n");
-    VM.sysExit(200);
-    return EXCEPTIONCHECK ; 
+
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+    return env.getException() == null ? 0 : 1;
   }
 
   private static int reserved0(int envHandler) {
