@@ -104,7 +104,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  // Insert load after call to threadswitch
 	  OPT_Instruction load = 
 	    Load.create(INT_LOAD, tempReg.copyRO(), 
-			ir.regpool.makeJTOCOp(ir,i), 
+			ir.regpool.makePROp(),
 			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountOffset),
 			new OPT_LocationOperand(VM_Entrypoints.
 						deterministicThreadSwitchCountOffset));
@@ -125,7 +125,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  // Create the initial load (for the conditional check)
 	  load = 
 	    Load.create(INT_LOAD, tempReg.copyRO(), 
-			ir.regpool.makeJTOCOp(ir,dummy), 
+			ir.regpool.makePROp(),
 			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountOffset),
 			new OPT_LocationOperand(VM_Entrypoints.
 						deterministicThreadSwitchCountOffset));
@@ -157,7 +157,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  OPT_Instruction store = 
 	    Store.create(INT_STORE, 
 			 tempReg.copyRO(),
-			 ir.regpool.makeJTOCOp(ir,dummy), 
+			 ir.regpool.makePROp(),
 			 OPT_IRTools.I(VM_Entrypoints.
 				       deterministicThreadSwitchCountOffset),
 			 new OPT_LocationOperand(VM_Entrypoints.
