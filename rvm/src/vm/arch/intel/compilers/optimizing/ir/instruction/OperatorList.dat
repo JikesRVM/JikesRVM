@@ -95,20 +95,6 @@ none
 
 
 
-# Add a (register/constant) float operand to the register operand result
-FLOAT_ADD_ACC
-BinaryAcc
-none
-
-
-
-# Add a (register/constant) double operand to the register operand result
-DOUBLE_ADD_ACC
-BinaryAcc
-none
-
-
-
 # Subtract a (register/constant) int operand from the register operand result
 INT_SUB_ACC
 BinaryAcc
@@ -118,20 +104,6 @@ none
 
 # Subtract a (register/constant) long operand from the register operand result
 LONG_SUB_ACC
-BinaryAcc
-none
-
-
-
-# Subtract a (register/constant) float operand from the register operand result
-FLOAT_SUB_ACC
-BinaryAcc
-none
-
-
-
-# Subtract a (register/constant) double operand from the register operand result
-DOUBLE_SUB_ACC
 BinaryAcc
 none
 
@@ -151,52 +123,6 @@ none
 
 
 
-# Multiply the register operand result by a (register/constant) float operand
-FLOAT_MUL_ACC
-BinaryAcc
-none
-
-
-
-# Multiply the register operand result by a (register/constant) double operand
-DOUBLE_MUL_ACC
-BinaryAcc
-none
-
-
-
-# Divide the register operand result by a (register/constant) float operand
-# putting the quotient in the result operand.
-FLOAT_DIV_ACC
-BinaryAcc
-none
-
-
-
-# Divide the register operand result by a (register/constant) double operand
-# putting the quotient in the result operand.
-DOUBLE_DIV_ACC
-BinaryAcc
-none
-
-
-
-# Divide the register operand result by a (register/constant) int operand
-# putting the remainder in the result operand.
-FLOAT_REM_ACC
-BinaryAcc
-none
-
-
-
-# Divide the register operand result by a (register/constant) int operand
-# putting the remainder in the result operand.
-DOUBLE_REM_ACC
-BinaryAcc
-none
-
-
-
 # Negate the result register operand (an integer)
 INT_NEG_ACC
 UnaryAcc
@@ -206,20 +132,6 @@ none
 
 # Negate the result register operand (a long)
 LONG_NEG_ACC
-UnaryAcc
-none
-
-
-
-# Negate the result register operand (a float)
-FLOAT_NEG_ACC
-UnaryAcc
-none
-
-
-
-# Negate the result register operand (a double)
-DOUBLE_NEG_ACC
 UnaryAcc
 none
 

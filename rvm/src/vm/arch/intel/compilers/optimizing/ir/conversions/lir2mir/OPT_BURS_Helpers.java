@@ -1096,179 +1096,114 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
 
   /**
-   * Expansion of FLOAT_ADD_ACC and DOUBLE_ADD_ACC
+   * Expansion of FLOAT_ADD and DOUBLE_ADD
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
-   * @param value the second operand
-   */
-  final void FP_ADD(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FADD, D(getFPR(0)), value));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
-  }
-  /**
-   * Expansion of FLOAT_ADD_ACC and DOUBLE_ADD_ACC
-   * This handles the case were we want to commute the
-   * arguments to the add because we have a memory operand
-   * feeding into the first operand position.
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
    * @param result the result operand
-   * @param val1  the first value (a memory operand)
-   * @param value the second value
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
   final void FP_ADD(OPT_BURS burs, OPT_Instruction s,
 		    OPT_RegisterOperand result,
-		    OPT_MemoryOperand val1,
+		    OPT_Operand val1,
 		    OPT_Operand val2) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val2));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FADD, D(getFPR(0)), val1));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
+    burs.append(MIR_BinaryAcc.mutate(s, IA32_FADD, D(getFPR(0)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
   /**
-   * Expansion of FLOAT_SUB_ACC and DOUBLE_SUB_ACC
+   * Expansion of FLOAT_SUB and DOUBLE_SUB
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
-   * @param value the second operand
+   * @param op either IA32_FSUB or IA32_FSUBR
+   * @param result the result operand
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
   final void FP_SUB(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operator op,
 		    OPT_RegisterOperand result,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FSUB, D(getFPR(0)), value));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
-  }
-  /**
-   * Expansion of FLOAT_SUB_ACC and DOUBLE_SUB_ACC
-   * This handles the case were we want to commute the
-   * arguments to the add because we have a memory operand
-   * feeding into the first operand position.
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param val1  the first value (a memory operand)
-   * @param value the second value
-   */
-  final void FP_SUBR(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
-		    OPT_MemoryOperand val1,
+		    OPT_Operand val1,
 		    OPT_Operand val2) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val2));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FSUBR, D(getFPR(0)), val1));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
+    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
   /**
-   * Expansion of FLOAT_MUL_ACC and DOUBLE_MUL_ACC
+   * Expansion of FLOAT_MUL and DOUBLE_MUL
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
-   * @param value the second operand
-   */
-  final void FP_MUL(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FMUL, D(getFPR(0)), value));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
-  }
-  /**
-   * Expansion of FLOAT_MUL_ACC and DOUBLE_MUL_ACC
-   * This handles the case were we want to commute the
-   * arguments to the add because we have a memory operand
-   * feeding into the first operand position.
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
    * @param result the result operand
-   * @param val1  the first value (a memory operand)
-   * @param value the second value
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
   final void FP_MUL(OPT_BURS burs, OPT_Instruction s,
 		    OPT_RegisterOperand result,
-		    OPT_MemoryOperand val1,
+		    OPT_Operand val1,
 		    OPT_Operand val2) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val2));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FMUL, D(getFPR(0)), val1));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
+    burs.append(MIR_BinaryAcc.mutate(s, IA32_FMUL, D(getFPR(0)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
   /**
-   * Expansion of FLOAT_DIV_ACC and DOUBLE_DIV_ACC
+   * Expansion of FLOAT_DIV and DOUBLE_DIV
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
-   * @param value the second operand
+   * @param op either IA32_DIV or IA32_DIVR
+   * @param result the result operand
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
   final void FP_DIV(OPT_BURS burs, OPT_Instruction s,
+		    OPT_Operator op,
 		    OPT_RegisterOperand result,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FDIV, D(getFPR(0)), value));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
-  }
-  /**
-   * Expansion of FLOAT_DIV_ACC and DOUBLE_DIV_ACC
-   * This handles the case were we want to commute the
-   * arguments to the add because we have a memory operand
-   * feeding into the first operand position.
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param val1  the first value (a memory operand)
-   * @param value the second value
-   */
-  final void FP_DIVR(OPT_BURS burs, OPT_Instruction s,
-		     OPT_RegisterOperand result,
-		     OPT_MemoryOperand val1,
-		     OPT_Operand val2) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val2));
-    burs.append(MIR_BinaryAcc.mutate(s,IA32_FDIVR, D(getFPR(0)), val1));
+		    OPT_Operand val1,
+		    OPT_Operand val2) {
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
+    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
     burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
   /**
-   * Expansion of FLOAT_REM_ACC and DOUBLE_REM_ACC
+   * Expansion of FLOAT_REM and DOUBLE_REM
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    * @param result the result/first operand
-   * @param value the second operand
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
   final void FP_REM(OPT_BURS burs, OPT_Instruction s,
 		    OPT_RegisterOperand result,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), value.copy()));
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
+		    OPT_Operand val1,
+		    OPT_Operand val2) {
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val2));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
   /**
-   * Expansion of FLOAT_NEG_ACC and DOUBLE_NEG_ACC
+   * Expansion of FLOAT_NEG and DOUBLE_NEG
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
+   * @param result the result operand
    * @param value the second operand
    */
   final void FP_NEG(OPT_BURS burs, OPT_Instruction s,
-		    OPT_RegisterOperand result) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), result.copyD2U()));
+		    OPT_RegisterOperand result,
+		    OPT_Operand value) {
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
     burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
-    burs.append(MIR_Move.create(IA32_FMOV, result.copyD2D(), D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
 
 

@@ -235,21 +235,6 @@ address:	address1scaledreg
 0
 //nothing to do
 
-address1reg:	INT_MOVE(address1reg)
-0
-0
-//nothing to do
-
-address1scaledreg:	INT_MOVE(address1scaledreg)
-0
-0
-//nothing to do
-
-address:	INT_MOVE(address)
-0
-0
-//nothing to do
-
 address1reg:	INT_ADD_ACC(r, iv)
 0
 1
@@ -951,180 +936,180 @@ EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, MO_AS(P(p), DW_S, DW)));
 # Basic Floating-Point ALU operations 
 ##################################
 #####
-# FLOAT_ADD_ACC
+# FLOAT_ADD
 #####
-r:	FLOAT_ADD_ACC(r, r)
+r:	FLOAT_ADD(r, r)
 13
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_ADD_ACC(r, fpload)
+r:	FLOAT_ADD(r, fpload)
 15
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	FLOAT_ADD_ACC(fpload, r)
+r:	FLOAT_ADD(fpload, r)
 15
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# FLOAT_SUB_ACC
+# FLOAT_SUB
 #####
-r:	FLOAT_SUB_ACC(r, r)
+r:	FLOAT_SUB(r, r)
 13
 1
-FP_SUB(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_SUB(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_SUB_ACC(r, fpload)
+r:	FLOAT_SUB(r, fpload)
 15
 1
-FP_SUB(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_SUB(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	FLOAT_SUB_ACC(fpload, r)
+r:	FLOAT_SUB(fpload, r)
 15
 1
-FP_SUBR(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_SUB(burs, P(p), IA32_FSUBR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# FLOAT_MUL_ACC
+# FLOAT_MUL
 #####
-r:	FLOAT_MUL_ACC(r, r)
+r:	FLOAT_MUL(r, r)
 13
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_MUL_ACC(r, fpload)
+r:	FLOAT_MUL(r, fpload)
 15
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	FLOAT_MUL_ACC(fpload, r)
+r:	FLOAT_MUL(fpload, r)
 15
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# FLOAT_DIV_ACC
+# FLOAT_DIV
 #####
-r:	FLOAT_DIV_ACC(r, r)
+r:	FLOAT_DIV(r, r)
 13
 1
-FP_DIV(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_DIV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_DIV_ACC(r, fpload)
+r:	FLOAT_DIV(r, fpload)
 15
 1
-FP_DIV(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_DIV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	FLOAT_DIV_ACC(fpload, r)
+r:	FLOAT_DIV(fpload, r)
 15
 1
-FP_DIVR(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_DIV(burs, P(p), IA32_FDIVR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# FLOAT_REM_ACC
+# FLOAT_REM
 #####
-r:	FLOAT_REM_ACC(r, r)
+r:	FLOAT_REM(r, r)
 13
 1
-FP_REM(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_REM(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 #####
-# FLOAT_NEG_ACC
+# FLOAT_NEG
 #####
-r:	FLOAT_NEG_ACC(r)
+r:	FLOAT_NEG(r)
 13
 1
-FP_NEG(burs, P(p), UnaryAcc.getResult(P(p)));
+FP_NEG(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 #####
-# DOUBLE_ADD_ACC
+# DOUBLE_ADD
 #####
-r:	DOUBLE_ADD_ACC(r, r)
+r:	DOUBLE_ADD(r, r)
 13
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	DOUBLE_ADD_ACC(r, fpload)
+r:	DOUBLE_ADD(r, fpload)
 15
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	DOUBLE_ADD_ACC(fpload, r)
+r:	DOUBLE_ADD(fpload, r)
 15
 1
-FP_ADD(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_ADD(burs, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# DOUBLE_SUB_ACC
+# DOUBLE_SUB
 #####
-r:	DOUBLE_SUB_ACC(r, r)
+r:	DOUBLE_SUB(r, r)
 13
 1
-FP_SUB(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_SUB(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	DOUBLE_SUB_ACC(r, fpload)
+r:	DOUBLE_SUB(r, fpload)
 15
 1
-FP_SUB(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_SUB(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	DOUBLE_SUB_ACC(fpload, r)
+r:	DOUBLE_SUB(fpload, r)
 15
 1
-FP_SUBR(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_SUB(burs, P(p), IA32_FSUBR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# DOUBLE_MUL_ACC
+# DOUBLE_MUL
 #####
-r:	DOUBLE_MUL_ACC(r, r)
+r:	DOUBLE_MUL(r, r)
 13
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	DOUBLE_MUL_ACC(r, fpload)
+r:	DOUBLE_MUL(r, fpload)
 15
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	DOUBLE_MUL_ACC(fpload, r)
+r:	DOUBLE_MUL(fpload, r)
 15
 1
-FP_MUL(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_MUL(burs, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# DOUBLE_DIV_ACC
+# DOUBLE_DIV
 #####
-r:	DOUBLE_DIV_ACC(r, r)
+r:	DOUBLE_DIV(r, r)
 13
 1
-FP_DIV(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_DIV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	DOUBLE_DIV_ACC(r, fpload)
+r:	DOUBLE_DIV(r, fpload)
 15
 1
-FP_DIV(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO());
+FP_DIV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r:	DOUBLE_DIV_ACC(fpload, r)
+r:	DOUBLE_DIV(fpload, r)
 15
 1
-FP_DIVR(burs, P(p), BinaryAcc.getResult(P(p)), consumeMO(), BinaryAcc.getValue(P(p)));
+FP_DIV(burs, P(p), IA32_FDIVR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 #####
-# DOUBLE_REM_ACC
+# DOUBLE_REM
 #####
-r:	DOUBLE_REM_ACC(r, r)
+r:	DOUBLE_REM(r, r)
 13
 1
-FP_REM(burs, P(p), BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p)));
+FP_REM(burs, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 #####
-# DOUBLE_NEG_ACC
+# DOUBLE_NEG
 #####
-r:	DOUBLE_NEG_ACC(r)
+r:	DOUBLE_NEG(r)
 13
 1
-FP_NEG(burs, P(p), UnaryAcc.getResult(P(p)));
+FP_NEG(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 ##################################
 # Basic Long ALU operations 
@@ -1416,6 +1401,32 @@ r:	INT_MOVE(riv)
 13
 1
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+# INT_MOVEs can also 'preserve' nonterminals other than r
+czr:	INT_MOVE(czr)
+11
+1
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+szpr:	INT_MOVE(szpr)
+11
+1
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+address1reg:	INT_MOVE(address1reg)
+0
+0
+//nothing to do
+
+address1scaledreg:	INT_MOVE(address1scaledreg)
+0
+0
+//nothing to do
+
+address:	INT_MOVE(address)
+0
+0
+//nothing to do
 
 ######
 # FLOAT_MOVE

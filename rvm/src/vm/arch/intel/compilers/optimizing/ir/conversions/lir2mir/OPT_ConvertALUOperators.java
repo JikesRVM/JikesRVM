@@ -71,20 +71,10 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       switch(s.getOpcode()) {
       case INT_ADD_opcode: commutative(s, INT_ADD_ACC, ir); break;
       case LONG_ADD_opcode: commutative(s, LONG_ADD_ACC, ir); break;
-      case FLOAT_ADD_opcode: commutative(s, FLOAT_ADD_ACC, ir); break; 
-      case DOUBLE_ADD_opcode: commutative(s, DOUBLE_ADD_ACC, ir); break; 
       case INT_SUB_opcode: noncommutative(s, INT_SUB_ACC, ir); break;
       case LONG_SUB_opcode: noncommutative(s, LONG_SUB_ACC, ir); break;
-      case FLOAT_SUB_opcode: noncommutative(s, FLOAT_SUB_ACC, ir); break;
-      case DOUBLE_SUB_opcode: noncommutative(s, DOUBLE_SUB_ACC, ir); break;
       case INT_MUL_opcode: commutative(s, INT_MUL_ACC, ir); break;
       case LONG_MUL_opcode: commutative(s, LONG_MUL_ACC, ir); break;
-      case FLOAT_MUL_opcode: commutative(s, FLOAT_MUL_ACC, ir); break; 
-      case DOUBLE_MUL_opcode: commutative(s, DOUBLE_MUL_ACC, ir); break; 
-      case FLOAT_DIV_opcode: noncommutative(s, FLOAT_DIV_ACC, ir); break;
-      case DOUBLE_DIV_opcode: noncommutative(s, DOUBLE_DIV_ACC, ir); break;
-      case FLOAT_REM_opcode: noncommutative(s, FLOAT_REM_ACC, ir); break;
-      case DOUBLE_REM_opcode: noncommutative(s, DOUBLE_REM_ACC, ir); break;
       case INT_SHL_opcode: noncommutative(s, INT_SHL_ACC, ir); break;
       case LONG_SHL_opcode: noncommutative(s, LONG_SHL_ACC, ir); break;
       case INT_SHR_opcode: noncommutative(s, INT_SHR_ACC, ir); break;
@@ -99,8 +89,6 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case LONG_XOR_opcode: noncommutative(s, LONG_XOR_ACC, ir); break;
       case INT_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
       case LONG_NEG_opcode: unary(s, LONG_NEG_ACC, ir); break;
-      case FLOAT_NEG_opcode: unary(s, FLOAT_NEG_ACC, ir); break;
-      case DOUBLE_NEG_opcode: unary(s, DOUBLE_NEG_ACC, ir); break;
       case BOOLEAN_NOT_opcode: unary(s, BOOLEAN_NOT_ACC, ir); break;
       case INT_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
       case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
