@@ -527,6 +527,15 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
+   * For debugging.
+   */
+  public static void describeObject(VM_Address addr) {
+    Object obj = VM_Magic.addressAsObject(addr);
+    VM_Type type = VM_Magic.getObjectType(obj);
+    VM.sysWrite(type.getDescriptor());
+  }
+
+  /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
    *
