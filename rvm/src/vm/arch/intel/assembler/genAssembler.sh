@@ -1355,3 +1355,30 @@ emitFSTATE FNSAVE "save FPU state ignoring pending exceptions" 6
 emitFSTATE FSAVE "save FPU state respecting pending exceptions" 6 0x9B
 emitFSTATE FRSTOR "restore FPU state" 4
 
+emitFCONST() {
+opcode=$1
+value=$2
+opExt=$3
+
+cat <<EOF
+  // load ${value} into FP0
+  void emit${opcode}_Reg(byte dstReg) {
+    if (VM.VerifyAssertions) VM.assert(dstReg == FP0);
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xD9);
+    setMachineCodes(mi++, (byte) ${opExt});
+    if (lister != null) lister.R(miStart, "${opcode}", dstReg);
+  }
+
+EOF
+
+}
+
+emitFCONST FLD1 "1.0" 0xE8 
+emitFCONST FLDL2T "log_2(10)" 0xE9
+emitFCONST FLDL2E "log_2(e)" 0xEA
+emitFCONST FLDPI "pi" 0xEB
+emitFCONST FLDLG2 "log_10(2)" 0xEC
+emitFCONST FLDLN2 "log_e(2)" 0xED
+emitFCONST FLDZ "0.0" 0xEE
+
