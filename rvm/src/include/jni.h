@@ -375,7 +375,7 @@ struct JNINativeInterface_ {
     jint (PJNICALL MonitorEnter)(JNIEnv *env, jobject obj);
     jint (PJNICALL MonitorExit)(JNIEnv *env, jobject obj);
     jint (PJNICALL GetJavaVM)(JNIEnv *env, JavaVM **vm);
-    void (PJNICALL GetStringRegion)(JNIEnv *env, jstring str, jsize start, jsize len, char *buf);
+    void (PJNICALL GetStringRegion)(JNIEnv *env, jstring str, jsize start, jsize len, jchar *buf);
     void (PJNICALL GetStringUTFRegion)(JNIEnv *env, jstring str, jsize start, jsize len, char *buf);
     void * (PJNICALL GetPrimitiveArrayCritical)(JNIEnv *env, jarray array, jboolean *isCopy);
     void (PJNICALL ReleasePrimitiveArrayCritical)(JNIEnv *env, jarray array, void *carray, jint mode);
@@ -621,7 +621,7 @@ struct JNIEnv_ {
         return functions->MonitorEnter(this, obj); }
     jint MonitorExit(jobject obj) { return functions->MonitorExit(this, obj); }
     jint GetJavaVM(JavaVM **vm) { return functions->GetJavaVM(this, vm); }
-    void GetStringRegion(jstring str, jsize start, jsize len, char *buf) { 
+    void GetStringRegion(jstring str, jsize start, jsize len, jchar *buf) { 
         functions->GetStringRegion(this, str, start, len, buf); }
     void GetStringUTFRegion(jstring str, jsize start, jsize len, char *buf) { 
         functions->GetStringUTFRegion(this, str, start, len, buf); }
