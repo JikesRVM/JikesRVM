@@ -127,11 +127,9 @@ public final class OPT_ClassLoadingDependencyManager {
 	return;
       }
 
-      //-#if RVM_FOR_IA32
       // (2) Apply any code patches to protect invocations already executing
       //     in the soon to be invalid code.
       ((VM_OptCompiledMethod)cm).applyCodePatches(cm);
-      //-#endif
 
       cm.setInvalid();
     }
