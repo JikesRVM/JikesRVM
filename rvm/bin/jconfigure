@@ -489,7 +489,6 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/utility
    print $RVM_ROOT/rvm/src/vm/verifier
    print $RVM_ROOT/rvm/src/vm/compilers/compiledCode
-   print $RVM_ROOT/rvm/src/vm/libSupport
 
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
@@ -685,11 +684,12 @@ function emitSourceList
 
    # standard library support
    #
-   print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang
-   print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/ref
-   print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/reflect
-   print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/net
-   print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/io
+   print $RVM_ROOT/rvm/src/vm/libSupport
+   print $RVM_ROOT/rvm/src/vm/libSupport/java/lang
+   print $RVM_ROOT/rvm/src/vm/libSupport/java/lang/ref
+   print $RVM_ROOT/rvm/src/vm/libSupport/java/lang/reflect
+   print $RVM_ROOT/rvm/src/vm/libSupport/java/net
+   print $RVM_ROOT/rvm/src/vm/libSupport/java/io
 
    # Add support for hardware performance monitors on PowerPC
    #
