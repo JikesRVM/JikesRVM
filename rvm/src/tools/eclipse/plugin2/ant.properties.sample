@@ -1,8 +1,12 @@
 # 
 # ant.properties.sample
 #
-# Sample customization for the ant script.  Save
+# Sample customization for JikesRVM's Ant plugin.  Save this
 # under the name 'ant.properties'
+#
+# (An appropriate ant.properties file is automatically generated for you
+#  by RVM_BUILD/jbuild.plugin, and that's the way most people end 
+#  up getting one.) 
 #
 # $Source$
 # $Revision$
