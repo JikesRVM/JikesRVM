@@ -14,11 +14,12 @@ final class VM_OptExceptionTable implements VM_Constants {
 
   /**
    * The eTable array encodes the exception tables using 4 ints for each
+   * The constants are used by the classwriter too.
    */
   private int[] eTable;
-  private static final int TRY_START = 0;
-  private static final int TRY_END = 1;
-  private static final int CATCH_START = 2;
+  public  static final int TRY_START = 0;
+  public  static final int TRY_END = 1;
+  public  static final int CATCH_START = 2;
   private static final int EX_TYPE = 3;
 
   private static final boolean DEBUG = false;

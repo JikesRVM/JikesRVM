@@ -24,8 +24,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    * The live interval information, a set of Basic Intervals 
    * sorted by increasing start point
+   * Used by ClassWriter so needs to be public
    */
-  private IntervalSet intervals;
+  public IntervalSet intervals;
 
   /**
    * An object which manages spill location assignments.
@@ -34,8 +35,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
   /**
    * The governing IR
+   * Also used by ClassWriter
    */
-  private OPT_IR ir;
+  public OPT_IR ir;
 
   /**
    * debug flags
@@ -122,8 +124,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    *  Iterate over the IR and replace each symbolic register with its
    *  allocated physical register.
+   *  Also used by ClassWriter
    */
-  private void replaceSymbolicRegisters(OPT_IR ir) {
+  public void replaceSymbolicRegisters(OPT_IR ir) {
     for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
 	 inst.hasMoreElements();) {
       OPT_Instruction s = inst.next();
@@ -1686,7 +1689,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       if (c == null) return null;
       return c.nextIntervalAfter(s);
     }
-  }
+  } // class ActiveSet
 
   /**
    * phase to compute linear scan intervals.
@@ -1885,6 +1888,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       int dfnend = getDfnEnd(live, bb);
       int dfnbegin = getDfnBegin(live, bb);
 
+      //-#if RVM_FOR_IA32
       // mutate FMOVs that end live ranges
       if (MUTATE_FMOV) {
         if (reg.isFloatingPoint()) {
@@ -1909,6 +1913,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           }
         }
       }
+      //-#endif  RVM_FOR_IA32
 
       // check for an existing live interval for this register
       CompoundInterval existingInterval = getInterval(reg);
