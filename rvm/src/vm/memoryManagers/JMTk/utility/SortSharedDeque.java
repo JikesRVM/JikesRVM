@@ -8,8 +8,6 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;
 
-import com.ibm.JikesRVM.VM_MiscHeader;
-
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Offset;
