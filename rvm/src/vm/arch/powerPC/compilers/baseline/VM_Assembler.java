@@ -28,6 +28,10 @@
 final class VM_Assembler implements VM_BaselineConstants,
 				    VM_AssemblerConstants {
 
+  private VM_MachineCode mc;
+  private int mIP; // current machine code instruction
+  private boolean shouldPrint;
+
   VM_Assembler (int length) {
     this(length, false);
   }
@@ -37,12 +41,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     mIP = 0;
     shouldPrint = sp;
   }
-
-  /* machine code */
-  VM_MachineCode mc;
-  private int    mIP    = 0; // current machine code instruction
-
-  private boolean shouldPrint;
 
   /* assembler stuff:
 
@@ -1595,14 +1593,15 @@ final class VM_Assembler implements VM_BaselineConstants,
     return mc;
   }
 
-   /**
-    * Append an array of INSTRUCTION to the current machine code
-    */
-   void appendInstructions (INSTRUCTION[] instructionSegment) {
-     for (int i=0; i<instructionSegment.length; i++) {
-       mc.addInstruction(instructionSegment[i]);
-     }
-   }
+  /**
+   * Append an array of INSTRUCTION to the current machine code
+   */
+  void appendInstructions (INSTRUCTION[] instructionSegment) {
+    for (int i=0; i<instructionSegment.length; i++) {
+      mIP++;
+      mc.addInstruction(instructionSegment[i]);
+    }
+  }
 
   // new PowerPC instuctions
 
@@ -1702,7 +1701,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame
     emitTLT (S0,  0);                                    // trap if new frame below guard page
-    }
+  }
 
   // Emit baseline stack overflow instruction sequence for native method prolog.
   // For the lowest Java to C transition frame in the stack, check that there is space of
@@ -1719,22 +1718,26 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitL    ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
     emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
-    emitBEQ(5);                                      	 // skip 4 instructions forward
+    VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
     emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTLT (S0,  0);                                    // trap if new frame below guard page
-    emitB(8);                                      	 // branch 5 instructions forward    
+    VM_ForwardReference fr2 = emitForwardB();
+
     // check for enough space for STACK_SIZE_JNINATIVE 
+    fr1.resolve(this);
     emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitLIL(S0, 1);
     emitSLI(S0, S0, STACK_LOG_JNINATIVE);
     emitSF (S0, S0, FP);             // S0 := &new frame pointer
 
     emitCMP(0, S0);
-    emitBLE( 2 );
+    VM_ForwardReference fr3 = emitForwardBC(LE);
     emitTWI ( 1 );                                    // trap if new frame pointer below guard page
-    }
+    fr2.resolve(this);
+    fr3.resolve(this);
+  }
 
   // Emit baseline call instruction sequence.
   // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
@@ -1747,7 +1750,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitST(SP, spSaveAreaOffset, FP); // save SP
     emitBLRL  ();
     emitL (SP, spSaveAreaOffset, FP); // restore SP
-    }
+  }
 
   // Emit baseline call instruction sequence.
   // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
@@ -1761,7 +1764,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitLVAL(SP, hiddenParameter);      // pass "hidden" parameter in SP scratch  register
     emitBLRL();
     emitL   (SP, spSaveAreaOffset, FP); // restore SP
-    }
+  }
 
   //-#if RVM_WITH_SPECIALIZATION
 
