@@ -7,36 +7,35 @@ runtime system must, on occasion, access memory or perform unsafe
 casts.  Users are {\it strongly} discourage from using magic in their code
 except where absolutely necessary.  
 
-There are currently two types of magic which are described in the remainder of this
-section.  The first is a collection of magical methods
-that are static methods of the class {\tt VM\_Magic}.  The second is the magical class
-{\tt VM\_Address} used in parts of the runtime and garbage collector.
+There are currently three types of magical operations which are
+described in the remainder of this section.  The first is a collection
+of magical methods that are static methods of the class {\tt
+VM\_Magic}.  The second is the magical class {\tt VM\_Address} used in
+parts of the runtime and garbage collector. The third is various
+mechanisms to code {\em uninterruptible}.
 
 \subsection{VM\_Magic}
 \index{magic methods}
 \index{VM\_Magic}
 \index{semantic inlining}
-Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL}
-are treated differently by the compiler. Because these methods access
-raw memory or other machine state, perform unsafe casts, 
-or are operating system calls, they cannot be implemented in Java
-code.  A Jikes\trademark RVM implementor must be {\em extremely
-careful} when writing 
-code that uses {\tt VM\_Magic} to circumvent the Java type
+Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL} are
+treated differently by the compiler. Because these methods access raw
+memory or other machine state, perform unsafe casts, or are operating
+system calls, they cannot be implemented in Java code.  A
+Jikes\trademark RVM implementor must be {\em extremely careful} when
+writing code that uses {\tt VM\_Magic} to circumvent the Java type
 system.  The use of {\tt VM\_Magic.objectAsAddress} to perform various
 forms of pointer arithmetic is especially hazardous, since it can
-result in pointers being ``lost'' during garbage collection. 
-All such uses of magic must either occur in uninterruptible
-code ({\it i.e.} in a method of a class that {\em directly} implements 
-the \xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL} class) 
-or be guarded by calls to {\tt VM.disableGC} and {\tt VM.enableGC}.  
-The optimizing compiler performs aggressive inlining and code motion 
-and not explictly marking such dangerous regions in one of these two manners 
-will lead to disaster.
+result in pointers being ``lost'' during garbage collection.  All such
+uses of magic must either occur in uninterruptible methods (see below)
+or be guarded by calls to {\tt VM.disableGC} and {\tt VM.enableGC}.
+The optimizing compiler performs aggressive inlining and code motion
+and not explictly marking such dangerous regions in one of these two
+manners will lead to disaster.
 
-Since magic is inexpressible in Java, it is unsurprising that the bodies 
-of {\tt VM\_Magic} methods are undefined.  Instead, for each of these methods, 
-the Java instructions to generate the code is stored in 
+Since magic is inexpressible in Java, it is unsurprising that the
+bodies of {\tt VM\_Magic} methods are undefined.  Instead, for each of
+these methods, the Java instructions to generate the code is stored in
 \xlink{{\tt OPT\_GenerateMagic}}{\OPTGenerateMagicURL} and 
 \xlink{{\tt OPT\_GenerateMachineSpecificMagic}}{\OPTGenerateMachineSpecificMagicURL} (to generate HIR) and 
 \xlink{{\tt VM\_MagicCompiler}}{\VMMagicCompilerURL} (to generate assembly code)\footnote{The optimizing
@@ -81,5 +80,90 @@ both {\tt Object} or a {\tt VM\_Address}.
 array of {VM\_Address} values.  This restriction may be removed in the future.
 \end{enumerate}
 
+
+\subsection{What are the Semantics of Uninterruptible Code?}
+\index{uninterruptible}
+\index{interruptible}
+\index{VM\_Uninterruptible}
+\index{VM\_PragmaInterruptible}
+\index{VM\_PragmaUninterruptible}
+\index{VM\_PragmaLogicallyUninterruptible}
+\index{yield point}
+Declaring a method uninterruptible enables a Jikes RVM developer to
+prevent the Jikes RVM compilers from inserting ``hidden'' thread
+switch points in the compiled code for the method.  As a result, the
+code can be written assuming that it cannot involuntarily ``lose
+control'' while executing due to a timer-driven thread switch. In
+particular, neither yield points nor stack overflow
+checks will be generated for uninterruptible methods. 
+
+When writing uninterruptible code, the programmer is restricted to a
+subset of the Java language.  The following are the restrictions on
+uninterruptible code.
+\begin{enumerate}
+\item{} Because a stack overflow check represents a potential yield
+point (if GC is triggered when the stack is grown), stack overflow
+checks are omitted from the prologues of uninterruptible code.  As a
+result, all uninterruptible code must be able to execute in the
+stack space available to them when the first uninterruptible method on
+the call stack is invoked.  This is typically about 8K for
+uninterruptible regions called from mutator code.  The collector
+threads must preallocate enough stack space, since all collector code
+is uninterruptible. As a result, using recursive methods in the GC
+subsystem is a bad idea.
+\item{} Since no yield points are inserted in uninterruptible code,
+there will be no timer-driven thread switches while executing it.  So,
+if possible, one should avoid ``long running'' uninterruptible methods
+outside of the GC subsystem.
+\item{} Certain bytecodes are forbidden in uninterruptible code,
+because Jikes RVM cannot implement them in a manner that ensures
+uninterruptibility. The forbidden bytecodes are: aastore,
+invokeinterface, new, newarray, anewarray, athrow, checkcast and
+instanceof unless the LHS type is a final class, monitorenter,
+monitorexit, mulitanewarray. 
+\item{} Uninterruptible code cannot cause class loading and this must
+not contain unresolved getstatic, putstatic, getfield, putfield,
+invokevirtual, or invokestatic bytecodes. 
+\item{} Uninterruptible code cannot contain calls to interruptible
+code. As a consequence, it is illegal to override an uninterruptible
+virtual method with an interruptible method.
+\item{} Uninterruptible methods cannot be synchronized. 
+\end{enumerate}
+We have augmented the baseline compiler to print a warning message
+when one of these restrictions is violated.  Because there are still a
+small number of violations in Jikes RVM, this checking is not enabled
+by default, but can be enabled by setting {\tt
+VM\_Configuration.VerifyUnint} to  true. 
+If uninterruptible code were to raise a runtime exception such
+as NullPointerException, ArrayIndexOutOfBoundsException, or
+ClassCastException, then it could be interrupted.  We assume that such
+conditions are a programming error and do not flag bytecodes that
+might result in one of these exceptions being raised as a violation of
+uninterruptibility. Checking for a particular method can be disabled
+by having the method throw the exception {\tt
+VM\_PragmaLogicallyUninterruptible}. This should be done with extreme
+care, but in a few cases is unavoidable to avoid spurious warning
+messages. 
+
+The following rules determine whether or not a method is
+uninterruptible.
+\begin{enumerate}
+\item{} All class initializers are interruptible, since they
+can only be invoked during class loading.
+\item{} All object constructors are interruptible, since they an
+only be invoked as part of the implementation of the new bytecode.
+\item{} If a method throws the exception {\tt
+VM\_PragmaInterruptible} then it is interruptible.
+\item{} If none of the above rules apply and a method throws the
+exception VM\_PragmaUninterruptible, then it is uninterruptible.
+\item{} If none of the above rules apply and the declaring class of
+the method directly implements the interface {\tt VM\_Uninterruptible}
+then it is uninterruptible.
+\end{enumerate}
+Whether to use {\tt VM\_Uninterruptible} or the {\tt
+VM\_PragmaUninterruptible} is a matter of taste and mainly depends on
+the ratio of interruptible to uninterruptible methods in a class.  If
+most methods of the class should be uninterruptible, then implementing
+{\tt VM\_Uninterruptible} is preferred. 
 
 \JavaTMFooter
