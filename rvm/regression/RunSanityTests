@@ -4,7 +4,7 @@
 #
 # Build and test various configurations of RVM virtual machine.
 #
-# Invocation: RunSanityTests [ -output <directory> ] [ -configuration <configuration> ][ -test <TestDirectory> ][ -paranoid ][ -nobuild ][ -noclean][ -norun ][ -numprocs N] [-verbose]
+# Invocation: RunSanityTests [-help|...]
 #
 #
 # 09 Mar 2000 Derek Lieber
@@ -77,14 +77,14 @@ function showHelp {
   echo 'valid options:'
   echo '-images <dir>               where to put generated images'
   echo '-result <root dir>          where to put results of tests'
-  echo '-tests "<tests>"            list of tests to run'
+  echo '-test[s] "<tests>"            list of tests to run'
   echo '-test-list <file>           file listing tests to run'
   echo '-nobuild                    do not build boot images'
   echo '-noclean                    do not clean when running tests'
   echo '-norun                      do not run any tests'
   echo '-numprocs <n>               use n virtual processors'
   echo '-use-opt-levels <levels>    run tests with all opt levels in list'
-  echo '-configurations "<configs>" test all boot images in list'
+  echo '-configuration[s] "<configs>" test all boot images in list'
   echo '-configuration-list <file>  file listing boot images to test'
   echo '-wait <file>                sync build and run using file'
   echo '-performance <file>         record performance results to file'
@@ -115,6 +115,10 @@ while [ $# != 0 ]; do
 
     ## Should we run only the specific tests?
     # 
+    -test)
+	TEST_LIST=$2
+	shift
+    ;;
     -tests)
 	TEST_LIST=$2
 	shift
@@ -180,6 +184,10 @@ while [ $# != 0 ]; do
    ## test given configurations
    #
    -configurations)
+	CONFIG_LIST=$2
+	shift
+   ;;
+   -configuration)
 	CONFIG_LIST=$2
 	shift
    ;;
@@ -346,21 +354,16 @@ function doRun
      # start test running
      say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
 
-     # Supply a result dir, if appropriate
-     if [ x$RESULT != x ]; then
-	TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
-	if [ x$OPT_LEVEL != x ]; then
-           TEST_RESULT_DIR="$TEST_RESULT_DIR/$OPT_LEVEL"
-        fi
-	RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
-	echo Results to $RESULT/$TEST_RESULT_DIR
-     else
- 	if [ x$OPT_LEVEL != x ]; then
-	    RESULT_STR="WORKING=./$OPT_LEVEL"
-	else
-	    RESULT_STR=
-	fi
+     # Supply a result dir
+     if [ x$RESULT = x ]; then
+       RESULT="$RVM_BUILD/sanity" 
      fi
+     TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
+     if [ x$OPT_LEVEL != x ]; then
+         TEST_RESULT_DIR="$TEST_RESULT_DIR/$OPT_LEVEL"
+     fi
+     RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
+     echo Results to $RESULT/$TEST_RESULT_DIR
 
      # gather performance data, if appropriate
      if [ x$PERFORMANCE != x ]; then
