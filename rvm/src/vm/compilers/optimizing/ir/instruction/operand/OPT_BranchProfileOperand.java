@@ -11,9 +11,6 @@ import instructionFormats.*;
  * @author Matthew Arnold
  */
 public final class OPT_BranchProfileOperand extends OPT_Operand {
-
-
-
   double takenProbability;
 
   OPT_BranchProfileOperand(double takenProbability) {
