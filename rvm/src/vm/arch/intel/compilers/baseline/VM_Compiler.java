@@ -2634,12 +2634,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * TEMP DEBUG CODE --dave 
      * To determine who is not playing by the rules that PR.framepointer should
      * hold the caller's FP at all PEI's / GC points.
-     * 
-    asm.emitCMP_Reg_RegDisp(FP, PR, VM_Entrypoints.framePointerOffset);
-    VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ);	// Jmp around trap if OK
-    asm.emitINT_Imm ( 0xFF);	// trap
-    fr2.resolve(asm);
-    */
+     *
+     * asm.emitCMP_Reg_RegDisp(FP, PR, VM_Entrypoints.framePointerOffset);
+     * VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ);	// Jmp around trap if OK
+     * asm.emitINT_Imm ( 0xFF);	// trap
+     * fr2.resolve(asm);
+     */
 
     /* establish a new frame:
      * push the caller's frame pointer in the stack, and
@@ -2660,8 +2660,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     // squirrel away FP in the procesoor object so a hardware trap handler can 
     // always find it (opt compiler will reuse FP register)
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                               VM_Entrypoints.framePointerOffset,
-                                               SP);
+					      VM_Entrypoints.framePointerOffset,
+					      SP);
     /*
      * save registers
      */
@@ -3630,6 +3630,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // pop frame
       asm.emitPOP_Reg (FP);		// FP<-previous FP 
 
+      VM_ProcessorLocalState.emitMoveRegToField(asm,
+						VM_Entrypoints.framePointerOffset,
+						FP);
+      
       // branch
       asm.emitJMP_Reg (S0);
       return;
