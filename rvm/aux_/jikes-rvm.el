@@ -121,26 +121,18 @@ JikesRVM Java style guidelines on your own"))
 (add-to-list 'Info-default-directory-list
 	     "/usr/local/classpath/classpath/doc")
 
-(defun add-jalapeño-style ()
-  (interactive)
-  (c-add-style "jalapeño" '("java"
-			    (c-basic-offset . 2)
-			    )))
-;; must follow the def. of add-jalapeño-style
-(eval-after-load "cc-styles" #'(add-jalapeño-style))
-
-;; used to be tested against font-lock.el; now cc-fonts.el.
-(eval-after-load "cc-fonts"
-  #'(setq java-font-lock-extra-types
-	  ;; correct the defn. in Emacs 21.2 so we do not include small sharp-S
-	  ;; This is annoyingly specific to ISO-Latin-1.
-	  '("[A-Z\300-\326\330-\336]\\sw*[a-z]\\sw*")))
+(setq java-font-lock-extra-types
+      ;; correct the defn. in Emacs 21.2 so we do not include small sharp-S
+      ;; This is annoyingly specific to ISO-Latin-1.
+      '("[A-Z\300-\326\330-\336]\\sw*[a-z]\\sw*"))
 
 ;; Modify java mode level 3 (gaudy) highlighting
-(eval-after-load "cc-fonts"
-  #'(add-to-list 'java-font-lock-keywords-3
-		 '("@\\(modified\\|date\\)\\>"
-		   (1 font-lock-constant-face prepend))))
+(add-hook 'java-mode-hook 
+	  #'(lambda () 
+	      (when (boundp 'java-font-lock-keywords-3)
+		(add-to-list 'java-font-lock-keywords-3
+			     '("@\\(modified\\|date\\)\\>"
+			       (1 font-lock-constant-face prepend))))))
 
 (defvar jikes-rvm-javadoc-font-lock-keywords
   '("@\\(author\\|date\\|deprecated\\|exception\\|link\\|modified\\|return\\|see\\|serial\\|serialData\\|serialField\\|since\\|throws\\|version\\)\\>"
@@ -148,11 +140,16 @@ JikesRVM Java style guidelines on your own"))
   "*Keywords used for highlighting Javadoc-style comments in Jikes RVM,
 even if they appear in C or C++ programs.")
 
-(eval-after-load "cc-fonts"
-  #'(add-to-list 'c++-font-lock-keywords-3
-		 jikes-rvm-javadoc-font-lock-keywords))
+(add-hook 'c++-mode-hook
+	  #'(lambda () 
+	      (when (boundp 'c++-font-lock-keywords-3)
+		(add-to-list 'c++-font-lock-keywords-3
+			     jikes-rvm-javadoc-font-lock-keywords))))
 
-(eval-after-load "cc-fonts"
-  #'(add-to-list 'c-font-lock-keywords-3
-		 jikes-rvm-javadoc-font-lock-keywords))
+(add-hook 'c-mode-hook
+	  #'(lambda () 
+	      (when (boundp 'c-font-lock-keywords-3)
+		(add-to-list 'c-font-lock-keywords-3
+			     jikes-rvm-javadoc-font-lock-keywords))))
+
 (provide 'jikes-rvm)
