@@ -2495,7 +2495,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     genParameterRegisterLoad(1);			           // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());  
-    lockOffset = asm.getMachineCodeIndex() - 1;                    // after this instruction, the method has the monitor
+    lockOffset = asm.getMachineCodeIndex();                       // after this instruction, the method has the monitor
   }
   
   private final void genMonitorExit () {

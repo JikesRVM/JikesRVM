@@ -68,17 +68,17 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     if (method.isSynchronized()) { // release the lock, if it is being held
       VM_Address ip = registers.getInnermostInstructionAddress();
       int instr = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-      if (instr < ((VM_BaselineCompiledMethod)compiledMethod).getLockAcquisitionOffset()) {
-	// in prologue, lock not owned; nothing to do.
-      } else if (method.isStatic()) {
-	Object lock = method.getDeclaringClass().getClassForType();
-	VM_ObjectModel.genericUnlock(lock);
-      } else {
-	Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(VM_Compiler.getFirstLocalOffset(method))));
+      int lockOffset = ((VM_BaselineCompiledMethod)compiledMethod).getLockAcquisitionOffset();
+      if (instr > lockOffset) { // we actually have the lock, so must unlock it.
+	Object lock;
+	if (method.isStatic()) {
+	  lock = method.getDeclaringClass().getClassForType();
+	} else {
+	  lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(VM_Compiler.getFirstLocalOffset(method))));
+	}
 	VM_ObjectModel.genericUnlock(lock);
       }
     }
-
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM.assert(VM_Compiler.SAVED_GPRS == 1);
     registers.gprs[JTOC] = VM_Magic.getMemoryWord(fp.add(VM_Compiler.JTOC_SAVE_OFFSET));
