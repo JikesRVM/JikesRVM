@@ -80,6 +80,45 @@ function load () {
 load "${bin_dir}/sanity-envars.bash" ;  		# Defines checkenv()
 load "${bin_dir}/libjconfigure.bash" ;
 
+## There is a bug in BASH version 2.05b.0(1)-release
+## (BASH_VERSINFO=([0]="2" [1]="05b" [2]="0" [3]="1" [4]="release" [5]="i386-redhat-linux-gnu"))
+## whereby we are getting complaints that the variable "midline" was
+## used before being set.  Specifically:
+##
+##   $ jconfigure NoSuch
+##   /homes/bilbo/augart/JikesRVM/Clean/rvm/bin/jconfigure: line 320: midline: unbound variable
+##
+## The complaint actually refers to line 320 of libjconfigure.bash.
+## And the workaround below solves it.  The bug is not present in Bash
+## 2.05a.0(1)-release 
+## --Steve Augart
+
+# ## Debugging code in case we have the weird problem again:
+# echo "have_function_relative_LINENO is: ${have_function_relative_LINENO-UNSET}"
+# echo "midline is: ${midline-UNSET}"
+# : ${midline+}			# this should be a complete no-op, and IS
+# midline=${midline-0}	  # More serious workaround for the Bash 2.05b bug.
+
+## Another set of debugging output as well as a test case.  The
+## output is fascinating; the first line printed is blank and the
+## second one printed is the string "0"; in a working shell, both
+## lines would be "0".
+# set +o nounset
+# echo $midline
+# echo $midline
+# set -o nounset
+
+## WORKAROUND:
+## This should be a no-op.  However, this works around the Bash 2.05b bug where
+## it thinks midline was unset.
+echo ${midline-UNSET} > /dev/null
+
+## POSSIBLE FUTURE WORKAROUND:
+## # Do the same thing for the other global variable that's set inside 
+## # libjconfigure.bash, just in case the Bash bug should manifest
+## # itself again:  
+## echo ${have_function_relative_LINENO-UNSET} > /dev/null
+
 ## Place where source files reside.
 checkenv RVM_ROOT
 
