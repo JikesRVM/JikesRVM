@@ -101,7 +101,10 @@ public class VM_ClassLoader implements VM_Constants,
       return null;              /* trick the boot image writer with null,
                                    which it will use when initializing
                                    java.lang.ClassLoader$StaticData */
-    /* Lie, until we are really ready for everything. */
+
+    /* Lie, until we are really ready for someone to actually try
+     * to use this class loader to load classes and resources.
+     */
     if (!appCLReady)
       return VM_BootstrapClassLoader.getBootstrapClassLoader(); 
     
