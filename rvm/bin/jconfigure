@@ -1172,7 +1172,7 @@ fi
    print ''
 
    # preprocess the necessary interpreter file for the debugger jdp
-   print 'FILES=`/bin/ls ' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/interpreter/mapVM.java`'
+   print 'FILES=`/bin/ls ' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/interpreter/mapVM.java' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/'$ARCH_DIR'/BootMapExternal.java`'
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
 
    if (( ! BUILD_RVMRT_JAR )); then
