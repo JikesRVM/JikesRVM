@@ -510,6 +510,8 @@ class Debugger implements jdpConstants {
     // from this point, the debuggee is running
 
     if (command.equals("step") || command.equals("s")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, step does not take any arguments at this time. Ignoring arguments.");
       boolean skip_prolog = false;
       printMode = PRINTASSEMBLY;
       runstat = user.pstep(0, printMode, skip_prolog);
@@ -519,6 +521,8 @@ class Debugger implements jdpConstants {
 
     else if (command.equals("stepbr") || command.equals("sbr")) {
       if (Platform.stepbrImplemented == 1) {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("Sorry, stepbr does not take any arguments at this time. Ignoring arguments.");
 	printMode = PRINTASSEMBLY;
 	runstat = user.pstepOverBranch(0);
 	if (runstat==true)
@@ -530,6 +534,8 @@ class Debugger implements jdpConstants {
 
     else if (command.equals("stepline") || command.equals("sl")) {
       // printMode = PRINTSOURCE;  too slow for now
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, stepline does not take any arguments at this time. Ignoring arguments.");
       printMode = PRINTASSEMBLY;
       runstat = user.pstepLine(0, printMode);
       if (runstat==true)
@@ -537,6 +543,8 @@ class Debugger implements jdpConstants {
     } 
 
     else if (command.equals("steplineover") || command.equals("slo")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, steplineover does not take any arguments at this time. Ignoring arguments.");
       printMode = PRINTSOURCE;
       runstat = user.pstepLineOverMethod(0);
       if (runstat==true)
@@ -567,6 +575,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput("no breakpoint currently set, detaching process");
 	return true;
       } else {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
 	runstat = user.pcontinue(0, printMode, true);
 	if (runstat==true)
 	  refreshEnvironment();
@@ -575,6 +585,8 @@ class Debugger implements jdpConstants {
 
     else if (command.equals("cthread") || command.equals("ct")) {
       if (Platform.cthreadImplemented == 1) {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
 	runstat = user.pcontinue(0, printMode, false);
 	if (runstat==true)
 	  refreshEnvironment();
@@ -584,6 +596,8 @@ class Debugger implements jdpConstants {
     }
 
     else if (command.equals("creturn") || command.equals("cr")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
       runstat = user.pcontinueToReturn(0, printMode);
       if (runstat==true)
 	refreshEnvironment();
@@ -719,6 +733,8 @@ class Debugger implements jdpConstants {
     }   
 
     else if (command.equals("verbose") || command.equals("v")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
       if (user.verbose) {
         jdp_console.writeOutput("Verbose now OFF");
         user.verbose = false;
@@ -740,7 +756,7 @@ class Debugger implements jdpConstants {
     }
 
     else {
-      jdp_console.writeOutput("Command not implemented");
+      jdp_console.writeOutput("Command not implemented. Please use help to see list of commands");
     }
     return false;
 
