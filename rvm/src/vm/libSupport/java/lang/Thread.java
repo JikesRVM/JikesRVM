@@ -1,18 +1,21 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2004
  */
 //$Id$
 package java.lang;
 
+import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.VM_Wait;
 
 /**
  * Jikes RVM implementation of a Java thread.
  *
  * @author Julian Dolby
+ * @modified Steven Augart -- so it doesn't subclass VM_Thread any more.
  */
-public class Thread extends VM_Thread implements Runnable {
+public class Thread implements Runnable {
 
   public final static int MIN_PRIORITY = 1;
   public final static int MAX_PRIORITY = 10;
@@ -20,6 +23,9 @@ public class Thread extends VM_Thread implements Runnable {
 
   private static int createCount = 0;
     
+  protected VM_Thread vmdata;             // need to be accessible to
+                                          // MainThread.
+
   private volatile boolean started = false;
     
   private String name = null;
@@ -37,70 +43,110 @@ public class Thread extends VM_Thread implements Runnable {
   // ugh. protected, should probably be default. fix this.
   //
   protected Thread(String argv[]){
+    vmdata = new VM_Thread(this);
+    
     //-#if RVM_WITH_OSR
-    isSystemThread = false;
+    vmdata.isSystemThread = false;
     //-#endif
-    priority = NORM_PRIORITY;
+    vmdata.priority = NORM_PRIORITY;
     name = "main";
     group = ThreadGroup.root;
     group.addThread(this);
+    // Is this necessary?  I've added it because it seems wrong to have a null
+    // context class loader; maybe it's OK though?
+    contextClassLoader = ClassLoader.getSystemClassLoader();
   }
     
+  /** 
+   * This constructor is only used to create the system threads.
+   *
+   * @deprecated This constructor should go away in favor of the two-argument
+   * form. 
+   */
+  Thread(VM_Thread vmdata) {
+    /* Initialize the name to NULL, then set it after the initializer is run.
+     * This is awkward, but Java won't let us invoke the toString()
+     * method on this object until the initializer it calls has been run.   */
+    this(vmdata, null);
+    this.name = "Jikes_RVM_Miscellaneous_System_Thread: " + toString();
+  }
+  
+
+  /** This is only used to create the system threads.
+   *
+   * This is only used by 
+   * java.lang.JikesRVMSupport.createThread(VM_Thread, String). 
+   *
+   * And THAT function is ONLY used by the VM_Thread() constructor, when
+   * called with a NULL VM_Thread argument.  In turn, the constructor is only
+   * called with that argument when we create the "boot thread".
+   */
+
+  Thread(VM_Thread vmdata, String myName) {
+    final boolean dbg = false;
+    
+    if (dbg) VM.sysWriteln("Invoked Thread(VM_Thread, String)");
+    this.vmdata = vmdata;
+    if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata");
+    // isSystemThread defaults to "true"
+    vmdata.priority = NORM_PRIORITY;
+    if (dbg) 
+      VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.priority");
+    this.name = myName;
+    if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.name");
+    group = ThreadGroup.root;
+    if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.group");
+    // // We might still be in the process of booting the VM.  If so, leave us
+    // // out of a threadGroup.
+    // if ( group != null )
+    group.addThread(this);
+    if (dbg) 
+      VM.sysWriteln("  Thread(VM_Thread, String) called group.addThread");
+    // Is this necessary?  I've added it because it seems wrong to have a null
+    // context class loader; maybe it's OK though?
+    // contextClassLoader = ClassLoader.getSystemClassLoader();
+    if (dbg) 
+      VM.sysWriteln("  Thread(VM_Thread, String) set contextClassLoader");
+  }
+
   public Thread() {
     this(null, null, newName());
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
     
   public Thread(Runnable runnable) {
     this(null, runnable, newName());
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
 
   public Thread(Runnable runnable, String threadName) {
     this(null, runnable, threadName);
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
     
   public Thread(String threadName) {
     this(null, null, threadName);
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
 
   public Thread(ThreadGroup group, Runnable runnable) {
     this(group, runnable, newName());
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
 
   public Thread(ThreadGroup group, String threadName) {
     this(group, null, threadName);
-    //-#if RVM_WITH_OSR
-    isSystemThread = false;
-    //-#endif
   }
 
   public Thread(ThreadGroup group, Runnable runnable, String threadName) {
-    super();
+    vmdata = new VM_Thread(this);
+
     //-#if RVM_WITH_OSR
-    isSystemThread = false;
+    vmdata.isSystemThread = false;
     //-#endif
     if (threadName==null) throw new NullPointerException();
     this.name = threadName;
     this.runnable = runnable;
-    this.priority = NORM_PRIORITY;
+    vmdata.priority = NORM_PRIORITY;
     Thread currentThread  = currentThread();
 
     if (currentThread.isDaemon())
-      this.makeDaemon(true);
+      vmdata.makeDaemon(true);
 
     if (group == null) {
       SecurityManager currentManager = System.getSecurityManager();
@@ -150,9 +196,11 @@ public class Thread extends VM_Thread implements Runnable {
   }
 
   public static Thread currentThread () { 
-    return (Thread)VM_Thread.getCurrentThread();
+    return VM_Thread.getCurrentThread().thread;
   }
 
+  /** The JDK docs say "This method is not implemented".  We won't implement
+      it either, nor will we even have it throw an exception. */
   public void destroy() {
 
   }
@@ -174,7 +222,7 @@ public class Thread extends VM_Thread implements Runnable {
   }
 
   public final int getPriority() {
-    return priority;
+    return vmdata.priority;
   }
 
   public final ThreadGroup getThreadGroup() {
@@ -184,7 +232,7 @@ public class Thread extends VM_Thread implements Runnable {
   public synchronized void interrupt() {
     checkAccess();
     isInterrupted = true;
-    super.kill(new InterruptedException("operation interrupted"), false);
+    vmdata.kill(new InterruptedException("operation interrupted"), false);
   }
   
   public static boolean interrupted () {
@@ -198,7 +246,7 @@ public class Thread extends VM_Thread implements Runnable {
     
     
   public final synchronized boolean isAlive() {
-    return super.isAlive;
+    return vmdata.isAlive();
   }
     
   private synchronized boolean isDead() {
@@ -207,7 +255,7 @@ public class Thread extends VM_Thread implements Runnable {
   }
 
   public final boolean isDaemon() {
-    return super.isDaemon;
+    return vmdata.isDaemonThread();
   }
 
   public boolean isInterrupted() {
@@ -260,9 +308,14 @@ public class Thread extends VM_Thread implements Runnable {
     return "Thread-" + createCount++;
   }
 
+  public final synchronized void suspend () {
+    checkAccess();
+    vmdata.suspend();
+  }
+
   public final synchronized void resume() {
     checkAccess();
-    super.resume();
+    vmdata.resume();
   }
 
   public void run() {
@@ -277,7 +330,7 @@ public class Thread extends VM_Thread implements Runnable {
 
   public final void setDaemon(boolean isDaemon) {
     checkAccess();
-    if (!this.started) super.makeDaemon(isDaemon);
+    if (!this.started) vmdata.makeDaemon(isDaemon);
     else throw new IllegalThreadStateException();
   }
 
@@ -294,7 +347,7 @@ public class Thread extends VM_Thread implements Runnable {
     }
     int tgmax = getThreadGroup().getMaxPriority();
     if (newPriority > tgmax) newPriority = tgmax;
-    priority = newPriority;
+    vmdata.priority = newPriority;
   }
     
   public static void sleep (long time) throws InterruptedException {
@@ -309,7 +362,7 @@ public class Thread extends VM_Thread implements Runnable {
   }
     
   public synchronized void start()  {
-    super.start();
+    vmdata.start();
     started = true;
   }
     
@@ -319,15 +372,24 @@ public class Thread extends VM_Thread implements Runnable {
     
   public final synchronized void stop(Throwable throwable) {
     checkAccess();
-    if (throwable != null) super.kill(throwable, true);
+    if (throwable != null) vmdata.kill(throwable, true);
     else throw new NullPointerException();
   }
 
+  /** jdk 1.4.2 documents toString() as returning name, priority, and group. */
   public String toString() {
-    return "Thread[" + this.getName() + "]";
+    return "Thread[ name = " + this.getName() + ", priority = " + getPriority()
+      + ", group = " + getThreadGroup() + "]";
   }
     
   public static void yield () {
     VM_Thread.yield();
   }
+
+  /** Methods we used to inherit from VM_Thread. ** */
+  public boolean holdsLock(Object obj) {
+    throw new VM_UnimplementedError("java.lang.Thread.holdsLock(Object)");
+  }
+  
+
 }
