@@ -86,7 +86,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     vmResource = vmr;
     memoryResource = mr;
     plan = thePlan;
-    freeList = new VM_AddressArray(FREE_LIST_ENTRIES);
+    freeList = VM_AddressArray.create(FREE_LIST_ENTRIES);
   }
 
   static {

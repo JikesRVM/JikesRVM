@@ -104,10 +104,10 @@ abstract class SegregatedFreeList extends Allocator
    */
   SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, Plan plan) {
     blockAllocator = new BlockAllocator(vmr, mr, plan);
-    freeList = new VM_AddressArray(SIZE_CLASSES);
-    firstBlock = new VM_AddressArray(SIZE_CLASSES);
-    lastBlock = new VM_AddressArray(SIZE_CLASSES);
-    currentBlock = new VM_AddressArray(SIZE_CLASSES);
+    freeList = VM_AddressArray.create(SIZE_CLASSES);
+    firstBlock = VM_AddressArray.create(SIZE_CLASSES);
+    lastBlock = VM_AddressArray.create(SIZE_CLASSES);
+    currentBlock = VM_AddressArray.create(SIZE_CLASSES);
     cellsInUse = new int[SIZE_CLASSES];
   }
 
