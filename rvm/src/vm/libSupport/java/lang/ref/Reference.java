@@ -23,9 +23,9 @@ public abstract class Reference {
 
   /**
    * The address of the next Reference object in a linked list of
-  Reference objects. This is an address to allow reference objects to
-  be garbage collected if the mutator no longer maintains strong
-  references to them.
+   * Reference objects. This is an address to allow reference objects to
+   * be garbage collected if the mutator no longer maintains strong
+   * references to them.
    */
   private VM_Address nextAsAddress;
 
@@ -50,9 +50,9 @@ public abstract class Reference {
   ReferenceQueue queue;
 
   /**
-     Record whether this object has ever been enqueued, to ensure
-     phantom references are never enqueued more than once.
-  */
+   * Record whether this object has ever been enqueued, to ensure
+   * phantom references are never enqueued more than once.
+   */
   boolean wasEnqueued = false;
 
   Reference(Object ref) {
