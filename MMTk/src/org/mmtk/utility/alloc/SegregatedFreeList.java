@@ -412,10 +412,6 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getSizeClass(EXTENT bytes)
     throws VM_PragmaInline {
-    if (!((bytes > 0) && (bytes <= 8192))) {
-      VM.sysWrite(bytes); VM.sysWrite("!\n");
-    }
-
     if (VM.VerifyAssertions) VM._assert((bytes > 0) && (bytes <= 8192));
 
     int sz1 = bytes - 1;
