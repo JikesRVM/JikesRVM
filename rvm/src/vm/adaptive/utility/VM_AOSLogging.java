@@ -741,8 +741,7 @@ public class VM_AOSLogging {
 	log.println("\tRate for this method: "+ BCLength / compTime
 		    +", Total of Logs: "+ totalLogOfRates);
 	log.println("\tTotal Methods: "+ totalMethods);
-	log.println("\tNew Rate (old way): "+ totalBCLength / totalCompTime);
-	log.println("\tNew Rate (new way): "+ Math.exp(totalLogOfRates / totalLogValueMethods));
+	log.println("\tNew Rate: "+ Math.exp(totalLogOfRates / totalLogValueMethods));
       }
     }
   }
