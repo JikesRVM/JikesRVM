@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -85,7 +85,7 @@ public class OPT_ObjectReplacer
 
   /** 
    * Returns a Vector<VM_Field>, holding the fields of the object
-   * @param _klass the type of the object
+   * @param klass the type of the object
    */
   private static Vector getFieldsAsVector (VM_Class klass) {
     VM_Field[] f = klass.getInstanceFields();

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 
@@ -35,9 +35,9 @@ final class OPT_MinimalBURS extends OPT_BURS {
   }
 
   /**
-   * Build BURS trees for dependence graph dg, label the trees, and
+   * Build BURS trees for dependence graph <code>bb</code>, label the trees, and
    * then generate MIR instructions based on the labeling.
-   * @param dg the dependence graph.
+   * @param bb   The dependence graph.   XXX Is this correct?
    */
   public void invoke (OPT_BasicBlock bb) {
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);

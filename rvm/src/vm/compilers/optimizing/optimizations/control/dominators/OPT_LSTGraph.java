@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -230,8 +230,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * This routine performs a non-recursive depth-first search starting at
    *  the block passed looking for back edges.  It uses dominator information
    *  to determine back edges.
-   * @param bb the basic block to process
-   * @param numNodes the number of basic block
+   * @param bb        The basic block to process
+   * @param numBlocks The number of basic blocks
    */
   private void findBackEdges(OPT_BasicBlock bb, int numBlocks) {
     OPT_Stack stack = new OPT_Stack();
