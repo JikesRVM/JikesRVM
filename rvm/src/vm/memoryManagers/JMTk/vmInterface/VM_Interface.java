@@ -22,6 +22,7 @@ import org.mmtk.utility.PreCopyEnumerator;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.Scan;
 import org.mmtk.vm.SynchronizedCounter;
+import org.mmtk.vm.ReferenceGlue;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -935,40 +936,6 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
 
   /***********************************************************************
    *
-   * References
-   */
-
-  /**
-   * Determine whether this reference has ever been enqueued.
-   *
-   * @param r the Reference object
-   * @return <code>true</code> if reference has ever been enqueued
-   */
-  public static final boolean referenceWasEverEnqueued(Reference r) {
-    return r.wasEverEnqueued();
-  }
-
-  /**
-   * Put this Reference object on its ReferenceQueue (if it has one)
-   * when its referent is no longer sufficiently reachable. The
-   * definition of "reachable" is defined by the semantics of the
-   * particular subclass of Reference. The implementation of this
-   * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
-   * class rather than the public Reference class to ensure that Jikes
-   * has a safe way of enqueueing the object, one that cannot be
-   * overridden by the application program.
-   * 
-   * @see java.lang.ref.ReferenceQueue
-   * @param r the Reference object
-   * @return <code>true</code> if the reference was enqueued
-   */
-  public static final boolean enqueueReference(Reference r) {
-    return r.enqueue();
-  }
-
-  /***********************************************************************
-   *
    * Miscellaneous
    */
 
@@ -1044,7 +1011,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   }
 
   /**
-   * Returnt the size required to copy an object
+   * Return the size required to copy an object
    *
    * @param obj The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
@@ -1285,27 +1252,6 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   public static byte [] getTypeDescriptor(VM_Address ref) {
     VM_Atom descriptor = VM_Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
-  }
-
-  /* Used in processing weak references etc */
-
-  public static VM_Address getReferent (VM_Address addr) {
-    return VM_Magic.getMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()));    
-  }
-  
-  public static void setReferent (VM_Address addr, VM_Address referent) {
-    VM_Magic.setMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()), referent);    
-  }
-  
-  public static VM_Address getNextReferenceAsAddress (VM_Address ref) {
-    return VM_Magic.getMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
-    
-  }
-  
-  public static void setNextReferenceAsAddress (VM_Address ref, VM_Address next) {
-    VM_Magic.setMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()),
-                              next);
-    
   }
 
   /**

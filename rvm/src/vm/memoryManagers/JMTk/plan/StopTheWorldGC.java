@@ -200,8 +200,8 @@ public abstract class StopTheWorldGC extends BasePlan
 
     if (!Options.noReferenceTypes) {
       if (timekeeper) refTypeTime.start();
-      if (designated) ReferenceProcessor.moveSoftReferencesToReadyList();
-      if (designated) ReferenceProcessor.moveWeakReferencesToReadyList();
+      if (designated) ReferenceProcessor.processSoftReferences();
+      if (designated) ReferenceProcessor.processWeakReferences();
       if (timekeeper) refTypeTime.stop();
     }
  
@@ -216,7 +216,7 @@ public abstract class StopTheWorldGC extends BasePlan
       
     if (!Options.noReferenceTypes) {
       if (timekeeper) refTypeTime.start();
-      if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
+      if (designated) ReferenceProcessor.processPhantomReferences();
       if (timekeeper) refTypeTime.stop();
     }
 

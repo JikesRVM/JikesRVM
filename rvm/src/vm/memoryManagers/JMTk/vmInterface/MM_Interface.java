@@ -19,11 +19,11 @@ import org.mmtk.utility.HeapGrowthManager;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.ReferenceGlue;
 import org.mmtk.vm.SynchronizedCounter;
 import org.mmtk.vm.VM_Interface;
 
@@ -851,7 +851,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
    public static void addSoftReference(SoftReference obj)
      throws VM_PragmaInterruptible {
-     ReferenceProcessor.addSoftCandidate(obj);
+     ReferenceGlue.addSoftCandidate(obj);
    }
  
   /**
@@ -861,7 +861,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
    public static void addWeakReference(WeakReference obj)
      throws VM_PragmaInterruptible {
-     ReferenceProcessor.addWeakCandidate(obj);
+     ReferenceGlue.addWeakCandidate(obj);
    }
  
   /**
@@ -871,7 +871,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
    public static void addPhantomReference(PhantomReference obj)
      throws VM_PragmaInterruptible {
-     ReferenceProcessor.addPhantomCandidate(obj);
+     ReferenceGlue.addPhantomCandidate(obj);
    }
 
 
