@@ -27,14 +27,15 @@ public class Memory implements VM_Uninterruptible {
   // into moving a get_obj_tib into the interruptible region where the tib is being
   // installed via an int_store
   //
-  private static boolean isZeroedHelper(VM_Address start, EXTENT size, boolean verbose) throws VM_PragmaNoInline {
+  private static boolean isSetHelper(VM_Address start, EXTENT size, boolean verbose, int v) throws VM_PragmaNoInline {
     if (VM.VerifyAssertions) VM._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
-      if (!VM_Magic.getMemoryAddress(start.add(i)).isZero()) {
+      if (VM_Magic.getMemoryAddress(start.add(i)).toInt() != v) {
 	if (verbose) {
-	  VM.sysWrite("Memory range is not zeroed: ", start);
-	  VM.sysWriteln(" .. ", start.add(size));
-	  dumpMemory(start, 0, size);
+	    VM.psysWriteln("Memory range does not contain only value ", v);
+	    VM.sysWriteln("Non-zero range: ", start, " .. ", start.add(size));
+	    VM.sysWriteln("First bad value at ", start.add(i));
+	    dumpMemory(start, 0, size);
 	}
 	return false;
       }
@@ -42,11 +43,15 @@ public class Memory implements VM_Uninterruptible {
   }
 
   public static boolean IsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
-    return isZeroedHelper(start, size, false);
+    return isSetHelper(start, size, false, 0);
   }
 
   public static boolean assertIsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
-    return isZeroedHelper(start, size, true);
+    return isSetHelper(start, size, true, 0);
+  }
+
+  public static boolean assertIsSet(VM_Address start, EXTENT size, int v) throws VM_PragmaInline {
+    return isSetHelper(start, size, true, v);
   }
 
   // start and len must both be 4-byte aligned
@@ -61,6 +66,11 @@ public class Memory implements VM_Uninterruptible {
   public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
       VM_Magic.setMemoryWord(start.add(i), 0);
+  }
+
+  public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
+    for (int i=0; i<len; i+=4) 
+      VM_Magic.setMemoryWord(start.add(i), v);
   }
 
   // start and len must both be OS-page aligned
