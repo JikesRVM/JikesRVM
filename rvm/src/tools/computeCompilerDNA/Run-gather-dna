@@ -19,22 +19,18 @@
 #        FastOpt1Semispace (for speedup)
 #        FastSemispace (for speedup)
 #  
-#   2) You need to send the BUILDDIR variable below to the parent of the
-#       the directory that holds the images
+#   2) Run the script in the SPECjvm98 directory redirecting the output to a file
 #
-#   3) Run the script in the SPECjvm98 directory redirecting the output to a file
-#
-#   4) Run computeDNA.pl on this file
+#   3) Run computeDNA.pl on this file
 #
 #  Michael Hind, Oct 30, 2001
 
-# set this to the parent of the build directories
-BUILDDIR="/home/hind/IntelBuild"
-
+# parent of build diectories is command line argument to the script
+BUILDDIR=$1
 
 # Define benchmark groups
-#all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
-all='_202_jess'
+all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
+#all='_202_jess'
 
 jvmoptions="	-X:h=400 -X:lh=100"
 jvmcompoptions="	-X:h=400 -X:lh=100 -X:measureCompilation=true"
