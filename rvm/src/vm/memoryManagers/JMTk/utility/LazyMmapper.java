@@ -44,8 +44,11 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
       // might have become MAPPED here
+      lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
+	lock.check(101);
 	int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
+	lock.check(102);
 	if (errno != 0) {
 	  lock.release();
 	  VM.sysWrite("ensureMapped failed with errno ", errno);
@@ -58,9 +61,12 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	    VM.sysWriteln(" with len = ", MMAP_CHUNK_SIZE);
 	  }
 	}
+	lock.check(103);
       }
       if (mapped[chunk] == PROTECTED) {
+	lock.check(201);
 	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+	  lock.check(202);
 	  lock.release();
 	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
 	}
@@ -71,7 +77,9 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	  }
 	}
       }
+      lock.check(301);
       mapped[chunk] = MAPPED;
+      lock.check(302);
       lock.release();
     }
 
