@@ -773,7 +773,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     }
 
     // system queues    
-    VM.sysWrite("\n-- System Queues -- \n");   wakeupQueue.dump();
+    VM.sysWrite("\n-- System Queues -- \n");
     VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
     VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
     VM.sysWrite(" deadVPQueue: ");     deadVPQueue.dump();
