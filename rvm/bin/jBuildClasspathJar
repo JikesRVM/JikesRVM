@@ -68,7 +68,7 @@ done
 ## Warn if timestamps do not match.
 ##
 mismatch=0
-if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
+if ! [[ ${BUILDING_CLASSPATH_FROM_CVS_HEAD-} ]] && [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
     if [[ -e $DEST_DIR/stamp ]]; then
 	declare -i stat=0
 	$DIFF $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null || stat=$?
