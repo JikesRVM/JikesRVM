@@ -273,9 +273,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
     if (Plan.verbose >= 2) VM.sysWriteln("Collection finished (ms): ", 
 					(int) (System.currentTimeMillis() - start));
-    double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
-    if (usage > OUT_OF_MEMORY_THRESHOLD)
-	throw (new OutOfMemoryError());
+    if (Plan.isLastGCFull()) {
+	double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+	if (usage > OUT_OF_MEMORY_THRESHOLD) {
+	    if (Plan.verbose >= 2) {
+		VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
+		VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
+		VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
+	    }
+	    throw (new OutOfMemoryError());
+	}
+    }
   }
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
