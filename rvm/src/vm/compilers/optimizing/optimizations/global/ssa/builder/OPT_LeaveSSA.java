@@ -420,10 +420,22 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         }
         if (ci != null)
           if (shouldSplitBlock) {
-            OPT_BasicBlock criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+            if (DEBUG) VM.sysWriteln("splitting edge: " + bb + "->" + c.phi.getBasicBlock());
+            OPT_BasicBlock criticalBlock = (OPT_BasicBlock)criticalBlocks.get(c.phi.getBasicBlock());
+            if (criticalBlock == null) {
+              criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+              if (c.phi.getBasicBlock().getInfrequent()) {
+                criticalBlock.setInfrequent();
+              }
+              splitSomeBlock = true;
+              criticalBlocks.put(c.phi.getBasicBlock(),criticalBlock);
+              HashMap newNames = new HashMap(4);
+              currentNames.put(criticalBlock,newNames);
+            }
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);
-          } else
+          } else {
             OPT_SSA.addAtEnd(ir, bb, ci, c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
+          }
           
           // source has been copied and so can now be overwritten
           // safely.  so now add any copies _to_ the source of the
