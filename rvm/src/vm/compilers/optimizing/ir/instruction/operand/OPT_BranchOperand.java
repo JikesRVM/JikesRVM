@@ -20,10 +20,12 @@ public final class OPT_BranchOperand extends OPT_Operand {
 
   /**
    * Construct a new branch operand with the given target.
+   * <STRONG> Precondition: </STRONG> targ must be a Label instruction.
    * 
    * @param targ target of branch
    */
   OPT_BranchOperand(OPT_Instruction targ) {
+    if (VM.VerifyAssertions) VM.assert(Label.conforms(targ));
     target = targ;
   }
 
