@@ -42,7 +42,8 @@ clean:
 #	echo "MAKEFLAGS is ${MFLAGS}"
 	$(RM) -r ${TARGETS} ${SCRATCH} ${LOG}
 
-${CONFIG_H}: prep
+${CONFIG_H}: 
+	$(MAKE) prep
 	@(echo >&2 "Configuring target.  Log in ${LOG},") ${SILENCE}
 	@(echo >&2 "  config.h in ${CONFIG_H}, Make.config in ${CONFIG_MAKE}") ${SILENCE}
 	@> ${LOG}		# zero out the log file.
@@ -56,7 +57,8 @@ ${CONFIG_H}: prep
 # 	@${RUN} cxx_with_W_no_endif_labels.sh --make >> $@ ${SILENCE}
 # endif
 
-${CONFIG_SH}: prep
+${CONFIG_SH}: 
+	$(MAKE) prep
 	@> $@
 ifeq (${RVM_WITH_GCSPY},1)
 	@${RUN} cxx_with_W_no_endif_labels.sh --sh >> $@ ${SILENCE}
