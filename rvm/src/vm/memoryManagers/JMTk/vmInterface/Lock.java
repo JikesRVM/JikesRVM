@@ -106,7 +106,7 @@ public class Lock implements VM_Uninterruptible {
             VM.sysWrite(" with ticket ", ticket);
             VM.sysWrite(" failed to acquire lock ",id);
             VM.sysWrite(" (",name);
-            VM.sysWriteln(") serving ", serving);
+            VM.sysWrite(") serving ", serving);
             VM.sysWriteln(" after ",VM_Time.cyclesToMillis(waitTime)," ms");
             VM_Thread t = thread;
             if (t == null) 
