@@ -143,11 +143,13 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_Type_type);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
+      //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
     } else if (methodName == VM_MagicNames.addressAsBlockControl) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.proxy.findOrCreateType("LVM_BlockControl;"));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
+      //-#endif
     } else if (methodName == VM_MagicNames.addressAsThread) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.proxy.findOrCreateType("LVM_Thread;"));
