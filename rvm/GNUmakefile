@@ -47,7 +47,8 @@ append_java_templates=find src -follow ${find_match_junk_names}  -o -name exampl
 FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
 FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
-EFLAGS:=--members --declarations --defines --globals
+# etags in emacs 21.3.CVS-2003-09-23 does not support "--defines, nor  --globals".
+EFLAGS:=--members --declarations 
 
 # A forced target.
 .PHONY: FORCE
