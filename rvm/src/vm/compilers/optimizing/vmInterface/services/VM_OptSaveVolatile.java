@@ -21,42 +21,61 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-public class VM_OptSaveVolatile implements VM_SaveVolatile {
+public class VM_OptSaveVolatile implements VM_SaveVolatile,
+					   VM_Uninterruptible {
  
   /**
-   * Suspend execution of current thread and place it on tail of system
-   * thread's ready queue because of a timer interrupt caught in a 
-   * method prologue.
+   * Handle timer interrupt taken in method prologue.
    * This method is identical to the threadSwitchFromPrologue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromPrologue() throws VM_PragmaUninterruptible {
+  public static void OPT_threadSwitchFromPrologue() {
     VM_Thread.threadSwitch(VM_Thread.PROLOGUE);
   }
 
   /**
-   * Suspend execution of current thread and place it on tail of system
-   * thread's ready queue because of a timer interrupt caught in a 
-   * method epilogue.
+   * Handle timer interrupt taken in method epilogue.
    * This method is identical to the threadSwitchFromEpilogue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromEpilogue() throws VM_PragmaUninterruptible {
+  public static void OPT_threadSwitchFromEpilogue() {
     VM_Thread.threadSwitch(VM_Thread.EPILOGUE);
   }
 
   /**
-   * Suspend execution of current thread and place it on tail of system
-   * thread's ready queue because of a timer interrupt caught on a 
-   * loop backedge.
+   * Handle timer interrupt taken on loop backedge.
    * This method is identical to the threadSwitchFromBackedge() method used 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromBackedge() throws VM_PragmaUninterruptible {
+  public static void OPT_threadSwitchFromBackedge() {
     VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
+  }
+
+  /**
+   * Handle timer interrupt taken in the prologue of a native method.
+   */         
+  public static void OPT_threadSwitchFromNativePrologue() {
+    // VM.sysWriteln(123);
+    // VM.sysWriteln(VM_Magic.getFramePointer());
+    // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    // System.gc();
+    // VM.sysWriteln("Survived GC");
+    // VM_Thread.threadSwitch(VM_Thread.NATIVE_PROLOGUE);
+  }
+
+  /**
+   * Handle timer interrupt taken in the epilogue of a native method.
+   */         
+  public static void OPT_threadSwitchFromNativeEpilogue() {
+    // VM.sysWriteln(321);
+    // VM.sysWriteln(VM_Magic.getFramePointer());
+    // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    // System.gc();
+    // VM.sysWriteln("Survived GC");
+    // VM_Thread.threadSwitch(VM_Thread.NATIVE_EPILOGUE);
   }
 
   //-#if RVM_WITH_OSR
@@ -70,7 +89,8 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile {
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.
    */
-  public static void OPT_resolve() throws NoClassDefFoundError {
+  public static void OPT_resolve() throws NoClassDefFoundError,
+					  VM_PragmaInterruptible {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve

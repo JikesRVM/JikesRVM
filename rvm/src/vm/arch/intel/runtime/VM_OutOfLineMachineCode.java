@@ -345,7 +345,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   // to java.
   //
   // on entry assume:
-  //   TOC = TOC for native call
   //   S0  = address of native function to branch to
   //
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
@@ -357,6 +356,22 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // save callers ret addr in glue frame
     asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
+
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Inject a 'prologue' sample point
+    /*
+    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
+						   VM_Entrypoints.threadSwitchRequestedField.getOffset(),
+						   0);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
+    asm.emitPUSH_Reg(S0);
+    
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromNativePrologueMethod.getOffset()); 
+    asm.emitPOP_Reg(S0);
+    // fr1.resolve(asm);
+    */
+    //-#endif
 
     // change processor status to IN_NATIVE
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, 
@@ -408,6 +423,20 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 									
     // status is now IN_JAVA. GC can not occur while we execute on a processor
     // in this state, so it is safe to access fields of objects
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Inject an 'epilogue' sample point
+    /*
+      WORK IN PROGRESS -- dave
+    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
+						   VM_Entrypoints.threadSwitchRequestedField.getOffset(),
+						   0);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
+    
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromNativeEpilogueMethod.getOffset()); 
+    */
+    // fr1.resolve(asm);
+    //-#endif
 
     // Test if returning to Java on a RVM processor or a Native processor.
 
