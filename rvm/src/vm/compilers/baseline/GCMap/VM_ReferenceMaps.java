@@ -1427,8 +1427,9 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    */
   int findUnusualMap(int mapid)  {
     int i;
-    // greater than 127 map sites- can't use direct index.. 
-    // do sequestial scan for rest of maps ..it's slow but should almost never happen
+    // Greater than 127 map sites- can't use direct index.
+    // Do sequential scan for rest of maps.  It's slow but should almost never
+    // happen.
 
     for ( i = JSR_INDEX_MASK; i < numberUnusualMaps; i++) {
       if ( unusualMaps[i].getNormalMapIndex() == mapid)

@@ -26,7 +26,7 @@ public final class OPT_CompilationState {
    * @param mcSizeEstimate, current guess on total size of final machinecode
    * @param isExtant is the receiver of a virtual call an extant object?
    * @param options controlling compiler options
-   * @@param cm compiled method of the IR object being compiled
+   * @param cm compiled method of the IR object being compiled
    */
   public OPT_CompilationState(OPT_Instruction call,
 			      int mcSizeEstimate, 

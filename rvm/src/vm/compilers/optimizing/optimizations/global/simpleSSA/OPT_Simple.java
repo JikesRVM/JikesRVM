@@ -400,7 +400,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
         instr != null; instr = prevInstr) {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because 
                                         // remove nulls next/prev fields
-      // if instr is a PEI, store, branch, or call it's not dead ...
+      // if instr is a PEI, store, branch, or call, then it's not dead ...
       if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch()
           || instr.isCall())
         continue;

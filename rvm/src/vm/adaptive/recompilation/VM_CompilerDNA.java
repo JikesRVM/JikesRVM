@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -14,7 +14,7 @@ import java.util.*;
  * This class codifies the cost/benefit properties of the various compilers
  * used in the adaptive optimization system.
  *
- * @author: Michael Hind
+ * @author Michael Hind
  */
 public class VM_CompilerDNA implements VM_Constants {
 

@@ -43,13 +43,12 @@ public final class VM_CallSiteTriple {
    */
   public VM_Method getCallee() { return callee; }
   /**
-   * Bytecode index of callsite in caller.
-   * @return call site's bytecode index in caller
+   * Call site's bytecode index in caller.
    */
   int bcIndex;		// bytecode index (in caller) of call site
   /**
-   * Get call site's bytecode index
-   * @ return call site's bytecode index
+   * Get call site's bytecode index (in caller).
+   * @return call site's bytecode index (in caller)
    */
   public int getBytecodeIndex() {return bcIndex;}
   

@@ -237,7 +237,7 @@ public abstract class VM_Method extends VM_Member {
    * <li> It is not the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods.
    * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
-   * <li> it's declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
+   * <li> its declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
    *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
    *      exception.
    * </ul>

@@ -32,7 +32,7 @@ final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
   /**
    *  Constructor
    *
-   * @manager The manager that will provide the counter space
+   * @param manager The manager that will provide the counter space
    **/
   VM_MethodInvocationCounterData(OPT_InstrumentedEventCounterManager manager)
   {

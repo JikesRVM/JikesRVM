@@ -572,7 +572,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   //      (b) the instruction is a "normal" call
   //      (c) the instruction is a call in the off-branch
   //          of a guarded inline.
-  //   U indicates an unused bit; it's value is undefined.
+  //   U indicates an unused bit; its value is undefined.
   // 
   // We support two entry formats.
   // 

@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 /**
  * Defines header words used by memory manager.not used for 
  *
- * @see VM_ObjectModel
+ * @see com.ibm.JikesRVM.VM_ObjectModel
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Perry Cheng

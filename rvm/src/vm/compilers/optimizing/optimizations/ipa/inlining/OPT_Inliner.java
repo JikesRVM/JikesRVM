@@ -40,14 +40,14 @@ public class OPT_Inliner implements OPT_Operators,
    */
   public static void execute (OPT_InlineDecision inlDec, OPT_IR ir, 
 			      OPT_Instruction callSite) {
-    // Find out where the call site is and isolate it in it's own basic block.
+    // Find out where the call site is and isolate it in its own basic block.
     OPT_BasicBlock bb = 
       callSite.getBasicBlock().segregateInstruction(callSite, ir);
     OPT_BasicBlock in = bb.prevBasicBlockInCodeOrder();
     OPT_BasicBlock out = bb.nextBasicBlockInCodeOrder();
     // Clear the sratch object of any register operands being 
     // passed as parameters.
-    // BC2IR uses this field for it's own purposes, and will be confused 
+    // BC2IR uses this field for its own purposes, and will be confused 
     // if the scratch object has been used by someone else and not cleared.
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       OPT_Operand arg = Call.getParam(callSite, i);

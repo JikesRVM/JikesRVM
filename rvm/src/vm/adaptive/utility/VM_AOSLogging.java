@@ -619,7 +619,7 @@ public class VM_AOSLogging {
   ////////////////////////////////////////////////////////////////
 
   /**
-   * This method logs a controller cost estimate for doing nothing
+   * This method logs a controller cost estimate for doing nothing.
    * @param method the method of interest
    * @param optLevel the opt level being estimated, -1 = baseline
    * @param cost  the computed cost for this method and level
@@ -643,10 +643,10 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs a controller cost estimate
+   * This method logs a controller cost estimate.
    * @param method the method of interest
-   * @param choiceDesc
-   @ @param cost  the computed cost for this method and level
+   * @param choiceDesc a String describing the choice point
+   * @param cost  the computed cost for this method and level
    */
   public static void recordControllerEstimateCostOpt(VM_Method method, 
 						     String choiceDesc,

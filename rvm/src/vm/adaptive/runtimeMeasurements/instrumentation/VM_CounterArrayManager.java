@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.VM_Entrypoints;
 /**
  * An implementation of a OPT_InstrumentedEventCounterManager .  It
  * uses an unsynchronized two dimensional array of doubles to allocate
- * it's counters. (see OPT_InstrumentedEventCounterManager.java for a
+ * its counters. (see OPT_InstrumentedEventCounterManager.java for a
  * description of a counter manager)
  * 
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
@@ -33,7 +33,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   /**
    *  This method is called my a VM_ManagedData object to obtain space
    *  in the counter manager.  A handle or "ID" is returned for the
-   *  data to identify it's counter space.
+   *  data to identify its counter space.
    *
    * @param countersNeeded The number of counters being requested 
    * @return The handle for this data's counter space.

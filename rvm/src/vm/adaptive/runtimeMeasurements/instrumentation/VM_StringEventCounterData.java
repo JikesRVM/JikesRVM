@@ -31,7 +31,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
   /**
    *  Constructor
    *
-   * @manager The manager that will provide the counter space
+   * @param manager The manager that will provide the counter space
    **/
   VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager,
 			    String name)

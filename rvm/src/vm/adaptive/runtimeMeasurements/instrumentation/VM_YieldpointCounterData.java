@@ -33,7 +33,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   /**
    *  Constructor
    *
-   * @manager The manager that will provide the counter space
+   * @param manager the manager that will provide the counter space
    **/
   VM_YieldpointCounterData(OPT_InstrumentedEventCounterManager manager)
   {
@@ -44,7 +44,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   }
 
   /**
-   *  Called at end when data should dump it's contents.
+   *  Called at end when data should dump its contents.
    */
   public void report()
   {

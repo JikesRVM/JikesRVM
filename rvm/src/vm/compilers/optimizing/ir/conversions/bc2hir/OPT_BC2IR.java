@@ -2601,7 +2601,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Pop method parameters off the expression stack.
    * If a non-void return, then create a result operand and push it 
    * on the stack.
-   * Create the call instruction and initialize all it's operands.
+   * Create the call instruction and initialize all its operands.
    */
   private OPT_Instruction _callHelper(VM_MethodReference meth, OPT_MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;

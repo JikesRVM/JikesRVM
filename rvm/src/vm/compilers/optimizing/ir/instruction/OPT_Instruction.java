@@ -1242,7 +1242,7 @@ public final class OPT_Instruction
 
   /**
    * Invert the probabilty of this branch being taken.  This method
-   * should be called on a branch instruction when it's condition is
+   * should be called on a branch instruction when its condition is
    * reversed using flipCode().
    * 
    */

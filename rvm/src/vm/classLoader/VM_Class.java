@@ -1315,7 +1315,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       // don't bother compiling <clinit> here;
       // compile it right before we invoke it in initialize.
-      // This also avoids putting clinit's in the bootimage.
+      // This also avoids putting <clinit>s in the bootimage.
       VM_Method method = staticMethods[i];
       if (!method.isClassInitializer()) {
 	VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
