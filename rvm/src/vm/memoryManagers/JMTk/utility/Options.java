@@ -17,17 +17,25 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 public class Options implements VM_Uninterruptible {
 
   static int initialHeapSize = 100 * (1 << 20);
-  static int maxHeapSize     = 300 * (1 << 20);
+  static int maxHeapSize     = 500 * (1 << 20);
+
+  static int heapSize         = 0; // deprecated
+  static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = (1<<30);  // default to variable nursery
 
   public static void process (String arg) throws VM_PragmaInterruptible {
-    //VM.sysWriteln("processing arg = ", arg);
+    // VM.sysWriteln("processing arg = ", arg);
     if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);
       int size = Integer.parseInt(tmp);
       if (size <= 0) VM.sysFail("Unreasonable heap size " + tmp);
-      initialHeapSize = size * (1 << 20);
-      if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
+      heapSize = size * (1 << 20);
+    }
+    else if (arg.startsWith("los=")) {  // deprecated
+      String tmp = arg.substring(4);
+      int size = Integer.parseInt(tmp);
+      if (size <= 0) VM.sysFail("Unreasonable large heap size " + tmp);
+      largeHeapSize = size * (1 << 20);  
     }
     else if (arg.startsWith("max=")) {
       String tmp = arg.substring(4);
@@ -48,6 +56,9 @@ public class Options implements VM_Uninterruptible {
     }
     else 
       VM.sysWriteln("Ignoring unknown GC option: ", arg);
+    if (heapSize != 0) // if deprecated interface is used
+      initialHeapSize = heapSize + largeHeapSize;
+    if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
   }
 
 }
