@@ -1795,8 +1795,9 @@ sysPthreadSetupSignalHandling()
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     int rc;                     // retval from subfunction.
+
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     /*
      *  Provide space for this pthread to process exceptions.  This is
      * needed on Linux because multiple pthreads can handle signals
