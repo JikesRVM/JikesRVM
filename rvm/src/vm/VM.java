@@ -34,7 +34,10 @@ public class VM extends VM_Properties
    */ 
   public static void initForBootImageWriter(String classPath, 
                                             String[] bootCompilerArgs) 
-    throws InterruptiblePragma {
+    throws InterruptiblePragma 
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -43,9 +46,9 @@ public class VM extends VM_Properties
    * Prepare vm classes for use by tools.
    */
   public static void initForTool() 
-    throws InterruptiblePragma {
-    runningTool = true;
-    init(System.getProperty("java.class.path"), null);
+    throws InterruptiblePragma 
+  {
+    initForTool(System.getProperty("java.class.path"));
   }
 
   /**
@@ -53,7 +56,10 @@ public class VM extends VM_Properties
    * @param classpath class path to be used by VM_ClassLoader
    */
   public static void initForTool(String classpath) 
-    throws InterruptiblePragma {
+    throws InterruptiblePragma 
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    if (VM.VerifyAssertions) VM._assert(!VM.writingBootImage);
     runningTool = true;
     init(classpath, null);
   }
@@ -212,6 +218,7 @@ public class VM extends VM_Properties
 
         So the boot VM_Thread needs to be associated with a real Thread for
         Thread.getCurrentThread() to return. */
+    VM.safeToAllocateJavaThread = true;
     VM_Scheduler.giveBootVM_ThreadAJavaLangThread();
 
     runClassInitializer("java.lang.ThreadLocal");
@@ -1139,7 +1146,12 @@ public class VM extends VM_Properties
     }
     /* Emergency death. */
     VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    /* And if THAT fails, go into an inf. loop.  Ugly, but it's better than
+       returning from this function and leading to yet more cascading errors.
+       and misleading error messages.   (To the best of my knowledge, we have
+       never yet reached this point.)  */
+    while (true)
+      ;
   }
 
 
@@ -1164,7 +1176,10 @@ public class VM extends VM_Properties
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws InterruptiblePragma {
+    throws InterruptiblePragma
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();
