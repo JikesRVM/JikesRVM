@@ -17,6 +17,7 @@
 
 /\/regression\/tests\/javalex\/qb1.lex.ref/ {next}
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
+/\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 /\/src\/tools\/preprocessor\/testFancy.preprocessor/ { next }
 /\/src\/tools\/preprocessor\/testSimple.preprocessor/ { next }
