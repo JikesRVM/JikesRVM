@@ -1,0 +1,93 @@
+A list of possible improvements for jdp. The order here is not indicative
+of priority.
+
+1) listi command improvements:
+  - current syntax: <listi> | <li> [ <hexaddr> ] [ <count> ]
+    where count can be negative on PPC
+  - expansion: Allow count to be negative on Intel if the current PC is in
+    a known method, by starting at the beginning of the method and walking
+    the instructions remembering each instruction starting point until the
+    current instruction is found.
+  - expansion: Allow as argument [ <Class_methodname> [ +<hexoffset> ]] in
+    place of the hexaddr, where hexoffset is optional, if present list starts
+    from that offset within method. It might be nice to verify hexoffset is
+    a valid offset of the start of an instruction in the method. That may be
+    too expensive though.
+  - expansion: Optionally show hexoffsets with listing. Selected perhaps via
+    a "pref showoffsets true" like selection mechanism. This might be helpful
+    for setting relative breakpoints (copying gc compatible).
+  
+
+2) help text:
+  - Because the formats in the help command messages do not use [ ] to
+    signify optional, it is sometimes hard to understand what parts of
+    a given command are optional (see "help break" for example).
+
+3) break command improvements:
+  - current syntax: <break> | < b > [<hexaddr> | <[class.]method[:line] [sig]> ]
+  - expansion: Allow as argument  [ +<hexoffset> ] in place of :line. Line
+    number has little significance for OPT compiled code. Setting a break
+    point with an explicit hexaddr is dangerous if copying gc is used as
+    the break point can not be cleared later. Using a hexoffset relative
+    to the start of the method solves this problem. Also if the user has
+    specified mc=true to see the code as it was compiled, setting a break
+    point with a hex offset would be convenient.
+  - expansion: Currently if a break is requested in a method and more than one
+    method matches the name, a message "[<classname>.]<methodname> overloaded"
+    is given. The message is not very clear and it is not very helpful. It
+    would be better to show a numbered list of the possible matches and allow
+    the user to enter the command "pick <n>". If there are more than a 
+    reasonable number of matches, then several different approaches could be
+    used such as: - just show the first 20 indicating the user could "pick 
+    one of these or try to be more specific"; - OR indicate too many matches
+    were found and a more specific name is needed. 
+
+4) Add listin (or lin) command:
+  - proposed syntax: <listin> | <lin> [ <count> ]
+    The command would show the next group of instructions, starting with the
+    instruction that was last displayed with the last listi command. This is
+    a little trickier on Intel when it is harder to determine what was the
+    last instruction address displayed by a listi command. 
+
+5) where command:
+  - bug: If "where" is issued while stepping through the lazy-compilation-
+    trampoline code or the interface-hash-collision code or other bits
+    of unnamed assembler, the result is an error message and being dropped
+    into "jid". The result should be more tolerate and instead indicate
+    that "where" is not possible as current execution is likely in an unnamed 
+    assembler fragment. Ideally the fragment could be recognized at the
+    time of entry to it. But a more fault-tolerate response (and not 
+    switching to jid mode) would be an improvement.
+
+6) listm command:
+  - proposed syntax: <listm> | <lm> < [[*]classname[*].][*]methodname[*]>
+  - List the known compiled methods that match the method specified. I
+    suggest limiting the wildcard * symbol to only appear at the start and 
+    ends of classname and method name to make the look-up simpler. 
+    The classname. part is optional. This command is useful in combination
+    with the break command. The display should allow easy cut and paste
+    to the break and listi commands.
+
+7) -jdpbootonly option
+  - bug: On AIX this was trapping in approx Feb/2002. Have not retested lately
+
+8) -method_to_break option needs to be documented, in the user guide.
+
+9) step command:
+  - expansion: Allow an argument of the number of instructions to step over.
+    step 1 is the same as step. Because of varying length instructions this
+    is a bit trickier to support for Intel
+
+10) method lookup:
+  - performance: Commands such as where, and break sometimes take a while
+    because a linear search is being performed over the compiled method
+    table. Consider whether building up a hashMap table would speed up
+    the searches. I'm not recommending building the complete table on start
+    up, but instead to add to the table as more linear searches are done.
+
+11) stepline command:
+   - bug: in approx Feb/2002 I observed that stepline would trap if the
+     current method was compiled with the opt compiler. Have not retested
+     lately. It would be preferable to indicate to the user that the method
+     is opt compiled and stepline is not possible or at least not recommended.
+
