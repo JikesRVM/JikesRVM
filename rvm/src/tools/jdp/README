@@ -17,7 +17,7 @@ jdp commands 	- commands, macro (text from typing "help" in jdp)
 Debugging tips 	- useful debugging tricks
 
 
-Author: Ton Ngo
+@author: Ton Ngo
 
 -------------------------------------------------------------------------
 
@@ -48,6 +48,8 @@ and the debugger can get lost if the dictionaries in the VM become
 corrupted.
 
 
+Other useful options:
+
    You can use jdp to start the VM for debugging as above, or if the
 VM is already running and appears to be hung, you can attach jdp to
 this VM by:
@@ -56,6 +58,16 @@ this VM by:
 
    The process ID is obtained from the "ps" command.  
    The option "-jdpbootonly" can be used in conjunction with "-jdpattach"
+
+   If there is an error in the RVM initialization, you can start debugging
+at a point where the boot image has been loaded but the RVM has not begun
+executing yet. Specify the option:
+
+        jdp -jdpviewboot myProgram myArguments
+
+   Note that if the option "-jdpbootonly" is used, the option
+"-jdpviewboot" is also included by default because jdp would be unable
+to find the dynamically loaded user's main method.
 
 
 
@@ -69,7 +81,7 @@ About jdp
 Jikes RVM effort.  Because no existing debugger satisfactorily meets the
 need of our VM, jdp was written essentially from scratch, hence the
 name primitive.  jdp uses an interesting technique called Remote
-Reflection (see the related paper on the Jalapeno web page).  This
+Reflection (see the related paper on the Jikes RVM web page).  This
 allows jdp to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the VM.
 
