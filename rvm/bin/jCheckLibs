@@ -124,8 +124,12 @@ if [[ -f ${lib_dir}/${jar_file} ]] ; then
 fi
 
 if [[ x$stamp_jar = x ]] ; then
-  echo "Fatal: You lost the file $rvm_ids/${id_file}.stamp."
-  echo "       I can not determine what version of ${jar_file} matches this \$RVM_ROOT."
+cat <<EOF
+Fatal: You lost the file $rvm_ids/${id_file}.stamp.
+       I can not determine what version of ${jar_file} matches this \$RVM_ROOT.
+       If you installed Jikes RVM from a tar file, re-extract rvm/bin/ids.
+       If you installed Jikes RVM from the cvs repository, update rvm/bin/ids.
+  EOF
   exit 2
 fi
 
