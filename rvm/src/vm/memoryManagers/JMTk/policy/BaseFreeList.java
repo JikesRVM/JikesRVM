@@ -169,6 +169,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     if (isSmall(sizeClass)) {
       VM_Address cell = allocCell(isScalar, sizeClass);
       if (!cell.isZero()) {
+	postAlloc(cell, isScalar, bytes, true, false, copy);
 	Memory.zeroSmall(cell, bytes);
 	return cell;
       }
