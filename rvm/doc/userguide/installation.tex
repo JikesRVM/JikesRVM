@@ -18,11 +18,14 @@ version 1.14.  We have not yet tried version 1.15.
 You can download this from
 \xlink{{\tt \gnuTarURL}} {\gnuTarURL}.
 We have
-experienced problems with the AIX tar program truncating file names.
+experienced problems with the AIX\AIXTMFootnote tar program truncating file names.
 
 \end{itemize}
 
-\subsubsection{AIX/PowerPC}
+%% footnotes not allowed in section headings, so we specialize
+\htmlonly{\subsubsection{AIX\trademark/PowerPC\trademark}}
+\texonly {\subsubsection{AIX/PowerPC}}
+
 In addition to the software mentioned above, to install, build, and
 run RVM on a AIX/PowerPC environment, 
 you will need 
@@ -78,7 +81,7 @@ Some issues with this platform include:
 
 \begin{itemize}
 \item We haven't managed to successfully install a handler for hardware traps,
-so the first hardware exception (eg a {\tt NullPointerException}) will cause
+so the first hardware exception (e.g., a {\tt NullPointerException}) will cause
 an ugly core dump.
 \item Spaces in directory names aren't handled by jconfigure and the
 other scripts.  Use cygwin's mount command to avoid them (in
@@ -89,6 +92,10 @@ C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 \JikesTMFooter
 
 \JavaTMFooter
+
+\AIXTMFooter
+
+\PowerPCTMFooter
 
 \subsection{Installation Overview}
 
@@ -185,10 +192,10 @@ the operating system on which the system is to run.
 \begin{description}
 
 \item [{\tt RVM\_TARGET\_ARCH}].specifies on what architecture
-the RVM will run e.g.  powerpc, IA32 (for intel 32 bit)
+the RVM will run e.g.  powerpc, IA32 (for Intel 32 bit)
 
 \item [{\tt RVM\_TARGET\_OS}] specifies on what Operating System
-the RVM will run e.g. aix, linux
+the RVM will run e.g., aix, linux
 
 \end{description}
 
@@ -232,7 +239,8 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
 These two variables point to the same file when the type of system  
 doing the build is the same as where  you are going 
 the execute the RVM. To cross build a system
-e.g build on AIX-powerpc for a Linux-Intel platform, see the section on Cross
+e.g., build on AIX\AIXTMFootnote/powerPC\PowerPCTMFootnote for a
+Linux/IA32 platform, see the section on Cross 
 Platform Building.
 
 \item {\bf Edit configuration scripts.}
@@ -259,7 +267,7 @@ You must set the following variables in this file:
 \item {\tt CC} how to invoke the C compiler.
 \item {\tt CPLUS} how to invoke the C++ compiler.
 \item {\tt LDSHARED} how to link a shared C++ library.
-\item {\em various basic Unix utilities} eg. {\tt grep}, {\tt xargs}, etc.
+\item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
 
 The remaining variables in the config file are not required for basic RVM
@@ -343,6 +351,10 @@ affect system viability.
 \end{enumerate}
 
 \JikesTMFooter
+
+\AIXTMFooter
+
+\PowerPCTMFooter
 
 \subsection{RVM Configurations}\label{configs}
 \index{configuration names}
@@ -488,8 +500,8 @@ of software components like javac, Jikes\trademark, and the C compiler.
 This distribution
 contains examples of such files in the {\tt \$RVM\_ROOT/rvm/config} directory.   
 
-For example, to build a BaseBaseSemispace system for AIX {\em on a Linux
-host}:
+For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote
+{\em on a Linux host}:
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
@@ -541,6 +553,8 @@ a stream-lined process.
 
 \JavaTMFooter
 
+\AIXTMFooter
+
 \subsection{Building the libraries}
 
 Most RVM users will not need to rebuild the libraries; thus the default
@@ -562,8 +576,8 @@ libraries, dying with myriad errors.  You need to apply Jikes
 patch 62 to
 the Jikes build to fix a problem with variable shadowing by inner classes. 
 We have
-successfully applied this patch to Jikes version 1.13 on both AIX and
-Linux/IA32.
+successfully applied this patch to Jikes version 1.13 on both
+AIX\AIXTMFootnote and Linux/IA32.
 
 The {\tt jBuildLibs} script will prompt you, asking whether to install 
 the new {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.  
@@ -573,6 +587,8 @@ the new library build.  However, note that by installing it, you will
 careful!
 
 \JikesTMFooter
+
+\AIXTMFooter
 
 \subsection{Building documentation}
 
