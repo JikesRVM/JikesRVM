@@ -80,9 +80,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     //-#if RVM_WITH_HPM
     if (hpm_counters == null) hpm_counters = new HPM_counters();
-    if (VM_HardwarePerformanceMonitors.hpm_trace) {
-      if (global_tid == GLOBAL_TID_INITIAL_VALUE) {
-	assignGlobalTID();
+    if (global_tid == GLOBAL_TID_INITIAL_VALUE) {
+      assignGlobalTID();
+      if (VM_HardwarePerformanceMonitors.hpm_trace) {
 	VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
       }
     }
@@ -1212,8 +1212,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     //-#if RVM_WITH_HPM
     if (hpm_counters == null) hpm_counters = new HPM_counters();
+    assignGlobalTID();
     if (VM_HardwarePerformanceMonitors.hpm_trace) {
-      assignGlobalTID();
       VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
     }
     //-#endif

@@ -53,7 +53,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   // number of HPM counters on underlying PowerPC machine (value cached from HPM_info)
   private int n_counters = 0;
   // virtual processor id
-  private int pid                = 0;
+  private int vpid                = 0;
 
   // keep count of number of thread switches
   private int  n_threadSwitches = 0;
@@ -66,7 +66,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   public  void   activate() throws VM_PragmaLogicallyUninterruptible
   { 
-    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.activate() PID ",pid);
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.activate() PID ",vpid);
     active = true;  
   }
   /*
@@ -74,7 +74,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   public  void passivate()  throws VM_PragmaLogicallyUninterruptible
   { 
-    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",pid);
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",vpid);
     active = false; 
   }
 
@@ -83,9 +83,9 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * There is one VM_HardwarePerformanceMonitor object per VM_Processor.
    * Called from VM_Processor constructor.
    */
-  public VM_HardwarePerformanceMonitor(int pid)
+  public VM_HardwarePerformanceMonitor(int vpid)
   {
-    this.pid     = pid;
+    this.vpid     = vpid;
   }
   /*
    * Work we don't want in the boot image.
@@ -95,15 +95,15 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   public void boot() throws VM_PragmaLogicallyUninterruptible
   {
-    if(VM_HardwarePerformanceMonitors.verbose>=1)VM.sysWriteln("VM_HPM.boot() PID ",pid);
+    if(VM_HardwarePerformanceMonitors.verbose>=1)VM.sysWriteln("VM_HPM.boot() PID ",vpid);
     vp_counters  = new HPM_counters();
     tmp_counters = new HPM_counters();
     n_counters = VM_HardwarePerformanceMonitors.hpm_info.numberOfCounters;
     if (VM_HardwarePerformanceMonitors.hpm_trace) {
-      if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",pid," create VM_TraceWriter as a consumer");
-      consumer     = new VM_TraceWriter(this, pid);
+      if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",vpid," create VM_TraceWriter as a consumer");
+      consumer     = new VM_TraceWriter(this, vpid);
       consumer.start();	// start the thread !
-      if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",pid," allocate local buffers");
+      if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",vpid," allocate local buffers");
       buffer_1 = new byte[OUTPUT_BUFFER_SIZE];
       buffer_2 = new byte[OUTPUT_BUFFER_SIZE];
       // start with buffer ONE.
@@ -137,8 +137,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       VM.sysWriteln("***VM_HPM.pdateHPMcounters() Previous thread id ",
 		    previous_thread.getIndex(),"'s hpm_counters was null!***"); VM.shutdown(-1);
     }
-    if (VM_HardwarePerformanceMonitors.hpm_trace &&	// tracing on?
-	previous_thread.startOfWallTime != -1) {	// not the first time!
+    if (previous_thread.startOfWallTime != -1) {	// not the first time!
       startOfWallTime = previous_thread.startOfWallTime;
       wallTime   = endOfWallTime - startOfWallTime;
       if (wallTime < 0) {  // don't expect this to happen
@@ -157,21 +156,21 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       if (active) { 			// only acccumulate what is recorded!
 	tmp_counters.accumulate(                 vp_counters, n_counters);
 	tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
+	int tid        = previous_thread.getIndex();
+	int global_tid = (timerInterrupted?previous_thread.getGlobalIndex():-previous_thread.getGlobalIndex());
+	tracing(tid, global_tid, startOfWallTime, endOfWallTime, tmp_counters);
       }
-      int tid        = previous_thread.getIndex();
-      int global_tid = (timerInterrupted ? previous_thread.getGlobalIndex() : -previous_thread.getGlobalIndex());
-      tracing(tid, global_tid, startOfWallTime, endOfWallTime, tmp_counters);
     } else {			 	// always accumulate
       tmp_counters.accumulate(                 vp_counters, n_counters);
       tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
     }
-    if (VM_HardwarePerformanceMonitors.hpm_trace) { 	// tracing on ?
-      if (current_thread != null) {			// set up real time for current thread!
-	current_thread.startOfWallTime = VM_Magic.getTimeBase();
-      } else { 						// don't expect this to happen
-	if(VM_HardwarePerformanceMonitors.verbose>=3)
-	  VM.sysWriteln("***VM_HPM.updateHPMcounters() current_thread == null!***");
-    } }
+
+    if (current_thread != null) {			// set up real time for current thread!
+      current_thread.startOfWallTime = VM_Magic.getTimeBase();
+    } else { 						// don't expect this to happen
+      if(VM_HardwarePerformanceMonitors.verbose>=3)
+	VM.sysWriteln("***VM_HPM.updateHPMcounters() current_thread == null!***");
+    }
     VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
     VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
     //-#endif
@@ -201,16 +200,17 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   /**
    * Record HPM counter values.
    * Trace record contains:
-   *   trace_format(int), buffer_code & pid(int), global_tid(int), tid(int), 
+   *   trace_format(int), buffer_code & vpid(int), global_tid(int), tid(int), 
    *   startOfWallTime(long), endOfWallTime(long), counters(long)*
    *
    * CONSTRAINT: only called if VM_HardwarePerformanceMonitors.hpm_trace is true.
-   * Trace format Record.
    * CONSTRAINT: only write to buffer when a valid buffer is found.
+   * CONSTRAINT: only called if active is true
+   *
    * Local tid is only 16 bits, could combine with encoding; however, counter
    * values would not be quadword aligned (although I don't know if this matters).
    * An alternative 8-byte encoding that can save 16-bytes is: 
-   *    tid(16), buffer_code(2), pid(10), format(4) 
+   *    tid(16), buffer_code(2), vpid(10), format(4) 
    * this allows easy access to format as format & 0x000F.
    *
    * @param tid              thread id (positive if timer interrupted)
@@ -229,21 +229,22 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
 
     // buffer != null only if active==true
 
-    int encoding = (buffer_code << 16) + pid;
-    if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) {
+    int encoding = (buffer_code << 16) + vpid;
+    if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
       VM.sysWrite(index,": ");
       VM.sysWrite(TRACE_FORMAT," BC ");
-      VM.sysWrite(buffer_code," PID ", pid);  
+      VM.sysWrite(buffer_code," PID ", vpid);  
       //      VM.sysWrite(" ("); VM.sysWriteHex(encoding); VM.sysWrite(")");
       VM.sysWrite(" GTID ", global_tid);
       VM.sysWrite(" TID ", tid);
-      VM.sysWrite(" SWT ");    VM.sysWriteLong(startOfWallTime);VM.sysWrite("\n  ");
+      VM.sysWrite(" SWT ");    VM.sysWriteLong(startOfWallTime);
+      if(n_counters > 4) VM.sysWrite("\n  ");
       VM.sysWrite(" EWT " ); VM.sysWriteLong(endOfWallTime);
     }
     if (buffer != null) { // write record header
       VM_Magic.setIntAtOffset( buffer, index, TRACE_FORMAT);	// format
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      VM_Magic.setIntAtOffset( buffer, index, encoding);	// buffer_code & pid
+      VM_Magic.setIntAtOffset( buffer, index, encoding);	// buffer_code & vpid
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
       VM_Magic.setIntAtOffset( buffer, index, global_tid);	// globally unique tid  
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
@@ -256,7 +257,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     }
     for(int i=1; i<=n_counters; i++) {
       long value = counters.counters[i];
-      if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) {
+      if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
 	VM.sysWrite(" ",i,": ");VM.sysWriteLong(value); 
       }
       if (buffer != null) { // write HPM counter values
@@ -264,7 +265,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
 	index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
       }
     }
-    if (VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) {
+    if (VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
       VM.sysWriteln();
     }
     updateBufferIndex();
@@ -277,60 +278,58 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * buffer_1 and index_1, or buffer_2 and index_2.
    * If both buffers are full, complain and count the number of times this
    * condition arises.
+   * CONSTRAINT: always called when active is true.
    *
    * @param record_size size (in bytes) of record to be written to buffer
    * @return false      a buffer can't be found.
    */
   private boolean pickBuffer(int record_size) 
   {
-    if (active) {
-      if (buffer_code == ONE) {
-	if (index_1 + record_size > OUTPUT_BUFFER_SIZE) {
-	  if (! consumer.isActive()) {
-	    // swap buffers and activate consumer to write full buffer to disk
-	    buffer = buffer_2; index = index_2; buffer_code = TWO; 
-	    activateConsumer();
-	    return true;
-	  } else {
-	    if(VM_HardwarePerformanceMonitors.verbose>=3)
-	      VM.sysWriteln("***VM_HPM.pickBuffer() missed trace record when buffer_code == ONE!***");
-	    missed_records++;
-	    buffer = null;
-	    return false;
-	  }
-	} else {
-	  buffer = buffer_1; index = index_1; buffer_code = ONE;
-	  return true;
-	}
-      } else if (buffer_code == TWO) { 
-	if (index_2 + record_size > OUTPUT_BUFFER_SIZE) {
-	  if (! consumer.isActive()) {
-	    // swap buffers and activate consumer to write full buffer to disk
-	    buffer = buffer_1; index = index_1; buffer_code = ONE; 
-	    activateConsumer();
-	    return true;
-	  } else {
-	    if(VM_HardwarePerformanceMonitors.verbose>=3)
-	      VM.sysWriteln("***VM_HPM.pickBuffer() missed trace record when buffer_code == TWO!***");
-	    missed_records++;
-	    buffer = null;
-	    return false;
-	  }
-	} else {
-	  buffer = buffer_2; index = index_2;  buffer_code = TWO;
-	  return true;
-	}
-      } else {
-	VM.sysWriteln("***VM_HPM.pickBuffer() buffer_code ",buffer_code," not 1 or 2!***");
-	return false;
-      }
-    }
     if (notifyExit) {
       notifyExit = false;
       ((VM_TraceWriter)consumer).notifyExit = true;
       activateConsumer();
     }
-    return false;
+    if (buffer_code == ONE) {
+      if (index_1 + record_size > OUTPUT_BUFFER_SIZE) {
+	if (! consumer.isActive()) {
+	  // swap buffers and activate consumer to write full buffer to disk
+	  buffer = buffer_2; index = index_2; buffer_code = TWO; 
+	  activateConsumer();
+	  return true;
+	} else {
+	  if(VM_HardwarePerformanceMonitors.verbose>=3)
+	    VM.sysWriteln("***VM_HPM.pickBuffer() missed trace record when buffer_code == ONE!***");
+	  missed_records++;
+	  buffer = null;
+	  return false;
+	}
+      } else {
+	buffer = buffer_1; index = index_1; buffer_code = ONE;
+	return true;
+      }
+    } else if (buffer_code == TWO) { 
+      if (index_2 + record_size > OUTPUT_BUFFER_SIZE) {
+	if (! consumer.isActive()) {
+	  // swap buffers and activate consumer to write full buffer to disk
+	  buffer = buffer_1; index = index_1; buffer_code = ONE; 
+	  activateConsumer();
+	  return true;
+	} else {
+	  if(VM_HardwarePerformanceMonitors.verbose>=3)
+	    VM.sysWriteln("***VM_HPM.pickBuffer() missed trace record when buffer_code == TWO!***");
+	  missed_records++;
+	  buffer = null;
+	  return false;
+	}
+      } else {
+	buffer = buffer_2; index = index_2;  buffer_code = TWO;
+	return true;
+      }
+    } else {
+      VM.sysWriteln("***VM_HPM.pickBuffer() buffer_code ",buffer_code," not 1 or 2!***");
+      return false;
+    }
   }
   /*
    * Update buffer index (index is not a reference!)
@@ -341,13 +340,13 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   {
     // reset buffer's index value
     if (buffer != null) {
-      if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) VM.sysWrite("VM_HPM.updateBufferIndex() index = ",index);
+      if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWrite("VM_HPM.updateBufferIndex() index = ",index);
       if        (buffer_code == ONE) {
 	index_1 = index;
-	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) VM.sysWriteln(", index_1 = ",index_1);
+	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWriteln(", index_1 = ",index_1);
       } else if (buffer_code == TWO) {
 	index_2 = index;
-	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == pid) VM.sysWriteln(", index_2 = ",index_2);
+	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWriteln(", index_2 = ",index_2);
       }
     }
   }
@@ -457,7 +456,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   public void notifyExit(int value) throws VM_PragmaLogicallyUninterruptible
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2){ 
-      VM.sysWriteln("VM_HPM.notifyExit(",value,") PID ",pid); 
+      VM.sysWriteln("VM_HPM.notifyExit(",value,") PID ",vpid); 
     }
     notify_exit_value = value;
     notifyExit = true;
