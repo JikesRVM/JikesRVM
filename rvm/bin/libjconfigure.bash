@@ -439,11 +439,14 @@ function check_bash_version() {
     [[ ${RVM_CHECKED_BASH_VERSION-} ]] && return;
     export RVM_CHECKED_BASH_VERSION=1
 
+    ## If warnings are turned off, then likewise.
+    [ ${quiet_warnings-0} = 1 ] && return;
+
     ## The user may request that this check be suppressed.  Honor 
     ## her or or his request. 
     [[ ${RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION+is_set} ]] && return;
 
-    local -r recommend_bash="We recommend Bash 2.05a or later"
+    local -r recommend_bash="We recommend Bash 2.05a or later (it came out in 2001)"
 
     ## The checks against Bash 2.03 and earlier are now redundant with a
     ## similar check in jconfigure itself.  They do no harm.
