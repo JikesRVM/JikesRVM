@@ -42,10 +42,6 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     while (i.hasNext()) processCommandLineArg( (String) i.next() );
   }
   
-  public static void initializeMeasureCompilation() {
-    VM_RuntimeOptCompilerInfrastructure.initializeMeasureCompilation(); 
-  }
-  
   private static final HashSet earlyArgs = new HashSet(5);
 
   public static void processCommandLineArg(String arg) {

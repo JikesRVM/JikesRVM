@@ -605,7 +605,6 @@ public class VM_CommandLineArgs {
 	if (arg.equals("true")) {
 	  VM.MeasureCompilation = true;
 	  VM.EnableCPUMonitoring = true;
-	  VM_RuntimeCompiler.initializeMeasureCompilation();
 	} else if (arg.equals("false")) {
 	  VM.MeasureCompilation = false;
 	} else {

@@ -16,10 +16,9 @@ public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
 
   static void boot() {
-  }
-
-  static void initializeMeasureCompilation() {
-    VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
+    if (VM.MeasureCompilation) {
+      VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
+    }
   }
 
   static void processCommandLineArg(String arg) {

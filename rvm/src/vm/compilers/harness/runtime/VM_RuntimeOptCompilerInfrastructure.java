@@ -47,20 +47,18 @@ public class VM_RuntimeOptCompilerInfrastructure
   public static void boot() throws OPT_OptimizingCompilerException {
     options = new OPT_Options();
     setNoCacheFlush(options);
-    OPT_Compiler.init(options);
+
     optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
+    if (VM.MeasureCompilation) {
+      VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
+      OPT_OptimizationPlanner.initializeMeasureCompilation();
+    }
+
+    OPT_Compiler.init(options);
 
     // when we reach here the OPT compiler is enabled.
     compilerEnabled = true;
   }
-
-  public static void initializeMeasureCompilation() {
-    VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
-
-    // send a message to all phases letting them update themselves
-    OPT_OptimizationPlanner.initializeMeasureCompilation();
-  }
-
 
   /**
    * attempt to compile the passed method with the OPT_Compiler.

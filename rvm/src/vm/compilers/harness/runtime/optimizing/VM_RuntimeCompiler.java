@@ -41,13 +41,8 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     }
   }
 
-  public static void initializeMeasureCompilation() {
-    VM_RuntimeOptCompilerInfrastructure.initializeMeasureCompilation(); 
-  }
 
-
-
-    private static final HashSet earlyArgs = new HashSet(5);
+  private static final HashSet earlyArgs = new HashSet(5);
 
   // This method is called if there are some command-line arguments to be processed.
   // It is not guaranteed to be called.
