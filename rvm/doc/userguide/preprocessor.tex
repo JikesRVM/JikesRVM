@@ -1,13 +1,15 @@
-As of this writing, about twelve percent (128 out of 1045) of the Java
-source code in Jikes RVM contains preprocessor constructs.  The
-preprocessor syntax has not been documented until this writing (July,
-2003).  Here is the help message the preprocessor now displays; this
-is a placeholder until someone writes more attractive documentation
-for it.
+Some of the code in Jikes RVM is run through a preprocessor before the
+real Java compiler ever sees it.  As of July, 2003, preprocessor
+constructs are in 128 of Jikes RVM's 1045 Java source files.
 
 \subsection{Usage}
 
+Here is the help message the preprocessor now displays; this
+is a placeholder until someone writes more attractive documentation
+for it.
+
 \begin{verbatim}
+
 Usage: preprocessModifiedFiles [--help]
         [ --disable-modification-exit-status ] [--trace]
         [ -D<name>[ =1 | =0 | =<string-value> ] ]... 
@@ -97,7 +99,9 @@ Usage: preprocessModifiedFiles [--help]
 
 The source code for the preprocessor is in {\tt
 rvm/src/tools/preprocessor}.  The Jikes RVM build process installs it
-as RVM\_BUILD{\tt /jbuild.prep}.  The preprocessing is done automatically
-during the build process.
+as {\tt RVM\_BUILD/jbuild.prep}.  The preprocessing is done automatically
+during the build process.  The preprocessor is just an executable
+program; you can use it yourself for other projects without using the
+rest of Jikes RVM.
 
 
