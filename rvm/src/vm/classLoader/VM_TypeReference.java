@@ -257,10 +257,14 @@ public class VM_TypeReference implements VM_SizeConstants {
    */
   public final int getDimensionality() {
     if (isArrayType()) {
-      if (isWordArrayType() || isCodeArrayType()) {
-	return 1;
+      VM_TypeReference elem = getArrayElementType();
+      if (elem.isArrayType()) {
+	// NOTE: we must recur instead of attempting to parse
+	//       the array descriptor for ['s so we correctly handle
+	//       [VM_AddressArray etc. which actually has dimensionality 2!
+	return 1 + elem.getDimensionality();
       } else {
-	return name.parseForArrayDimensionality();
+	return 1;
       }
     } else if (isWordType() || isCodeType()) {
       return -1;
