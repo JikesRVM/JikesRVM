@@ -547,7 +547,7 @@ function main () {
 # Kill entire process group if we get SIGINT, SIGHUP, or SIGTERM
 # This ensures that subshells spawned by make die quickly.
 #
-## The "exit" should not be here, but probably is.
+## The "exit" should not ever need to be here, but is just a precaution.
 trap "say exiting due to SIGINT'!'; trap - INT ; /bin/kill -INT 0; exit 130" INT
 trap "say exiting due to a SIGTERM'!'; trap - TERM; /bin/kill -TERM 0; exit 143" TERM
 trap "say exiting due to a SIGHUP'!'; trap - HUP; /bin/kill -HUP 0; exit 129" HUP
