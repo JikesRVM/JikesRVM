@@ -343,11 +343,6 @@ all classes loaded at runtime are compiled once, by the specified
 compiler.  This is different than the adaptive configurations,
 discussed in Section~\ref{adaptive-configs}.
 
-The garbage collector names follow the following format
-\begin{verbatim}
-           <type> [modifier]
-\end{verbatim}
-
 A garbage collector may have any of the following types:
 
 \begin{description}
@@ -431,13 +426,16 @@ Section~\ref{section:running} describes how this image can be used in
 the manner mentioned above.
 
 To view a list of configurations see 
-{\tt \$RVM\_ROOT/rvm/config/builds}. 
+{\tt \$RVM\_ROOT/rvm/config/builds}.  Follow the examples in this
+directory to define your own configurations with different options.  See
+the {\tt jconfigure} file for a list of all options the builder
+understands.
 
 \subsection{Cross Platform Building}
 
 The RVM build process consists of two major phases: the building of a
 RVM {\em boot image}, and the building of a RVM {\em boot loader}.
-The boot image is build using a Java\trademark program executed within a host
+The boot image is build using a Java executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 
