@@ -519,7 +519,7 @@ function doRun {
     fi
 
     . $RVM_BUILD/environment.target
-    $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
+    $RVM_ROOT/rvm/regression/limited.bash $LIMIT "$GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
 	   SUFFIX=$SUFFIX \
            PROCESSORS=\"$NUM_PROCS\" \
