@@ -114,7 +114,7 @@ function copyIfNewer () {
 }
 
 function run() {
-    ! tracing make || echo >&2 "$@"
+    ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
     "$@"
 }
 
@@ -294,7 +294,12 @@ function signalled() {
 }
 trap signalled HUP INT ABRT BUS PIPE TERM PWR
 
-# It's an error if we access any unset variables.
+# I'd like to make it always be an error if we were to access any 
+# unset variables.  HOWEVER, we have a bug in BASH version 2.05b.0(1)-release
+# (BASH_VERSINFO=([0]="2" [1]="05b" [2]="0" [3]="1" [4]="release" [5]="i386-redhat-linux-gnu"))
+# whereby we are getting complaints that the variable "midline" was used before being set.
+## So you may have to comment out the next line if the bug starts to show up for you.
+
 set -o nounset;			# may cause trouble!
 
 ## Routines to clean a list of files or other things.
@@ -306,6 +311,7 @@ function cleanFileList() {
 
 ## Message reporting in general.
 declare -i midline=0;		# are we in the middle of a line?
+declare -i num_echos=0;
 function echo() {
     builtin echo "$@"
     if [[ ${1-} = -n ]]; then
@@ -313,6 +319,20 @@ function echo() {
     else
 	midline=0
     fi
+    let ++num_echos
+}
+
+declare -i opened_at=0;
+function open_paren() {
+    echo -n "($*... "
+    opened_at=num_echos;
+}
+function close_paren() {
+    if (( opened_at < num_echos )); then
+	cleanline
+	echo -n "..."
+    fi
+    echo -n "$@) "
 }
 
 ## Print out a clean line.
