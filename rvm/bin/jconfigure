@@ -2208,7 +2208,7 @@ if (( ! BUILD_RVMRT_JAR )); then
  else
   . $RVM_HOST_CONFIG
   if [[ x$CLASSPATH_SRC = x ]]; then
-    jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
   fi
  fi
 fi
