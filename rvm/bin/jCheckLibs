@@ -21,7 +21,8 @@ license_file=$lib_dir/$license_name
 license_cache=$HOME/.rvmrt
 jar_file=rvmrt.jar
 id_file=rvmrt
-jazzlib=http://people.debian.org/~jewel/jikes/jikesport/jazzlib/jazzlib-binary-0.04-juz.jar
+jazzlib_dir=http://sourceforge.net/project/showfiles.php?group_id=16807
+jazzlib_file=$jazzlib_dir/jazzlib-binary-0.04-juz.jar
 ignore_HOST_CONFIG=""
 
 # Who we are.
@@ -84,7 +85,7 @@ cat <<EOF
 
 The jazzlib jar file is required for this build.
 
-You can download this file from ${jazzlib}
+You can download this file from ${jazzlib_file}
 EOF
 
 if [[ x$automatic = x ]] ; then 
@@ -96,8 +97,7 @@ fi
   if [[ x$automatic = xy || x$automatic = xyes ]] ; then
     echo "Downloading and installing jazzlib.jar"
     mkdir -p $RVM_ROOT/support/lib
-    $WGET -q -O $RVM_ROOT/support/lib/jazzlib.jar \
-    'http://people.debian.org/~jewel/jikes/jikesport/jazzlib/jazzlib-binary-0.04-juz.jar'
+    $WGET -q -O $RVM_ROOT/support/lib/jazzlib.jar ${jazzlib_file}
   fi
 fi
 
