@@ -47,6 +47,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    * determine the reference maps for the gc points. Record the maps with 
    * referenceMaps.
    */
+ //-#if RVM_FOR_IA32
+ private static int gcCountDown = 0;
+ //-#endif
 
  public void
  buildReferenceMaps(VM_Method method, int[] stackHeights,
@@ -250,6 +253,24 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     // Get the next item off the work stack
     currBBNum = workStk[workStkTop];
     workStkTop--;
+    
+    //-#if RVM_FOR_IA32
+    // SJF: The following mysterious code magically works around a bug
+    // in the Intel JDK during boot image writing of a
+    // FastBaseBaseSemispace image.  Without this dumb print, the JDK
+    // slows to almost a stop.  For unknown reasons, the following
+    // statement changes the JDK behavior such that everything works OK.
+    // Reference: bug 2368
+    if (VM.writingBootImage) { 
+      if (method.toString().indexOf("VM_Compiler") > -1) {
+        gcCountDown--;
+        if (gcCountDown <= 0) {
+          System.gc();
+          gcCountDown = 100;
+        }
+      }
+    }
+    //-#endif
 
     boolean inJSRSub = false;
     if (bbMaps[currBBNum] != null) {
@@ -271,6 +292,24 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
     int start = basicBlocks[currBBNum].getStart();
     int end = basicBlocks[currBBNum].getEnd();
+
+    //-#if RVM_FOR_IA32
+    // SJF: The following mysterious code magically works around a bug
+    // in the Intel JDK during boot image writing of a
+    // FastBaseBaseSemispace image.  Without this dumb print, the JDK
+    // slows to almost a stop.  For unknown reasons, the following
+    // statement changes the JDK behavior such that everything works OK.
+    // Reference: bug 2368
+    if (VM.writingBootImage) { 
+      if (method.toString().indexOf("VM_Compiler") > -1) {
+        gcCountDown--;
+        if (gcCountDown <= 0) {
+          System.gc();
+          gcCountDown = 100;
+        }
+      }
+    }
+    //-#endif
 
     if (jsrCount > 0 && inJSRSub ) {
       currPendingRET = bbPendingRETs[currBBNum];
@@ -1824,24 +1863,29 @@ computeJSRNextMaps(short nextBBNum, int maplength, int JSRSubIndex,
   }
 
   /**
-   * For each of the reachable handlers (catch blocks) from the try block, track that
+   * For each of the reachable handlers (catch blocks) from the try block, 
+   * track that
    * the local variable given by the index,  has been set to a reference value.
    * Only call this method if the try block is in a JSR subroutine.
-   * If a non-reference value becomes a reference value, then it can not be used as
-   * as reference value within the handler (there is a path to the handler where the
-   * value is not a reference) so mark the local variable as a non-reference if we
+   * If a non-reference value becomes a reference value, 
+   * then it can not be used as
+   * as reference value within the handler 
+   * (there is a path to the handler where the
+   * value is not a reference) so mark the local variable as 
+   * a non-reference if we
    * are tracking the difference maps (for a JSR subroutine).
    *
    * @param localVariable             variable index in the map
    * @param reachableHandlerBBNum     the array with all the block numbers of
    *                                  reachable handlers 
-   * @param reachableHandlerCount     0 - reachableHandlerCount-1 valid array indices
+   * @param reachableHandlerCount     0 - reachableHandlerCount-1 
+   * valid array indices
    * @return Void
    */
 
-private void
-setHandlersMapsRef(int localVariable, int[] reachableHandlerBBNums, 
-                   int reachableHandlerCount, byte[][] bbMaps) {
+  private void setHandlersMapsRef(int localVariable, 
+                                  int[] reachableHandlerBBNums, 
+                                  int reachableHandlerCount, byte[][] bbMaps) {
     for (int i=0; i<reachableHandlerCount; i++) {
       if (bbMaps[reachableHandlerBBNums[i]][localVariable] != REFERENCE)
 	bbMaps[reachableHandlerBBNums[i]][localVariable] = SET_TO_NONREFERENCE;
@@ -1850,25 +1894,33 @@ setHandlersMapsRef(int localVariable, int[] reachableHandlerBBNums,
 
 
   /**
-   * For each of the reachable handlers (catch blocks) from the try block, track that
-   * the local variable given by the index, has been set to a return address value.
+   * For each of the reachable handlers (catch blocks) 
+   * from the try block, track that
+   * the local variable given by the index, 
+   * has been set to a return address value.
    * Only call this routine within a JSR subroutine.
-   * If a non-reference, or reference value becomes a return address value, then it 
-   * cannot be used as any of these values within the handler (there is a path to 
-   * the handler where the value is not an internal reference, and a path where it 
-   * is an internal reference) so mark the local variable as a non-reference if we
+   * If a non-reference, or reference value becomes a return address value, 
+   * then it 
+   * cannot be used as any of these values within the handler 
+   * (there is a path to 
+   * the handler where the value is not an internal reference, 
+   * and a path where it 
+   * is an internal reference) so mark the local variable as a 
+   * non-reference if we
    * are tracking the difference maps (for a JSR subroutine).
    *
    * @param localVariable             variable index in the map
    * @param reachableHandlerBBNum     the array with all the block numbers of 
    *                                  reachable handlers
-   * @param reachableHandlerCount     0 - reachableHandlerCount-1 valid array indices
+   * @param reachableHandlerCount     0 - reachableHandlerCount-1 valid 
+   * array indices
    * @return Void
    */
 
-private void
-setHandlersMapsReturnAddress(int localVariable, int[] reachableHandlerBBNums, 
-                        int reachableHandlerCount, byte[][]bbMaps) {
+  private void setHandlersMapsReturnAddress(int localVariable, 
+                                            int[] reachableHandlerBBNums, 
+                                            int reachableHandlerCount, 
+                                            byte[][]bbMaps) {
     for (int i=0; i<reachableHandlerCount; i++) {
 	 if (bbMaps[reachableHandlerBBNums[i]][localVariable] != RETURN_ADDRESS)
 	bbMaps[reachableHandlerBBNums[i]][localVariable] = SET_TO_NONREFERENCE;
@@ -1885,17 +1937,5 @@ setHandlersMapsReturnAddress(int localVariable, int[] reachableHandlerBBNums,
 		   ((((int)bytecodes[index+2]) & 0xFF) << 16) |
 		   ((((int)bytecodes[index+3]) & 0xFF) << 8) | 
 		   (((int)bytecodes[index+4]) & 0xFF));
+  }
 }
-
-
-
-}
-
-  
-
-
-
-
-
-
-
