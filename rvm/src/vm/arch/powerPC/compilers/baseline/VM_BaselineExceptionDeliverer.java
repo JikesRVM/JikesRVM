@@ -57,15 +57,16 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
       VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
       int instr = ip.diff(base);
       VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo) compiledMethod.getCompilerInfo();
-      if (instr < info.lockAcquisitionOffset) {       // in prologue, lock not owned
+      if (instr < info.lockAcquisitionOffset) {
+	// in prologue, lock not owned; nothing to do
       } else if (method.isStatic()) {
 	Object lock = method.getDeclaringClass().getClassForType();
-	VM_Lock.unlock(lock);
+	VM_ObjectModel.genericUnlock(lock);
       } else {
-	  VM_Address fp = registers.getInnermostFramePointer();
-	  int offset = VM_Compiler.getFirstLocalOffset(method);
-	  Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(offset)));
-	  VM_Lock.unlock(lock);
+	VM_Address fp = registers.getInnermostFramePointer();
+	int offset = VM_Compiler.getFirstLocalOffset(method);
+	Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(offset)));
+	VM_ObjectModel.genericUnlock(lock);
       }
     }
     registers.unwindStackFrame();

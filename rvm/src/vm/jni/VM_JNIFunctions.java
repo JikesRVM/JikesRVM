@@ -6904,15 +6904,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       Object obj = (Object) env.getJNIRef(objJREF);
-      VM_Lock.lock(obj);
+      VM_ObjectModel.genericLock(obj);
       return 0;
     } catch (Throwable unexpected) {
       return -1;
     }
-
-    // VM_Scheduler.traceback("JNI ERROR: MonitorEnter not implemented yet.");
-    // VM.sysExit(200);
-    // return MONITORENTER  ; 
   }
 
 
@@ -6930,15 +6926,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       Object obj = (Object) env.getJNIRef(objJREF);
-      VM_Lock.unlock(obj);
+      VM_ObjectModel.genericUnlock(obj);
       return 0;
     } catch (Throwable unexpected) {
       return -1;
     }
-
-    // VM_Scheduler.traceback("JNI ERROR: MonitorExit not implemented yet.");
-    // VM.sysExit(200);
-    // return MONITOREXIT  ; 
   }
 
 

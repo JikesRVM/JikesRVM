@@ -51,8 +51,9 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method instanceOfArrayMethod              = getMethod("LVM_DynamicTypeCheck;", "instanceOfArray", "(LVM_Class;ILVM_Type;)Z");
   static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(LVM_Class;ILVM_Type;)Z");
 
-  static final VM_Method lockMethod          = getMethod("LVM_Lock;", "lock", "(Ljava/lang/Object;)V");
-  static final VM_Method unlockMethod        = getMethod("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");
+  static final VM_Method lockMethod          = getMethod("LVM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
+  static final VM_Method unlockMethod        = getMethod("LVM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
+
   static final VM_Method inlineLockMethod    = getMethod("LVM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
   static final VM_Method inlineUnlockMethod  = getMethod("LVM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
 

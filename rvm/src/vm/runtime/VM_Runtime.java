@@ -610,7 +610,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void unlockAndThrow (Object objToUnlock, Throwable objToThrow) {
     VM_Magic.pragmaNoInline();
-    VM_Lock.unlock(objToUnlock);
+    VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
 

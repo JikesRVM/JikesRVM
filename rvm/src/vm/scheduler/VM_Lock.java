@@ -29,20 +29,6 @@
    has not been obtained.)
    </p>
 
-   <p> 
-   Locking in RVM uses the locking bits of the {@link
-   VM_ObjectLayoutConstants status word} of the RVM object
-   header.  The first of these bits is called the <em>fat bit</em>.
-   If it is set, the rest of the bit field is an index into a global
-   array of heavy locks (VM_Lock objects).  If the fat bit is zero,
-   the object is either not locked (in which case all the locking
-   bits are zero), or some thread holds a light weight lock on the
-   object.  In the latter case, two sub-fields encode the information
-   about this lock.  The first is the id number of the thread that
-   holds the lock and the second is a count of the number of time
-   the lock is held.
-   </p>
-
    <p><STRONG>Section 1:</STRONG> 
    support for {@link java.lang.Object#notify}, {@link
    java.lang.Object#notifyAll}, and {@link java.lang.Object#wait}.
@@ -50,28 +36,19 @@
    by the current thread.  <p>
 
    <p><STRONG>Section 2:</STRONG> 
-   light-weight locking and unlocking.  Handles the most common
-   locking cases: the object unlocked, or locked by the current
-   thread (but not too many times).  If a light-weight lock cannot
-   easily be obtained (usually because another thread has the
-   object locked).  Releasing a light weight lock can also be
-   accomplished here.
-   </p>
-
-   <p><STRONG>Section 3:</STRONG> 
-   has two sections.  <EM>Section 3a:</EM> locks (and unlocking)
+   has two sections.  <EM>Section 2a:</EM> locks (and unlocking)
    objects with heavy-weight locks associated with them.  <EM>Section
-   3b:</EM> associates (and disassociates) heavy-weight locks with
+   2b:</EM> associates (and disassociates) heavy-weight locks with
    objects.  
    </p>
 
-   <p><STRONG>Section 4:</STRONG> 
+   <p><STRONG>Section 3:</STRONG> 
    Allocates (and frees) heavy weight locks consistent with Requirement
    1.  Also, distributes them among the virtual processors.
    </p>
 
-   <p><STRONG>Section 5:</STRONG> 
-   debugging and performance tuning stuff.  (I have remove most of this.)
+   <p><STRONG>Section 4:</STRONG> 
+   debugging and performance tuning stuff.
    </p>
 
    <p>
@@ -107,20 +84,12 @@
    </p>
 
    @see java.lang.Object
-   @see VM_ObjectLayoutConstants
+   @see VM_ThinLock
    @see VM_ProcessorLock
-   @author Bowen Alpern */
+   @author Bowen Alpern 
+*/
 
 public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
-
-  ///////////////////////////////////////////////////
-  /// Section 0: Support for light-weight locking ///
-  ///////////////////////////////////////////////////
-
-  public static void lock (Object o) { VM_ObjectModel.genericLock(o); }
-
-  public static void unlock (Object o) { VM_ObjectModel.genericUnlock(o); }
-
 
   ////////////////////////////////////////////////////////////////////////
   /// Section 1: Support for synchronizing methods of java.lang.Object ///
@@ -615,58 +584,55 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     //             Statistics                   //
     //////////////////////////////////////////////
 
-    public static void boot () {
-	VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
-	VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
+  public static void boot () {
+    VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
+    VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
+  }
+
+  static final class AppRunStartMonitor implements VM_Callbacks.AppRunStartMonitor {
+    public void notifyAppRunStart (int value) {
+      if (! STATS) return;
+      waitOperations = 0;
+      timedWaitOperations = 0;
+      notifyOperations = 0;
+      notifyAllOperations = 0;
+      lockOperations = 0;
+      unlockOperations = 0;
+      deflations = 0;
+
+      VM_ThinLock.notifyAppRunStart(0);
+      VM_LockNursery.notifyAppRunStart(0);
     }
+  }
 
-    static final class AppRunStartMonitor implements VM_Callbacks.AppRunStartMonitor {
+  static final class ExitMonitor implements VM_Callbacks.ExitMonitor {
+    public void notifyExit (int value) {
+      if (! STATS) return;
 
-	public void notifyAppRunStart (int value) {
-	    if (! STATS) return;
+      int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
 
-	    waitOperations = 0;
-	    timedWaitOperations = 0;
-	    notifyOperations = 0;
-	    notifyAllOperations = 0;
-	    lockOperations = 0;
-	    unlockOperations = 0;
-	    deflations = 0;
+      VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations, false);      VM.sysWrite(" wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations, false); VM.sysWrite(" timed wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations, false);    VM.sysWrite(" notify operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations, false); VM.sysWrite(" notifyAll operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations, false);      VM.sysWrite(" locks");
+      VM_Stats.percentage(lockOperations, totalLocks, "all lock operations");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations, false);    VM.sysWrite(" unlock operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(deflations, false);          VM.sysWrite(" deflations\n");
 
-	    VM_ThinLock.notifyAppRunStart(0);
-	    VM_LockNursery.notifyAppRunStart(0);
-	}
+      VM_ThinLock.notifyExit(totalLocks);
+      VM_LockNursery.notifyExit(totalLocks);
     }
+  }
 
-    static final class ExitMonitor implements VM_Callbacks.ExitMonitor {
+  static final boolean STATS = false;
 
-	public void notifyExit (int value) {
-	    if (! STATS) return;
-
-	    int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
-
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations, false);      VM.sysWrite(" wait operations\n");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations, false); VM.sysWrite(" timed wait operations\n");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations, false);    VM.sysWrite(" notify operations\n");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations, false); VM.sysWrite(" notifyAll operations\n");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations, false);      VM.sysWrite(" locks");
-	    VM_Stats.percentage(lockOperations, totalLocks, "all lock operations");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations, false);    VM.sysWrite(" unlock operations\n");
-	    VM.sysWrite("FatLocks: "); VM.sysWrite(deflations, false);          VM.sysWrite(" deflations\n");
-
-	    VM_ThinLock.notifyExit(totalLocks);
-	    VM_LockNursery.notifyExit(totalLocks);
-	}
-    }
-
-    static final boolean STATS = false;
-
-    static int waitOperations;
-    static int timedWaitOperations;
-    static int notifyOperations;
-    static int notifyAllOperations;
-    static int lockOperations;
-    static int unlockOperations;
-    static int deflations;
+  static int waitOperations;
+  static int timedWaitOperations;
+  static int notifyOperations;
+  static int notifyAllOperations;
+  static int lockOperations;
+  static int unlockOperations;
+  static int deflations;
 
 }
