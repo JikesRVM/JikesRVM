@@ -20,6 +20,8 @@ import java.lang.Thread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.classloader.TypeDescriptorParsing;
+
 
 /**
  * Construct a RVM virtual machine bootimage.
@@ -267,6 +269,7 @@ public class BootImageWriter extends BootImageWriterMessages
     String   bootImageName         = null;
     String   bootImageMapName      = null;
     Vector   bootImageTypeNames    = null;
+    String   bootImageTypeNamesFile = null;
     String[] bootImageCompilerArgs = {};
 
     //
@@ -285,26 +288,36 @@ public class BootImageWriter extends BootImageWriterMessages
     for (int i = 0; i < args.length; ++i) {
       // name of image file
       if (args[i].equals("-o")) {
-        bootImageName = args[++i];
+	if (++i >= args.length)
+	  fail("argument syntax error: Got a -o flag without a following image file name");
+        bootImageName = args[i];
         continue;
       }
       // name of map file
       if (args[i].equals("-m")) {
-        bootImageMapName = args[++i];
+	if (++i >= args.length)
+	  fail("argument syntax error: Got a -m flag without a following bootImageMap file name");
+        bootImageMapName = args[i];
         continue;
       }
       // image address
       if (args[i].equals("-ia")) {
-        bootImageAddress = Integer.decode(args[++i]).intValue();
+	if (++i >= args.length)
+	  fail("argument syntax error: Got a -ia flag without a following image address");
+        bootImageAddress = Integer.decode(args[i]).intValue();
         continue;
       }
       // file containing names of types to be placed into bootimage
       if (args[i].equals("-n")) {
-        try {
-          bootImageTypeNames = readTypeNames(args[++i]);
-        } catch (IOException e) {
-          fail("unable to read type names from "+args[i]+": "+e);
-        }
+	if (++i >= args.length)
+	  fail("argument syntax error: Got a -n flag without a following file name");
+	  
+	if (bootImageTypeNamesFile != null )
+	  fail("argument syntax error: We've already read in the bootImageTypeNames from"
+	       + bootImageTypeNamesFile + "; just got another -n argument"
+	       + " telling us to read them from " + args[i]);
+	bootImageTypeNamesFile = args[i];
+
         continue;
       }
       // bootimage compiler argument
@@ -320,12 +333,16 @@ public class BootImageWriter extends BootImageWriterMessages
       }
       // places where rvm components live, at build time
       if (args[i].equals("-classpath")) {
-        bootImageRepositoriesAtBuildTime = args[++i];
+	if (++i >= args.length)
+	  fail("argument syntax error: Got a -classpath flag without a following classpath for build-time RVM components");
+        bootImageRepositoriesAtBuildTime = args[i];
         continue;
       }
       // places where rvm components live, at execution time
       if (args[i].equals("-xclasspath")) {
-        bootImageRepositoriesAtExecutionTime = args[++i];
+	if (++i >= args.length)
+	  fail("argument syntax error: Got an -classpath flag without a following execution-time classpath for RVM components");
+        bootImageRepositoriesAtExecutionTime = args[i];
         continue;
       }
       // generate trace messages while writing bootimage (for debugging)
@@ -365,7 +382,7 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageName == null)
       fail("please specify \"-o <filename>\"");
 
-    if (bootImageTypeNames == null)
+    if (bootImageTypeNamesFile == null)
       fail("please specify \"-n <filename>\"");
 
     if (bootImageRepositoriesAtBuildTime == null)
@@ -418,7 +435,14 @@ public class BootImageWriter extends BootImageWriterMessages
     // to dynamically load and compile the remainder of itself.
     //
     try {
-      createBootImageObjects(bootImageTypeNames);
+      bootImageTypeNames = readTypeNames(bootImageTypeNamesFile);
+    } catch (IOException e) {
+      fail("unable to read the type names from "+ bootImageTypeNamesFile 
+	   +": "+e);
+    }
+
+    try {
+      createBootImageObjects(bootImageTypeNames, bootImageTypeNamesFile);
     } catch (Exception e) {
       e.printStackTrace();
       fail("unable to create objects: "+e);
@@ -668,19 +692,27 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static Vector readTypeNames(String fileName) throws IOException {
     Vector typeNames = new Vector(500);
-    DataInputStream ds = new DataInputStream(new FileInputStream(fileName));
+    //    DataInputStream ds = new DataInputStream(new FileInputStream(fileName));
+    LineNumberReader in = new LineNumberReader(new FileReader(fileName));
 
     String typeName;
-    while ((typeName = ds.readLine()) != null) { // stop at EOF
+    while ((typeName = in.readLine()) != null) { // stop at EOF
       int index = typeName.indexOf('#');
       if (index >= 0) // ignore trailing comments
         typeName = typeName.substring(0, index);
-      typeName = typeName.trim(); // ignore trailing whitespace
+      typeName = typeName.trim(); // ignore leading and trailing whitespace
       if (typeName.length() == 0)
-        continue; // ignore comment-only lines
-      typeNames.addElement(typeName);
+        continue; // ignore comment-only and whitespace-only lines
+      // debugging:
+      TypeDescriptorParsing.validateAsTypeDescriptor(typeName);
+      if (TypeDescriptorParsing.isValidTypeDescriptor(typeName))
+	typeNames.addElement(typeName);
+      else
+	fail(fileName + ":" + in.getLineNumber() 
+	     + ": syntax error: \"" 
+	     + typeName + "\" does not describe any Java type.");
     }
-    ds.close();
+    in.close();
 
     return typeNames;
   }
@@ -697,26 +729,54 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param typeNames names of rvm classes whose static fields will contain
    *                  the objects comprising the virtual machine bootimage
    */
-  public static void createBootImageObjects(Vector typeNames) throws IllegalAccessException, ClassNotFoundException {
+  public static void createBootImageObjects(Vector typeNames,
+					    String bootImageTypeNamesFile) 
+    throws IllegalAccessException, ClassNotFoundException 
+  {
       VM_Callbacks.notifyBootImage(typeNames.elements());
 
       //
       // Create types.
       //
       if (verbose >= 1) say("loading");
+      // verbose = 4;		// debug XXX
+      
       for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
         //
         // get type name
         //
         String typeName = (String) e.nextElement();
+	if (verbose >= 4)
+	  say("typeName:", typeName);
+	
 
         //
         // create corresponding rvm type
         //
-        VM_Atom name = VM_Atom.findOrCreateAsciiAtom(typeName);
-	VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), name);
-	VM_Type type = tRef.resolve();
-        type.markAsBootImageClass();
+	VM_Type type;
+	
+	try {
+	  VM_TypeReference tRef = VM_TypeReference.findOrCreate(typeName);
+	  type = tRef.resolve();
+	} catch (NoClassDefFoundError ncdf) {
+	  ncdf.printStackTrace();
+	  fail(bootImageTypeNamesFile
+	       + " contains a class named \"" 
+	       + typeName + "\", but we can't find a class with that name: "
+	       + ncdf);
+	  return;		// NOTREACHED
+	} catch (IllegalArgumentException ila) {
+	  /* We should've caught any illegal type names at the data validation
+	   * stage, when we read these in.  If not, though, 
+	   * VM_TypeReference.findOrCreate() will do its own sanity check.  */
+	  ila.printStackTrace();
+	  fail(bootImageTypeNamesFile
+	       + " is supposed to contain type names.  It contains \"" 
+	       + typeName + "\", which does not parse as a legal type name: "
+	       + ila);
+	  return;		// NOTREACHED
+	}
+	type.markAsBootImageClass();
 
         //
         // convert type name from internal form to external form
@@ -744,6 +804,7 @@ public class BootImageWriter extends BootImageWriterMessages
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type type = (VM_Type) e.nextElement();
         // if (verbose >= 1) say("resolving ", type);
+	// The resolution is supposed to be cached already.
         type.resolve();
       }
 
