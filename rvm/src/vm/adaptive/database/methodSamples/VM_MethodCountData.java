@@ -9,12 +9,13 @@ import java.util.Vector;
  * A container for recording how often a method is executed.
  *
  * @author Dave Grove
+ * @author Michael Hind
  * @modified Peter Sweeney
  */
 public final class VM_MethodCountData 
   implements VM_Decayable, VM_Reportable {
 
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
   
   /**
    * Sum of values in count array that are decayed over time.
@@ -74,18 +75,6 @@ public final class VM_MethodCountData
   public final synchronized void update(int[] countBuffer, int numCounts) {
     for (int i=0; i<numCounts; i++) {
       int cmid = countBuffer[i];
-      if (DEBUG) {
-	if (VM_ClassLoader.getCompiledMethod(cmid) == null) {
-	  VM.sysWrite("update called with null cmid, cmid: ");
-	  VM.sysWrite(cmid, false);
-	  VM.sysWrite("\n");
-
-	  VM.sysWrite("countBuffer position: ");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("\n");
-	}
-      }
-
       int index = findOrCreateHeapIdx(cmid);
       counts[index]++;      // Record count
       heapifyUp(index);     // Fix up the heap
@@ -277,7 +266,7 @@ public final class VM_MethodCountData
    * @return a value [0.0...1.0]
    */
   private double countsToHotness(double numCounts) {
-    if (VM.VerifyAssertions) assert(numCounts <= totalCountsTaken);
+    if (VM.VerifyAssertions) VM.assert(numCounts <= totalCountsTaken);
     return numCounts / totalCountsTaken;
   }
 
@@ -358,19 +347,6 @@ public final class VM_MethodCountData
     if (index < nextIndex) {
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
-
-	boolean TRACKING_BUG = true;
-	if (TRACKING_BUG) {
-	  VM_CompiledMethod cm = VM_ClassLoader.getCompiledMethod(cmid);
-	  if (cm == null) {
-	    VM.sysWrite("VM_MethodCountData.insertHotOptNMethodsInternal:\n");
-	    VM.sysWrite("   processing a cmid that doesn't have a valid entry:");
-	    VM.sysWrite(cmid, false);
-	    VM.sysWrite("   index: ");
-	    VM.sysWrite(index, false);
-	  }
-	}
-
 	VM_CompilerInfo info = 
 	  VM_ClassLoader.getCompiledMethod(cmid).getCompilerInfo();
 	int compilerType = info.getCompilerType();
@@ -409,36 +385,6 @@ public final class VM_MethodCountData
       cmids[index] = cmid;
       map[cmid] = index;
     }
-
-    if (DEBUG) {
-      if (cmids[index] != cmid) {
-	VM.sysWrite("cmids[");
-	VM.sysWrite(index, false);
-	VM.sysWrite("] != ");
-	VM.sysWrite(cmid, false);
-	VM.sysWrite("\n");
-	
-	VM.sysWrite("cmids[");
-	VM.sysWrite(index, false);
-	VM.sysWrite("] = ");
-	VM.sysWrite(cmids[index], false);
-	VM.sysWrite("\n");
-      }
-      
-      if (map[cmid] != index) {
-	VM.sysWrite("map[");
-	VM.sysWrite(cmid, false);
-	VM.sysWrite("] != ");
-	VM.sysWrite(index, false);
-	VM.sysWrite("\n");
-	
-	VM.sysWrite("map[");
-	VM.sysWrite(cmid, false);
-	VM.sysWrite("] = ");
-	VM.sysWrite(map[cmid], false);
-	VM.sysWrite("\n");
-      }
-    }
     return index;
   }
     
@@ -452,23 +398,6 @@ public final class VM_MethodCountData
   private int findHeapIdx(int cmid) {
     if (cmid < map.length) {
       int index = map[cmid];
-      if (DEBUG) {
-	// assert(index == 0 || cmids[index] == cmid);
-	if (index != 0 && cmids[index] != cmid) {
-	  VM.sysWrite("cmids[");
-	  VM.sysWrite(index, false);
-	  VM.sysWrite("] != ");
-	  VM.sysWrite(cmid, false);
-	  VM.sysWrite("\n");
-	  
-	  VM.sysWrite("cmids[");
-	  VM.sysWrite(index, false);
-	  VM.sysWrite("] = ");
-	  VM.sysWrite(cmids[index], false);
-	  VM.sysWrite("\n");
-	}
-      }
-	
       return index;
     } else {
       return 0;
@@ -530,7 +459,8 @@ public final class VM_MethodCountData
     int child1 = current * 2;
     while (child1<nextIndex) {
       int child2 = current * 2 + 1;
-      int larger = (child2<nextIndex && counts[child2]>counts[child1]) ? child2 : child1;
+      int larger = 
+	(child2<nextIndex && counts[child2]>counts[child1]) ? child2 : child1;
       if (counts[current] >= counts[larger]) break; // done
       swap(current, larger);
       current = larger;
@@ -560,74 +490,20 @@ public final class VM_MethodCountData
    * This is very expensive.  Only use for debugging purposes.
    */
   private void validityCheck() {
-    if (DEBUG) {
+    if (DEBUG && VM.VerifyAssertions) {
       // (1) Verify map and cmids are in synch
       for (int i=0; i<map.length; i++) {
-	if (map[i] != 0 && cmids[map[i]] != i) {
-	  VM.sysWrite("cmids[map[");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("]] != ");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("\n");
-	  
-	  VM.sysWrite("map[");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("] = ");
-	  VM.sysWrite(map[i], false);
-	  VM.sysWrite("\n");
-
-	  VM.sysWrite("cmids[");
-	  VM.sysWrite(map[i], false);
-	  VM.sysWrite("] = ");
-	  VM.sysWrite(cmids[map[i]], false);
-	  VM.sysWrite("\n");
-	}
-
-	assert(map[i] == 0 || cmids[map[i]] == i);
+	VM.assert(map[i] == 0 || cmids[map[i]] == i);
       }
       for (int i=1; i<nextIndex; i++) {
-	if (map[cmids[i]] != i) {
-	  VM.sysWrite("map[cmids[");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("]] != ");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("\n");
-	  
-	  VM.sysWrite("cmids[");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("] = ");
-	  VM.sysWrite(cmids[i], false);
-	  VM.sysWrite("\n");
-	  
-	  VM.sysWrite("map[");
-	  VM.sysWrite(cmids[i], false);
-	  VM.sysWrite("] = ");
-	  VM.sysWrite(map[cmids[i]], false);
-	  VM.sysWrite("\n");
-	}	
-	assert(map[cmids[i]] == i);
-
-	if (VM_ClassLoader.getCompiledMethod(cmids[i]) == null) {
-	  VM.sysWrite("cmids[");
-	  VM.sysWrite(i, false);
-	  VM.sysWrite("] = null");
-	  VM.sysWrite("\n");
-	}
-
-	assert(VM_ClassLoader.getCompiledMethod(cmids[i]) != null);
+	VM.assert(map[cmids[i]] == i);
+	VM.assert(VM_ClassLoader.getCompiledMethod(cmids[i]) != null);
       }
 
       // Verify that heap property holds on data.
       for (int i=2; i<nextIndex; i++) {
-	assert(counts[i] <= counts[i/2]);
+	VM.assert(counts[i] <= counts[i/2]);
       }
-    }
-  }
-
-  private void assert(boolean cond) throws java.lang.RuntimeException{
-    if (!cond) {
-      VM.sysWrite("local assertion failed");
-      throw new RuntimeException();
     }
   }
 }
