@@ -24,15 +24,16 @@ export RVM_FOR_LINUX=1
 # pthread library doesn't play nicely with RVM since it wants to
 # mask the bottom bits of stackpointer to find phtread local storage.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 
 export BOOTIMAGE_LOAD_ADDRESS="0x31000000"
-export MAXIMUM_MAPPABLE_ADDRESS="0xd0000000"
+export MAXIMUM_MAPPABLE_ADDRESS="0x90000000"
 
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME=/usr/local/jre13
+export HOST_JAVA_HOME=/opt/j2sdk1.3.1
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
