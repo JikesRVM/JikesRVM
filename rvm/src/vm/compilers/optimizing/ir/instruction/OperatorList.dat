@@ -239,6 +239,15 @@ immedPEI
 
 
 
+# Raise an ArrayIndexOutOfBoundsException if its integer index (register/constant)
+# operand is (unsigned) larger than the length of its array (reference, register)
+# operand.
+BOUNDS_CHECK
+BoundsCheck
+immedPEI
+
+
+
 # Performs a store check (subclass test) to determine if it is valid to
 # store its second reference argument (register/constant) into the array
 # pointed to by its first reference argument (register). Raises an
@@ -1117,15 +1126,6 @@ ret
 # Raises a NullPointerException if its (reference) register operand is null
 NULL_CHECK
 NullCheck
-immedPEI
-
-
-
-# Raise an ArrayIndexOutOfBoundsException if its integer index (register/constant)
-# operand is (unsigned) larger than the length of its array (reference, register)
-# operand.
-BOUNDS_CHECK
-BoundsCheck
 immedPEI
 
 
