@@ -608,6 +608,18 @@ public class VM extends VM_Properties implements VM_Constants,
     throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
     /* don't waste code space inlining these --dave */ {
     if (runningVM) {
+      if (value != value) {
+        write("NaN");
+        return;
+      }
+      if (value > Integer.MAX_VALUE) {
+        write("TooBig");
+        return;
+      }
+      if (value < -Integer.MAX_VALUE) {
+        write("TooSmall");
+        return;
+      }
       boolean negative = (value < 0.0);
       value = (value < 0.0) ? (-value) : value;
       int ones = (int) value;
