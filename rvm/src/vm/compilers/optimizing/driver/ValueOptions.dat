@@ -45,7 +45,7 @@ V MAX_DEADSTORE_SYSTEM_SIZE int 100
 Maximum number of dataflow equations for dead store elimination
 
 
-E INLINING_GUARD byte VM.BuildForIA32?IG_CODE_PATCH:IG_METHOD_TEST
+E INLINING_GUARD byte IG_CODE_PATCH
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \
 "IG_CLASS_TEST guardWithClassTest ig_class_test" \
@@ -89,5 +89,9 @@ Write class file from HIR for this method
 
 V CBS_HOTNESS double 0.98
 Threshold at which a conditional branch is considered to be skewed.
+
+
+V IR_PRINT_LEVEL int 0
+Only print IR compiled above this level
 
 

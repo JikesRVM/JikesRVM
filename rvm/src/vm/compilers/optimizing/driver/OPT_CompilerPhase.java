@@ -98,10 +98,15 @@ abstract class OPT_CompilerPhase
    * @param ir the OPT_IR object on which to do the work of the phase.
    */
   public final void performPhase (OPT_IR ir) {
+
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        dumpIR(ir, "Before " + getName());
+
+	// only print above centain opt level.
+	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+	  dumpIR(ir, "Before " + getName());
+	}
       }
     }
     if (ir.options.PRINT_PHASES)
@@ -114,7 +119,11 @@ abstract class OPT_CompilerPhase
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        dumpIR(ir, "After " + getName());
+	
+	// only print when above certain opt level
+	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+	  dumpIR(ir, "After " + getName());
+	}
       }
     }
     if (OPT_IR.PARANOID) {
