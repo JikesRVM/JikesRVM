@@ -9,64 +9,64 @@
 #
 # CaffeineMark
 #
-CaffeineMark_HOME=/home/dolby/projects/jikesrvm/sanityTests/CaffeineMark-3.0
+CaffeineMark_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/CaffeineMark-3.0
 
 
 #
 # JLex
 #
-JLex_HOME=/home/dolby/projects/jikesrvm/sanityTests/JLex-1.2.5
-JAVACUP_HOME=/home/dolby/projects/jikesrvm/sanityTests/java_cup_v10j
-QBJC_HOME=/home/dolby/projects/jikesrvm/sanityTests/QBJC
+JLex_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/JLex-1.2.5
+JAVACUP_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/java_cup_v10j
+QBJC_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/QBJC
 
 
 #
 # jBYTEmark
 #
-jBYTEmark_HOME=/home/dolby/projects/jikesrvm/sanityTests/jBYTEmark-0.9+
+jBYTEmark_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/jBYTEmark-0.9+
 
 #
 # SPECjbb2000
 #
-SPECjbb2000_HOME=/home/dolby/projects/jikesrvm/sanityTests/SPECjbb2000
+SPECjbb2000_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/SPECjbb2000
 
 #
 # SPECjvm98
 #
-SPECjvm98_HOME=/home/dolby/projects/jikesrvm/sanityTests/SPECjvm98
+SPECjvm98_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/SPECjvm98
 
 #
 # VolanoMark
 #
-VolanoMark_HOME=/home/dolby/projects/jikesrvm/sanityTests/VolanoMark-2.1.2
+VolanoMark_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/VolanoMark-2.1.2
  
 #
 # Jakarta Tomcat
 #
-Tomcat_HOME=/home/dolby/projects/jikesrvm/sanityTests/WebServer/jakarta-tomcat-3.2.3
+Tomcat_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/WebServer/jakarta-tomcat-3.2.3
 Tomcat_JARS=$(wildcard $(Tomcat_HOME)/lib/*.jar):$(HOST_TOOLS):$(HOST_REPOSITORIES)
 
 #
 # Jakarta Servlet API
 #
-Servlet_HOME=/home/dolby/projects/jikesrvm/sanityTests/WebServer/jakarta-servletapi-3.2.3
+Servlet_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/WebServer/jakarta-servletapi-3.2.3
 Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
 
 #
 # Jigsaw webserver
 #
-Jigsaw_HOME=/home/dolby/projects/jikesrvm/sanityTests/jigsaw_2.2.1
+Jigsaw_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/jigsaw_2.2.1
 
 #
 # Borland InterClient JDBC Driver
 #
-InterClient_HOME=/home/dolby/projects/jikesrvm/sanityTests/WebServer/interclient
+InterClient_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/WebServer/interclient
 InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
 
 #
 # HTTPClient 
 #
-HTTPClient_HOME=/home/dolby/projects/jikesrvm/sanityTests/WebServer/HTTPClient
+HTTPClient_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 
 #
 # Java Grande Forum Benchmarks v2.0
@@ -76,23 +76,23 @@ JGF_HOME=/u/sfink/tmp/jgf_v2.0
 #
 # Soot v1.2.3
 #
-Soot_HOME=/home/dolby/projects/jikesrvm/sanityTests/soot-1.2.3
+Soot_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/soot-1.2.3
 
 #
 # Xerces 2.0.2
 #
-Xerces_HOME=/home/dolby/projects/jikesrvm/sanityTests/xerces-2_0_2
+Xerces_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/xerces-2_0_2
 
 #
 # Xalan 2.4.D1
 #
-Xalan_HOME=/home/dolby/projects/jikesrvm/sanityTests/xalan-j_2_4_D1
+Xalan_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/xalan-j_2_4_D1
 
 #
 # Shakespeare in XML obtained from
 # http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip
 #
-XML_DATA=/home/dolby/projects/jikesrvm/sanityTests/xmlFiles
+XML_DATA=/homes/munchkin.1/jalapeno/contrib/benchmarks/xmlFiles
 
 #
 # rules
