@@ -83,13 +83,18 @@ fi
 if [[ ! -e $RVM_ROOT/support/lib/jazzlib.jar ]]; then
 cat <<EOF
 
-The jazzlib jar file is required for this build.
+The GNU Classpath jazzlib jar file is required for this build.
 
-You can download this file from ${jazzlib_file}
+You can download this file from
+${jazzlib_file}
+
+The license for this library is available at 
+http://www.gnu.org/software/classpath
+
 EOF
 
 if [[ x$automatic = x ]] ; then 
-  echo "Do you want to automatically download and install the new revision now? \c"
+  echo "Do you want to automatically download and install this file now? \c"
   if ! read automatic ; then 
     automatic="y"
   fi
@@ -191,6 +196,9 @@ Version [$revision] of rvmrt.jar is required for this build.
 
 You can download this revision from
 http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries?rev=$revision
+
+NOTE: This file has a different license than Jikes RVM.
+
 EOF
 
 if [[ x$license = x || x$WGET = x ]] ; then
@@ -232,6 +240,8 @@ if [[ x$automatic = xy || x$automatic = xyes ]] ; then
   done
   $GNU_TAR zxvf $RVM_ROOT/jlibraries-$revision.tar.gz
   echo file jlibraries-$revision.tar.gz left in $RVM_ROOT
+  echo "\nThe license for this library is available in"
+  echo "  $RVM_ROOT/support/lib/BinaryLibLicense.txt"
   exit 0
 fi
 exit 1
