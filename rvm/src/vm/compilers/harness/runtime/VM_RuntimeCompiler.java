@@ -166,6 +166,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
       VM.sysWrite("BCKB:\t\tTotal number of bytecode bytes compiled in kilobytes\n");
     }
 
+    VM_BaselineCompiler.generateBaselineCompilerSubsystemReport(explain);
+
     //-#if RVM_WITH_ADAPTIVE_SYSTEM 
     // Get the opt's report
     VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),

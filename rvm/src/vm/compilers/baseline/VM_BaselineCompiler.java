@@ -22,11 +22,17 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_SizeConstants
-//-#if RVM_WITH_OSR
-  , OSR_Constants
-//-#endif
+public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, 
+						     VM_SizeConstants
+						     //-#if RVM_WITH_OSR
+						     , OSR_Constants
+						     //-#endif
 {
+
+  private static long gcMapCycles;
+  private static long osrSetupCycles;
+  private static long codeGenCycles;
+  private static long encodingCycles;
 
   /** 
    * Options used during base compiler execution 
@@ -176,6 +182,42 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     }
   }
 
+  /**
+   * Generate a report of time spent in various phases of the baseline compiler.
+   * <p> NB: This method may be called in a context where classloading and/or 
+   * GC cannot be allowed.
+   * Therefore we must use primitive sysWrites for output and avoid string 
+   * appends and other allocations.
+   *
+   * @param explain Should an explanation of the metrics be generated?
+   */
+  public static void generateBaselineCompilerSubsystemReport(boolean explain) {
+    VM.sysWriteln("\n\t\tBaseline Compiler SubSystem");
+    VM.sysWriteln("\tPhase\t\t\t    Time");
+    VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
+
+    double gcMapTime = VM_Time.cyclesToMillis(gcMapCycles);
+    double osrSetupTime = VM_Time.cyclesToMillis(osrSetupCycles);
+    double codeGenTime = VM_Time.cyclesToMillis(codeGenCycles);
+    double encodingTime = VM_Time.cyclesToMillis(encodingCycles);
+    double total = gcMapTime + osrSetupTime + codeGenTime + encodingTime;
+    
+    VM.sysWrite("\tCompute GC Maps\t\t", gcMapTime);
+    VM.sysWriteln("\t",100*gcMapTime/total);
+
+    if (osrSetupTime > 0) {
+      VM.sysWrite("\tOSR setup \t\t", osrSetupTime);
+      VM.sysWriteln("\t",100*osrSetupTime/total);
+    }
+
+    VM.sysWrite("\tCode generation\t\t", codeGenTime);
+    VM.sysWriteln("\t",100*codeGenTime/total);
+
+    VM.sysWrite("\tEncode GC/MC maps\t", encodingTime);
+    VM.sysWriteln("\t",100*encodingTime/total);
+
+    VM.sysWriteln("\tTOTAL\t\t\t", total);
+  }
 
   /**
    * Compile the given method with the baseline compiler.
@@ -183,9 +225,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * @param method the VM_NormalMethod to compile.
    * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
-  public static 
-      // synchronized 
-      VM_CompiledMethod compile (VM_NormalMethod method) {
+  public static VM_CompiledMethod compile (VM_NormalMethod method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     new VM_Compiler(cm).compile();
     return cm;
@@ -198,13 +238,23 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
   protected void compile() {
     if (shouldPrint) printStartHeader(method);
 
+    // Phase 1: GC map computation
+    long start = 0;
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     VM_ReferenceMaps refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      gcMapCycles += end - start;
+    }
+
     //-#if RVM_WITH_OSR
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
      * recompute the stack height, but keep the operand words of the code 
      * generation consistant with reference map 
      */
+    // Phase 2: OSR setup
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     boolean edge_counters = options.EDGE_COUNTERS;
     if (method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
@@ -216,16 +266,28 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     } 
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      osrSetupCycles += end - start;
+    }
     //-#endif
-
+    
+    // Phase 3: Code gen
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     VM_MachineCode  machineCode  = genCode();
     VM_CodeArray    instructions = machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      codeGenCycles += end - start;
+    }
 
     //-#if RVM_WITH_OSR
     /* adjust machine code map, and restore original bytecode
      * for building reference map later.
      */
+    // Phase 4: OSR part 2
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
@@ -240,8 +302,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       // restore options
       options.EDGE_COUNTERS = edge_counters;     
     }
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      osrSetupCycles += end - start;
+    }
     //-#endif
 	
+    // Phase 5: Encode machine code maps
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
       compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
@@ -253,6 +321,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
       printEndHeader(method);
+    }
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      encodingCycles += end - start;
     }
   }
 
