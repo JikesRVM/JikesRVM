@@ -44,19 +44,23 @@ import com.ibm.JikesRVM.VM_SizeConstants;
 public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   
   /** current location (memory address) of each gpr register */
-  private VM_WordArray         registerLocations;
+  private final VM_WordArray registerLocations;
 
   /** iterator for baseline compiled frames */
-  private VM_GCMapIterator     baselineIterator;
-  
+  private final VM_BaselineGCMapIterator baselineIterator;
+
   /** iterator for opt compiled frames */
-  private VM_GCMapIterator     optIterator;
+  //-#if RVM_WITH_OPT_COMPILER
+  private final VM_OptGCMapIterator optIterator;
+  //-#else
+  private final VM_GCMapIterator optIterator = null;
+  //-#endif
   
   /** iterator for VM_HardwareTrap stackframes */
-  private VM_GCMapIterator     hardwareTrapIterator;
+  private final VM_HardwareTrapGCMapIterator hardwareTrapIterator;
   
   /** iterator for JNI Java -> C  stackframes */
-  private VM_GCMapIterator     jniIterator;
+  private final VM_JNIGCMapIterator jniIterator;
   
   
   public VM_GCMapIteratorGroup() throws VM_PragmaUninterruptible {
