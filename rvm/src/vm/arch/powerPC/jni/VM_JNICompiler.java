@@ -109,6 +109,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     VM_Address nativeIP  = method.getNativeIP();
     VM_Address nativeTOC = method.getNativeTOC();
 
+    if (VM.BuildFor64Addr) {
+      VM.sysWriteln("Native IP is ",nativeIP);
+      VM.sysWriteln("Native TOC is",nativeTOC);
+    }
+
     // NOTE:  this must be done before the condition VM_Thread.hasNativeStackFrame() become true
     // so that the first Java to C transition will be allowed to resize the stack
     // (currently, this is true when the JNIRefsTop index has been incremented from 0)
