@@ -167,7 +167,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (verbose > 2) {
       VM.sysWrite("Collection ", gcCount);
       VM.sysWrite(":      reserved = ", Plan.getPagesReserved());
-      VM.sysWrite(" (s", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20)); 
+      VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20)); 
       VM.sysWrite(" Mb) ");
       VM.sysWrite("      trigger = ", getTotalPages());
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
