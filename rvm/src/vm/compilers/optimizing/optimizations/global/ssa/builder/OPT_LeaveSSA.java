@@ -388,7 +388,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
             OPT_Register sr = c.source.asRegister().register;
             HashMap criticalBlockNames = (HashMap)currentNames.get(criticalBlock);
             OPT_Register nameForSR = (OPT_Register)criticalBlockNames.get(sr);
-            if (nameForSR == null) nameForSR = sr;
+            if (nameForSR == null) {
+	      nameForSR = (OPT_Register)bbNames.get(sr);
+	      if (nameForSR == null) nameForSR = sr;
+	    }
             if (DEBUG) VM.sysWriteln("dest(r): " + r);
             if (DEBUG) VM.sysWriteln("sr: " + sr + ", nameForSR: " + nameForSR);
             ci = OPT_SSA.makeMoveInstruction(ir, r, nameForSR, tt);
