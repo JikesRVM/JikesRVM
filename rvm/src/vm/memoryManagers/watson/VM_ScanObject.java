@@ -20,8 +20,6 @@ public class VM_ScanObject
    */
   static void scanObjectOrArray (VM_Address objRef ) {
 
-    VM_Type    type;
-    
     // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
     // and the object model is actually storing the TIB as a pointer.
@@ -30,7 +28,9 @@ public class VM_ScanObject
       VM_ObjectModel.gcProcessTIB(objRef);
     }
 
-    type = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
+    Object obj = VM_Magic.addressAsObject(objRef);
+    Object[] tib = VM_ObjectModel.getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     if (VM.VerifyAssertions) {
 	if (type == null) {
 	    VM.sysWrite("VM_ScanObject: type is null\n");
@@ -47,18 +47,21 @@ public class VM_ScanObject
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	VM_Allocator.processPtrField( objRef.add(referenceOffsets[i]) );
       }
+      VM_GCStatistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
     else {
       if (VM.VerifyAssertions) VM.assert(type.isArrayType());
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
-	int num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(objRef));
+	int num_elements = VM_Magic.getArrayLength(obj);
+	int numBytes = num_elements * WORDSIZE;
 	VM_Address location = objRef;    // for arrays = address of [0] entry
-	VM_Address end      = objRef.add(num_elements * WORDSIZE);
+	VM_Address end      = objRef.add(numBytes);
 	while ( location.LT(end) ) {
 	  VM_Allocator.processPtrField( location );
 	  location = location.add(WORDSIZE);  // is this size_of_pointer ?
 	}
+	VM_GCStatistics.profileScan(obj, numBytes, tib);
       }
     }
   } 
