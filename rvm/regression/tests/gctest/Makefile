@@ -1,3 +1,4 @@
+
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -34,7 +35,7 @@ $(TESTS): %:
 
 
 $(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
-	$(RVM_BUILD)/jbuild.toolPrep /tmp $(BENCH_HOME)/InlineAllocation.java 
+	$(RVM_BUILD)/jbuild.toolPrep --disable-modification-exit-status /tmp $(BENCH_HOME)/InlineAllocation.java 
 	mv /tmp/InlineAllocation.java $(WORKING)/cp/InlineAllocation.java
 	$(RVM_BUILD)/jbuild.tool $(WORKING)/cp/InlineAllocation.java
 
