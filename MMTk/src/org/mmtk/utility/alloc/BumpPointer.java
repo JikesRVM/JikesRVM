@@ -25,17 +25,10 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * store.  If a block boundary is encountered the allocator will
  * request more memory (virtual and actual).
  *
- * FIXME This code takes no account of the fact that Jikes RVM can
- * have an object pointer *beyond* the memory allocated for that
- * object---the significance of this is that if the object pointer
- * (rather than the allocated space) is used to test whether an object
- * is within a particular region, it could lie.
- *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-
 final class BumpPointer extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
@@ -87,8 +80,7 @@ final class BumpPointer extends Allocator
     if (useLimit) {
       if (newCursor.GT(limit))
 	return allocSlow(isScalar, bytes);
-    }
-    else {
+    } else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
       if (tmp.GT(VM_Word.fromInt(TRIGGER)))
 	return allocSlow(isScalar, bytes);
