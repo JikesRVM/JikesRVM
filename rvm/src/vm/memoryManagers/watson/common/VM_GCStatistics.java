@@ -1,7 +1,14 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2002
  */
 //$Id$
+
+/**
+ * Reshuffled GC files.
+ *
+ * @author Dave Grove
+ * @date May 30, 2002
+ */
 
 class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
 
