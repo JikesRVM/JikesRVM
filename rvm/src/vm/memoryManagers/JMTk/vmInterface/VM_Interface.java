@@ -317,27 +317,25 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static boolean useMemoryController = false;
 
   public static final VM_Address bootImageAddress = 
-  //-#value BOOTIMAGE_LOAD_ADDRESS
-  ;
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromInt
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
+    //-#endif
+    (
+     //-#value BOOTIMAGE_LOAD_ADDRESS
+     );
 
   public static VM_Address MAXIMUM_MAPPABLE = 
-  //-#value MAXIMUM_MAPPABLE_ADDRESS
-  ;
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromInt
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
+    //-#endif
+    (
+     //-#value MAXIMUM_MAPPABLE_ADDRESS
+     );
 
-
-  // 0xd for aix and 0xc for linux
-
-
-    /*
-  public static void checkBootImageAddress (int addr) {
-    if (bootImageAddress != addr) {
-      VM.sysWriteln("checkBootImageAddress detected mismatch");
-      VM.sysWriteln("  bootImageAddress = ", bootImageAddress);
-      VM.sysWriteln("  addr             = ", addr);
-      VM._assert(false);
-    }
-  }
-    */
   public static void setWorkBufferSize (int size) {
       // WorkQueue.WORK_BUFFER_SIZE = 4 * size;
   }

@@ -1746,7 +1746,7 @@ function emitImageLinker
 
    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
-   BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_ADDRESS"
+   BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
 
    if (( GENERATE_MAP )); then
       BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m $BOOTIMAGE_MAP_STR"
@@ -1781,7 +1781,7 @@ function emitImageLinker
    print "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
           -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-          GenerateInterfaceDeclarations -ia $BOOTIMAGE_ADDRESS >\
+          GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 	  $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    print ""
 
