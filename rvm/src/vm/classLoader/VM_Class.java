@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -601,7 +601,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Find specified initializer method description.
-   * @param    init method descriptor - something like "(I)V"
+   * @param  memberDescriptor  init method descriptor - something like "(I)V"
    * @return method description (null --> not found)
    */
   public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
@@ -637,8 +637,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    *
    * @author Julian Dolby
    * 
-   * @param frames specifies the number of frames back from the 
-   * caller to the method whose class's loader is required
+   * @param skip specifies the number of frames back from the 
+   *             caller to the method whose class's loader is required
    */
   public static ClassLoader getClassLoaderFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
@@ -654,8 +654,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Used for accessibility checks in reflection code.
    * Find the class of the method that corresponds to the requested frame.
    * 
-   * @param frames specifies the number of frames back from the 
-   * caller to the method whose class is required
+   * @param skip   Specifies the number of frames back from the 
+   *               caller to the method whose class is required
    */
   public static VM_Class getClassFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
