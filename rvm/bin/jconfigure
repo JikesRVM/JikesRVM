@@ -2126,6 +2126,24 @@ function emitToolCompiler
    print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    }
   
+# Emit script to run jbuild.prep on java files that are not part of the build
+#
+function emitToolPreprocessor
+   {
+   print '#!/bin/ksh'
+   print '# Generate class files for vm tools that are not part of the build.'
+   print '. $RVM_BUILD/environment'
+   print 'set -e'
+   print 'ME=`basename $0`'
+
+   print 'if [[ $# = 0 ]]; then'
+   print '   print "usage: $ME java-file [ java-file... ]"'
+   print '   exit 1'
+   print 'fi'
+
+   print ' $RVM_BUILD/jbuild.prep ' $PREPROCESSOR_DEFINITIONS ' $*'
+   }
+  
 function emitPluginBuilder
 {
     print '#!/bin/ksh'
@@ -2231,6 +2249,9 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
 
 emitToolCompiler              >$BUILD_DIRECTORY/jbuild.tool
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
+
+emitToolPreprocessor          >$BUILD_DIRECTORY/jbuild.toolPrep
+chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.toolPrep
 
 emitPluginBuilder             >$BUILD_DIRECTORY/jbuild.plugin
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.plugin
