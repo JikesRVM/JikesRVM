@@ -270,22 +270,22 @@ implements OPT_Operators, OPT_Constants {
    * transformation.
    *
    * @param ir the governing IR
-   * @param scalarsOnly: should we compute SSA only for scalar variables?
-   * @param backwards: If this is true, then every statement that
+   * @param scalarsOnly should we compute SSA only for scalar variables?
+   * @param backwards If this is true, then every statement that
    * can leave the procedure is considered to <em> use </em> every heap 
    * variable.  This option is useful for backwards analyses such as dead
    * store elimination.
-   * @param heapTypes: If this variable is non-null, then heap array SSA
+   * @param heapTypes If this variable is non-null, then heap array SSA
    * form will restrict itself to this set of types. If this is null, build 
    * heap array SSA for all types.
-   * @param insertUsePhis: Should we insert uphi functions for heap array
+   * @param insertUsePhis Should we insert uphi functions for heap array
    * SSA? ie., should we create a new name for each heap array at every use 
    * of the heap array? This option is useful for some analyses, such as
    * our redundant load elimination algorithm.
-   * @param insertPEIDeps: Should we model exceptions with an explicit
+   * @param insertPEIDeps Should we model exceptions with an explicit
    * heap variable for exception state? This option is useful for global
    * code placement algorithms.
-   * @param excludeGuards: Should we exclude guard registers from SSA?
+   * @param excludeGuards Should we exclude guard registers from SSA?
    */
   private void computeSSA (OPT_IR ir, boolean scalarsOnly, boolean backwards, 
                            Set heapTypes, boolean insertUsePhis,
@@ -663,7 +663,6 @@ implements OPT_Operators, OPT_Constants {
     *  end
     * <pre>
     *
-    * @param ir the governing IR
     * @param symbolicRegisters mapping from integer to symbolic registers
     */
     private void renameSymbolicRegisters(OPT_Register[] symbolicRegisters) {
@@ -695,7 +694,6 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param X basic block to search dominator tree from
    * @param S stack of names for each register
-   * @param ir governing IR
    */
   private void search(OPT_BasicBlock X, Stack[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
@@ -956,7 +954,7 @@ implements OPT_Operators, OPT_Constants {
   /**
    * Store a copy of the Heap variables each instruction defs.
    * 
-   * @param IR governing IR
+   * @param ir governing IR
    * @param store place to store copies
    */
   private void copyHeapDefs (OPT_IR ir, HashMap store) {
@@ -1079,7 +1077,6 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
    * Return the meet of the types on the rhs of a phi instruction
    *
    * @param s phi instruction
-   * @param a VM_type, or null if all rhs types are null
    *
    * SIDE EFFECT: bashes the OPT_Instruction scratch field.
    */
