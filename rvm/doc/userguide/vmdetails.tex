@@ -9,11 +9,11 @@ the best object model will maximize efficiency of frequent language
 operations while minimizing storage overhead. \jrvm's
 object model is defined by 
 \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
-The \jrvm object model underwent major changes between versions
-2.3.3 and 2.3.4 of the system.  In particular, in 2.3.3 and before a 
-``reverse scalar'' object model was used in which scalars and arrays
-were layed out in different directions in memory to optimize null
-pointer checks on AIX. 
+The \jrvm object model underwent major changes between versions 2.3.3
+and 2.3.4 of the system.  In particular, in 2.3.3 and before a
+``reverse scalar'' object model was used in which scalar objects and
+arrays were layed out in different directions in memory to optimize
+null pointer checks on AIX.
 
 \paragraph{Overview}
 Values in the Java\TMweb{} programming language are either {\em
