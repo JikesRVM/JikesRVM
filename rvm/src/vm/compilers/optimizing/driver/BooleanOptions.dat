@@ -153,8 +153,8 @@ Should we dump out compile-time statistics for basic blocks?
 LOOP_DEPTH_EDGE_COUNTS -1 false
 Use loop depth to approximate edge counts
 
-FIXED_JTOC -1 false 
-Exploit knowledge that the value of JTOC is a constant? (IA32 only)
+FIXED_JTOC -1 VM.BuildForIA32
+Exploit knowledge that the value of JTOC is a constant?
 
 ##########
 # Next, declare all the printing options
