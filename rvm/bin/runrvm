@@ -88,7 +88,7 @@ unset env
 
 declare -a sys_args
 sys_args=("-X:i=$rvm_build/RVM.image" \
-		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
+		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}" \
 		"-Duser.timezone=$(date +%Z)"				\
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
