@@ -31,6 +31,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     return  "Expand Runtime Services";
   }
 
+  final boolean printingEnabled(OPT_Options options, boolean before) {
+    return false;
+  }
 
   /** 
    * Given an HIR, expand operators that are implemented as calls to
@@ -295,7 +298,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  wb.bcIndex = RUNTIME_SERVICES_BCI;
 	  wb.position = inst.position;
 	  inst.insertBefore(wb);
-	  inline(wb, ir);
+	  inline(wb, ir, true);
 	  next = inst.nextInstructionInCodeOrder(); 
 	}
 	//-#endif
@@ -331,7 +334,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                 wb.bcIndex = RUNTIME_SERVICES_BCI;
                 wb.position = inst.position;
                 inst.insertBefore(wb);
-		inline(wb, ir);
+		inline(wb, ir, true);
                 next = inst.nextInstructionInCodeOrder();
               }
 	      //-#endif
