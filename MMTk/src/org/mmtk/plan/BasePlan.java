@@ -464,10 +464,11 @@ public abstract class BasePlan
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
+   * @param locationMetadata an int that encodes the source location being modified
    * @param context The context in which the store occured
    */
   public void writeBarrier(VM_Address src, VM_Address slot,
-                           VM_Address tgt, int context) {
+                           VM_Address tgt, int locationMetadata, int context) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);

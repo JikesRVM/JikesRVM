@@ -262,11 +262,12 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           if (!field.getFieldContentsType().isPrimitiveType()) {
             VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
             OPT_Instruction wb = 
-              Call.create3(CALL, null, I(target.getOffset()), 
+              Call.create4(CALL, null, I(target.getOffset()), 
                            OPT_MethodOperand.STATIC(target),
                            PutField.getRef(inst).copy(), 
                            PutField.getOffset(inst).copy(),
-                           PutField.getValue(inst).copy());
+                           PutField.getValue(inst).copy(),
+                           I(field.getId()));
             wb.bcIndex = RUNTIME_SERVICES_BCI;
             wb.position = inst.position;
             inst.replace(wb);

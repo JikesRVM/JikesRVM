@@ -2375,7 +2375,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(this); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+      VM_Barriers.compilePutfieldBarrier(this, fieldRef.getId()); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);  
       discardSlots(2);
     } else {
@@ -2407,7 +2407,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm(this, fieldOffset);
+      VM_Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
     }
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
         popInt(T0); // T0 = value
@@ -3649,6 +3649,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTW(T1,  0, T0); // *address := value
     } else if (methodName == VM_MagicNames.setMemoryWord ||
                methodName == VM_MagicNames.setMemoryAddress) {
+      if (methodToBeCalled.getParameterTypes().length == 3) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popAddr(T1); // value
       popAddr(T0); // address
       asm.emitSTAddr(T1,  0, T0); // *address := value

@@ -264,13 +264,16 @@ class OPT_GenerateMagic implements OPT_Operators,
                                            new OPT_IntConstantOperand(0), 
                                            null));
     } else if (methodName == VM_MagicNames.setMemoryAddress) {
+      OPT_LocationOperand loc = null;
+      if (meth.getParameterTypes().length == 3) {
+        loc = mapToMetadata(bc2ir.popInt());
+      }
       OPT_Operand val = bc2ir.popRef();
       OPT_Operand memAddr = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(REF_STORE, val, 
                                            memAddr, 
                                            new OPT_IntConstantOperand(0), 
-                                           null));
-
+                                           loc));
     } else if (meth.getType() == VM_TypeReference.SysCall) {
       // All methods of VM_SysCall have the following signature:
       // callNAME(VM_Address code, <var args to pass via native calling convention>)
@@ -731,5 +734,15 @@ class OPT_GenerateMagic implements OPT_Operators,
     OPT_RegisterOperand res = gc.temps.makeTempInt();
     bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP, res.copyRO(), o1, o2, cond, new OPT_BranchProfileOperand()));
     bc2ir.push(res.copyD2U());
+  }
+
+  private static OPT_LocationOperand mapToMetadata(OPT_Operand metadata) {
+    if (metadata instanceof OPT_IntConstantOperand) {
+      int index = ((OPT_IntConstantOperand)metadata).value;
+      if (index == 0) return null;
+      VM_MemberReference mr = VM_MemberReference.getMemberRef(index);
+      return new OPT_LocationOperand(mr.asFieldReference());
+    }
+    return null;
   }
 }

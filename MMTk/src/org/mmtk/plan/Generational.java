@@ -616,17 +616,18 @@ public abstract class Generational extends StopTheWorldGC
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
+   * @param locationMetadata an int that encodes the source location being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int mode) 
+                                 VM_Address tgt, int locationMetadata, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (slot.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       remset.insert(slot);
     }
-    VM_Magic.setMemoryAddress(slot, tgt);
+    VM_Magic.setMemoryAddress(slot, tgt, locationMetadata);
   }
 
   /**

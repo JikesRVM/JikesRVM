@@ -329,11 +329,27 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
+  /**
+   * Set contents of memory location.
+   * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
+   */
   public static void setMemoryWord(VM_Address address, VM_Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
+  /**
+   * Set contents of memory location.
+   * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
+   */
   public static void setMemoryAddress(VM_Address address, VM_Address value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set contents of memory location.
+   * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
+   */
+  public static void setMemoryAddress(VM_Address address, VM_Address value, int locationMetadata) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

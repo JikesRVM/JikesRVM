@@ -226,13 +226,16 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param ref the object which is the subject of the putfield
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param locationMetadata an int that encodes the source location being modified
    */
-  public static void putfieldWriteBarrier(Object ref, int offset, Object value)
+  public static void putfieldWriteBarrier(Object ref, int offset, Object value,
+                                          int locationMetadata)
     throws VM_PragmaInline {
     VM_Address src = VM_Magic.objectAsAddress(ref);
     VM_Interface.getPlan().writeBarrier(src,
                                         src.add(offset),
                                         VM_Magic.objectAsAddress(value),
+                                        locationMetadata,
                                         PUTFIELD_WRITE_BARRIER);
   }
   
@@ -271,6 +274,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Interface.getPlan().writeBarrier(array,
                                         array.add(index<<LOG_BYTES_IN_ADDRESS),
                                         VM_Magic.objectAsAddress(value),
+                                        0, // don't know metadata
                                         AASTORE_WRITE_BARRIER);
   }
 

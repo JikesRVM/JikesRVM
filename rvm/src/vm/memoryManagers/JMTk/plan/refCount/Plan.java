@@ -628,10 +628,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
+   * @param locationMetadata an int that encodes the source location being modified
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int mode) 
+                                 VM_Address tgt, int locationMetadata, int mode) 
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
       writeBarrier(src, slot, tgt);

@@ -1981,7 +1981,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(asm, T0);
+      VM_Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
       emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
     } else {
@@ -2013,7 +2013,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
+      VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {
       if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
@@ -3293,6 +3293,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.setMemoryInt ||
         methodName == VM_MagicNames.setMemoryWord ||
         methodName == VM_MagicNames.setMemoryAddress) {
+      if (m.getParameterTypes().length == 3) {
+        // discard locationMetadata parameter
+        asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
+      }
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // address
       asm.emitMOV_RegInd_Reg(S0,T0); // [S0+0] <- T0
