@@ -951,5 +951,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * Place to set breakpoints (called by compiled code).
    */
   public static void debugBreakpoint() throws VM_PragmaNoInline {
+    // the following forces this method to have a prologue.
+    // In general, jdp cannot set breakpoints in opt methods that
+    // have no prologues.
+    VM_Magic.pragmaNoOptCompile();
   }
 }
