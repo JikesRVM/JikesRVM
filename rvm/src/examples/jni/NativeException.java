@@ -107,7 +107,7 @@ class NativeException {
     try {
       returnFlag = testExceptionThrow(new Exception("Test Throw in native"));  
       returnFlag = false;  // shouldn't be here  
-    } catch (Exception e) {
+    } catch (Throwable e) {
       printVerbose("Caught exception:  got " + e.toString());      
       returnFlag = true;  
     }
