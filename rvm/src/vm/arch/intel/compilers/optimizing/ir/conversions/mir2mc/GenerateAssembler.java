@@ -1029,6 +1029,8 @@ public class GenerateAssembler {
         excludedOpcodes.add("SAHF");
         excludedOpcodes.add("NOP");
         excludedOpcodes.add("ENTER");
+        excludedOpcodes.add("JMP");
+        excludedOpcodes.add("JCC");
     }
 
     /**
@@ -1201,7 +1203,7 @@ public class GenerateAssembler {
         while (i.hasNext()) {
             String opcode = (String) i.next();
             Iterator operators = getMatchingOperators( opcode ).iterator();
-            while ( operators.hasNext() ) {
+            while (operators.hasNext()) {
                 Object operator = operators.next();
                 emitTab(3); 
                 emittedOpcodes.add( operator );
@@ -1211,6 +1213,20 @@ public class GenerateAssembler {
             emitTab(4);    emit("break;\n");
         }
 
+        // Special case because doJCC is handwritten to add
+        // logic for short-forward branches
+        emittedOpcodes.add("JCC");
+        emitTab(3);    emit("case IA32_JCC_opcode:\n");
+        emitTab(4);    emit("doJCC(inst);\n");
+        emitTab(4);    emit("break;\n");
+
+        // Special case because doJMP is handwritten to add
+        // logic for short-forward branches
+        emittedOpcodes.add("JMP");
+        emitTab(3);    emit("case IA32_JMP_opcode:\n");
+        emitTab(4);    emit("doJMP(inst);\n");
+        emitTab(4);    emit("break;\n");
+        
         // Kludge for IA32_LOCK which needs to call emitLockNextInstruction
         emittedOpcodes.add("LOCK");
         emitTab(3);    emit("case IA32_LOCK_opcode:\n");
@@ -1218,11 +1234,10 @@ public class GenerateAssembler {
         emitTab(4);    emit("break;\n");
 
         // Kludge for PATCH_POINT 
-        emittedOpcodes.add("LOCK");
         emitTab(3);    emit("case IG_PATCH_POINT_opcode:\n");
         emitTab(4);    emit("emitPatchPoint();\n");
         emitTab(4);    emit("break;\n");
-        
+
         Set errorOpcodes = getErrorOpcodes( emittedOpcodes );
         if (! errorOpcodes.isEmpty()) {
             i = errorOpcodes.iterator();
