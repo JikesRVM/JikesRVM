@@ -157,14 +157,14 @@ public class VM_Interface implements VM_Constants {
     br.heapRanges[2 * id + 1] = end.toInt();
   }
 
-  public static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) {
+  public static void putfieldWriteBarrier(Object ref, int offset, Object value) {
     if (NEEDS_WRITE_BARRIER) 
-      VM_WriteBarrier.resolvedPutfieldWriteBarrier(ref, offset, value);
+      VM_WriteBarrier.putfieldWriteBarrier(ref, offset, value);
   }
 
-  public static void resolvedPutStaticWriteBarrier(int offset, Object value) { 
+  public static void putstaticWriteBarrier(int offset, Object value) { 
     if (NEEDS_WRITE_BARRIER) 
-      VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, value);
+      VM_WriteBarrier.putstaticWriteBarrier(offset, value);
   }
 
   public static void arrayCopyWriteBarrier(Object ref, int start, int end) {
