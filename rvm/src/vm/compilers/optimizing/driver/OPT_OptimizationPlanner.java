@@ -149,7 +149,7 @@ class OPT_OptimizationPlanner {
       new OPT_ConvertBCtoHIR(),
 
       // Always do initial wave of peephole branch optimizations
-      new OPT_BranchOptimizations(0, true, false),  // Restrict branch optimizations
+      new OPT_BranchOptimizations(0),  
 
       // Optional printing of initial HIR 
       // Do this after branch optmization, since without merging
@@ -169,12 +169,12 @@ class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void HIROptimizations(Vector p) {
-    // Estimate relative basic block frequencies from branch probabilities
-    addComponent(p, new OPT_EstimateBlockFrequencies(0));
-
     addComponent(p, new  OPT_TailRecursionElimination());
     // Insert yield points on back edges
     addComponent(p, new OPT_YieldPoints());
+
+    // Estimate relative basic block frequencies from branch probabilities
+    addComponent(p, new OPT_EstimateBlockFrequencies(0));
 
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(true, true));
@@ -223,7 +223,7 @@ class OPT_OptimizationPlanner {
   private static void SSAinHIR(Vector p) {
     composeComponents
       (p, "SSA", new Object[] { 
-	// new OPT_EstimateBlockFrequencies(2), TODO!
+	new OPT_EstimateBlockFrequencies(2),
 
 	new OPT_OptimizationPlanCompositeElement 
       ("HIR SSA transformations", 
@@ -235,7 +235,7 @@ class OPT_OptimizationPlanner {
         // Insert PI Nodes
         new OPT_PiNodes(true), 
 	// branch optimization
-	new OPT_BranchOptimizations(0, true, false),
+	new OPT_BranchOptimizations(0),
         // Compute dominators
         new OPT_DominatorsPhase(true), 
         // compute dominance frontier
@@ -298,7 +298,7 @@ class OPT_OptimizationPlanner {
    */
   private static void SSAinLIR(Vector p) {
     composeComponents(p, "SSA", new Object[] {
-      // new OPT_EstimateBlockFrequencies(2), TODO
+      new OPT_EstimateBlockFrequencies(2),
       
        new OPT_OptimizationPlanCompositeElement 
 	 ("LIR SSA transformations", 
@@ -393,11 +393,11 @@ class OPT_OptimizationPlanner {
     // Late expansion of counter-based yieldpoints
     addComponent(p, new OPT_DeterministicYieldpoints());
     // Estimate relative basic block frequencies from branch probabilities
-    // addComponent(p, new OPT_EstimateBlockFrequencies(0)); TODO!
+    addComponent(p, new OPT_EstimateBlockFrequencies(0));
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
     // Perform peephole branch optimizations
-    addComponent(p, new OPT_BranchOptimizations(1,false,true));
+    addComponent(p, new OPT_BranchOptimizations(1,true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Convert high level place holder instructions into actual instrumenation
