@@ -6,14 +6,18 @@ completed.
 DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
     (SJF: we'll make the slides available after PLDI.)
 
-(2) Figure out what the jazzlib story is (can we do automatically
+DONE (2) Figure out what the jazzlib story is (can we do automatically
     download it in jconfigure or does user have to download it by hand) 
     and add appropriate text in installation section.  
+	Mike
+
+(2b)
     Also ack jazzlib in userguide/web pages?
     JULIAN
 
-(3) Carefully read installation instructions and make sure all steps
+DONE? (3) Carefully read installation instructions and make sure all steps
     are still correct, dependent on jazzlib story.
+    Mike confirmed the jazzlib story. 
 
 (4) Check all command line options (section 3) and be sure that
     descriptions are up-to-date.
