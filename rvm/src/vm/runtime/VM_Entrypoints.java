@@ -61,10 +61,10 @@ class VM_Entrypoints implements VM_Constants {
 
    static VM_Method findItableMethod;           
    static int       findItableOffset;
-   static int resolveFieldOffset;
-   static int fieldOffsetsOffset;     
-   static int resolveMethodOffset;
-   static int methodOffsetsOffset;    
+   static VM_Method resolveMethodMethod;
+   static VM_Field  methodOffsetsField;    
+   static VM_Method resolveFieldMethod;
+   static VM_Field  fieldOffsetsField;     
    //-#if RVM_FOR_IA32  
    static int jtocOffset;              
    static int threadIdOffset;
@@ -376,14 +376,14 @@ class VM_Entrypoints implements VM_Constants {
       m = unlockMethod = (VM_Method)VM.getMember("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");
       unlockOffset = m.getOffset();
    
-      newArrayArrayOffset   = VM.getMember("LVM_Linker;", "newArrayArray", "(III)Ljava/lang/Object;").getOffset();
+      newArrayArrayOffset   = VM.getMember("LVM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;").getOffset();
       
       unimplementedBytecodeOffset = VM.getMember("LVM_Runtime;", "unimplementedBytecode", "(I)V").getOffset();
 
-      resolveFieldOffset      = VM.getMember("LVM_Linker;", "resolveField", "(I)V").getOffset();
-      fieldOffsetsOffset      = VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I").getOffset();    
-      resolveMethodOffset     = VM.getMember("LVM_Linker;", "resolveMethod", "(I)V").getOffset();
-      methodOffsetsOffset     = VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I").getOffset();   
+      resolveMethodMethod     = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
+      methodOffsetsField      = (VM_Field)VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I");   
+      resolveFieldMethod      = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveField", "(I)V");
+      fieldOffsetsField       = (VM_Field)VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I");    
 //-#if RVM_FOR_POWERPC // baseline compiler entrypoints
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[I").getOffset();
       findItableMethod        = (VM_Method)VM.getMember("LVM_Runtime;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");

@@ -96,7 +96,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	asm                  = new VM_Assembler(bytecodeLength+10,shouldPrint);
       else
 	asm                  = new VM_Assembler(bytecodeLength,shouldPrint);
-      profilerClass        = null; // TODO!! set this correctly
       parameterWords       = method.getParameterWords();
       parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
     }
@@ -1806,17 +1805,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  int offset = fieldRef.getDictionaryId()<<LG_WORDSIZE;  // offset of field in dictionary and in fieldOffsets
-	  int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.fieldOffsetsOffset);            // T0 is fieldOffsets table
-	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
-	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
-	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
-	  asm.emitJMP_Imm (retryLabel);                           // reload T0
-	  fr.resolve(asm);                                       // comefrom
+	  emitDynamicLinkingSequence(T0, fieldRef); 
 	  if (fieldRef.getSize() == 4) { // field is one word
 	    asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
 	  } else { // field is two words (double or long)
@@ -1887,17 +1876,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  int offset = fieldRef.getDictionaryId()<<LG_WORDSIZE;  // offset of field in dictionary and in fieldOffsets
-	  int retryLabel = asm.getMachineCodeIndex();            // branch here, after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.fieldOffsetsOffset);            // T0 is fieldOffsets table
-	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
-	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
-	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
-	  asm.emitJMP_Imm (retryLabel);                           // reload T0
-	  fr.resolve(asm);                                       // comefrom
+	  emitDynamicLinkingSequence(T0, fieldRef);
 	  if (fieldRef.getSize() == 4) { // field is one word
 	    asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
 	  } else { // field is two words (double or long)
@@ -1950,17 +1929,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  int offset = fieldRef.getDictionaryId()<<LG_WORDSIZE;  // offset of field in dictionary and in fieldOffsets
-	  int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.fieldOffsetsOffset);            // T0 is fieldOffsets table
-	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
-	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
-	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
-	  asm.emitJMP_Imm (retryLabel);                           // reload T0
-	  fr.resolve(asm);                                       // comefrom
+	  emitDynamicLinkingSequence(T0, fieldRef);
 	  if (fieldRef.getSize() == 4) { // field is one word
 	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
 	    asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
@@ -2029,17 +1998,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  int offset = fieldRef.getDictionaryId()<<LG_WORDSIZE;                  // offset of field in dictionary and in fieldOffsets
-	  int retryLabel = asm.getMachineCodeIndex();                            // branch here, after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.fieldOffsetsOffset); // T0 is fieldOffsets table
-	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                              // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
-	  asm.emitCMP_Reg_Imm (T0, 0);                                           // T0 ?= 0, is field's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                       // if so, skip 3 instructions
-	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());                          // pass field's dict id
-	  genParameterRegisterLoad(1);                                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);         // load field's class
-	  asm.emitJMP_Imm (retryLabel);                                          // reload T0
-	  fr.resolve(asm);                                                       // comefrom
+	  emitDynamicLinkingSequence(T0, fieldRef);
 	  if (fieldRef.getSize() == 4) {// field is one word
 	    asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
 	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
@@ -2107,22 +2066,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  } // report the exception at runtime
 	}
 	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
-	  int offset = methodRef.getDictionaryId()<<LG_WORDSIZE; // offset of method in dictionary and in methodOffsets
-	  int retryLabel = asm.getMachineCodeIndex();            // branch here, after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.methodOffsetsOffset);           // T0 is methodOffsets table
-	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in TIB of virtual method, or 0
-	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is method's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip
-	  asm.emitPUSH_Imm(methodRef.getDictionaryId());         // pass method's dict id
-	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);   // load method's class
-	  asm.emitJMP_Imm (retryLabel);                           // reload T0
-	  fr.resolve(asm);                                       // comefrom
+	  emitDynamicLinkingSequence(T0, methodRef);
 	  int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
 	  int objectOffset = (methodRefparameterWords << 2) - 4;           // object offset into stack
-	  asm.emitMOV_Reg_RegDisp (S0, SP, objectOffset);                    // S0 has "this" parameter
-	  asm.emitMOV_Reg_RegDisp (S0, S0, OBJECT_TIB_OFFSET);               // S0 has TIB
-	  asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, 0);                 // S0 has address of virtual method
+	  asm.emitMOV_Reg_RegDisp (S0, SP, objectOffset);                  // S0 has "this" parameter
+	  asm.emitMOV_Reg_RegDisp (S0, S0, OBJECT_TIB_OFFSET);             // S0 has TIB
+	  asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, 0);                // S0 has address of virtual method
 	  genParameterRegisterLoad(methodRef, true);
 	  asm.emitCALL_Reg(S0);                                      // call virtual method
 	  genResultRegisterUnload(methodRef);                    // push return value, if any
@@ -2169,18 +2118,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    genResultRegisterUnload(methodRef);
 	  }
 	} else {
-	  // VM.sysWrite("dynamic link from " + method + " to " + methodRef + " [special]\n");
-	  int offset = methodRef.getDictionaryId()<<LG_WORDSIZE;                  // offset of method in dictionary and in methodOffsets
-	  int retryLabel = asm.getMachineCodeIndex();                             // branch here, after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (S0, JTOC, VM_Entrypoints.methodOffsetsOffset); // S0 is methodOffsets table
-	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
-	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
-	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load field's class
-	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
-	  fr.resolve(asm);                                                        // comefrom
+	  emitDynamicLinkingSequence(S0, methodRef);
 	  genParameterRegisterLoad(methodRef, true);
 	  asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);                             // call static method
 	  genResultRegisterUnload(methodRef);                                     // push return value, if any
@@ -2217,17 +2155,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  classPreresolved = true;
 	}
 	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
-	  int offset = methodRef.getDictionaryId()<<LG_WORDSIZE;                  // offset of method in dictionary and in methodOffsets
-	  int retryLabel = asm.getMachineCodeIndex();                             // branch here, after dynamic class loading
-	  asm.emitMOV_Reg_RegDisp (S0, JTOC, VM_Entrypoints.methodOffsetsOffset); // S0 is methodOffsets table
-	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
-	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
-	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
-	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load method's class
-	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
-	  fr.resolve(asm);                                                        // comefrom
+	  emitDynamicLinkingSequence(S0, methodRef);
 	  genParameterRegisterLoad(methodRef, false);          
 	  asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);                             // call static method
 	  genResultRegisterUnload(methodRef);                                     // push return value, if any
@@ -3684,8 +3612,35 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     return offsetToFrameHead + offset;
   }
   
-  /* reading bytecodes */
-  
+  private void emitDynamicLinkingSequence(byte reg, VM_Field fieldRef) {
+    emitDynamicLinkingSequence(reg, fieldRef.getDictionaryId(), 
+			       VM_Entrypoints.fieldOffsetsField.getOffset(),
+			       VM_Entrypoints.resolveFieldMethod.getOffset());
+  }
+
+  private void emitDynamicLinkingSequence(byte reg, VM_Method methodRef) {
+    emitDynamicLinkingSequence(reg, methodRef.getDictionaryId(), 
+			       VM_Entrypoints.methodOffsetsField.getOffset(),
+			       VM_Entrypoints.resolveMethodMethod.getOffset());
+  }
+
+  private void emitDynamicLinkingSequence(byte reg, int memberId,
+					  int tableOffset,
+					  int resolverOffset) {
+    int memberOffset = memberId << 2;
+    int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
+    asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
+    asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
+    asm.emitTEST_Reg_Reg    (reg, reg);                    // reg ?= 0, is field's class loaded?
+    VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip call instructions
+    asm.emitPUSH_Imm(memberId);                            // pass member's dictId
+    genParameterRegisterLoad(1);                           // pass 1 parameter word
+    asm.emitCALL_RegDisp(JTOC, resolverOffset);            // does class loading as sideffect
+    asm.emitJMP_Imm (retryLabel);                          // reload reg with valid value
+    fr.resolve(asm);                                       // come from Jcc above.
+  }
+
+  /* reading bytecodes */  
   private final int fetch1ByteSigned () {
     return bytecodes[bi++];
   }
@@ -3779,7 +3734,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private int          bytecodeLength;
   private int          bi;      // index into bytecodes and bytecodeMap
   private int          biStart; // bi at the start of a bytecode
-  private VM_Class     profilerClass;
   private int          parameterWords;
   private int          firstLocalOffset;
   private int[]        stackHeights;

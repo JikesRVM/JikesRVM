@@ -663,7 +663,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       OPT_LocationOperand loc = new OPT_LocationOperand(methOp);
       switch (methOp.type) {
       case OPT_MethodOperand.SPECIAL:
-	// See the comments in VM_OptLinker.java and VM_Linker.java.
+	// See the comments in VM_OptLinker.java.
 	// Only a subset of the functionality is actually required.
 	{
 	  // the <init> methods can't possibly be a dummy ref, so 
@@ -927,7 +927,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    OPT_Instruction s, 
 						    OPT_IR ir, 
 						    boolean mustBeValid) {
-    VM_Field offsetTableField = VM_OptLinker.fieldOffsetsField;
+    VM_Field offsetTableField = VM_Entrypoints.fieldOffsetsField;
     return  resolve(offsetTableField, loc.copy(), s, ir, mustBeValid, true);
   }
 
@@ -946,7 +946,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    OPT_Instruction s, 
 						    OPT_IR ir, 
 						    boolean mustBeValid) {
-    VM_Field offsetTableField = VM_OptLinker.methodOffsetsField;
+    VM_Field offsetTableField = VM_Entrypoints.methodOffsetsField;
     return  resolve(offsetTableField, methOp.copy(), s, ir, mustBeValid, false);
   }
 

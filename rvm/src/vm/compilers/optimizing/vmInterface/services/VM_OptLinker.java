@@ -33,48 +33,66 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
     byte[] bytecodes = realMethod.getBytecodes();
     int bytecode = bytecodes[bci] & 0xFF;
-    int constantPoolIndex = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[
-        bci + 2] & 0xFF);
-    VM_Member target = null;
+    int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
     switch (bytecode) {
     case JBC_getfield: case JBC_putfield: 
-    case JBC_getstatic: case JBC_putstatic:
-      target = realMethod.getDeclaringClass().getFieldRef(constantPoolIndex);
+    case JBC_getstatic: case JBC_putstatic: 
+      { 
+	VM_Field target = realMethod.getDeclaringClass().getFieldRef(cpi);
+	if (VM.TraceDynamicLinking) {
+	  VM_Class declaringClass = target.getDeclaringClass();
+	  VM.sysWrite(realMethod);
+	  VM.sysWrite(" at bci ");
+	  VM.sysWrite(bci, false);
+	  VM.sysWrite(" is causing dynamic loading of ");
+	  VM.sysWrite(declaringClass.getDescriptor());
+	  VM.sysWrite(" due to ");
+	  VM.sysWrite(target);
+	  VM.sysWrite("\n");
+	}
+	VM_TableBasedDynamicLinker.resolve(target);
+      }
       break;
     case JBC_invokevirtual:case JBC_invokestatic:
-      target = realMethod.getDeclaringClass().getMethodRef(constantPoolIndex);
+      {
+	VM_Method target = realMethod.getDeclaringClass().getMethodRef(cpi);
+	if (VM.TraceDynamicLinking) {
+	  VM_Class declaringClass = target.getDeclaringClass();
+	  VM.sysWrite(realMethod);
+	  VM.sysWrite(" at bci ");
+	  VM.sysWrite(bci, false);
+	  VM.sysWrite(" is causing dynamic loading of ");
+	  VM.sysWrite(declaringClass.getDescriptor());
+	  VM.sysWrite(" due to ");
+	  VM.sysWrite(target);
+	  VM.sysWrite("\n");
+	}
+	VM_TableBasedDynamicLinker.resolve(target);
+      }
       break;
     case JBC_invokeinterface:
       // We believe that in the RVM this cannot cause dynamic linking
     case JBC_invokespecial:       
-      // We believe that this cannot cause dynamic linking
+      // We believe that the offsets will always be valid for an 
+      // invokespecial; As part of creating the uninitialized instance 
+      // of an object, the runtime system must have invoked the class loader 
+      // to load the class and therefore by the time the call to the init 
+      // code is executed, the method offset table will contain a valid value.
     default:
       if (VM.VerifyAssertions)
 	VM.assert(VM.NOT_REACHED, 
 		  "Unexpected case in VM_OptLinker.resolveDynamicLink");
       break;
     }
-    if (VM.TraceDynamicLinking) {
-      VM_Class declaringClass = target.getDeclaringClass();
-      VM.sysWrite(realMethod);
-      VM.sysWrite(" at bci ");
-      VM.sysWrite(bci, false);
-      VM.sysWrite(" is causing dynamic loading of ");
-      VM.sysWrite(declaringClass.getDescriptor());
-      VM.sysWrite(" due to ");
-      VM.sysWrite(target);
-      VM.sysWrite("\n");
-    }
-    VM_TableBasedDynamicLinker.resolveMember(target);
   }
 
   public static Object newArrayArray (int[] dimensions, int dictionaryId) 
       throws VM_ResolutionException, 
-      NegativeArraySizeException, OutOfMemoryError {
+	     NegativeArraySizeException, 
+	     OutOfMemoryError {
     // validate arguments
     for (int i = 0; i < dimensions.length; i++) {
-      if (dimensions[i] < 0)
-        throw  new NegativeArraySizeException();
+      if (dimensions[i] < 0) throw new NegativeArraySizeException();
     }
     // create array
     //
@@ -83,8 +101,11 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
   }
 
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  public static Object allocAdviceNewArrayArray(int[] dimensions, int dictionaryId, int generation) 
-    throws VM_ResolutionException, NegativeArraySizeException, 
+  public static Object allocAdviceNewArrayArray(int[] dimensions, 
+						int dictionaryId, 
+						int generation) 
+    throws VM_ResolutionException, 
+	   NegativeArraySizeException, 
 	   OutOfMemoryError { 
     
     // validate arguments
@@ -95,12 +116,8 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     
     // create array
     //
-    Object arrayObject;
-    //synchronized (VM_Runtime.lock) { removed since the callee acquires and lock and the references lock does not exit. Maria
-    arrayObject = VM_Runtime.buildMultiDimensionalArray(dimensions, 
-							  0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
-    //}
-    return arrayObject;
+    return VM_Runtime.buildMultiDimensionalArray(dimensions, 
+						 0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
   }
   //-#endif
 
@@ -109,8 +126,6 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
   // bytecodes that cannot be mapped directly into native machine 
   // code.
   //
-  static final VM_Field threadTable = (VM_Field)VM.getMember("LVM_Scheduler;", 
-      "threads", "[LVM_Thread;");
   static final VM_Method optThreadSwitchFromPrologueMethod = 
       (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
 			      "OPT_threadSwitchFromPrologue", "()V");
@@ -137,20 +152,6 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
 			    "allocAdviceNewArrayArray",
 			    "([III)Ljava/lang/Object;");
   //-#endif
-  static final VM_Field fieldOffsetsField = 
-    (VM_Field)VM.getMember("LVM_ClassLoader;", 
-			   "fieldOffsets", "[I");
-  static final VM_Field methodOffsetsField = 
-    (VM_Field)VM.getMember("LVM_ClassLoader;", 
-			   "methodOffsets", "[I");
-  static final VM_Field longDivIP = 
-    (VM_Field)VM.getMember("LVM_BootRecord;", "sysLongDivideIP", "I");
-  static final VM_Field longDivTOC = 
-    (VM_Field)VM.getMember("LVM_BootRecord;", "sysLongDivideTOC", "I");
-  static final VM_Field longRemIP = 
-    (VM_Field)VM.getMember("LVM_BootRecord;", "sysLongRemainderIP", "I");
-  static final VM_Field longRemTOC = 
-    (VM_Field)VM.getMember("LVM_BootRecord;", "sysLongRemainderTOC", "I");
 }
 
 

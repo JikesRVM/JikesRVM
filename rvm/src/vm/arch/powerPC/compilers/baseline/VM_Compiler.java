@@ -2005,13 +2005,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         case 0xb2: /* --- getstatic --- */ {
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-          if (VM.TraceAssembler) 
-            asm.noteBytecode("getstatic " + constantPoolIndex  + 
-                             " (" + fieldRef + ")");
+          if (VM.TraceAssembler) asm.noteBytecode("getstatic " + constantPoolIndex  + " (" + fieldRef + ")");
 	  boolean classPreresolved = false;
 	  VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	  if (fieldRef.needsDynamicLink(method) && 
-              VM.BuildForPrematureClassResolution) {
+	  if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
 	    try {
 	      fieldRefClass.load();
 	      fieldRefClass.resolve();
@@ -2024,8 +2021,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !fieldRefClass.isInitialized() &&
 	      !(fieldRefClass == klass) &&
 	      !(fieldRefClass.isInBootImage() && VM.writingBootImage)
-	      ) { // TODO!! rearrange the following code to 
-                  // backpatch after the first call
+	      ) {
 	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, fieldRefClass.getDictionaryId()); 
@@ -2114,7 +2110,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !fieldRefClass.isInitialized() &&
 	      !(fieldRefClass == klass) &&
 	      !(fieldRefClass.isInBootImage() && VM.writingBootImage)
-	      ) { // TODO!! rearrange the following code to backpatch after the first call
+	      ) { 
 	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, fieldRefClass.getDictionaryId()); 
@@ -2469,7 +2465,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !methodRefClass.isInitialized() &&
 	      !(methodRefClass == klass) &&
 	      !(methodRefClass.isInBootImage() && VM.writingBootImage)
-	      ) { // TODO!! rearrange the following code to backpatch after the first call
+	      ) { 
 	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, methodRefClass.getDictionaryId()); 
@@ -2983,14 +2979,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private void emitDynamicLinkingSequence(VM_Field fieldRef) {
     emitDynamicLinkingSequence(fieldRef.getDictionaryId(), 
-			       VM_Entrypoints.fieldOffsetsOffset,
-			       VM_Entrypoints.resolveFieldOffset);
+			       VM_Entrypoints.fieldOffsetsField.getOffset(),
+			       VM_Entrypoints.resolveFieldMethod.getOffset());
   }
 
   private void emitDynamicLinkingSequence(VM_Method methodRef) {
     emitDynamicLinkingSequence(methodRef.getDictionaryId(), 
-			       VM_Entrypoints.methodOffsetsOffset,
-			       VM_Entrypoints.resolveMethodOffset);
+			       VM_Entrypoints.methodOffsetsField.getOffset(),
+			       VM_Entrypoints.resolveMethodMethod.getOffset());
   }
 
   private void emitDynamicLinkingSequence(int memberId,
@@ -3224,7 +3220,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0); // set thread switch bit
       } else if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
 	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedOffset, PROCESSOR_REGISTER);
-	asm.emitCMPI(THREAD_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_BIT in CR
+	asm.emitCMPI(THREAD_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_BIT in CR
       } // else rely on the timer interrupt to set the THREAD_SWITCH_BIT
       asm.emitBNTS(VM_Assembler.CALL_INSTRUCTIONS + 3); // skip, unless THREAD_SWITCH_BIT in CR is set
       if (whereFrom == VM_Thread.PROLOGUE) {
