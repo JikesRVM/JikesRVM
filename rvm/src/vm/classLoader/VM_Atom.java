@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -16,9 +16,15 @@ import java.util.HashMap;
  * VM_Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
  *
+ * There is almost always a zero-length VM_Atom, since any class which
+ * contains statements like:
+ *	    return "";
+ * will have one in its constant pool.
+ * 
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @modified  Steven Augart
  */
 public final class VM_Atom implements VM_ClassLoaderConstants {
 
@@ -136,6 +142,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     return findOrCreate(val, true);
   }
 
+  /** This is the findOrCreate() method through which all VM_Atoms are
+   * ultimately created.   The constructor for VM_Atom is a private method, so
+   * someone has to call one of the public findOrCreate() methods to get a new
+   * one.  And they all feed through here.  */
   private static synchronized VM_Atom findOrCreate(byte[] bytes, boolean create) {
     Key key = new Key(bytes);
     VM_Atom val = (VM_Atom)dictionary.get(key);
@@ -172,7 +182,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return printable representation of "this" atom.
    */ 
-  public final String toUnicodeString() throws java.io.UTFDataFormatException { 
+  public final String toUnicodeString() 
+    throws java.io.UTFDataFormatException 
+  { 
     return VM_UTF8Convert.fromUTF8(val);
   }
 
@@ -182,6 +194,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return array descriptor - something like "[I" or "[Ljava/lang/Object;"
    */  
   final VM_Atom arrayDescriptorFromElementDescriptor() {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     byte sig[] = new byte[1 + val.length];
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
@@ -195,6 +209,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return class descriptor - something like "Ljava/lang/Object;"
    */ 
   public final VM_Atom descriptorFromClassName() {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     if (val[0] == '[') return this;
     byte sig[] = new byte[1 + val.length + 1];
     sig[0] = (byte)'L';
@@ -210,7 +226,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return class name       - something like "java.lang.String"
    */ 
   public final String classNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    if (VM.VerifyAssertions){
+      VM._assert(val.length > 0);
+      VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    }
     return new String(val, 0, 1, val.length - 2).replace('/','.'); 
   }
    
@@ -220,7 +239,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return class file name  - something like "java/lang/String.class"
    */ 
   public final String classFileNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 0);
+      VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    }
     return new String(val, 0, 1, val.length - 2) + ".class";
   }
 
@@ -234,6 +256,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *       At present, only <init> and <clinit> are used.
    */ 
   public final boolean isReservedMemberName() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     return val[0] == '<';
   }
 
@@ -241,6 +265,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a class descriptor?
    */ 
   public final boolean isClassDescriptor() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     return val[0] == 'L';
   }
       
@@ -248,6 +274,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom an array descriptor?
    */ 
   public final boolean isArrayDescriptor() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     return val[0] == '[';
   }
       
@@ -255,6 +283,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a method descriptor?
    */ 
   public final boolean isMethodDescriptor() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     return val[0] == '(';
   }
       
@@ -268,28 +298,62 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  public final VM_TypeReference parseForReturnType(ClassLoader cl) {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '(');
-
+  public final VM_TypeReference parseForReturnType(ClassLoader cl) 
+  {
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 0);
+      VM._assert(val[0] == '(', 
+		 "Need a valid method descriptor; got \"" + this + "\"");
+    }
     int i = 0;
-    while (val[i++] != ')');
-    switch (val[i])
-      {
-      case VoidTypeCode:    return VM_TypeReference.Void;
-      case BooleanTypeCode: return VM_TypeReference.Boolean;
-      case ByteTypeCode:    return VM_TypeReference.Byte;
-      case ShortTypeCode:   return VM_TypeReference.Short;
-      case IntTypeCode:     return VM_TypeReference.Int;
-      case LongTypeCode:    return VM_TypeReference.Long;
-      case FloatTypeCode:   return VM_TypeReference.Float;
-      case DoubleTypeCode:  return VM_TypeReference.Double;
-      case CharTypeCode:    return VM_TypeReference.Char;
-      case ClassTypeCode:   // fall through
-      case ArrayTypeCode:   return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
-      default:              if (VM.VerifyAssertions) VM._assert(false); return null;
-      }
+    while (val[i++] != ')') {
+      if (VM.VerifyAssertions)
+	VM._assert(i < val.length, 
+		   "The method descriptor \"" + this + "\"" 
+		   + " is missing a closing ')'");
+    }
+    if (VM.VerifyAssertions)
+      VM._assert(i < val.length, 
+		 "The method descriptor \"" + this + "\"" 
+		 + " is missing a type after the closing ')'");
+    switch (val[i]) {
+    case VoidTypeCode:
+      return VM_TypeReference.Void;
+    case BooleanTypeCode:
+      return VM_TypeReference.Boolean;
+    case ByteTypeCode:
+      return VM_TypeReference.Byte;
+    case ShortTypeCode:
+      return VM_TypeReference.Short;
+    case IntTypeCode:
+      return VM_TypeReference.Int;
+    case LongTypeCode:
+      return VM_TypeReference.Long;
+    case FloatTypeCode:
+      return VM_TypeReference.Float;
+    case DoubleTypeCode:
+      return VM_TypeReference.Double;
+    case CharTypeCode:
+      return VM_TypeReference.Char;
+    case ClassTypeCode:   // fall through
+    case ArrayTypeCode:
+      return VM_TypeReference.findOrCreate(
+	    cl, findOrCreate(val, i, val.length - i));
+    default:
+	if (VM.VerifyAssertions) {
+	  VM._assert(false,
+		     "Need a valid method descriptor; got \"" + this
+		     + "\"; can't parse the character '"  
+		     + byteToString(val[i]) + "'");
+	}
+	return null;		// NOTREACHED
+    }
   }
       
+  private String byteToString(byte b) {
+    return Character.toString((char) b);
+}
+
   /**
    * Parse "this" method descriptor to obtain descriptions of method's 
    * parameters.
@@ -297,30 +361,59 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return parameter descriptions
    */ 
   public final VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '(');
-
+    if (VM.VerifyAssertions)  {
+      VM._assert(val.length > 0);
+      VM._assert(val[0] == '(', 
+		 "The method descriptor \"" + this 
+		 + "\" doesn't start with the character '('" );
+    }
     VM_TypeReferenceVector sigs = new VM_TypeReferenceVector();
     int i = 1;
     while (true) {
+      if (VM.VerifyAssertions)
+	VM._assert(i < val.length,
+		   "\"" + this + "\" is not a valid method descriptor");
+      
       switch (val[i++])	{
-      case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     continue;
-      case BooleanTypeCode: sigs.addElement(VM_TypeReference.Boolean);  continue;
-      case ByteTypeCode:    sigs.addElement(VM_TypeReference.Byte);     continue;
-      case ShortTypeCode:   sigs.addElement(VM_TypeReference.Short);    continue;
-      case IntTypeCode:     sigs.addElement(VM_TypeReference.Int);      continue;
-      case LongTypeCode:    sigs.addElement(VM_TypeReference.Long);     continue;
-      case FloatTypeCode:   sigs.addElement(VM_TypeReference.Float);    continue;
-      case DoubleTypeCode:  sigs.addElement(VM_TypeReference.Double);   continue;
-      case CharTypeCode:    sigs.addElement(VM_TypeReference.Char);     continue;
+      case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     
+	continue;
+      case BooleanTypeCode: sigs.addElement(VM_TypeReference.Boolean);  
+	continue;
+      case ByteTypeCode:    sigs.addElement(VM_TypeReference.Byte);     
+	continue;
+      case ShortTypeCode:   sigs.addElement(VM_TypeReference.Short);
+	continue;
+      case IntTypeCode:     sigs.addElement(VM_TypeReference.Int);
+	continue;
+      case LongTypeCode:    sigs.addElement(VM_TypeReference.Long);     
+	continue;
+      case FloatTypeCode:   sigs.addElement(VM_TypeReference.Float);
+	continue;
+      case DoubleTypeCode:  sigs.addElement(VM_TypeReference.Double);
+	continue;
+      case CharTypeCode:    sigs.addElement(VM_TypeReference.Char);
+	continue;
       case ClassTypeCode: {
 	int off = i - 1;
-	while (val[i++] != ';');
-	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+	while (val[i++] != ';') {
+	  if (VM.VerifyAssertions)
+	    VM._assert(i < val.length,
+		"class descriptor missing a final ';': \"" + this + "\"");
+	}
+	sigs.addElement(
+	    VM_TypeReference
+	       .findOrCreate(cl, 
+			     findOrCreate(val, off, i - off)));
 	continue;
       }
       case ArrayTypeCode: {
 	int off = i - 1;
-	while (val[i] == ArrayTypeCode) ++i;
+	while (val[i] == ArrayTypeCode) {
+	  if (VM.VerifyAssertions)
+	    VM._assert(i < val.length, 
+		       "\"" + this + "\" is a malformed array descriptor");
+	  ++i;
+	}
 	if (val[i++] == ClassTypeCode) while (val[i++] != ';');
 	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
 	continue;
@@ -328,7 +421,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       case (byte)')': // end of parameter list
 	return sigs.finish();
             
-      default: if (VM.VerifyAssertions) VM._assert(false);
+      default:	
+	if (VM.VerifyAssertions)
+	  VM._assert(false,
+		"The class descriptor \"" + this + "\" contains the illegal"
+		+ " character '" + byteToString(val[i]) + "'");
       }
     }
   }
@@ -358,7 +455,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
-  public final byte parseForTypeCode() {
+  public final byte parseForTypeCode() 
+    throws IllegalArgumentException
+  {
+    if (VM.VerifyAssertions)
+      VM._assert(val.length > 0);
     return val[0];
   }
   
@@ -368,11 +469,21 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
    */ 
-  public final int parseForArrayDimensionality() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
-    for (int i = 0; ; ++i)
+  public final int parseForArrayDimensionality() 
+  {
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 1, 
+		 "An array descriptor has at least two characters: " + this.toString());
+      VM._assert(val[0] == '[',
+		 "An array descriptor must start with '['; we got " + this.toString());
+    }
+    for (int i = 0; ; ++i) {
+      if (VM.VerifyAssertions)
+	VM._assert(i < val.length,
+		   "Malformed array descriptor: it can't just have [ characters: \"" + this + "\"");
       if (val[i] != '[')
 	return i;
+    }
   }
 
   /**
@@ -380,9 +491,23 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: descriptor - something like "[Ljava/lang/String;" or "[I"
    * @return type code  - something like VM.ObjectTypeCode or VM.IntTypeCode
    * The type code will be one of the constants appearing in the table above.
+   *
+   * Implementation note: This is supposed to be uninterruptible, since another
+   * allegedly uninterruptible method (VM_Array.getLogElementSize()) calls it.
    */ 
-  public final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
+  public final byte parseForArrayElementTypeCode() 
+    throws VM_PragmaUninterruptible
+  {
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 1, 
+		 //		 "An array descriptor has at least two characters: ",  this.toString());
+		 "An array descriptor must have at least two characters");
+      
+      VM._assert(val[0] == '[',
+		 "An array descriptor must start with '['" );
+      //		 "An array descriptor must start with '['; we got " );
+		 //, this.toString());
+    }
     return val[1];
   }
 
@@ -390,9 +515,20 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Return the innermost element type reference for an array
    */
   public final VM_Atom parseForInnermostArrayElementDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 1, 
+		 "An array descriptor has at least two characters: " + this);
+      VM._assert(val[0] == '[',
+		 "An array descriptor must start with '['; we got " + this);
+    }
     int i=0; 
-    while (val[i] == '[') i++;
+    while (val[i] == '[') {
+      if (VM.VerifyAssertions)
+	VM._assert(i < val.length,
+		   "An array descriptor can't just have [ characters: " 
+		   + this);
+      i++;
+    }
     return findOrCreate(val, i, val.length -i);
   }
 
@@ -403,9 +539,15 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return array element descriptor - something like "I"
    */
   public final VM_Atom parseForArrayElementDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
+    if (VM.VerifyAssertions) {
+      VM._assert(val.length > 1, 
+		 "An array descriptor has at least two characters: " + this);
+      VM._assert(val[0] == '[',
+		 "An array descriptor must start with '['; we got " + this);
+    }
     return findOrCreate(val, 1, val.length - 1);
   }
+
 
   private static final byte[][] systemClasses = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
 
@@ -414,11 +556,15 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * (ie a class that must be loaded by the system class loader
    */
   public final boolean isSystemClassDescriptor() {
+    int n=val.length;
   outer:
     for (int i=0; i<systemClasses.length; i++) {
       byte[] test = systemClasses[i];
+      if (test.length != n)
+	continue outer;
       for (int j=0; j<test.length; j++) {
-	if (val[j] != test[j]) continue outer;
+	if (val[j] != test[j]) 
+	  continue outer;
       }
       return true;
     }
