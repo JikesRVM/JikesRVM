@@ -17,6 +17,20 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 public class VM_BootImageCompiler {
 
+  // If includePattern is null, all methods are opt-compiled (or attempted).
+  // Otherwise, only methods that match the pattern are opt-compiled.
+  // In any case, the class VM_OptSaveVolatile is always opt-compiled.
+  //
+  private static String includePattern; 
+  private static boolean match(VM_Method method) {
+    VM_Class cls = method.getDeclaringClass();
+    String clsName = cls.getName();
+    if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
+    String methodName = method.getName().toString();
+    String fullName = clsName + "." + methodName;
+    return (fullName.indexOf(includePattern)) >= 0;
+  }
+
   /** 
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
@@ -39,7 +53,10 @@ public class VM_BootImageCompiler {
       for (int i = 0, n = args.length; i < n; i++) {
 	String arg = args[i];
 	if (!options.processAsOption("-X:bc:", arg)) {
-	  VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
+	  if (arg.startsWith("include=")) 
+	    includePattern = arg.substring(8);
+	  else
+	    VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
 	}
       }
 
@@ -70,12 +87,19 @@ public class VM_BootImageCompiler {
       return VM_JNICompiler.compile(method);
     } else {
       VM_CompiledMethod cm = null;
+      OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
       try {
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
+	if (includePattern != null) {
+	  boolean include = match(method);
+	  // VM.sysWrite("Method ", method.getDeclaringClass().getName());
+	  // VM.sysWrite(".", method.getName().toString());
+	  // VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
+	  if (!include)
+	    throw escape;
+	}
+	long start = System.currentTimeMillis();
 	OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-	long start = 0;
-	if (VM.BuildForAdaptiveSystem) 
-	start = System.currentTimeMillis();
 	cm = OPT_Compiler.compile(cp);
 	if (VM.BuildForAdaptiveSystem) {
 	  long stop = System.currentTimeMillis();
@@ -84,16 +108,19 @@ public class VM_BootImageCompiler {
 	}
 	return cm;
       } catch (OPT_OptimizingCompilerException e) {
-	String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
 	if (e.isFatal && options.ERRORS_FATAL) {
 	  e.printStackTrace();
 	  System.exit(101);
 	} else {
 	  boolean printMsg = true;
-	  if (e instanceof OPT_MagicNotImplementedException) {
+	  if (e instanceof OPT_MagicNotImplementedException) 
 	    printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+	  if (e == escape) 
+	    printMsg = false;
+	  if (printMsg) {
+	    String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
+	    VM.sysWrite(msg);
 	  }
-	  if (printMsg) VM.sysWrite(msg);
 	}
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
 	cm = VM_BaselineCompiler.compile(method);
