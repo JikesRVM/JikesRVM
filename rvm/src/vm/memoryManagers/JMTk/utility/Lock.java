@@ -33,12 +33,11 @@ public class Lock implements VM_Uninterruptible {
   private static int startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
   private static int UNLOCKED = 0;
   private static int LOCKED = 1;
-  private static double SLOW_THRESHOLD = 0.1; // seconds
-  private static double TIME_OUT = 1.0; // seconds
+  private static double SLOW_THRESHOLD = 0.2; // seconds
+  private static double TIME_OUT = 2.0; // seconds
 
   // Debugging
-  private static final boolean REPORT_SLOW_LOCK = false; // has overhead when on
-  private static double SLOW_LOCK_THRESHOLD = 0.001; // in seconds
+  private static final boolean REPORT_SLOW = true;
   private static int TIMEOUT_CHECK_FREQ = 1000; 
   public static int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
@@ -78,29 +77,28 @@ public class Lock implements VM_Uninterruptible {
 	double waitTime = now - localStart;
 	if (lastReportDuration > SLOW_THRESHOLD) {
 	    lastSlowReport = now;
-	    VM.sysWrite("\nWarning: possible slow or deadlock - failed to acquire lock ", id);
+	    VM.sysWrite("GC Warning: possible slow or deadlock - failed to acquire lock ", id);
 	    VM.sysWrite(" (", name);
 	    VM.sysWrite(")  after ", 1000.0 * waitTime);
 	    VM.sysWriteln(" ms");
-	    if (thread == null) 
-		VM.sysWriteln("  Locking thread unknown");
+	    VM_Thread t = thread;
+	    if (t == null) 
+		VM.sysWriteln("GC Warning: Locking thread unknown");
 	    else {
-		VM.sysWrite("  Locking thread: "); thread.dump(1); 
+		VM.sysWrite("GC Warning:  Locking thread: "); t.dump(1); 
 		VM.sysWriteln(" at position ", where);
 	    }
 	}
 	if (waitTime > TIME_OUT) {
-	    VM.sysWrite("Locked out thread: "); 
+	    VM.sysWrite("GC Warning: Locked out thread: "); 
 	    VM_Thread.getCurrentThread().dump(1); 
-	    VM.sysWriteln("\nWill now spin for one second and die");
 	    VM_Scheduler.dumpStack();
-	    VM_Interface.busyWait(1.0);
 	    VM.sysFail("Deadlock or someone holding on to lock for too long");
 	}
       }
     }
 
-    if (REPORT_SLOW_LOCK) {
+    if (REPORT_SLOW) {
       setStart(VM_Time.now());
       setThread(VM_Thread.getCurrentThread());
     }
@@ -115,19 +113,18 @@ public class Lock implements VM_Uninterruptible {
   }
 
   public void check (int w) {
-    if (!REPORT_SLOW_LOCK) return;
+    if (!REPORT_SLOW) return;
     if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread() == thread);
-    double diff = (REPORT_SLOW_LOCK) ? VM_Time.now() - start : 0.0;
-    boolean show = (verbose > 1) || (diff > SLOW_LOCK_THRESHOLD);
+    double diff = (REPORT_SLOW) ? VM_Time.now() - start : 0.0;
+    boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
-      VM.sysWrite("Thread ");
+      VM.sysWrite("GC Warning: Thread ");
       thread.dump();
       VM.sysWrite(" reached point ", w);
       VM.sysWrite(" while holding lock ", id);
       VM.sysWrite(" ", name);
-      VM.sysWrite(" at ");
-      VM.sysWrite(1000000.0 * diff);
-      VM.sysWriteln(" micro-seconds");
+      VM.sysWrite(" at ", 1000.0 * diff);
+      VM.sysWriteln(" ms");
     }
     where = w;
   }
@@ -139,19 +136,19 @@ public class Lock implements VM_Uninterruptible {
   //
   public void release() {
     if (VM.VerifyAssertions) VM._assert(lock == LOCKED);
-    double diff = (REPORT_SLOW_LOCK) ? VM_Time.now() - start : 0.0;
-    boolean show = (verbose > 1) || (diff > SLOW_LOCK_THRESHOLD);
+    double diff = (REPORT_SLOW) ? VM_Time.now() - start : 0.0;
+    boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
-      VM.sysWrite("Thread ");
+      VM.sysWrite("GC Warning: Thread ");
       thread.dump();
       VM.sysWrite(" released lock ", id);
       VM.sysWrite(" ", name);
       VM.sysWrite(" after ");
-      VM.sysWrite(1000000.0 * diff);
-      VM.sysWriteln(" micro-seconds");
+      VM.sysWrite(1000.0 * diff);
+      VM.sysWriteln(" ms");
     }
 
-    if (REPORT_SLOW_LOCK) {
+    if (REPORT_SLOW) {
       setStart(0.0);
       setThread(null);
       where = -1;
