@@ -7,7 +7,7 @@ BaseBaseConcurrent -test-list nightly-tests-BaseBaseConcurrent
 BaseAdaptiveSemispace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
 FullOptCopyGenVariable -test-list nightly-tests-with-jdp
-FullOptHybrid -test-list nightly-tests-with-jdp
+FullOptHybrid -test-list nightly-tests
 FullAdaptiveSemispace -test-list nightly-tests
 FastSemispace -test-list nightly-tests-short
 FastMarkSweep -test-list nightly-tests-short
