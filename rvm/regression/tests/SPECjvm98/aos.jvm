@@ -123,12 +123,12 @@ multiplier=1
 ###############################
 # set up command line arguments
 # notify_vm_complete and measureCompilation results in compilation statistics
-jvm_options="-Xms205 -Xmx250 -X:processors=$numProcessors -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc -X:vm:interruptQuantum=$quantum -X:vm:schedulingMultiplier=$multiplier"
+rvm_options="-Xms205M -Xmx250M -X:processors=$numProcessors -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc -X:vm:interruptQuantum=$quantum -X:vm:schedulingMultiplier=$multiplier"
 
 # don't append ":." because it doesn't work, and don't need ./cp
 cp="-classpath $RVM_SPECJVM98"
 spec_options="-d3000 -g -m1 -M1 -s$inputSize"
 
-echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication  $spec_options -a $benchmark > $output_log"
-$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
+echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $cp SpecApplication  $spec_options -a $benchmark > $output_log"
+$RVM_ROOT/rvm/bin/rvm $rvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
 

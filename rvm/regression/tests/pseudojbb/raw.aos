@@ -556,7 +556,7 @@ osr="-X:aos:osr_promotion=false -X:opt:osr_guarded_inlining=false -X:opt:osr_inl
 gc="-X:gc:variableSizeHeap=false"
 
 
-jvm_options="-Xms$minHeap -Xmx$maxHeap $strategy_options -X:processors=$numProcs -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc $cml_options $osr $gc" 
+rvm_options="-Xms${minHeap}M -Xmx${maxHeap}M $strategy_options -X:processors=$numProcs -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc $cml_options $osr $gc" 
 #  -X:opt:errors_fatal=true
 
 hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$hpm_verbose -X:hpm:trace_verbose=$hpm_trace_verbose -X:hpm:filename=$out_file -X:hpm:trace=true -X:hpm:sample=true"
@@ -573,7 +573,7 @@ fi
 classpath="   -classpath $RVM_PSEUDOJBB_HOME/src"
 
 
-echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config"
+echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config"
 
-      $RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config
+      $RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config
 

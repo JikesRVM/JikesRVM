@@ -85,8 +85,8 @@ cp="-classpath $RVM_SPECJVM98"
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
 
-jvmoptions="	        -Xmx400 $PROFILE_ARG"
-jvmcompoptions="	-Xmx400 -X:vm:measureCompilation=true"
+rvmoptions="	        -Xmx400M $PROFILE_ARG"
+jvmcompoptions="	-Xmx400M -X:vm:measureCompilation=true"
 appcompoptions="	-d3000 -g -m1 -M1 -s100"
 appperfoptions="	-d3000 -g -m5 -M5 -s100"
 
@@ -114,15 +114,15 @@ for benchmark in $all
 do
 # Performance next
    export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveGenMS
-    $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
+    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastOpt0GenMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O0 $cp SpecApplication $appperfoptions  -a $benchmark
+   $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O0 $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastOpt1GenMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1 $cp SpecApplication $appperfoptions  -a $benchmark
+   $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1 $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2 $cp SpecApplication $appperfoptions  -a $benchmark
+   $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2 $cp SpecApplication $appperfoptions  -a $benchmark
 
 done

@@ -21,4 +21,4 @@
 # we have to tell Eclipse 3.0 not to try to perform locking.
 # (The osgi.locking system property is new with Eclipse 3.0)
 #
-./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xmx200 -Dosgi.locking=none 
+./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xmx200M -Dosgi.locking=none 

@@ -21,4 +21,4 @@ export PATH
 
 [ -d testcases ] && make -s -C testcases clean
 #cd $CONTRIB/XSLTMark-2.1.0/xsltmark && /opt/IBMJava2-13/bin/java -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
-cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -Xmx300 -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
+cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -Xmx300M -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
