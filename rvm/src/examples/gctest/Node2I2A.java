@@ -18,7 +18,6 @@ class Node2I2A {
   static Object fakeLock = new Object();
 
   public static void computeObjectSize() {
-    System.out.println("computeObjectSize entered");
     int estimateSize = 2000000;
     while (true) {
       System.gc();
@@ -47,8 +46,8 @@ class Node2I2A {
 	if (objectSize > 16) 
 	  break;
       }
-      System.out.println("GC occured since used memory decreased after allocation or implausible object size obtained.  Retrying with fewer objects.");
       estimateSize = (int) (0.75 * estimateSize);
+      System.out.println("GC occured since used memory decreased after allocation or implausible object size obtained.  Retrying with " + estimateSize + " objects.");
     }
   }
 
