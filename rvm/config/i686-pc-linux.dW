@@ -30,7 +30,7 @@
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #########
-# target architecutre is IA32
+# target architecture is IA32
 export RVM_FOR_IA32=1
 export RVM_FOR_32_ADDR=1
 
