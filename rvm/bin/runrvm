@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2002, 2003
+# (C) Copyright IBM Corp. 2001, 2002, 2003, 2004
 #
 # $Id$
 #
@@ -82,13 +82,53 @@ env="$rvm_build/environment.target"
 . $env
 unset env
 
+## Set us up so that we use the Xalan XML parser, if it is available.
+## Xalan works better than the limited XML parsing built into GNU Classpath.
+
+## Check that Xalan is sane.  Uses XALAN_J_DIR and xalan_bin
+
+function xalan_is_sane () {
+    local jar_file
+
+    for jar_file in bsf.jar xalan.jar xml-apis.jar xercesImpl.jar; do
+	local f="${xalan_bin}/${jar_file}"
+	if ! [[ -f $f ]]; then
+	    echo >&2 "$ME: Your Jikes RVM configuration set XALAN_J_DIR to
+    \`$XALAN_J_DIR', but I can not find a file that should be there:
+    \`${f}'.  Since your Xalan installation appears broken, I will not use it."
+	    return 1		# Failure
+	fi
+    done
+    return 0
+}
+
+function setup_xalan () {
+    xalan_cp=""	# Xalan's Classpath
+    xalan_property=""
+    [[ ! ${XALAN_J_DIR-} ]] && return;
+    local xalan_bin=${XALAN_J_DIR}/bin
+    if xalan_is_sane; then
+	xalan_property=-Djavax.xml.transform.TransformerFactory=org.apache.xalan.processor.TransformerFactoryImpl
+	xalan_cp="$xalan_bin/xalan.jar:$xalan_bin/xml-apis.jar:$xalan_bin/xercesImpl.jar:$xalan_bin/bsf.jar"
+	## The second Xalan binary distribution (the distribution called
+	## "xalan-j_2_6_0-bin-2jars.tar.gz") has a separate file named 
+	## "xsltc.jar".  Support either the first distribution or the 
+	## second distribution.
+	[[ -f $xalan_bin/xsltc.jar ]] \
+		&& xalan_cp="${xalan_cp}:${xalan_bin}/xsltc.jar"
+    fi
+}
+
+setup_xalan			# Set xalan_cp and  xalan_property
+
 # The arguments we'll invoke $rvm_build/JikesRVM.  We
 # will put these before any user-specified arguments, so that any flags
 # that the user may have explicitly specified will override our defaults.
 
 declare -a sys_args
 sys_args=("-X:i=$rvm_build/RVM.image" \
-		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}" \
+		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}${xalan_cp:+:}${xalan_cp}" \
+		$xalan_property						\
 		"-Duser.timezone=$(date +%Z)"				\
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
