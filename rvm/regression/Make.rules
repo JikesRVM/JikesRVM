@@ -66,7 +66,7 @@ ifeq (x$(JBOOT),x)
 endif
 
 # arguments to pass to the vm
-RVM_ARGS = $(RC_ARGS) $(BENCH_RVM_ARGS) 
+RVM_ARGS = $(BENCH_RVM_ARGS) 
 JDK_ARGS = $(BENCH_JDK_ARGS)
 ifneq (x$(PROCESSORS),x)
   RVM_ARGS += -X:processors=$(PROCESSORS)
@@ -78,6 +78,7 @@ endif
 ifneq (x$(LHEAPSIZE),x)
   RVM_ARGS += -X:lh=$(LHEAPSIZE)
 endif
+RVM_ARGS += $(RC_ARGS)
 
 ifneq (x$(BOOTNAME),x)
   EXT=.$(BOOTNAME)
