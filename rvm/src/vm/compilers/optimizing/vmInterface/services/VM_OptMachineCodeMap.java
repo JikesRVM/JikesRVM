@@ -215,9 +215,17 @@ public final class VM_OptMachineCodeMap
       } else if (MCOffset > offset) {
         // middle is too small, shift interval to the right
         left = middle + 1; 
+	while ((MCInformation[left] & START_OF_ENTRY) != START_OF_ENTRY) {
+	  // if necessary, step forward to find next entry, but not passed end
+	  // Need to do this to avoid finding middle again
+	  left++;
+	  if (left >= MCInformation.length)
+	    return -1;
+	}
       } else {
         // middle is too small, shift interval to the left
         right = middle - 1;
+	// Note no need to adjust as, we won't chance finding middle again
       }
     }
     return  -1;
