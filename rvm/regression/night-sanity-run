@@ -142,7 +142,7 @@ fi
 # measure compilation time
 echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 
-export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
+export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
 mkdir -p $MEASURE_COMPILATION_DIR
 
 $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
@@ -282,6 +282,7 @@ if :; then
 	$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $f
     elif (( have_boot_images )); then
 	echo -e "\nCould not find Opt Level 0 compilation breakdown results.\n"
+	echo -e "Was looking in $f\n"
     fi
 
     f=$MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O1.?proc.raw
