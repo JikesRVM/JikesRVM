@@ -199,6 +199,7 @@ GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\
 {\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
 Jikes\TMweb{} Compiler & 1.19, 1.18 or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
 Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
+Xalan-Java \textit{(optional)} & {\it any}    \link{\SeeBelow}{xalan-why}  & \xlink{\tt \xalanURL}{\xalanURL} \\
 \hline
 \hline \multicolumn{3}{|c|}{\em If \link{automatically Building GNU
         Classpath via {\tt wget}}{wget-why} (the default)} \\ \hline
@@ -265,12 +266,27 @@ installation} below}[\textit{Mac OS~X is further discussed in subsection~\Ref{},
 %% As of this writing (October 16, 2003), the version of 
 \item {\tt jBuildClasspathJar} %% available through the CVS head now 
 uses \texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@   If
-you \link{manually build classpath}{manual-classpath-root} then you
+you \link{retrieve Classpath yourself}{manual-classpath-root} then you
 won't need \texttt{wget}.
 
 %% If this continues
 %% to work, then the Jikes RVM build process won't require {\tt
 %%   automake}, \texttt{autoconf}, or \texttt{cvs}.
+\end{Label}
+
+\begin{Label}{xalan-why}
+%% As of this writing (October 16, 2003), the version of 
+\item The Xalan-Java XSLT processor and the Xerces XML processor are an
+optional
+part of the Jikes RVM run-time library.  If you are using any programs
+that use XML,
+then we recommend adding them, since the XML support in Classpath is
+not mature.  They are also necessary if you wish to run Eclipse.  
+We have tested using Xalan-Java 2.6.0 (the latest version as of this
+writing); visit \xlink{\texttt{\xalanURL}}{\xalanURL} and download the ``Xalan
+Java binary distribution'', which has Xerces packaged with it.  The
+file to download is \texttt{\xalanFile}.   You can just unpack it
+without having to build it. 
 \end{Label}
 
 \item \texttt{glibc} for Linux/x86 must use the GS register for
@@ -338,7 +354,9 @@ one working directory.   \texonly{See Section~\ref{configs} (page~\pageref{confi
 The Jikes RVM {\em boot image\index{boot image}} and other files generated during the 
 configuration process
 are stored in a {\em build directory\index{build directory}},
- which is logically separate from the working directory. 
+ which is logically separate from the working directory.   Each
+distinct configuration of \jrvm{} you build will have its own 
+{\em build directory}. 
 
 To install Jikes RVM  you must do the following:
 \begin{enumerate}

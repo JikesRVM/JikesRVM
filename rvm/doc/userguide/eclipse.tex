@@ -1,6 +1,5 @@
 \newcommand{\eclipseURL}{http://www.eclipse.org}
 \newcommand{\antURL}{http://ant.apache.org}
-\newcommand{\xalanURL}{http://xml.apache.org/xalan-j/}
 
 \xname{eclipse_overview}
 \subsection{Overview}
@@ -63,16 +62,16 @@ that, there are just a few steps:
 \item \xlink{Install Xalan-Java.}[  You can get Xalan-Java from {\tt
 \xalanURL}.]{\xalanURL}  We suggest you download one of the {\it binary}
 distributions; otherwise, if you build Xalan-Java from source,  you'll have to
-separately download and build Xerces.
+separately download and build Xerces.  \link{There is more discussion
+of Xalan-Java in the installation section}[ --- see section~\Ref, page~\Pageref{}]{xalan-why}
 \item \xlink{Install Ant.}[  You can get Ant from {\tt \antURL}.]{\antURL} 
 \item Add three variables to your Jikes RVM configuration file:
  \begin{description}
  \item[\IndexTexttt{XALAN\_J\_DIR}] is the root of your Xalan binary
  installation.  
  \item[\IndexTexttt{ANT\_CMD}] is the full pathname of the executable Ant command
- \item[\IndexTexttt{ECLIPSE\_INSTALL\_DIR}] is the root of your Eclipse install
+ \item[\IndexTexttt{ECLIPSE\_INSTALL\_DIR}] is the root of your Eclipse installation
  \end{description}
- Xalan-Java.
 \item In a fresh build directory, run {\tt ./jbuild.plugin} to install
 support for Eclipse to use Jikes RVM.\@
 \end{enumerate}
