@@ -1,8 +1,11 @@
-;; -*- coding: iso-8859-1; -*-
+;;; -*- coding: iso-8859-1; -*-
+;;;
+;;; Copyright © IBM Corp 2003
+;;;
 ;;; $Id$
 
-;;; Style used when coding Jikes RVM.  
-
+;;; C, C++, and Java style for coding Jikes RVM.  
+;;;
 ;;; @author Steven Augart
 ;;; @date May 20, 2003, through Oct 9, 2003 (work in progress)
 
