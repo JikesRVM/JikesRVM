@@ -1325,8 +1325,8 @@ abstract class BootMap implements jdpConstants  {
 	offset+=1;
 
       // TODO:  should use compiled method ID to get the correct compilerInfo
-      // VM_CompilerInfo compInfo = mth.getMostRecentlyGeneratedCompilerInfo();
-      VM_OptCompilerInfo compInfo = (VM_OptCompilerInfo) (mth.getMostRecentlyGeneratedCompilerInfo());
+      VM_CompilerInfo compInfo = mth.getMostRecentlyGeneratedCompilerInfo();
+      // VM_OptCompilerInfo compInfo = (VM_OptCompilerInfo) (mth.getMostRecentlyGeneratedCompilerInfo());
 
       // check because there may be no compiler info:  native method
       if (compInfo==null) {
