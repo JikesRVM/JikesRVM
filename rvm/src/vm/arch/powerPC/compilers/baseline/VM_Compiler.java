@@ -3350,43 +3350,63 @@ public class VM_Compiler extends VM_BaselineCompiler
   private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
     VM_Atom      methodName       = methodToBeCalled.getName();
       
-    if (methodName == VM_MagicNames.sysCall0) {
-      generateSysCall1(0);
-      generateSysCallRet_I(0);
-    } else if (methodName == VM_MagicNames.sysCall1) {
-      peekInt(T0, 0);
-      generateSysCall1(BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(BYTES_IN_STACKSLOT);
-    } else if (methodName == VM_MagicNames.sysCall2) {
-      peekInt(T0, 1);
-      peekInt(T1, 0);
-      generateSysCall1(2 * BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(2 * BYTES_IN_STACKSLOT);
-    } else if (methodName == VM_MagicNames.sysCall3) {
-      peekInt(T0, 2);
-      peekInt(T1, 1);
-      peekInt(T2, 0);
-      generateSysCall1(3 * BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(3 * BYTES_IN_STACKSLOT);
-    } else if (methodName == VM_MagicNames.sysCall4) {
-      peekInt(T0, 3);
-      peekInt(T1, 2);
-      peekInt(T2, 1);
-      peekInt(T3, 0);
-      generateSysCall1(4 * BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(4 * BYTES_IN_STACKSLOT);
-    } else if (methodName == VM_MagicNames.sysCall_L_0) {
-      generateSysCall1(0);
-      generateSysCallRet_L(0);
-    } else if (methodName == VM_MagicNames.sysCall_L_I) {
-      peekInt(T0, 0);
-      generateSysCall1(BYTES_IN_STACKSLOT);
-      generateSysCallRet_L(BYTES_IN_STACKSLOT);
-    } else if (methodName == VM_MagicNames.sysCallAD) {
-      peekInt(T0, 2);
-      peekDouble(F0, 1);
-      generateSysCall1(3 * BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(3 * BYTES_IN_STACKSLOT);
+    if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
+      VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
+      VM_TypeReference rtype = methodToBeCalled.getReturnType();
+
+      // (1) Set up arguments according to OS calling convention
+      int paramWords = methodToBeCalled.getParameterWords();
+      if (VM.VerifyAssertions) {
+	// Be lazy for now.  We don't support sysCalls with so 
+	// many arguments that we would have to spill some to the stack.
+	VM._assert(paramWords - 1 <= (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1));
+      }
+      int gp = FIRST_OS_PARAMETER_GPR;
+      int fp = FIRST_OS_PARAMETER_FPR;
+      int stackIndex = paramWords -1;
+      for (int i=1; i<args.length; i++) {
+	VM_TypeReference t = args[i];
+	if (t.isLongType()) {
+	  stackIndex -= 2;
+          if (VM.BuildFor64Addr) {
+            peekLong(gp, gp, stackIndex);
+            gp++;  
+          } else {
+	    peekInt(gp++, stackIndex);      // lo register := lo mem (== hi order word)
+	    peekInt(gp++, stackIndex+1);    // hi register := hi mem (== lo order word)
+	  }
+	} else if (t.isFloatType()) {
+	  stackIndex -= 1;
+	  peekFloat(fp++, stackIndex);
+	} else if (t.isDoubleType()) {
+	  stackIndex -= 2;
+	  peekDouble(fp++, stackIndex);
+	} else if (t.isIntLikeType()) {
+	  stackIndex -= 1;
+	  peekInt(gp++, stackIndex);
+	} else { // t is object
+	  stackIndex -= 1;
+	  peekAddr(gp++, stackIndex);
+	}
+      }
+      if (VM.VerifyAssertions) VM._assert(stackIndex == 0);
+      int paramBytes = (paramWords - 1) * BYTES_IN_STACKSLOT;
+      generateSysCall1(paramBytes);
+      if (rtype.isVoidType()) {
+	generateSysCallRet_V(paramBytes);
+      } else if (rtype.isDoubleType()) {
+	generateSysCallRet_D(paramBytes);
+      } else if (rtype.isFloatType()) {
+	generateSysCallRet_F(paramBytes);
+      } else if (rtype.isWordType()) {
+	generateSysCallRet_A(paramBytes);
+      } else if (rtype.isIntLikeType()) {
+	generateSysCallRet_I(paramBytes);
+      } else if (rtype.isLongType()) {
+	generateSysCallRet_L(paramBytes);
+      } else {
+	if (VM.VerifyAssertions) VM._assert(false);
+      }
     } else if (methodName == VM_MagicNames.sysCallSigWait) {
       int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
       int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
@@ -3943,8 +3963,8 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /** 
-   * Generate code for "int VM_Magic.sysCallN(int ip, int toc, int val0, int val1, ..., valN-1)".
-   * @param rawParameterSize: number of bytes in parameters (not including JTOC, IP)
+   * Generate code for "int VM_Magic.sysCallN(int ip, int val0, int val1, ..., valN-1)".
+   * @param rawParameterSize: number of bytes in parameters (not including IP)
    */
   private void generateSysCall1(int rawParametersSize) {
     // Create a linkage area that's compatible with RS6000 "C" calling conventions.
@@ -4062,6 +4082,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
 
+  private void generateSysCallRet_V(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);      // pop args
+  }
+
   private void generateSysCallRet_A(int rawParametersSize) {
     int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
@@ -4079,5 +4104,18 @@ public class VM_Compiler extends VM_BaselineCompiler
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
     pushLong(T0, VM.BuildFor64Addr?T0:T1);                        // deposit C return value (R3, R4) on stacktop
   }
+
+  private void generateSysCallRet_F(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT;// IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
+    pushFloat(FIRST_OS_PARAMETER_FPR);                             // deposit C return value on stacktop
+  }
+
+  private void generateSysCallRet_D(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT;// IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
+    pushDouble(FIRST_OS_PARAMETER_FPR);                            // deposit C return value on stacktop
+  }
+
 }
 

@@ -15,14 +15,6 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
  */
 public class VM_MagicNames {
 
-  public static final VM_Atom sysCall0                      = VM_Atom.findOrCreateAsciiAtom("sysCall0");
-  public static final VM_Atom sysCall1                      = VM_Atom.findOrCreateAsciiAtom("sysCall1");
-  public static final VM_Atom sysCall2                      = VM_Atom.findOrCreateAsciiAtom("sysCall2");
-  public static final VM_Atom sysCall3                      = VM_Atom.findOrCreateAsciiAtom("sysCall3");
-  public static final VM_Atom sysCall4                      = VM_Atom.findOrCreateAsciiAtom("sysCall4");
-  public static final VM_Atom sysCall_L_0                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_0");
-  public static final VM_Atom sysCall_L_I                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_I");
-  public static final VM_Atom sysCallAD  		    = VM_Atom.findOrCreateAsciiAtom("sysCallAD");
   public static final VM_Atom sysCallSigWait		    = VM_Atom.findOrCreateAsciiAtom("sysCallSigWait");
 
   public static final VM_Atom invokeMain                    = VM_Atom.findOrCreateAsciiAtom("invokeMain");

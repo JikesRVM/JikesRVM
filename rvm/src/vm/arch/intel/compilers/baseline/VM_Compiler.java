@@ -3021,171 +3021,67 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    /*
-     * sysCall0, sysCall1, sysCall2, sysCall3 and sysCall4 return
-     * an integer (32 bits).
-     *
-     *	hi mem
-     *	  branch address	<- SP
-     *
-     * before call to C
-     *  hi mem
-     *	  branch address
-     *	  saved ebx
-     *	  saved pr
-     *	  saved jtoc		<- SP
-     */
-    if (methodName == VM_MagicNames.sysCall0) {
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
+    if (m.getType() == VM_TypeReference.SysCall) {
+      VM_TypeReference[] args = m.getParameterTypes();
+      VM_TypeReference rtype = m.getReturnType();
+      int numArgs = args.length - 1;
+      int offsetToJavaArg = 3*WORDSIZE; // the three regs saved in (2)
+      int paramBytes = 0;
+      
+      // (1) save three RVM nonvolatile/special registers
+      //     we don't have to save EBP: the callee will
+      //     treat it as a framepointer and save/restore
+      //     it for us.
+      asm.emitPUSH_Reg(EBX);
       asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall1) {
-      asm.emitPOP_Reg(S0);	// first and only argument
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(S0);	// push arg on stack
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(S0);	// pop the argument 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall2) {
-      // C require its arguments reversed
-      asm.emitPOP_Reg(T1);	// second arg
-      asm.emitPOP_Reg(S0);	// first arg
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(T1);	// reorder arguments for C 
-      asm.emitPUSH_Reg(S0);	// reorder arguments for C
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);	// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall3) {
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegInd(T0, SP);			// load 3rd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 3rd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);
-      asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // fourth arg on stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall4) {
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 3rd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 3th arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 3*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 3*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, ESI);	
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, JTOC);	// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 4*WORDSIZE); // fifth arg on stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*4);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
-    
-    /*
-     * sysCall_L_0  returns a long and takes no arguments
-     */
-    if (methodName == VM_MagicNames.sysCall_L_0) {
-      asm.emitMOV_Reg_Reg(T0, SP);
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitCALL_RegInd(T0);	// first arg on stack is address to call
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
-      asm.emitPUSH_Reg(T0);	// low half
-      return true;
-    }
-    
-    /*
-     * sysCall_L_I  returns a long and takes an integer argument
-     */
-    if (methodName == VM_MagicNames.sysCall_L_I) {
-      asm.emitPOP_Reg(S0);	// the one integer argument
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(S0);	// push arg on stack
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(S0);	// pop the argument 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
-      asm.emitPUSH_Reg(T0);	// low half
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCallAD) {  // address, double
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegInd(T0, SP);			// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);	
-      asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // 4th word on orig. stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
+      asm.emitPUSH_Reg(EDI);
 
+      // (2) Push args to target function (reversed)
+      for (int i=numArgs; i>0; i--) {
+	VM_TypeReference arg = args[i];
+	if (arg.isLongType() || arg.isDoubleType()) {
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
+	  offsetToJavaArg += 16;
+	  paramBytes += 8;
+	} else {
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+	  offsetToJavaArg += 8;
+	  paramBytes += 4;
+	}
+      }	  
+
+      // (3) invoke target function
+      asm.emitCALL_RegDisp(SP, offsetToJavaArg);
+      
+      // (4) pop space for arguments
+      asm.emitADD_Reg_Imm(SP, paramBytes);
+
+      // (5) restore RVM registers
+      asm.emitPOP_Reg(EDI);
+      asm.emitPOP_Reg(ESI);
+      asm.emitPOP_Reg(EBX);
+
+      // (6) pop expression stack
+      asm.emitADD_Reg_Imm(SP, paramBytes + WORDSIZE);
+
+      // (7) push return value
+      if (rtype.isLongType()) {
+	asm.emitPUSH_Reg(T1);
+	asm.emitPUSH_Reg(T0);
+      } else if (rtype.isDoubleType()) {
+	asm.emitSUB_Reg_Imm(SP, 8);
+	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+      } else if (rtype.isFloatType()) {
+	asm.emitSUB_Reg_Imm(SP, 4);
+	asm.emitFSTP_RegInd_Reg(SP, FP0);
+      } else if (!rtype.isVoidType()) {
+	asm.emitPUSH_Reg(T0);
+      }
+      
+      return true;
+    }	
+    
     /*
      * A special version of sysCall2, for invoking sigWait and allowing
      * collection of the frame making the call.  The signature of the

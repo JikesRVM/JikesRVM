@@ -289,16 +289,16 @@ public class VM_BootRecord {
   //-#endif
 
   // arithmetic 
-  VM_Address sysLongDivideIP;
-  VM_Address sysLongRemainderIP;
-  VM_Address sysLongToFloatIP;
-  VM_Address sysLongToDoubleIP;
-  VM_Address sysFloatToIntIP;
-  VM_Address sysDoubleToIntIP;
-  VM_Address sysFloatToLongIP;
-  VM_Address sysDoubleToLongIP;
+  public VM_Address sysLongDivideIP;
+  public VM_Address sysLongRemainderIP;
+  public VM_Address sysLongToFloatIP;
+  public VM_Address sysLongToDoubleIP;
+  public VM_Address sysFloatToIntIP;
+  public VM_Address sysDoubleToIntIP;
+  public VM_Address sysFloatToLongIP;
+  public VM_Address sysDoubleToLongIP;
   //-#if RVM_FOR_POWERPC
-  VM_Address sysDoubleRemainderIP;
+  public VM_Address sysDoubleRemainderIP;
   //-#endif
 
   // time
