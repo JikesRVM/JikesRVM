@@ -309,7 +309,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 		*fastExit = 1;
 	    }
 	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n", Me);
+		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n");
 		break;
 	    }
 	    initialHeapSize = ihsMB * 1024U * 1024U;
@@ -335,7 +335,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 		*fastExit = 1;
 	    }
 	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n", Me);
+		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n");
 		break;
 	    }
 	    maximumHeapSize = mhsMB * 1024U * 1024U;
