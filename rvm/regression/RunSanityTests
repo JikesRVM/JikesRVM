@@ -255,26 +255,6 @@ function say
    echo "$ME: $*"
    }
 
-# Kill all processes running tests
-#
-function killEveryone
-   {
-     RVM_PID=`$PS -e | $AWK '/Jalapeno/{print $1}'`
-     RUN_PID=`$PS -Af | $AWK '/Run100/{print $2}'`
-     RUN2_PID=`$PS -Af | $AWK '/ksh Run/{print $2}'`
-     RVM_PID="$RUN2_PID $RUN_PID $RVM_PID"
-     if [[ $RVM_PID != "" ]]; then
-	for i in `echo $RVM_PID` 
-	do
-          say "timeout for process $i"
-          /bin/kill -QUIT $i 2>/dev/null
-	  sleep 10
-          /bin/kill -9 $i 2>/dev/null
-        done
-     fi 
-   }
-
-
 # Select a configuration to be built and tested.
 #
 function setConfiguration
@@ -380,7 +360,7 @@ function doRun
 	RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
 	echo Results to $RESULT/$TEST_RESULT_DIR
      else
-	if [ x$OPT_LEVEL != x ]; then
+ 	if [ x$OPT_LEVEL != x ]; then
 	    RESULT_STR="WORKING=./$OPT_LEVEL"
 	else
 	    RESULT_STR=
@@ -402,32 +382,22 @@ function doRun
 	OPT_STR=
     fi
 
-   . $RVM_BUILD/environment
-   ( $GNU_MAKE -ks BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
+    . $RVM_BUILD/environment
+    $RVM_ROOT/regression/limited.ksh $TIME_LIMT $GNU_MAKE -ks \
+	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/bin/jalapeno\
            PROCESSORS="$NUM_PROCS"\
            RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
            JAVA_PACKAGES=$RVM_BUILD/Jalapeno.classes\
            RVMPATH=$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip\
-           clean sanity || say "$NAME: You are NOT sane in `pwd`" )&
-     TESTER_PID=$!
-  
-     # start deadman timer to terminate execution of vm if test runs too long
-   ( sleep $TIME_LIMIT; 
-     killEveryone
-     )&
-     TIMER_PID=$!
-   
-     # wait for test to finish (or timeout)
-     wait $TESTER_PID
+           clean sanity || say "$NAME: You are NOT sane in `pwd`"
 
-     say "end $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
-                           
-     # stop deadman timer
-     /bin/kill -TERM $TIMER_PID 2>/dev/null
-     
-     # allow process termination messages to finish printing before proceeding to next test
-     sleep 1
+    # done
+    say "end $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
+
+    # allow process termination messages to finish printing before proceeding to next test
+    sleep 1
+
    fi
    }
 
