@@ -128,9 +128,8 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
     // at this point, they are not both array types.
     // if one is a primitive, then we want an object array of one less
     // dimensionality
-    if (t1.isPrimitiveType() || t1.isPrimitiveType()) {
-      if (VM.VerifyAssertions)
-        VM.assert(t1 != t2);
+    if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
+      if (VM.VerifyAssertions) VM.assert(t1 != t2);
       VM_Type type = VM_Type.JavaLangObjectType;
       --arrayDimensions;
       while (arrayDimensions-- > 0)
