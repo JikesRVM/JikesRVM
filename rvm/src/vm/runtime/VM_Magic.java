@@ -29,8 +29,8 @@ public class VM_Magic {
 
   /** Get contents of "jtoc" register. */
   public static int getTocPointer() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
+    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_BootRecord.the_boot_record.tocRegister;
   }
 
   /** Get contents of "jtoc" register as an int[] */

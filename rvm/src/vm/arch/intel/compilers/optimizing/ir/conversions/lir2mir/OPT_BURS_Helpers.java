@@ -489,7 +489,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     if (burs.ir.options.FIXED_JTOC) {
-      return OPT_MemoryOperand.D(offset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
+      return OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(),
 				 (byte)4, loc, guard);
     } else {
       OPT_Operand jtoc = 
@@ -684,7 +684,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintOffset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
+      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintOffset + VM_Magic.getTocPointer(),
 			      QW, null, null);
     } else {
       M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintOffset, QW, null, null);
@@ -701,7 +701,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.minintOffset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
+      M = OPT_MemoryOperand.D(VM_Entrypoints.minintOffset + VM_Magic.getTocPointer(),
 			      QW, null, null);
     } else {
       M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintOffset, QW, null, null);
