@@ -1334,53 +1334,68 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_Field field = bcInfo.getFieldReference(constantPoolIndex);
 	  // use results of field analysis to refine type.
 	  VM_Type fieldType = field.getType();
-	  VM_Type concreteType = null;
-          OPT_RegisterOperand t = null;
+          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  if (field.getType().isClassType() && 
 	      field.getType().asClass().isLoaded()) {
-	    concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	    VM_Type concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	    if (concreteType != null) {
+	      t.setPreciseType();
+	      if (concreteType == fieldType) {
+		t.setDeclaredType();
+	      } else {
+		fieldType = concreteType;
+		t.type = concreteType;
+	      }
+	    }
 	  }
-	  if (concreteType != null)
-	    fieldType = concreteType;
-	  t = gc.temps.makeTemp(fieldType);
-	  if (concreteType == null)
-	    t.setDeclaredType(); 
-	  else 
-	    t.setPreciseType();
 	  boolean unresolved = field.needsDynamicLink(gc.method);
 	  if (!unresolved) field = field.resolve();
 	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
 	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
-	  // optimization: don't load if
-	  //    0) it's not a float/double constant
-	  //       (a) not incredibly useful since we can't 
-	  //	       embed fp literals in the instruction anyways
-	  //       (b) causes precision/rounding errors in some cases.
-	  //	1) field is resolved
-	  //	2) running the VM
-	  // 	3) field is final
-	  //	4) declaring class is initialized
-	  //
-	  // instead, use the constant value stored in the field
-	  // 0)
-	  if ((fieldType != VM_Type.DoubleType) && 
-	      (fieldType != VM_Type.FloatType)) {
-	    // 1) 2)
-	    if (!unresolved && VM.runningVM) {
-	      // 3)
-	      if (field.isFinal()) {
-		VM_Class declaringClass = field.getDeclaringClass();
-		// 4)
-		if (declaringClass.isInitialized()) {
-		  // optimize: change load to a move from a constant operand
-		  operator = OPT_IRTools.getMoveOp(field.getType());
-		  OPT_ConstantOperand rhsOperand = 
-		    OPT_RVMIRTools.getStaticFieldValue(field);
-		  if (rhsOperand != null) {
-		    s = Move.create(operator, t, rhsOperand);
-		    s.position = gc.inlineSequence;
-		    s.bcIndex = instrIndex;
+	  // optimization: 
+	  // if the field is final and either initialized or
+	  // in the bootimage, then get the value at compile time.
+	  // TODO: applying this optimization to Floats or Doubles 
+	  //       causes problems.  Figure out why and fix it!
+	  if (!fieldType.isDoubleType() && !fieldType.isFloatType()) {
+	    if (!unresolved && field.isFinal()) {
+	      VM_Class declaringClass = field.getDeclaringClass();
+	      if (declaringClass.isInitialized() ||
+		  (VM.writingBootImage && declaringClass.isInBootImage())) {
+		try {
+		  if (fieldType.isPrimitiveType()) {
+		    operator = OPT_IRTools.getMoveOp(field.getType());
+		    OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
+		    // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+		    push (rhs, fieldType);
+		    s = null;
+		    break;
+		  } else {
+		    if (OPT_StaticFieldReader.isStaticFieldNull(field)) {
+		      // VM.sysWrite("Replaced getstatic of "+field+" with <null>\n");
+		      push(new OPT_NullConstantOperand(), fieldType);
+		      s = null;
+		      break;
+		    } else {
+		      VM_Type rtType = OPT_StaticFieldReader.getTypeFromStaticField(field);
+		      if (rtType == VM_Type.JavaLangStringType) {
+			OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
+			// VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+			push (rhs, fieldType);
+			s = null;
+			break;
+		      } else {
+			t.type = rtType;
+			if (rtType != fieldType) t.clearDeclaredType();
+			t.setPreciseType();
+			markGuardlessNonNull(t);
+			// VM.sysWrite("Tightened type info for getstatic of "+field+" to "+t+"\n");
+		      }
+		    }
 		  }
+		} catch (NoSuchFieldException e) {
+		  // Sigh, host JDK java.* class didn't have this RVM field.
+		  // VM.sysWrite("Field "+field+" does not exist on host JDK\n");
 		}
 	      }
 	    }
@@ -1415,20 +1430,21 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  int constantPoolIndex = bcInfo.getFieldReferenceIndex();
 	  VM_Field field = bcInfo.getFieldReference(constantPoolIndex);
 	  VM_Type fieldType = field.getType();
+          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  // use results of field analysis to refine type.
-	  VM_Type concreteType = null;
-          OPT_RegisterOperand t = null;
 	  if (field.getType().isClassType() && 
 	      field.getType().asClass().isLoaded()) {
-	    concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	    VM_Type concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	    if (concreteType != null) {
+	      t.setPreciseType();
+	      if (concreteType == fieldType) {
+		t.setDeclaredType();
+	      } else {
+		fieldType = concreteType;
+		t.type = concreteType;
+	      }
+	    }
 	  }
-	  if (concreteType != null)
-	    fieldType = concreteType;
-	  t = gc.temps.makeTemp(fieldType);
-	  if (concreteType == null)
-	    t.setDeclaredType(); 
-	  else 
-	    t.setPreciseType();
 	  boolean unresolved = field.needsDynamicLink(gc.method);
 	  if (!unresolved) field = field.resolve();
 	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
