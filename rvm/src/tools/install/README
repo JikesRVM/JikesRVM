@@ -2,10 +2,17 @@
 
 This directory contains stuff that you'll only use if you're
 installing Jikes RVM on your system to be invoked as something like
-/usr/local/bin/rvm or /usr/bin/rvm.  
+/usr/bin/rvm.  
 
-It will install a slightly different version of the "rvm" command that
-is backwards-compatible with the one in rvm/bin/rvm; if you have set
-RVM_ROOT, the installed "rvm" will try to invoke the one in your Jikes
-RVM source tree.  
+By default, it installs: the command /usr/bin/rvm, its manual page,
+the directories /usr/lib/jikesrvm and /usr/share/jikesrvm, 
+and the documentation directory /usr/share/doc/jikesrvm.
+
+Run the command ./debian-install.sh to install in those locations.
+
+You can uninstall by running the command "make uninstall".
+
+Note: /usr/bin/rvm is backwards-compatible with the command in
+rvm/bin/rvm; if you have set RVM_ROOT and RVM_BUILD, the installed
+"rvm" will try to invoke the one in your Jikes RVM source tree.
 
