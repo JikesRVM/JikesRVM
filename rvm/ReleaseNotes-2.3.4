@@ -11,5 +11,14 @@ These are release notes for Jikes RVM release 2.3.4.
 *Other notes:
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
 (This feature was discussed in the 2.3.3 release notes.)
+**The AttachCurrentThread JNI function is now partly implemented
+for the common case where a thread is already attached to the VM.
+**RVM_BOOTCLASSPATH_APPEND is a new environment variable that Jikes RVM
+will recognize when booting.  You can use it to add extensions to the
+VM.  Set it as you would set the CLASSPATH environment variable.
 
 *Bug Fixes:
+**The JNI AttachCurrentThread function now returns proper error status if it
+cannot complete properly.  It used to (incorrectly) always return
+JNI_OK.
+
