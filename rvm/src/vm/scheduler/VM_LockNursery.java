@@ -120,10 +120,10 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
    */
   private VM_LockBucket allocate () {
     VM_LockBucket b = freeBuckets;
-    freeBuckets = freeBuckets.next;
     if (b == null) {
       VM.sysFail("Out of space for VM_LockNursery; increase ALLOC");
     }
+    freeBuckets = freeBuckets.next;
     if (STATS) lockNumber++;
     return b;
   }
