@@ -994,6 +994,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	}
       }
 
+      // Deal with Miranda methods.
+      // If this is an abstract class, then for each
+      // interface that this class implements, ensure that a corresponding virtual
+      // method is declared.  If one is not, then create an abstract method to fill the void.
+      if (!isInterface() && isAbstract() && declaredInterfaces.length > 0) {
+	for (int i=0; i<declaredInterfaces.length; i++) {
+	  insertMirandaMethods(declaredInterfaces[i], virtualMethods);
+	}
+      }
+      
       this.staticFields   = staticFields.finish();
       this.instanceFields = instanceFields.finish();
       this.staticMethods  = staticMethods.finish();
@@ -1100,6 +1110,26 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       finalizeMethod = null;
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   resolve " + this);
+  }
+
+  private void insertMirandaMethods(VM_Class I, VM_MethodVector virtualMethods) {
+    VM_Method[] iMeths = I.getVirtualMethods();
+  outer:
+    for (int i=0; i<iMeths.length; i++) {
+      VM_Method iMeth = iMeths[i];
+      VM_Atom iName = iMeth.getName();
+      VM_Atom iDesc = iMeth.getDescriptor();
+      for (int j=0; j<virtualMethods.size(); j++) {
+	VM_Method vMeth = virtualMethods.elementAt(j);
+	if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
+      }
+      VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
+      virtualMethods.addElement(new VM_AbstractMethod(this, mRef, ACC_ABSTRACT, iMeth.getExceptionTypes()));
+    }
+    VM_Class[] parents = I.getDeclaredInterfaces();
+    for (int i=0; i<parents.length; i++) {
+      insertMirandaMethods(parents[i], virtualMethods);
+    }
   }
 
 
