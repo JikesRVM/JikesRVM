@@ -11,7 +11,10 @@
 # except the variables are specified using parameters instead of
 # environment variables.  'rvm' passes parameters to 'runrvm', using
 # values defined by environment variables.
-#
+
+# 'runrvm' must be an executable program; 
+# the Eclipse Jikes RVM Launcher Plugin expects this.
+
 # @author Jeffrey Palm
 # @date 25 Jun 2002
 #
