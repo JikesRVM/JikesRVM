@@ -6,7 +6,7 @@ debugger.
 \subsection{About {\tt jdp}}
 
 \index{Remote Reflection}
-  {\tt jdp}, the RVM Debugger Primitive, is a low-level symbolic debugger 
+{\tt jdp}, the RVM Debugger Primitive, is a low-level symbolic debugger 
 developed to support the
 RVM effort.  Because no existing debugger satisfactorily meets the
 needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
@@ -19,20 +19,25 @@ access the internal data structures as if it resides inside the RVM.
 {\tt jdp} is written in the Java\JavaTMFootnote programming language
 and JNI with native code in C.  {\tt jdp} 
 uses the
-AIX\AIXTMFootnote {\tt ptrace} interface and the standard Unix process
-support (fork, 
-wait, ...).  When porting to another platform, this native portion
-(called from Platform.java) will have to be rewritten.  Since {\tt jdp} and
+AIXTMFootnote {\tt ptrace} interface and the standard Unix process
+support (fork, wait, ...).  
+Since {\tt jdp} and
 the RVM being debugged are two separate processes, an interpreter is
 used to connect {\tt jdp} with the RVM:  it maps the access bytecodes in the
 reflection methods to obtain the internal values in the RVM.
   
-  {\tt jdp} is not intended to be a general purpose debugger; it is 
+{\tt jdp} is not intended to be a general purpose debugger; it is 
 customized for RVM but is easily extendable.  
 
-   Because the optimizing compiler does not currently provide all of
-   the mapping support required, {\tt jdp} functionality is limited in
-   opt-compiled code. 
+Because the optimizing compiler does not currently provide all of
+the mapping support required, {\tt jdp} functionality is limited in
+opt-compiled code. 
+
+{\tt jdp} support is currently limited to configurations built with
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR=true.  We impose this limitation due
+to bugs when running with multiple pthreads, probably due to interactions
+with ptrace.  We don't currently have the bandwidth to debug this; feel
+free to contribute.
 
 \JavaTMFooter
 
@@ -40,7 +45,7 @@ customized for RVM but is easily extendable.
 
 \subsection{Getting started}
 
-   You can use {\tt jdp} in one of three modes: debugging the boot image only, 
+  You can use {\tt jdp} in one of three modes: debugging the boot image only, 
 general debugging, and debugging a RVM that is already running:
 
 \begin{enumerate}
@@ -235,6 +240,7 @@ memraw        & mraw & display actual memory (jdp breakpoints are visible)      
 wmem          & wm  & write memory                                              \\ 
 reg           & r   & display registers                                         \\ 
 wreg          & wr  & write register                                            \\ 
+regnames      &     & display register symbolic names                           \\ 
 printclass    & pc  & print the class statics or the type of an object address  \\ 
 print         & p   & print local variables or cast an address as an object     \\ 
 listi         & li  & list machine instruction                                  \\ 
@@ -443,4 +449,3 @@ id  its registers, but native variables and line numbers are not available.
         the problem.
 \end{itemize}
 \end{itemize}
-
