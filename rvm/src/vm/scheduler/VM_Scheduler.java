@@ -39,7 +39,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * flag to allow SMP builds WITHOUT a native daemon thread/processor.
    * set to false to avoid creating the native daemeon
    **/
-  static final boolean BuildWithNativeDaemon = true;
+  static final boolean BuildWithNativeDaemon =
+    (!VM.BuildForConcurrentGC) && true;
  
   // Flag for controlling virtual-to-physical processor binding.
   //
