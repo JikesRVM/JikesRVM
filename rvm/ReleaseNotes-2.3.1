@@ -1,20 +1,75 @@
--*-text-*-
-These are release notes for the eventual release 2.3.1 of the Jikes RVM. 
+-*-outline-*-
+These are release notes for the future Jikes RVM release 2.3.1.
 
+*Sections of this document:
+ *Highlights
+ *Other Notes
+ *Bug Fixes
 
-Highlights of this release include:
+*Highlights of this release include:
 
-Macintosh OSX support was generously contributed by Chris Hoffman of
-the University of Massachusetts.  If you want to build Jikes RVM for
+**Mac OSX is now supported!  
+Generously contributed by Chris Hoffman of the University of
+Massachusetts (USA).
+***Details:
+If you want to build Jikes RVM for
 Mac OSX, you will need to patch your copy (version 0.06 or CVS head)
 of GNU Classpath with the patch file located in
-aux/gnu-classpath-on-mac-osx.patch. 
+aux/gnu-classpath-on-mac-osx.patch.
 
-Other notes:
+**Build system improvements:
+***If you run "jbuild" with --trace, 
+you actually get all of the relevant shell commands printed out.
 
-We have fixed all C and C++ compiler warnings in the source code, under GCC
-2.96, GCC 3.3, and GCC 3.3.1.  The only exception is warnings from GCC
-2.96 of the form:
+***Under jbuild --trace=make, whenever we change directories, we report it
+This is parseable by Emacs's compilation-mode.  --trace=make is
+enabled automatically by "--trace" without any arguments.
+
+***More error-checking functionality added to the build system.  
+
+***Cleaned up a couple of bogus warnings
+one could get in some versions of the Bourne-Again Shell (Bash).
+
+***We can make automatic binary installations of Jikes RVM
+There's a new generated script, "$RVM_BUILD/jbuild.install", that does
+this.  Handy way to save off a configuration that works before making
+changes.  Also lets us make a binary distribution of Jikes RVM, should
+it be desirable.
+
+***New build options, JAVAC_WARNING_FLAGS and JIKES_WARNING_FLAGS
+These variables replace the former hardcoded "-nowarn", and can be set
+arbitrarily. They default to "-nowarn" for historical compatibility.
+It means you can now get helpful warnings from the Java compiler.
+
+*Other notes:
+
+***We have fixed all C and C++ compiler warnings in the Linux/x86 source
+code, under GCC 2.96, GCC 3.3, and GCC 3.3.1.  The only exception is
+warnings from GCC 2.96 of the form:
+
 	ihnpdsm.C:4942: warning: `unused' attribute ignored
-These are benign; ignore them.
+
+They are benign; ignore them.
+
+***__linuxsmp__ has now been officially exorcised from the source.
+
+*Bug Fixes:
+
+***Debugging output no longer can drift into InterfaceDeclarations.h;
+GenerateInterfaceDeclarations.java takes a new "-out" option.
+
+***--trace=preprocessor now lists all of the directories consistently.
+
+***Cross-building from Linux to AIX now works better.
+You can now set RVM_ROOT and RVM_BUILD to different values on the host
+and the target machines.  
+****Details:
+If you don't have RVM_ROOT and/or RVM_BUILD set in your environment
+when you run the booter on the target, then "jbuild -booter" will use
+the (recorded) values from the host.  If you do have one or both of
+them set, they'll be used as appropriate.
+
+It is now the case that, when you run "jconfigure" and "jbuild", you
+should have your PATH set so that there is some Bash version in it
+somewhere under the name "bash".
 
