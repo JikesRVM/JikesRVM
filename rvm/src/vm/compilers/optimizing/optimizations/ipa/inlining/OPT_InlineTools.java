@@ -195,6 +195,9 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_MemberReference;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_TypeReference;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase$MethodSet;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InterfaceHierarchy;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BasicBlock;"),
@@ -223,14 +226,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
 
 
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
-    if (!callee.getDeclaringClass().toString().startsWith("com.ibm.JikesRVM.VM_")) {
-      VM_Atom defn = caller.getDeclaringClass().getDescriptor();
-      for(int i = 0; i < thirdRailClasses.length; i++) {
-	if (defn == thirdRailClasses[i])
-	  return true;
-      }
-    }
-    return false;
+    return caller.getDeclaringClass().isInBootImage() &&
+      !callee.getDeclaringClass().toString().startsWith("com.ibm.JikesRVM.VM_");
   }
 }
 
