@@ -653,7 +653,7 @@ public class VM_Runtime implements VM_Constants {
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
-	VM.sysWrite("Growing native stack before entry\n");
+	// VM.sysWrite("Growing native stack before entry\n");
       } else {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters); // grow
       }
