@@ -23,10 +23,6 @@ setting the preprocessor directive {\tt
 JVM\_WITH\_SINGLE\_VIRTUAL\_PROCESSOR} to 1.  This may give a minor
 performance benefit on uniprocessors.
 
-(Bugs with our Linux pThread library currently prohibit multiple
-virtual processor builds on Linux.  Code to support such builds is in
-place, but has not been tested.)
-
 Threads that are not executing are either placed on thead queues
 (deriving from 
 \xlink{{\tt VM\_AbstractThreadQueue}}{\VMAbstractThreadQueueURL}
