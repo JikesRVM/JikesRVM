@@ -15,6 +15,9 @@ programming language research.
 Yes. There is no difference.  Call a pepper by any other name, and does it
 not still burn your mouth?
 
+\subsubsection{Who is using RVM?}
+\remark{TODO. add url}
+
 \subsection{Getting RVM}
 
 \subsubsection{How do I get RVM?}
@@ -57,7 +60,7 @@ examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
 
-\subsection{RVM Design}
+\subsection{Runtime implementation}
 
 \subsubsection{Why doesn't the RVM source use packages?}
 
@@ -67,7 +70,185 @@ directory structure.  With the current build process, this is not an
 issue, and we may incrementally add package structure to the
 implementation over time.
 
+\subsubsection{How do RVM's threads, Posix threads, and kernel
+threads relate to each other?}
+
+RVM implements an $m$-to-$n$ threading model, where $m$ is the number of 
+Java threads and $n$ is the number of Posix threads (ie., pthreads).  RVM
+does not know or care whether the Posix threads are implemented as kernel
+threads or user-level level threads.  You can specify $n$, the number of
+Posix threads to use, on the command line with {\tt -X:processors=n}.
+You should normally set $n$ to be the number of physical processors on
+your machine.  Note that in the current (2.0.0) release, only $n=1$ is
+supported on Linux.
+
+In the source code, a {\tt VM\_Thread} is the base class for each Java
+thread, and a {\tt VM\_Processor} is the base class representing each
+Posix thread.  
+
+\subsubsection{What are the semantics of inheriting VM\_Uninterruptible?}
+
+The actual semantics of uninterruptibility are: if a class 
+extends {\tt VM\_Uninterruptible}, then the compiler will not
+generate yield points in methods of the class.  So, there will be no
+timer-driven thread switches caused by SIGALARMs in these methods.
+Additionally, the compiler will {\em not} check for stack overflow in the
+method prologue.  So, an uninterruptible method will never cause a stack
+overflow trap.  
+
+You should exercise extreme caution when modifying uninterruptible code.  It
+is generally not legal (although not enforced) to throw an exception or 
+cause GC from an uninterruptible method.  Uninterruptible code should not
+call interruptible code. Furthermore, any uninterruptible method should
+not need more stack space than specified in VM\_StackFrameLayoutConstants
+for the stack ``guard'' area.
+
+It is perhaps unfortunate that the uninterruptible attibute is currently
+specified on a class level.  In some cases, we have declared an entire
+class uninterruptible, even though only a few methods of the class are
+really not safe to interrupt.  We would like to someday use a finer-grain
+mechanism by which to annotate individual methods as uninterruptible.
+
+\subsubsection{What is the list of operations that may cause a GC?}
+
+Any operation that allocates memory or causes memory to be allocated may
+force a GC.  Some cases to look out for include:
+\begin{itemize}
+\item any instruction that throws an exception,
+\item any call that may cause a stack overflow,
+\item any monitorenter on a contended lock,
+\item string concatenation, and
+\item any thread-switch point may allow another thread to force GC.
+\end{itemize}
+
+\subsubsection{How does RVM enter native code?}
+
+There are two mechanisms whereby RVM may transition from Java to native
+code.
+
+The first mechanism is when RVM calls a method through a VM {\tt syscall}
+method.  These native methods are non-blocking system calls or C library 
+services.  To implement a syscall, the RVM compilers generate a call
+sequence consistent with the platform's underlying calling convention.
+A {\tt syscall} is not a GC-safe point, so {\tt syscalls} may modify the
+Java heap (eg. memcpy).
+
+The second mechanism is JNI.  Naturally, the user writes JNI code 
+using the JNI interface.  RVM implements a call to JNI with a special JNI
+compiler that generates a stub routine stack frame that manages the
+transition between Java and native code.  The thread system implements 
+recovery mechanisms to deal with JNI methods that block or otherwise fail
+to return to Java promptly.  A JNI call is a GC-safe point, since JNI code
+cannot freely modify the Java heap.
+
+\subsubsection{What happens to thread switching while a thread is
+executing native code?}
+
+\remark{TODO: hopefully someone will write a userguide section describing
+the thread system.}
+
+There are two ways to execute native code: {\tt syscalls} and JNI.
+A Java thread that calls native code by either mechanism will never
+be preempted by RVM.  As far as RVM is concerned, a Java thread that
+enters native code 'owns' the underlying {\tt VM\_Processor} (pthread)
+until it returns to Java.  Of course the OS may preempt the underlying
+pthread; this falls beyond RVM's control.
+
+Some activities (eg. GC) require all threads currently running Java to halt.  
+So what happens when one Java thread forces a GC while another Java thread is
+executing native code?
+
+If the native code is a {\tt syscall}, then the VM stalls until the native
+code returns.  Thus, all {\tt syscalls} should be non-blocking
+operations that return fairly soon.  Note that a {\tt syscall} is 
+{\em not} a GC-safe point.
+
+If the native code is JNI (outside RVM control), then the thread system
+will wait for a while, eventually declare the underlying pthread "out to
+lunch", and continue execution with the remaining pthreads.  Note that 
+JNI code is a GC safe point; non-malicious correct native code cannot
+perturb the Java heap without notifying the RVM through a JNI method
+invocation.  Hopefully the userguide will soon describe this in more
+detail.
+
+\subsubsection{How do the various locking and synchronization mechanisms
+relate to each other?}
+
+There are at least six ways to enforce mutual exclusion in the
+RVM runtime.  For normal library code and most VM code, monitorenter and
+monitorexit should suffice.  The lower-level primitives provide 
+building blocks for implementing monitorenter and exit. Some VM systems,
+such as thread scheduling and GC, resort to lower-level primitives for
+situations where normal Java object locking is inconvenient or illegal.
+\begin{description}
+\item [VM\_Magic.prepare and VM\_Magic.attempt]
+The RVM compiler translates these calls into low-level
+hardware-supported atomic sequences.  These low-level primitives are the 
+building blocks for all other mutual exclusion mechanisms. 
+
+The prepare call fetches the
+contents of a memory location and begins a conditional critical section.
+The attempt call ends the conditional critical section, and returns true
+if and only there were no intervening writes to the guarded memory
+location.
+
+On PowerPC, the compilers implement prepare and attempt using the lwarx
+and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
+LOCK prefix.
+\item [VM\_Synchronization]
+This class implements some useful common low-level synchronization
+sequences, such as fetch-and-add and test-and-set.  The VM\_Sychronization
+primities, in turn, are implemented using VM\_Magic.prepare and attempt.
+\item [VM\_ProcessorLock]
+This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
+(pthreads.)  It provides a non-blocking attempt to require the lock
+({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
+\remark{TODO: add pointer to URL}
+\item [VM\_Lock]
+This class provides the normal synchronization operations on Java objects
+between Java threads.  The implementation is a variant of Thin Locks.
+\remark{TODO: add pointer to URL}
+\item [monitorenter and monitorexit]
+Synchronized statements in Java source code are compiled to monitorenter
+and exit in the Java bytecode.  The RVM compilers implement these
+bytecodes by inserting calls to {\tt VM\_Lock} routines; the optimizing
+compiler inlines the common cases.
+\item [VM\_GCLocks]
+This class simply encapsulates a number of VM\_Synchronization locks 
+used for various purposes by the RVM GC system.
+
+\end{description}
+
+\subsubsection{What causes VM\_JNIEnvironment.setNames() to run?}
+This function, like many others in the RVM, is called during the RVM boot
+sequence.
+
+\subsubsection{Does RVM conform to Sun's JDK Host Porting Interface?}
+
+No. There is nothing in RVM that remotely resembles HPI.
+
 \subsection{Optimizing Compiler}
+
+\subsubsection{What is a PEI?}
+PEI is our acronym for potentially excepting instruction.  This applies to
+any instruction in the IR that may throw an exception.
+
+
+\subsubsection{Is there a difference between a GC safe point and a thread
+switch point?}
+
+Yes.  Every thread switch point is a GC safe point, but every GC safe point 
+need not be a thread switch point.
+
+A thread switch point is an instruction where the RVM thread scheduler may
+intervene and cause a different Java thread (VM\_Thread) to run on the current
+pthread (VM\_Processor), even if no exception is thrown.  
+Thread switch points include yield points inserted in prologues, epilogues, 
+and back edges, monitorenter and exits.
+
+A GC safe point is any instruction where the compiler must generate a GC map, 
+including every thread switch point.  In particular, every 
+PEI is a GC point.
 
 \subsubsection{What is the OptTestHarness?}
 

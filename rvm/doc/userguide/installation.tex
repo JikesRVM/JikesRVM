@@ -252,17 +252,17 @@ For novice users, two configurations are recommended.  (A discussion
 of RVM configurations is contained in Section~\ref{configs}.)
 
 \begin{itemize}
-\item {\tt BaseBasecopyingGC}: a non-adaptive system that uses the
-baseline  compiler everywhere, with the copying collector
-\item {\tt OptOptcopyingGC}: a non-adaptive system that uses the
-optimizing compiler everywhere, with the copying collector
+\item {\tt BaseBaseSemispace}: a non-adaptive system that uses the
+baseline  compiler everywhere, with the semispace copying collector
+\item {\tt OptOptSemispace}: a non-adaptive system that uses the
+optimizing compiler everywhere, with the semispace copying collector
 \end{itemize}
 
 Depending on your purposes (See Section~\ref{sssec:choosinggc}.) you
 may want to choose another configuration, e.g.,
 \begin{itemize}
-\item {\tt OptOptnoncopyingGC}: a non-adaptive system that uses the
-optimizing  compiler everywhere, with the noncopying (mark-sweep) collector
+\item {\tt OptOptMarkSweep}: a non-adaptive system that uses the
+optimizing  compiler everywhere, with the mark-sweep (noncopying) collector
 \end{itemize}
 
 Run the {\tt jconfigure} script to set up the {\tt \$RVM\_BUILD}
@@ -277,11 +277,11 @@ configuration desired:
 \end{verbatim}
 
 For example, to configure a build 
-directory for the {\tt OptOptcopyingGC} configuration, type
+directory for the {\tt OptOptSemispace} configuration, type
 the following command:
 
 \begin{verbatim}
-% jconfigure OptOptcopyingGC
+% jconfigure OptOptSemispace
 \end{verbatim}
 
 \index{jbuild script}
@@ -309,16 +309,17 @@ save for future reference by redirecting standard out and err.
 After the {\tt jbuild} script has completed successfully you should be able 
 to run RVM.  (See Section~\ref{section:running}.)
 
-Note: The jbuild for Linux/Intel currently produces approximately 13 error
-messages, most pertaining to the fact that Reflection is not implemented.
-They do not affect the operation of the system.
+Note: The jbuild process may produce warning messages; these should not
+affect system viability.
 
 \end{enumerate}
 
 \subsection{RVM Configurations}\label{configs}
 \index{configuration names}
 
-This section describes the RVM build configurations.
+This section describes the RVM build configurations.  The various RVM
+build configurations are defined by files in {\tt
+\$RVM\_ROOT/config/build}.
 
 Most standard RVM configurations loosely follow the following naming scheme
 \begin{verbatim}
@@ -347,29 +348,28 @@ The garbage collector names follow the following format
            <type> [modifier]
 \end{verbatim}
 
-\remark{TODO! update GC names}
-
 A garbage collector may have any of the following types:
 
 \begin{description}
-\item[noGC] no garbage collection is performed
-\item[copyingGC] a copying semi-space collector
-\item[noncopyingGC] a mark-and-sweep (non copying) collector
-\item[hybridGC] a hybrid collector, semi-space for the nursery and
+\item[NoGC] no garbage collection is performed
+\item[Semispace] a copying semi-space collector
+\item[MarkSweep] a mark-and-sweep (non copying) collector
+\item[CopyGenVariable] a copying generational collector with a
+variable-size nursery
+\item[CopyGenFixed] a copying generational collector with a
+fixed-size nursery
+\item[HybridGC] a hybrid collector, semi-space for the nursery and
 mark-and-sweep for the mature space
-%%\item[refcountGC] a reference counting garbage collector
+\item[Concurrent] a concurrent reference counting collector
 \end{description}
-
-To indicate that a garbage collector is a generational garbage collector 
-the modifier {\em gen} may be appended to the garbage collector name.
 
 For example, to specify a compiler with a baseline-compiled boot image
 that will 
 compile classes loaded at runtime using the optimizing compiler and that uses
-a non-generational copying garbage collector use the name 
-{\em BaseOptcopyingGC}.
+a non-generational semi-space copying garbage collector use the name 
+{\em BaseOptSemisapce}.
 
-The standard configurations may be modified in the following manner. 
+Some files augment the standard configurations as follows:
 \begin{itemize}
 \item The word 
 {\em Full} at the beginning of the configuration name identifies a 
@@ -383,9 +383,7 @@ configuration where all assertion checking has been turned off.
 A boot image with
 either of these modifications is likely to run faster than without
 (the opt compiler will be opt compiled),
-but take longer to build.  The {\tt
-Fast} configuration is a pseudonym for FastOptOptcopyingGC, and is
-recommended for most non-adaptive performance runs.
+but take longer to build.  
 
 \subsubsection{Adaptive Configurations} \label{adaptive-configs}
 \index{adaptive configurations}
@@ -422,20 +420,18 @@ The adaptive configurations follow the following naming scheme
 For example, to configure a build 
 directory for an adaptive configuration, where the Opt compiler is 
 used to compile the boot image (but is not included in the boot image
-and assertions are turned on), and the copyingGC garbage collector is
+and assertions are turned on), and the semi-space garbage collector is
 used, use the following command:
 
 \begin{verbatim}
-% jconfigure OptAdaptivecopyingGC
+% jconfigure OptAdaptiveSemispace
 \end{verbatim}
 
 Section~\ref{section:running} describes how this image can be used in
 the manner mentioned above.
 
 To view a list of configurations see 
-{\tt \$RVM\_ROOT/rvm/bin/jconfigure} and
 {\tt \$RVM\_ROOT/rvm/config/builds}. 
-Some configurations may not be available at your site. 
 
 \subsection{Cross Platform Building}
 
@@ -464,7 +460,7 @@ of software components like javac, Jikes\trademark, and the C compiler.
 This distribution
 contains examples of such files in the {\tt \$RVM\_ROOT/rvm/config} directory.   
 
-For example, to build a BaseBasecopyingGC system for AIX {\em on a Linux
+For example, to build a BaseBaseSemispace system for AIX {\em on a Linux
 host}:
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
@@ -474,7 +470,7 @@ host}:
 % setenv  RVM_TARGET_OS aix
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/config/i686-pc-linux-gnu
-% jconfigure BaseBasecopyingGC
+% jconfigure BaseBaseSemispace
 % cd $RVM_BUILD
 % jbuild
 \end{verbatim}
@@ -512,12 +508,3 @@ machine and executing {\tt jbuild.linkBooter} remotely on the target
 via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
-
-
-
-
-
-
-
-
-
