@@ -5,6 +5,9 @@
 
 /**
  * Trivial heap for temp use by RCGC
+ *
+ * @author Dave Grove
+ * @date June 3, 2002
  */
 final class VM_RCHeap extends VM_Heap
   implements VM_Uninterruptible {
