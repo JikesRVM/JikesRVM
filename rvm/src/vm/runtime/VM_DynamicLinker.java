@@ -19,7 +19,16 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Returned: does not return (method dispatch table is updated and method is executed)
    */
   static void lazyMethodInvoker() throws VM_ResolutionException {
-    INSTRUCTION[] instructions = DL_Helper.resolveDynamicInvocation();
+    VM_Method targMethod = DL_Helper.resolveDynamicInvocation();
+
+    // We want to make sure that GC does not happen between getting code and
+    // invoking it. If it's not on a stack during GC, it can be marked
+    // obsolete and reclaimed.
+    VM.disableGC();
+    INSTRUCTION[] instructions =
+			targMethod.getMostRecentlyGeneratedInstructions();
+    VM.enableGC();
+
     VM_Magic.dynamicBridgeTo(instructions);           // restore parameters and invoke
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);  // does not return here
   }
@@ -38,7 +47,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Returned:    code for method to be invoked
      * Side effect: method is compiled and dispatch table is patched with pointer to generated code
      */
-    static INSTRUCTION[] resolveDynamicInvocation() throws VM_ResolutionException {
+    static VM_Method resolveDynamicInvocation() throws VM_ResolutionException {
       VM_Magic.pragmaNoInline();
 
       // find call site 
@@ -111,15 +120,14 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       
       // patch appropriate dispatching table
       //
-      INSTRUCTION[] instructions = targetMethod.getMostRecentlyGeneratedInstructions();
 
       if (targetMethod.isObjectInitializer() || targetMethod.isStatic()) { 
-	targetMethod.getDeclaringClass().resetStaticMethod(targetMethod, instructions);
+	targetMethod.getDeclaringClass().resetStaticMethod(targetMethod);
       } else if (dynamicLink.isInvokeSpecial()) { 
-	targetMethod.getDeclaringClass().resetTIBEntry(targetMethod, instructions);
+	targetMethod.getDeclaringClass().resetTIBEntry(targetMethod);
       } else {
 	VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
-	recvClass.resetTIBEntry(targetMethod, instructions);
+	recvClass.resetTIBEntry(targetMethod);
       }
 
       if (VM_BaselineCompiler.options.hasMETHOD_TO_BREAK() &&
@@ -127,7 +135,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	VM_Services.breakStub();  // invoke stub used for breaking in jdp
       }
      
-      return instructions;
+      return targetMethod;
     }
   }
 
