@@ -102,8 +102,7 @@ class VM_Heap
 	start = VM_Memory.mmap(VM_Address.fromInt(0), 
 			       size, 
 			       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC,
-			       // VM_Memory.MAP_PRIVATE | 
-			       VM_Memory.MAP_ANONYMOUS);
+			       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_ANONYMOUS);
 	if (start.GE(VM_Address.fromInt(0)) && 
 	    start.LT(VM_Address.fromInt(128))) {  // errno range
 	    VM.sysWrite("VM_Heap failed to mmap ", size / 1024);
