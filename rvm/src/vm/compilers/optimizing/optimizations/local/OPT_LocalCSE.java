@@ -58,6 +58,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   public void perform (OPT_IR ir) {
     // iterate over each basic block
+    if (debug) OPT_Compiler.printInstructions(ir, "Before CSE");
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 
         bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
@@ -68,7 +69,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       }
       optimizeBasicBlock(ir, bb, ir.options);
     }
-    if (debug) OPT_Compiler.printInstructions(ir, "CSE");
+    if (debug) OPT_Compiler.printInstructions(ir, "After CSE");
   }
 
   /**
@@ -147,6 +148,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @return true or false, as appropriate
    */
   private boolean isExpression (OPT_Instruction inst) {
+    if (inst.isDynamicLinkingPoint()) return false;
     return Unary.conforms(inst) || GuardedUnary.conforms(inst) || 
       Binary.conforms(inst) || GuardedBinary.conforms(inst) ||
       InstanceOf.conforms(inst);

@@ -35,8 +35,6 @@ public class VM_CompiledMethods {
       //-#if RVM_WITH_OPT_COMPILER
       cm = new VM_OptCompiledMethod(id, m);
       //-#endif
-    } else if (compilerType == VM_CompiledMethod.TRAP) {
-      cm = new VM_HardwareTrapCompiledMethod(id, m);
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {
@@ -45,6 +43,20 @@ public class VM_CompiledMethods {
     compiledMethods[id] = cm;
     return cm;
   }
+
+  /**
+   * Create a VM_CompiledMethod for the synthetic hardware trap frame
+   */
+  static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
+    int id = ++currentCompiledMethodId;
+    if (id == compiledMethods.length) {
+      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
+    }
+    VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
+    compiledMethods[id] = cm;
+    return cm;
+  }
+
 
   // Fetch a previously compiled method.
   //

@@ -40,27 +40,12 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     switch (opcode) {
     case JBC_getfield: case JBC_putfield: 
     case JBC_getstatic: case JBC_putstatic: 
-      { 
-	int cpi = bcodes.getFieldReferenceIndex();
-	int fid = bcodes.declaringClass().getFieldRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveField(fid);
-      }
+      VM_TableBasedDynamicLinker.resolveMember(bcodes.getFieldReference());
       break;
-    case JBC_invokevirtual:case JBC_invokestatic:
-      {
-	int cpi = bcodes.getMethodReferenceIndex();
-	int fid = bcodes.declaringClass().getMethodRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveMethod(fid);
-      }
+    case JBC_invokevirtual:case JBC_invokestatic:case JBC_invokespecial:       
+      VM_TableBasedDynamicLinker.resolveMember(bcodes.getMethodReference());
       break;
     case JBC_invokeinterface:
-      // We believe that in the RVM this cannot cause dynamic linking
-    case JBC_invokespecial:       
-      // We believe that the offsets will always be valid for an 
-      // invokespecial; As part of creating the uninitialized instance 
-      // of an object, the runtime system must have invoked the class loader 
-      // to load the class and therefore by the time the call to the init 
-      // code is executed, the method offset table will contain a valid value.
     default:
       if (VM.VerifyAssertions)
 	VM._assert(VM.NOT_REACHED, 

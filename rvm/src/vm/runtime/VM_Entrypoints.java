@@ -64,10 +64,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method lazyMethodInvokerMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
   public static final VM_Method unimplementedNativeMethodMethod = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
 
-  public static final VM_Method resolveMethodMethod     = getMethod("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
-  public static final VM_Field  methodOffsetsField      = getField("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
-  public static final VM_Method resolveFieldMethod      = getMethod("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "resolveField", "(I)V");
-  public static final VM_Field  fieldOffsetsField       = getField("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
+  public static final VM_Method resolveMemberMethod     = getMethod("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "resolveMember", "(I)I");
+  public static final VM_Field  memberOffsetsField      = getField("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "memberOffsets", "[I");   
 
   public static final VM_Field longOneField        = getField("Lcom/ibm/JikesRVM/VM_Math;", "longOne", "J");  // 1L
   public static final VM_Field minusOneField       = getField("Lcom/ibm/JikesRVM/VM_Math;", "minusOne", "F"); // -1.0F
@@ -236,7 +234,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC", "I");
   //-#endif
 
-  public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounterDictionary;", "values", "[[I");
+  public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");
 
 
   public static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");

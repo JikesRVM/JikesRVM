@@ -71,7 +71,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
       x.encodedOffset = j;
       int byteCodeIndex = x.callSite.bcIndex;
       encoding[j++] = (byteCodeIndex >= 0) ? byteCodeIndex : -1;
-      encoding[j++] = x.callSite.getMethod().getDictionaryId();
+      encoding[j++] = x.callSite.getMethod().getId();
       x = (OPT_CallSiteTreeNode)x.getRightSibling();
     }
     x = current;

@@ -21,8 +21,7 @@ import java.util.*;
  */
 
 public class OSR_EncodedOSRMap 
-  implements VM_ClassLoaderConstants,
-	     VM_OptGCMapIteratorConstants,
+  implements VM_OptGCMapIteratorConstants,
 	     OSR_Constants {
   
   /* osr info entries */

@@ -7,14 +7,14 @@ package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * An OSR_LocalRegPair keeps the type information and localtion of 
  * a local variable/stack slot from byte code to machine code.
  *
  * @author Feng Qian
  */
-
-public class OSR_LocalRegPair implements VM_ClassLoaderConstants {
+public class OSR_LocalRegPair implements OSR_Constants {
 
   // is it a local or stack? 
   public int kind; 

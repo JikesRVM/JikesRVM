@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public final class VM_BranchProfiles implements VM_BytecodeConstants {
   private VM_Method method;
-  private int counterId;
+  private int numCounters;
   private VM_BranchProfile[] data;
 
   /**
@@ -44,16 +44,15 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
   }
 
   public void print(java.io.PrintStream ps) {
-    ps.println("M "+VM_EdgeCounterDictionary.getValue(counterId).length+" "+
-	       VM_EdgeCounterDictionary.getKey(counterId));
+    ps.println("M "+numCounters+" "+method.getMemberRef());
     for (int j=0; j<data.length; j++) {
       ps.println("\t"+data[j]);
     }
   }
 
-  VM_BranchProfiles(VM_Method m, int id, int[] cs) {
+  VM_BranchProfiles(VM_Method m, int[] cs) {
     method = m;
-    counterId = id;
+    numCounters = cs.length;
     data = new VM_BranchProfile[cs.length/2];
     VM_BytecodeStream bcodes = m.getBytecodes();
     int dataIdx = 0;
@@ -63,7 +62,6 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     // Therefore we must now recover that information.
     // We exploit the fact that the baseline compiler generates code in 
     // a linear pass over the bytecodes to make this possible.
-
     while(bcodes.hasMoreBytecodes()) {
       int bcIndex = bcodes.index();
       int code = bcodes.nextInstruction();

@@ -44,8 +44,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   //           method whose name indicates semantics of code to be generated
   // Returned: true if there was magic defined for the method
   //
-  static boolean  generateInlineCode(VM_Compiler compiler, VM_Method methodToBeCalled) {
-    VM_Atom      methodName       = methodToBeCalled.getName();
+  static boolean  generateInlineCode(VM_Compiler compiler, VM_MethodReference methodToBeCalled) {
+    VM_Atom      methodName       = methodToBeCalled.getMemberName();
     VM_Assembler asm              = compiler.asm;
     int          spSaveAreaOffset = compiler.spSaveAreaOffset;
       
@@ -512,8 +512,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   // Taken:   VM_Method of the magic method being called
   // Returned: true if method causes a stackframe to be created
   //
-  public static boolean checkForActualCall(VM_Method methodToBeCalled) {
-    VM_Atom methodName = methodToBeCalled.getName();
+  public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
+    VM_Atom methodName = methodToBeCalled.getMemberName();
     return methodName == VM_MagicNames.invokeMain                  ||
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||

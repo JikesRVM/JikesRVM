@@ -24,22 +24,17 @@ public final class OPT_CompilationState {
   /**
    * @param call the call instruction being considered for inlining.
    * @param mcSizeEstimate, current guess on total size of final machinecode
-   * @param computedTarget the caller has deduced FOR CERTAIN that the
-   *	    current CALL instruction resolves to this target. (null if
-   *	    not certain.)
    * @param isExtant is the receiver of a virtual call an extant object?
    * @param options controlling compiler options
    * @@param cm compiled method of the IR object being compiled
    */
   public OPT_CompilationState(OPT_Instruction call,
 			      int mcSizeEstimate, 
-			      VM_Method computedTarget, 
 			      boolean isExtant,
 			      OPT_Options options,
 			      VM_CompiledMethod cm) {
     this.call = call;
     this.mcSizeEstimate = mcSizeEstimate;
-    this.computedTarget = computedTarget;
     this.isExtant = isExtant;
     this.options = options;
     this.cm = cm;
@@ -74,10 +69,7 @@ public final class OPT_CompilationState {
    * If a computed target is present, use it.
    */
   public VM_Method obtainTarget() {
-    if (computedTarget == null) 
-      return Call.getMethod(call).method;
-    else
-      return computedTarget;
+    return Call.getMethod(call).getTarget();
   }
 
   /** 
@@ -92,6 +84,13 @@ public final class OPT_CompilationState {
    */
   public boolean getIsExtant() {
     return isExtant;
+  }
+
+  /** 
+   * Return whether or not the target is precise (ie needs no guard)
+   */
+  public boolean getHasPreciseTarget() {
+    return Call.getMethod(call).hasPreciseTarget();
   }
 
   /** 
@@ -129,13 +128,6 @@ public final class OPT_CompilationState {
     return call.position;
   }
 
-  /** 
-   * Return the computed target
-   */
-  public VM_Method getComputedTarget() {
-    return computedTarget;
-  }
-  
   /**
    * Return the compiled method
    */
@@ -148,7 +140,6 @@ public final class OPT_CompilationState {
    */
   private OPT_Instruction call;
   private int mcSizeEstimate;
-  private VM_Method computedTarget;
   private boolean isExtant;
   private OPT_Options options;
   private VM_CompiledMethod cm;

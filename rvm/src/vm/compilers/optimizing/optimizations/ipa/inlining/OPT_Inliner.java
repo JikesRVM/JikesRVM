@@ -214,7 +214,7 @@ public class OPT_Inliner implements OPT_Operators,
       if (isInterface) {
 	if (VM.BuildForIMTInterfaceInvocation ||
 	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-	  VM_Type interfaceType = mo.method.getDeclaringClass();
+	  VM_Type interfaceType = mo.getTarget().getDeclaringClass();
 	  VM_Class refType = receiver.type.asClass();
 	  // Attempt to avoid inserting the check by seeing if the 
 	  // known static type of the receiver implements the interface.
@@ -251,7 +251,7 @@ public class OPT_Inliner implements OPT_Operators,
 	OPT_Instruction tmp;
 
 	if (isInterface) {
-	  VM_Class callDeclClass = mo.method.getDeclaringClass();
+	  VM_Class callDeclClass = mo.getTarget().getDeclaringClass();
 	  if (!callDeclClass.isInterface()) {
 	    // Part of ensuring that we catch IncompatibleClassChangeErrors
 	    // is making sure that we know that callDeclClass is an
@@ -331,13 +331,13 @@ public class OPT_Inliner implements OPT_Operators,
 	} else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
 	  tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
-				   OPT_MethodOperand.VIRTUAL(target, false), 
+				   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
 				   testFailed.makeJumpTarget(),
 				   OPT_BranchProfileOperand.unlikely());
 	} else {
 	  tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
-				   OPT_MethodOperand.VIRTUAL(target, false), 
+				   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
 				   testFailed.makeJumpTarget(),
 				   OPT_BranchProfileOperand.unlikely());
 	}

@@ -82,12 +82,10 @@ final class OPT_CallingConvention extends OPT_IRTools
       if (MIR_Call.hasMethod(call)) {
 	OPT_MethodOperand mo = MIR_Call.getMethod(call);
         if (mo.isInterface()) {
-          int signatureId = VM_ClassLoader.
-            findOrCreateInterfaceMethodSignatureId(mo.method.getName(), 
-                                                   mo.method.getDescriptor());
-          OPT_MemoryOperand M = OPT_MemoryOperand.BD
-            (R(phys.getPR()), VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
-             (byte)WORDSIZE, null, null);
+          int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(mo.getMemberRef());
+          OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(phys.getPR()), 
+						     VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
+						     (byte)WORDSIZE, null, null);
           call.insertBefore(MIR_Move.create(IA32_MOV,M,I(signatureId)));
         }
       }

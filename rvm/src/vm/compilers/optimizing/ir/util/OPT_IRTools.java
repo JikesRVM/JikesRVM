@@ -173,7 +173,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return dest
    */
   public static final OPT_Instruction CPOS(OPT_Instruction src, 
-				    OPT_Instruction dst) {
+					   OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
   }
@@ -235,8 +235,17 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param field field to load from
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_Field field) {
-    VM_Type type = field.getType();
+  public static final OPT_Operator getLoadOp(VM_FieldReference field) {
+    return getLoadOp(field.getType());
+  }
+
+  /**
+   * Returns the correct operator for loading a value of the given type
+   *
+   * @param type type of value to load
+   * @return the OPT_Operator to use when loading the given field
+   */
+  public static final OPT_Operator getLoadOp(VM_Type type) {
     // TODO: Until we pack subword fields, there is no reason to
     //       use the sub-word load operators because it only forces us 
     //       into doing useless sign extension.
@@ -250,6 +259,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())     return FLOAT_LOAD;
     if (type.isDoubleType())    return DOUBLE_LOAD;
     if (type.isReferenceType()) return REF_LOAD;
+    if (type.isWordType())      return REF_LOAD;
     return INT_LOAD;
   }
 
@@ -259,8 +269,17 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to store
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_Field field) {
-    VM_Type type = field.getType();
+  public static final OPT_Operator getStoreOp(VM_FieldReference field) {
+    return getStoreOp(field.getType());
+  }
+
+  /**
+   * Returns the correct operator for storing a value of the given type
+   *
+   * @param type desired type to store
+   * @return the OPT_Operator to use when storing to the given field
+   */
+  public static final OPT_Operator getStoreOp(VM_Type type) {
     // TODO: Until we pack subword fields, there is no reason to
     //       use the sub-word load operators because it only forces us 
     //       into doing useless sign extension.
@@ -274,6 +293,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())      return FLOAT_STORE;
     if (type.isDoubleType())     return DOUBLE_STORE;
     if (type.isReferenceType())  return REF_STORE;
+    if (type.isWordType())       return REF_STORE;
     return INT_STORE;
   }
 
@@ -470,7 +490,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * architecture has a questionable future.
    */
   public static boolean useDoublesAsDef(OPT_Operand u, 
-                                 OPT_Instruction s) {
+					OPT_Instruction s) {
     for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
       OPT_Operand def = (OPT_Operand)d.nextElement();
       if (def != null) {
@@ -492,7 +512,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * architecture has a questionable future.
    */
   public static boolean defDoublesAsUse(OPT_Operand d, 
-                                 OPT_Instruction s) {
+					OPT_Instruction s) {
     for (Enumeration u = s.getUses(); u.hasMoreElements(); ) {
       OPT_Operand use = (OPT_Operand)u.nextElement();
       if (use != null) {
@@ -557,20 +577,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    *         cannot be a load from a volatile field
    */
   public static boolean mayBeVolatileFieldLoad(OPT_Instruction s) {
-    boolean isVolatileLoad = false;
-    if (OPT_LocalCSE.isLoadInstruction(s)) {
-      OPT_LocationOperand l = LocationCarrier.getLocation(s);
-      if (l.isFieldAccess()) {
-	VM_Field f = l.getField();
-	if (!f.getDeclaringClass().isLoaded()) {
-	  // class not yet loaded; conservatively assume
-	  // volatile! (yuck)
-	  isVolatileLoad = true;
-	}
-	else if (f.isVolatile()) isVolatileLoad = true;
-      }
-    }
-    return isVolatileLoad;
+    return s.mayBeVolatileFieldLoad();
   }
 }
 

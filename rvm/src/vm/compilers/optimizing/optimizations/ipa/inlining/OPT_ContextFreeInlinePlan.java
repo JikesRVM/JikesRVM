@@ -82,9 +82,7 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
    * Read a serialized representation of the object from a stream.
    * Expected format is that produced by toString.
    */
-  public void readObject (LineNumberReader in, ClassLoader classloader)
-    throws IOException
-  {
+  public void readObject(LineNumberReader in, ClassLoader classloader) throws IOException {
     int bytecodeOffset;
     String s = in.readLine();
     while (s != null) {
@@ -93,14 +91,13 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
       String nextToken1 = parser.nextToken();
       String nextToken2 = parser.nextToken();
       String nextToken3 = parser.nextToken();
-      VM_Method caller = null;
-      VM_Method callee = null;
+      VM_MethodReference callerRef = null;
+      VM_MethodReference calleeRef = null;
       if (!nextToken1.equals("null")) {
         VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        caller = OPT_ClassLoaderProxy.findOrCreateMethod(callerClass, 
-	    callerName, callerDescriptor, classloader);
+        callerRef = VM_MemberReference.findOrCreate(classloader, callerClass, callerName, callerDescriptor).asMethodReference();
       }
       nextToken1 = parser.nextToken();
       if (!nextToken1.equals("null")) {
@@ -113,10 +110,13 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        callee = OPT_ClassLoaderProxy.findOrCreateMethod(calleeClass, 
-	    calleeName, calleeDescriptor, classloader);
+        calleeRef = VM_MemberReference.findOrCreate(classloader, calleeClass, calleeName, calleeDescriptor).asMethodReference();
       }
-      addRule(caller, bytecodeOffset, callee);
+      VM_Method caller = callerRef.resolve(true);
+      VM_Method callee = calleeRef.resolve(true);
+      if (caller != null && callee != null) {
+	addRule(caller, bytecodeOffset, callee);
+      }
       s = in.readLine();
     }
   }

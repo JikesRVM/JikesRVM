@@ -1063,23 +1063,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	}
 	case JBC_invokevirtual:
 	case JBC_invokespecial: {
-	  VM_Method calledMethod = bcodes.getMethodReference();
-	  currBBStkTop = processInvoke(calledMethod, biStart, currBBStkTop, currBBMap, false, 
+	  VM_MethodReference target = bcodes.getMethodReference();
+	  currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, false, 
 				       inJSRSub, referenceMaps, currPendingRET, 
 				       blockSeen[currBBNum], currBBStkEmpty);
 	  break;
 	}
 	case JBC_invokeinterface: {
-	  VM_Method calledMethod = bcodes.getMethodReference();
+	  VM_MethodReference target = bcodes.getMethodReference();
 	  bcodes.alignInvokeInterface();
-	  currBBStkTop = processInvoke(calledMethod, biStart, currBBStkTop, currBBMap, false, 
+	  currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, false, 
 				       inJSRSub, referenceMaps, currPendingRET, 
 				       blockSeen[currBBNum], currBBStkEmpty);
 	  break;
 	}
 	case JBC_invokestatic: {
-	  VM_Method calledMethod = bcodes.getMethodReference();
-	  currBBStkTop = processInvoke(calledMethod, biStart, currBBStkTop, currBBMap, true, 
+	  VM_MethodReference target = bcodes.getMethodReference();
+	  currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, true, 
 				       inJSRSub, referenceMaps, currPendingRET, 
 				       blockSeen[currBBNum], currBBStkEmpty);
 	  break;
@@ -1592,16 +1592,16 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     return newworkStk;
   }
 
-  private int processInvoke(VM_Method calledMethod, int byteindex, int currBBStkTop, 
+  private int processInvoke(VM_MethodReference target, int byteindex, int currBBStkTop, 
 			    byte currBBMap[], boolean isStatic, boolean inJSRSub, 
 			    VM_ReferenceMaps referenceMaps, VM_PendingRETInfo currPendingRET, 
 			    boolean blockSeen, int currBBStkEmpty ) {
     boolean skipRecordingReferenceMap = false;
     int stkDepth = currBBStkTop;
 
-    if (calledMethod.getDeclaringClass().isMagicType() ||
-	calledMethod.getDeclaringClass().isWordType()) {
-      boolean producesCall = VM_MagicCompiler.checkForActualCall(calledMethod);
+    if (target.getDeclaringClass().isMagicType() ||
+	target.getDeclaringClass().isWordType()) {
+      boolean producesCall = VM_MagicCompiler.checkForActualCall(target);
       if (producesCall) {
 	stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 
 	// items from the operand stack. Chances are what
@@ -1622,7 +1622,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 					     currPendingRET.returnAddressLocation, blockSeen);
     }
 
-    VM_Type[] parameterTypes = calledMethod.getParameterTypes();
+    VM_Type[] parameterTypes = target.getParameterTypes();
     int pTypesLength = parameterTypes.length;
 
     // Pop the arguments for this call off the stack; 
@@ -1634,7 +1634,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
       currBBStkTop--; // pop implicit "this" object reference
 
     // Add the return value to the stack
-    VM_Type returnType = calledMethod.getReturnType();
+    VM_Type returnType = target.getReturnType();
     if (returnType.getStackWords() != 0) { 
       // a non-void return value
       currBBMap[++currBBStkTop] = returnType.isReferenceType() ? REFERENCE : NON_REFERENCE;

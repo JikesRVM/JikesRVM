@@ -21,6 +21,8 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   private static boolean registered = false;
   private static String inputFile = null;
 
+  private static int[][] data;
+
   public static void setProfileFile(String fn) { inputFile = fn; }
 
   public void notifyExit(int value) { dumpCounts(); }
@@ -31,32 +33,38 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     }
   }
 
-  public static int findOrCreateId(VM_Method m) {
+  static synchronized void allocateCounters(VM_Method m, int numEntries) {
+    if (numEntries == 0) return;
     if (!VM.BuildForAdaptiveSystem && !registered) {
       // Assumption: If edge counters were enabled in a non-adaptive system
-      //             then the user must want use to dump them when the system
+      //             then the user must want us to dump them when the system
       //             exits.  Otherwise why would they have enabled them...
       registered = true;
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    VM_MemberReference key = m.getDictionaryKey();
-    return VM_EdgeCounterDictionary.findOrCreateId(key, null);
-  }
-
-  public static int findId(VM_Method m) {
-    VM_MemberReference key = m.getDictionaryKey();
-    return VM_EdgeCounterDictionary.findId(key);
+    int id = m.getId();
+    if (data == null) {
+      data = new int[id+500][];
+    }
+    if (id >= data.length) {
+      int newSize = data.length*2;
+      if (newSize <= id) newSize = id+500;
+      int[][] tmp = new int[newSize][];
+      System.arraycopy(data, 0, tmp, 0, data.length);
+      VM_Magic.sync();
+      data = tmp;
+    }
+    data[id] = new int[numEntries];
   }
 
   public static VM_BranchProfiles getBranchProfiles(VM_Method m) {
     if (!m.getDeclaringClass().isLoaded() || m.getBytecodes() == null) return null;
-    int id = findId(m);
-    if (id == -1) return null;
-    int[] cs = VM_EdgeCounterDictionary.getValue(id);
-    if (cs == null) return null;
-    return new VM_BranchProfiles(m, id, cs);
+    int id = m.getId();
+    if (data == null || id >= data.length) return null;
+    if (data[id] == null) return null;
+    return new VM_BranchProfiles(m, data[id]);
   }
-
+  
   /**
    * Dump all the profile data to the file VM_BaselineCompiler.options.EDGE_COUNTER_FILE
    */
@@ -76,19 +84,20 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       VM.sysWrite("\n\nVM_EdgeCounts.dumpCounts: Error opening output file!!\n\n");
       return;
     }
-    int n = VM_EdgeCounterDictionary.getNumValues();
-    for (int i=0; i<n; i++) {
-      VM_MemberReference key = VM_EdgeCounterDictionary.getKey(i);
-      int mid = VM_ClassLoader.getMethodIdFromKey(key);
-      if (mid == -1) continue; // only should happen when we've read in a file of offline data.
-      VM_Method m = VM_ClassLoader.getMethodFromId(mid);
-      if (!m.isLoaded()) continue; // ditto -- came from offline data
-      int[] counters = VM_EdgeCounterDictionary.getValue(i);
-      if (counters != null) new VM_BranchProfiles(m, i, counters).print(f);
+    if (data == null) return;
+    for (int i=0; i<data.length; i++) {
+      if (data[i] != null) {
+	VM_Method m = VM_MemberReference.getMemberRef(i).asMethodReference().resolve();
+	new VM_BranchProfiles(m, data[i]).print(f);
+      }
     }
   }
 
   public static void readCounts(String fn) {
+    VM.sysFail("Temporarily do not support reading counts from file due to classloader work");
+    // The TODO item is to encode the classloader in the file as well (system, application,)
+    // and then use that to correctly create the VM_MethodReference
+    /*
     LineNumberReader in = null;
     try {
       in = new LineNumberReader(new FileReader(fn));
@@ -107,7 +116,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_MemberReference key = new VM_MemberReference(dc, mn, md);
+	  VM_MethodReference key = new VM_MemberReference(dc, mn, md);
 	  int id = VM_EdgeCounterDictionary.findOrCreateId(key, new int[numCounts]);
 	  cur = VM_EdgeCounterDictionary.getValue(id);
 	  curIdx = 0;
@@ -138,6 +147,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
       VM_BaselineCompiler.processCommandLineArg("-X:base:", "edge_counter_file=DebugEdgeCounters");
     }
+    */
   }
 
 }

@@ -14,7 +14,6 @@ import java.util.*;
  *
  * @author Feng Qian
  */
-
 public final class OSR_MethodVariables extends OPT_LinkedListElement {
   
   /* which method */
@@ -40,11 +39,11 @@ public final class OSR_MethodVariables extends OPT_LinkedListElement {
   public String toString () {
     StringBuffer buf = new StringBuffer("");
     
-    buf.append(" pc@"+this.bcIndex 
-	       + VM_ClassLoader.getMethodFromId(this.methId).getName());
+    buf.append(" pc@"+bcIndex 
+	       + VM_MemberReference.getMemberRef(methId).getMemberName());
     buf.append("\n");
-    for (int i=0, n=this.tupleList.size(); i<n; i++) {
-      buf.append(this.tupleList.get(i).toString());
+    for (int i=0, n=tupleList.size(); i<n; i++) {
+      buf.append(tupleList.get(i).toString());
       buf.append("\n");
     }
     return  buf.toString();

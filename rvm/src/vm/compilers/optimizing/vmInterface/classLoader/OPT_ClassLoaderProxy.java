@@ -13,18 +13,11 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  * @author Julian Dolby
  **/
-public final class OPT_ClassLoaderProxy 
-implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
-{
+public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
+
   /*
    * Cache references to frequently used VM_Class and VM_Array objects 
-   * in a common places
-   * NB: OPT_ClassLoaderProxy.java caches references to many frequently used types; 
-   * those cached here are
-   * simply those used by the opt compiler that aren't currently 
-   * cached in OPT_ClassLoaderProxy.
-   * Before adding anything here, see what's already available on OPT_ClassLoaderProxy.
-   * These static fields are initialized by the subclass constructor.
+   * in a common places.
    */
   public static VM_Type VoidType;
   public static VM_Type BooleanType;
@@ -437,25 +430,6 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
   // Querry classloader data structures
   // --------------------------------------------------------------------------
 
-  public static VM_Method findOrCreateMethod (VM_Atom klass, 
-                                              VM_Atom name, 
-                                              VM_Atom des,
-                                              ClassLoader cl) {
-    return VM_ClassLoader.findOrCreateMethod( klass, name, des, cl );
-  }
-
-  // Find specified method using "invokespecial" lookup semantics.
-  // Taken:    method sought
-  // Returned: method found (null --> not found)
-  // There are three kinds of "special" method invocation:
-  //   - an instance initializer method, eg. <init>
-  //   - a non-static but private and/or final method in the current class
-  //   - a non-static method for which the non-overridden (superclass) 
-  //   version is desired
-  //
-  public static VM_Method findSpecialMethod(VM_Method sought) {
-    return VM_Class.findSpecialMethod( sought );
-  }
   /**
    * Get description of specified primitive array.
    * @param atype array type number (see "newarray" bytecode description in Java VM Specification)
@@ -466,41 +440,18 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
   }
 
   /**
-   *  Is dynamic linking code required to access one member when 
-   * referenced from another?
-   *
-   * @param referent the member being referenced
-   * @param referrer the method containing the reference
-   */
-  public static boolean needsDynamicLink(VM_Member referent, VM_Class referrer) {
-    return VM_ClassLoader.needsDynamicLink(referent, referrer);
-  }
-
-  /**
    * Find the method of the given class that matches the given descriptor.
    */
-  public static VM_Method lookupMethod(VM_Class cls, VM_Method meth) {
+  public static VM_Method lookupMethod(VM_Class cls, VM_MethodReference ref) {
     VM_Method newmeth = null;
     if (cls.isResolved() && !cls.isInterface()) {
+      VM_Atom mn = ref.getMemberName();
+      VM_Atom md = ref.getDescriptor();
       for (; (newmeth == null) && (cls != null); cls = cls.getSuperClass()) {
-        newmeth = 
-          (VM_Method)cls.findDeclaredMethod(meth.getName(), 
-                                            meth.getDescriptor());
+        newmeth = cls.findDeclaredMethod(mn, md);
       }
     }
     return newmeth;
-  }
-
-  /**
-   * Does class vmCls implement interface vmInterf?
-   */
-  public static boolean classImplementsInterface (VM_Type vmCls, VM_Type vmInterf) {
-    VM_Class[] interfaces = ((VM_Class)vmCls).getDeclaredInterfaces();
-    VM_Class vmInterfClass = (VM_Class)vmInterf;
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i] == vmInterfClass)
-        return  true;
-    return  false;
   }
 
   // --------------------------------------------------------------------------

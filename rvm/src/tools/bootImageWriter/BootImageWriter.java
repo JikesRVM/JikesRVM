@@ -585,6 +585,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	    }
 	}
 	VM_CompiledMethods.spaceReport();
+	VM_ClassLoader.spaceReport();
     }
 
 
@@ -1855,30 +1856,23 @@ public class BootImageWriter extends BootImageWriterMessages
     out.println("                          address             method");
     out.println("                          -------             ------");
     out.println();
-    for (int i = 0; i < VM_ClassLoader.numMethods(); ++i) {
-      VM_Method method = VM_ClassLoader.getMethodFromId(i);
-      if (method == null)       continue;
-      if (!method.isLoaded()) continue; // bogus or unresolved
-      if (!method.isCompiled()) continue;
-      Object instructions = method.getCurrentInstructions();
-      int code = BootImageMap.getImageAddress(bootImageAddress, instructions);
-      out.println(".     .          code     " + VM.intAsHexString(code) +
-                  "          " + method);
+    VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
+    for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
+      VM_CompiledMethod compiledMethod = compiledMethods[i];
+      if (compiledMethod != null) {
+	VM_Method m = compiledMethod.getMethod();
+	if (m != null && compiledMethod.isCompiled()) {
+	  Object instructions = compiledMethod.getInstructions();
+	  int code = BootImageMap.getImageAddress(bootImageAddress, instructions);
+	  out.println(".     .          code     " + VM.intAsHexString(code) +
+		      "          " + compiledMethod.getMethod());
+	}
+      }
     }
 
     out.println();
     out.println("EOF-EOF-EOF");
     out.flush();
     out.close();
-  }
-
-  /**
-   * Flip the order of words in a long.
-   *
-   * @param value initial value
-   * @return the value with words flipped
-   */
-  private  static long flipWords(long value) {
-    return (value << 32) | (value >>> 32);
   }
 }

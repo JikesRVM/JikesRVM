@@ -2603,7 +2603,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 	      setRealPosition(tuple, sym_reg);
 
 	      // get another half part of long register
-	      if (tuple.typeCode == VM_ClassLoaderConstants.LongTypeCode) {
+	      if (tuple.typeCode == OSR_Constants.LongTypeCode) {
 
 		OSR_LocalRegPair other = tuple._otherHalf;
 		OPT_Operand other_op = other.operand;
@@ -2627,7 +2627,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 			    OSR_Constants.ICONST,
 			    ((OPT_IntConstantOperand)op).value
 			    );
-	      if (tuple.typeCode == VM_ClassLoaderConstants.LongTypeCode) {
+	      if (tuple.typeCode == OSR_Constants.LongTypeCode) {
 		OSR_LocalRegPair other = tuple._otherHalf;
 		OPT_Operand other_op = other.operand;
 

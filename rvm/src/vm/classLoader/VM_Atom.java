@@ -105,9 +105,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class name       - something like "java.lang.String"
    */ 
   public final String classNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == 'L'); // !!TODO: should we also handle "array" type descriptors?
-    // return new String(val,    1, val.length - 2).replace('/','.');  // preferred (unicode)
-    return new String(val, 0, 1, val.length - 2).replace('/','.');  // deprecated (ascii)
+    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    return new String(val, 0, 1, val.length - 2).replace('/','.'); 
   }
    
   /**
@@ -116,9 +115,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class file name  - something like "java/lang/String.class"
    */ 
   public final String classFileNameFromDescriptor() {
-    if (VM.VerifyAssertions && val[0] != 'L') VM._assert(false, toString());
-    // return new String(val,    1, val.length - 2) + ".class"; // preferred (unicode)
-    return new String(val, 0, 1, val.length - 2) + ".class"; // deprecated (ascii)
+    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    return new String(val, 0, 1, val.length - 2) + ".class";
   }
 
   //----------------//
@@ -258,6 +256,13 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     return val[0];
   }
 
+  public final int parseForStackWords() {
+    byte tmp = parseForTypeCode();
+    if (tmp == LongTypeCode || tmp == DoubleTypeCode) return 2;
+    if (tmp == VoidTypeCode) return 0;
+    return 1;
+  }
+
   /**
    * Parse "this" array descriptor to obtain number of dimensions in 
    * corresponding array type.
@@ -310,8 +315,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   // implementation //
   //----------------//
 
-  private byte val[];  
-  private int  hash;  
+  private final byte val[];  
+  private final int  hash;  
    
   /**
    * To guarantee uniqueness, only the VM_Atom class may construct 
@@ -319,18 +324,18 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * All VM_Atom creation should be performed by calling 
    * "VM_Atom.findOrCreate" methods.
    */ 
-  private VM_Atom() {}
+  private VM_Atom() { val = null; hash = 0;}
    
   /**
    * Create atom from given utf8 sequence.
    */ 
   private VM_Atom(byte utf8[]) {
-    int hash = 99989;
+    int tmp = 99989;
     for (int i = utf8.length; --i >= 0; )
-      hash = 99991 * hash + utf8[i];
+      tmp = 99991 * tmp + utf8[i];
           
     this.val  = utf8;
-    this.hash = hash;
+    this.hash = tmp;
   }
 
   private static VM_Atom findOrCreateAtom(byte utf8[]) {
@@ -347,7 +352,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   public final int hashCode() {
     return hash;
   }
-   
+
   /**
    * Hash VM_Dictionary keys.
    */ 

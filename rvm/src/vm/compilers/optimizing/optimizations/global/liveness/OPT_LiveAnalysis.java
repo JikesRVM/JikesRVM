@@ -12,8 +12,8 @@ import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
 
-import  java.util.Stack;
-import  java.util.Enumeration;
+import java.util.Stack;
+import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
@@ -22,7 +22,7 @@ import java.util.LinkedList;
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
  * The result of this analysis is live ranges for each basic block.
- * (@see OPT_BasicBlock.java)
+ * (@see OPT_BasicBlock)
  * This class can also optionally construct GC maps. These GC maps
  * are later used to create the final gc map (see VM_OptReferenceMap.java). 
  *
@@ -33,8 +33,11 @@ import java.util.LinkedList;
  * @author Stephen Fink
  */
 final class OPT_LiveAnalysis extends OPT_CompilerPhase 
-  implements OPT_Operators, VM_ClassLoaderConstants {
-
+  implements OPT_Operators 
+//-#if RVM_WITH_OSR
+	     , OSR_Constants
+//-#endif
+{
   // Real Instance Variables
   /**
    *  Should we also create GC maps while we are computing liveness

@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.classloader.*;
  */
 
 public abstract class OSR_PseudoBytecode 
-  implements VM_BytecodeConstants, VM_ClassLoaderConstants, OSR_Constants {
+  implements VM_BytecodeConstants, OSR_Constants {
 
   public OSR_PseudoBytecode next;
 

@@ -713,9 +713,10 @@ public final class OPT_GenerationContext
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       OPT_Operand lockObject = getLockObject(SYNTH_CATCH_BCI, rethrow);
 
-      OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(VM_Entrypoints.unlockAndThrowMethod);
+      VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
+      OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
-      s = Call.create2(CALL, null, new OPT_IntConstantOperand(methodOp.method.getOffset()),
+      s = Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
 		       methodOp, lockObject, ceo);
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
 

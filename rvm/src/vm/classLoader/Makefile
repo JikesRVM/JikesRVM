@@ -10,10 +10,7 @@ include			$(RVM_ROOT)/rvm/build.Make.rules
 
 MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_TypeDictionary.java \
-			$(GEN_FILES_DIR)/VM_FieldDictionary.java \
-			$(GEN_FILES_DIR)/VM_MethodDictionary.java \
 			$(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java \
-			$(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java \
 			$(GEN_FILES_DIR)/VM_IntLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_LongLiteralDictionary.java \
@@ -21,6 +18,7 @@ MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_StringLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_TypeVector.java \
 			$(GEN_FILES_DIR)/VM_FieldVector.java \
+			$(GEN_FILES_DIR)/VM_FieldReferenceVector.java \
 			$(GEN_FILES_DIR)/VM_MethodVector.java
 			@print -n "(classloader templates expanded) "
 
@@ -30,17 +28,8 @@ $(GEN_FILES_DIR)/VM_AtomDictionary.java:	VM_Dictionary.template
 $(GEN_FILES_DIR)/VM_TypeDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_TypeDictionary VM_Atom VM_Type VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_TypeDictionary.java
 
-$(GEN_FILES_DIR)/VM_FieldDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_FieldDictionary VM_MemberReference VM_Field VM_MemberReference VM_Dictionary.template $(GEN_FILES_DIR)/VM_FieldDictionary.java
-
-$(GEN_FILES_DIR)/VM_MethodDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_MethodDictionary VM_MemberReference VM_Method VM_MemberReference VM_Dictionary.template $(GEN_FILES_DIR)/VM_MethodDictionary.java
-
 $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_InterfaceMethodSignatureDictionary VM_InterfaceMethodSignature int VM_InterfaceMethodSignature VM_Dictionary.template $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java
-
-$(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java: VM_DictionaryA.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_EdgeCounterDictionary com.ibm.JikesRVM.classloader.VM_MemberReference int com.ibm.JikesRVM.classloader.VM_MemberReference VM_DictionaryA.template $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java
 
 $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_IntLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java
@@ -62,6 +51,9 @@ $(GEN_FILES_DIR)/VM_TypeVector.java:	VM_Vector.template
 
 $(GEN_FILES_DIR)/VM_FieldVector.java:	VM_Vector.template
 			./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_FieldVector VM_Field VM_Vector.template $(GEN_FILES_DIR)/VM_FieldVector.java
+
+$(GEN_FILES_DIR)/VM_FieldReferenceVector.java:	VM_Vector.template
+			./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_FieldReferenceVector VM_FieldReference VM_Vector.template $(GEN_FILES_DIR)/VM_FieldReferenceVector.java
 
 $(GEN_FILES_DIR)/VM_MethodVector.java:	VM_Vector.template
 			./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_MethodVector VM_Method VM_Vector.template $(GEN_FILES_DIR)/VM_MethodVector.java

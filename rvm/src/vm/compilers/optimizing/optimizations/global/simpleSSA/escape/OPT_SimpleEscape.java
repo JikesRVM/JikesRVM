@@ -256,7 +256,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -299,21 +299,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         OPT_MethodOperand mop = Call.getMethod(inst);
         if (mop == null)
           return  true;
-        VM_Method m = mop.method;
-        // if we're not sure of the dynamic target, give up
-        if (m == null)
-          return  true;
-        if (m.getDeclaringClass() == null)
-          return  true;
-        if (!m.getDeclaringClass().isResolved()) {
-          return  true;
-        }
-	m = m.resolve();
-        if (OPT_InlineTools.needsGuard(m)) {
-          return  true;
-        }
+	if (!mop.hasPreciseTarget()) {
+	  // if we're not sure of the dynamic target, give up
+	  return true;
+	}
         // try to get a method summary for the called method
-        OPT_MethodSummary summ = findOrCreateMethodSummary(m, ir.options);
+        OPT_MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
         if (summ == null) {
           // couldn't get one. assume the object escapes
           return  true;
@@ -425,7 +416,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case BYTE_STORE_opcode:case SHORT_STORE_opcode:
+      case BYTE_STORE_opcode:case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.

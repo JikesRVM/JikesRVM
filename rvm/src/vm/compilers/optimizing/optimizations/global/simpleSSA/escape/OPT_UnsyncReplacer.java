@@ -70,11 +70,10 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
           // replace with equivalent call on the synthetic 
           // unsynchronized type
           OPT_MethodOperand mop = Call.getMethod(inst);
-          if (mop.method.isSynchronized()) {
-            mop.spMethod = context.findOrCreateSpecializedVersion(mop.method);
+          if (mop.getTarget().isSynchronized()) {
+            mop.spMethod = context.findOrCreateSpecializedVersion(mop.getTarget());
             if (DEBUG)
-              VM.sysWrite("Identified call " + inst + 
-                  " for unsynchronization\n");
+              VM.sysWrite("Identified call " + inst + " for unsynchronization\n");
           }
         }
         break;

@@ -4,6 +4,7 @@
 //$Id$
 
 package com.ibm.JikesRVM.OSR;
+
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * JVM scope descriptor, and pseudo bytecodes.
@@ -11,7 +12,6 @@ package com.ibm.JikesRVM.OSR;
  * @author Feng Qian
  * @date 19 Dec 2002
  */
-
 public interface OSR_Constants {
 
   ////////////////////////////////////////////
@@ -173,4 +173,17 @@ public interface OSR_Constants {
   /* special method id for PSEUDO_InvokeStatic, target must be listed here */
   public static final int GETREFAT   = 0;  // OSR_ObjectHolder.getRefAt
   public static final int CLEANREFS  = 1;  // OSR_ObjectHolder.cleanRefAt
+
+  public static final byte ClassTypeCode   = (byte)'L';
+  public static final byte ArrayTypeCode   = (byte)'[';
+  public static final byte VoidTypeCode    = (byte)'V';
+  public static final byte BooleanTypeCode = (byte)'Z';
+  public static final byte ByteTypeCode    = (byte)'B';
+  public static final byte ShortTypeCode   = (byte)'S';
+  public static final byte IntTypeCode     = (byte)'I';
+  public static final byte LongTypeCode    = (byte)'J';
+  public static final byte FloatTypeCode   = (byte)'F';
+  public static final byte DoubleTypeCode  = (byte)'D';
+  public static final byte CharTypeCode    = (byte)'C';
+  public static final byte AddressTypeCode = (byte)'A';
 }

@@ -36,12 +36,14 @@ public class VM_StackTrace implements VM_Constants {
        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
 	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
-	   // skip native frames, stopping at last native frame preceeding the
-	   // Java To C transition frame
-	   fp = VM_Runtime.unwindNativeStackFrame(fp);	 
-	 }
-       } 
+	 if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+	   if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+	     // skip native frames, stopping at last native frame preceeding the
+	     // Java To C transition frame
+	     fp = VM_Runtime.unwindNativeStackFrame(fp);	 
+	   }
+	 } 
+       }
        ip = VM_Magic.getReturnAddress(fp);
        fp = VM_Magic.getCallerFramePointer(fp);
      }
@@ -65,12 +67,16 @@ public class VM_StackTrace implements VM_Constants {
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
 	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	 stackTrace[i].compiledMethod = compiledMethod;
-	 stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
-	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
-	   // skip native frames, stopping at last native frame preceeding the
-	   // Java To C transition frame
-	   fp = VM_Runtime.unwindNativeStackFrame(fp);
-	 }       
+	 if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+	   stackTrace[i].instructionOffset = 0;
+	 } else {
+	   stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
+	   if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+	     // skip native frames, stopping at last native frame preceeding the
+	     // Java To C transition frame
+	     fp = VM_Runtime.unwindNativeStackFrame(fp);
+	   }       
+	 }
        }
        ip = VM_Magic.getReturnAddress(fp);
        fp = VM_Magic.getCallerFramePointer(fp);

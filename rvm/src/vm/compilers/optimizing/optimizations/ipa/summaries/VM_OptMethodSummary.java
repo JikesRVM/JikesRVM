@@ -133,10 +133,11 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
     // conservative.
     if (method.getBytecodeLength() == 0)
       return true;
-    VM_Field[] summary = getWriteSummary(method);
+    VM_FieldReference[] summary = getWriteSummary(method);
     if (summary == null) return false;
+    VM_FieldReference it = field.getMemberRef().asFieldReference();
     for (int i=0; i<summary.length; i++) {
-      if (summary[i] == field) return true;
+      if (!summary[i].definitelyDifferent(it)) return true;
     } 
     return false;
   }
@@ -165,13 +166,13 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   /**
    * Backing store for summaries of fields written.
    */
-  private static VM_Field[][] writeSets = new VM_Field[8000][];
+  private static VM_FieldReference[][] writeSets = new VM_FieldReference[8000][];
 
   /**
    * Store the simple summary for a given method
    */
   private static void storeSummary(VM_Method method, int summary) {
-    int idx = method.getDictionaryId();
+    int idx = method.getId();
     if (idx >= summaries.length) {
       int newLength = summaries.length*2;
       if (idx >= newLength)
@@ -187,13 +188,13 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   /**
    * Store the summary of fields written for a given method
    */
-  private static void storeWriteSummary(VM_Method method, VM_Field [] set) {
-    int idx = method.getDictionaryId();
+  private static void storeWriteSummary(VM_Method method, VM_FieldReference[] set) {
+    int idx = method.getId();
     if (idx >= writeSets.length) {
       int newLength = writeSets.length*2;
       if (idx >= newLength)
         newLength = idx;
-      VM_Field[][] newarray = new VM_Field[newLength][];
+      VM_FieldReference[][] newarray = new VM_FieldReference[newLength][];
       for (int i = 0, n = writeSets.length; i < n; ++i)
         newarray[i] = writeSets[i];
       writeSets = newarray;
@@ -205,7 +206,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
    * Return the simple bytecode summary for a given method
    */
   private static int getSummary(VM_Method method) {
-    int idx = method.getDictionaryId();
+    int idx = method.getId();
     if (VM.VerifyAssertions) {
       VM._assert(method.getBytecodeLength() != 0);
       VM._assert(isValid(summaries[idx]));
@@ -217,8 +218,8 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
    * Return the summary of fields written for a given method
    * @return the set of VM_Fields the method writes to
    */
-  private static VM_Field[] getWriteSummary(VM_Method method) {
-    int idx = method.getDictionaryId();
+  private static VM_FieldReference[] getWriteSummary(VM_Method method) {
+    int idx = method.getId();
     if (VM.VerifyAssertions) {
       VM._assert(method.getBytecodeLength() != 0);
       VM._assert(isValid(summaries[idx]));
@@ -340,7 +341,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
     int bcLength = bytecodes.length;
     int nBytecodes = 0;
     int summary = VALID_MASK;
-    VM_FieldVector written = new VM_FieldVector();
+    VM_FieldReferenceVector written = new VM_FieldReferenceVector();
     VM_Class klass = method.getDeclaringClass();
     if (VERBOSE) {
       VM.sysWrite("Summarizing method ");
@@ -518,8 +519,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
 	  {
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
-          int fieldId = klass.getFieldRefId(constantPoolIndex);
-          VM_Field f = VM_ClassLoader.getFieldFromId(fieldId);
+          VM_FieldReference f = klass.getFieldRef(constantPoolIndex);
           written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;
@@ -530,8 +530,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
 	  {
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
-          int fieldId = klass.getFieldRefId(constantPoolIndex);
-          VM_Field f = VM_ClassLoader.getFieldFromId(fieldId);
+          VM_FieldReference f = klass.getFieldRef(constantPoolIndex);
           written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;
@@ -542,9 +541,8 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
         case JBC_invokestatic:   // Special case VM_Magic's as being cheaper.
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
-          VM_Method meth = method.getDeclaringClass().getMethodRef(constantPoolIndex);
-          if (meth.getDeclaringClass().isMagicType() ||
-	      meth.getDeclaringClass().isWordType()) {
+          VM_MethodReference meth = method.getDeclaringClass().getMethodRef(constantPoolIndex);
+          if (meth.isMagicType() || meth.isWordType()) {
             summary = setMagic(summary);
             summary = setInvoke(summary);
             calleeSize += MAGIC_COST;
@@ -658,7 +656,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
     // Compress written before storing it.
     int numWritten = written.size();
     if (numWritten > 0) {
-      VM_Field[] tmp = written.finish();
+      VM_FieldReference[] tmp = written.finish();
       storeWriteSummary(method, tmp);
       if (DEBUG) {
 	VM.sysWrite("\tWrites the following fields:\n");

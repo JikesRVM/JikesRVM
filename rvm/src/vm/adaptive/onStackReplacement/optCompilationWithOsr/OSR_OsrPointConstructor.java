@@ -16,9 +16,8 @@ import java.util.LinkedList;
  * 
  * @author Feng Qian
  */ 
-
 public class OSR_OsrPointConstructor extends OPT_CompilerPhase 
-  implements OPT_Operators, VM_ClassLoaderConstants {
+  implements OPT_Operators {
   
   public final boolean shouldPerform(OPT_Options options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
@@ -143,7 +142,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
 
 	OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
-	methodids[barIdx] = bar.position.method.getDictionaryId();
+	methodids[barIdx] = bar.position.method.getId();
 	bcindexes[barIdx] = bar.bcIndex;
 
 	OPT_OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(bar);
@@ -275,7 +274,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     int count = 0;
     for (int idx=0, size=typeCodes.length;
 	 idx < size; idx++) {
-      if (typeCodes[idx] != VoidTypeCode) {
+      if (typeCodes[idx] != com.ibm.JikesRVM.OSR.OSR_Constants.VoidTypeCode) {
 	count++;
       }
     }

@@ -24,50 +24,45 @@ import com.ibm.JikesRVM.opt.OPT_SpecializedMethod;
  */
 public final class OPT_MethodOperand extends OPT_Operand {
 
-  /** Enumeration of types of invokes */
-  public static final byte STATIC    = 0;
-  /** Enumeration of types of invokes */
-  public static final byte SPECIAL   = 1;
-  /** Enumeration of types of invokes */
-  public static final byte VIRTUAL   = 2;
-  /** Enumeration of types of invokes */
-  public static final byte INTERFACE = 3;
+  /* Enumeration of types of invokes */
+  private static final byte STATIC    = 0;
+  private static final byte SPECIAL   = 1;
+  private static final byte VIRTUAL   = 2;
+  private static final byte INTERFACE = 3;
 
   /**
-   * The method being invoked
+   * Member reference for target.
+   * Usually a VM_MethodReference, but may be a VM_FieldReference for
+   * internal methods that don't have 'real' Java method but come from
+   * VM_OutOfLineMachineCode.
    */
-  public VM_Method method;
+  protected VM_MemberReference memRef;
   
   /**
-   * For use when invoking internal methods (defined as INSTRUCTION[]
-   * reachable from the JTOC but that don't have VM_Method objecrs/
+   * Target VM_Method of invocation.
    */
-  public VM_Field internal;
-  
-  /**
-   * Does the invoke only have a single target?
-   */
-  private boolean isSingleTarget;
+  protected VM_Method target;
 
   /**
-   * Is the invocation target refined (via static analysis)?
+   * Is target exactly the method being invoked by this call, or is it
+   * a representative for a family of virtual/interface methods?
    */
-  private boolean isRefined; 
+  protected boolean isPreciseTarget;
 
   /**
    * Is this the operand of a call that never returns?
    */
-  private boolean isNonReturningCall;
+  protected boolean isNonReturningCall;
   
   /**
    * Is this the operand of a call that is the off-branch of a guarded inline?
    */
-  private boolean isGuardedInlineOffBranch;
+  protected boolean isGuardedInlineOffBranch;
 
   /**
    * The type of the invoke (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  public byte type = -1;
+  protected byte type = -1;
 
   //-#if RVM_WITH_OSR
   private boolean designatedOffset = false;
@@ -75,33 +70,22 @@ public final class OPT_MethodOperand extends OPT_Operand {
   //-#endif
 
   /**
-   * Is the target currently unresolved?
+   * @param ref VM_MemberReference of method to call
+   * @param tar the VM_Method to call (may be null)
+   * @param t the type of invoke used to call it (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  public boolean unresolved;
+  private OPT_MethodOperand(VM_MemberReference ref, VM_Method tar, byte t) {
+    memRef = ref;
+    target = tar;
+    type = t;
+    setPreciseTarget();
+  }
 
-  /**
-   * @param callee the method to call
-   * @param t the type of invoke used to call it 
-   *          (STATIC, SPECIAL, VIRTUAL, INTERFACE)
-   * @param r is the target currently unresolved?
-   */
-  private OPT_MethodOperand(VM_Method callee, byte t, boolean r) {
-    method    = callee;
-    type      = t;
-    unresolved= r;
-    if (!unresolved) {
-      // put direct information. used for a) inlining 
-      // b) devirtualization, and c) IPA
-      // TODO: add more rules
-      VM_Class klass = callee.getDeclaringClass();
-      switch (t) {
-      case STATIC: case SPECIAL:
-	isSingleTarget = true;
-	break;
-      case VIRTUAL:
-	isSingleTarget = callee.isFinal() || callee.getDeclaringClass().isFinal();
-	break;
-      }
+  private void setPreciseTarget() {
+    if (isVirtual()) {
+      isPreciseTarget = target != null && (target.isFinal() || target.getDeclaringClass().isFinal());
+    } else {
+      isPreciseTarget = !isInterface();
     }
   }
 
@@ -115,12 +99,10 @@ public final class OPT_MethodOperand extends OPT_Operand {
    */
   public static OPT_MethodOperand COMPILED(VM_Method callee, int offset) {
     byte type = callee.isStatic()?STATIC:VIRTUAL;
-    // must be resolved already.
-    OPT_MethodOperand op = new OPT_MethodOperand(callee, type, false);
+    OPT_MethodOperand op = new OPT_MethodOperand(callee.getMemberRef(), callee, type);
     op.jtocOffset = offset;
     op.designatedOffset = true;
-    op.isSingleTarget = true;
-    
+    op.isPreciseTarget = true;
     return op;
   }
 
@@ -132,211 +114,225 @@ public final class OPT_MethodOperand extends OPT_Operand {
   /**
    * create a method operand for an INVOKE_SPECIAL bytecode
    * 
-   * @param callee the method to call
-   * @param r is the target currently unresolved?
+   * @param ref VM_MemberReference of method to call
+   * @param target the VM_Method to call (may be null)
    * @return the newly created method operand
    */
-  public static OPT_MethodOperand SPECIAL(VM_Method callee, boolean r) {
-    return new OPT_MethodOperand(callee,SPECIAL,r);
+  public static OPT_MethodOperand SPECIAL(VM_MethodReference ref, VM_Method target) {
+    return new OPT_MethodOperand(ref, target, SPECIAL);
   }
 
-  /**
-   * create a method operand for an INVOKE_STATIC bytecode
-   * 
-   * @param callee the method to call
-   * @param r is the target currently unresolved?
-   * @return the newly created method operand
-   */
-  public static OPT_MethodOperand STATIC(VM_Method callee, boolean r) {
-    return new OPT_MethodOperand(callee,STATIC,r);
-  }
+   /**
+    * create a method operand for an INVOKE_STATIC bytecode
+    * 
+    * @param ref VM_MemberReference of method to call
+    * @param target the VM_Method to call (may be null)
+    * @return the newly created method operand
+    */
+   public static OPT_MethodOperand STATIC(VM_MethodReference ref, VM_Method target) {
+     return new OPT_MethodOperand(ref, target, STATIC);
+   }
 
-  /**
-   * create a method operand for an INVOKE_STATIC bytecode
-   * where the target is known to be resolved.
-   * 
-   * @param callee the method to call
-   * @return the newly created method operand
-   */
-  public static OPT_MethodOperand STATIC(VM_Method callee) {
-    return new OPT_MethodOperand(callee,STATIC,false);
-  }
+   /**
+    * create a method operand for an INVOKE_STATIC bytecode
+    * where the target method is known at compile time.
+    * 
+    * @param target the VM_Method to call
+    * @return the newly created method operand
+    */
+   public static OPT_MethodOperand STATIC(VM_Method target) {
+     OPT_MethodOperand ans = new OPT_MethodOperand(target.getMemberRef(), target, STATIC);
+     return ans;
+   }
 
-  /**
-   * create a method operand for an INVOKE_VIRTUAL bytecode
-   * 
-   * @param callee the method to call
-   * @param r is the target currently unresolved?
-   * @return the newly created method operand
-   */
-  public static OPT_MethodOperand VIRTUAL(VM_Method callee, boolean r) {
-    return new OPT_MethodOperand(callee,VIRTUAL,r);
-  }
+   /**
+    * create a method operand for an INVOKE_STATIC bytecode
+    * where the target method is known at compile time.
+    * 
+    * @param target the VM_Method to call
+    * @return the newly created method operand
+    */
+   public static OPT_MethodOperand STATIC(VM_Field target) {
+     return new OPT_MethodOperand(target.getMemberRef(), null, STATIC);
+   }
 
-  /**
-   * create a method operand for an INVOKE_VIRTUAL bytecode
-   * whose target may have been refined
-   * 
-   * @param callee the method to call
-   * @param r is the target currently unresolved?
-   * @param refined has the target been refined?
-   * @return the newly created method operand
-   */
-  public static OPT_MethodOperand VIRTUAL(VM_Method callee, 
-				   boolean r, 
-				   boolean refined) {
-    OPT_MethodOperand mo = new OPT_MethodOperand(callee,VIRTUAL,r);
-    mo.isRefined = refined;
-    return mo;
-  }
+   /**
+    * create a method operand for an INVOKE_VIRTUAL bytecode
+    * 
+    * @param ref VM_MemberReference of method to call
+    * @param target the VM_Method to call (may be null)
+    * @return the newly created method operand
+    */
+   public static OPT_MethodOperand VIRTUAL(VM_MethodReference ref, VM_Method target) {
+     return new OPT_MethodOperand(ref, target, VIRTUAL);
+   }
 
-  /**
-   * create a method operand for an INVOKE_INTERFACE bytecode
-   * 
-   * @param callee the method to call
-   * @param r is the target currently unresolved?
-   * @return the newly created method operand
-   */
-  public static OPT_MethodOperand INTERFACE(VM_Method callee, boolean r) {
-    return new OPT_MethodOperand(callee,INTERFACE,r);
-  }
+   /**
+    * create a method operand for an INVOKE_INTERFACE bytecode
+    * 
+    * @param ref VM_MemberReference of method to call
+    * @param target the VM_Method to call (may be null)
+    * @return the newly created method operand
+    */
+   public static OPT_MethodOperand INTERFACE(VM_MethodReference ref, VM_Method target) {
+     return new OPT_MethodOperand(ref, target, INTERFACE);
+   }
 
-  /**
-   * Create a method operand for an internal method
-   */
-  OPT_MethodOperand(VM_Field member) {
-    internal = member;
-    type     = STATIC;
-  } 
+   public final boolean isStatic() {
+     return type == STATIC;
+   }
 
-  public boolean isStatic() {
-    return type == STATIC;
-  }
+   public final boolean isVirtual() {
+     return type == VIRTUAL;
+   }
 
-  public boolean isVirtual() {
-    return type == VIRTUAL;
-  }
+   public final boolean isSpecial() {
+     return type == SPECIAL;
+   }
 
-  public boolean isSpecial() {
-    return type == SPECIAL;
-  }
+   public final boolean isInterface() {
+     return type == INTERFACE;
+   }
 
-  public boolean isInterface() {
-    return type == INTERFACE;
-  }
+   public final boolean hasTarget() {
+     return target != null;
+   }
 
-  public boolean isSingleTarget() {
-    return isSingleTarget;
-  }
+   public final boolean hasPreciseTarget() {
+     return target != null && isPreciseTarget;
+   }
 
-  public boolean isRefined() {
-    return isRefined;
-  }
+   public final VM_Method getTarget() {
+     return target;
+   }
 
+   public final VM_MemberReference getMemberRef() {
+     return memRef;
+   }
 
-  /**
-   * Get whether this operand represents a method call that never 
-   * returns (such as a call to athrow());
-   *
-   * @return Does this op represent a call that never returns?
-   */
-  public boolean isNonReturningCall() {
-    return isNonReturningCall;
-  }
+   /**
+    * Get whether this operand represents a method call that never 
+    * returns (such as a call to athrow());
+    *
+    * @return Does this op represent a call that never returns?
+    */
+   public final boolean isNonReturningCall() {
+     return isNonReturningCall;
+   }
 
-  /**
-   * Record whether this operand represents a method call that never 
-   * returns (such as a call to athrow());
-   */
-  public void setIsNonReturningCall(boolean neverReturns) {
-    isNonReturningCall = neverReturns;
-  }
+   /**
+    * Record whether this operand represents a method call that never 
+    * returns (such as a call to athrow());
+    */
+   public final void setIsNonReturningCall(boolean neverReturns) {
+     isNonReturningCall = neverReturns;
+   }
 
-  /**
-   * Return whether this operand is the off branch of a guarded inline
-   */
-  public boolean isGuardedInlineOffBranch() {
-    return isGuardedInlineOffBranch;
-  }
+   /**
+    * Return whether this operand is the off branch of a guarded inline
+    */
+   public final boolean isGuardedInlineOffBranch() {
+     return isGuardedInlineOffBranch;
+   }
 
-  /**
-   * Record that this operand is the off branch of a guarded inline
-   */
-  public void setIsGuardedInlineOffBranch(boolean f) {
-    isGuardedInlineOffBranch = f;
-  }
+   /**
+    * Record that this operand is the off branch of a guarded inline
+    */
+   public final void setIsGuardedInlineOffBranch(boolean f) {
+     isGuardedInlineOffBranch = f;
+   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
-   * @return a copy of <code>this</code>
-   */
-  public OPT_Operand copy() {
-    if (method == null) {
-      return new OPT_MethodOperand(internal);
-    } else {
-      OPT_MethodOperand mo = new OPT_MethodOperand(method, type, unresolved);
-      mo.setIsGuardedInlineOffBranch(isGuardedInlineOffBranch());
-      return mo;
-    }
-  }
+   /**
+    * Refine the target information. Used to reduce the set of 
+    * targets for an invokevirtual.
+    */
+   public void refine(VM_Method target) {
+     this.target = target;
+     setPreciseTarget();
+   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
-   *           if they are not.
-   */
-  public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_MethodOperand) && 
-      (method == ((OPT_MethodOperand)op).method);
-  }
+   /**
+    * Refine the target information. Used to reduce the set of 
+    * targets for an invokevirtual.
+    */
+   public void refine(VM_Method target, boolean isPreciseTarget) {
+     this.target = target;
+     if (isPreciseTarget) {
+       this.isPreciseTarget = isPreciseTarget;
+     } else {
+       setPreciseTarget();
+     }
+   }
 
-  /**
-   * Returns the string representation of this operand.
-   *
-   * @return a string representation of this operand.
-   */
-  public String toString() {
-    String s = "";
-    switch(type) {
-    case STATIC: 
-      s += "static";    
-      break;
-    case SPECIAL:
-      s += "special";   
-      break;
-    case VIRTUAL:
-      s += "virtual";  
-      break;
-    case INTERFACE:
-      s += "interface";
-      break;
-    }
-    if (unresolved)
-      s += "_unresolved";
-    if (isSingleTarget && (type != STATIC)) 
-      s += "_single";
-    if (hasSpecialVersion()) {
-      return s+"\""+spMethod.toString()+"\"";
-    }
-    if (method != null)
-      return s+"\""+method.toString()+"\"";
-    else if (internal != null)
-      return s+"<"+internal+">";
-    else 
-      return s+"<unknown>";
-  }
+   /**
+    * Return a new operand that is semantically equivalent to <code>this</code>.
+    * 
+    * @return a copy of <code>this</code>
+    */
+   public final OPT_Operand copy() {
+     OPT_MethodOperand mo = new OPT_MethodOperand(memRef, target, type);
+     mo.isPreciseTarget = isPreciseTarget;
+     mo.isNonReturningCall = isNonReturningCall;
+     mo.isGuardedInlineOffBranch = isGuardedInlineOffBranch;
+     return mo;
+   }
+
+   /**
+    * Are two operands semantically equivalent?
+    *
+    * @param op other operand
+    * @return   <code>true</code> if <code>this</code> and <code>op</code>
+    *           are semantically equivalent or <code>false</code> 
+    *           if they are not.
+    */
+   public final boolean similar(OPT_Operand op) {
+     if (op instanceof OPT_MethodOperand) {
+       OPT_MethodOperand mop = (OPT_MethodOperand)op;
+       return memRef == mop.memRef &&
+	 target == mop.target &&
+	 isPreciseTarget == mop.isPreciseTarget;
+     } else {
+       return false;
+     }
+   }
+
+   /**
+    * Returns the string representation of this operand.
+    *
+    * @return a string representation of this operand.
+    */
+   public final String toString() {
+     String s = "";
+     switch(type) {
+     case STATIC: 
+       s += "static";    
+       break;
+     case SPECIAL:
+       s += "special";   
+       break;
+     case VIRTUAL:
+       s += "virtual";  
+       break;
+     case INTERFACE:
+       s += "interface";
+       break;
+     }
+     if (isPreciseTarget && (type != STATIC)) {
+       s += "_exact";
+     }
+     if (hasSpecialVersion()) {
+       return s+"\""+spMethod+"\"";
+     }
+     if (target != null) {
+       return s+"\""+target+"\"";
+     } else {
+       return s+"<"+memRef+">";
+     }
+   }
 
   /*
    * SPECIALIZATION SUPPORT
    */
-
   public OPT_SpecializedMethod spMethod;
-  public boolean hasSpecialVersion(){
-    if (spMethod != null){ return true;}
-    return false;
-  }
+  public final boolean hasSpecialVersion(){ return spMethod != null; }
 }

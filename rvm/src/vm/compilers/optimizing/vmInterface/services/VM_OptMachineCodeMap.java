@@ -103,7 +103,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
     if (iei == -1)
       return  null;
     int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return VM_ClassLoader.getMethodFromId(mid);
+    return VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
   }
 
   /**
@@ -151,7 +151,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
         int iei = getInlineEncodingIndex(entry);
         if (iei != -1) {
           int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-          if (mid == caller.getDictionaryId()) {        // caller matches
+          if (mid == caller.getId()) {        // caller matches
 	    int callInfo = getCallInfo(entry);
 	    if (callInfo == IS_UNGUARDED_CALL) return true;
           }
@@ -502,7 +502,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       boolean first = true;
       while (iei >= 0) {
 	int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-	VM_Method meth = VM_ClassLoader.getMethodFromId(mid);
+	VM_Method meth = VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
 	if (first) {
 	  first = false;
 	  VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);
@@ -551,7 +551,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    */
   int size() {
     int size = TYPE.getInstanceSize();
-    size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
+    if (MCInformation != null) size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
     if (inlineEncoding != null) size += VM_Array.arrayOfIntType.getInstanceSize(inlineEncoding.length);
     if (gcMaps != null) size += VM_Array.arrayOfIntType.getInstanceSize(gcMaps.length);
     return size;

@@ -120,7 +120,9 @@ public class OPT_ObjectReplacer
     switch (inst.getOpcode()) {
       case PUTFIELD_opcode:
         {
-          VM_Field f = PutField.getLocation(inst).field;
+          VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
+	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+	  VM_Field f = fr.resolve(false);
           int index = fields.indexOf(f);
           VM_Type type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
@@ -133,7 +135,9 @@ public class OPT_ObjectReplacer
         break;
       case GETFIELD_opcode:
         {
-          VM_Field f = GetField.getLocation(inst).field;
+          VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
+	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+	  VM_Field f = fr.resolve(false);
           int index = fields.indexOf(f);
           VM_Type type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);

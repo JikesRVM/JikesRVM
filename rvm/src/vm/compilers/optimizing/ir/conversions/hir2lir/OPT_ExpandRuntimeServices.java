@@ -331,7 +331,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      OPT_LocationOperand dataLoc = GetField.getLocation(inst);
-	      VM_Field dataField = dataLoc.field;
+	      VM_FieldReference dataField = dataLoc.getFieldRef();
 	      OPT_Operand origObject = GetField.getClearRef(inst);
 	      if (VM_Configuration.BuildWithLazyRedirect) {
 		  OPT_RegisterOperand realObject = ir.regpool.makeTemp(origObject);
@@ -371,7 +371,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 
         case PUTFIELD_opcode: {
 	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
-	  VM_Field field = loc.field;
+	  VM_FieldReference field = loc.getFieldRef();
 	  if (VM_Configuration.BuildWithLazyRedirect) {
 	    // (0) Leave PUTFIELD_? opcode for further translation
 	    // (1) Get real object for PUTFIELD_? opcode 
@@ -420,7 +420,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      // Leave the opcode here for further translation so we can avoid dealing with UNRESOLVED
 	      OPT_LocationOperand loc = GetStatic.getClearLocation(inst);
-	      VM_Field field = loc.field;
+	      VM_FieldReference field = loc.getFieldRef();
 	      if (!field.getType().isPrimitiveType()) {
 		  OPT_RegisterOperand result = GetStatic.getResult(inst);
 		  OPT_RedirectResult rr = conditionalRedirect(ir, inst, result);
@@ -468,7 +468,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     ir.options.OSR_GUARDED_INLINING=false;
     //-#endif
     try {
-      OPT_InlineDecision inlDec = OPT_InlineDecision.YES(Call.getMethod(inst).method, "Expansion of runtime service");
+      OPT_InlineDecision inlDec = 
+	OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), 
+			       "Expansion of runtime service");
       OPT_Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;

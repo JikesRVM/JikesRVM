@@ -45,8 +45,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     } else if (targets.length == 1) {
       // (2b) We have a single hot edge in the profile data for this call site
       VM_Method callee = targets[0];
-      VM_Method computedTarget = state.getComputedTarget();
-      if (computedTarget != null && callee != computedTarget) {
+      if (state.getHasPreciseTarget() && callee != originalCallee) {
 	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
       }
@@ -54,8 +53,8 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
       }
-      if (computedTarget != null) {
-	return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
+      if (state.getHasPreciseTarget()) {
+	return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
       } 
       VM_Method staticCallee = state.obtainTarget();
       if (candidateNeedsGuard(caller, staticCallee, state)) {
@@ -78,12 +77,11 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       }
     } else {
       // (2c) We have multiple hot edges to consider.
-      VM_Method computedTarget = state.getComputedTarget();
-      if (computedTarget != null) {
+      if (state.getHasPreciseTarget()) {
 	for (int i=0; i<targets.length; i++) {
-	  if (targets[i] == computedTarget) {
+	  if (targets[i] == originalCallee) {
 	    if (viableCandidate(caller, targets[i], state)) {
-	      return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
+	      return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
 	    }
 	  }
 	}
@@ -153,7 +151,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   }
 
 
-  // note: state.getComputedTarget() is known to be null.
+  // note: !state.getHasPreciseTarget is known to be null.
   protected boolean candidateNeedsGuard(VM_Method caller, VM_Method callee, 
 				      OPT_CompilationState state) {
     // for now, guard all inlined interface invocations.

@@ -20,7 +20,6 @@ public final class OSR_OptExecStateExtractor
   extends OSR_ExecStateExtractor 
   implements VM_Constants, 
 	     OSR_Constants,
-	     VM_ClassLoaderConstants,
 	     OPT_PhysicalRegisterConstants {
   
   public OSR_ExecutionState extractState(VM_Thread thread,
@@ -287,18 +286,21 @@ public final class OSR_OptExecStateExtractor
 						      cmid,
 						      iterator.getBcIndex(),
 						      tsFPOffset);
-    state.setMethod(VM_ClassLoader.getMethodFromId(iterator.getMethodId()));
+
+    VM_MethodReference mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+    state.setMethod(mref.resolve());
     state.callerState = null;
       
     while (iterator.hasMore()) {
       
-      if (iterator.getMethodId() != state.meth.getDictionaryId()) {
+      if (iterator.getMethodId() != state.meth.getId()) {
 	OSR_ExecutionState newstate = new OSR_ExecutionState(thread,
 							     fpOffset,
 							     cmid,
 	      					     iterator.getBcIndex(),
 							     tsFPOffset);
-	newstate.setMethod(VM_ClassLoader.getMethodFromId(iterator.getMethodId()));
+	mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+	newstate.setMethod(mref.resolve());
 	// this is not caller, but the callee, reverse it when outside
 	// of this function.
 	newstate.callerState = state;

@@ -82,29 +82,26 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Returned:    VM_Method that should be invoked.
      */
     static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) throws VM_ResolutionException, VM_PragmaNoInline {
-
       // resolve symbolic method reference into actual method
       //
-      VM_Method methodRef = dynamicLink.methodRef();
-      VM_Method targetMethod = null;
+      VM_MethodReference methodRef = dynamicLink.methodRef();
       if (dynamicLink.isInvokeSpecial()) {
-	targetMethod = VM_Class.findSpecialMethod(methodRef);
+	return methodRef.resolveInvokeSpecial();
       } else if (dynamicLink.isInvokeStatic()) {
-	targetMethod = methodRef;
-      } else { // invokevirtual or invokeinterface
+	return methodRef.resolve();
+      } else {
+	// invokevirtual or invokeinterface
 	VM.disableGC();
 	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
 	VM.enableGC();
 	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
-	targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
+	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getMemberName(), methodRef.getDescriptor());
 	if (targetMethod == null) {
 	  throw new VM_ResolutionException(targetClass.getDescriptor(), 
 					   new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor()));
 	}
+	return targetMethod;
       }
-      targetMethod = targetMethod.resolve();
-
-      return targetMethod;
     }
 
 

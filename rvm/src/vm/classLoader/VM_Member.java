@@ -12,82 +12,106 @@ import java.io.IOException;
  * A field or method of a java class.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
 public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
+
+  /**
+   * The VM_Class that declared this member.
+   */
+  protected final VM_Class declaringClass;
+
+  /**
+   * The cannonical VM_MemberReference for this member
+   */
+  protected final VM_MemberReference memRef;
+
+  /**
+   * The modifiers associated with this member.
+   */
+  protected final int modifiers;
+
+  /**
+   * The member's jtoc/obj/tib offset in bytes.
+   * Set by {@link VM_Class#resolve()}
+   */
+  protected int offset;
+
+  /**
+   * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Member.
+   * 
+   * @param declaringClass the VM_Class object of the class that declared this member
+   * @param memRef the cannonical memberReference for this member.
+   * @param modifiers modifiers associated with this member.
+   */
+  protected VM_Member(VM_Class declaringClass, VM_MemberReference memRef,
+		      int modifiers) {
+    this.declaringClass = declaringClass;
+    this.memRef = memRef;
+    this.modifiers = modifiers;
+    this.offset = -1; // invalid value. Set to valid value during VM_Class.resolve()
+  }
+   
   //--------------------------------------------------------------------//
   //                         Section 0.                                 //
   // The following are always available.                                //
   //--------------------------------------------------------------------//
 
   /**
-   * Class from which this field or method was inherited.
+   * Class that declared this field or method.
    */ 
   public final VM_Class getDeclaringClass() throws VM_PragmaUninterruptible { 
     return declaringClass;
   }
       
   /**
-   * Name of this field or method - something like "foo".
+   * Cannonical member reference for this member.
    */ 
-  public final VM_Atom getName() throws VM_PragmaUninterruptible { 
-    return name;
+  public final VM_MemberReference getMemberRef() throws VM_PragmaUninterruptible { 
+    return memRef;
   }
 
   /**
-   * Descriptor for this field or method - 
+   * Name of this member.
+   */ 
+  public final VM_Atom getName() throws VM_PragmaUninterruptible { 
+    return memRef.getMemberName();
+  }
+
+  /**
+   * Descriptor for this member.
    * something like "I" for a field or "(I)V" for a method.
    */ 
   public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible {
-    return descriptor;
+    return memRef.getDescriptor();
   }
 
   /**
-   * Index of this field or method in the field or method dictionary
-   */ 
-  public final int getDictionaryId() throws VM_PragmaUninterruptible {
-    return dictionaryId;
-  }
- 
-  /**
-   * Redefine hashCode(), to allow use of consistent hash codes during
-   * bootImage writing and run-time
+   * Get a unique id for this member.
+   * The id is the id of the cannonical VM_MemberReference for this member
+   * and thus may be used to find the member by first finding the member reference.
    */
-  public int hashCode() { return dictionaryId; }
+  public final int getId() throws VM_PragmaUninterruptible {
+    return memRef.getId();
+  }
 
-  /**
-   * Get the triplet that is the dictionary key for this VM_Member
+  /*
+   * Define hashcode in terms of VM_Atom.hashCode to enable
+   * consistent hash codes during bootImage writing and run-time.
    */
-  public final VM_MemberReference getDictionaryKey() {
-    return new VM_MemberReference(getDeclaringClass().getDescriptor(),
-				  getName(),
-				  getDescriptor());
+  public int hashCode() { 
+    return memRef.hashCode();
   }
 
-
-  //---------------------------------------------------------------------//
-  //                           Section 1.                                //
-  // The following are available after the declaring class has been      // 
-  // "loaded".                                                           //
-  //---------------------------------------------------------------------//
-
-  //
-  // Attributes.
-  //
-   
-  /**
-   * Loaded?
-   */ 
-  public final boolean isLoaded() throws VM_PragmaUninterruptible {
-    return (modifiers & ACC_LOADED) != 0; 
+  public final String toString() {
+    return declaringClass.getName() + "." + getName() + " " + getDescriptor();
   }
-
+  
   /**
    * Usable from classes outside this package?
    */ 
   public final boolean isPublic() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
@@ -95,8 +119,6 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Usable only from this class?
    */ 
   public final boolean isPrivate() { 
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PRIVATE) != 0; 
   }
    
@@ -104,110 +126,42 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Usable from subclasses?
    */ 
   public final boolean isProtected() { 
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PROTECTED) != 0; 
   } 
 
   /**
-   * Is dynamic linking code required to access "this" member when 
-   * referenced from "that" method?
-   */ 
-  public final boolean needsDynamicLink(VM_Method that) {
-    VM_Class thisClass = this.getDeclaringClass();
-    
-    if (thisClass.isInitialized()) {
-      // No dynamic linking code is required to access this field or 
-      // call this method because its size and offset are known and 
-      // its class's static initializer has already run.
-      return false;
-    }
-        
-    if (this instanceof VM_Field && thisClass.isResolved() && 
-	thisClass.getClassInitializerMethod() == null) {
-      // No dynamic linking code is required to access this field
-      // because its size and offset is known and its class has no static
-      // initializer, therefore its value need not be specially initialized
-      // (its default value of zero or null is sufficient).
-      return false;
-    }
-        
-    if (VM.writingBootImage && thisClass.isInBootImage()) {
-      // Loads, stores, and calls within boot image are compiled without dynamic
-      // linking code because all boot image classes are explicitly 
-      // loaded/resolved/compiled and have had their static initializers 
-      // run by the boot image writer.
-      if (!thisClass.isResolved()) VM.sysWrite("unresolved: \"" + this + "\" referenced from \"" + that + "\"\n");
-      if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
-      return false;
-    }
-
-    if (thisClass == that.getDeclaringClass()) {
-      // Intra-class references don't need to be compiled with dynamic linking
-      // because they execute *after* class has been loaded/resolved/compiled.
-      return false;
-    }
-  
-    // This member needs size and offset to be computed, or its class's static
-    // initializer needs to be run when the member is first "touched", so
-    // dynamic linking code is required to access the member.
-    return true;
+   * Get the member's modifiers.
+   */
+  public final int getModifiers() {
+    return modifiers;
   }
 
   //------------------------------------------------------------------//
   //                       Section 2.                                 //
   // The following are available after the declaring class has been   // 
-  // /"resolved".                                                     //
+  // "resolved".                                                      //
   //------------------------------------------------------------------//
 
   /**
    * Offset of this field or method, in bytes.
    * <ul>
    * <li> For a static field:      offset of field from start of jtoc
-   * <li> For a static method:     offset of code object reference from 
-   * start of jtoc
+   * <li> For a static method:     offset of code object reference from start of jtoc
    * <li> For a non-static field:  offset of field from start of object
-   * <li> For a non-static method: offset of code object reference from 
-   * start of tib
+   * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
-   * @see VM_Class#getLiteralOffset
-   * to obtain offset of constant from start of jtoc
    */ 
-  public abstract int getOffset() throws VM_PragmaUninterruptible ;
-   
-  protected final static int UNINITIALIZED_OFFSET = -1;
-
-  protected final VM_Class declaringClass;
-  protected final VM_Atom name;
-  protected final VM_Atom descriptor;
-  protected int modifiers;
-  protected final int dictionaryId;
-
-  /**
-   * To guarantee uniqueness, only the VM_ClassLoader class may construct 
-   * VM_Member instances.
-   * All VM_Member creation should be performed by calling 
-   * "VM_ClassLoader.findOrCreate" methods.
-   */ 
-  protected VM_Member() { this(null, null, null, -1); }
-
-  protected VM_Member(VM_Class declaringClass, VM_Atom name, 
-		      VM_Atom descriptor, int dictionaryId) {
-    this.declaringClass = declaringClass;
-    this.name           = name;
-    this.descriptor     = descriptor;
-    this.dictionaryId    = dictionaryId;
+  public final int getOffset() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    return offset;
   }
-   
+
   /**
-   * Access the member's modifier flags.
+   * Only meant to be used by VM_ObjectModel.layoutInstanceFields.
+   * TODO: refactor system so this functionality is in the classloader package
+   * and this method doesn't have to be final.
    */
-  public int getModifiers() {
-    return modifiers;
-  }
-
-  public final String toString() {
-    return getDeclaringClass().getName() + "." + getName() + " " + 
-      getDescriptor();
+  public final void setOffset(int off) {
+    offset = off;
   }
 }

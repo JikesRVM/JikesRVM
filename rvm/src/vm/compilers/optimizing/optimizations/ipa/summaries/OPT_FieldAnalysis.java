@@ -26,11 +26,11 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   final static private boolean DEBUG = false;
 
   public final boolean shouldPerform (OPT_Options options) {
-    return  options.FIELD_ANALYSIS;
+    return options.FIELD_ANALYSIS;
   }
 
   public final String getName () {
-    return  "Field Analysis";
+    return "Field Analysis";
   }
 
   /** 
@@ -42,28 +42,21 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    *	<li> it's an array of primitive
    * 	<li> it's an array of final
    * </ul>
-   *
-   * <p> PRECONDITION: if t.isClassType(), t.isLoaded().
    */
   private static boolean isCandidate (VM_Type t) {
-    if (VM.VerifyAssertions) {
-      if (t.isClassType() && !t.asClass().isLoaded()) {
-        VM.sysWrite("NOT LOADED: " + t + "\n");
-        VM._assert(false);
-      }
-    }
+    if (!t.isLoaded()) return false;
     if (t.isPrimitiveType())
-      return  false;
+      return false;
     if (t.isClassType() && t.asClass().isFinal())
-      return  false;
+      return false;
     if (t.isArrayType()) {
       VM_Type et = t.asArray().getInnermostElementType();
       if (et.isClassType() && !et.asClass().isLoaded())
-        return  false; 
+        return false; 
       else 
-        return  isCandidate(et);
+        return isCandidate(et);
     }
-    return  true;
+    return true;
   }
 
   /**
@@ -74,19 +67,18 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     // don't bother for primitives and arrays of primitives
     // and friends
     if (!isCandidate(f.getType()))
-      return  f.getType();
+      return f.getType();
     // for some special classes, the flow-insensitive summaries
     // are INCORRECT due to using the wrong implementation
     // during boot image writing.  For these special cases,
     // give up.
     if (isTrouble(f))
-      return  null;
+      return null;
     if (DEBUG) {
       VM_Type t = db.getConcreteType(f);
-      if (t != null)
-        debug("CONCRETE TYPE " + f + " IS " + t);
+      if (t != null) VM.sysWriteln("CONCRETE TYPE " + f + " IS " + t);
     }
-    return  db.getConcreteType(f);
+    return db.getConcreteType(f);
   }
 
   /**
@@ -102,15 +94,10 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
-        //	    if (DEBUG) debug("PutField " + s);
         OPT_LocationOperand l = PutField.getLocation(s);
-        if (l.field.getType().isClassType() && 
-            !l.field.getType().asClass().isLoaded())
-          continue;
-        if (!l.field.getDeclaringClass().isLoaded())
-          continue;
-        if (!isCandidate(l.field.getType()))
-          continue;
+	VM_Field f = l.getFieldRef().resolve(false);
+	if (f == null) continue;
+        if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 
         // gleaned from context, does not hold everywhere
@@ -120,23 +107,16 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
             VM_Type type = value.asRegister().type;
-            recordConcreteType(ir.method, l.field, type);
-          } 
-          else {
-            recordBottom(ir.method, l.field);
+            recordConcreteType(ir.method, f, type);
+          } else {
+            recordBottom(ir.method, f);
           }
         }
-      } 
-      else if (PutStatic.conforms(s)) {
-        //	    if (DEBUG) debug("PutField " + s);
+      } else if (PutStatic.conforms(s)) {
         OPT_LocationOperand l = PutStatic.getLocation(s);
-        if (l.field.getType().isClassType() && 
-            !l.field.getType().asClass().isLoaded())
-          continue;
-        if (!l.field.getDeclaringClass().isLoaded())
-          continue;
-        if (!isCandidate(l.field.getType()))
-          continue;
+	VM_Field f = l.getFieldRef().resolve(false);
+	if (f == null) continue;
+        if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 
         // gleaned from context, does not hold everywhere
@@ -146,10 +126,9 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
             VM_Type type = value.asRegister().type;
-            recordConcreteType(ir.method, l.field, type);
-          } 
-          else {
-            recordBottom(ir.method, l.field);
+            recordConcreteType(ir.method, f, type);
+          } else {
+            recordBottom(ir.method, f);
           }
         }
       }
@@ -198,8 +177,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (oldType == null) {
       // set a new concrete type for this field.
       info.concreteType = t;
-    } 
-    else if (oldType != t) {
+    } else if (oldType != t) {
       // we've previously determined a DIFFERENT! concrete type.
       // meet the two types: ie., change it to bottom.
       info.setBottom();
@@ -215,18 +193,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    */
   private static boolean isTrouble (VM_Field f) {
     if (f.getDeclaringClass() == OPT_ClassLoaderProxy.JavaLangStringType)
-      return  true;
-    return  false;
-  }
-
-  /**
-   * print a debug message
-   */
-  private static void debug (String s) {
-    if (DEBUG)
-      VM.sysWrite(s + " \n");
+      return true;
+    return false;
   }
 }
-
-
-

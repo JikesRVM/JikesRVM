@@ -110,7 +110,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget                = dynamicLink.methodRef();
+      bridgeTarget                = dynamicLink.methodRef().resolve();
       bridgeParameterInitialIndex = dynamicLink.isInvokedWithImplicitThisParameter() ? -1 : 0;
       bridgeParameterTypes        = bridgeTarget.getParameterTypes();
     }

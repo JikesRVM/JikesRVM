@@ -140,12 +140,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *            loading/resolving problem, it will throw out an intance of Exception
    */
   public boolean verifyMethod(VM_Method method) throws Exception{
-
     currMethodName = method.toString();
-    if(!method.isLoaded()){
-      verificationFailure(" method " + method + " hasn't been loaded.\n");
-      return false;
-    }
 
     //VM.sysWrite("Start to verify method " + currMethodName + "\n");
     VM_BytecodeStream bcodes = method.getBytecodes();
@@ -1188,46 +1183,46 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	//invoke like bytecodes
 	case JBC_invokespecial:
 	case JBC_invokevirtual: {
-	  VM_Method calledMethod = bcodes.getMethodReference();
-	  processInvoke(calledMethod,false);
+	  VM_MethodReference target = bcodes.getMethodReference();
+	  processInvoke(target,false);
 	  break;
 	}
 
 	case JBC_invokeinterface:{
-	  VM_Method calledMethod = bcodes.getMethodReference();
+	  VM_MethodReference target = bcodes.getMethodReference();
 	  bcodes.alignInvokeInterface();
-	  processInvoke(calledMethod,false);
+	  processInvoke(target,false);
 	  break;
 	}
 
 	case JBC_invokestatic:{
-	  VM_Method calledMethod = bcodes.getMethodReference();
-	  processInvoke(calledMethod,true);
+	  VM_MethodReference target = bcodes.getMethodReference();
+	  processInvoke(target,true);
 	  break;
 	}
 
                                 //get
 	case JBC_getstatic:{
-	  VM_Field field = bcodes.getFieldReference();
+	  VM_FieldReference field = bcodes.getFieldReference();
 	  get_like(field, true);
 	  break;
 	}
 
 	case JBC_getfield:{
-	  VM_Field field = bcodes.getFieldReference();
+	  VM_FieldReference field = bcodes.getFieldReference();
 	  get_like(field, false);
 	  break;
 	}
 
 	//put
 	case JBC_putstatic:{
-	  VM_Field field = bcodes.getFieldReference();
+	  VM_FieldReference field = bcodes.getFieldReference();
 	  put_like(field, true);
 	  break;
 	}
 
 	case JBC_putfield:{
-	  VM_Field field = bcodes.getFieldReference();
+	  VM_FieldReference field = bcodes.getFieldReference();
 	  put_like(field, false);
 	  break;
 	}
@@ -2186,7 +2181,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *            If the verifier catch any error during verification or it meets any
    *            loading/resolving problem, it will throw out an intance of Exception
    */
-  private void get_like(VM_Field field, boolean isStatic)
+  private void get_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
 
       //if not static, check whether object type is compatible with field's declaring class
@@ -2249,7 +2244,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *            If the verifier catch any error during verification or it meets any
    *            loading/resolving problem, it will throw out an intance of Exception
    */
-  private void put_like(VM_Field field, boolean isStatic)
+  private void put_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
 
       VM_Type fieldType = field.getType();
@@ -2643,7 +2638,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *            If the verifier catch any error during verification or it meets any
    *            loading/resolving problem, it will throw out an intance of Exception
    */
-  private void processInvoke(VM_Method calledMethod, boolean isStatic)
+  private void processInvoke(VM_MethodReference calledMethod, boolean isStatic)
     throws Exception {
 
       VM_Type[] parameterTypes = calledMethod.getParameterTypes();
@@ -2672,8 +2667,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop] == V_NULL || 
                      VM_Runtime.isAssignableWith(parameterTypes[i], VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])));
         if(correct == false){
-          verificationFailure(" incompatible parameter when call " + calledMethod.getName() +
-                      " in method " + currMethodName+ " \n");
+          verificationFailure(" incompatible parameter when call " + calledMethod.getMemberName() +
+			      " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
@@ -2698,7 +2693,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           throw new Exception();
         }
 
-        if(calledMethod.getName() != VM_ClassLoader.StandardObjectInitializerMethodName){
+        if(calledMethod.getMemberName() != VM_ClassLoader.StandardObjectInitializerMethodName){
           if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
             verificationFailure(" uninitialized object reference when call " + 
                         calledMethod + " in method " + currMethodName+ " \n");

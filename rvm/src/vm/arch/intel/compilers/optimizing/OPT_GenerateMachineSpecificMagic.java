@@ -28,11 +28,11 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
    * @param meth the VM_Method that is the magic method
    */
   static boolean generateMagic(OPT_BC2IR bc2ir, 
-			    OPT_GenerationContext gc, 
-			    VM_Method meth) 
+			       OPT_GenerationContext gc, 
+			       VM_MethodReference meth) 
     throws OPT_MagicNotImplementedException {
 
-    VM_Atom methodName = meth.getName();
+    VM_Atom methodName = meth.getMemberName();
     OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
 
     if (methodName == VM_MagicNames.getESIAsProcessor) {
@@ -105,7 +105,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
 					  null));
@@ -113,7 +113,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     } else if (methodName == VM_MagicNames.setCallerFramePointer) {
       OPT_Operand val = bc2ir.popAddress();
       OPT_Operand fp = bc2ir.popAddress();
-      bc2ir.appendInstruction(Store.create(INT_STORE, val, 
+      bc2ir.appendInstruction(Store.create(REF_STORE, val, 
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
 					   null));

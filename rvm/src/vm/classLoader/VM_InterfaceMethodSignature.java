@@ -12,7 +12,7 @@ package com.ibm.JikesRVM.classloader;
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_InterfaceMethodSignature {
+final class VM_InterfaceMethodSignature {
 
   private VM_Atom name;
   private VM_Atom descriptor;
@@ -22,11 +22,11 @@ class VM_InterfaceMethodSignature {
     this.descriptor = descriptor;
   }
 
-  VM_Atom getName() {
+  final VM_Atom getName() {
     return name;
   }
 
-  VM_Atom getDescriptor() {
+  final VM_Atom getDescriptor() {
     return descriptor;
   }
 
@@ -56,7 +56,7 @@ class VM_InterfaceMethodSignature {
     } else if (leftKey.name == rightKey.name && leftKey.descriptor == rightKey.descriptor) {
       return 1;
     } else {
-    return -1;
+      return -1;
     }
   }
 }

@@ -153,6 +153,12 @@ class VM_EdgeListener extends VM_ContextListener
     // store the offset of the return address from the beginning of the 
     // instruction
     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
+    if (callerCM.getCompilerType() == VM_CompiledMethod.TRAP) {
+      if (DEBUG) {
+	VM.sysWriteln(" HARDWARE TRAP FRAME ");
+      }
+      return;
+    }
     VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
     int callSite = returnAddress.diff(beginningOfMachineCode).toInt();
 

@@ -113,8 +113,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       planList.addLast(plan);
 
       // insert in the hashtable using the method ID as the hash value
-      table.put(new Integer(plan.getCompPlan().method.getDictionaryId()), 
-		planList);
+      table.put(new Integer(plan.getCompPlan().method.getId()), planList);
     } else {
       // add the current plan to the end of the list
       synchronized(planList) {
@@ -135,7 +134,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *         otherwise, null
    */
   static LinkedList findPlan(VM_Method method) {
-    return (LinkedList) table.get(new Integer(method.getDictionaryId()));
+    return (LinkedList)table.get(new Integer(method.getId()));
   }
 
   /**

@@ -131,11 +131,12 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
       //	2. it is actually invoked on the register operand in question
       //	3. the method is synchronized
       if (Call.conforms(s)) {
-        VM_Method m = Call.getMethod(s).method;
-        if (!m.isStatic()) {
-          OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
+        OPT_MethodOperand mo = Call.getMethod(s);
+        if (!mo.isStatic()) {
+	  OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
           if (invokee == use) {
-            if (m.isSynchronized()) {
+	    if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
+	    if (mo.getTarget().isSynchronized()) {
               return  true;
             }
           }

@@ -1930,19 +1930,9 @@ public final class OPT_Instruction
    *         cannot be a load from a volatile field
    */
   public boolean mayBeVolatileFieldLoad() {
-    boolean isVolatileLoad = false;
     if (OPT_LocalCSE.isLoadInstruction(this)) {
-      OPT_LocationOperand l = LocationCarrier.getLocation(this);
-      if (l.isFieldAccess()) {
-	VM_Field f = l.getField();
-	if (!f.getDeclaringClass().isLoaded()) {
-	  // class not yet loaded; conservatively assume
-	  // volatile! (yuck)
-	  isVolatileLoad = true;
-	}
-	else if (f.isVolatile()) isVolatileLoad = true;
-      }
+      return LocationCarrier.getLocation(this).mayBeVolatile();
     }
-    return isVolatileLoad;
+    return false;
   }
 }

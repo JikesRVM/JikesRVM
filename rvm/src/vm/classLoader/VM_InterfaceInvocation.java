@@ -39,20 +39,20 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * index was unknown at compile time (ie the target Interface was not loaded).
    *
    * @param target object to which interface method is to be applied
-   * @param dictionaryId interface method sought (VM_MethodDictionary id)
+   * @param mid id of the VM_MemberReference for the target interface method.
    * @return machine code corresponding to desired interface method
    */
-  public static INSTRUCTION[] invokeInterface(Object target, int dictionaryId) 
+  public static INSTRUCTION[] invokeInterface(Object target, int mid) 
     throws IncompatibleClassChangeError, VM_ResolutionException {
-    
-    VM_Method sought = 
-      VM_MethodDictionary.getValue(dictionaryId).resolveInterfaceMethod(true);
+
+    VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
+    VM_Method sought = mref.resolveInterfaceMethod(true);
     VM_Class I = sought.getDeclaringClass();
     VM_Class C = VM_Magic.getObjectType(target).asClass(); 
     if (VM.BuildForITableInterfaceInvocation) {
       Object[] tib = C.getTypeInformationBlock();
       Object[] iTable = findITable(tib, I.getInterfaceId());
-      return (INSTRUCTION[])iTable[getITableIndex(I, sought)];
+      return (INSTRUCTION[])iTable[getITableIndex(I, mref.getMemberName(), mref.getDescriptor())];
     } else { 
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       VM_Method found  = C.findVirtualMethod(sought.getName(), 
@@ -138,19 +138,18 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
   /**
    * mid is the dictionary id of an interface method we are trying to invoke
    * RHStib is the TIB of an object on which we are attempting to invoke it
-   * We were unable to tell at compile time if mid is a real or ghost reference,
-   * Therefore we must resolve it now and then call mandatoryInstanceOfInterface
+   * We were unable to resolve the member reference at compile time.
+   * Therefore we must resolve it now and then call invokeinterfaceImplementsTest
    * with the right LHSclass.
    * 
-   * @param mid the dictionary id of the target interface method
+   * @param mid id of the VM_MemberReference for the target interface method.
    * @param RHStib, the TIB of the object on which we are attempting to 
    * invoke the interface method
    */
   public static void unresolvedInvokeinterfaceImplementsTest (int mid, Object[] RHStib) 
     throws VM_ResolutionException, IncompatibleClassChangeError {
-    VM_Method m = VM_MethodDictionary.getValue(mid);
-    VM_Method nm = m.resolveInterfaceMethod(true);
-    invokeinterfaceImplementsTest(nm.getDeclaringClass(), RHStib);
+    VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod(true);
+    invokeinterfaceImplementsTest(sought.getDeclaringClass(), RHStib);
   }
 
 
@@ -235,7 +234,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	VM_Method im = interfaceMethods[j];
 	if (im.isClassInitializer()) continue; 
 	if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
-	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(im.getName(), im.getDescriptor());
+	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(im.getMemberRef());
 	VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
 	// NOTE: if there is some error condition, then we are playing a dirty trick and
 	//       pretending that a static method of VM_Runtime is a virtual method.
@@ -343,9 +342,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
       }
       if (vm.isStatic()) {
 	vm.compile();
-	iTable[getITableIndex(I, im)] = vm.getCurrentInstructions();
+	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-	iTable[getITableIndex(I, im)] = (INSTRUCTION []) tib[vm.getOffset()>>2];
+	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>2];
       }
     }
     return iTable;
@@ -386,12 +385,14 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
   /**
    * Return the index of the interface method m in the itable
    */
-  public static int getITableIndex(VM_Class klass, VM_Method m) {
+  public static int getITableIndex(VM_Class klass, VM_Atom mname, VM_Atom mdesc) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);
     if (VM.VerifyAssertions) VM._assert(klass.isLoaded() && klass.isInterface());
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int i=0; i<methods.length; i++) {
-      if (methods[i] == m) return i+1;
+      if (methods[i].getName() == mname && methods[i].getDescriptor() == mdesc) {
+	return i+1;
+      }
     }
     return -1;
   }
@@ -425,16 +426,17 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     } else if (VM.BuildForITableInterfaceInvocation) {
       if (tib[TIB_ITABLES_TIB_INDEX] != null) {
         Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
+	VM_Atom name = m.getName();
+	VM_Atom desc = m.getDescriptor();
         for (int i=0; i<iTables.length; i++) {
           Object[] iTable = (Object[])iTables[i];
           if (iTable != null) {
             VM_Class I = (VM_Class)iTable[0];
             VM_Method [] interfaceMethods = I.getDeclaredMethods();
             for (int j=0; j<interfaceMethods.length; j++) {
-              VM_Method im = interfaceMethods[j];
-              if (im.getName() == m.getName() && 
-                  im.getDescriptor() == m.getDescriptor()) {
-                iTable[getITableIndex(I, im)] = m.getCurrentInstructions();
+	      VM_Method im = interfaceMethods[i];
+              if (im.getName() == name && im.getDescriptor() == desc) {
+                iTable[getITableIndex(I, name, desc)] = m.getCurrentInstructions();
               }
             }
           }

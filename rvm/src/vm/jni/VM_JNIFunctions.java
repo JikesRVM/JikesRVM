@@ -440,7 +440,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return  the new object instance
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
@@ -476,7 +476,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * NewObjectV: create a new object instance
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary for the constructor VM_Method
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 
    *                   2-words of the appropriate type for the constructor invocation
    * @return the new object instance
@@ -514,7 +514,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * NewObjectA: create a new object instance
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary for the constructor VM_Method
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and 
    *                   hold an argument of the appropriate type for the constructor invocation
    * @exception InstantiationException if the class is abstract or is an interface
@@ -606,7 +606,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
    * @param methodSigAddress a raw address to a null-terminated string in C for the method signature
-   * @return the method ID, an index into the VM_MethodDictionary
+   * @return id of a VM_MethodReference
    * @exception NoSuchMethodError if the method cannot be found
    * @exception ExceptionInInitializerError if the class or interface static initializer fails 
    * @exception OutOfMemoryError if the system runs out of memory
@@ -615,8 +615,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
                                  VM_Address methodNameAddress, VM_Address methodSigAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetMethodID  \n");
 
-    VM_JNIEnvironment env;
-
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
 
       // obtain the names as String from the native space
@@ -626,39 +625,37 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
-      env = VM_Thread.getCurrentThread().getJNIEnv();
-      Class cls = (Class) env.getJNIRef(classJREF);
-
-      // search for the method and sig in this class and superclass
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(cls);
-      VM_Method mth = null;
-
-      if (type.isClassType()) {	
-        if (methodString.equals("<init>")) {
-          mth = type.asClass().findInitializerMethod(sigName);
-        } else {
-          mth = type.asClass().findVirtualMethod(methodName, sigName);
-        }
-      } else {
-        Throwable e = new NoSuchMethodError();
-        env.recordException(e);
+      Class jcls = (Class) env.getJNIRef(classJREF);
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      if (!type.isClassType()) {
+	env.recordException(new NoSuchMethodError());
         return 0;
+      }	
+
+      VM_Class klass = type.asClass();
+      if (!klass.isInitialized()) {
+	VM_Runtime.initializeClassForDynamicLink(klass);
       }
 
-      if (mth!=null) {
-	  if (traceJNI) VM.sysWrite("got method " + mth + "\n");
-        return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
+      // Find the target method
+      VM_Method meth = null;
+      if (methodString.equals("<init>")) {
+	meth = klass.findInitializerMethod(sigName);
       } else {
+	meth = klass.findVirtualMethod(methodName, sigName);
+      }
+
+      if (meth == null) {
         env.recordException(new NoSuchMethodError());
         return 0;
-      }
+      }	
 
+      if (traceJNI) VM.sysWrite("got method " + meth + "\n");
+      return meth.getId();
     } catch (Throwable unexpected) {
-      env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
       return 0;
     }
-
   }
 
 
@@ -670,7 +667,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallObjectMethod(int envJREF, int objJREF, int methodID)
@@ -699,7 +696,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallObjectMethodV:  invoke a virtual method that returns an object
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
@@ -730,7 +727,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallObjectMethodA:  invoke a virtual method that returns an object value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the JREF index for the object returned from the method invocation
@@ -764,7 +761,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the boolean value returned from the method invocation
    */
   private static boolean CallBooleanMethod(int envJREF, int objJREF, int methodID) 
@@ -794,7 +791,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallBooleanMethodV:  invoke a virtual method that returns a boolean value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
@@ -826,7 +823,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallBooleanMethodA:  invoke a virtual method that returns a boolean value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the boolean value returned from the method invocation
@@ -861,7 +858,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the byte value returned from the method invocation
    */
   private static byte CallByteMethod(int envJREF, int objJREF, int methodID)
@@ -892,7 +889,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallByteMethodV:  invoke a virtual method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
@@ -924,7 +921,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallByteMethodA:  invoke a virtual method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the byte value returned from the method invocation
@@ -959,7 +956,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the char value returned from the method invocation
    */
   private static char CallCharMethod(int envJREF, int objJREF, int methodID)
@@ -989,7 +986,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallCharMethodV:  invoke a virtual method that returns a char value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
@@ -1021,7 +1018,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallCharMethodA:  invoke a virtual method that returns a char value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the char value returned from the method invocation
@@ -1056,7 +1053,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the short value returned from the method invocation
    */
   private static short CallShortMethod(int envJREF, int objJREF, int methodID)
@@ -1087,7 +1084,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallShortMethodV:  invoke a virtual method that returns a short value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
@@ -1119,7 +1116,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallShortMethodA:  invoke a virtual method that returns a short value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the short value returned from the method invocation
@@ -1154,7 +1151,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the int value returned from the method invocation
    */
   private static int CallIntMethod(int envJREF, int objJREF, int methodID)
@@ -1184,7 +1181,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallIntMethodV:  invoke a virtual method that returns an int value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
@@ -1217,7 +1214,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallIntMethodA:  invoke a virtual method that returns an integer value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the integer value returned from the method invocation
@@ -1252,7 +1249,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the long value returned from the method invocation
    */
   private static long CallLongMethod(int envJREF, int objJREF, int methodID)
@@ -1282,7 +1279,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallLongMethodV:  invoke a virtual method that returns a long value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
@@ -1314,7 +1311,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallLongMethodA:  invoke a virtual method that returns a long value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the long value returned from the method invocation
@@ -1349,7 +1346,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the float value returned from the method invocation
    */
   private static float CallFloatMethod(int envJREF, int objJREF, int methodID)
@@ -1379,7 +1376,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallFloatMethodV:  invoke a virtual method that returns a float value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
@@ -1411,7 +1408,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallFloatMethodA:  invoke a virtual method that returns a float value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the float value returned from the method invocation
@@ -1446,7 +1443,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the double value returned from the method invocation
    */
   private static double CallDoubleMethod(int envJREF, int objJREF, int methodID)
@@ -1476,7 +1473,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallDoubleMethodV:  invoke a virtual method that returns a double value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
@@ -1508,7 +1505,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallDoubleMethodA:  invoke a virtual method that returns a double value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the double value returned from the method invocation
@@ -1543,7 +1540,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        they are saved in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the void value returned from the method invocation
    */
   private static void CallVoidMethod(int envJREF, int objJREF, int methodID)
@@ -1570,7 +1567,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallVoidMethodV:  invoke a virtual method that returns void
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    */
@@ -1598,7 +1595,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallVoidMethodA:  invoke a virtual method that returns void
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    */
@@ -1630,7 +1627,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallNonvirtualObjectMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -1660,7 +1657,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
@@ -1692,7 +1689,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the JREF index for the object returned from the method invocation
@@ -1727,7 +1724,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the boolean value returned from the method invocation
    */
   private static boolean CallNonvirtualBooleanMethod(int envJREF, int objJREF, int classJREF, int methodID) 
@@ -1757,7 +1754,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
@@ -1790,7 +1787,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the boolean value returned from the method invocation
@@ -1826,7 +1823,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the byte value returned from the method invocation
    */
   private static byte CallNonvirtualByteMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -1858,7 +1855,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallNonvirtualByteMethodV:  invoke a virtual method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param classJREF a JREF index for the class object that declares this method
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
@@ -1892,7 +1889,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallNonvirtualByteMethodA:  invoke a virtual method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param classJREF a JREF index for the class object that declares this method
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
@@ -1930,7 +1927,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the char value returned from the method invocation
    */
   private static char CallNonvirtualCharMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -1962,7 +1959,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
@@ -1996,7 +1993,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the char value returned from the method invocation
@@ -2033,7 +2030,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the short value returned from the method invocation
    */
   private static short CallNonvirtualShortMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2065,7 +2062,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
@@ -2099,7 +2096,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the short value returned from the method invocation
@@ -2136,7 +2133,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the int value returned from the method invocation
    */
   private static int CallNonvirtualIntMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2168,7 +2165,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
@@ -2203,7 +2200,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the integer value returned from the method invocation
@@ -2240,7 +2237,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the long value returned from the method invocation
    */
   private static long CallNonvirtualLongMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2272,7 +2269,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
@@ -2306,7 +2303,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the long value returned from the method invocation
@@ -2343,7 +2340,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodId id of a VM_MethodReference
    * @return the float value returned from the method invocation
    */
   private static float CallNonvirtualFloatMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2374,7 +2371,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
@@ -2408,7 +2405,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the float value returned from the method invocation
@@ -2445,7 +2442,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the double value returned from the method invocation
    */
   private static double CallNonvirtualDoubleMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2476,7 +2473,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
@@ -2510,7 +2507,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the double value returned from the method invocation
@@ -2547,7 +2544,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the void value returned from the method invocation
    */
   private static void CallNonvirtualVoidMethod(int envJREF, int objJREF, int classJREF, int methodID)
@@ -2576,7 +2573,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    */
@@ -2606,7 +2603,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    */
@@ -3316,7 +3313,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
 
 
-    VM_JNIEnvironment env;
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       // obtain the names as String from the native space
       String methodString = VM_JNIEnvironment.createStringFromC(methodNameAddress);
@@ -3325,37 +3322,32 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
-      env = VM_Thread.getCurrentThread().getJNIEnv();
-      Class cls = (Class) env.getJNIRef(classJREF);
-
-      // search for the method and sig in this class and superclass
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(cls);
-      VM_Method mth = null;
-
-      if (type.isClassType()) {
-        mth = type.asClass().findStaticMethod(methodName, sigName);
-      } else {
-        Throwable e = new NoSuchMethodError();
-        env.recordException(e);
+      Class jcls = (Class) env.getJNIRef(classJREF);
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      if (!type.isClassType()) {
+	env.recordException(new NoSuchMethodError());
         return 0;
+      }	
+
+      VM_Class klass = type.asClass();
+      if (!klass.isInitialized()) {
+	VM_Runtime.initializeClassForDynamicLink(klass);
       }
 
-      if (mth!=null) {
-	if (traceJNI) VM.sysWrite("got static method " + mth + "\n");
-        return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
-      } else {
-        Throwable e = new NoSuchMethodError();
-        env.recordException(e);
+      // Find the target method
+      VM_Method meth = klass.findStaticMethod(methodName, sigName);
+      if (meth == null) {
+        env.recordException(new NoSuchMethodError());
         return 0;
-      }
+      }	
 
+      if (traceJNI) VM.sysWrite("got method " + meth + "\n");
+      return meth.getId();
     } catch (Throwable unexpected) {
       if (traceJNI) {
 	  VM.sysWrite(" GetStaticMethodID: unexpected exception " + unexpected.toString() + "\n");
 	  unexpected.printStackTrace( System.err );
       }
-
-      env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
       return 0;
     }
@@ -3370,7 +3362,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallStaticObjectMethod(int envJREF, int classJREF, int methodID) 
@@ -3399,7 +3391,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticObjectMethodV:  invoke a static method that returns an object
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
@@ -3430,7 +3422,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticObjectMethodA:  invoke a static method that returns an object
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
@@ -3464,7 +3456,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the boolean value returned from the method invocation
    */
   private static boolean CallStaticBooleanMethod(int envJREF, int classJREF, int methodID) 
@@ -3490,7 +3482,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticBooleanMethodV:  invoke a static method that returns a boolean value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
@@ -3517,7 +3509,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticBooleanMethodA:  invoke a static method that returns a boolean value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
@@ -3547,7 +3539,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the byte value returned from the method invocation
    */
   private static byte CallStaticByteMethod(int envJREF, int classJREF, int methodID) 
@@ -3572,7 +3564,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticByteMethodV:  invoke a static method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
@@ -3599,7 +3591,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticByteMethodA:  invoke a static method that returns a byte value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
@@ -3629,7 +3621,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the char value returned from the method invocation
    */
   private static char CallStaticCharMethod(int envJREF, int classJREF, int methodID) 
@@ -3654,7 +3646,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticCharMethodV:  invoke a static method that returns a char value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
@@ -3681,7 +3673,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticCharMethodA:  invoke a static method that returns a char value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
@@ -3710,7 +3702,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the short value returned from the method invocation
    */
   private static short CallStaticShortMethod(int envJREF, int classJREF, int methodID) 
@@ -3735,7 +3727,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticShortMethodV:  invoke a static method that returns a short value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
@@ -3762,7 +3754,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticShortMethodA:  invoke a static method that returns a short value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
@@ -3792,7 +3784,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the integer value returned from the method invocation
    */
   private static int CallStaticIntMethod(int envJREF, int classJREF, int methodID) 
@@ -3818,7 +3810,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticIntMethodV:  invoke a static method that returns an integer value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
@@ -3845,7 +3837,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticIntMethodA:  invoke a static method that returns an integer value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
@@ -3875,7 +3867,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the long value returned from the method invocation
    */
   private static long CallStaticLongMethod(int envJREF, int classJREF, int methodID) 
@@ -3900,7 +3892,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticLongMethodV:  invoke a static method that returns a long value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
@@ -3927,7 +3919,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticLongMethodA:  invoke a static method that returns a long value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
@@ -3957,7 +3949,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @return the float value returned from the method invocation
    */
   private static float CallStaticFloatMethod(int envJREF, int classJREF, int methodID) 
@@ -3983,7 +3975,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticFloatMethodV:  invoke a static method that returns a float value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
@@ -4010,7 +4002,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticFloatMethodA:  invoke a static method that returns a float value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
@@ -4040,7 +4032,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID an id of a VM_MethodReference
    * @return the double value returned from the method invocation
    */
   private static double CallStaticDoubleMethod(int envJREF, int classJREF, int methodID) 
@@ -4065,7 +4057,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticDoubleMethodV:  invoke a static method that returns a double value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID an id of a VM_MethodReference
    * @param argAddress a raw address to a  variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
@@ -4091,7 +4083,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticDoubleMethodA:  invoke a static method that returns a double value
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
@@ -4121,7 +4113,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *        in the caller frame and the glue frame 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    */
   private static void CallStaticVoidMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
@@ -4144,7 +4136,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticVoidMethodA:  invoke a static method that returns void
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    */
@@ -4169,7 +4161,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * CallStaticVoidMethodA:  invoke a static method that returns void
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of a VM_MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    */

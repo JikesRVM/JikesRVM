@@ -624,62 +624,66 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       } 
 
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-      if (compiledMethodId == INVISIBLE_METHOD_ID) 
+      if (compiledMethodId == INVISIBLE_METHOD_ID) {
         writeString("   <invisible method>\n");
-      else {
+      } else {
         // normal java frame(s)
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        VM_Method         method            = compiledMethod.getMethod();
-        int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
-        int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
+	if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+	  writeString("   <hardware trap>\n");
+	} else {
+	  VM_Method         method            = compiledMethod.getMethod();
+	  int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
+	  int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
+	  
+	  //-#if RVM_WITH_OPT_COMPILER
+	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+	    VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+	    // Opt stack frames may contain multiple inlined methods.
+	    VM_OptMachineCodeMap map = optInfo.getMCMap();
+	    int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+	    if (iei >= 0) {
+	      int[] inlineEncoding = map.inlineEncoding;
+	      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
+	      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
+		int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+		method = VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+		VM_LineNumberMap lmap = method.getLineNumberMap();
+		lineNumber = (lmap == null) ? 0 : lmap.getLineNumberForBCIndex(bci);
+		writeString("   ");
+		writeAtom(method.getDeclaringClass().getDescriptor());
+		writeString(" ");
+		writeAtom(method.getName());
+		writeAtom(method.getDescriptor());
+		writeString(" at line ");
+		writeDecimal(lineNumber);
+		writeString("\n");
+		if (j > 0) 
+		  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+	      }
+	    } else {
+	      writeString("   Unknown location in opt compiled method ");
+	      writeAtom(method.getDeclaringClass().getDescriptor());
+	      writeString(" ");
+	      writeAtom(method.getName());
+	      writeAtom(method.getDescriptor());
+	      writeString("\n");
+	    }
+	    ip = VM_Magic.getReturnAddress(fp);
+	    fp = VM_Magic.getCallerFramePointer(fp);
+	    continue; // done printing this stack frame
+	  } 
+	  //-#endif
 
-        //-#if RVM_WITH_OPT_COMPILER
-        if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
-          // Opt stack frames may contain multiple inlined methods.
-          VM_OptMachineCodeMap map = optInfo.getMCMap();
-          int iei = map.getInlineEncodingForMCOffset(instructionOffset);
-          if (iei >= 0) {
-            int[] inlineEncoding = map.inlineEncoding;
-            int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-            for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-              int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-              method = VM_ClassLoader.getMethodFromId(mid);
-              VM_LineNumberMap lmap = method.getLineNumberMap();
-	      lineNumber = (lmap == null) ? 0 : lmap.getLineNumberForBCIndex(bci);
-              writeString("   ");
-              writeAtom(method.getDeclaringClass().getDescriptor());
-              writeString(" ");
-              writeAtom(method.getName());
-              writeAtom(method.getDescriptor());
-              writeString(" at line ");
-              writeDecimal(lineNumber);
-              writeString("\n");
-              if (j > 0) 
-                bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
-            }
-          } else {
-            writeString("   Unknown location in opt compiled method ");
-            writeAtom(method.getDeclaringClass().getDescriptor());
-            writeString(" ");
-            writeAtom(method.getName());
-            writeAtom(method.getDescriptor());
-            writeString("\n");
-          }
-          ip = VM_Magic.getReturnAddress(fp);
-          fp = VM_Magic.getCallerFramePointer(fp);
-          continue; // done printing this stack frame
-        } 
-        //-#endif
-
-        writeString("   ");
-        writeAtom(method.getDeclaringClass().getDescriptor());
-        writeString(" ");
-        writeAtom(method.getName());
-        writeAtom(method.getDescriptor());
-        writeString(" at line ");
-        writeDecimal(lineNumber);
-        writeString("\n");
+	  writeString("   ");
+	  writeAtom(method.getDeclaringClass().getDescriptor());
+	  writeString(" ");
+	  writeAtom(method.getName());
+	  writeAtom(method.getDescriptor());
+	  writeString(" at line ");
+	  writeDecimal(lineNumber);
+	  writeString("\n");
+	}
       }
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);

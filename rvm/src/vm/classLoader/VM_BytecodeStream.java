@@ -426,93 +426,27 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   }
 
   /**
-   * Returns the constant pool index of a field reference
-   *         (as an unsigned short)
-   * Used for getstatic, putstatic, getfield, putfield
-   * @return field reference index
-   * @see #getFieldReference(int)
-   * @see #getFieldReference()
-   */
-  public final int getFieldReferenceIndex() {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
-                opcode == JBC_getfield || opcode == JBC_putfield);
-    return readUnsignedShort();
-  }
-
-  /**
-   * Returns the field reference at given constant pool index (as a VM_Field)
-   * Used for getstatic, putstatic, getfield, putfield
-   * @param index constant pool index of a field reference
-   * @return field reference
-   * @see #getFieldReferenceIndex()
-   * @see #getFieldReference()
-   */
-  public final VM_Field getFieldReference(int index) {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
-                opcode == JBC_getfield || opcode == JBC_putfield);
-    return declaringClass.getFieldRef(index);
-  }
-
-  /**
-   * Returns the field reference (as a VM_Field)
+   * Returns a reference to a field
    * Used for getstatic, putstatic, getfield, putfield
    * @return field reference
-   * @see #getFieldReferenceIndex()
-   * @see #getFieldReference(int)
    */
-  public final VM_Field getFieldReference() {
+  public final VM_FieldReference getFieldReference() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
                 opcode == JBC_getfield || opcode == JBC_putfield);
-    int index = readUnsignedShort();
-    return declaringClass.getFieldRef(index);
+    return declaringClass.getFieldRef(readUnsignedShort());
   }
 
   /**
-   * Returns the constant pool index of a method reference
-   *         (as an unsigned short)
-   * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
-   * @return method reference index
-   * @see #getMethodReference(int)
-   * @see #getMethodReference()
-   */
-  public final int getMethodReferenceIndex() {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
-                opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
-    return readUnsignedShort();
-  }
-
-  /**
-   * Returns the method reference at given constant pool index (as a VM_Method)
-   * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
-   * @param index constant pool index of a method reference
-   * @return method reference
-   * @see #getMethodReferenceIndex()
-   * @see #getMethodReference()
-   */
-  public final VM_Method getMethodReference(int index) {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
-                opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
-    return declaringClass.getMethodRef(index);
-  }
-
-  /**
-   * Returns the method reference (as a VM_Method)
+   * Returns a reference to a field
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference
-   * @see #getMethodReferenceIndex()
-   * @see #getMethodReference(int)
    */
-  public final VM_Method getMethodReference() {
+  public final VM_MethodReference getMethodReference() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
-                opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
-    int index = readUnsignedShort();
-    return declaringClass.getMethodRef(index);
+		 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
+    return declaringClass.getMethodRef(readUnsignedShort());
   }
 
   /**

@@ -789,23 +789,16 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     }
     //-#endif
 
-    if (Athrow.conforms(s)) return true;
-    else if (MIR_Call.conforms(s)) {
-      OPT_MethodOperand mop = MIR_Call.getMethod(s);
-      if (mop != null) {
-        if (mop.method == VM_Entrypoints.athrowMethod) {
-          return true;
-        }
-      }
-    } else if (Call.conforms(s)) {
-      OPT_MethodOperand mop = Call.getMethod(s);
-      if (mop != null) {
-        if (mop.method == VM_Entrypoints.athrowMethod) {
-          return true;
-        }
-      }
+    if (Athrow.conforms(s)) {
+      return true;
     } 
-    return false;
+    OPT_MethodOperand mop = null;
+    if (MIR_Call.conforms(s)) {
+      mop = MIR_Call.getMethod(s);
+    } else if (Call.conforms(s)) {
+      mop = Call.getMethod(s);
+    }
+    return mop != null && mop.getTarget() == VM_Entrypoints.athrowMethod;
   }
 
   /**

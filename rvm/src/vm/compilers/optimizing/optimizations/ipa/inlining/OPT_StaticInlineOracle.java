@@ -43,7 +43,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
     OPT_Options opts = state.getOptions();
     // more or less figure out the guard situation early -- impacts size estimate.
-    boolean needsGuard = state.getComputedTarget() == null && needsGuard(callee);
+    boolean needsGuard = !state.getHasPreciseTarget() || needsGuard(callee);
     boolean preEx = 
       needsGuard && state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(callee, true);
     

@@ -524,7 +524,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     throws Exception {
 
     // get the parameter list as Java class
-    VM_Method mth = VM_ClassLoader.getMethodFromId(methodID);
+    VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_Type[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
@@ -686,7 +686,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    *   |      |
    *   |      |
    *
-   * @param methodID an index into VM_MethodDictionary
+   * @param methodID a VM_MemberReference id
    * @param skip4Args if true, the calling JNI function has 4 args before the vararg
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
@@ -721,7 +721,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // VM.sysWrite("pushVarArgToSpillArea:  var arg at " + 
     // 		   VM.intAsHexString(varargAddress) + "\n");
  
-    VM_Method targetMethod = VM_ClassLoader.getMethodFromId(methodID);
+    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_Type[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
 
@@ -802,7 +802,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
   /**
    * Common code shared by the JNI functions CallStatic<type>MethodA
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
@@ -814,7 +814,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   /**
    * Common code shared by the JNI functions Call<type>MethodA
    * @param obj the object instance 
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
@@ -830,7 +830,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
    * @param obj the object instance 
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args This flag is received from the JNI function and passed directly to 
@@ -848,13 +848,10 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 					boolean isVarArg) 
     throws Exception {
   
-    VM_Method targetMethod;
-    int returnValue;
-
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
     // 		   VM.intAsHexString(argAddress) + "\n");
     
-    targetMethod = VM_ClassLoader.getMethodFromId(methodID);
+    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_Type returnType = targetMethod.getReturnType();
 
     // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +

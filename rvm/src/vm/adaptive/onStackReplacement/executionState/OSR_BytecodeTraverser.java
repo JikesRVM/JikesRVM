@@ -40,8 +40,8 @@ import java.util.*;
  * @author Feng Qian    
  */
 
-public class OSR_BytecodeTraverser
-  implements VM_ClassLoaderConstants, VM_BytecodeConstants, OSR_Constants {
+public class OSR_BytecodeTraverser implements VM_BytecodeConstants, 
+					      OSR_Constants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -1139,11 +1139,10 @@ public class OSR_BytecodeTraverser
 	S.pop();
       case JBC_getstatic:
 	{
-	  int cpoolidx = bytecodes.getFieldReferenceIndex();
-	  VM_Field field = bytecodes.getFieldReference(cpoolidx); 
-	  VM_Type ftype = field.getType();
+	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
+	  VM_Type ftype = fieldRef.getType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
-	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
+	  if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
 	    S.push(VoidTypeCode);
 	  }
 	  S.push(tcode);
@@ -1151,9 +1150,8 @@ public class OSR_BytecodeTraverser
 	break;
       case JBC_putstatic:
 	{
-	  int cpoolidx = bytecodes.getFieldReferenceIndex();
-	  VM_Field field = bytecodes.getFieldReference(cpoolidx);
-	  VM_Type ftype = field.getType();
+	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
+	  VM_Type ftype = fieldRef.getType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);
@@ -1163,9 +1161,8 @@ public class OSR_BytecodeTraverser
 	break;
       case JBC_putfield:
 	{
-	  int cpoolidx = bytecodes.getFieldReferenceIndex();
-	  VM_Field field = bytecodes.getFieldReference(cpoolidx);
-	  VM_Type ftype = field.getType();
+	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
+	  VM_Type ftype = fieldRef.getType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);
@@ -1179,8 +1176,7 @@ public class OSR_BytecodeTraverser
       case JBC_invokestatic:
       case JBC_invokeinterface:
 	{ 
-	  int cpoolidx = bytecodes.getMethodReferenceIndex();
-	  VM_Method callee = declaringClass.getMethodRef(cpoolidx);
+	  VM_MethodReference callee = bytecodes.getMethodReference();
 	  
 	  int psize = callee.getParameterWords();
 		    

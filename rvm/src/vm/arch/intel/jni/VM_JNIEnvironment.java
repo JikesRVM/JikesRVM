@@ -523,7 +523,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     throws Exception  {
 
     // get the parameter list as Java class
-    VM_Method mth = VM_ClassLoader.getMethodFromId(methodID);
+    VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_Type[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
@@ -705,7 +705,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
   /**
    * Common code shared by the JNI functions CallStatic<type>MethodA
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
@@ -717,7 +717,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   /**
    * Common code shared by the JNI functions Call<type>MethodA
    * @param obj the object instance 
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
@@ -734,7 +734,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
    * @param obj the object instance 
-   * @param methodID an index into the VM_MethodDictionary
+   * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args This flag is received from the JNI function and passed directly to 
@@ -753,13 +753,10 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     throws Exception,
 	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
 
-    VM_Method targetMethod;
-    int returnValue;
-
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
     // 		   VM.intAsHexString(argAddress) + "\n");
     
-    targetMethod = VM_ClassLoader.getMethodFromId(methodID);
+    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_Type returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) 

@@ -254,7 +254,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
     compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length);
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
-      VM_EdgeCounterDictionary.setValue(edgeCounterId, new int[edgeCounterIdx]);
+      VM_EdgeCounts.allocateCounters(method, edgeCounterIdx);
     }
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
@@ -308,10 +308,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
   }
 
   protected final int getEdgeCounterOffset() {
-    if (edgeCounterId == 0) {
-      edgeCounterId = VM_EdgeCounts.findOrCreateId(method);
-    }
-    return edgeCounterId << 2;
+    return method.getId() << 2;
   }
 
 
@@ -1480,70 +1477,55 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_getstatic: {
-	int cpi = bcodes.getFieldReferenceIndex();
-	VM_Field fieldRef = bcodes.getFieldReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + cpi + " (" + fieldRef + ")");
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
+	VM_FieldReference fieldRef = bcodes.getFieldReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
-	  emit_resolved_getstatic(fieldRef.resolve());
+	  emit_resolved_getstatic(fieldRef);
 	}
 	break;
       }
       
       case JBC_putstatic: {
-	int cpi = bcodes.getFieldReferenceIndex();
-	VM_Field fieldRef = bcodes.getFieldReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + cpi + " (" + fieldRef + ")");
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
+	VM_FieldReference fieldRef = bcodes.getFieldReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
-	  emit_resolved_putstatic(fieldRef.resolve());
+	  emit_resolved_putstatic(fieldRef);
 	}
 	break;
       }
 
       case JBC_getfield: {
-	int cpi = bcodes.getFieldReferenceIndex();
-	VM_Field fieldRef = bcodes.getFieldReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + cpi  + " (" + fieldRef + ")");
+	VM_FieldReference fieldRef = bcodes.getFieldReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + fieldRef);
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
-	  emit_resolved_getfield(fieldRef.resolve());
+	  emit_resolved_getfield(fieldRef);
 	}
 	break;
       }
 
       case JBC_putfield: {
-	int cpi = bcodes.getFieldReferenceIndex();
-	VM_Field fieldRef = bcodes.getFieldReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + cpi + " (" + fieldRef + ")");
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
+	VM_FieldReference fieldRef = bcodes.getFieldReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
-	  emit_resolved_putfield(fieldRef.resolve());
+	  emit_resolved_putfield(fieldRef);
 	}
 	break;
       }  
 
       case JBC_invokevirtual: {
-	int cpi = bcodes.getMethodReferenceIndex();
-	VM_Method methodRef = klass.getMethodRef(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + cpi + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isWordType()) {
-	  if (emit_Magic(methodRef))
-	    break;
-	} 
-
 	//-#if RVM_WITH_OSR
 	VM_ForwardReference xx = null;
 	if (biStart == this.pendingIdx) {
@@ -1557,14 +1539,18 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	}
 	//-#endif
 
-
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
+	VM_MethodReference methodRef = bcodes.getMethodReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + methodRef);
+	if (methodRef.isWordType()) {
+	  if (emit_Magic(methodRef)) {
+	    break;
+	  }
+	} 
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
-	  methodRef = methodRef.resolve();
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.resolve());
 	  emit_resolved_invokevirtual(methodRef);
 	}
 
@@ -1589,12 +1575,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  x.resolve(asm);                       //  X:
 	}
 	//-#endif
-	int cpi = bcodes.getMethodReferenceIndex();
-	VM_Method methodRef = klass.getMethodRef(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + cpi + " (" + methodRef + ")");
+	VM_MethodReference methodRef = bcodes.getMethodReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + methodRef);
 	VM_Method target;
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.getDeclaringClass().isResolved() && (target = VM_Class.findSpecialMethod(methodRef)) != null) {
+	if (methodRef.getDeclaringClass().isResolved() && (target = methodRef.resolveInvokeSpecial()) != null) {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
 	  emit_resolved_invokespecial(methodRef, target);
 	} else {
@@ -1611,15 +1595,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_invokestatic: {
-	int cpi = bcodes.getMethodReferenceIndex();
-	VM_Method methodRef = klass.getMethodRef(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + cpi + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isMagicType() ||
-	    methodRef.getDeclaringClass().isWordType()) {
-	  if (emit_Magic(methodRef))
-	    break;
-	}
-
 	//-#if RVM_WITH_OSR
 	VM_ForwardReference xx = null;
 	if (biStart == this.pendingIdx) {
@@ -1633,13 +1608,17 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	}
 	//-#endif
 
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
+	VM_MethodReference methodRef = bcodes.getMethodReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + methodRef);
+	if (methodRef.isMagicType() || methodRef.isWordType()) {
+	  if (emit_Magic(methodRef))
+	    break;
+	}
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
-	  methodRef = methodRef.resolve();
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.resolve());
 	  emit_resolved_invokestatic(methodRef);
 	}
 
@@ -1665,10 +1644,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  x.resolve(asm);                       //  X:
 	}
 	//-#endif
-	int cpi = bcodes.getMethodReferenceIndex();
-	VM_Method methodRef = klass.getMethodRef(cpi);
+
+	VM_MethodReference methodRef = bcodes.getMethodReference();
 	bcodes.alignInvokeInterface();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + cpi + " (" + methodRef + ") ");
+	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + methodRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface "+methodRef);
 	emit_invokeinterface(methodRef); 
 
@@ -2010,21 +1989,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  }
 
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic "+methodRef.toString());
-	  
-	  if (methodRef.getDeclaringClass().isMagicType() ||
-	      methodRef.getDeclaringClass().isWordType()) {
-	    if (emit_Magic(methodRef))
-	      break;
-	  }
-	  VM_Class methodRefClass = methodRef.getDeclaringClass();
-	  if (methodRef.needsDynamicLink(method)) {
-	    if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
-	    emit_unresolved_invokestatic(methodRef);
-	  } else {
-	    methodRef = methodRef.resolve();
-	    if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
-	    emit_resolved_invokestatic(methodRef);
-	  }
+	  emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
 	  break;
 	}
 	  /*
@@ -2163,7 +2128,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
-  protected abstract boolean emit_Magic(VM_Method magicMethod);
+  protected abstract boolean emit_Magic(VM_MethodReference magicMethod);
 
 
   /*
@@ -2944,52 +2909,52 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * Emit code to implement a dynamically linked getstatic
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_unresolved_getstatic(VM_Field fieldRef);
+  protected abstract void emit_unresolved_getstatic(VM_FieldReference fieldRef);
 
   /**
    * Emit code to implement a getstatic
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_resolved_getstatic(VM_Field fieldRef);
+  protected abstract void emit_resolved_getstatic(VM_FieldReference fieldRef);
 
 
   /**
    * Emit code to implement a dynamically linked putstatic
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_unresolved_putstatic(VM_Field fieldRef);
+  protected abstract void emit_unresolved_putstatic(VM_FieldReference fieldRef);
 
   /**
    * Emit code to implement a putstatic
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_resolved_putstatic(VM_Field fieldRef);
+  protected abstract void emit_resolved_putstatic(VM_FieldReference fieldRef);
 
 
   /**
    * Emit code to implement a dynamically linked getfield
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_unresolved_getfield(VM_Field fieldRef);
+  protected abstract void emit_unresolved_getfield(VM_FieldReference fieldRef);
 
   /**
    * Emit code to implement a getfield
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_resolved_getfield(VM_Field fieldRef);
+  protected abstract void emit_resolved_getfield(VM_FieldReference fieldRef);
 
 
   /**
    * Emit code to implement a dynamically linked putfield
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_unresolved_putfield(VM_Field fieldRef);
+  protected abstract void emit_unresolved_putfield(VM_FieldReference fieldRef);
 
   /**
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
-  protected abstract void emit_resolved_putfield(VM_Field fieldRef);
+  protected abstract void emit_resolved_putfield(VM_FieldReference fieldRef);
 
 
   /*
@@ -3000,13 +2965,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * Emit code to implement a dynamically linked invokevirtual
    * @param methodRef the referenced method
    */
-  protected abstract void emit_unresolved_invokevirtual(VM_Method methodRef);
+  protected abstract void emit_unresolved_invokevirtual(VM_MethodReference methodRef);
 
   /**
    * Emit code to implement invokevirtual
    * @param methodRef the referenced method
    */
-  protected abstract void emit_resolved_invokevirtual(VM_Method methodRef);
+  protected abstract void emit_resolved_invokevirtual(VM_MethodReference methodRef);
 
 
   /**
@@ -3014,26 +2979,26 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * @param methodRef the referenced method
    * @param target the method to invoke
    */
-  protected abstract void emit_resolved_invokespecial(VM_Method methodRef, VM_Method target);
+  protected abstract void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target);
 
   /**
    * Emit code to implement invokespecial
    * @param methodRef the referenced method
    */
-  protected abstract void emit_unresolved_invokespecial(VM_Method methodRef);
+  protected abstract void emit_unresolved_invokespecial(VM_MethodReference methodRef);
 
 
   /**
    * Emit code to implement a dynamically linked invokestatic
    * @param methodRef the referenced method
    */
-  protected abstract void emit_unresolved_invokestatic(VM_Method methodRef);
+  protected abstract void emit_unresolved_invokestatic(VM_MethodReference methodRef);
 
   /**
    * Emit code to implement invokestatic
    * @param methodRef the referenced method
    */
-  protected abstract void emit_resolved_invokestatic(VM_Method methodRef);
+  protected abstract void emit_resolved_invokestatic(VM_MethodReference methodRef);
 
   //-#if RVM_WITH_OSR
   protected abstract void emit_invoke_compiledmethod(VM_CompiledMethod cm);
@@ -3045,7 +3010,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * @param methodRef the referenced method
    * @param count number of parameter words (see invokeinterface bytecode)
    */
-  protected abstract void emit_invokeinterface(VM_Method methodRef);
+  protected abstract void emit_invokeinterface(VM_MethodReference methodRef);
  
 
   /*

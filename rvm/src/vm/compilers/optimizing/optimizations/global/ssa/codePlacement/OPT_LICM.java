@@ -946,8 +946,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
-	if (loc == null || 
-	    loc.isFieldAccess() && (!loc.getField().isLoaded() || loc.getField().isVolatile())) {
+	if (loc == null || loc.mayBeVolatile()) {
 	  //VM.sysWrite (" no loc or volatile field\n");	  
 	  return CL_COMPLEX;
 	}
@@ -1008,8 +1007,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       } else {
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
-	if (loc == null || 
-	    loc.isFieldAccess() && (!loc.getField().isLoaded() || loc.getField().isVolatile())) {
+	if (loc == null || loc.mayBeVolatile()) {
 	  //VM.sysWrite (" no loc or volatile field\n");	  
 	  return CL_COMPLEX;
 	}

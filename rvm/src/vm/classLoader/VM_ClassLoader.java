@@ -18,21 +18,22 @@ import java.security.ProtectionDomain;
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  * 
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_ClassLoader
-implements VM_Constants, VM_ClassLoaderConstants {
+public class VM_ClassLoader implements VM_Constants, 
+				       VM_ClassLoaderConstants {
 
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param classPath path specification in standard "classpath" format
    */
   public static void setVmRepositories(String classPath) {
-      vmRepositories = classPath;
+    vmRepositories = classPath;
   }
 
   public static String getVmRepositories() {
-      return vmRepositories;
+    return vmRepositories;
   }
 
   /**
@@ -40,8 +41,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param classPath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classPath) {
-      System.setProperty("java.class.path", classPath);
-      applicationRepositories = classPath;
+    System.setProperty("java.class.path", classPath);
+    applicationRepositories = classPath;
   }
 
   /**
@@ -61,33 +62,31 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @return type description
    */ 
   public static VM_Type findOrCreateType(VM_Atom descriptor, ClassLoader cl) {
-    switch ( descriptor.parseForTypeCode() ) {
-      case ClassTypeCode: 
-      case ArrayTypeCode: 
-        return VM_TypeDictionary.getValue(findOrCreateTypeId(descriptor, cl));
-      case BooleanTypeCode:
-        return VM_Type.BooleanType;
-      case ByteTypeCode:
-        return VM_Type.ByteType;
-      case ShortTypeCode:
-        return VM_Type.ShortType;
-      case IntTypeCode:
-        return VM_Type.IntType;
-      case LongTypeCode:
-        return VM_Type.LongType;
-      case FloatTypeCode:
-        return VM_Type.FloatType;
-      case DoubleTypeCode:
-        return VM_Type.DoubleType;
-      case CharTypeCode:
-        return VM_Type.CharType;
-
-      case VoidTypeCode:
-        return VM_Type.VoidType;
-
-      default:
-        VM._assert(NOT_REACHED);
-        return null;
+    switch (descriptor.parseForTypeCode()) {
+    case ClassTypeCode: 
+    case ArrayTypeCode: 
+      return VM_TypeDictionary.getValue(findOrCreateTypeId(descriptor, cl));
+    case BooleanTypeCode:
+      return VM_Type.BooleanType;
+    case ByteTypeCode:
+      return VM_Type.ByteType;
+    case ShortTypeCode:
+      return VM_Type.ShortType;
+    case IntTypeCode:
+      return VM_Type.IntType;
+    case LongTypeCode:
+      return VM_Type.LongType;
+    case FloatTypeCode:
+      return VM_Type.FloatType;
+    case DoubleTypeCode:
+      return VM_Type.DoubleType;
+    case CharTypeCode:
+      return VM_Type.CharType;
+    case VoidTypeCode:
+      return VM_Type.VoidType;
+    default:
+      VM._assert(NOT_REACHED);
+      return null;
     }
   }
 
@@ -124,13 +123,12 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @return type description
    */
   public static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
-    int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
-    VM_Type type   = VM_TypeDictionary.getValue(typeId);
+    int typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
+    VM_Type type = VM_TypeDictionary.getValue(typeId);
     if (type == null)
       VM_TypeDictionary.setValue(typeId, type = new VM_Primitive(name, descriptor, typeId));
     return type;
   }
-
 
   /**
    * Short term migration aid as we phase out the global name space
@@ -147,147 +145,26 @@ implements VM_Constants, VM_ClassLoaderConstants {
     return VM_TypeDictionary.getValues();
   }
 
-  /**
-   * Find a field description, or create one if this is a field we 
-   * haven't seen before.
-   * @param classDescriptor class descriptor - 
-   * something like "Ljava/lang/String;"
-   * @param fieldName field name - something like "value"
-   * @param fieldDescriptor field descriptor - something like "[I"
-   * @return field description
-   */ 
-  static VM_Field findOrCreateField(VM_Atom classDescriptor, 
-                                    VM_Atom fieldName, 
-                                    VM_Atom fieldDescriptor,
-                                    ClassLoader classloader) {
-    return VM_FieldDictionary.getValue(findOrCreateFieldId(classDescriptor, 
-                                                           fieldName, 
-                                                           fieldDescriptor,
-                                                           classloader));
-  }
-
-  /**
-   * Find a field dictionary id, or create one if this is a field we 
-   * haven't seen before.
-   * @param classDescriptor class descriptor - 
-   * something like "Ljava/lang/String;"
-   * @param fieldName field name - something like "value"
-   * @param fieldDescriptor field descriptor - something like "[I"
-   * @return field dictionary id
-   */ 
-  static int findOrCreateFieldId(VM_Atom classDescriptor, 
-                                 VM_Atom fieldName, 
-                                 VM_Atom fieldDescriptor,
-                                 ClassLoader classloader) {
-    VM_MemberReference fieldKey = new VM_MemberReference(classDescriptor, fieldName, 
-                                         fieldDescriptor);
-    int        fieldId  = VM_FieldDictionary.findOrCreateId(fieldKey, null);
-
-    if (VM_FieldDictionary.getValue(fieldId) == null) {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
-      VM_FieldDictionary.setValue(fieldId, new VM_Field(cls, 
-                                                        fieldName, 
-                                                        fieldDescriptor, 
-                                                        fieldId));
+  public static void spaceReport() {
+    int atomBytes = 0;
+    for (int i=1; i<VM_AtomDictionary.getNumValues(); i++) {
+      VM_Atom val = VM_AtomDictionary.getValue(i);
+      if (val != null) atomBytes += val.length();
     }
-
-    // keep size of co-indexed array in pace with dictionary
-    //
-    VM_TableBasedDynamicLinker.ensureFieldCapacity(fieldId);
-
-    return fieldId;
-  }
-
-  /**
-   * Short term migration aid as we phase out the global name space
-   * @param dictId the dictionaryId of a field
-   * @return the corresponding VM_Field object
-   */
-  public static VM_Field getFieldFromId(int id) {
-    return VM_FieldDictionary.getValue(id);
+    VM.sysWriteln("\t[B in VM_Atoms ",atomBytes);
   }
 
   /**
    * Find an interface signature id, or create one if this is an 
    * interface signature we haven't seen before.
-   * @param interfaceMethodName interface method name - something like "getNext"
-   * @param interfaceMethodDescriptor interface method descriptor - 
-   * something like "(I)I"
+   * @param methRef method reference of the target interface method
    * @return interface signature id
    */ 
-  public static int findOrCreateInterfaceMethodSignatureId(VM_Atom interfaceMethodName, 
-                                                    VM_Atom interfaceMethodDescriptor) {
-    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(interfaceMethodName, interfaceMethodDescriptor);
+  public static int findOrCreateInterfaceMethodSignatureId(VM_MemberReference methRef) {
+    VM_InterfaceMethodSignature key = 
+      new VM_InterfaceMethodSignature(methRef.getMemberName(), methRef.getDescriptor());
     int id = VM_InterfaceMethodSignatureDictionary.findOrCreateId(key, UNRESOLVED_INTERFACE_METHOD_OFFSET);
     return id;
-  }
-
-  /**
-   * Find a method description, or create one if this is a method we 
-   * haven't seen before.
-   * @param classDescriptor class descriptor - something like 
-   * "Ljava/lang/String;"
-   * @param methodName method name - something like "charAt"
-   * @param methodDescriptor  method descriptor - something like "(I)C"
-   * @return method description
-   */
-  public static VM_Method findOrCreateMethod(VM_Atom classDescriptor, 
-                                      VM_Atom methodName, 
-                                      VM_Atom methodDescriptor,
-                                      ClassLoader classloader) {
-    return VM_MethodDictionary.getValue(findOrCreateMethodId(classDescriptor, methodName, methodDescriptor, classloader));
-  }
-
-  /**
-   * Find a method dictionary id, or create one if this is a method we 
-   * haven't seen before.
-   * @param classDescriptor class descriptor - something like 
-   * "Ljava/lang/String;"
-   * @param methodName method name - something like "charAt"
-   * @param methodDescriptor  method descriptor - something like "(I)C"
-   * @return method dictionary id
-   */
-  static int findOrCreateMethodId(VM_Atom classDescriptor, 
-                                  VM_Atom methodName, 
-                                  VM_Atom methodDescriptor,
-                                  ClassLoader classloader) {
-    if (classDescriptor.isArrayDescriptor())
-	classDescriptor = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;");
-    VM_MemberReference methodKey = new VM_MemberReference(classDescriptor, methodName, 
-                                          methodDescriptor);
-    int        methodId  = VM_MethodDictionary.findOrCreateId(methodKey, null);
-    if (VM_MethodDictionary.getValue(methodId) == null) {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
-      VM_MethodDictionary.setValue(methodId, 
-                                   new VM_Method(cls, methodName, 
-                                                 methodDescriptor,
-                                                 methodId,
-                                                 classloader));
-    }
-    // keep size of co-indexed array in pace with dictionary
-    //
-    VM_TableBasedDynamicLinker.ensureMethodCapacity(methodId);
-    return methodId;
-  }
-
-  /**
-   * Short term migration aid as we phase out the global name space
-   * @param dictId the dictionaryId of a method
-   * @return the corresponding VM_Method object
-   */
-  public static VM_Method getMethodFromId(int id) {
-    return VM_MethodDictionary.getValue(id);
-  }
-  /**
-   * Short term migration aid as we phase out the global name space
-   * @param key VM_MemberReference describing a method
-   * @return the dictionary Id of the method
-   */
-  public static int getMethodIdFromKey(VM_MemberReference key) {
-    return VM_MethodDictionary.findId(key);
-  }
-  public static int numMethods() {
-    return VM_MethodDictionary.getNumValues();
   }
 
   /**
@@ -438,7 +315,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
     VM_Type.init();
 
     //-#if !RVM_WITH_GNU_CLASSPATH
-    com.ibm.oti.vm.AbstractClassLoader.setBootstrapClassLoader( VM_SystemClassLoader.getVMClassLoader() );
+    com.ibm.oti.vm.AbstractClassLoader.setBootstrapClassLoader(VM_SystemClassLoader.getVMClassLoader());
     //-#endif
   }
 
@@ -484,27 +361,6 @@ implements VM_Constants, VM_ClassLoaderConstants {
   }
 
   /**
-   * Create id for use by C signal handler as placeholder to mark stackframe
-   * introduced when a hardware trap is encountered. This method is completely
-   * artifical: it has no code, class description, etc. 
-   * Its only purpose is to mark the place
-   * on the stack where a trap was encountered, 
-   * for identification when walking the stack
-   * during gc.
-   */ 
-  public static int createHardwareTrapCompiledMethodId() {
-    VM_Method method = VM_ClassLoader.findOrCreateMethod(VM_Atom.findOrCreateAsciiAtom("L<hardware>;"),
-                                                         VM_Atom.findOrCreateAsciiAtom("<trap>"),
-                                                         VM_Atom.findOrCreateAsciiAtom("()V"),
-                                                         VM_SystemClassLoader.getVMClassLoader());
-    VM_CompiledMethod compiledMethod   = VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.TRAP);
-    INSTRUCTION[]     instructions     = VM_Interface.newInstructions(0);
-    compiledMethod.compileComplete(instructions);
-    return compiledMethod.getId();
-  }
-
-
-  /**
    * Expand an array.
    */ 
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
@@ -516,7 +372,6 @@ implements VM_Constants, VM_ClassLoaderConstants {
     VM_Magic.sync();
     return newarray;
   }
-
 
   public static final void resolveClassInternal(Class clazz) {
     VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass( clazz );
@@ -574,216 +429,4 @@ implements VM_Constants, VM_ClassLoaderConstants {
         throw new ClassFormatError(e.getMessage());
     }
   }
-
-  /**
-   * In some bizarre circumstances a key can be created for a member that
-   * does not exist.
-   *
-   * <pre>
-   * e.g. |               |                      |                    |
-   *      |imports p;     |package p;            |package p;          |
-   *      |class C {      |class A {             |class B extends A { |
-   *      |               |                      |                    |
-   *      | void bar () { | public void foo () { |                    |
-   *      |   ... B.foo() |   ...                |                    |
-   *      | }             | }                    |                    |
-   *      |               |                      |                    |
-   *      |}              |}                     |}                   |
-   * </pre>
-   *
-   * <p> Here, a key to the method dictionary is created for the triple
-   * <p.B, "foo", "()V">, even though no such method exists.
-   *
-   * <p> This honors package protection levels.  There was a bug in the
-   * older versions of both javac and jikes that resulted in complete
-   * resolution of method calls and field references.  We can no longer
-   * rely on this bug.
-   *
-   * <p> In such cases, an empty VM_Member object gets created.  This object
-   * has bogus information stored in it, and will have the loaded state
-   * inconsistend with the loaded state of its declaring class.  When such
-   * an object is detected, the following methods repair the appropriate
-   * dictionaries and return the correct member.
-   */ 
-  static VM_Member repairMember(VM_Member m) {
-    if (m instanceof VM_Method) {
-      return repairMethod((VM_Method) m);
-    } else { // m instanceof VM_Field
-      return repairField((VM_Field) m);
-    }
-  }
-
-  static VM_Method repairMethod(VM_Method m) {
-    VM_Method newm = VM_MethodDictionary.getValue(m.getDictionaryId());
-    if (newm != m) return newm;  // already done!
-    VM_Class c = m.getDeclaringClass();
-    VM_Atom name = m.getName();
-    VM_Atom desc = m.getDescriptor();
-    while ((c = c.getSuperClass()) != null) {
-      VM_Method [] dm = c.getDeclaredMethods();
-      for (int i=0; i<dm.length; i++ ) {
-        VM_Method n = dm[i];
-        if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-          VM_MethodDictionary.setValue(m.getDictionaryId(), n);
-          return n;
-        }
-      }
-    }
-    VM.sysWrite(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
-    throw new NoSuchMethodError(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
-  }
-
-  static VM_Field repairField(VM_Field f) {
-    VM_Field newf = VM_FieldDictionary.getValue(f.getDictionaryId());
-    if (newf != f) return newf;  // already done!
-    VM_Class c = f.getDeclaringClass();
-    VM_Atom name = f.getName();
-    VM_Atom desc = f.getDescriptor();
-
-    // Search the inheritance hierarchy
-    while ((c = c.getSuperClass()) != null) {
-      VM_Field it = c.findDeclaredField(name, desc);
-      if (it != null) {
-	VM_FieldDictionary.setValue(f.getDictionaryId(), it);
-	return it;
-      }
-    }
-
-    // Now search the interface hierarchy
-    for (c= f.getDeclaringClass(); c != null; c = c.getSuperClass()) {
-      VM_Class[] interfaces = c.getDeclaredInterfaces();
-      for (int i=0; i<interfaces.length; i++) {
-	VM_Field it = searchInterfaceHierarchy(interfaces[i], name, desc);
-	if (it != null) {
-	  VM_FieldDictionary.setValue(f.getDictionaryId(), it);
-	  return it;
-	}
-      }
-    }
-    
-    throw new NoSuchFieldError(f.getDeclaringClass()+": "+name+" "+desc+" no such field found");
-  }
-  
-  private static VM_Field searchInterfaceHierarchy(VM_Class c, VM_Atom name, VM_Atom desc) {
-    VM_Field it = c.findDeclaredField(name, desc);
-    if (it != null) return it;
-    VM_Class[] interfaces = c.getDeclaredInterfaces();
-    for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceHierarchy(interfaces[i], name, desc);
-      if (it != null) return it;
-    }
-    return null;
-  }
-
-  /**
-   * like repairMethod, except a) we crawl the interface hierarchy
-   * and b) some of the VM_Classes we look at may not be loaded yet,
-   * so we have to know whether or not we are allowed to perform classloading
-   * to resolve the ghost reference. 
-   * we'll return null if it might be a ghost reference and we couldn't 
-   * resolve it.
-   */
-  static VM_Method repairInterfaceMethod(VM_Method m, boolean canLoad) 
-    throws VM_ResolutionException {
-      VM_Method newm = VM_MethodDictionary.getValue(m.getDictionaryId());
-      if (newm != m) return newm;  // already done!
-      newm = repairInterfaceMethodHelper(m, canLoad, m.getDeclaringClass(), 
-                                         m.getName(), m.getDescriptor());
-      if (canLoad && newm == null) {
-        throw new VM_ResolutionException(m.getDeclaringClass().getDescriptor(), 
-                                         new IncompatibleClassChangeError());
-      }
-      return newm;
-    }
-
-  private static VM_Method repairInterfaceMethodHelper(VM_Method m, 
-                                                       boolean canLoad,
-                                                       VM_Class I, 
-                                                       VM_Atom name, 
-                                                       VM_Atom desc) 
-    throws VM_ResolutionException {
-      if (!I.isLoaded()) {
-        if (canLoad) {
-          VM_Runtime.initializeClassForDynamicLink(I);
-          if (!I.isInterface()) 
-            throw new VM_ResolutionException(I.getDescriptor(), 
-                                             new IncompatibleClassChangeError());
-        } else {
-          return null;
-        }
-      }
-
-      VM_Method [] dm = I.getDeclaredMethods();
-      for (int i=0; i<dm.length; i++ ) {
-        VM_Method n = dm[i];
-        if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-          VM_MethodDictionary.setValue(m.getDictionaryId(), n);
-          return n;
-        }
-      }
-
-      VM_Class [] superInterfaces = I.getDeclaredInterfaces();
-      for (int i=0; i<superInterfaces.length; i++) {
-        VM_Class superInterface = superInterfaces[i];
-        VM_Method n = repairInterfaceMethodHelper(m, canLoad, 
-                                                  superInterface, name, desc);
-        if (n != null) return n;
-      }
-
-      return null;
-    }
-
-  /**
-   *  Is dynamic linking code required to access one member when 
-   * referenced from another?
-   *
-   * @param referent the member being referenced
-   * @param referrer the declaring class of the method containing the reference
-   */
-  static public boolean needsDynamicLink(VM_Member referent, VM_Class referrer) {
-    VM_Class referentClass = referent.getDeclaringClass();
-
-    if (referentClass.isInitialized()) {
-      // No dynamic linking code is required to access this field or call this method
-      // because its size and offset are known and its class's static initializer
-      // has already run, thereby compiling this method or initializing this field.
-      //
-      return false;
-    }
-
-    if (referent instanceof VM_Field && referentClass.isResolved() && 
-        referentClass.getClassInitializerMethod() == null) {
-      // No dynamic linking code is required to access this field
-      // because its size and offset is known and its class has no static
-      // initializer, therefore its value need not be specially initialized
-      // (its default value of zero or null is sufficient).
-      //
-      return false;
-    }
-
-    if (VM.writingBootImage && referentClass.isInBootImage()) {
-      // Loads, stores, and calls within boot image are compiled without dynamic
-      // linking code because all boot image classes are explicitly loaded/resolved/compiled
-      // and have had their static initializers run by the boot image writer.
-      //
-      if (!referentClass.isResolved()) VM.sysWrite("unresolved: \"" + referent + "\" referenced from \"" + referrer + "\"\n");
-      if (VM.VerifyAssertions) VM._assert(referentClass.isResolved());
-      return false;
-    }
-
-    if (referentClass == referrer) {
-      // Intra-class references don't need to be compiled with dynamic linking
-      // because they execute *after* class has been loaded/resolved/compiled.
-      //
-      return false;
-    }
-
-    // This member needs size and offset to be computed, or its class's static
-    // initializer needs to be run when the member is first "touched", so
-    // dynamic linking code is required to access the member.
-    //
-    return true;
-  }
-
-
 }

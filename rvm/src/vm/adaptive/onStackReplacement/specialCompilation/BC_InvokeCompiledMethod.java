@@ -13,8 +13,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Feng Qian
  */
 
-public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode 
-  implements VM_ClassLoaderConstants {
+public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
 
   private static int bsize = 10;   
   private int cmid;

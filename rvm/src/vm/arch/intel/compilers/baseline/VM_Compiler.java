@@ -74,7 +74,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
-  protected final boolean emit_Magic(VM_Method magicMethod) {
+  protected final boolean emit_Magic(VM_MethodReference magicMethod) {
     return genMagic(magicMethod);
   }
 
@@ -1847,7 +1847,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked getstatic
    * @param fieldRef the referenced field
    */
-  protected final void emit_unresolved_getstatic(VM_Field fieldRef) {
+  protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true); 
     if (fieldRef.getSize() == 4) { 
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
@@ -1862,8 +1862,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a getstatic
    * @param fieldRef the referenced field
    */
-  protected final void emit_resolved_getstatic(VM_Field fieldRef) {
-    int fieldOffset = fieldRef.getOffset();
+  protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
+    int fieldOffset = fieldRef.resolve().getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
@@ -1878,7 +1878,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked putstatic
    * @param fieldRef the referenced field
    */
-  protected final void emit_unresolved_putstatic(VM_Field fieldRef) {
+  protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(asm, T0);
@@ -1897,8 +1897,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a putstatic
    * @param fieldRef the referenced field
    */
-  protected final void emit_resolved_putstatic(VM_Field fieldRef) {
-    int fieldOffset = fieldRef.getOffset();
+  protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
+    int fieldOffset = fieldRef.resolve().getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
     }
@@ -1916,7 +1916,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked getfield
    * @param fieldRef the referenced field
    */
-  protected final void emit_unresolved_getfield(VM_Field fieldRef) {
+  protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
@@ -1935,8 +1935,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a getfield
    * @param fieldRef the referenced field
    */
-  protected final void emit_resolved_getfield(VM_Field fieldRef) {
-    int fieldOffset = fieldRef.getOffset();
+  protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
+    int fieldOffset = fieldRef.resolve().getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
@@ -1955,7 +1955,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked putfield
    * @param fieldRef the referenced field
    */
-  protected final void emit_unresolved_putfield(VM_Field fieldRef) {
+  protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0);
@@ -1983,11 +1983,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
-  protected final void emit_resolved_putfield(VM_Field fieldRef) {
+  protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
+    int fieldOffset = fieldRef.resolve().getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm(asm, fieldRef.getOffset());
+      VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
     }
-    int fieldOffset = fieldRef.getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
@@ -2014,8 +2014,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked invokevirtual
    * @param methodRef the referenced method
    */
-  protected final void emit_unresolved_invokevirtual(VM_Method methodRef) {
-    emitDynamicLinkingSequence(T0, methodRef);
+  protected final void emit_unresolved_invokevirtual(VM_MethodReference methodRef) {
+    emitDynamicLinkingSequence(T0, methodRef, true);
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     int objectOffset = (methodRefparameterWords << 2) - 4;           // object offset into stack
     asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);                  // S0 has "this" parameter
@@ -2030,9 +2030,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement invokevirtual
    * @param methodRef the referenced method
    */
-  protected final void emit_resolved_invokevirtual(VM_Method methodRef) {
+  protected final void emit_resolved_invokevirtual(VM_MethodReference methodRef) {
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int methodRefOffset = methodRef.getOffset();
+    int methodRefOffset = methodRef.resolve().getOffset();
     int objectOffset = (methodRefparameterWords << 2) - WORDSIZE; // object offset into stack
     asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);
     VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
@@ -2047,11 +2047,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param methodRef the referenced method
    * @param targetRef the method to invoke
    */
-  protected final void emit_resolved_invokespecial(VM_Method methodRef, VM_Method target) {
+  protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) {
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_RegDisp(JTOC, target.getOffset());
-      genResultRegisterUnload(target);
+      genResultRegisterUnload(target.getMemberRef().asMethodReference());
     } else {
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       // invoke via class's tib slot
@@ -2067,8 +2067,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement invokespecial
    * @param methodRef the referenced method
    */
-  protected final void emit_unresolved_invokespecial(VM_Method methodRef) {
-    emitDynamicLinkingSequence(S0, methodRef);
+  protected final void emit_unresolved_invokespecial(VM_MethodReference methodRef) {
+    emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, true);
     asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);  // call static method
     genResultRegisterUnload(methodRef);
@@ -2079,8 +2079,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement a dynamically linked invokestatic
    * @param methodRef the referenced method
    */
-  protected final void emit_unresolved_invokestatic(VM_Method methodRef) {
-    emitDynamicLinkingSequence(S0, methodRef);
+  protected final void emit_unresolved_invokestatic(VM_MethodReference methodRef) {
+    emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, false);          
     asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0); 
     genResultRegisterUnload(methodRef);
@@ -2090,8 +2090,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement invokestatic
    * @param methodRef the referenced method
    */
-  protected final void emit_resolved_invokestatic(VM_Method methodRef) {
-    int methodOffset = methodRef.getOffset();
+  protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
+    int methodOffset = methodRef.resolve().getOffset();
     genParameterRegisterLoad(methodRef, false);
     asm.emitCALL_RegDisp(JTOC, methodOffset);
     genResultRegisterUnload(methodRef);
@@ -2103,21 +2103,22 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param methodRef the referenced method
    * @param count number of parameter words (see invokeinterface bytecode)
    */
-  protected final void emit_invokeinterface(VM_Method methodRef) {
+  protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     // (1) Emit dynamic type checking sequence if required to do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 
 	(VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-      VM_Method resolvedMethodRef = null;
+      VM_Method resolvedMethod = null;
       try {
-	resolvedMethodRef = methodRef.resolveInterfaceMethod(false);
+	resolvedMethod = methodRef.resolveInterfaceMethod(false);
       } catch (VM_ResolutionException e) {
 	// actually can't be thrown when we pass false for canLoad.
       }
-      if (resolvedMethodRef == null) {
-	// might be a ghost ref. Call uncommon case typechecking routine to deal with this
+      if (resolvedMethod == null) {
+	// Can't successfully resolve it at compile time.
+	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
 	asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                       // "this" object
-	asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // dict id of target
+	asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
 	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
 	asm.emitPUSH_Reg(S0);
 	genParameterRegisterLoad(2);                                            // pass 2 parameter word
@@ -2125,7 +2126,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       } else {
 	asm.emitMOV_Reg_RegDisp (T0, JTOC, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
 	asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
-	asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                // type of the interface method
+	asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                    // type of the interface method
 	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
 	asm.emitPUSH_Reg(S0);
 	genParameterRegisterLoad(2);                                          // pass 2 parameter word
@@ -2135,7 +2136,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     // (2) Emit interface invocation sequence.
     if (VM.BuildForIMTInterfaceInvocation) {
-      int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
+      int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef);
       int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
           
       // squirrel away signature ID
@@ -2154,28 +2155,29 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
 	       methodRef.getDeclaringClass().isResolved()) {
-      methodRef = methodRef.resolve();
-      VM_Class I = methodRef.getDeclaringClass();
+      VM_Method method = methodRef.resolve();
+      VM_Class I = method.getDeclaringClass();
       asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
       asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
       asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
       genParameterRegisterLoad(methodRef, true);
-      asm.emitCALL_RegDisp(S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2); // the interface call
+      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
+      asm.emitCALL_RegDisp(S0, idx << 2); // the interface call
     } else {
       VM_Class I = methodRef.getDeclaringClass();
       int itableIndex = -1;
-      if (false && VM.BuildForITableInterfaceInvocation) {
+      if (VM.BuildForITableInterfaceInvocation) {
 	// get the index of the method in the Itable
 	if (I.isLoaded()) {
-	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
+	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
 	}
       }
       if (itableIndex == -1) {
 	// itable index is not known at compile-time.
 	// call "invokeInterface" to resolve object + method id into 
 	// method address
-	int methodRefId = methodRef.getDictionaryId();
+	int methodRefId = methodRef.getId();
 	asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
 	asm.emitPUSH_Imm(methodRefId);                 // id of method to call
 	genParameterRegisterLoad(2);               // pass 2 parameter words
@@ -2213,7 +2215,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
-    int tibOffset = typeRef.getOffset();
+    int tibOffset = typeRef.getTibOffset();
     int whichAllocator = VM_Interface.pickAllocator(typeRef);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
@@ -2241,7 +2243,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_newarray(VM_Array array) {
     int width      = array.getLogElementSize();
-    int tibOffset  = array.getOffset();
+    int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = VM_Interface.pickAllocator(array);
     // count is already on stack- nothing required
@@ -2632,7 +2634,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param method is the method to be called.
    * @param hasThisParameter is the method virtual?
    */
-  private final void genParameterRegisterLoad (VM_Method method, boolean hasThisParam) {
+  private final void genParameterRegisterLoad (VM_MethodReference method, boolean hasThisParam) {
     int max = NUM_PARAMETER_GPRS + NUM_PARAMETER_FPRS;
     if (max == 0) return; // quit looking when all registers are full
     int gpr = 0;  // number of general purpose registers filled
@@ -2798,7 +2800,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /** 
    * Push return value of method from register to operand stack.
    */
-  private final void genResultRegisterUnload (VM_Method method) {
+  private final void genResultRegisterUnload (VM_MethodReference method) {
     VM_Type t = method.getReturnType();
     if (t.isVoidType()) return;
     if (t.isLongType()) {
@@ -2857,8 +2859,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   }
 
-  private final boolean genMagic (VM_Method m) {
-    VM_Atom methodName = m.getName();
+  private final boolean genMagic (VM_MethodReference m) {
+    VM_Atom methodName = m.getMemberName();
 
     if (methodName == VM_MagicNames.attempt) {
       // attempt gets called with four arguments
@@ -3608,25 +3610,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
     return offsetToFrameHead + offset;
   }
-  
-  private void emitDynamicLinkingSequence(byte reg, VM_Field fieldRef, boolean couldBeZero) {
-    emitDynamicLinkingSequence(reg, fieldRef.getDictionaryId(), couldBeZero,
-			       VM_Entrypoints.fieldOffsetsField.getOffset(),
-			       VM_Entrypoints.resolveFieldMethod.getOffset());
-  }
 
-  private void emitDynamicLinkingSequence(byte reg, VM_Method methodRef) {
-    emitDynamicLinkingSequence(reg, methodRef.getDictionaryId(), true,
-			       VM_Entrypoints.methodOffsetsField.getOffset(),
-			       VM_Entrypoints.resolveMethodMethod.getOffset());
-  }
-
-  private void emitDynamicLinkingSequence(byte reg, int memberId,
-					  boolean couldBeZero,
-					  int tableOffset,
-					  int resolverOffset) {
+  private void emitDynamicLinkingSequence(byte reg, VM_MemberReference ref, boolean couldBeZero) {
+    int memberId = ref.getId();
     int memberOffset = memberId << 2;
+    int tableOffset = VM_Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
+      int resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
       asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
       asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
@@ -3658,9 +3648,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
     int methodOffset = cm.getOsrJTOCoffset();
     boolean takeThis = !cm.method.isStatic();
-    genParameterRegisterLoad(cm.method, takeThis);
+    VM_MethodReference ref = cm.method.getMemberRef().asMethodReference();
+    genParameterRegisterLoad(ref, takeThis);
     asm.emitCALL_RegDisp(JTOC, methodOffset);
-    genResultRegisterUnload(cm.method);
+    genResultRegisterUnload(ref);
   }
 
   protected final void emit_loadaddrconst(int bcIndex) {

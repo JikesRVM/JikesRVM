@@ -518,7 +518,7 @@ public class VM_Runtime implements VM_Constants {
    *     (for TRAP_STACK_OVERFLOW)
    * 
    * <p> Note:     Control reaches here by the actions of an 
-   * external "C" signal handler
+   *           external "C" signal handler
    *           which saves the register state of the trap site into the 
    *           "hardwareExceptionRegisters" field of the current 
    *           VM_Thread object. 
@@ -668,7 +668,7 @@ public class VM_Runtime implements VM_Constants {
     // whenever the host operating system detects a hardware trap
     //
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
-      VM_ClassLoader.createHardwareTrapCompiledMethodId();
+      VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
       VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 

@@ -18,9 +18,8 @@ import com.ibm.JikesRVM.opt.*;
 
 public final class OSR_BaselineExecStateExtractor 
   extends OSR_ExecStateExtractor implements VM_Constants, 
-	     OSR_Constants,
-	     VM_ClassLoaderConstants,
-	     OPT_PhysicalRegisterConstants {
+					    OSR_Constants,
+					    OPT_PhysicalRegisterConstants {
 
   /**
    * Implements OSR_ExecStateExtractor.extractState.

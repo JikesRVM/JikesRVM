@@ -52,52 +52,60 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * The type of this location.
    */
-  public int type;
+  protected int type;
 
   /**
    * Field that corresponds to this location.
    * null if this is not a field access.
    */
-  public VM_Field field;
+  protected VM_FieldReference fieldRef;
 
   /**
    * Method operand that corresponds to this location
    * null if this is not a method access.
    */
-  public OPT_MethodOperand methOp;
+  protected OPT_MethodOperand methOp;
 
   /**
    * Array element type that corresponds to the type of the array that contains
    * this location. null if this is not an array access.
    */
-  public VM_Type arrayElementType;
+  protected VM_Type arrayElementType;
 
   /**
    * JTOC index that corresponds to this location.
    * -1 if this is not a JTOC access.
    */
-  public int JTOCindex = -1;
+  protected int JTOCindex = -1;
 
   /**
    * Spill offset that corresponds to this location.
    * -1 if this is not a spill access.
    */
-  public int spillOffset = -1;
+  protected int spillOffset = -1;
 
   /**
    * Reference number.  Set by alias analysis.
    * Used to distinguish same-type accesses.
    */
-  public int refNumber;
+  protected int refNumber;
 
   /**
    * Constructs a new location operand with the given field
-   * 
+   * @param loc location
+   */
+  public OPT_LocationOperand(VM_FieldReference loc) {
+    type = FIELD_ACCESS;
+    fieldRef = loc;
+  }
+
+  /**
+   * Constructs a new location operand with the given field
    * @param loc location
    */
   public OPT_LocationOperand(VM_Field loc) {
     type = FIELD_ACCESS;
-    field = loc;
+    fieldRef = loc.getMemberRef().asFieldReference();
   }
 
   /**
@@ -144,25 +152,9 @@ public final class OPT_LocationOperand extends OPT_Operand
   }
 
   public static OPT_LocationOperand createRedirection() {
-      OPT_LocationOperand result = new OPT_LocationOperand();
-      result.type = REDIRECTION_ACCESS;
-      return result;
-  }
-
-  /**
-   * Sets the reference number.  To be used by alias analysis.
-   *
-   * @param n the new reference number
-   */
-  public final void setRefNumber(int n) {
-    refNumber = n;
-  }
-
-  /**
-   * Returns the reference number.
-   */
-  public final int getRefNumber() {
-    return refNumber;
+    OPT_LocationOperand result = new OPT_LocationOperand();
+    result.type = REDIRECTION_ACCESS;
+    return result;
   }
 
   public final OPT_LocationOperand asFieldAccess()   { return this; }
@@ -172,7 +164,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   public final OPT_LocationOperand asALengthAccess() { return this; }
   public final OPT_LocationOperand asMethodAccess()  { return this; }
 
-  public final VM_Field getField() { return field; }
+  public final VM_FieldReference getFieldRef() { return fieldRef; }
   public final VM_Type getElementType() { return arrayElementType; }
   public final int getIndex() { return JTOCindex; }
   public final int getOffset() { return spillOffset; }
@@ -186,6 +178,16 @@ public final class OPT_LocationOperand extends OPT_Operand
   public final boolean isRedirectionAccess() { return type == REDIRECTION_ACCESS; }
 
   /**
+   * Is the accessed location possibly volatile?
+   */
+  public final boolean mayBeVolatile() {
+    if (!isFieldAccess()) return false;
+    VM_Field f = fieldRef.resolve(false);
+    return f == null || f.isVolatile();
+  }
+
+
+  /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
    * 
    * @return a copy of <code>this</code>
@@ -194,7 +196,7 @@ public final class OPT_LocationOperand extends OPT_Operand
     OPT_LocationOperand o = null;
     switch (type) {
     case FIELD_ACCESS:   
-      o = new OPT_LocationOperand(field); 
+      o = new OPT_LocationOperand(fieldRef); 
       break;
     case ARRAY_ACCESS:   
       o = new OPT_LocationOperand(arrayElementType); 
@@ -218,7 +220,6 @@ public final class OPT_LocationOperand extends OPT_Operand
       o = new OPT_LocationOperand(); 
       break;
     }
-    o.refNumber = refNumber;
     return o;
   }
 
@@ -238,15 +239,16 @@ public final class OPT_LocationOperand extends OPT_Operand
    *         <code>false</code> if they are definitely not aliased
    */
   public static boolean mayBeAliased(OPT_LocationOperand op1, 
-			      OPT_LocationOperand op2) {
+				     OPT_LocationOperand op2) {
     if (op1 == null || op2 == null) return true;	// be conservative
-
-    return (op1.type == op2.type) &&
-      (op1.field == op2.field) &&
-      arrayMayBeAliased(op1.arrayElementType, op2.arrayElementType) &&
-      (op1.JTOCindex == op2.JTOCindex) &&
-      (op1.spillOffset == op2.spillOffset) &&
-      (op1.refNumber == op2.refNumber);
+    if (op1.type != op2.type) return false;
+    if (op1.fieldRef != null) {
+      return !op1.fieldRef.definitelyDifferent(op2.fieldRef);
+    } else {
+      return arrayMayBeAliased(op1.arrayElementType, op2.arrayElementType) &&
+	(op1.JTOCindex == op2.JTOCindex) &&
+	(op1.spillOffset == op2.spillOffset);
+    }
   }
 
   /**
@@ -273,7 +275,8 @@ public final class OPT_LocationOperand extends OPT_Operand
     case METHOD_ACCESS: 
       return "<mem loc: methOp is null!>";
     case FIELD_ACCESS:   
-      return "<mem loc: "+field.getDeclaringClass().getName() + "." +field.getName()+">";
+      // return "<mem loc: "+fieldRef.getClassName() + "." +fieldRef.getMemberName()+">";
+      return "<mem loc: "+fieldRef+">";
     case ARRAY_ACCESS:   
       return "<mem loc: array "+arrayElementType+"[]>";
     case JTOC_ACCESS:

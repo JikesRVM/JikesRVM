@@ -71,12 +71,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
     */ 
    public final int getTibOffset() throws VM_PragmaUninterruptible { return tibSlot << 2; }
 
-   /**
-    * Deprecated.
-    *!!TODO: remove this when cleanup complete. [--DL]
-    */
-   public final int getOffset() { return getTibOffset(); }
-
    // Classification.
    //
    public final boolean isClassType() throws VM_PragmaUninterruptible { return dimension == 0; } 
@@ -263,7 +257,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   /**
    * Set the class loader for this type
    */
-  public abstract void setClassLoader(ClassLoader classLoader);
+  abstract void setClassLoader(ClassLoader classLoader);
 
   /**
    * get number of superclasses to Object 
@@ -471,9 +465,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
    */
   private   Class   classForType; 
   /**
-   * RCGC: is this type acyclic? (public because VM_Type not Uninterruptable)
+   * RCGC: is this type acyclic? 
    */
-  public    boolean acyclic;	   
+  protected boolean acyclic;	   
   /**
    * -1 => primitive, 0 => Class/Interface, positive => array (number of [)
    */
