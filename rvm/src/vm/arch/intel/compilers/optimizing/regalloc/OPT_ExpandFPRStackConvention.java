@@ -78,9 +78,9 @@ implements OPT_Operators{
           s.insertAfter(MIR_UnaryNoRes.create(DUMMY_USE,OPT_IRTools.D(fpr)));
           fpStackOffset--;
         } else if (s.operator().isFpPush()) {
+          fpStackOffset++;
           OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);
           s.insertBefore(MIR_Nullary.create(DUMMY_DEF,OPT_IRTools.D(fpr)));
-          fpStackOffset++;
         }
         if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
         if (VM.VerifyAssertions) VM.assert(fpStackOffset <
