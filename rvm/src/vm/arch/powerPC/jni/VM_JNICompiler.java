@@ -680,18 +680,22 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         spillSizeOSX = 4;
         //-#endif
         
-        // For reference type, replace with handlers before passing to native
+        // For reference type, replace with handles before passing to native
         int srcreg, dstreg;
         if (nextVMArgReg <= LAST_VOLATILE_GPR) {
           srcreg = nextVMArgReg++;
         } else {
           srcreg = REGISTER_ZERO;
-	  asmArg.emitLAddr(srcreg, spillOffsetVM, FP);
+          asmArg.emitLAddr(srcreg, spillOffsetVM, FP);
           spillOffsetVM += BYTES_IN_ADDRESS;
         }
 
-	asmArg.emitSTAddrU(srcreg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);
+        // Are we passing NULL?
+        asmArg.emitCMPI(srcreg, 0);
+        VM_ForwardReference isNull = asmArg.emitForwardBC(EQ);
         
+        // NO: put it in the JNIRefs array and pass offset
+        asmArg.emitSTAddrU(srcreg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);
         if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
           //-#if RVM_FOR_LINUX
           asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
@@ -700,11 +704,31 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           //-#endif
         } else {
           asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS, FP);
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS, FP);
           //-#if RVM_FOR_LINUX
           spillOffsetOS += BYTES_IN_ADDRESS;
           //-#endif
         }
+        VM_ForwardReference done = asmArg.emitForwardB();
+        
+        // YES: pass NULL (0)
+        isNull.resolve(asmArg);
+        if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          //-#if RVM_FOR_LINUX
+          asmArg.emitLVAL(nextOSArgReg++, 0);
+          //-#else
+          asmArg.emitLVAL(nextOSArgReg, 0);
+          //-#endif
+        } else {
+          asmArg.emitSTAddr(srcreg, spillOffsetOS, FP);
+          //-#if RVM_FOR_LINUX
+          spillOffsetOS += BYTES_IN_ADDRESS;
+          //-#endif
+        }
+
+        // JOIN PATHS
+        done.resolve(asmArg);
+        
       } else {
         //-#if RVM_FOR_OSX
         spillSizeOSX = 4;
