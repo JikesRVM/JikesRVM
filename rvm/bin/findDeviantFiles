@@ -148,7 +148,7 @@ find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatched
 find . "${find_optsA[@]}" -exec fgrep -c "(C) Copyright" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$2/noCopyright.$3"
 
 #$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
-#echo "find all plain files with \$Id: tags"
+#echo "find all plain files without \$Id: tags"
 find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$2/noId.$3"
 
 
