@@ -11,41 +11,25 @@
  */
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
+  /**
+   * Create a VM_Compiler object for the compilation of method.
+   */
+  VM_Compiler(VM_Method m, int cmid) {
+    super(m, cmid);
+    int bcLen = bytecodes.length;
+    stackHeights = new int[bcLen];
+    if (klass.isBridgeFromNative())
+      // JNIFunctions need space for bigger prolog & epilog
+      asm = new VM_Assembler(bcLen+10,shouldPrint);
+    else
+      asm = new VM_Assembler(bcLen,shouldPrint);
+  }
+
+
   //-----------//
   // interface //
   //-----------//
   
-  static synchronized VM_CompiledMethod compile (VM_Method method) {
-    int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
-    if (method.isNative()) {
-      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(compiledMethodId, method);
-      VM_CompilerInfo info = new VM_JNICompilerInfo(method);
-      return new VM_CompiledMethod(compiledMethodId, method, machineCode.getInstructions(), info);
-    } else if (VM.runningAsJDPRemoteInterpreter) {
-      return new VM_CompiledMethod(compiledMethodId, method, null, null);
-    } else {
-      VM_Compiler     compiler     = new VM_Compiler();
-      boolean         shouldPrint  = ((options.PRINT_MACHINECODE) &&
-				     (!options.hasMETHOD_TO_PRINT() ||
-				     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
-      if (shouldPrint) printStartHeader(method);
-      compiler.stackHeights        = new int[method.getBytecodes().length];
-      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, compiler.stackHeights);
-      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method, shouldPrint);
-      if (shouldPrint) printEndHeader(method);
-      INSTRUCTION[]   instructions = machineCode.getInstructions();
-      int[]           bytecodeMap  = machineCode.getBytecodeMap();
-      VM_CompilerInfo info;
-      if (method.isSynchronized()) {
-        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length, compiler.lockOffset);
-      } else {
-        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length);
-      }
-      VM_Assembler.TRACE = false;
-      return new VM_CompiledMethod(compiledMethodId, method, instructions, info);
-    }
-  }
-
   // The last true local
   //
   static int getEmptyStackOffset (VM_Method m) {
@@ -63,42 +47,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
   }
   
-  final int getBytecodeIndex () {
-    return biStart;
-  }
-  
-  final int[] getBytecodeMap () {
-    return bytecodeMap;
-  }
-
-  static VM_ExceptionDeliverer getExceptionDeliverer () {
-     return exceptionDeliverer;
-  }
-
 
 
   //----------------//
   // implementation //
   //----------------//
   
-  private final VM_MachineCode genCode (int compiledMethodId, VM_Method method, boolean shouldPrint) {
-    if (options.PRINT_METHOD) printMethodMessage(method);
-    /* initialization */ {
-      // TODO!! check register ranges TODO!!
-      this.method          = method;
-      klass                = method.getDeclaringClass();
-      bytecodes            = method.getBytecodes();
-      bytecodeLength       = bytecodes.length;
-      bytecodeMap          = new int [bytecodeLength];
-      if (klass.isBridgeFromNative())
-	// JNIFunctions need space for bigger prolog & epilog
-	asm                  = new VM_Assembler(bytecodeLength+10,shouldPrint);
-      else
-	asm                  = new VM_Assembler(bytecodeLength,shouldPrint);
-      parameterWords       = method.getParameterWords();
-      parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
-    }
-    VM_Assembler asm = this.asm; // premature optimization
+  protected final VM_MachineCode genCode (int compiledMethodId, VM_Method method) {
+    parameterWords       = method.getParameterWords();
+    parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
     if (klass.isBridgeFromNative()) {
       // replace the normal prologue with a special prolog
       VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method, compiledMethodId);
@@ -108,124 +65,124 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     } else {
       genPrologue(compiledMethodId);
     }
-    for (bi=0; bi<bytecodeLength;) { 
+    for (bi=0; bi<bytecodes.length;) {
       bytecodeMap[bi] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(bi);
       biStart = bi;
       int code = fetch1ByteUnsigned();
       switch (code) {
       case 0x00: /* nop */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "nop");
+	if (shouldPrint) asm.noteBytecode(biStart, "nop");
 	break;
       }
       case 0x01: /* aconst_null */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aconst_null ");
+	if (shouldPrint) asm.noteBytecode(biStart, "aconst_null ");
 	asm.emitPUSH_Imm(0);
 	break;
       }
       case 0x02: /* iconst_m1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_m1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1 ");
 	asm.emitPUSH_Imm(-1);
 	break;
       }
       case 0x03: /* iconst_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_0 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_0 ");
 	asm.emitPUSH_Imm(0);
 	break;
       }
       case 0x04: /* iconst_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_1 ");
 	asm.emitPUSH_Imm(1);
 	break;
       }
       case 0x05: /* iconst_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_2 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_2 ");
 	asm.emitPUSH_Imm(2);
 	break;
       }
       case 0x06: /* iconst_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_3 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_3 ");
 	asm.emitPUSH_Imm(3);
 	break;
       }
       case 0x07: /* iconst_4 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_4 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_4 ");
 	asm.emitPUSH_Imm(4);
 	break;
       }
       case 0x08: /* iconst_5 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iconst_5 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_5 ");
 	asm.emitPUSH_Imm(5);
 	break;
       }
       case 0x09: /* lconst_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lconst_0 ");  // floating-point 0 is long 0
+	if (shouldPrint) asm.noteBytecode(biStart, "lconst_0 ");  // floating-point 0 is long 0
 	asm.emitPUSH_Imm(0);
 	asm.emitPUSH_Imm(0);
 	break;
       }
       case 0x0a: /* lconst_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lconst_1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "lconst_1 ");
 	asm.emitPUSH_Imm(0);  // high part
 	asm.emitPUSH_Imm(1);  //  low part
 	break;
       }
       case 0x0b: /* fconst_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fconst_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "fconst_0");
 	asm.emitPUSH_Imm(0);
 	break;
       }
       case 0x0c: /* fconst_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fconst_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "fconst_1");
 	asm.emitPUSH_Imm(0x3f800000);
 	break;
       }
       case 0x0d: /* fconst_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fconst_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "fconst_2");
 	asm.emitPUSH_Imm(0x40000000);
 	break;
       }
       case 0x0e: /* dconst_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dconst_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "dconst_0");
 	asm.emitPUSH_Imm(0x00000000);
 	asm.emitPUSH_Imm(0x00000000);
 	break;
       }
       case 0x0f: /* dconst_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dconst_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "dconst_1");
 	asm.emitPUSH_Imm(0x3ff00000);
 	asm.emitPUSH_Imm(0x00000000);
 	break;
       }
       case 0x10: /* bipush */ {
 	int val = fetch1ByteSigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "bipush " + VM_Lister.decimal(val));
+	if (shouldPrint) asm.noteBytecode(biStart, "bipush " + VM_Lister.decimal(val));
 	asm.emitPUSH_Imm(val);
 	break;
       }
       case 0x11: /* sipush */ {
 	int val = fetch2BytesSigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "sipush " + VM_Lister.decimal(val));
+	if (shouldPrint) asm.noteBytecode(biStart, "sipush " + VM_Lister.decimal(val));
 	asm.emitPUSH_Imm(val);
 	break;
       }
       case 0x12: /* ldc */ {
 	int index = fetch1ByteUnsigned();
 	int offset = klass.getLiteralOffset(index);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ldc " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc " + VM_Lister.decimal(index));
 	asm.emitPUSH_RegDisp(JTOC, offset);   
 	break;
       }
       case 0x13: /* ldc_w */ {
 	int index = fetch2BytesUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ldc_w " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc_w " + VM_Lister.decimal(index));
 	int offset = klass.getLiteralOffset(index);
 	asm.emitPUSH_RegDisp(JTOC, offset);   
 	break;
       }
       case 0x14: /* ldc2_w */ {
 	int index = fetch2BytesUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ldc2_w " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w " + VM_Lister.decimal(index));
 	int offset = klass.getLiteralOffset(index);
 	asm.emitPUSH_RegDisp(JTOC, offset+4); // high part of the long
 	asm.emitPUSH_RegDisp(JTOC, offset);   // low part of the long
@@ -233,14 +190,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x15: /* iload */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "iload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitPUSH_RegDisp(ESP,offset);
 	break;
       }
       case 0x16: /* lload */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "lload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
@@ -248,14 +205,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x17: /* fload */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "fload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x18: /* dload */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "dload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
@@ -263,141 +220,141 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x19: /* aload */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "aload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x1a: /* iload_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "iload_0");
 	int offset = localOffset(0);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1b: /* iload_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "iload_1");
 	int offset = localOffset(1);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1c: /* iload_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "iload_2");
 	int offset = localOffset(2);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1d: /* iload_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "iload_3");
 	int offset = localOffset(3);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1e: /* lload_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "lload_0");
 	int offset = localOffset(0);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x1f: /* lload_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "lload_1");
 	int offset = localOffset(1);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x20: /* lload_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "lload_2");
 	int offset = localOffset(2);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x21: /* lload_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "lload_3");
 	int offset = localOffset(3);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x22: /* fload_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "fload_0");
 	int offset = localOffset(0);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x23: /* fload_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "fload_1");
 	int offset = localOffset(1);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x24: /* fload_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "fload_2");
 	int offset = localOffset(2);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x25: /* fload_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "fload_3");
 	int offset = localOffset(3);
 	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x26: /* dload_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "dload_0");
 	int offset = localOffset(0);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x27: /* dload_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "dload_1");
 	int offset = localOffset(1);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x28: /* dload_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "dload_2");
 	int offset = localOffset(2);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x29: /* dload_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "dload_3");
 	int offset = localOffset(3);
 	asm.emitPUSH_RegDisp(ESP, offset); // high part
 	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x2a: /* aload_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "aload_0");
 	int offset = localOffset(0);
 	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2b: /* aload_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "aload_1");
 	int offset = localOffset(1);
 	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }           
       case 0x2c: /* aload_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "aload_2");
 	int offset = localOffset(2);
 	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2d: /* aload_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "aload_3");
 	int offset = localOffset(3);
 	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       } 
       case 0x2e: /* iaload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iaload");
+	if (shouldPrint) asm.noteBytecode(biStart, "iaload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
@@ -406,7 +363,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x2f: /* laload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "laload");
+	if (shouldPrint) asm.noteBytecode(biStart, "laload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -416,7 +373,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x30: /* faload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "faload");
+	if (shouldPrint) asm.noteBytecode(biStart, "faload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
@@ -425,7 +382,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x31: /* daload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "daload");
+	if (shouldPrint) asm.noteBytecode(biStart, "daload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -435,7 +392,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x32: /* aaload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aaload");
+	if (shouldPrint) asm.noteBytecode(biStart, "aaload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
@@ -444,7 +401,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x33: /* baload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "baload");
+	if (shouldPrint) asm.noteBytecode(biStart, "baload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                     // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                     // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -454,7 +411,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x34: /* caload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "caload");
+	if (shouldPrint) asm.noteBytecode(biStart, "caload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
@@ -464,7 +421,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x35: /* saload */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "saload");
+	if (shouldPrint) asm.noteBytecode(biStart, "saload");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
@@ -475,14 +432,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x36: /* istore */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "istore " + VM_Lister.decimal(index));
 	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x37: /* lstore */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore " + VM_Lister.decimal(index));
 	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
@@ -490,14 +447,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x38: /* fstore */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore " + VM_Lister.decimal(index));
 	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x39: /* dstore */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore " + VM_Lister.decimal(index));
 	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
@@ -505,141 +462,141 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x3a: /* astore */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "astore " + VM_Lister.decimal(index));
 	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3b: /* istore_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "istore_0");
 	int offset = localOffset(0) - 4;
 	asm.emitPOP_RegDisp (ESP, offset); // pop computes EA after ESP has moved by 4!
 	break;
       }
       case 0x3c: /* istore_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "istore_1");
 	int offset = localOffset(1) -4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3d: /* istore_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "istore_2");
 	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3e: /* istore_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "istore_3");
 	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3f: /* lstore_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore_0");
 	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x40: /* lstore_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore_1");
 	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x41: /* lstore_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore_2");
 	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       } 
       case 0x42: /* lstore_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore_3");
 	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x43: /* fstore_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore_0");
 	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x44: /* fstore_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore_1");
 	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x45: /* fstore_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore_2");
 	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x46: /* fstore_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore_3");
 	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x47: /* dstore_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore_0");
 	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x48: /* dstore_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore_1");
 	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x49: /* dstore_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore_2");
 	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4a: /* dstore_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore_3");
 	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp(ESP, offset); // high part
 	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4b: /* astore_0 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_0");
+	if (shouldPrint) asm.noteBytecode(biStart, "astore_0");
 	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4c: /* astore_1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_1");
+	if (shouldPrint) asm.noteBytecode(biStart, "astore_1");
 	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x4d: /* astore_2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_2");
+	if (shouldPrint) asm.noteBytecode(biStart, "astore_2");
 	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4e: /* astore_3 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_3");
+	if (shouldPrint) asm.noteBytecode(biStart, "astore_3");
 	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
 	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4f: /* iastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "iastore");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -649,7 +606,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x50: /* lastore */ { 
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lastore"); 
+	if (shouldPrint) asm.noteBytecode(biStart, "lastore"); 
 	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -661,7 +618,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x51: /* fastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "fastore");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -671,7 +628,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x52: /* dastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "dastore");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -683,7 +640,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x53: /* aastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "aastore");
 	asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
 	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
 	genParameterRegisterLoad(2);                     // pass 2 parameter
@@ -699,7 +656,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x54: /* bastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "bastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "bastore");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -718,7 +675,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x56: /* sastore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "sastore");
+	if (shouldPrint) asm.noteBytecode(biStart, "sastore");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -728,24 +685,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x57: /* pop */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "pop");
+	if (shouldPrint) asm.noteBytecode(biStart, "pop");
 	asm.emitPOP_Reg(T0);
 	break;
       }
       case 0x58: /* pop2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "pop2");
+	if (shouldPrint) asm.noteBytecode(biStart, "pop2");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(T0);
 	break;
       }
       case 0x59: /* dup */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup");
 	asm.emitMOV_Reg_RegInd (T0, SP);
 	asm.emitPUSH_Reg(T0);
 	break;
       } 
       case 0x5a: /* dup_x1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup_x1");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup_x1");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(S0);
 	asm.emitPUSH_Reg(T0);
@@ -754,7 +711,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x5b: /* dup_x2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup_x2");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup_x2");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T1);
@@ -765,7 +722,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x5c: /* dup2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup2");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup2");
 	asm.emitMOV_Reg_RegDisp (T0, SP, 4);
 	asm.emitMOV_Reg_RegInd (S0, SP);
 	asm.emitPUSH_Reg(T0);
@@ -773,7 +730,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x5d: /* dup2_x1 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup2_x1");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x1");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T1);
@@ -785,7 +742,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x5e: /* dup2_x2 */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dup2_x2");
+	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x2");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T1);
@@ -801,7 +758,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x5f: /* swap */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "swap");
+	if (shouldPrint) asm.noteBytecode(biStart, "swap");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(S0);
 	asm.emitPUSH_Reg(T0);
@@ -809,13 +766,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x60: /* iadd */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iadd");
+	if (shouldPrint) asm.noteBytecode(biStart, "iadd");
 	asm.emitPOP_Reg(T0);
 	asm.emitADD_RegInd_Reg(SP, T0);
 	break;
       }
       case 0x61: /* ladd */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ladd");
+	if (shouldPrint) asm.noteBytecode(biStart, "ladd");
 	asm.emitPOP_Reg(T0);                 // the low half of one long
 	asm.emitPOP_Reg(S0);                 // the high half
 	asm.emitADD_RegInd_Reg(SP, T0);          // add low halves
@@ -823,7 +780,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x62: /* fadd */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fadd");
+	if (shouldPrint) asm.noteBytecode(biStart, "fadd");
 	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
 	asm.emitFADD_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack += value1
 	asm.emitPOP_Reg   (T0);           // discard 
@@ -831,7 +788,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x63: /* dadd */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dadd");
+	if (shouldPrint) asm.noteBytecode(biStart, "dadd");
 	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);        // FPU reg. stack <- value2
 	asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, 8);        // FPU reg. stack += value1
 	asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);  // shrink the stack
@@ -839,13 +796,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x64: /* isub */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "isub");
+	if (shouldPrint) asm.noteBytecode(biStart, "isub");
 	asm.emitPOP_Reg(T0);
 	asm.emitSUB_RegInd_Reg(SP, T0);
 	break;
       }
       case 0x65: /* lsub */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lsub");
+	if (shouldPrint) asm.noteBytecode(biStart, "lsub");
 	asm.emitPOP_Reg(T0);                 // the low half of one long
 	asm.emitPOP_Reg(S0);                 // the high half
 	asm.emitSUB_RegInd_Reg(SP, T0);          // subtract low halves
@@ -853,7 +810,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x66: /* fsub */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fsub");
+	if (shouldPrint) asm.noteBytecode(biStart, "fsub");
 	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
 	asm.emitFSUB_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack -= value2
 	asm.emitPOP_Reg   (T0);           // discard 
@@ -861,7 +818,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x67: /* dsub */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dsub");
+	if (shouldPrint) asm.noteBytecode(biStart, "dsub");
 	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
 	asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, 0);          // FPU reg. stack -= value2
 	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
@@ -869,14 +826,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x68: /* imul */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "imul");
+	if (shouldPrint) asm.noteBytecode(biStart, "imul");
 	asm.emitPOP_Reg (T0);
 	asm.emitIMUL2_Reg_RegInd(T0, SP);
 	asm.emitMOV_RegInd_Reg (SP, T0);
 	break;
       }
       case 0x69: /* lmul */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lmul");
+	if (shouldPrint) asm.noteBytecode(biStart, "lmul");
 	// 0: JTOC is used as scratch registers (see 14)
 	// 1: load value1.low temp0, i.e., save value1.low
 	// 2: eax <- temp0 eax is value1.low
@@ -913,7 +870,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6a: /* fmul */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fmul");
+	if (shouldPrint) asm.noteBytecode(biStart, "fmul");
 	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
 	asm.emitFMUL_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack *= value1
 	asm.emitPOP_Reg   (T0);           // discard 
@@ -921,7 +878,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6b: /* dmul */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dmul");
+	if (shouldPrint) asm.noteBytecode(biStart, "dmul");
 	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2
 	asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, 8);          // FPU reg. stack *= value1
 	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
@@ -929,7 +886,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6c: /* idiv */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "idiv");
+	if (shouldPrint) asm.noteBytecode(biStart, "idiv");
 	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
 	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
 	asm.emitCDQ ();                      // sign extend EAX into EDX
@@ -939,7 +896,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6d: /* ldiv */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ldiv");
+	if (shouldPrint) asm.noteBytecode(biStart, "ldiv");
 	// (1) zero check
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
 	asm.emitOR_Reg_RegDisp(T0, SP, 4);
@@ -973,7 +930,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6e: /* fdiv */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fdiv");
+	if (shouldPrint) asm.noteBytecode(biStart, "fdiv");
 	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
 	asm.emitFDIV_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack /= value2
 	asm.emitPOP_Reg   (T0);           // discard 
@@ -981,7 +938,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x6f: /* ddiv */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ddiv");
+	if (shouldPrint) asm.noteBytecode(biStart, "ddiv");
 	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
 	asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack /= value2
 	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
@@ -989,7 +946,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x70: /* irem */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "irem");
+	if (shouldPrint) asm.noteBytecode(biStart, "irem");
 	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
 	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
 	asm.emitCDQ ();                      // sign extend EAX into EDX
@@ -999,7 +956,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x71: /* lrem */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lrem");
+	if (shouldPrint) asm.noteBytecode(biStart, "lrem");
 	// (1) zero check
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
 	asm.emitOR_Reg_RegDisp(T0, SP, 4);
@@ -1033,7 +990,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x72: /* frem */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "frem"); 
+	if (shouldPrint) asm.noteBytecode(biStart, "frem"); 
 	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2, or a
 	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1, or b
 	asm.emitFPREM ();             // FPU reg. stack <- a%b
@@ -1043,7 +1000,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x73: /* drem */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "drem");
+	if (shouldPrint) asm.noteBytecode(biStart, "drem");
 	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2, or a
 	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 2*WORDSIZE); // FPU reg. stack <- value1, or b
 	asm.emitFPREM ();               // FPU reg. stack <- a%b
@@ -1053,40 +1010,40 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x74: /* ineg */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ineg");
+	if (shouldPrint) asm.noteBytecode(biStart, "ineg");
 	asm.emitNEG_RegInd(SP); // [SP] <- -[SP]
 	break;
       }
       case 0x75: /* lneg */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lneg");
+	if (shouldPrint) asm.noteBytecode(biStart, "lneg");
 	asm.emitNEG_RegDisp(SP, 4);    // [SP+4] <- -[SP+4] or high <- -high
 	asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
 	asm.emitSBB_RegDisp_Imm(SP, 4, 0); // [SP+4] += borrow or high += borrow
 	break;
       }
       case 0x76: /* fneg */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fneg");
+	if (shouldPrint) asm.noteBytecode(biStart, "fneg");
 	asm.emitFLD_Reg_RegInd (FP0, SP); // FPU reg. stack <- value1
 	asm.emitFCHS  ();      // change sign to stop of FPU stack
 	asm.emitFSTP_RegInd_Reg(SP, FP0); // POP FPU reg. stack onto stack
 	break;
       }
       case 0x77: /* dneg */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dneg");
+	if (shouldPrint) asm.noteBytecode(biStart, "dneg");
 	asm.emitFLD_Reg_RegInd_Quad (FP0, SP); // FPU reg. stack <- value1
 	asm.emitFCHS  ();      // change sign to stop of FPU stack
 	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // POP FPU reg. stack onto stack
 	break;
       }
       case 0x78: /* ishl */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ishl");
+	if (shouldPrint) asm.noteBytecode(biStart, "ishl");
 	if (VM.VerifyAssertions) VM.assert(ECX != T0);
 	asm.emitPOP_Reg(ECX);
 	asm.emitSHL_RegInd_Reg(SP, ECX);   // shift T0 left ECX times;  ECX low order 5 bits
 	break;
       }
       case 0x79: /* lshl */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lshl");    // l >> n
+	if (shouldPrint) asm.noteBytecode(biStart, "lshl");    // l >> n
 	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
 	if (VM.VerifyAssertions) VM.assert (ECX != T1);
 	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
@@ -1130,14 +1087,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x7a: /* ishr */ {
 	// unit test by IArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ishr");
+	if (shouldPrint) asm.noteBytecode(biStart, "ishr");
 	if (VM.VerifyAssertions) VM.assert (ECX != T0);
 	asm.emitPOP_Reg (ECX);
 	asm.emitSAR_RegInd_Reg (SP, ECX);  // shift T0 right ECX times;  ECX low order 5 bits
 	break;
       }
       case 0x7b: /* lshr */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lshr");
+	if (shouldPrint) asm.noteBytecode(biStart, "lshr");
 	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
 	if (VM.VerifyAssertions) VM.assert (ECX != T1);
 	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
@@ -1183,14 +1140,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x7c: /* iushr */ {
 	// unit test by IArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iushr");
+	if (shouldPrint) asm.noteBytecode(biStart, "iushr");
 	if (VM.VerifyAssertions) VM.assert (ECX != T0);
 	asm.emitPOP_Reg (ECX);
 	asm.emitSHR_RegInd_Reg(SP, ECX);  // shift T0 right ECX times;  ECX low order 5 bits
 	break;
       }
       case 0x7d: /* lushr */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lushr");
+	if (shouldPrint) asm.noteBytecode(biStart, "lushr");
 	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
 	if (VM.VerifyAssertions) VM.assert (ECX != T1);
 	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
@@ -1235,13 +1192,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x7e: /* iand */ {
 	// unit test by IArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iand");
+	if (shouldPrint) asm.noteBytecode(biStart, "iand");
 	asm.emitPOP_Reg(T0);
 	asm.emitAND_RegInd_Reg(SP, T0);
 	break;
       }
       case 0x7f: /* land */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "land");
+	if (shouldPrint) asm.noteBytecode(biStart, "land");
 	asm.emitPOP_Reg(T0);        // low
 	asm.emitPOP_Reg(S0);        // high
 	asm.emitAND_RegInd_Reg(SP, T0);
@@ -1250,13 +1207,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x80: /* ior */ {
 	// unit test by IArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ior");
+	if (shouldPrint) asm.noteBytecode(biStart, "ior");
 	asm.emitPOP_Reg(T0);
 	asm.emitOR_RegInd_Reg (SP, T0);
 	break;
       }
       case 0x81: /* lor */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lor");
+	if (shouldPrint) asm.noteBytecode(biStart, "lor");
 	asm.emitPOP_Reg(T0);        // low
 	asm.emitPOP_Reg(S0);        // high
 	asm.emitOR_RegInd_Reg(SP, T0);
@@ -1265,13 +1222,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x82: /* ixor */ {
 	// unit test by IArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ixor");
+	if (shouldPrint) asm.noteBytecode(biStart, "ixor");
 	asm.emitPOP_Reg(T0);
 	asm.emitXOR_RegInd_Reg(SP, T0);
 	break;
       }
       case 0x83: /* lxor */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lxor");
+	if (shouldPrint) asm.noteBytecode(biStart, "lxor");
 	asm.emitPOP_Reg(T0);        // low
 	asm.emitPOP_Reg(S0);        // high
 	asm.emitXOR_RegInd_Reg(SP, T0);
@@ -1281,13 +1238,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0x84: /* iinc */ {
 	int index = fetch1ByteUnsigned();
 	int val = fetch1ByteSigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iinc " + VM_Lister.decimal(index) + " " + VM_Lister.decimal(val));
+	if (shouldPrint) asm.noteBytecode(biStart, "iinc " + VM_Lister.decimal(index) + " " + VM_Lister.decimal(val));
 	int offset = localOffset(index);
 	asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	break;
       }
       case 0x85: /* i2l */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2l");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2l");
 	asm.emitPOP_Reg (EAX);
 	asm.emitCDQ ();
 	asm.emitPUSH_Reg(EDX);
@@ -1296,41 +1253,41 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x86: /* i2f */ {
 	// unit test by FArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2f");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2f");
 	asm.emitFILD_Reg_RegInd(FP0, SP);
 	asm.emitFSTP_RegInd_Reg(SP, FP0);
 	break;
       }
       case 0x87: /* i2d */ {
 	// unit test by DArith
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2d");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2d");
 	asm.emitFILD_Reg_RegInd(FP0, SP);
 	asm.emitPUSH_Reg(T0);             // grow the stack
 	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
 	break;
       }
       case 0x88: /* l2i */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "l2i");
+	if (shouldPrint) asm.noteBytecode(biStart, "l2i");
 	asm.emitPOP_Reg (T0); // low half of the long
 	asm.emitPOP_Reg (S0); // high half of the long
 	asm.emitPUSH_Reg(T0);
 	break;
       }
       case 0x89: /* l2f */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "l2f");
+	if (shouldPrint) asm.noteBytecode(biStart, "l2f");
 	asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
 	asm.emitFSTP_RegInd_Reg(SP, FP0);
 	break;
       }
       case 0x8a: /* l2d */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "l2d");
+	if (shouldPrint) asm.noteBytecode(biStart, "l2d");
 	asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
 	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
 	break;
       }
       case 0x8b: /* f2i */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "f2i");
+	if (shouldPrint) asm.noteBytecode(biStart, "f2i");
 	// (1) save RVM nonvolatiles
 	int numNonVols = NONVOLATILE_GPRS.length;
 	for (int i = 0; i<numNonVols; i++) {
@@ -1352,7 +1309,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x8c: /* f2l */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "f2l");
+	if (shouldPrint) asm.noteBytecode(biStart, "f2l");
 	// (1) save RVM nonvolatiles
 	int numNonVols = NONVOLATILE_GPRS.length;
 	for (int i = 0; i<numNonVols; i++) {
@@ -1375,14 +1332,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x8d: /* f2d */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "f2d");
+	if (shouldPrint) asm.noteBytecode(biStart, "f2d");
 	asm.emitFLD_Reg_RegInd(FP0, SP);
 	asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
 	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
 	break;
       }
       case 0x8e: /* d2i */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "d2i");
+	if (shouldPrint) asm.noteBytecode(biStart, "d2i");
 	// (1) save RVM nonvolatiles
 	int numNonVols = NONVOLATILE_GPRS.length;
 	for (int i = 0; i<numNonVols; i++) {
@@ -1407,7 +1364,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x8f: /* d2l */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "d2l");
+	if (shouldPrint) asm.noteBytecode(biStart, "d2l");
 	// (1) save RVM nonvolatiles
 	int numNonVols = NONVOLATILE_GPRS.length;
 	for (int i = 0; i<numNonVols; i++) {
@@ -1432,14 +1389,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x90: /* d2f */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "d2f");
+	if (shouldPrint) asm.noteBytecode(biStart, "d2f");
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
 	asm.emitFSTP_RegInd_Reg(SP, FP0);
 	break;
       }
       case 0x91: /* i2b */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2b");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2b");
 	//          asm.emitMOVSXb(T0, SP, 0); // load byte off top of the stack sign extended
 	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
 	asm.emitPOP_Reg   (T0);
@@ -1448,7 +1405,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x92: /* i2c */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2c");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2c");
 	//          asm.emitMOVZXh(T0, SP, 0); // load char off top of the stack sign extended
 	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
 	asm.emitPOP_Reg   (T0);
@@ -1457,7 +1414,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x93: /* i2s */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "i2s");
+	if (shouldPrint) asm.noteBytecode(biStart, "i2s");
 	//          asm.emitMOVSXh(T0, SP, 0); // load short off top of the stack sign extended
 	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
 	asm.emitPOP_Reg   (T0);
@@ -1466,7 +1423,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x94: /* lcmp */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lcmp");  // a ? b
+	if (shouldPrint) asm.noteBytecode(biStart, "lcmp");  // a ? b
 	asm.emitPOP_Reg(T0);        // the low half of value2
 	asm.emitPOP_Reg(S0);        // the high half of value2
 	asm.emitPOP_Reg(T1);        // the low half of value1
@@ -1489,7 +1446,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x95: /* fcmpl !!- */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fcmpl");
+	if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
 	VM_ForwardReference fr1,fr2,fr3;
 	asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
 	asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
@@ -1513,7 +1470,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x96: /* fcmpg !!- */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fcmpg");
+	if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
 	VM_ForwardReference fr1,fr2,fr3;
 	asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
 	asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
@@ -1537,7 +1494,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x97: /* dcmpl !!- */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dcmpl");
+	if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
 	VM_ForwardReference fr1,fr2,fr3;
 	asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
@@ -1561,7 +1518,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0x98: /* dcmpg !!- */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dcmpg");
+	if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
 	VM_ForwardReference fr1,fr2,fr3;
 	asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
@@ -1588,7 +1545,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1599,7 +1556,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1610,7 +1567,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iflt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iflt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1621,7 +1578,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1632,7 +1589,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1643,7 +1600,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifle " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifle " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -1654,7 +1611,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1666,7 +1623,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1679,7 +1636,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmplt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmplt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1691,7 +1648,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmpge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1703,7 +1660,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmpgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1715,7 +1672,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_icmple " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_icmple " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1727,7 +1684,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_acmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1739,7 +1696,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "if_acmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(S0);
 	asm.emitPOP_Reg(T0);
@@ -1752,7 +1709,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset; // bi has been bumped by 3 already
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "goto " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "goto " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
 	break;
@@ -1761,13 +1718,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "jsr " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] (" + VM_Lister.decimal(mTarget));
+	if (shouldPrint) asm.noteBytecode(biStart, "jsr " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] (" + VM_Lister.decimal(mTarget));
 	asm.emitCALL_ImmOrLabel(mTarget, bTarget);
 	break;
       }
       case 0xa9: /* ret */ {
 	int index = fetch1ByteUnsigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ret " + VM_Lister.decimal(index));
+	if (shouldPrint) asm.noteBytecode(biStart, "ret " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
 	asm.emitJMP_RegDisp(ESP, offset); 
 	break;
@@ -1780,7 +1737,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int mTarget = bytecodeMap[bTarget];
 	int low = fetch4BytesSigned();
 	int high = fetch4BytesSigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "tableswitch [" + VM_Lister.decimal(low) + "--" + VM_Lister.decimal(high) + "] " + VM_Lister.decimal(defaultval));
+	if (shouldPrint) asm.noteBytecode(biStart, "tableswitch [" + VM_Lister.decimal(low) + "--" + VM_Lister.decimal(high) + "] " + VM_Lister.decimal(defaultval));
 	int n = high-low+1;                        // n = number of normal cases (0..n-1)
 	asm.emitPOP_Reg (T0);                          // T0 is index of desired case
 	asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
@@ -1806,7 +1763,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	bi = (bi+3) & -4; // eat padding
 	int defaultval = fetch4BytesSigned();
 	int npairs = fetch4BytesSigned();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lookupswitch [<" + VM_Lister.decimal(npairs) + ">]" + VM_Lister.decimal(defaultval));
+	if (shouldPrint) asm.noteBytecode(biStart, "lookupswitch [<" + VM_Lister.decimal(npairs) + ">]" + VM_Lister.decimal(defaultval));
 	asm.emitPOP_Reg(T0);
 	for (int i=0; i<npairs; i++) {
 	  int match   = fetch4BytesSigned();
@@ -1823,7 +1780,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xac: /* ireturn */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ireturn");
+	if (shouldPrint) asm.noteBytecode(biStart, "ireturn");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
@@ -1831,7 +1788,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xad: /* lreturn */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lreturn");
+	if (shouldPrint) asm.noteBytecode(biStart, "lreturn");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T1); // low half
@@ -1840,7 +1797,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xae: /* freturn */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "freturn");
+	if (shouldPrint) asm.noteBytecode(biStart, "freturn");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd(FP0, SP);
@@ -1849,7 +1806,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xaf: /* dreturn */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dreturn");
+	if (shouldPrint) asm.noteBytecode(biStart, "dreturn");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
@@ -1858,7 +1815,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xb0: /* areturn */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "areturn");
+	if (shouldPrint) asm.noteBytecode(biStart, "areturn");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
@@ -1866,7 +1823,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xb1: /* return */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "return");
+	if (shouldPrint) asm.noteBytecode(biStart, "return");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	genEpilogue(0); 
@@ -1875,7 +1832,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xb2: /* getstatic */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "getstatic " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -1939,7 +1896,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int constantPoolIndex = fetch2BytesUnsigned();
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putstatic " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
 	if (VM_Collector.NEEDS_WRITE_BARRIER && 
 	    !fieldRef.getType().isPrimitiveType()) {
 	  if (fieldRef.needsDynamicLink(method))
@@ -2009,7 +1966,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xb4: /* getfield */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "getfield " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2071,7 +2028,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int constantPoolIndex = fetch2BytesUnsigned();
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putfield " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
 	if (VM_Collector.NEEDS_WRITE_BARRIER 
 	    &&  !fieldRef.getType().isPrimitiveType()) {
 	  if (fieldRef.needsDynamicLink(method))
@@ -2147,7 +2104,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xb6: /* invokevirtual */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokevirtual " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
           if (methodRef.getDeclaringClass().isAddressType()) {
 	      genMagic(methodRef);
 	      break;
@@ -2189,7 +2146,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xb7: /* invokespecial */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokespecial " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
 	VM_Method target;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
           if (!methodRef.getDeclaringClass().isResolved() && VM.BuildForPrematureClassResolution && false) {
@@ -2226,7 +2183,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xb8: /* invokestatic */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokestatic " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
 	if (methodRef.getDeclaringClass().isMagicType() ||
 	    methodRef.getDeclaringClass().isAddressType()) {
 	  genMagic(methodRef);
@@ -2272,7 +2229,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	int count = fetch1ByteUnsigned();
 	fetch1ByteSigned(); // eat superfluous 0
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokeinterface " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ") " + VM_Lister.decimal(count) + " 0");
+	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ") " + VM_Lister.decimal(count) + " 0");
 
 	// (1) Emit dynamic type checking sequence if required to do so inline.
 	if (VM.BuildForIMTInterfaceInvocation || 
@@ -2371,7 +2328,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xba: /* unused */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "unused");
+	if (shouldPrint) asm.noteBytecode(biStart, "unused");
 	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
 	break;
       }
@@ -2379,7 +2336,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	// unit test by NullCompare
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "new " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "new " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
 	if (typeRef.isInitialized() || ((VM_Class) typeRef).isInBootImage()) { // call quick allocator
 	  VM_Class newclass = (VM_Class) typeRef;
 	  int instanceSize = newclass.getInstanceSize();
@@ -2404,7 +2361,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
 	array.resolve();
 	array.instantiate();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "newarray " + VM_Lister.decimal(atype) + "(" + array + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + VM_Lister.decimal(atype) + "(" + array + ")");
 	int width      = array.getLogElementSize();
 	int tibOffset  = array.getOffset();
 	int headerSize = VM_ObjectModel.computeHeaderSize(array);
@@ -2427,7 +2384,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	array.load();
 	array.resolve();
 	array.instantiate();
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "anewarray new " + VM_Lister.decimal(constantPoolIndex) + " (" + array + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + VM_Lister.decimal(constantPoolIndex) + " (" + array + ")");
 	int width      = array.getLogElementSize();
 	int tibOffset  = array.getOffset();
 	int headerSize = VM_ObjectModel.computeHeaderSize(array);
@@ -2444,7 +2401,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0xbe: /* arraylength */ { 
 	// unit test by PArray
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "arraylength");
+	if (shouldPrint) asm.noteBytecode(biStart, "arraylength");
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
 	asm.emitMOV_Reg_RegDisp(T0, T0,
                                 VM_ObjectModel.getArrayLengthOffset()); // T0 is array length
@@ -2452,7 +2409,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xbf: /* athrow */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "athrow");  
+	if (shouldPrint) asm.noteBytecode(biStart, "athrow");  
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	genParameterRegisterLoad(1);          // pass 1 parameter word
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffset());
@@ -2461,7 +2418,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xc0: /* checkcast */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "checkcast " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
 	asm.emitPUSH_RegInd (SP);                                // duplicate the object ref on the stack
 	asm.emitPUSH_Imm(typeRef.getTibOffset());                // JTOC index that identifies klass  
 	genParameterRegisterLoad(2);                         // pass 2 parameter words
@@ -2471,7 +2428,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       case 0xc1: /* instanceof */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "instanceof " + VM_Lister.decimal(constantPoolIndex)  + " (" + typeRef + ")");
+	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + VM_Lister.decimal(constantPoolIndex)  + " (" + typeRef + ")");
 	int offset = VM_Entrypoints.instanceOfMethod.getOffset();
 	if (typeRef.isClassType() && typeRef.asClass().isLoaded() && typeRef.asClass().isFinal()) {
 	  offset = VM_Entrypoints.instanceOfFinalMethod.getOffset();
@@ -2485,13 +2442,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	break;
       }
       case 0xc2: /* monitorenter  */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "monitorenter");  
+	if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");  
 	genParameterRegisterLoad(1);          // pass 1 parameter word
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
 	break;
       }
       case 0xc3: /* monitorexit */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "monitorexit"); 
+	if (shouldPrint) asm.noteBytecode(biStart, "monitorexit"); 
 	genParameterRegisterLoad(1);          // pass 1 parameter word
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
 	break;
@@ -2501,78 +2458,78 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int index = fetch2BytesUnsigned();
 	switch (widecode) {
 	case 0x15: /* --- wide iload --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide iload " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide iload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitPUSH_RegDisp(ESP,offset);
 	  break;
 	}
 	case 0x16: /* --- wide lload --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lload " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide lload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
 	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x17: /* --- wide fload --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fload " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide fload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitPUSH_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x18: /* --- wide dload --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dload " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide dload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
 	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x19: /* --- wide aload --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide aload " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide aload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitPUSH_RegDisp(ESP, offset);
 	  break;
 	}
 	case 0x36: /* --- wide istore --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide istore " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide istore " + VM_Lister.decimal(index));
 	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x37: /* --- wide lstore --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lstore " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide lstore " + VM_Lister.decimal(index));
 	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
 	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of long
 	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x38: /* --- wide fstore --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fstore " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide fstore " + VM_Lister.decimal(index));
 	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x39: /* --- wide dstore --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dstore " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide dstore " + VM_Lister.decimal(index));
 	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
 	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of double
 	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x3a: /* --- wide astore --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide astore " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide astore " + VM_Lister.decimal(index));
 	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
 	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x84: /* --- wide iinc --- */ {
 	  int val = fetch2BytesSigned();
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide inc " + VM_Lister.decimal(index) + " by " + VM_Lister.decimal(val));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide inc " + VM_Lister.decimal(index) + " by " + VM_Lister.decimal(val));
 	  int offset = localOffset(index);
 	  asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	  break;
 	}
 	case 0x9a: /* --- wide ret --- */ {
-	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide ret " + VM_Lister.decimal(index));
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide ret " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
 	  asm.emitJMP_RegDisp(ESP, offset); 
 	  break;
@@ -2587,7 +2544,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int dimensions        = fetch1ByteUnsigned();
 	VM_Type typeRef       = klass.getTypeRef(constantPoolIndex);
 	int dictionaryId      = klass.getTypeRefId(constantPoolIndex);
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "multianewarray " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ") " + VM_Lister.decimal(dimensions));
+	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ") " + VM_Lister.decimal(dimensions));
 	// setup parameters for newarrayarray routine
 	asm.emitPUSH_Imm (dimensions);                     // dimension of arays
 	asm.emitPUSH_Imm (dictionaryId);                   // type of array elements               
@@ -2604,7 +2561,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -2616,7 +2573,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch2BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ifnonnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "ifnonnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitPOP_Reg(T0);
 	asm.emitCMP_Reg_Imm(T0, 0);
@@ -2627,7 +2584,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch4BytesSigned();
 	int bTarget = biStart + offset; // bi has been bumped by 5 already
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "goto_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "goto_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	if(offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
 	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
 	break;
@@ -2636,7 +2593,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int offset = fetch4BytesSigned();
 	int bTarget = biStart + offset;
 	int mTarget = bytecodeMap[bTarget];
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "jsr_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
+	if (shouldPrint) asm.noteBytecode(biStart, "jsr_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
 	asm.emitCALL_ImmOrLabel(mTarget, bTarget);
 	break;
       }
@@ -2649,7 +2606,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   private final void genPrologue (int cmid) {
-    if (asm.TRACE) asm.comment("prologue for " + method);
+    if (shouldPrint) asm.comment("prologue for " + method);
     /* paramaters are on the stack and/or in registers;  There is space
      * on the stack for all the paramaters;  Parameter slots in the
      * stack are such that the first paramater has the higher address,
@@ -3830,103 +3787,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     fr.resolve(asm);                                       // come from Jcc above.
   }
 
-  /* reading bytecodes */  
-  private final int fetch1ByteSigned () {
-    return bytecodes[bi++];
-  }
-  
-  private final int fetch1ByteUnsigned () {
-    return bytecodes[bi++] & 0xFF;
-  }
-  
-  private final int fetch2BytesSigned () {
-    int i = bytecodes[bi++] << 8;
-    i |= (bytecodes[bi++] & 0xFF);
-    return i;
-  }
-  
-  private final int fetch2BytesUnsigned () {
-    int i = (bytecodes[bi++] & 0xFF) << 8;
-    i |= (bytecodes[bi++] & 0xFF);
-    return i;
-  }
-  
-  private final int fetch4BytesSigned () {
-    int i = bytecodes[bi++] << 24;
-    i |= (bytecodes[bi++] & 0xFF) << 16;
-    i |= (bytecodes[bi++] & 0xFF) << 8;
-    i |= (bytecodes[bi++] & 0xFF);
-    return i;
-  }
-
-  /**
-   * Print a message of a method name
-   * @param method
-   */
-  private static void printMethodMessage (VM_Method method) {
-      VM.sysWrite("-methodBase ");
-      VM.sysWrite(method.getDeclaringClass().toString());
-      VM.sysWrite(" "); 
-      VM.sysWrite(method.getName());
-      VM.sysWrite(" ");
-      VM.sysWrite(method.getDescriptor());
-      VM.sysWrite(" \n");
-  }
-
-  /**
-   * Print a message to mark the start of machine code printing for a method
-   * @param method
-   */
-  private static void printStartHeader (VM_Method method) {
-    VM.sysWrite("baseline Start: Final machine code for method ");
-    VM.sysWrite(method.getDeclaringClass().toString());
-    VM.sysWrite(" "); 
-    VM.sysWrite(method.getName());
-    VM.sysWrite(" ");
-    VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
-  }
-
-  /**
-   * Print a message to mark the end of machine code printing for a method
-   * @param method
-   */
-  private static void printEndHeader (VM_Method method) {
-    VM.sysWrite("baseline End: Final machine code for method ");
-    VM.sysWrite(method.getDeclaringClass().toString());
-    VM.sysWrite(" "); 
-    VM.sysWrite(method.getName());
-    VM.sysWrite(" ");
-    VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
-  }
-
-  
-  static void init() {
-    exceptionDeliverer = new VM_BaselineExceptionDeliverer();
-
-    // initialize the options very early for bootimage writing
-    options = new VM_BASEOptions();
-  }
-
-  static void boot() {
-  }
- 
   private static final int THREAD_SWITCH_LIMIT = 100;
-  private static final int MAX_CODE_EXPANSION = 20;
-  private static VM_ExceptionDeliverer exceptionDeliverer;
 
-  private VM_Method    method;
-  private VM_Class     klass;
   private VM_Assembler asm; 
-  private byte[]       bytecodes;
-  private int[]        bytecodeMap;
-  private int          bytecodeLength;
-  private int          bi;      // index into bytecodes and bytecodeMap
-  private int          biStart; // bi at the start of a bytecode
   private int          parameterWords;
   private int          firstLocalOffset;
-  private int[]        stackHeights;
   
-          int          lockOffset;
 }

@@ -14,46 +14,21 @@
  */
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
-  //-----------//
-  // interface //
-  //-----------//
-   
-  static synchronized VM_CompiledMethod compile (VM_Method method) {
-    int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
-    if (method.isNative()) {
-      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative
-        (compiledMethodId, method);
-      VM_CompilerInfo info = new VM_JNICompilerInfo(method);
-      return new VM_CompiledMethod(compiledMethodId, method, 
-                                   machineCode.getInstructions(), info); 
-    } else if (VM.runningAsJDPRemoteInterpreter) {
-      return new VM_CompiledMethod(compiledMethodId, method, null, null);
-    } else {
-      VM_Compiler     compiler     = new VM_Compiler();
-      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, null);
-      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
-      INSTRUCTION[]   instructions = machineCode.getInstructions();
-      int[]           bytecodeMap  = machineCode.getBytecodeMap();
-      VM_CompilerInfo info;
-      
-      if ((options.PRINT_MACHINECODE) &&
-          (!options.hasMETHOD_TO_PRINT() ||
-	   options.fuzzyMatchMETHOD_TO_PRINT(method.toString()))) {
-	printMethodCode(method, instructions);
-      }
-      
-      if (method.isSynchronized()) {
-	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
-                                           instructions.length, 
-                                           compiler.lockOffset);
-      } else {
-	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
-                                           instructions.length);
-      }
-      return new VM_CompiledMethod(compiledMethodId, method, 
-                                   instructions, info);
-    }
+  /**
+   * Create a VM_Compiler object for the compilation of method.
+   */
+  VM_Compiler(VM_Method m, int cmid) {
+    super(m, cmid);
+    if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
+    if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
+    if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
+    frameSize        = getFrameSize(method);
+    spSaveAreaOffset = getSPSaveAreaOffset(method);
+    firstLocalOffset = getFirstLocalOffset(method);
+    emptyStackOffset = getEmptyStackOffset(method);
+    asm              = new VM_Assembler(bytecodes.length);
   }
+
 
   //----------------//
   // more interface //
@@ -115,11 +90,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   }
 
-  static VM_ExceptionDeliverer getExceptionDeliverer() {
-    return exceptionDeliverer;
-  }
-
-  
   //----------------//
   // implementation //
   //----------------//
@@ -131,61 +101,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     return offset;
   }
   
-  // reading bytecodes //
-
-  private int fetch1ByteSigned () {
-    return bcodes[bindex++];
-  }
-
-  private int fetch1ByteUnsigned () {
-    return bcodes[bindex++] & 0xFF;
-  }
-
-  private int fetch2BytesSigned () {
-    int i = bcodes[bindex++] << 8;
-    i |= (bcodes[bindex++] & 0xFF);
-    return i;
-  }
-
-  private int fetch2BytesUnsigned () {
-    int i = (bcodes[bindex++] & 0xFF) << 8;
-    i |= (bcodes[bindex++] & 0xFF);
-    return i;
-  }
-
-  private int fetch4BytesSigned () {
-    int i = bcodes[bindex++] << 24;
-    i |= (bcodes[bindex++] & 0xFF) << 16;
-    i |= (bcodes[bindex++] & 0xFF) << 8;
-    i |= (bcodes[bindex++] & 0xFF);
-    return i;
-  }
-
-  private VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
-    if (options.PRINT_METHOD) printMethodMessage(meth);
-    /* initialization */ { 
-      if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
-      if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
-      if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
-      this.compiledMethodId = compiledMethodId;
-      this.method           = meth;
-      this.klass            = meth.getDeclaringClass();
-      this.bcodes           = meth.getBytecodes();
-      this.bcodeLen         = bcodes.length;
-      this.frameSize        = getFrameSize(meth);
-      this.spSaveAreaOffset = getSPSaveAreaOffset(meth);
-      this.firstLocalOffset = getFirstLocalOffset(meth);
-      this.emptyStackOffset = getEmptyStackOffset(meth);
-      this.asm              = new VM_Assembler(bcodeLen);
-    }
+  protected final VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
     if (klass.isBridgeFromNative()) {
       VM_JNICompiler.generateGlueCodeForJNIMethod (asm, meth);
     }
-   genPrologue();
-   for (bindex=bIP=0; bIP<bcodeLen; bIP=bindex) {
-       int code = fetch1ByteUnsigned();
-       asm.resolveForwardReferences(bIP);
-       switch (code) {
+    genPrologue();
+    for (bi=0; bi<bytecodes.length;) {
+      biStart = bi;
+      asm.resolveForwardReferences(bi);
+      int code = fetch1ByteUnsigned();
+      switch (code) {
         case 0x00: /* --- nop --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("nop");
           asm.emitNOP();
@@ -1527,7 +1452,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("ifeq " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0,  0, SP);
 	  asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
@@ -1546,7 +1471,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("ifne " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0,  0, SP);
 	  asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
@@ -1565,7 +1490,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("iflt " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0,  0, SP);
 	  asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
@@ -1584,7 +1509,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("ifge " + offset);
 	  if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0,  0, SP);
 	  asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
@@ -1603,7 +1528,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("ifgt " + offset);
 	  if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0,  0, SP);
 	  asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
@@ -1622,7 +1547,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("ifle " + offset);
 	  if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 0, SP);
 	  asm.emitAIr(0,  T0,  0); // T0 to 0 and sets CR0 
@@ -1641,7 +1566,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmpeq " + offset);
 	  if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1661,7 +1586,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmpne " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1681,7 +1606,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmplt " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1701,7 +1626,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmpge " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1721,7 +1646,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmpgt " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1741,7 +1666,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_icmple " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	  int bTarget = bIP + offset;
+	  int bTarget = biStart + offset;
           int mTarget;
           asm.emitL  (T0, 4, SP);
 	  asm.emitL  (T1, 0, SP);
@@ -1761,7 +1686,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_acmpeq " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL (T0, 4, SP);
 	  asm.emitL (T1, 0, SP);
@@ -1781,7 +1706,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("if_acmpne " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           asm.emitL (T0, 4, SP);
 	  asm.emitL (T1, 0, SP);
@@ -1801,7 +1726,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch2BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("goto " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           if (offset <= 0) {
             mTarget = asm.relativeMachineAddress(bTarget);
@@ -1820,7 +1745,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitMFLR(T1);           // LR +  0
 	  asm.emitCAL (T1, 16, T1);   // LR +  4  (LR + 16 is ret address)
 	  asm.emitSTU (T1, -4, SP);   // LR +  8
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           if (offset <= 0) {
             mTarget = asm.relativeMachineAddress(bTarget);
@@ -1842,8 +1767,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           break;
 	}
         case 0xaa: /* --- tableswitch --- */ {
-          int align = bindex & 3;
-          if (align != 0) bindex += 4-align; // eat padding
+          int align = bi & 3;
+          if (align != 0) bi += 4-align; // eat padding
           int defaultval = fetch4BytesSigned();
           int low = fetch4BytesSigned();
           int high = fetch4BytesSigned();
@@ -1853,7 +1778,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitBL  (n+2);        // branch past table; establish base addr
           for (int i=0; i<n; i++) {
 	    int offset = fetch4BytesSigned();
-	    int bTarget = bIP + offset;
+	    int bTarget = biStart + offset;
 	    if (VM.TraceAssembler) asm.comment("--> bi " + bTarget);
 	    // branch target is off table base NOT current instruction
 	    // must correct relative address by i
@@ -1864,7 +1789,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitDATA(i);
 	    }
           }
-          int bTarget = bIP + defaultval;
+          int bTarget = biStart + defaultval;
 	  if (VM.TraceAssembler) asm.comment("--> bi " + bTarget + " default");
           if (defaultval <= 0) {
 	    asm.emitDATA((asm.relativeMachineAddress(bTarget) + n) << 2);
@@ -1889,8 +1814,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           break;
 	}
         case 0xab: /* --- lookupswitch --- */ {
-          int align = bindex & 3;
-          if (align != 0) bindex += 4-align; // eat padding
+          int align = bi & 3;
+          if (align != 0) bi += 4-align; // eat padding
           int defaultval = fetch4BytesSigned();
           int npairs = fetch4BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("lookupswitch [<" + npairs + ">]" + defaultval);
@@ -1900,7 +1825,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    if (VM.TraceAssembler) asm.comment(" case " + (i+i+1));
 	    asm.emitDATA(match);
 	    int offset  = fetch4BytesSigned();
-	    int bTarget = bIP + offset;
+	    int bTarget = biStart + offset;
 	    if (VM.TraceAssembler) asm.comment("--> bi " + bTarget);
 	    // branch target is off table base NOT current instruction
 	    // must correct relative address by 2i+1
@@ -1914,7 +1839,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           }
           if (VM.TraceAssembler) asm.comment(" default");
 	  asm.emitDATA(0x7FFFFFFF);
-	  int bTarget = bIP + defaultval;
+	  int bTarget = biStart + defaultval;
 	  if (VM.TraceAssembler) asm.comment("--> bi " + bTarget);
           int displacement = (npairs<<1)+1;
 	  if (defaultval <= 0) {
@@ -2393,7 +2318,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitMTLR(T2);
 	  genMoveParametersToRegisters(true, methodRef);
 	  //-#if RVM_WITH_SPECIALIZATION
-	  asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
+	  asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
 	  //-#else
 	  asm.emitCall(spSaveAreaOffset);
 	  //-#endif
@@ -2430,7 +2355,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitMTLR(T0);
 	  genMoveParametersToRegisters(true, methodRef);
 	  //-#if RVM_WITH_SPECIALIZATION
-	  asm.emitSpecializationCall(spSaveAreaOffset, methodRef, bIP);
+	  asm.emitSpecializationCall(spSaveAreaOffset, methodRef, biStart);
 	  //-#else
 	  asm.emitCall(spSaveAreaOffset);
 	  //-#endif
@@ -2482,7 +2407,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitMTLR(T0);
 	  genMoveParametersToRegisters(false, methodRef);
 	  //-#if RVM_WITH_SPECIALIZATION
-	  asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
+	  asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
 	  //-#else
 	  asm.emitCall(spSaveAreaOffset);
 	  //-#endif
@@ -2544,7 +2469,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    //-#if RVM_WITH_SPECIALIZATION
 	    asm.emitSpecializationCallWithHiddenParameter(spSaveAreaOffset, 
                                                           signatureId, method, 
-                                                          bIP);
+                                                          biStart);
 	    //-#else
             asm.emitCallWithHiddenParameter(spSaveAreaOffset, signatureId);
 	    //-#endif
@@ -2560,7 +2485,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    asm.emitL   (S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2, S0); // the method to call
 	    asm.emitMTLR(S0);
 	    //-#if RVM_WITH_SPECIALIZATION
-	    asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
+	    asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
 	    //-#else
 	    asm.emitCall(spSaveAreaOffset);
 	    //-#endif
@@ -2586,7 +2511,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
               asm.emitMTLR(T0);
               genMoveParametersToRegisters(true, methodRef);
               //-#if RVM_WITH_SPECIALIZATION
-              asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
+              asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
               //-#else
               asm.emitCall(spSaveAreaOffset);
               //-#endif
@@ -2604,7 +2529,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
               asm.emitMTLR(T0);
               genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
               //-#if RVM_WITH_SPECIALIZATION
-              asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
+              asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
               //-#else
               asm.emitCall(spSaveAreaOffset);
               //-#endif
@@ -2877,7 +2802,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitLIL (T1,  0);
 	  asm.emitCMP (T0, T1);  
           asm.emitCAL (SP,  4, SP);
-	  int bTarget = bIP + offset;
+	  int bTarget = biStart + offset;
 	  int mTarget;
 	  if (offset <= 0) {
 	    mTarget = asm.relativeMachineAddress(bTarget);
@@ -2896,7 +2821,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitLIL (T1,  0);
 	  asm.emitCMP (T0, T1);  
           asm.emitCAL (SP,  4, SP);
-	  int bTarget = bIP + offset;
+	  int bTarget = biStart + offset;
 	  int mTarget;
 	  if (offset <= 0) {
 	    mTarget = asm.relativeMachineAddress(bTarget);
@@ -2911,7 +2836,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int offset = fetch4BytesSigned();
           if (VM.TraceAssembler) asm.noteBytecode("goto_w " + offset);
           if(offset <= 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           if (offset <= 0) {
             mTarget = asm.relativeMachineAddress(bTarget);
@@ -2930,7 +2855,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitMFLR(T1);           // LR +  0
 	  asm.emitCAL (T1, 16, T1);   // LR +  4  (LR + 16 is ret address)
 	  asm.emitSTU (T1, -4, SP);   // LR +  8
-          int bTarget = bIP + offset;
+          int bTarget = biStart + offset;
           int mTarget;
           if (offset <= 0) {
             mTarget = asm.relativeMachineAddress(bTarget);
@@ -2948,7 +2873,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
     }
     asm.emitDATA(compiledMethodId); // put method signature at end of machine code
-    return asm.makeMachineCode();
+    VM_MachineCode mc = asm.makeMachineCode();
+    if (shouldPrint) {
+      printCode(mc.getInstructions());
+    }
+    return mc;
   }
 
   private void emitDynamicLinkingSequence(VM_Field fieldRef) {
@@ -3002,7 +2931,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
     if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	 !method.queryAnnotationForBytecode(bIP,
+	 !method.queryAnnotationForBytecode(biStart,
 					VM_Method.annotationBoundsCheck)) {
       asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
     }
@@ -3016,7 +2945,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
     if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	 !method.queryAnnotationForBytecode(bIP,
+	 !method.queryAnnotationForBytecode(biStart,
 					VM_Method.annotationBoundsCheck)) {
       asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
     }
@@ -3029,7 +2958,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
     emitSegmentedArrayAccess(asm, T1, T0, T2, 3);
     if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	 !method.queryAnnotationForBytecode(bIP,
+	 !method.queryAnnotationForBytecode(biStart,
 					VM_Method.annotationBoundsCheck)) {
       asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
     }
@@ -3314,36 +3243,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      spillOffset += 8;
   }
 
-  /**
-   * Print a message of a method name
-   * @param method
-   */
-  private static void printMethodMessage (VM_Method method) {
-      VM.sysWrite("-methodBase ");
-      VM.sysWrite(method.getDeclaringClass().toString());
-      VM.sysWrite(" "); 
-      VM.sysWrite(method.getName());
-      VM.sysWrite(" ");
-      VM.sysWrite(method.getDescriptor());
-      VM.sysWrite(" \n");
-  }
-
-  /**
-   * Print a message of a method name
-   * @param method
-   * @param instructions
-   */
-  private static void printMethodCode (VM_Method method, INSTRUCTION[] instructions) {
+  private void printCode (INSTRUCTION[] instructions) {
     // While doing this step more classes may need to be loaded and compiled
     // Temporarily disable print request to avoid those compilations to complete 
     options.PRINT_MACHINECODE=false;
-    VM.sysWrite("baseline Start: Final machine code for method ");
-    VM.sysWrite(method.getDeclaringClass().toString());
-    VM.sysWrite(" "); 
-    VM.sysWrite(method.getName());
-    VM.sysWrite(" ");
-    VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
     for (int i = 0; i < instructions.length; i++) {
       VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
       VM.sysWrite(" : ");
@@ -3352,64 +3255,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
       VM.sysWrite("\n");
     }
-    VM.sysWrite("baseline End: Final machine code for method ");
-    VM.sysWrite(method.getDeclaringClass().toString());
-    VM.sysWrite(" "); 
-    VM.sysWrite(method.getName());
-    VM.sysWrite(" ");
-    VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
     options.PRINT_MACHINECODE=true;
-  }
-   
-  private VM_Method    method;
-  /*private*/ VM_Class     klass;       //!!TODO: make private once VM_MagicCompiler is merged in
+   }
+    
   /*private*/ VM_Assembler asm;         //!!TODO: make private once VM_MagicCompiler is merged in
-  private int          compiledMethodId;
  
   // stackframe pseudo-constants //
-  
   /*private*/ int frameSize;            //!!TODO: make private once VM_MagicCompiler is merged in
   /*private*/ int spSaveAreaOffset;     //!!TODO: make private once VM_MagicCompiler is merged in
   private int emptyStackOffset;
   private int firstLocalOffset;
   private int spillOffset;
-
-  // bytecode input //
-  
-  private byte[] bcodes;       // indexed by bindex or bIP
-  private int    bindex;       // next byte to be read
-  private int    bIP;          // current bytecode instruction
-  private int    bcodeLen;
-
-
-  //--------------//
-  // Static data. //
-  //--------------//
-  
-  // runtime support  
-
-  private static boolean               alreadyInitialized;
-  private static VM_ExceptionDeliverer exceptionDeliverer;
-  
-  // Initialization, called for one or both of the following purposes:
-  // - to initialize compiler's static fields as they will appear in the boot image
-  // - to initialize compiler for use in building boot image
-  //
-  static void init() {
-    if (alreadyInitialized) return;
-    alreadyInitialized = true;
-  
-    // create handler for delivering exceptions to, or unwinding stackframes of,
-    // methods generated by this compiler
-    //
-    exceptionDeliverer = new VM_BaselineExceptionDeliverer();
-
-    // initialize the JNI environment
-    VM_JNIEnvironment.init();
-
-    // initialize the options very early for bootimage writing
-    options = new VM_BASEOptions();
-  }
-
 }

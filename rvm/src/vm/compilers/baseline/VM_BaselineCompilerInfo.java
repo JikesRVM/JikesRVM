@@ -11,26 +11,31 @@
  */
 class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineConstants {
 
+  /**
+   * Baseline exception deliverer object
+   */
+  private static VM_ExceptionDeliverer exceptionDeliverer = new VM_BaselineExceptionDeliverer();
+
   //-----------//
   // interface //
   //-----------//
   // Get compiler that generated this method's machine code.
   //
   final int getCompilerType () {
-    return  BASELINE;
+    return BASELINE;
   }
 
   // Get handler to deal with stack unwinding and exception delivery for this method's stackframes.
   //
   final VM_ExceptionDeliverer getExceptionDeliverer () {
-    return  VM_Compiler.getExceptionDeliverer();
+    return exceptionDeliverer;
   }
 
   // Find "catch" block for a machine instruction of this method.
   //
   final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
     if (tryStartInstructionOffsets == null)
-      return  -1;               // method has no catch blocks
+      return -1;               // method has no catch blocks
     for (int i = 0, n = tryStartInstructionOffsets.length; i < n; ++i) {
       // note that "instructionOffset" points to a return site (not a call site)
       // so the range check here must be "instructionOffset <= beg || instructionOffset >  end"
@@ -40,18 +45,18 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
         continue;
       if (exceptionTypes[i] == null) {
         // catch block handles any exception
-        return  catchInstructionOffsets[i];
+        return catchInstructionOffsets[i];
       }
       VM_Type lhs = exceptionTypes[i];
       if (lhs.isInitialized()) {
         if (VM.BuildForFastDynamicTypeCheck) {
           if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), exceptionType.getTypeInformationBlock())) {
-            return  catchInstructionOffsets[i];
+            return catchInstructionOffsets[i];
           }
         } else {
 	  try {
 	    if (VM_Runtime.isAssignableWith(lhs, exceptionType)) {
-	      return  catchInstructionOffsets[i];
+	      return catchInstructionOffsets[i];
 	    }
 	  } catch (VM_ResolutionException e) {
 	    // cannot be thrown since lhs and rhs are initialized 
@@ -60,7 +65,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
         }
       }
     }
-    return  -1;
+    return -1;
   }
 
   // Fetch symbolic reference to a method that's called by one of this method's instructions.
@@ -90,7 +95,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   //
   final int findLineNumberForInstruction (int instructionOffset) {
     if (lineInstructionOffsets == null)
-      return  0;                // method has no line information
+      return 0;                // method has no line information
     // since "instructionOffset" points just beyond the desired instruction,
     // we scan for the line whose "instructionOffset" most-closely-preceeds 
     // the desired instruction
@@ -103,8 +108,8 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
       candidateIndex = i;
     }
     if (candidateIndex == -1)
-      return  0;                // not found
-    return  lineNumbers[candidateIndex];
+      return 0;                // not found
+    return lineNumbers[candidateIndex];
   }
 
   /** Find bytecode index corresponding to one of this method's 
@@ -123,7 +128,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
    */
   final int findBytecodeIndexForInstruction (int instructionIndex) {
     if (_bytecodeMap == null)
-      return  -1;               // method has no bytecode information
+      return -1;               // method has no bytecode information
     // since "instructionIndex" points just beyond the desired instruction,
     // we scan for the line whose "instructionIndex" most-closely-preceeds
     // the desired instruction
@@ -137,8 +142,8 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
         candidateIndex = i;
     }
     if (candidateIndex == -1)
-      return  -1;               // not found
-    return  candidateIndex;
+      return -1;               // not found
+    return candidateIndex;
   }
 
   /** Find machine code offset in this method's machine instructions
@@ -149,21 +154,21 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
    */
   public int findInstructionForBytecodeIndex (int bcIndex) {
     if (saveBytecodeMap == false)
-      return  -1; 
+      return -1; 
     else 
-      return  _bytecodeMap[bcIndex];
+      return _bytecodeMap[bcIndex];
   }
 
   // Find (earliest) machine instruction corresponding one of this method's source line numbers.
   //
   final int findInstructionForLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
-      return  -1;               // method has no line information
+      return -1;               // method has no line information
     for (int i = 0, n = lineNumbers.length; i < n; ++i) {
       if (lineNumbers[i] == lineNumber)
-        return  lineInstructionOffsets[i];
+        return lineInstructionOffsets[i];
     }
-    return  -1;
+    return -1;
   }
 
   // Find (earliest) machine instruction corresponding to the next valid source code line
@@ -171,22 +176,22 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   // Return -1 if there is no more valid source code in this method
   final int findInstructionForNextLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
-      return  -1;               // method has no line information
+      return -1;               // method has no line information
     for (int i = 0, n = lineNumbers.length; i < n; ++i) {
       if (lineNumbers[i] == lineNumber)
         if (i == n - 1)         // last valid source code line, no next line
-          return  -1; 
+          return -1; 
         else 
-          return  lineInstructionOffsets[i + 1];
+          return lineInstructionOffsets[i + 1];
     }
-    return  -1;
+    return -1;
   }
 
   // Find local variables that are in scope of specified machine instruction.
   //
   public final VM_LocalVariable[] findLocalVariablesForInstruction (int instructionOffset) {
     if (localVariables == null)
-      return  null;
+      return null;
     int count;
     // pass 1
     count = 0;
@@ -199,7 +204,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
     for (int i = 0, n = localVariables.length; i < n; ++i)
       if (instructionOffset >= localStartInstructionOffsets[i] && instructionOffset <= localEndInstructionOffsets[i])
         results[count++] = localVariables[i];
-    return  results;
+    return results;
   }
 
   /**

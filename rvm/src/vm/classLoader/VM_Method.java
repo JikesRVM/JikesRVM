@@ -380,7 +380,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       else if (VM.runningVM)
         compiledMethod = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
       else
-        compiledMethod = VM_Compiler.compile(this);          // use baseline compiler (assumption: we're producing information for debugger)
+        compiledMethod = VM_BaselineCompiler.compile(this);  // use baseline compiler (assumption: we're producing information for debugger)
 
       // save it away
       //

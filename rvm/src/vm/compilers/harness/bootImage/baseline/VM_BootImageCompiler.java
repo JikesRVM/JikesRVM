@@ -18,8 +18,7 @@ class VM_BootImageCompiler {
    * @param args command line arguments to the bootimage compiler
    */
   static void init(String[] args) { 
-    VM_Compiler.init(); 
-
+    VM_BaselineCompiler.initOptions();
     // Process arguments specified by the user.
     for (int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
@@ -36,7 +35,7 @@ class VM_BootImageCompiler {
    */
   static VM_CompiledMethod compile(VM_Method method) {
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    return VM_Compiler.compile(method);
+    return VM_BaselineCompiler.compile(method);
   }
   
   /**

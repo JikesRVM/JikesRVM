@@ -106,6 +106,10 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Setting up memory manager");
     VM_Collector.boot(VM_BootRecord.the_boot_record);
 
+    // Reset the options for the baseline compiler to avoid carrying them over from
+    // bootimage writing time.
+    // 
+    VM_BaselineCompiler.initOptions();
     
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any bootimage static synchronized methods 
@@ -123,13 +127,6 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
-
-    //  Start up the baseline compiler's options before any compilations happen
-    //
-
-    if (verbose >= 1) VM.sysWriteln("Retrieving compiler's boot options");
-    VM_Compiler.bootOptions();
-
 
     //
     // At this point the virtual machine is running as a single thread 
@@ -202,7 +199,7 @@ public class VM extends VM_Properties implements VM_Constants,
     // method_to_print restriction
     //
     if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_Compiler.postBootOptions();
+    VM_BaselineCompiler.postBootOptions();
 
 
     // Allow Collector to respond to command line arguments
@@ -934,7 +931,6 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     VM_Entrypoints.init();
     VM_OutOfLineMachineCode.init();
-    VM_Compiler.init();   // initialize compiler that lives in boot image
     if (writingBootImage) // initialize compiler that builds boot image
       VM_BootImageCompiler.init(bootCompilerArgs);
     VM_Runtime.init();

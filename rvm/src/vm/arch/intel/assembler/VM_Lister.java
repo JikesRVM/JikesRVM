@@ -462,7 +462,7 @@ class VM_Lister implements VM_Constants {
       
   public static void list (VM_Method m) {
     System.out.println("" + m);
-    VM_Compiler.compile(m);
+    VM_BaselineCompiler.compile(m);
   }
 
 }

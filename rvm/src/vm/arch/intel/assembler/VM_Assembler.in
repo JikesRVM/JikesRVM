@@ -164,11 +164,6 @@
 class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	
   /**
-   * dump assemby code as it is generated?
-   */	
-  static boolean TRACE = false;
-
-  /**
    * The lister object is used to print generated machine code.
    */
   private VM_Lister	 lister;
@@ -184,22 +179,16 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   protected int		 mi;	      
 
   /**
-   * Create an assembler with a given machine code buffer size.	 This
-   * size is merely a heuristic, because the assembler will expand its
-   * buffer if it becomes full.	 This constructor uses the global
-   * TRACE to determine whether the assemblewr should dump its
-   * generated code
+   * Create an assembler with a given machine code buffer size that
+   * will not print the machine code as it generates it.
+   * The buffer size is merely a heuristic, because the assembler will
+   * expand its buffer if it becomes full. 
    *
-   * @see #TRACE
-   *
-   * @param initial machine code buffer size.
+   * @param bytecodeSize initial machine code buffer size.
+   * @param shouldPrint whether to dump generated machine code.
    */
   VM_Assembler (int bytecodeSize) {
-    machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
-    if (TRACE)
-	lister = new VM_Lister(this);
-    else	
-	lister = null;
+    this(bytecodeSize, false);
   }
 
   /**
@@ -213,10 +202,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    */
   VM_Assembler (int bytecodeSize, boolean shouldPrint) {
     machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
-    if (shouldPrint) 
-	lister = new VM_Lister(this);
-    else
-	lister = null;
+    lister = shouldPrint ? new VM_Lister(this) : null;
   }
 
   /**

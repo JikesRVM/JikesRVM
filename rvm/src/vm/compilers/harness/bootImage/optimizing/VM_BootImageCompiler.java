@@ -21,6 +21,7 @@ class VM_BootImageCompiler {
    */
   public static void init(String[] args) {
     try {
+      VM_BaselineCompiler.initOptions();
       options = new OPT_Options();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
 	 
@@ -84,7 +85,7 @@ class VM_BootImageCompiler {
   public static VM_CompiledMethod compile(VM_Method method) {
 
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    if (!compilerEnabled) return VM_Compiler.compile(method); // Other half of kludge for java.lang.Object (see above)
+    if (!compilerEnabled) return VM_BaselineCompiler.compile(method); // Other half of kludge for java.lang.Object (see above)
     try {
       OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
       return OPT_Compiler.compile(cp);
@@ -101,7 +102,7 @@ class VM_BootImageCompiler {
 	}
 	if (printMsg) VM.sysWrite(msg);
       }
-      return VM_Compiler.compile(method);
+      return VM_BaselineCompiler.compile(method);
     }
   }
 

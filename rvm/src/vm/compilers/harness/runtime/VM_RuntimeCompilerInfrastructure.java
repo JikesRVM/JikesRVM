@@ -147,7 +147,7 @@ class VM_RuntimeCompilerInfrastructure
       timer.start();
     }
 
-    VM_CompiledMethod cm = VM_Compiler.compile(method);
+    VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
     if (VM.MeasureCompilation) {
       timer.finish();
