@@ -948,6 +948,10 @@ public class VM extends VM_Properties
 
   public static void ptsysWriteln (String s)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
 
+  public static void ptsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(i4); write(s5); write(s6); writeln(); swUnlock(); }
+
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); writeln(); swUnlock(); }
+
   public static void psysWrite    (char [] c, int l)     throws NoInlinePragma { swLock(); showProc(); write(c, l); swUnlock(); }
 
   public static void psysWriteln (Address a)         throws NoInlinePragma { swLock(); showProc(); write(a); writeln(); swUnlock(); }
@@ -962,11 +966,11 @@ public class VM extends VM_Properties
   // Exit statuses, pending a better location.
   // We also use the explicit constant -1 as an exit status (that gets mapped
   // to 255).  -1 is for things that are particularly bad.
-  public static int exitStatusRecursivelyShuttingDown = 128;
-  public static int exitStatusDumpStackAndDie = 124;
-  public static int exitStatusMainThreadCouldNotLaunch = 123;
-  public static int exitStatusMiscTrouble = 122;
-  public static int exitStatusSysFail = exitStatusDumpStackAndDie;
+  final public static int exitStatusRecursivelyShuttingDown = 128;
+  final public static int exitStatusDumpStackAndDie = 124;
+  final public static int exitStatusMainThreadCouldNotLaunch = 123;
+  final public static int exitStatusMiscTrouble = 122;
+  final public static int exitStatusSysFail = exitStatusDumpStackAndDie;
 
   /* See sys.C; if you change one of the following macros here,
      change them there too! */
@@ -1068,49 +1072,58 @@ public class VM extends VM_Properties
 
   private static int inSysFail = 0;
   private static void handlePossibleRecursiveCallToSysFail(String message) {
-    ++inSysFail;
-    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWriteln("VM.sysFail(): We're in a recursive call to VM.sysFail(), ",
-                 inSysFail, " deep.");
-      sysWrite("sysFail was called with the message: ", message);
-     }
-    if (inSysFail > maxSystemTroubleRecursionDepth) {
-      dieAbruptlyRecursiveSystemTrouble();
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
+    handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
   }
 
 
   private static int inSysExit = 0;
   private static void handlePossibleRecursiveCallToSysExit() {
-    ++inSysExit;
-    /* Message if we've been here before. */
-    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWrite("In a recursive call to VM.sysExit(), ", inSysExit, " deep.");
-    }
-    
-    if (inSysExit > maxSystemTroubleRecursionDepth ) {
-      dieAbruptlyRecursiveSystemTrouble();
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
+    handlePossibleRecursiveExit("sysExit", ++inSysExit, null);
   }
 
   private static int inShutdown = 0;
   /** Used only by VM.shutdown() */
   private static void handlePossibleRecursiveShutdown() {
-    ++inShutdown;
-    /* If we've been here only a few times, print message. */
-    if (   inShutdown > 1 
-        && inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWriteln("We're in a recursive call to VM.shutdown()", inShutdown, 
-                 "deep!");
+    handlePossibleRecursiveExit("shutdown", ++inShutdown, null);
+  }
+  
+  /** @param called Name of the function called: "sysExit", "sysFail", or
+   * "shutdown".
+   * @param depth How deep are we in that function?
+   * @param message What message did it have?  null means this particular
+   * shutdown function  does not come with a message. */
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message) {
+    /* We adjust up by nProcessorAdjust since we do not want to prematurely
+       abort.  Consider the case where VM_Scheduler.numProcessors is greater
+       than maxSystemTroubleRecursionDepth.  (This actually happened.)
+
+       Possible change: Instead of adjusting by the # of processors, make the
+       "depth" variable a per-processor variable. */
+    int nProcessors = VM_Scheduler.numProcessors;
+    int nProcessorAdjust = nProcessors - 1;
+    if (depth > 1
+        && (depth <= maxSystemTroubleRecursionDepth 
+            + nProcessorAdjust
+            + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) 
+    {
+      ptsysWriteln("VM.", called, "(): We're in a",
+                   depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                   " recursive call to VM.", called, "(), ", depth, 
+                   " deep\n",
+                   message == null ? "" : "   ", 
+                   message == null ? "" : called, 
+                   message == null ? "": " was called with the message: ", 
+                   message == null ? "" : message);
     }
-    if (inShutdown > maxSystemTroubleRecursionDepth ) {
+    if (depth > maxSystemTroubleRecursionDepth + nProcessorAdjust) {
       dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
-  
+
+
+
   /** Have we already called dieAbruptlyRecursiveSystemTrouble()?  
       Only for use if we're recursively shutting down!  Used by
       dieAbruptlyRecursiveSystemTrouble() only.  */
