@@ -4,6 +4,10 @@
 //$Id:
 package com.ibm.JikesRVM;
 
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+//-#endif
+
 /**
  * A description of a java object.
  *
@@ -150,6 +154,10 @@ package com.ibm.JikesRVM;
   public int scanBytes;
   public int bootCount;
   public int bootBytes; 
+
+   //-#if RVM_WITH_JMTK
+   public Type JMTKtype = new Type();
+   //-#endif
 
   /**
    * Load status.
