@@ -99,6 +99,14 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
       LOSmutatorLock.acquire();
   }
 
+
+  private void LOScheckpoint(int where) {
+    if (Plan.gcInProgress())
+      LOSgcLock.checkpoint(where);
+    else
+      LOSmutatorLock.checkpoint(where);
+  }
+
   /**
    * Release the appropriate lock depending on whether the context is
    * GC or mutator.
@@ -126,18 +134,15 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
     //
     for (int count=0; count < 2 ; count++) {
 
-      LOSlock();
-
       int num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
       int bytes = num_pages * pageSize;
 
-      if (!memoryResource.acquire(Conversions.bytesToBlocks(bytes))) {
-	LOSunlock();
+      if (!memoryResource.acquire(Conversions.bytesToBlocks(bytes))) 
 	return VM_Address.zero();
-      }
 
+      LOSlock();
       int last_possible = totalPages - num_pages;
-
+      LOScheckpoint(1);
       while (allocated[lastAllocated] != 0) 
 	lastAllocated += allocated[lastAllocated];
       int first_free = lastAllocated;
@@ -146,9 +151,11 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
 	// first find the first available page
 	// i points to an available page: remember it
 	int i;
+      LOScheckpoint(3);
 	for (i = first_free + 1; i < first_free + num_pages ; i++) {
 	  if (allocated[i] != 0) break;
 	}
+      LOScheckpoint(4);
 	if (i == (first_free + num_pages )) {  
 
 	  // successful: found num_pages contiguous pages
@@ -160,30 +167,37 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
 	  
 	  VM_Address result = start.add(pageSize * first_free);
 	  VM_Address resultEnd = result.add(size);
+      LOScheckpoint(5);
 	  if (resultEnd.GT(cursor)) {
 	    int neededBytes = resultEnd.diff(cursor).toInt();
 	    int blocks = Conversions.bytesToBlocks(neededBytes);
 	    VM_Address newArea = acquire(blocks);
+      LOScheckpoint(6);
 	    if (newArea.isZero()) {
+      LOScheckpoint(7);
 	      LOSunlock();
 	      return VM_Address.zero();
 	    }
 	  }
-
+      LOScheckpoint(10);
 	  if (VM.VerifyAssertions) VM._assert(resultEnd.LE(cursor));
 	  allocated[first_free + num_pages - 1] = (short)(-num_pages);
 	  allocated[first_free] = (short)(num_pages);
 	  pagesAllocated += num_pages;
+      LOScheckpoint(11);
 	  LOSunlock();
 	  Memory.zero(result, resultEnd);
 	  return result;
 	} else {  
+      LOScheckpoint(12);
 	  // free area did not contain enough contig. pages
 	  first_free = i + allocated[i]; 
 	  while (allocated[first_free] != 0) 
 	    first_free += allocated[first_free];
+      LOScheckpoint(13);
 	}
       }
+      LOScheckpoint(14);
       LOSunlock();
     } // for 
 
