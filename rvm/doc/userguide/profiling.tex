@@ -15,54 +15,74 @@ but only in adaptive configurations.
 \subsection{Using Hardware Performance Monitors}
 
 Jikes RVM can be built to enable access to the PowerPC hardware
-performance monitors (HPM) using the {\tt bos.pmapi} interface 
-included in AIX\AIXTMFootnote\ version 5. To build Jikes RVM to use
+performance monitors (HPMs) using the {\tt bos.pmapi} interface 
+included in AIX version 5. To build Jikes RVM to use
 HPMs, you must define RVM\_HPM\_DIR to be the directory containing
 the pmapi code (typically /usr/pmapi) and RVM\_WITH\_HPM to be 1.
 See the config file \$RVM\_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U for
 an example.
 
 After a valid configuration is built, the HPM are accessed through 
-command line options.  There are two options available:
+command line options. 
+The command line options that are available are enumerated with the 
+{\tt help} option prefixed with {\tt -X:hpm:} and 
+generates the following output:
 %
-\begin{itemize}
-\item {\tt -X:hpm:event<k>=N} where {\tt k} is an integer (starting from 1) that identifies an
-HPM counter, and {\tt N} is an integer that identifies, for the identified counter, 
-the event that is counted.
-The number of counters and the events associated with a specific counter are microprocessor specific.  
-For example, the PowerPC 604e only has four counters where the PowerPC 630 and Power 4 have eight.
-The PowerPC 604e reserves event number 2 on every counter to count the number of instructions 
-completed whereas the PowerPC 630 reserves event number 3.
-\item {\tt -X:hpm:mode=N} controls when events are counted: 
-{\tt N} =  4 when user code is running, 
-{\tt N} =  8 when kernel code is running, or 
-{\tt N} = 12 when both user and kernel code is running.
-\end{itemize}
+\begin{verbatim}
+Boolean Options (-X:hpm:<option>=true or -X:hpm:<option>=false) default is false
+ Option       Description
+ trace        trace HPM counter values at each thread switch.
+ processor    print name of processor and number of counters.
+ listAll      list all events associated with each counter.
+ listSelected list selected events for each counter.
+
+Value Options (-X:hpm:<option>=<value>)
+ Option        Type    Description
+ eventN        int     specify event for counter N where 1<=N<=UB and UB is processor specific
+ filename      String  prefix for file names.  Concatenate virtual processor number.
+ mode          int     specify mode: 1=GROUP, 2=PROCESS, 4=KERNEL, 8=USER, 16=COUNT, 32=PROCTREE
+ trace_verbose int     write events for this PID to the console.  Used on a multiprocessor.
+ verbose       int     print more information.
+\end{verbatim}
 
 At least one HPM event command line option must be set for HPM counter values to be gathered.  
-HPM only works accurately when the number of virtual processors is one, {\tt -X:processors=1}.  
-The output for a PowerPC 604e machine when the command line arguments are
-%
-\begin{verbatim}
-% rvm -X:hpm:event1=6 -X:hpm:event2=6 -X:hpm:event3=2 -X:hpm:event4=1 -X:hpm:mode=12
-\end{verbatim}
-%
-looks like:
-\begin{verbatim}
-*** Configuration :
-Mode = kernel and user; Process tree = off; Thresholding = off 
-Counter  1, event  6: PM_DTLB_MISS
-Counter  2, event  6: PM_DC_MISS
-Counter  3, event  2: PM_INST_CMPL
-Counter  4, event  1: PM_CYC
+When HPM counter values are gathered, aggregate values for each event 
+are generated for each virtual processor, and each Java thread that executes.
+For example, the aggregate HPM counter values for virtual processor 1
+when a particular configuration of SPECjbb2000 is run on the
+PowerPC POWER4 architecture with group 23 specified generated the following
+output:
 
-*** Results :
-PMC 1     PMC 2     PMC 3     PMC 4     
-=====     =====     =====     =====     
-4300056   8018925   1002604892  2412445847  
+\begin{verbatim}
+Dump HPM counter values for virtual processors
+ Virtual Processor: 1
+0: REAL_TIME           :4,398,503,873
+1: PM_LSU_SRQ_S0_VALID :2,244,438,656
+2: PM_LSU_SRQ_S0_ALLOC :71,532,205
+3: PM_LSU0_BUSY        :2,470,379,577
+4: PM_LSU1_BUSY        :1,882,422,375
+5: PM_LSU_LRQ_S0_VALID :3,894,273,486
+6: PM_LSU_LRQ_S0_ALLOC :153,366,828
+7: PM_INST_CMPL        :13,890,418,177
 \end{verbatim}
 
-\AIXPPCJikesTMFooter
+The {\tt -X:hpm:trace=true} command line option generates a trace file for each 
+virtual processor. 
+(The number of virtual processors is specified by the {\tt -X:processors} command line option.)
+A trace file contains a trace record every time a Java thread switch occurs on the 
+corresponding virtual processor.
+The record contains the HPM counter values at the thread switch in addition to 
+the identification of the Java thread.
+
+The Jikes RVM callback mechanism allows a Java thread to specify points in the 
+source file that when executed will place a marker record in the trace file.
+When the trace file is processed, the marker records allow the
+programmer to focus on portions of the execution.
+Jikes RVM uses this mechanism to open the trace files
+when the RVM starts executing and close the files when it exists.
+The AppStart, AppComplete, AppRunStart, and AppRunComplete monitors
+are supported for application use.  
+Support for other callbacks can be easily added following the current design.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Profiling An Application}
