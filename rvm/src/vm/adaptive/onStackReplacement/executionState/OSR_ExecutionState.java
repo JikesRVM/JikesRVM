@@ -217,9 +217,9 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       }
       default: {
 	if (VM.VerifyAssertions) {
-          VM.sysWriteln("OSR_ExecutionState: unknown bytecode "+code
-			+" at "+this.bcIndex+"@"+this.meth);
-	  VM._assert(VM.NOT_REACHED);
+	  VM._assert(VM.NOT_REACHED,
+		     "OSR_ExecutionState: unknown bytecode " + code
+			+ " at " + this.bcIndex + "@" + this.meth);
         }
 	break;
       }
