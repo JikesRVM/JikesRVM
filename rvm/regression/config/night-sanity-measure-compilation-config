@@ -1,1 +1,1 @@
-FastWatsonSemispace -test-list night-sanity-measure-compilation-tests
+FastSemiSpace -test-list night-sanity-measure-compilation-tests
