@@ -56,8 +56,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   // scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier
   public static       int schedulingQuantum = 10;
-  // How many times timer interrupt has occurred since last thread switch
-  public static       int interruptQuantumCounter = 0;
 
   // Virtual cpu's.
   //
