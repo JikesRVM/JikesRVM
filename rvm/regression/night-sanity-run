@@ -69,6 +69,11 @@ if [[ $NS_OS = 'AIX' ]]; then
 else
   NS_ARCH=`uname -m`
 fi
+if [[ $RVM_FOR_64_ADDR ]]; then
+  NS_BITS=64
+else
+  NS_BITS=32
+fi
 
 # Remove spaces from values such as "Power Macintosh"
 
@@ -93,10 +98,6 @@ do_measure_compilation=1
 declare -i trouble=0
 while (( $# > 0 )); do
     case "$1" in
-#	-clean )
-#	    rm -rf $MSG $RVM_ROOT/results
-#	    shift;
-#	    ;;
 	 -dry-run )
 	    dry_run="-succeed-immediately";
 	    do_mail=0;
@@ -188,7 +189,7 @@ function archiveResults() {
     fi
 
     echo -e "Archiving results into $ARCHIVE\n" | tee -a $RUN_LOG >> $VERBOSE_LOG
-    local filename=`date +"%A"`.${NS_OS}.${NS_ARCH}.tar.gz
+    local filename=`date +"%A"`.${NS_OS}.${NS_ARCH}.${NS_BITS}.tar.gz
     local tarfile=$ARCHIVE/$filename
     if :; then
 	$RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results
@@ -373,7 +374,7 @@ elif (( numfailed == 0 )); then
 else
     subject="Failed $numfailed tests"
 fi
-subject="[$NS_OS/$NS_ARCH] regression $subject"
+subject="[$NS_OS/$NS_ARCH/$NS_BITS] regression $subject"
 if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
     echo "$ME: this is a dry run.  Won't actually mail."
@@ -400,7 +401,7 @@ fi
 ## and a Copyright notice. 
 ##
 # Only run on one machine: currently the AIX nightly run machine.
-if [[ $NS_OS = 'AIX' ]]; then
+if [[ ${NS_OS}.${NS_BITS} = 'AIX.32' ]]; then
     export CHECK_DIR=$RVM_ROOT/results
 
     # Check files
