@@ -1,13 +1,15 @@
+/*
+ * (C) Copyright IBM Corp 2002
+ */
+// $Id$
 package java.io;
 
 import com.ibm.JikesRVM.VM_FileSystem;
 
 /**
- * Native FileDescriptor provider interface
+ * FileDescriptor provider interface, implemented for Jikes RVM.
  *
- * Platform implementors must implement these methods.  Note that this
- * class guarantees that valid data will be passed to these methods,
- * so basic error checking on input values can be skipped.
+ * @author Julian Dolby
  */
 final class VMFileDescriptor {
 
