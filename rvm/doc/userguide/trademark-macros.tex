@@ -41,41 +41,66 @@
 \T \newcommand{\trademark}{\texttrademark}
 \T \newcommand{\registeredTrademark}{\trademark}
 
+%% The spaces do not hurt the HTML and may help it.
 \W \newcommand{\trademark}{\xmlsym{##8482}\ }
-\W \newcommand{\registeredTrademark}{\xmlsym{reg}\ }
+\W \newcommand{\registeredTrademark}{\xml{sup}\xmlsym{reg}\xml{/sup}\ }
 
 
 
   \W \begin{iftex}
   %% This looks quite nice on the title page --augart, 2003 Oct 16
   \newcommand{\AIXTM}{AIX\ensuremath{%
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+     \protect\raisebox{.41\baselineskip}{\tiny TM}}}
   \newcommand{\AIXTMheading}{\AIXTM}
+
+  \newcommand{\AIXTMweb}{AIX}
+  \newcommand{\AIXTMwebheading}{AIX}
 
   \newcommand{\IBMR}{IBM\ensuremath{%\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\IBMRweb}{IBM}
 
   \newcommand{\IntelR}{Intel\ensuremath{\protect\raisebox{.41\baselineskip}{\tiny TM}}}
   \newcommand{\IntelRheading}{\IntelR}
 
+  \newcommand{\IntelRweb}{Intel}
+  \newcommand{\IntelRwebheading}{Intel}
+
   \newcommand{\JikesTM}{Jikes\ensuremath{\!%
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\JikesTMweb}{Jikes}
 
   \newcommand{\JavaTM}{Java\ensuremath{\!%\!\!\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+
+  \newcommand{\JavaTMweb}{Java}
+
   \newcommand{\JavadocTM}{Javadoc\ensuremath{\!%\!\!\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\JavadocTMweb}{Javadoc}
 
   \newcommand{\LinuxR}{Linux\ensuremath{\!%\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
   \newcommand{\LinuxRheading}{\LinuxR}
 
+  \newcommand{\LinuxRweb}{Linux}
+  \newcommand{\LinuxRwebheading}{Linux}
+
+  \newcommand{\PostScriptR}{PostScript\ensuremath{\!%\!
+      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\PostScriptRweb}{PostScript}
+
+
   \newcommand{\PowerPCTM}{PowerPC\ensuremath{%\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\PowerPCTMweb}{PowerPC}
 
   \newcommand{\RedHatTM}{Red Hat\ensuremath{%
       \!\protect\raisebox{.41\baselineskip}{\tiny TM}}}
   \newcommand{\RedHatTMheading}{\RedHatTM}
+
+  \newcommand{\RedHatTMweb}{Red Hat}
+  \newcommand{\RedHatTMwebheading}{Red Hat}
 
   \newcommand{\SPECR}{SPEC\ensuremath{%\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
@@ -89,10 +114,15 @@
 
   \newcommand{\SunR}{Sun\ensuremath{%
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
+  \newcommand{\SunRweb}{Sun}
 
   \newcommand{\SuSER}{SuSE\ensuremath{%
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
   \newcommand{\SuSERheading}{\SuSER}
+
+  \newcommand{\SuSERweb}{SuSE}
+  \newcommand{\SuSERwebheading}{SuSE}
+
 
   \newcommand{\UnixR}{Unix\ensuremath{\!%\!\!
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
@@ -103,21 +133,37 @@
   \W \newcommand{\AIXTM}{AIX\link{\trademark}{trademarks}}
   \W \newcommand{\AIXTMheading}{AIX\trademark}
 
+  \newcommand{\AIXTMweb}{\AIXTM}
+  \newcommand{\AIXTMwebheading}{\AIXTMheading}
+
   \W \newcommand{\IBMR}{IBM\link{\registeredTrademark}{trademarks}}
+  \W \newcommand{\IBMRweb}{\IBMR}
 
   \W \newcommand{\IntelR}{Intel\link{\registeredTrademark}{trademarks}}
   \W \newcommand{\IntelRheading}{Intel\registeredTrademark}
+  \W \newcommand{\IntelRweb}{\IntelR}
+  \W \newcommand{\IntelRwebheading}{\IntelRheading}
 
   \W \newcommand{\JavaTM}{Java\link{\trademark}{trademarks}}
+  \W \newcommand{\JavaTMweb}{\JavaTM}
 
   \W \newcommand{\JavadocTM}{Javadoc\link{\trademark}{trademarks}}
+  \W \newcommand{\JavadocTMweb}{\JavadocTM}
 
   \W \newcommand{\JikesTM}{Jikes\link{\trademark}{trademarks}}
+  \W \newcommand{\JikesTMweb}{\JikesTM}
 
   \W \newcommand{\LinuxR}{Linux\link{\registeredTrademark}{trademarks}}
   \W \newcommand{\LinuxRheading}{Linux\registeredTrademark}
+  \W \newcommand{\LinuxRweb}{\LinuxR}
+  \W \newcommand{\LinuxRwebheading}{\LinuxRheading}
+
+  \W \newcommand{\PostScriptR}{PostScript\link{\registeredTrademark}{trademarks}}
+  \W \newcommand{\PostScriptRweb}{\PostScriptR}
+
 
   \W \newcommand{\PowerPCTM}{PowerPC\link{\trademark}{trademarks}}
+  \W \newcommand{\PowerPCTMweb}{\PowerPCTM}
 
   \W \newcommand{\SPECR}{SPEC\link{\registeredTrademark}{trademarks}}
 
@@ -130,10 +176,18 @@
   \W \newcommand{\RedHatTM}{Red Hat\link{\trademark}{trademarks}}
   \W \newcommand{\RedHatTMheading}{Red Hat\trademark}
 
+  \W \newcommand{\RedHatTMweb}{\RedHatTM}
+  \W \newcommand{\RedHatTMwebheading}{\RedHatTMheading}
+
   \W \newcommand{\SunR}{Sun\link{\registeredTrademark}{trademarks}}
+
+  \W \newcommand{\SunRweb}{\SunR}
 
   \W \newcommand{\SuSER}{SuSE\link{\registeredTrademark}{trademarks}}
   \W \newcommand{\SuSERheading}{SuSE\registeredTrademark}
+
+  \W \newcommand{\SuSERweb}{\SuSER}
+  \W \newcommand{\SuSERwebheading}{\SuSERheading}
 
   \W \newcommand{\UnixR}{Unix\link{\registeredTrademark}{trademarks}}
   \T \end{ifhtml}

@@ -223,7 +223,7 @@ enough to allow new users to write new instrumentation phases.
 \paragraph{Counter Managers:}  Counters are created and inserted into
 the code using the 
 \xlink{{\tt
-OPT\_InstrumentedEventCounterManager}}{\OPTInstrumentedEventCounterManagerURL} 
+OPT\_\-In\-stru\-men\-ted\-Event\-Coun\-ter\-Ma\-na\-ger}}{\OPTInstrumentedEventCounterManagerURL} 
 interface.
 The purpose of the counter manager interface is to abstract away the
 implementation details of the counters, making instrumentation
@@ -231,13 +231,13 @@ phases simpler and allowing the counter implementation to be changed
 easily (new counter managers can be used without changing any of the
 instrumentation phases).  Currently there exists only one counter
 manager, 
-\xlink{{\tt VM\_CounterArrayManager}}{\VMCounterArrayManagerURL}
+\xlink{{\tt VM\_\-Counter\-Array\-Manager}}{\VMCounterArrayManagerURL}
 , which implements unsynchronized
 counters.
 When instrumentation options
 are turned on in the adaptive system, 
-\xlink{{\tt VM\_Instrumentation.boot()}}{\VMInstrumentationURL}
-creates an instance of a \xlink{{\tt VM\_CounterArrayManager}}{\VMCounterArrayManagerURL}.
+\xlink{{\tt VM\_\-In\-stru\-men\-ta\-tion.boot()}}{\VMInstrumentationURL}
+creates an instance of a \xlink{{\tt VM\_\-Counter\-Array\-Manager}}{\VMCounterArrayManagerURL}.
 
 \paragraph{Managed Data:} The class 
 \xlink{{\tt VM\_ManagedCounterData}}{\VMManagedCounterDataURL} 
@@ -273,7 +273,7 @@ OPT\_InsertInstructionCounters.java}}{\OPTInsertInstructionCountersURL},
 \xlink{{\tt
 OPT\_InsertYieldpointCounters.java}}{\OPTInsertYieldpointCountersURL},
 \xlink{{\tt
-OPT\_InsertMethodInvocationCounter.java}}{\OPTInsertMethodInvocationCounterURL} 
+OPT\_\-In\-sert\-Me\-thod\-In\-vo\-ca\-tion\-Counter.java}}{\OPTInsertMethodInvocationCounterURL} 
 ).  The instrumentation phase
 inserts high level ``count event'' instructions (which are obtained by
 asking the counter manager) into the code.  It also updates the
@@ -312,9 +312,11 @@ the checks use a counter to determine when control should transfer
 into the instrumented code.
 For full details see the papers mentioned above. 
 
+\T \pagebreak[4]
 \subsubsection{How to use it}
-
+\T \nopagebreak
 Example usage: 
+\T \nopagebreak
 \begin{verbatim}
 rvm -X:aos:enable_recompilation=false
     -X:aos:initial_compiler=opt

@@ -5,11 +5,11 @@ include:
 \subsection{Java} 
 ($\approx 1041$ source files as of this writing, on July 17, 2003)  This is
 the vast majority of the code.  The names of Java source files always end in
-`{\tt .java}''.   We discuss Java coding style in
-section~\ref{section:javacodingstyle}. 
+`{\tt .java}''.   We \link{have already discussed Java coding style}[ in
+section~\Ref]{section:javacodingstyle}. 
 
-We have found it necessary to preprocess the Java code; the
-preprocessor is discussed in section~\ref{section:preprocessor}.
+We have found it necessary to preprocess the Java code; \link{the
+preprocessor is discussed later}[, in section~\Ref]{section:preprocessor}.
 
 
 \subsection {C}
@@ -66,8 +66,8 @@ The Bash source code used in the build system is protected with
 {\tt set~-e}, which causes the shell to immediately exit in case of
 trouble, and (on Bash versions that support it) with a {\tt trap}
 against the {\tt ERR} pesudo-signal.  You can see an example of this
-in the function {\tt emit\_enable\_exit\_on\_error} in {\tt
-rvm/bin/jconfigure}.  
+in the function {\tt emit\_\-enable\_\-exit\_\-on\_\-err\-or} in {\tt
+rvm/\-bin/\-j\-con\-fi\-gure}.  
 
 \paragraph{Subshells}
 
@@ -96,7 +96,7 @@ fi
 
 \paragraph{{\bf \tt unset} fails on nonexistent variables}
 The construct ``{\tt unset} \(\mbox{\it variablename}_1\)...'' will
-fail if any \(\mbox{{\it variablename\/}}_i\) is not already set.
+fail if any \(\mbox{{\it variable\-name\/}}_i\) is not already set.
 If this could happen, you should guard the construct as in this
 example:
 \begin{example}
@@ -112,8 +112,9 @@ status.
 \subsection{GNU Makefiles} 
 
 We are committed to GNU Make.  All new makefiles should be named {\tt
-GNUmakefile}, just as discussed in the \SunR{} style guide mentioned in
-section~\ref{section:javacodingstyle}.  We have gone over to pure Bash
+GNUmakefile}, \link{just as discussed in the \SunRweb{} style guide}[
+  mentioned in section~\Ref]{section:javacodingstyle}.  We have gone
+over to pure Bash 
 (we used to use Korn shell, for historical reasons); authors of
 Makefiles can safely use any Bash constructs.
 

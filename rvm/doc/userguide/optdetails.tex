@@ -416,7 +416,7 @@ will invoke the optimizing compiler on the first method {\tt bar} of class
 {\tt Foo} it loads.
 
 \begin{verbatim}
-% rvm OptTestHarness -method Foo bar (I)V; 
+% rvm OptTestHarness -method Foo bar '(I)V;' 
 \end{verbatim} 
 will invoke the optimizing compiler on method {\tt Foo.bar(I)V;}.
 
@@ -430,9 +430,13 @@ the command line.  Any arguments passed to {\tt OptTestHarness} via {\tt
 will compile {\tt Foo.bar} at optimization level {\tt O1} and print
 the final HIR.
 
-One other useful option to {\tt OptTestHarness} is {\tt -longcommandline
+Another useful option to {\tt OptTestHarness} is {\tt -longcommandline
 <filename>}. With this option, {\tt OptTestHarness} reads the command line
 from a file.
 
-The source to the {\tt OptTestHarness} resides in 
-{\tt \$RVM\_ROOT/rvm/src/tools/optTestHarness}.
+The source to the {\tt OptTestHarness} resides in
+{\tt \$RVM\_ROOT/rvm/src/tools/optTestHarness}.  Consult the comments
+at the head of the file {\tt
+OptTestHarness.java} in that directory to read about other options,
+including how to use {\tt -er} to make {\tt OptTestHarness} 
+actually execute one of the methods that it just compiled.

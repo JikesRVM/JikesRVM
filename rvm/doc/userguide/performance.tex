@@ -24,8 +24,8 @@ machine performance will be abysmal.  Jikes RVM has been designed
 under the assumption that aggressive inlining and optimization will be
 applied to the VM source code. 
 \item Any configuration that performs opt compilation at runtime (
-{\tt RVM\_WITH\_ADAPTIVE\_SYSTEM=1} should be built with {\tt
-RVM\_WITH\_ALL\_CLASSES=1}.  This includes the optimizing compiler and
+{\tt RVM\_\-WITH\_\-A\-DAP\-TIVE\_\-SYS\-TEM=1} should be built with {\tt
+RVM\_\-WITH\_\-ALL\_\-CLAS\-SES=1}.  This includes the optimizing compiler and
 associated support classes in the boot image where they can be
 optimized by the boot image compiler. By convention, configurations
 that include the opt compiler in the boot image have the {\tt Full} or
@@ -68,7 +68,9 @@ The IA32 port is somewhat less mature than the PPC port, and does not
 deliver competitive performance on some codes.  In particular, IA32
 floating-point performance is mediocre.
 
-Some classes of codes will not run fast on Jikes RVM.  Known issues include:
+\T \pagebreak[4]
+Some kinds of code will not run fast on Jikes RVM.  Known issues include:
+\T \nopagebreak
 \begin{itemize}
 \item Jikes RVM start-up is slow compared to the IBM product JVM.
 \item Remember that the non-adaptive configurations (eg. Fast) opt-compile

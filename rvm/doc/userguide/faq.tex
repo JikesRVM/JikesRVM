@@ -24,23 +24,22 @@ technologies for dynamic compilation, adaptive optimization, garbage
 collection, thread scheduling, and synchronization.
 
 \subsubsection{Who is using Jikes RVM}
-A list of current Jikes RVM researchers is available at
-\xlink{{\tt \RVMUserListURL}}{\RVMUserListURL}.  If you would like to 
-be added to the web page, let us know.
+
+\xlink{We maintain list of current Jikes RVM researchers}[ available at
+{\tt \RVMUsersURL}]{\RVMUsersURL}.  If you would like to 
+be added to the web page, please let us know.
 
 \subsubsection{Can I use Jikes RVM when teaching a class?}
 
 Yes, this is fine under the
 \xlink{Common Public License}{\CPLURL}.  In fact,  professors
 have already done at both the graduate and undergraduate levels.
-Teaching material and links to courses taught using Jikes RVM are
-available at
-\xlink{{\tt \RVMTeachingResourcesURL}}{\RVMTeachingResourcesURL}.
+\xlink{Teaching material and links to courses taught using Jikes RVM are
+available}[ at {\tt \RVMTeachingResourcesURL}]{\RVMTeachingResourcesURL}.
 
-\subsubsection{Who can I contact with questions?}
+\subsubsection{Whom can I contact with questions?}
 
-Use the mailing lists available at 
-\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}
+\xlink{Use the {\tt jikesrvm-researchers} mailing list}[, available at {\tt \RVMDownloadURL}]{\RVMDownloadURL}.
 
 \subsubsection{Which mailing list(s) should I subscribe to?}
 
@@ -61,9 +60,9 @@ We currently have the following four mailing lists:
 \end{description}
 
 
-\subsubsection{How can I contribute to RVM?}
-Bug reports or feature requests can be submitted directly at
-\xlink{{\tt \RVMBugURL}}{\RVMBugURL}.  
+\subsubsection{How can I contribute to \jrvm{}?}
+\xlink{Bug reports or feature requests can be submitted directly}[ at
+{\tt \RVMBugURL}]{\RVMBugURL}.  
 Information about contributing bug fixes or extensions to the system
 can be found at
 \xlink{{\tt \RVMContribURL}}{\RVMContribURL}.   
@@ -72,26 +71,26 @@ can be found at
 
 \AIXPPCJikesTMFooter
 
-\subsection{Getting RVM and Documentation}
+\subsection{Getting \jrvm{} and Documentation}
 
-\subsubsection{How do I get RVM?}
+\subsubsection{How do I get \jrvm{}?}
 
-You can download the RVM source from DeveloperWorks at \xlink{{\tt
-\RVMDownloadURL}}{\RVMDownloadURL}.  The RVM source is also available
+You can download the \jrvm{} source from DeveloperWorks at \xlink{{\tt
+\RVMDownloadURL}}{\RVMDownloadURL}.  The \jrvm{} source is also available
 through a public \xlink{CVS server}{\RVMCVSURL}.
 
 \subsubsection{Is there a list of known bugs?}
 
-See the bug tracking system available on DeveloperWorks at 
-\xlink{{\tt \RVMBugURL}}{\RVMBugURL}.
+\xlink{See the bug tracking system on DeveloperWorks}[ at 
+{\tt \RVMBugURL}]{\RVMBugURL}.
 
-The bug tracking lists {\em defects}, representing bugs in the system, and
+The bug tracking system lists {\em defects}, representing bugs in the system, and
 {\em feature requests}, which are TODO items to improve the system.
 
 \subsubsection{Is there documentation on-line?}
 
-Yes.  See the RVM Home page at
-\xlink{{\tt \RVMHomeURL}}{\RVMHomeURL}.
+Yes.  \xlink{See the \jrvm{} Home Page}[at
+{\tt \RVMHomeURL}]{\RVMHomeURL}.
 
 \subsubsection{Can I get the Quicksilver Quasi-Static System?}
 
@@ -103,10 +102,10 @@ No. This project is not supported.
 
 \subsubsection{What happened to {\tt jdp}?}
 
-The jdp debugger has been deprecated.  See
-Section~\ref{section:debugging} for more details.
+\link{The {\tt jdp} debugger is no longer maintained.}[See
+Section~\Ref for more details.]{section:debugging}
 
-\subsection{Building RVM}
+\subsection{Building \jrvm}
 
 
 \subsubsection{What's the right value to use for
@@ -147,23 +146,23 @@ it is run.
 
 \subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
-to compile the RVM source on both \LinuxR and
-\AIXTM. Previously we were using version 1.13. Version 1.14
-through 1.17 have been reported to not entirely work with Jikes
-RVM. For versions of Jikes RVM before 2.2.0, you must use jikes 1.13.
+to compile the RVM source on both \LinuxR{} and \AIXTM. Previously we
+were using version 1.13. Version 1.14 through 1.17 do not entirely
+work with Jikes RVM.  For versions of Jikes RVM before 2.2.0, you must
+use jikes 1.13.
 
 \subsubsection{Has anybody thought about incremental boot image writing?}
 
 Incremental boot image building is not a trivial problem.  One big
 issue is: if we change the implementation of one class in the boot image,
-what other parts of the VM image must be invalidated?  One example: which
+what other parts of the VM image must be invalidated?  Which
 methods must be recompiled to reflect the new implementation?  We have no
 mechanism in place to trace these kinds of dependencies.  There are other
 examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
 
-\subsubsection{Can I monitor progress during jbuild?}
+\subsubsection{Can I monitor progress during {\tt jbuild}?}
 
 Yes.  Use {\tt jbuild -trace} to see detailed progress.  Use {\tt
 jbuild -help} to see a list of sub-options you can give to the {\tt
@@ -173,7 +172,7 @@ jbuild -help} to see a list of sub-options you can give to the {\tt
 
 The {\tt jconfigure} script defines which classes go in the boot image, by
 spitting out the file {\tt \$RVM\_BUILD/RVM.primordials}.  By default, any
-class with the {\tt VM\_} prefix in a defined directory set, goes in the
+class, with the {\tt VM\_} prefix, in a defined directory set, goes in the
 boot image.
 
 You may choose to add more classes to the primordial list.  One way to do
@@ -185,33 +184,33 @@ non-VM classes in the primordial list (eg. {\tt java.lang.Object}).
 
 \subsection{Runtime implementation}
 
-\subsubsection{Does RVM have an interpreter?}
+\subsubsection{Does \jrvm{} have an interpreter?}
 
 No.  RVM relies on two compilers, and compiles all methods to native code.
 
-\subsubsection{Does RVM support JNI?}
+\subsubsection{Does \jrvm{} support JNI?}
 
 Most JNI functionality is supported. A few functions are not. 
-There are a few functions that are only supported on \AIXTM
-and some other functions that are only supported on Linux/IA32.
+There are a few functions that are only supported on \AIXTM{}
+and some other functions that are only supported on \LinuxR{}/IA32.
 
-\subsubsection{Does RVM support user-defined class loaders?}
+\subsubsection{Does \jrvm{} support user-defined class loaders?}
 Yes, with the caveat that we do not verify linking constraints.
 
-\subsubsection{Does RVM support the Java security model?} 
+\subsubsection{Does \jrvm{} support the Java security model?} 
 
-We believe we support it to the extent that the 
+We support it to the extent that the 
 \xlink{GNU Classpath}{\classpathURL}  
 libraries support it.
 
-\subsubsection{Does RVM support serialization?}
+\subsubsection{Does \jrvm{} support serialization?}
 
-We believe we support it to the extent that the 
-\xlink{GNU Classpath}{\classpathURL}  
-libraries support it. We have noticed that sometimes it doesn't
-work exactly the same as in the \SunR{} class library.
+We support it to the extent that the 
+\xlink{GNU Classpath libraries}{\classpathURL}  
+support it. We have noticed that sometimes it doesn't
+work exactly the same as in the \SunRweb{} class library.
 
-\subsubsection{Does RVM enforce the Java Memory Model?}
+\subsubsection{Does \jrvm{} enforce the Java Memory Model?}
 
 No. Depending on the architecture, various features of the memory model
 are not implemented according to the current spec, to the best of our
@@ -219,9 +218,8 @@ understanding.
 
 Known issues include:
 \begin{itemize}
-\item on \PowerPCTM, the system does not enforce
-sequential consistency for 
-volatile variables
+\item on \PowerPCTM{}, the system does not enforce
+sequential consistency for volatile variables
 \item the system does not enforce atomicity of memory accesses for
 doubleword values
 \item by default, the optimizing compiler does not respect the "reads
@@ -229,7 +227,7 @@ kill" property.  However, there is a command-line option to enforce the
 property, which constrains the optimizations.
 \end{itemize}
 
-\subsubsection{How do RVM's threads, Posix threads, and kernel
+\subsubsection{How do \jrvm{}'s threads, Posix threads, and kernel
 threads relate to each other?}
 
 RVM implements an $m$-to-$n$ threading model, where $m$ is the number of 
@@ -328,7 +326,7 @@ used for various purposes by the RVM GC system.
 
 \end{description}
 
-\subsubsection{Does RVM conform to Sun's JDK Host Porting Interface?}
+\subsubsection{Does \jrvm{} conform to Sun's JDK Host Porting Interface?}
 
 No. There is nothing in RVM that remotely resembles HPI.
 
@@ -341,7 +339,7 @@ No. There is nothing in RVM that remotely resembles HPI.
 \subsubsection{Why don't you use the GNU Classpath libraries?}
 As of version 2.2.1 we do.  
 
-\subsubsection{Does RVM run awt?}
+\subsubsection{Does \jrvm{} run awt?}
 
 We believe we support it to the extent that the 
 \xlink{GNU Classpath}{\classpathURL}  
