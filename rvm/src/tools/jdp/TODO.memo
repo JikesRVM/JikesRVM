@@ -53,7 +53,7 @@ of priority.
   - bug: If "where" is issued while stepping through the lazy-compilation-
     trampoline code or the interface-hash-collision code or other bits
     of unnamed assembler, the result is an error message and being dropped
-    into "jid". The result should be more tolerate and instead indicate
+    into "jid". The result should be more tolerant and instead indicate
     that "where" is not possible as current execution is likely in an unnamed 
     assembler fragment. Ideally the fragment could be recognized at the
     time of entry to it. But a more fault-tolerate response (and not 
@@ -66,7 +66,7 @@ of priority.
   - List the known compiled methods that match the method specified. I
     suggest limiting the wildcard * symbol to only appear at the start and 
     ends of classname and method name to make the look-up simpler. 
-    The classname. part is optional. This command is useful in combination
+    The classname part is optional. This command is useful in combination
     with the break command. The display should allow easy cut and paste
     to the break and listi commands.
 
