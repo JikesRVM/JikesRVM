@@ -76,7 +76,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   static void setInterval(OPT_Register reg, CompoundInterval interval) {
     reg.scratchObject = interval;
- }
+  }
 
   /**
    *  Returns the interval associated with the passed register.
@@ -1527,10 +1527,6 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // initialize registers 
       initializeRegisters();
 
-      // the set of compound intervals active on entry/exit to a basic block;
-      HashSet activeIn  = new HashSet(10);
-      HashSet activeOut  = new HashSet(10);
-
       // visit each basic block in the listOfBlocks list
       for (OPT_BasicBlock bb = listOfBlocks; bb !=null; 
            bb=(OPT_BasicBlock)bb.nextSorted) {
@@ -1546,16 +1542,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
           CompoundInterval resultingInterval = processLiveInterval(live, 
                                                                    bb);
-          if (live.getEnd() == null && resultingInterval != null) { 
-            // the live interval is still alive at the end of this basic
-            // block. insert at the end of the active list
-            activeOut.add(resultingInterval);
-          } 
         } 
-
-        // done with the basic block, set activeIn = activeOut
-        activeIn = activeOut;
-        activeOut = new HashSet(10);
       }
 
       // debug support
