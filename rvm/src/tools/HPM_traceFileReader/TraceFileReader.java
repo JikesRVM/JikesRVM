@@ -662,8 +662,6 @@ class TraceFileReader
       if(options.verbose>=1) {
 	System.out.print(index);
       }
-      if (tcr.thread_switch) System.out.print(" ");
-      else                   System.out.print("*");
       if(options.verbose>=3) System.out.print(tcr.buffer_code+" ");
       tcr.print();
     } else {
