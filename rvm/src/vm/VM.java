@@ -973,6 +973,17 @@ public class VM extends VM_Properties
       sysWrite(value);
       sysWriteln(")");
     }
+    if (VM_Options.stackTraceAtExit) {
+      VM.sysWrite("[Here is the context of the call to VM.sysExit(");
+      VM.sysWrite(value);
+      VM.sysWriteln(")...:");
+      VM.disableGC();
+      VM_Scheduler.dumpStack();
+      VM.enableGC();
+      VM.sysWriteln("... END context of the call to VM.sysExit]");
+
+    }
+
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
