@@ -93,6 +93,38 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   |----------|
    *   |       	  |
    * </pre>
+   * 
+   * Linux (and OSX) uses different transition scheme: the Java-to-Native transition
+   * stackframe consists of two mini frames: frame 1 has RVM's stack header with
+   * compiled method ID, and frame 2 has C (SVR4)'s stackframe layout. 
+   * Comparing to AIX transition frame,
+   * Linux version inserts a RVM frame header right above JNI_SAVE_AREA. <p>
+   * 
+   * <pre>
+   *   |------------|
+   *   | fp         | <- Java to C glue frame (2)
+   *   | lr         |
+   *   | 0          | <- spill area, see VM_Compiler.getFrameSize
+   *   | 1          |
+   *   |.......     |
+   *   |------------| 
+   *   | fp         | <- Java to C glue frame (1)
+   *   | cmid       | 
+   *   | lr         |
+   *   | padding    |
+   *   | GC flag    |
+   *   | Affinity   |
+   *   | ........   |
+   *   |------------| 
+   *   | fp         | <- Java caller frame
+   *   | mid        |
+   * </pre>
+   * 
+   * VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (1).
+   * The lr slot of frame (2) holds the address of out-of-line machine code 
+   * which should be in bootimage, and GC shouldn't move this code. 
+   * The VM_JNIGCIterator returns the lr of frame (2) as the result of 
+   * getReturnAddressAddress.
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
@@ -175,12 +207,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Opens a new frame in the JNIRefs table to register the references.
     // Assumes S0 set to JNIEnv, kills KLUDGE_TI_REG, S1 & PROCESSOR_REGISTER
     // On return, S0 is still valid.
-    //-#if RVM_FOR_LINUX
-    storeParametersForLinux(asm, frameSize, method, klass);
-    //-#elif RVM_FOR_OSX
-    storeParametersForOSX(asm, frameSize, method, klass);
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    storeParametersForLinuxOrOSX(asm, frameSize, method, klass);
     //-#elif RVM_FOR_AIX
     storeParametersForAIX(asm, frameSize, method, klass);
+    //-#else
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     //-#endif
 	
     // Get address of out_of_line prolog into S1, before setting TOC reg.
@@ -282,25 +314,30 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     return cm;
   } 
 
-  //-#if RVM_FOR_LINUX
-  // Maps arguments from RVM to SVR4 ABI convention
-  /* PRE conditions:
-   *   r3 - r13 parameters from caller
-   *   f1 - f15 parameters from caller
-   *  
-   *  spills saved in callers's stack frame
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  /** Maps arguments from RVM to OS specific convention (SVR4 ABI for Linux, and Mach-O for OSX)
+   * Assumptions:
+   *   RVM saves int or long parameters in GPRs from FIRST_VOLATILE_GPR to LAST_VOLATILE_GPR,
+   *   float and double parameters are in FIRST_VOLATILE_FPR to LAST_VOLATILE_FRP,
+   *   and spills are saved in caller's stack frame.
+   *
+   *   Parameters are copied to FIRST_OS_PARAMETER_GPR+2 to LAST_OS_PARAMETER_GPR
+   *   and FIRST_OS_PARAMETER_FPR to LAST_OS_PARAMETER_FRP, or spilled on the stack frame.
    */
-  static void storeParametersForLinux(VM_Assembler asm,
+  static void storeParametersForLinuxOrOSX(VM_Assembler asm,
 				      int frameSize,
 				      VM_Method method,
 				      VM_Class klass) {
 
-    int nextAIXArgReg, nextAIXArgFloatReg, nextVMArgReg, nextVMArgFloatReg; 
+    int nextOSArgReg, nextOSArgFloatReg, nextVMArgReg, nextVMArgFloatReg; 
     
-    // offset to the spill area in the callee (Linux frame)
-	// remove 
-    int spillOffsetAIX = NATIVE_FRAME_HEADER_SIZE; 
-
+    // offset to the spill area in the callee (Linux/OSX frame)
+    //-#if RVM_FOR_LINUX 
+    int spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;  
+    //-#elif RVM_FOR_OSX
+    int spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2 * BYTES_IN_STACKSLOT; // 1st spill = JNIEnv, 2nd spill = class
+    //-#endif
+    
     // offset to the spill area in the caller (RVM frame), relative to
     // the callee's FP
     int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
@@ -308,9 +345,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // does NOT include implicit this or class ptr
     VM_TypeReference[] types = method.getParameterTypes();
  
-    // number of arguments for this method
-    int numArguments = types.length; 
-    
     // Set up the Reference table for GC
     // PR <- JREFS array base
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIRefsField.getOffset(), S0);
@@ -332,32 +366,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTW  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);  // save new TOP as new frame ptr in JNIEnv
 
 
-    // for static methods: caller has placed args in r3,r4,... 
-    // for non-static methods:"this" ptr is in r3, and args start in r4,r5,...
-    // 
-    // for static methods:                for nonstatic methods:       
-    //  Java caller     AIX callee         Java caller     AIX callee    
-    //  -----------     ----------	    -----------     ----------  
-    //  spill = arg11 -> new spill	    spill = arg11 -> new spill  
-    //  spill = arg10 -> new spill	    spill = arg10 -> new spill  
-    // 				            spill = arg9  -> new spill  
-    //    R12 = arg9  -> new spill	                                
-    //    R11 = arg8  -> new spill	      R12 = arg8  -> new spill  
-    //    R10 = arg7  -> new spill	      R11 = arg7  -> new spill  
-    //    R9  = arg6  -> new spill	      R10 = arg6  -> new spill  
-    // 								   
-    //    R8  = arg5  -> R10                  R9  = arg5  -> R10         
-    //    R7  = arg4  -> R9		      R8  = arg4  -> R9          
-    //    R6  = arg3  -> R8		      R7  = arg3  -> R8          
-    //    R5  = arg2  -> R7		      R6  = arg2  -> R7          
-    //    R4  = arg1  -> R6		      R5  = arg1  -> R6          
-    //    R3  = arg0  -> R5		      R4  = arg0  -> R5          
-    //                   R4 = class           R3  = this  -> R4         
-    // 	                 R3 = JNIenv                         R3 = JNIenv
-    //
-    nextAIXArgFloatReg = FIRST_OS_PARAMETER_FPR;
+    nextOSArgFloatReg = FIRST_OS_PARAMETER_FPR;
     nextVMArgFloatReg  = FIRST_VOLATILE_FPR;
-    nextAIXArgReg      = FIRST_OS_PARAMETER_GPR + 2;   // 1st reg = JNIEnv, 2nd reg = class
+    nextOSArgReg      = FIRST_OS_PARAMETER_GPR + 2;   // 1st reg = JNIEnv, 2nd reg = class
     if (method.isStatic()) {
       nextVMArgReg = FIRST_VOLATILE_GPR;              
     } else {
@@ -370,6 +381,63 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR==FIRST_VOLATILE_GPR);
     if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR<=LAST_VOLATILE_GPR);
 
+
+    // TODO: detailed description of SVR4 and Mach-O calling conventions here
+    
+    generateParameterPassingCode(asm, types,
+                                 nextVMArgReg, nextVMArgFloatReg, spillOffsetVM,
+                                 nextOSArgReg, nextOSArgFloatReg, spillOffsetOS
+                                 );
+    
+    // Now add the 2 new JNI parameters:  JNI environment and Class or "this" object
+    
+    // if static method, append ref for class, else append ref for "this"
+    // and pass offset in JNIRefs array in r4 (as second arg to called native code)
+    int secondOSVolatileReg = FIRST_OS_PARAMETER_GPR + 1;
+    if ( method.isStatic() ) {
+      klass.getClassForType();     // ensure the Java class object is created
+      // JTOC saved above in JNIEnv is still valid, used by following emitLWZtoc
+      asm.emitLAddrToc(secondOSVolatileReg, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
+      asm.emitLWZ  (secondOSVolatileReg, 0, secondOSVolatileReg);                  // r4 <- first TIB entry == -> class object
+      asm.emitLWZ  (secondOSVolatileReg, VM_Entrypoints.classForTypeField.getOffset(), secondOSVolatileReg); // r4 <- java Class for this VM_Class
+      asm.emitSTWU (secondOSVolatileReg, 4, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondOSVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
+    } else {
+      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, KLUDGE_TI_REG);                 // append this ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondOSVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
+    }
+    
+    // store the new JNIRefs array TOP back into JNIEnv	
+    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
+    asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
+  }
+  //-#endif
+
+  
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  /* Generates instructions to copy parameters from RVM convention to OS convention.
+   * @param asm, the VM_Assembler object
+   * @param types, the parameter types
+   * @param nextVMArgReg, the first parameter GPR in RVM convention,
+   *                      the last parameter GPR is defined as LAST_VOLATILE_GPR.
+   * @param nextVMArgFloatReg, the first parameter FPR in RVM convention,
+   *                           the last parameter FPR is defined as LAST_VOLATILE_FPR.
+   * @param spillOffsetVM, the spill offset (related to FP) in RVM convention
+   * @param nextOSArgReg, the first parameter GPR in OS convention,
+   *                      the last parameter GPR is defined as LAST_OS_PARAMETER_GPR.
+   * @param nextOSArgFloatReg, the first parameter FPR in OS convention,
+   *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
+   * @param spillOffsetOS, the spill offset (related to FP) in OS convention
+   */   
+  private static void generateParameterPassingCode(VM_Assembler asm,
+                                            VM_TypeReference[] types,
+                                            int nextVMArgReg,
+                                            int nextVMArgFloatReg,
+                                            int spillOffsetVM,
+                                            int nextOSArgReg,
+                                            int nextOSArgFloatReg,
+                                            int spillOffsetOS
+                                            ) {
     // create one VM_Assembler object for each argument
     // This is needed for the following reason:
     //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -381,9 +449,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // To solve this problem, the instructions for each argument is generated in its
     // own VM_Assembler in the forward pass, then in the reverse pass, each VM_Assembler
     // emist the instruction sequence and copies it into the main VM_Assembler
+    int numArguments = types.length;
     VM_Assembler[] asmForArgs = new VM_Assembler[numArguments];
-
+    
     for (int arg = 0; arg < numArguments; arg++) {
+      //-#if RVM_FOR_OSX
+      int spillSizeOSX = 0;
+      int nextOsxGprIncrement = 1;
+      //-#endif
       
       asmForArgs[arg] = new VM_Assembler(0);
       VM_Assembler asmArg = asmForArgs[arg];
@@ -393,7 +466,16 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       //
       if (types[arg].isFloatType() || types[arg].isDoubleType()) {
 	boolean is32bits = types[arg].isFloatType();
-	
+
+        //-#if RVM_FOR_OSX
+        if (is32bits)
+          spillSizeOSX = 4;
+        else {
+          spillSizeOSX = 8;
+          nextOsxGprIncrement = 2;
+        }
+        //-#endif
+       	
        	// 1. check the source, the value will be in srcVMArg
 	int srcVMArg; // scratch fpr
 	if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
@@ -412,41 +494,67 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	}  
 		
 	// 2. check the destination, 
-	if (nextAIXArgFloatReg <= LAST_OS_PARAMETER_FPR) {
+	if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR) {
 	  // leave it there
-	  nextAIXArgFloatReg ++;
+	  nextOSArgFloatReg ++;
 	} else {
+          //-#if RVM_FOR_LINUX          
 	  // spill it, round the spill address to 8
 	  // assuming FP is aligned to 8
-	  spillOffsetAIX = (spillOffsetAIX + 7) & -8;	  
-	  asmArg.emitSTFD(srcVMArg, spillOffsetAIX, FP);
-	  spillOffsetAIX += 8; }
+	  spillOffsetOS = (spillOffsetOS + 7) & -8;	  
+	  asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
+	  spillOffsetOS += 8;
+          //-#elif RVM_FOR_OSX
+          if (is32bits) {
+            asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
+          } else {
+            asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
+          }
+          //-#endif
+        }
 	// for 64-bit long arguments
       } else if (types[arg].isLongType()) {
-	// handle AIX first
+        //-#if RVM_FOR_OSX
+	spillSizeOSX = 8;
+        nextOsxGprIncrement = 2;
+	//-#endif
+	
+	// handle OS first
 	boolean dstSpilling;
 	int regOrSpilling = -1;  // it is register number or spilling offset
 	// 1. check if Linux register > 9
-	if (nextAIXArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
+	if (nextOSArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
 	  // goes to spilling area
 	  dstSpilling = true;
+
+          //-#if RVM_FOR_LINUX
+	  /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+	   * was implemented in GCC.
+	   * -- Feng
+	   */
+	  nextOSArgReg = LAST_OS_PARAMETER_GPR + 1;
 	  
-	  // NOTE: following adjustment is not stated in SVR4 ABI, but 
-	  // implemented in GCC
-	  // -- Feng
-	  nextAIXArgReg = LAST_OS_PARAMETER_GPR + 1;
-	  
-	  // compute spilling offset
-	  spillOffsetAIX = (spillOffsetAIX + 7) & -8;
-	  regOrSpilling = spillOffsetAIX;
-	  spillOffsetAIX += 8;
+	  // do alignment and compute spilling offset
+          spillOffsetOS = (spillOffsetOS + 7) & -8;
+	  regOrSpilling = spillOffsetOS;
+	  spillOffsetOS += 8;
+
+          //-#elif RVM_FOR_OSX
+          
+          regOrSpilling = spillOffsetOS;          
+          //-#endif
 	} else {
 	  // use registers
 	  dstSpilling = false;
+
+          //-#if RVM_FOR_LINUX
 	  // rounds to odd
-	  nextAIXArgReg += (nextAIXArgReg + 1) & 0x01; // if gpr is even, gpr += 1
-	  regOrSpilling = nextAIXArgReg;
-	  nextAIXArgReg += 2;
+	  nextOSArgReg += (nextOSArgReg + 1) & 0x01; // if gpr is even, gpr += 1
+	  regOrSpilling = nextOSArgReg;
+	  nextOSArgReg += 2;
+          //-#elif RVM_FOR_OSX
+          regOrSpilling = nextOSArgReg;
+          //-#endif
 	}
 	
 	// handle RVM source
@@ -454,7 +562,16 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  // both parts in registers
 	  if (dstSpilling) {
 	    asmArg.emitSTW(nextVMArgReg+1, regOrSpilling+4, FP);
+
+            //-#if RVM_FOR_LINUX
 	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
+            //-#elif RVM_FOR_OSX
+            if (nextOSArgReg == LAST_OS_PARAMETER_GPR) {
+              asmArg.emitMR(nextOSArgReg, nextVMArgReg); 
+            } else {
+              asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
+            }
+            //-#endif
 	  } else {
 	    asmArg.emitMR(regOrSpilling+1, nextVMArgReg+1);
 	    asmArg.emitMR(regOrSpilling, nextVMArgReg);
@@ -480,13 +597,17 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	    asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
 	    asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
 	  } else {
-	    // this shouldnot happen, VM spills, AIX has registers
+	    // this shouldnot happen, VM spills, OS has registers
 	    asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM+4, FP);
 	    asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
 	  }	
 	  spillOffsetVM += 8;
 	}
-      } else if (types[arg].isReferenceType() ) {	
+      } else if (types[arg].isReferenceType() ) {
+        //-#if RVM_FOR_OSX
+	spillSizeOSX = 4;
+	//-#endif
+	
 	// For reference type, replace with handlers before passing to AIX
 	int srcreg, dstreg;
 	if (nextVMArgReg <= LAST_VOLATILE_GPR) {
@@ -498,399 +619,59 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	}
 	asmArg.emitSTWU(srcreg, 4, KLUDGE_TI_REG);
 	
-	if (nextAIXArgReg <= LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitSUBFC(nextAIXArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+	if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+	  asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
 	} else {
 	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetAIX, FP);
-	  spillOffsetAIX += 4;
+	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
+          //-#if RVM_FOR_LINUX
+	  spillOffsetOS += 4;
+          //-#endif
 	}
       } else {
+        //-#if RVM_FOR_OSX
+	spillSizeOSX = 4;
+	//-#endif
+	
 	// For all other types: int, short, char, byte, boolean
 	// (1a) fit in AIX register, move the register
-	if (nextAIXArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitMR(nextAIXArgReg++, nextVMArgReg++);
+	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+	  asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
 	}
-	// (1b) spill AIX register, but still fit in VM register
+	// (1b) spill OS register, but still fit in VM register
 	else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  asmArg.emitSTW(nextVMArgReg++, spillOffsetAIX, FP);
-	  spillOffsetAIX+=4;
+	  asmArg.emitSTW(nextVMArgReg++, spillOffsetOS, FP);
+          //-#if RVM_FOR_LINUX
+          spillOffsetOS += 4;
+          //-#endif
 	} else {
 	  // (1c) spill VM register
-	  asmArg.emitLWZ(REGISTER_ZERO,spillOffsetVM, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetAIX, FP);
+	  asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);        // retrieve arg from VM spill area
+	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
 	  spillOffsetVM+=4;
-	  spillOffsetAIX+=4;
+
+          //-#if RVM_FOR_LINUX
+	  spillOffsetOS+=4;
+          //-#endif
 	}
       }
+
+      //-#if RVM_FOR_OSX
+      spillOffsetOS += spillSizeOSX;
+      nextOSArgReg += nextOsxGprIncrement;
+      //-#endif
     }
-    
+
     // Append the code sequences for parameter mapping 
     // to the current machine code in reverse order
     // so that the move does not overwrite the parameters
-    for (int arg = numArguments-1; arg >= 0; arg--) {
+    for (int arg = asmForArgs.length-1; arg >= 0; arg--) {
       VM_MachineCode codeForArg = asmForArgs[arg].makeMachineCode();
       asm.appendInstructions(codeForArg.getInstructions());
     }
-
-    // Now add the 2 new JNI parameters:  JNI environment and Class or "this" object
-    
-    // if static method, append ref for class, else append ref for "this"
-    // and pass offset in JNIRefs array in r4 (as second arg to called native code)
-    int secondAIXVolatileReg = FIRST_OS_PARAMETER_GPR + 1;
-	if ( method.isStatic() ) {
-      klass.getClassForType();     // ensure the Java class object is created
-      // JTOC saved above in JNIEnv is still valid, used by following emitLWZtoc
-      asm.emitLAddrToc(secondAIXVolatileReg, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
-      asm.emitLWZ  (secondAIXVolatileReg, 0, secondAIXVolatileReg);                  // r4 <- first TIB entry == -> class object
-      asm.emitLWZ  (secondAIXVolatileReg, VM_Entrypoints.classForTypeField.getOffset(), secondAIXVolatileReg); // r4 <- java Class for this VM_Class
-      asm.emitSTWU (secondAIXVolatileReg, 4, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
-    } else {
-      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, KLUDGE_TI_REG);                 // append this ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
-    }
-    
-    // store the new JNIRefs array TOP back into JNIEnv	
-    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
-    asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
   //-#endif
-   
 
-  //-#if RVM_FOR_OSX
-  // Maps arguments from RVM to SVR4 ABI convention
-  /* PRE conditions:
-   *   r3 - r13 parameters from caller
-   *   f1 - f15 parameters from caller
-   *  
-   *  spills saved in callers's stack frame
-   */
-  static void storeParametersForOSX(VM_Assembler asm,
-				      int frameSize,
-				      VM_Method method,
-                                    VM_Class klass) {
-
-    int nextOSXArgReg, nextOSXArgFloatReg, nextVMArgReg, nextVMArgFloatReg; 
-    
-    // offset to the spill area in the callee (Osx frame)
-    // remove 
-    int spillOffsetOSX = NATIVE_FRAME_HEADER_SIZE;
-    spillOffsetOSX += 8;        // 1st spill = JNIEnv, 2nd spill = class
-
-    // offset to the spill area in the caller (RVM frame), relative to
-    // the callee's FP
-    int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
-
-    // does NOT include implicit this or class ptr
-    VM_TypeReference[] types = method.getParameterTypes();
- 
-    // number of arguments for this method
-    int numArguments = types.length; 
-    
-    // Set up the Reference table for GC
-    // PR <- JREFS array base
-    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIRefsField.getOffset(), S0);
-
-    // TI <- JREFS current top 
-    asm.emitLWZ(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);   // JREFS offset for current TOP 
-    asm.emitADD(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);                // convert into address
-
-    // TODO - count number of refs
-    // TODO - emit overflow check for JNIRefs array
-    
-    // start a new JNIRefs frame on each transition from Java to native C
-    // push current SavedFP ptr onto top of JNIRefs stack (use available S1 reg as a temp)
-    // and make current TOP the new savedFP
-    //
-    asm.emitLWZ  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);
-    asm.emitSTWU (S1, 4, KLUDGE_TI_REG);                           // push prev frame ptr onto JNIRefs array	
-    asm.emitSUBFC(S1, PROCESSOR_REGISTER, KLUDGE_TI_REG);           // compute offset for new TOP
-    asm.emitSTW  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);  // save new TOP as new frame ptr in JNIEnv
-
-
-    // for static methods: caller has placed args in r3,r4,... 
-    // for non-static methods:"this" ptr is in r3, and args start in r4,r5,...
-    // 
-    // for static methods:                for nonstatic methods:       
-    //  Java caller     OSX callee         Java caller     OSX callee    
-    //  -----------     ----------	    -----------     ----------  
-    //  spill = arg11 -> new spill	    spill = arg11 -> new spill  
-    //  spill = arg10 -> new spill	    spill = arg10 -> new spill  
-    // 				            spill = arg9  -> new spill  
-    //    R12 = arg9  -> new spill	                                
-    //    R11 = arg8  -> new spill	      R12 = arg8  -> new spill  
-    //    R10 = arg7  -> new spill	      R11 = arg7  -> new spill  
-    //    R9  = arg6  -> new spill	      R10 = arg6  -> new spill  
-    // 								   
-    //    R8  = arg5  -> R10                  R9  = arg5  -> R10         
-    //    R7  = arg4  -> R9		      R8  = arg4  -> R9          
-    //    R6  = arg3  -> R8		      R7  = arg3  -> R8          
-    //    R5  = arg2  -> R7		      R6  = arg2  -> R7          
-    //    R4  = arg1  -> R6		      R5  = arg1  -> R6          
-    //    R3  = arg0  -> R5		      R4  = arg0  -> R5          
-    //                   R4 = class           R3  = this  -> R4         
-    // 	                 R3 = JNIenv                         R3 = JNIenv
-    //
-
-    nextOSXArgFloatReg = FIRST_OS_PARAMETER_FPR;
-    nextVMArgFloatReg  = FIRST_VOLATILE_FPR;
-    nextOSXArgReg      = FIRST_OS_PARAMETER_GPR + 2;   // 1st reg = JNIEnv, 2nd reg = class
-    if ( method.isStatic() ) {
-      nextVMArgReg = FIRST_VOLATILE_GPR;              
-    } else {
-      nextVMArgReg = FIRST_VOLATILE_GPR+1;            // 1st reg = this, to be processed separately
-    }
-
-    // The loop below assumes the following relationship:
-    if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_FPR==FIRST_VOLATILE_FPR);
-    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_FPR<=LAST_VOLATILE_FPR);
-    if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR==FIRST_VOLATILE_GPR);
-    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR<=LAST_VOLATILE_GPR);
-
-
-    // create one VM_Assembler object for each argument
-    // This is needed for the following reason:
-    //   -2 new arguments are added in front for native methods, so the normal arguments
-    //    need to be shifted down in addition to being moved
-    //   -to avoid overwriting each other, the arguments must be copied in reverse order
-    //   -the analysis for mapping however must be done in forward order
-    //   -the moving/mapping for each argument may involve a sequence of 1-3 instructions 
-    //    which must be kept in the normal order
-    // To solve this problem, the instructions for each argument is generated in its
-    // own VM_Assembler in the forward pass, then in the reverse pass, each VM_Assembler
-    // emist the instruction sequence and copies it into the main VM_Assembler
-    VM_Assembler[] asmForArgs = new VM_Assembler[numArguments];
-
-    for (int arg = 0; arg < numArguments; arg++) {
-      int spillSizeOSX = 0;
-      int nextOsxGprIncrement = 1;
-      
-      asmForArgs[arg] = new VM_Assembler(0);
-      VM_Assembler asmArg = asmForArgs[arg];
-
-      if (types[arg].isFloatType() || types[arg].isDoubleType()) {
-        boolean is32bits = types[arg].isFloatType();
-
-        if (is32bits)
-          spillSizeOSX = 4;
-        else {
-          spillSizeOSX = 8;
-          nextOsxGprIncrement = 2;
-        }
-	
-       	// 1. check the source, the value will be in srcVMArg
-        int srcVMArg; // scratch fpr
-        if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
-          srcVMArg = nextVMArgFloatReg;
-          nextVMArgFloatReg ++;
-        } else {
-          srcVMArg = FIRST_SCRATCH_FPR;
-          // VM float reg is in spill area
-          if (is32bits) {
-            asmArg.emitLFS(srcVMArg, spillOffsetVM, FP);
-            spillOffsetVM += 4;
-          } else {
-            asmArg.emitLFD(srcVMArg, spillOffsetVM, FP);
-            spillOffsetVM += 8;
-          }
-        }  
-		
-        // 2. check the destination, 
-        if (nextOSXArgFloatReg <= LAST_OS_PARAMETER_FPR) {
-          // leave it there
-          nextOSXArgFloatReg ++;
-        } else {
-          if (is32bits) {
-            asmArg.emitSTFS(srcVMArg, spillOffsetOSX, FP);
-          } else {
-            asmArg.emitSTFD(srcVMArg, spillOffsetOSX, FP);
-          }
-        }
-        // for 64-bit long arguments
-      } else if (types[arg].isLongType()) {
-        spillSizeOSX = 8;
-        nextOsxGprIncrement = 2;
-        
-//         copyWord(asmArg,
-//                  nextVMArgReg+1,  spillOffsetVM+4,
-//                  nextOSXArgReg+1, spillOffsetOSX+4);
-
-//         copyWord(asmArg,
-//                  nextVMArgReg,  spillOffsetVM,
-//                  nextOSXArgReg, spillOffsetOSX);
-        
-//         if (nextVMArgReg == LAST_VOLATILE_GPR)
-//           spillOffsetVM += 4;
-//         else if (nextVMArgReg > LAST_VOLATILE_GPR)
-//           spillOffsetVM += 8;
-//         nextVMArgReg  += 2;
-        
-        // handle OSX first
-        boolean dstSpilling;
-        int regOrSpilling = -1;  // it is register number or spilling offset
-        // 1. check if Osx register > 9
-        if (nextOSXArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
-          // goes to spilling area
-          dstSpilling = true;
-	  
-//           // NOTE: following adjustment is not stated in SVR4 ABI, but 
-//           // implemented in GCC
-//           // -- Feng
-//           nextOSXArgReg = LAST_OS_PARAMETER_GPR + 1;
-	  
-          // compute spilling offset
-          regOrSpilling = spillOffsetOSX;
-        } else {
-          // use registers
-          dstSpilling = false;
-          regOrSpilling = nextOSXArgReg;
-          //nextOSXArgReg += 2;
-        }
-	
-        // handle RVM source
-        if (nextVMArgReg < LAST_VOLATILE_GPR) {
-          // both parts in registers
-          if (dstSpilling) {
-            asmArg.emitSTW(nextVMArgReg+1, regOrSpilling+4, FP);
-            if (nextOSXArgReg == LAST_OS_PARAMETER_GPR) {
-              asmArg.emitADDIS(nextOSXArgReg, nextVMArgReg, 0);
-            } else {
-              asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-            }
-          } else {
-            asmArg.emitADDIS(regOrSpilling+1, nextVMArgReg+1, 0);
-            asmArg.emitADDIS(regOrSpilling,   nextVMArgReg, 0);
-          }
-          // advance register counting, Osx register number
-          // already advanced 
-          nextVMArgReg += 2;
-        } else if (nextVMArgReg == LAST_VOLATILE_GPR) {
-          // VM striding
-          if (dstSpilling) {
-            asmArg.emitLWZ(0, spillOffsetVM, FP);
-            asmArg.emitSTW(0, regOrSpilling+4, FP);
-            asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-          } else {
-            asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
-            asmArg.emitADDIS(regOrSpilling, nextVMArgReg, 0);
-          }
-          // advance spillOffsetVM and nextVMArgReg
-          nextVMArgReg ++;
-          spillOffsetVM += 4;
-        } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
-          if (dstSpilling) {
-             asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
-             asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
-          } else {
-            // this shouldnot happen, VM spills, OSX has registers
-            asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM+4, FP);
-            asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
-          }
-          spillOffsetVM += 8;
-
-        }
-      } else if (types[arg].isReferenceType() ) {
-        spillSizeOSX = 4;
-        // For reference type, replace with handlers before passing to OSX
-        int srcreg, dstreg;
-        if (nextVMArgReg <= LAST_VOLATILE_GPR) {
-          srcreg = nextVMArgReg++;
-        } else {
-          srcreg = REGISTER_ZERO;
-          asmArg.emitLWZ(srcreg, spillOffsetVM, FP);
-          spillOffsetVM += 4;
-        }
-        asmArg.emitSTWU(srcreg, 4, KLUDGE_TI_REG);
-	
-        if (nextOSXArgReg <= LAST_OS_PARAMETER_GPR) {
-          asmArg.emitSUBFC(nextOSXArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-        } else {
-          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOSX, FP);
-        }
-      } else {
-        spillSizeOSX = 4;
-        // For all other types: int, short, char, byte, boolean
-        // (1a) fit in OSX register, move the register
-        if (nextOSXArgReg<=LAST_OS_PARAMETER_GPR) {
-          asmArg.emitADDIS(nextOSXArgReg, nextVMArgReg++, 0);
-        }
-        // (1b) spill OSX register, but still fit in VM register
-        else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-          asmArg.emitSTW(nextVMArgReg++, spillOffsetOSX, FP);
-        } else {
-          // (1c) spill VM register
-          asmArg.emitLWZ(REGISTER_ZERO,spillOffsetVM, FP);        // retrieve arg from VM spill area
-          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOSX, FP);
-          spillOffsetVM+=4;
-        }
-      }
-      spillOffsetOSX += spillSizeOSX;
-      nextOSXArgReg += nextOsxGprIncrement;
-    }
-    
-    // Append the code sequences for parameter mapping 
-    // to the current machine code in reverse order
-    // so that the move does not overwrite the parameters
-    for (int arg = numArguments-1; arg >= 0; arg--) {
-      VM_MachineCode codeForArg = asmForArgs[arg].makeMachineCode();
-      asm.appendInstructions(codeForArg.getInstructions());
-    }
-
-    // Now add the 2 new JNI parameters:  JNI environment and Class or "this" object
-    
-    // if static method, append ref for class, else append ref for "this"
-    // and pass offset in JNIRefs array in r4 (as second arg to called native code)
-    int secondOSXVolatileReg = FIRST_OS_PARAMETER_GPR + 1;
-    if (method.isStatic()) {
-      klass.getClassForType();     // ensure the Java class object is created
-      // JTOC saved above in JNIEnv is still valid, used by following emitLWZtoc
-      asm.emitLAddrToc(secondOSXVolatileReg, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
-      asm.emitLWZ  (secondOSXVolatileReg, 0, secondOSXVolatileReg);                  // r4 <- first TIB entry == -> class object
-      asm.emitLWZ  (secondOSXVolatileReg, VM_Entrypoints.classForTypeField.getOffset(), secondOSXVolatileReg); // r4 <- java Class for this VM_Class
-      asm.emitSTWU (secondOSXVolatileReg, 4, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
-    } else {
-      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, KLUDGE_TI_REG);                 // append this ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
-    }
-    
-    // store the new JNIRefs array TOP back into JNIEnv	
-    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
-    asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
-  }
-
-
-  private static void copyWord(VM_Assembler asm,
-                               int nextVMReg, int nextVMOffset,
-                               int nextOSXReg, int nextOSXOffset) {
-    
-    if (nextVMReg <= LAST_VOLATILE_GPR) {
-      if (nextOSXReg <= LAST_OS_PARAMETER_GPR) {
-        // both are in registers
-        if (nextVMReg != nextOSXReg) {
-          asm.emitMR(nextOSXReg, nextVMReg);
-        }
-      } else {
-        // VM Reg -> OSX spill
-        asm.emitSTW(nextVMReg, nextOSXOffset, FP);
-      }
-    } else {
-      if (nextOSXReg <= LAST_OS_PARAMETER_GPR) {
-        // VM spill -> OSX reg
-        // this should not happen, VM spills, OSX has registers
-        asm.emitLWZ(nextOSXReg, nextVMOffset, FP);
-      } else {
-        // VM spill -> OSX spill
-        asm.emitLWZ(FIRST_SCRATCH_GPR, nextVMOffset, FP);
-        asm.emitSTW(FIRST_SCRATCH_GPR, nextOSXOffset, FP);
-      }
-      
-    }
-  }
-  //-#endif
-   
   //-#if RVM_FOR_AIX
   // Map the arguments from RVM convention to AIX convention,
   // and replace all references with indexes into JNIRefs array.
@@ -1268,15 +1049,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       // especially dealing with long, spills
       // number of parameters of normal JNI functions should fix in
       // r3 - r12, f1 - f15, + 24 words, 
-      convertParameterFromSVR4ToJava(asm, mth);
+      convertParametersFromSVR4ToJava(asm, mth);
       //-#endif
     }
 
     // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RVM_RESERVED_NV_GPR;
-         i <= LAST_RVM_RESERVED_NV_GPR; i++) {
+    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <=LAST_RVM_RESERVED_NV_GPR; i++) {
       asm.emitSTAddr(i, offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
@@ -1429,9 +1209,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RVM_RESERVED_NV_GPR;
-         i <= LAST_RVM_RESERVED_NV_GPR; i++) {
-      asm.emitLAddr (i, offset, FP);
+    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <=LAST_RVM_RESERVED_NV_GPR; i++) {
+      asm.emitLAddr (i, offset, FP);                     // 4 instructions
       offset += BYTES_IN_ADDRESS;
     }
 
@@ -1449,83 +1228,50 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     frNormalPrologue.resolve(asm);
   } 
 
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   // SVR4 rounds gprs to odd for longs, but rvm convention uses all
   // we only process JNI functions that uses parameters directly
   // so only handle parameters in gprs now
-  static void convertParameterFromSVR4ToJava(VM_Assembler asm, VM_Method meth) {
+  static void convertParametersFromSVR4ToJava(VM_Assembler asm, VM_Method meth) {
     VM_TypeReference[] argTypes = meth.getParameterTypes();
     int argCount = argTypes.length;
     int nextVMReg = FIRST_VOLATILE_GPR;
-    int nextAIXReg = FIRST_OS_PARAMETER_GPR;
-    
-    for (int i=0; i<argCount; i++) {
-      if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
-	// skip over
-      } else {
-	if (argTypes[i].isLongType()) {
-	  nextAIXReg += (nextAIXReg + 1) & 0x01;
-	  if (nextAIXReg != nextVMReg) {
-	    // Native and Java reg do not match
-	    asm.emitMR(nextVMReg, nextAIXReg);
-	    asm.emitMR(nextVMReg + 1, nextAIXReg + 1);
-	  }
-	  nextAIXReg += 2;
-	  nextVMReg += 2;
-	} else {
-	  if (nextAIXReg != nextVMReg) {
-	    asm.emitMR(nextVMReg, nextAIXReg);
-	  }
-	  nextAIXReg ++;
-	  nextVMReg ++;
-	}
-      }
-
-      if (nextAIXReg > LAST_OS_PARAMETER_GPR + 1) {
-	VM.sysWrite("ERROR: "+meth+" has too many int or long parameters\n");
-	VM.sysExit(-1);
-      }
-    }
-  }
-  //-#endif RVM_FOR_LINUX
-
-  //-#if RVM_FOR_OSX
-  // SVR4 rounds gprs to odd for longs, but rvm convention uses all
-  // we only process JNI functions that uses parameters directly
-  // so only handle parameters in gprs now
-  static void convertParameterFromSVR4ToJava(VM_Assembler asm, VM_Method meth) {
-    VM_TypeReference[] argTypes = meth.getParameterTypes();
-    int argCount = argTypes.length;
-    int nextVMReg = FIRST_VOLATILE_GPR;
-    int nextOSXReg = FIRST_OS_PARAMETER_GPR;
+    int nextOSReg = FIRST_OS_PARAMETER_GPR;
     
     for (int i=0; i<argCount; i++) {
       if (argTypes[i].isFloatType()) {
         // skip over
       } else if  (argTypes[i].isDoubleType()) {
-        nextOSXReg ++;
+        //-#if RVM_FOR_OSX
+        nextOSReg ++;
+        //-#elseif RVM_FOR_LINUX
+        // skip over
+        //-#endif
       } else {
         if (argTypes[i].isLongType()) {
-          if (nextOSXReg != nextVMReg) {
-            asm.emitMR(nextVMReg, nextOSXReg);
-            asm.emitMR(nextVMReg + 1, nextOSXReg +1);
+          //-#if RVM_FOR_LINUX
+          nextOSReg += (nextOSReg + 1) & 0x01;  // round up to odd for linux
+          //-#endif
+          if (nextOSReg != nextVMReg) {
+            asm.emitMR(nextVMReg, nextOSReg);
+            asm.emitMR(nextVMReg + 1, nextOSReg +1);
           }
-          nextOSXReg += 2;
+          nextOSReg += 2;
           nextVMReg += 2;
         } else {
-          if (nextOSXReg != nextVMReg) {
-            asm.emitMR(nextVMReg, nextOSXReg);
+          if (nextOSReg != nextVMReg) {
+            asm.emitMR(nextVMReg, nextOSReg);
           }
-          nextOSXReg ++;
+          nextOSReg ++;
           nextVMReg ++;
         }
       }
 
-      if (nextOSXReg > LAST_OS_PARAMETER_GPR + 1) {
+      if (nextOSReg > LAST_OS_PARAMETER_GPR + 1) {
         VM.sysWrite("ERROR: "+meth+" has too many int or long parameters\n");
         VM.sysExit(-1);
       }
     }
   }
-  //-#endif RVM_FOR_OSX
+  //-#endif RVM_FOR_LINUX || RVM_FOR_OSX
 }
