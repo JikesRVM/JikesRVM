@@ -60,7 +60,7 @@ public class OPT_OptimizationPlanner {
     }
 
     VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
-    int t = VM_Time.toMilliSecs(total);
+    int t = (int)total;
     if (t < 1000000)
       VM.sysWrite(" ");
     if (t < 100000)

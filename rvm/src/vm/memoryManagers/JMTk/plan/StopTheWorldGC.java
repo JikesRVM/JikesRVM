@@ -58,8 +58,8 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static SharedQueue interiorRootPool;
 
   // Timing variables
-  protected static double gcStartTime;
-  protected static double gcStopTime;
+  protected static long gcStartTime;
+  protected static long gcStopTime;
 
   // GC state
   protected static boolean progress = true;  // are we making progress?
@@ -214,7 +214,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Prepare for a collection.
    */
   protected final void prepare() {
-    double start = VM_Interface.now();
+    long start = VM_Interface.cycles();
     int order = VM_Interface.rendezvous(4230);
     if (order == 1)
       baseGlobalPrepare(start);
@@ -240,17 +240,19 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * @param start The time that this GC started
    */
-  private final void baseGlobalPrepare(double start) {
+  private final void baseGlobalPrepare(long start) {
     gcInProgress = true;
     Statistics.gcCount++;
     gcStartTime = start;
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("[GC "); Log.write(Statistics.gcCount);
       if (Options.verbose == 1) {
-	Log.write(" Start "); Log.write(gcStartTime - bootTime);
+	Log.write(" Start "); 
+	Log.write(VM_Interface.cyclesToSecs(gcStartTime - bootTime));
 	Log.write(" s");
       } else {
-	Log.write(" Start "); Log.write(1000*(gcStartTime - bootTime));
+	Log.write(" Start "); 
+	Log.write(VM_Interface.cyclesToMillis(gcStartTime - bootTime));
 	Log.write(" ms");
       }
       Log.write("   ");
@@ -410,15 +412,17 @@ public abstract class StopTheWorldGC extends BasePlan
    * Print out statistics for last GC
    */
   private final void printStats() {
-    gcStopTime = VM_Interface.now();
+    gcStopTime = VM_Interface.cycles();
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("-> ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
       Log.write(" KB   ");
       if (Options.verbose == 1) {
-	Log.write(1000 * (gcStopTime - gcStartTime)); Log.writeln(" ms]");
+	Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 
+	Log.writeln(" ms]");
       } else {
-	Log.write("End "); Log.write(1000 * (gcStopTime - bootTime));
+	Log.write("End "); 
+	Log.write(VM_Interface.cyclesToMillis(gcStopTime - bootTime));
 	Log.writeln(" ms]");
       }
     }
@@ -433,7 +437,7 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);
       Log.writeln();
       Log.write("    Collection time: ");
-      Log.write(gcStopTime - gcStartTime,3);
+      Log.write(VM_Interface.cyclesToSecs(gcStopTime - gcStartTime),3);
       Log.writeln(" seconds");
     }
     if (Options.verboseTiming) printDetailedTiming(false);

@@ -90,7 +90,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    *
    * @param indent Number of spaces to indent report.
    * @param timeCol Column number of time portion of report.
-   * @param totalTime Total opt compilation time in seconds.
+   * @param totalTime Total opt compilation time in ms.
    */
   public void reportStats(int indent, int timeCol, double totalTime) {
     if (cycles == 0) return;
@@ -109,7 +109,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
       VM.sysWrite(" ");
       curCol++;
     }
-    double myTime = VM_Time.cyclesToMillis(cycles) / 1000;
+    double myTime = VM_Time.cyclesToMillis(cycles);
     prettyPrintTime(myTime, totalTime);
     myPhase.reportAdditionalStats();
     VM.sysWriteln();
@@ -117,9 +117,9 @@ public final class OPT_OptimizationPlanAtomicElement extends
 
   /**
    * Report the total time spent executing the PlanElement
-   * @return time spend in the plan (in seconds)
+   * @return time spend in the plan (in ms)
    */
   public double elapsedTime() {
-    return VM_Time.cyclesToMillis(cycles) / 1000;
+    return VM_Time.cyclesToMillis(cycles);
   }
 }

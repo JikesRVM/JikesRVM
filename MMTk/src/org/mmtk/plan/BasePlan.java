@@ -69,7 +69,7 @@ public abstract class BasePlan
   protected static int exceptionReserve = 0;
 
   // Timing variables
-  protected static double bootTime;
+  protected static long bootTime;
 
   // Meta data resources
   private static MonotoneVMResource metaDataVM;
@@ -160,7 +160,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = VM_Interface.now();
+    bootTime = VM_Interface.cycles();
   }
 
   /**
@@ -568,10 +568,12 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (Options.verbose == 1) {
-      Log.write("[End "); Log.write((VM_Interface.now() - bootTime));
+      Log.write("[End "); 
+      Log.write(VM_Interface.cyclesToSecs(VM_Interface.cycles() - bootTime));
       Log.writeln(" s]");
     } else if (Options.verbose == 2) {
-      Log.write("[End "); Log.write((VM_Interface.now() - bootTime)*1000);
+      Log.write("[End "); 
+      Log.write(VM_Interface.cyclesToMillis(VM_Interface.cycles() - bootTime));
       Log.writeln(" ms]");
     }
     if (Options.verboseTiming) printDetailedTiming(true);

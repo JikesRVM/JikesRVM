@@ -12,7 +12,6 @@ package com.ibm.JikesRVM;
  * @author Peter Sweeney
  * creation date 6/27/2001
  */
-
 public class Java2HPM 
 {
   private static final int debug = 0;
@@ -135,8 +134,7 @@ public class Java2HPM
   {
     //-#if RVM_WITH_HPM
 
-    // time in seconds
-    double startTime = VM_Time.now();
+    long start = VM_Time.cycles();
     if (jni == JNI) {
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
@@ -160,11 +158,11 @@ public class Java2HPM
       cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
-    double endTime = VM_Time.now();
+    long end = VM_Time.cycles();
 
     // time in milliseconds
-    double time          = (endTime - startTime)*1000;
-    VM.sysWriteln("\ttime "+time+" = (end "+endTime+" - start "+startTime+")/1000");
+    double time          = VM_Time.cyclesToMillis(end - start);
+    VM.sysWriteln("\ttime "+time);
     // time in nano seconds 
     double averageTime   = sixDigitDecimal((time / (double) iterations)*1000000);
     double averageCycles = ((cycles*100)/iterations)  / (double) 100;
@@ -193,7 +191,7 @@ public class Java2HPM
   {
     //-#if RVM_WITH_HPM
     // time in seconds
-    double startTime = VM_Time.now();
+    long start = VM_Time.cycles();
     if (jni == JNI) {
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
@@ -218,9 +216,9 @@ public class Java2HPM
       cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
-    double endTime       = VM_Time.now();
+    long end       = VM_Time.cycles();
     // time in milliseconds
-    double time          = (endTime - startTime)*1000;
+    double time          = VM_Time.cyclesToMillis(end - start);
     // time in nano seconds
     double averageTime   = sixDigitDecimal((time / (double) iterations)*1000000);
     double averageCycles = ((cycles*100)/ iterations) / (double) 100;
