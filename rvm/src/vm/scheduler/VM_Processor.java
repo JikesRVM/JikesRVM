@@ -377,7 +377,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
         return null;                // out of space to hold this new VP
     }
 
-  static int registerAttachedProcessor(VM_Processor newProcessor) {
+  static int registerAttachedProcessor(VM_Processor newProcessor) throws VM_PragmaInterruptible {
 
     if (numberAttachedProcessors == 100) {
       // VM.sysWrite("VM_Processor.registerAttachedProcessor: no more room\n");
@@ -398,7 +398,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     return 0;
   }
 
-  static int unregisterAttachedProcessor(VM_Processor pr) {
+  static int unregisterAttachedProcessor(VM_Processor pr) throws VM_PragmaInterruptible {
     // entry 0 is kept empty
     for (int i=1; i<attachedProcessors.length; i++) {
       if (attachedProcessors[i]!=pr) {
@@ -413,7 +413,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
   // create a native processor for default implementation of jni
   //
-  static VM_Processor createNativeProcessor () {
+  static VM_Processor createNativeProcessor () throws VM_PragmaInterruptible {
 
     //-#if RVM_FOR_IA32
 

@@ -101,7 +101,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param o the object synchronized on
    * @see java.lang.Object#wait()
    */
-  public static void wait (Object o) {
+  public static void wait (Object o) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
@@ -145,7 +145,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param millis the number of milliseconds to wait for notification
    * @see java.lang.Object#wait(long time)
    */
-  public static void wait (Object o, long millis) {
+  public static void wait (Object o, long millis) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
@@ -398,7 +398,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () {
+  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the code is prepared to lose control when it allocates a lock -- dave */ {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {

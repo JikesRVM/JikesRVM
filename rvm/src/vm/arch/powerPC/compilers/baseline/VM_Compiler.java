@@ -41,7 +41,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //----------------//
   
   // position of spill area within method's stackframe.
-  static int getMaxSpillOffset (VM_Method m) {
+  static int getMaxSpillOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int params = m.getOperandWords()<<2; // maximum parameter area
     int spill  = params - (MIN_PARAM_REGISTERS << 2);
     if (spill < 0) spill = 0;
@@ -49,24 +49,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   // position of operand stack within method's stackframe.
-  static int getEmptyStackOffset (VM_Method m) {
+  static int getEmptyStackOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int stack = m.getOperandWords()<<2; // maximum stack size
     return getMaxSpillOffset(m) + stack + 4; // last local
   }
   
   // position of locals within method's stackframe.
-  static int getFirstLocalOffset (VM_Method m) {
+  static int getFirstLocalOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int locals = m.getLocalWords()<<2;       // input param words + pure locals
     return getEmptyStackOffset(m) - 4 + locals; // bottom-most local
   }
   
   // position of SP save area within method's stackframe.
-  static int getSPSaveAreaOffset (VM_Method m) {
+  static int getSPSaveAreaOffset (VM_Method m) throws VM_PragmaUninterruptible {
      return getFirstLocalOffset(m) + 4;
   }
   
   // size of method's stackframe.
-  static int getFrameSize (VM_Method m) {
+  static int getFrameSize (VM_Method m) throws VM_PragmaUninterruptible {
     int size;
     if (!m.isNative()) {
       size = getSPSaveAreaOffset(m) + 4;

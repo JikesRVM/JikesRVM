@@ -23,7 +23,7 @@ import  java.util.*;
  * @author Julian Dolby
  * @modified Dave Grove
  */
-class VM_OptEncodedCallSiteTree {
+abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
 
   static int getMethodID(int entryOffset, int[] encoding) {
     return  encoding[entryOffset + 1];
@@ -37,7 +37,7 @@ class VM_OptEncodedCallSiteTree {
     return  encoding[entryOffset];
   }
 
-  static int[] getEncoding(OPT_CallSiteTree tree) {
+  static int[] getEncoding(OPT_CallSiteTree tree) throws VM_PragmaInterruptible {
     int size = 0;
     if (tree.isEmpty())
       return  null; 
@@ -57,7 +57,7 @@ class VM_OptEncodedCallSiteTree {
   }
 
   static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
-      int[] encoding) {
+			 int[] encoding) throws VM_PragmaInterruptible {
     int i = offset;
     if (parent != -1)
       encoding[i++] = parent - offset;

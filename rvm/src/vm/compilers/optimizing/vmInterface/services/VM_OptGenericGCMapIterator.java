@@ -12,7 +12,8 @@
  */
 
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
-  implements VM_OptGCMapIteratorConstants {
+  implements VM_OptGCMapIteratorConstants,
+	     VM_Uninterruptible {
 
   /**
    * The compiled method

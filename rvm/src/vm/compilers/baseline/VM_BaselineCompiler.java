@@ -1760,7 +1760,7 @@ abstract class VM_BaselineCompiler {
 	    target = VM_Entrypoints.instanceOfFinalMethod;
 	  }
 	}
-	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.instanceOfFinalMethod) forbiddenBytecode("checkcast "+typeRef);
+	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.instanceOfFinalMethod) forbiddenBytecode("instanceof "+typeRef);
 	emit_instanceof(typeRef, target);
 	break;
       }

@@ -41,8 +41,9 @@ import instructionFormats.*;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-public final class VM_OptMachineCodeMap
-  implements VM_Constants, OPT_Constants {
+public final class VM_OptMachineCodeMap implements VM_Constants, 
+						   OPT_Constants,
+						   VM_Uninterruptible {
   
   /**
    * Constructor, called during compilation
@@ -238,7 +239,7 @@ public final class VM_OptMachineCodeMap
    *  @param irMap  the irmap to translate from
    *  @param gcMap  the VM_OptGCMap instance that is building the encoded GCMap
    */
-  private void generateMCInformation(OPT_GCIRMap irMap) {
+  private void generateMCInformation(OPT_GCIRMap irMap) throws VM_PragmaInterruptible {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -473,7 +474,7 @@ public final class VM_OptMachineCodeMap
   //  Debugging
   ////////////////////////////////////////////
 
-  public void dumpMCInformation() {
+  public void dumpMCInformation() throws VM_PragmaInterruptible {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       for (int idx = 0; idx<MCInformation.length;) {
@@ -487,7 +488,7 @@ public final class VM_OptMachineCodeMap
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  private final void printMCInformationEntry(int entry) {
+  private final void printMCInformationEntry(int entry) throws VM_PragmaInterruptible {
     if (DUMP_MAPS) {
       VM.sysWrite(entry + "\tMC: " + getMCOffset(entry));
       int bci = getBytecodeIndex(entry);
@@ -527,7 +528,7 @@ public final class VM_OptMachineCodeMap
    * @param machineCodeSize
    */
   private void recordStats(VM_Method method, int mapSize, 
-			   int machineCodeSize) {
+			   int machineCodeSize) throws VM_PragmaInterruptible {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double)mapSize/machineCodeSize;
       VM.sysWrite(method);

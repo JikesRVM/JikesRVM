@@ -13,7 +13,8 @@
  *
  * @author Michael Hind
  */
-final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
+final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
+  implements VM_Uninterruptible {
 
   private static final boolean DEBUG = false;
  

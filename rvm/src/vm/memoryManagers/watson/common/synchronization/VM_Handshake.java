@@ -56,7 +56,6 @@ class VM_Handshake implements VM_Uninterruptible {
    * processors, until the collector threads re-enable thread switching.
    */
   private void initiateCollection() {
-
     int maxCollectorThreads;
 
     // check that scheduler initialization is complete
@@ -79,7 +78,7 @@ class VM_Handshake implements VM_Uninterruptible {
 
     // include NativeDaemonProcessor collector thread in the count - if it exists
     // check for null to allow builds without a NativeDaemon (see VM_Scheduler)
-    if ( !VM.BuildForSingleVirtualProcessor && VM_Scheduler.processors[VM_Scheduler.nativeDPndx] != null )
+    if (!VM.BuildForSingleVirtualProcessor && VM_Scheduler.processors[VM_Scheduler.nativeDPndx] != null )
       maxCollectorThreads = VM_Scheduler.numProcessors + 1;  
     else
       maxCollectorThreads = VM_Scheduler.numProcessors;
@@ -167,8 +166,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * switching on the processor until it has completed the
    * collection.
    */
-  void
-    requestAndAwaitCompletion() {
+  void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
     synchronized (this) {
       if (completionFlag) {
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
@@ -176,8 +174,7 @@ class VM_Handshake implements VM_Uninterruptible {
       }
       if (requestFlag) {
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
-      }
-      else {
+      } else {
 	// first mutator initiates collection by making all gc threads runnable at high priority
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
 	VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
@@ -201,8 +198,7 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @see VM_CollectorThread
    */
-  synchronized void
-    notifyCompletion() {
+  synchronized void notifyCompletion() throws VM_PragmaInterruptible {
     if (trace) VM_Scheduler.trace("VM_Handshake", "collector: completed");
     //    if (debug_native) VM_Scheduler.dumpVirtualMachine();
     completionFlag = true;
@@ -217,17 +213,15 @@ class VM_Handshake implements VM_Uninterruptible {
    * @param value    Value to store into lockoutlock word
    * @param spinwait flag to cause spinning (if true) or yielding
    */
-  static void
-  acquireLockoutLock( int value, boolean spinwait )
-  {
+  static void acquireLockoutLock(int value, boolean spinwait) {
     if (spinwait) {
       while (true) {
 	int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					  VM_Entrypoints.lockoutProcessorField.offset);
-	if ( lockoutVal == 0) {
-	  if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			      VM_Entrypoints.lockoutProcessorField.offset,
-			      0, value))
+	if (lockoutVal == 0) {
+	  if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
+			       VM_Entrypoints.lockoutProcessorField.offset,
+			       0, value))
 	    break;
 	}
       }
@@ -240,20 +234,20 @@ class VM_Handshake implements VM_Uninterruptible {
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
-      if ( lockoutVal != 0) {
+      if (lockoutVal != 0) {
 	if (debug_native) VM_Scheduler.trace("Handshake:acquireLockOutLock",
 					  "yielding: lockoutVal =",lockoutVal);
 	VM_Thread.yield();
 	continue;
-      }
-      else {
-	if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
+      } else {
+	if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
 			    VM_Entrypoints.lockoutProcessorField.offset,
 			    0, value))
 	  break;
       }
     }
-  }  // acquireLockoutLock
+  }
+
 
   /**
    * Release the LockoutLock by setting the lockoutlock word to 0.
@@ -262,9 +256,7 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @param value    Value that should currently be in the lockoutlock word
    */
-  static void
-  releaseLockoutLock( int value )
-  {
+  static void releaseLockoutLock(int value) {
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
@@ -276,16 +268,15 @@ class VM_Handshake implements VM_Uninterruptible {
 			  lockoutVal, 0))
 	break;
     }
-  }  // releaseLockoutLock
+  }
+
 
   /**
    * Return the current contents of the lockoutLock word
    *
    * @return  current lockoutLock word
    */
-  static int
-  queryLockoutLock()
-  {
+  static int queryLockoutLock() {
     int lockoutVal;
     while (true) {
       lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
@@ -296,8 +287,7 @@ class VM_Handshake implements VM_Uninterruptible {
 	break;
     }
     return lockoutVal;
-
-  }  // queryLockoutLock
+  }
 
 }
 

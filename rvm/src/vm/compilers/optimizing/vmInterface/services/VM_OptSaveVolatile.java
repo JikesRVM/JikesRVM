@@ -17,7 +17,7 @@
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
+class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**
    * Suspend execution of current thread and place it on tail of system
@@ -27,7 +27,7 @@ class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromPrologue() {
+  public static void OPT_threadSwitchFromPrologue() throws VM_PragmaUninterruptible {
     VM_Thread.threadSwitch(VM_Thread.PROLOGUE);
   }
 
@@ -39,7 +39,7 @@ class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromEpilogue() {
+  public static void OPT_threadSwitchFromEpilogue() throws VM_PragmaUninterruptible {
     VM_Thread.threadSwitch(VM_Thread.EPILOGUE);
   }
 
@@ -51,7 +51,7 @@ class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromBackedge() {
+  public static void OPT_threadSwitchFromBackedge() throws VM_PragmaUninterruptible {
     VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
   }
 

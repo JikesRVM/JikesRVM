@@ -30,7 +30,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
     Object obj = VM_Magic.addressAsObject(objRef);
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
-      if (!(tib instanceof Object[])) {
+      if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
         VM.sysWrite("VM_ScanObject: tib is not Object[]\n");
         VM.sysWrite("               objRef = ");
         VM.sysWrite(objRef);

@@ -222,7 +222,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  int findLineNumberForInstruction(int instructionOffset) {
+  int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
     return 0;
   }
 

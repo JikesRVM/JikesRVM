@@ -178,6 +178,7 @@ public class VM_Runtime implements VM_Constants {
     throw new ArrayStoreException();
   }
 
+
   /**
    * May a variable of type "lhs" be assigned a value of type "rhs"?
    * @param lhs type of variable
@@ -864,7 +865,7 @@ public class VM_Runtime implements VM_Constants {
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
-  public static VM_Address unwindNativeStackFrame(VM_Address currfp) {
+  public static VM_Address unwindNativeStackFrame(VM_Address currfp) throws VM_PragmaUninterruptible {
     VM_Address ip, callee_fp;
     VM_Address fp = VM_Magic.getCallerFramePointer(currfp);
 

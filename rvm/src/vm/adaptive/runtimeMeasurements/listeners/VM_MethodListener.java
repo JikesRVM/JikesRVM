@@ -20,28 +20,28 @@
 abstract class VM_MethodListener extends VM_Listener 
   implements VM_Uninterruptible {
 
-  /*
+  /**
    * Number of samples to be processed before calling thresholdReached
    */
   protected int sampleSize;  
   
-  /*
+  /**
    * Next available index in the sample array
    */
   protected int nextIndex;
   
-  /*
+  /**
    * Number of samples taken so far
    */
   protected int numSamples;
   
-  /*
+  /**
    * The sample buffer
    * Key Invariant: samples.length >= sampleSize
    */
   protected int[] samples;
   
-  /*
+  /**
    * Is this listener supposed to notify its organizer when thresholdReached?
    */
   protected boolean notifyOrganizer;
@@ -201,7 +201,7 @@ abstract class VM_MethodListener extends VM_Listener
    * doesn't worry about any samples in the current buffer
    * @param newSampleSize the new sample size value to use, 
    */
-  public final void setSampleSize(int newSampleSize) {
+  public final void setSampleSize(int newSampleSize) throws VM_PragmaInterruptible {
     sampleSize = newSampleSize; 
     if (sampleSize > samples.length) {
       samples = new int[newSampleSize];
@@ -230,6 +230,8 @@ abstract class VM_MethodListener extends VM_Listener
    *         are valid (min(getSamplesTaken(), getSampleSize())).
    */
   public final int getNumSamples() {
-    return Math.min(getSamplesTaken(), getSampleSize());
+    int x = getSamplesTaken();
+    int y = getSampleSize();
+    return (x < y) ? x : y;
   }
 } 

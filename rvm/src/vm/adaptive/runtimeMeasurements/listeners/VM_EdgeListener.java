@@ -100,7 +100,7 @@ class VM_EdgeListener extends VM_ContextListener
   }
 
   /**
-   * update();  This method is called when a call stack edge needs to be 
+   * This method is called when a call stack edge needs to be 
    * sampled.  Expect the sfp argument to point to the stack frame that
    * contains the target of the edge to be sampled.
    *
@@ -117,170 +117,144 @@ class VM_EdgeListener extends VM_ContextListener
    *         EPILOGUE?
    */
   public final void update(VM_Address sfp, int whereFrom) {
-     if(DEBUG) {
-        VM.sysWrite("VM_EdgeListener.update("+sfp.toInt()+","+whereFrom+
+    if (DEBUG) {
+      VM.sysWrite("VM_EdgeListener.update("+sfp.toInt()+","+whereFrom+
 		  "): enter "+samplesTaken+"\n");     
-     }
+    }
 
-     calledUpdate++;
+    calledUpdate++;
 
-     // don't take a sample for back edge yield points
-     if (whereFrom == VM_Thread.BACKEDGE) return; 
+    // don't take a sample for back edge yield points
+    if (whereFrom == VM_Thread.BACKEDGE) return; 
 
-     // in order to walk this stack, we need to disable GC.
-     // in order to disable GC, we need to make sure that we
-     // have at least STACK_SIZE_GCDISABLED space.  Otherwise,
-     // VM.disableGC() will attempt to resize and move this stack. So, sample
-     // only if we have this much space left.  TODO:  look into this
-     // again.  This may compromise the sampling accuracy a bit.
-     if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(VM_Thread.getCurrentThread().stackLimit)) {
-       return;
-     }
+    if (buffer == null) {
+      VM.sysWrite("***Error: VM_EdgeListener.update() called "+
+		  "before setBuffer() is called!\n");
+      VM.sysExit(-1);
+    }
 
-     // avoid race conditions; pasivate the listener before proceeding
-     synchronized (this) {
-       if (!isActive()) return;
-       passivate();
-     }
+    int calleeCMID    = 0;
+    int callerCMID    = 0;
+    VM_Address returnAddress = VM_Address.zero();
 
-     if (buffer == null) {
-	VM.sysWrite("***Error: VM_EdgeListener.update() called "+
-		    "before setBuffer() is called!\n");
-	VM.sysExit(-1);
-     }
-
-     int calleeCMID    = 0;
-     int callerCMID    = 0;
-     VM_Address returnAddress = VM_Address.zero();
-
-     // While GC is disabled, don't do string concatenation!
-     VM.disableGC(); // so call stack doesn't change during walk
+    // While GC is disabled, don't do string concatenation!
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
      
-     if(VM_Magic.getMemoryWord(sfp) == STACKFRAME_SENTINAL_FP) {
-	if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");	
-	VM.enableGC(); return;
-     }
+    if (VM_Magic.getMemoryWord(sfp) == STACKFRAME_SENTINAL_FP) {
+      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");	
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      return;
+    }
 
+    calleeCMID = VM_Magic.getCompiledMethodID(sfp);
+    if (calleeCMID == INVISIBLE_METHOD_ID) {
+      if (DEBUG){
+	VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+	VM.sysWrite(calleeCMID); VM.sysWrite("\n");       
+      } 
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      return;
+    }
 
-     calleeCMID = VM_Magic.getCompiledMethodID(sfp);
-     if (calleeCMID == INVISIBLE_METHOD_ID) {
-	if(DEBUG){      // Skip assembler routines!
-	   VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-	   VM.sysWrite(calleeCMID); VM.sysWrite("\n");       } 
-	VM.enableGC();return;
-     }
+    if (VM_CompiledMethods.getCompiledMethod(calleeCMID) == null) {
+      VM.sysWrite("VM_EdgeListener:update: Found a callee cmid (");
+      VM.sysWrite(calleeCMID, false);
+      VM.sysWrite(") with a null compiled method. ");
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      VM.sysFail("Exiting VM");
+    }
 
-     if (VM_CompiledMethods.getCompiledMethod(calleeCMID) == null) {
-       VM.sysWrite("VM_EdgeListener:update: Found a callee cmid (");
-       VM.sysWrite(calleeCMID, false);
-       VM.sysWrite(") with a null compiled method, exiting");
-       throw new RuntimeException();
-     }
+    returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
+    sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
+    if(VM_Magic.getMemoryWord(sfp) == STACKFRAME_SENTINAL_FP) {
+      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");	
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      return;
+    }
+    callerCMID = VM_Magic.getCompiledMethodID(sfp);
+    if (callerCMID == INVISIBLE_METHOD_ID) {
+      if (DEBUG) { 
+	VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+	VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
+      }	
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      return;
+    }
 
-     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
-     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-     if(VM_Magic.getMemoryWord(sfp) == STACKFRAME_SENTINAL_FP) {
-	if(DEBUG)VM.sysWrite(" Walking off end of stack\n");	
-	VM.enableGC(); return;
-     }
-     callerCMID = VM_Magic.getCompiledMethodID(sfp);
-     if (callerCMID == INVISIBLE_METHOD_ID) {
-	if(DEBUG){ 
-	  VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-	  VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
-	}	
-	VM.enableGC(); 
-	return;
-     }
+    if (VM_CompiledMethods.getCompiledMethod(callerCMID) == null) {
+      VM.sysWrite("VM_EdgeListener:update: Found a caller cmid (");
+      VM.sysWrite(calleeCMID, false);
+      VM.sysWrite(") with a null compiled method, exiting");
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      VM.sysFail("Exiting VM");
+    }
 
-     if (VM_CompiledMethods.getCompiledMethod(callerCMID) == null) {
-       VM.sysWrite("VM_EdgeListener:update: Found a caller cmid (");
-       VM.sysWrite(calleeCMID, false);
-       VM.sysWrite(") with a null compiled method, exiting");
-       VM.enableGC(); 
-       throw new RuntimeException();
-     }
+    // store the offset of the return address from the beginning of the 
+    // instruction
+    VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
+    VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
+    int callSite = returnAddress.diff(beginningOfMachineCode);
 
+    if (DEBUG){ 
+      VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
+      VM.sysWrite(callerCMID);VM.sysWrite(",");VM.sysWrite(returnAddress);
+      VM.sysWrite(">\n");
+    }
 
-     // store the offset of the return address from the beginning of the 
-     // instruction
-     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
-     VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-
-     int callSite = returnAddress.diff(beginningOfMachineCode);
-
-     if(DEBUG){ 
-	VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
-	VM.sysWrite(callerCMID);VM.sysWrite(",");VM.sysWrite(returnAddress);
-	VM.sysWrite(">\n");
-     }
-
-     if(DEBUG) { // walk stack.
-        VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
-	int compiledMethodID = 0;
-	for(int i=1; i<6; i++) {
-	   if(VM_Magic.getMemoryWord(fp) == STACKFRAME_SENTINAL_FP) {
-	      VM.sysWrite(" Walking off end of stack\n"); break;
-	   }
-	   compiledMethodID = VM_Magic.getCompiledMethodID(fp);
-	   if (compiledMethodID == INVISIBLE_METHOD_ID) {
-	      VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-	      VM.sysWrite(compiledMethodID); VM.sysWrite("\n");     continue;
-	   }
-	   VM.sysWrite("   Stack frame ");VM.sysWrite(i);VM.sysWrite(": ");
-	   VM.sysWrite(compiledMethodID);
-	   if(true) {
-	      VM_CompiledMethod compiledMethod = null;
-	      compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
-	      VM_Method  method = compiledMethod.getMethod();
-	      VM.sysWrite(method);
-	   }
-	   VM.sysWrite("\n");
-	   fp = VM_Magic.getCallerFramePointer(fp);
+    if (DEBUG) { 
+      VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+      int compiledMethodID = 0;
+      for(int i=1; i<6; i++) {
+	if (VM_Magic.getMemoryWord(fp) == STACKFRAME_SENTINAL_FP) {
+	  VM.sysWrite(" Walking off end of stack\n"); break;
 	}
-     }
+	compiledMethodID = VM_Magic.getCompiledMethodID(fp);
+	if (compiledMethodID == INVISIBLE_METHOD_ID) {
+	  VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+	  VM.sysWrite(compiledMethodID); VM.sysWrite("\n");     continue;
+	}
+	VM.sysWrite("   Stack frame ");VM.sysWrite(i);VM.sysWrite(": ");
+	VM.sysWrite(compiledMethodID);
+	if (true) {
+	  VM_CompiledMethod compiledMethod = null;
+	  compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
+	  VM_Method  method = compiledMethod.getMethod();
+	  VM.sysWrite(method);
+	}
+	VM.sysWrite("\n");
+	fp = VM_Magic.getCallerFramePointer(fp);
+      }
+    }
 
-     // done with stack inspection, re-enable GC
-     VM.enableGC();
+    // done with stack inspection, re-enable GC
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
 
-     // Try to get 3 buffer slots and update nextIndex appropriately
-     int idx = VM_Synchronization.fetchAndAdd(this, 
-					      VM_Entrypoints.edgeListenerNextIndexField.getOffset(),
-					      3);
+    // Try to get 3 buffer slots and update nextIndex appropriately
+    int idx = VM_Synchronization.fetchAndAdd(this, 
+					     VM_Entrypoints.edgeListenerNextIndexField.getOffset(),
+					     3);
 
-     // Ensure that we got slots for our sample, if we don't (because another
-     // thread is racing with us) we'll just ignore this sample
-     if (idx < buffer.length) {
-       buffer[idx+0] = calleeCMID;
-       buffer[idx+1] = callerCMID;
-       buffer[idx+2] = callSite;
+    // Ensure that we got slots for our sample, if we don't (because another
+    // thread is racing with us) we'll just ignore this sample
+    if (idx < buffer.length) {
+      buffer[idx+0] = calleeCMID;
+      buffer[idx+1] = callerCMID;
+      buffer[idx+2] = callSite;
 
-       // Determine which sample we just completed
-       // fetchAndAdd returns the value before the increment, add one to
-       // determine which sample we were
-       int sampleNumber = 
-	 VM_Synchronization.fetchAndAdd(this, 
-					VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
-					1) + 1;
+      // Determine which sample we just completed.
+      // fetchAndAdd returns the value before the increment, add one to
+      // determine which sample we were
+      int sampleNumber = 
+	VM_Synchronization.fetchAndAdd(this, 
+				       VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
+				       1) + 1;
 
-       // If we are the last sample, we need to take action
-       if (sampleNumber == desiredSamples) {
-	 // going to call the organizer.  do not activate.
-	 // The organizer will call activate for us.
-	 thresholdReached();
-       } else { 
-	 // threshold not yet reached.  enable listening again.
-	 // There are more slots available in the buffer
-	 synchronized (this) {
-	   activate();
-	 }
-       } // passed sample threshold
-     } // got a valid buffer index
-     // Note: if we didn't get a valid index then there is another thread
-     //  that is also in update that got the last index before us.  Since
-     //  that thread will notify the organizer, who will eventually activtate
-     //  this listener, we do not want to activiate the listener.
-  } 
+      // If we are the last sample, we need to take action
+      if (sampleNumber == desiredSamples) {
+	thresholdReached();
+      } 
+    } 
+  }
 
   /** 
    *  report() noop
@@ -291,9 +265,8 @@ class VM_EdgeListener extends VM_ContextListener
    * Called when threshold is reached.
    */
   public void thresholdReached() {
-    if(DEBUG)VM.sysWrite("VM_EdgeListener.thresholdReached(): enter\n");
+    if (DEBUG) VM.sysWrite("VM_EdgeListener.thresholdReached(): enter\n");
 
-    // We should be passive already, but make sure.
     passivate();
     
     // Notify the organizer thread
@@ -316,8 +289,8 @@ class VM_EdgeListener extends VM_ContextListener
    */
   private void resetBuffer() {
     for (int i=0; i<buffer.length; i++) {
-       buffer[i] = 0;
+      buffer[i] = 0;
     }
     nextIndex = 0;
   }
-}  // end of class
+} 

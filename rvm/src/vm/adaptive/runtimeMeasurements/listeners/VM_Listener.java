@@ -28,7 +28,7 @@ abstract class VM_Listener implements VM_Uninterruptible {
   /**
    * Entry point to dump what has been collected.
    */
-  abstract public void report();
+  abstract public void report() throws VM_PragmaInterruptible;
 
   /**
    * Is the listener currently active (interested in getting "update" calls)

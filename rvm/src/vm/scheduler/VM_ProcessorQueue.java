@@ -18,10 +18,9 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-final class VM_ProcessorQueue
-       implements VM_Uninterruptible {
+final class VM_ProcessorQueue implements VM_Uninterruptible {
 
-  private int          id;        // id of this queue, for event logging
+  private int          id;     // id of this queue, for event logging
   private VM_Processor head;   // first thread on list
   private VM_Processor tail;   // last thread on list
  
@@ -37,7 +36,7 @@ final class VM_ProcessorQueue
 
   // Add a VP to tail of queue.
   //
-  synchronized void enqueue (VM_Processor p) {
+  synchronized void enqueue (VM_Processor p) throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM_Scheduler.assert(p.next == null); // not currently on any other queue
     if (head == null)
       head = p;
@@ -49,7 +48,7 @@ final class VM_ProcessorQueue
   // Remove VP from head of queue.
   // Returned: the thread (null --> queue is empty)
   //
-  synchronized VM_Processor dequeue () {
+  synchronized VM_Processor dequeue () throws VM_PragmaInterruptible {
     VM_Processor p = head;
     if (p == null)
        return null;
@@ -64,19 +63,19 @@ final class VM_ProcessorQueue
   // Number of items on queue (an estimate: queue is not locked during the scan).
   //
   int length() {
-  int length = 0;
-  for (VM_Processor p = head; p != null; p = p.next)
-     length += 1;
-  return length;
+    int length = 0;
+    for (VM_Processor p = head; p != null; p = p.next)
+      length += 1;
+    return length;
   }
 
   // dump the vp queue
   //
   void dump () {
-     VM.sysWrite("Virtual Processor Dead Queue\n");
-     for (VM_Processor p = head; p != null; p = p.next)
-        p.dumpProcessorState();
-     VM.sysWrite("\n");
+    VM.sysWrite("Virtual Processor Dead Queue\n");
+    for (VM_Processor p = head; p != null; p = p.next)
+      p.dumpProcessorState();
+    VM.sysWrite("\n");
   }
   
 }

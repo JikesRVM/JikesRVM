@@ -116,7 +116,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Suspend execution of current thread for specified number of seconds 
    * (or fraction).
    */ 
-  public static void sleep (long millis) throws InterruptedException {
+  public static void sleep (long millis) throws InterruptedException, VM_PragmaInterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.wakeupTime = VM_Time.now() + millis * .001;
     // cache the proxy before obtaining lock
@@ -555,8 +555,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Begin execution of current thread by calling its "run" method.
    */ 
-  private static void startoff () {
-  //VM_Scheduler.trace("VM_Thread", "startoff");
+  private static void startoff () throws VM_PragmaInterruptible {
     VM_Thread currentThread = getCurrentThread();
     currentThread.run();
     terminate();
@@ -581,7 +580,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Start execution of 'this' by putting it on the appropriate queue
    * of an unspecified virutal processor.
    */
-  public synchronized void start() {
+  public synchronized void start() throws VM_PragmaInterruptible {
     registerThread();
     schedule();
   }
@@ -602,7 +601,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * references to it and
    * resuming execution in some other (ready) thread.
    */ 
-  static void terminate () {
+  static void terminate () throws VM_PragmaInterruptible {
     boolean terminateSystem = false;
 
     //VM_Scheduler.trace("VM_Thread", "terminate");
@@ -704,7 +703,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @return nothing (caller resumes execution on new stack)
    */ 
   public static void resizeCurrentStack(int newSize, 
-                                        VM_Registers exceptionRegisters) {
+                                        VM_Registers exceptionRegisters) throws VM_PragmaInterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");

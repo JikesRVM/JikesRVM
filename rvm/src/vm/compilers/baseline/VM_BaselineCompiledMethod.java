@@ -84,7 +84,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     dynamicLink.set(method.getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
-  final int findLineNumberForInstruction (int instructionOffset) {
+  final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
     if (lineInstructionOffsets == null)
       return 0;                // method has no line information
     // since "instructionOffset" points just beyond the desired instruction,

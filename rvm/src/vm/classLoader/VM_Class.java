@@ -1078,7 +1078,9 @@ public final class VM_Class extends VM_Type
 	  staticMethods.addElement(method);
 	  if (VM.VerifyUnint) {
 	    if (!method.isInterruptible() && method.isSynchronized()) {
-	      VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      }
 	    }
 	  }
 	  continue;
@@ -1089,7 +1091,9 @@ public final class VM_Class extends VM_Type
 	  VM_ObjectModel.allocateThinLock(this);
 	  if (VM.VerifyUnint) {
 	    if (!method.isInterruptible()) {
-	      VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      }
 	    }
 	  }
 	}

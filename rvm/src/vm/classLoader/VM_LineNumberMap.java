@@ -12,21 +12,22 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_LineNumberMap {
-  //----------------//
-  // Implementation //
-  //----------------//
-
-   //!!TODO: some of these arrays could be short[] because methods are limited to 64k bytecodes.
+class VM_LineNumberMap implements VM_Uninterruptible {
    
-   // Note that line mappings for a method appear in order of increasing bytecode offset.
-   // The same line number can appear more than once (each with a different bytecode offset).
+  // Note that line mappings for a method appear in order of increasing bytecode offset.
+  // The same line number can appear more than once (each with a different bytecode offset).
 
-  int[] startPCs;                // bytecode offset at which each instruction sequence begins
-  // 0-indexed from start of method's bytecodes[]
+  /**
+   * bytecode offset at which each instruction sequence begins
+   * 0-indexed from start of method's bytecodes[]     
+   */
+  int[] startPCs;    
 
-  int[] lineNumbers;             // line number at which each instruction sequence begins
-  // 1-indexed from start of method's source file
+  /** 
+   * line number at which each instruction sequence begins
+   * 1-indexed from start of method's source file
+   */
+  int[] lineNumbers;
    
   VM_LineNumberMap(int n) {
     startPCs    = new int[n];
@@ -41,7 +42,9 @@ class VM_LineNumberMap {
     }
   }
 
-  // Return the line number information for the argument bytecode index.
+  /**
+   * Return the line number information for the argument bytecode index.
+   */
   final int getLineNumberForBCIndex(int bci) {
     int idx;
     for (idx = 0; idx < startPCs.length; idx++) {

@@ -889,7 +889,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
-  public static void disableGC() throws VM_PragmaInline { 
+  public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled

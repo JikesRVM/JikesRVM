@@ -32,7 +32,7 @@ final class VM_AccumulatingMethodListener extends VM_MethodListener
    * Update data with the current samples and generate a cumulative report.
    * Reset ourselves, since the sample buffer has been drained into data.
    */
-  public void report() {
+  public void report() throws VM_PragmaInterruptible {
     processSamples();
     reset();
     VM.sysWrite("\nMethod sampler report");
