@@ -293,7 +293,7 @@ implements OPT_Operators {
 
 
   /**
-   * Return the size of the fixed poriton of the stack.
+   * Return the size of the fixed portion of the stack.
    * (in other words, the difference between the framepointer and
    * the stackpointer after the prologue of the method completes).
    * @return size in bytes of the fixed portion of the stackframe
@@ -1417,11 +1417,16 @@ implements OPT_Operators {
 
     // if we get here, either there is no current scratch assignment, or
     // the current assignment is illegal.  Find a new scratch register.
+    ScratchRegister result = null;
     if (activeSet == null) {
-      return getFirstAvailableScratchRegister(symb,s);
+      result = getFirstAvailableScratchRegister(symb,s);
     } else {
-      return getScratchRegisterUsingIntervals(symb,s);
+      result = getScratchRegisterUsingIntervals(symb,s);
     }
+    
+    // Record that we will touch the scratch register.
+    result.scratch.touchRegister(); 
+    return result;
   }
 
   /**
