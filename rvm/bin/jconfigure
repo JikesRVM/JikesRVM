@@ -203,8 +203,8 @@ BOOTIMAGE_MAP_STR=$BUILD_DIRECTORY_STR/RVM.map
 
 # Place to put booter.
 #
-BOOTER=$BUILD_DIRECTORY/RVMRunner
-BOOTER_STR=$BUILD_DIRECTORY_STR/RVMRunner
+BOOTER=$BUILD_DIRECTORY/JikesRVM
+BOOTER_STR=$BUILD_DIRECTORY_STR/JikesRVM
 
 # Variables to allow configuration files to alter the list of
 # directories and primordials.
@@ -458,22 +458,6 @@ if (( RVM_FOR_LINUX || RVM_FOR_CYGWIN )); then
 else
     export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 fi
-
-# which linux build?  one that uses pthreads for intel 2.4 and one
-# that does not use pthreads for powerPC and intel 2.2.  This is a bit
-# hack that only works in the watson enviroment and should be probably
-# removed before sending the code out.
-#
-# temporarily removed to try to diagnose system hang condition.  Maria 8/23 This has to be redone! Bowen 9/14
-#if (( RVM_FOR_LINUX && !RVM_FOR_LINUXSMP && RVM_FOR_IA32 )); then
-#  # an intel build for which the user has not specified smp
-#  if [[ `uname` = "Linux" ]]; then
-#    if [[ X`uname -r | grep ^2.2` = X ]]; then 
-#      export RVM_FOR_LINUXSMP=1
-#    fi
-#  fi
-#fi
-
 
 #--------------------------------------#
 # SECTION 4 - ARGUMENT PARSING         #

@@ -126,11 +126,11 @@ The debugger requires the following files:
    Default value: 	$RVM_BUILD/RVM.primordials
 
 4. The program to load and run the JVM boot image:
-   This file is typically $RVM_BUILD/RVMRunner
+   This file is typically $RVM_BUILD/JikesRVM
    Normally you don't have to be concerned about this file since it rarely
    changes.
    jdp argument:	-r booterName
-   Default value: 	$RVM_BUILD/RVMRunner
+   Default value: 	$RVM_BUILD/JikesRVM
 
 
 

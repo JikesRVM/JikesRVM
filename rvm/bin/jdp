@@ -113,7 +113,7 @@ JDP_CLASSPATH=$RVM_BUILD/RVM.tools:$RVM_BUILD/RVM.scratch:$RVM_BUILD/RVM.classes
 #****************************************************************************
 # Set default values
 #****************************************************************************
-BOOTER=$RVM_BUILD/RVMRunner
+BOOTER=$RVM_BUILD/JikesRVM
 if [[ $HOST_OS = "AIX" ]]
   then	  
   BOOTER_BREAKPOINT=`dump -t $BOOTER | fgrep .bootThread | grep -v Caller | awk '{ print $3 }' | sed s/0x//`

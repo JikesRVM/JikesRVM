@@ -35,5 +35,5 @@ done
 
 typeset -x LIBPATH=$LIBPATH:$RVM_BUILD
 typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RVM_BUILD
-exec $RVM_BUILD/RVMRunner $ARGS "$@"
+exec $RVM_BUILD/JikesRVM $ARGS "$@"
 

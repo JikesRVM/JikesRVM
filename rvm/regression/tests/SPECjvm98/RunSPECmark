@@ -24,7 +24,7 @@ function say
 # kill all processes involved in this test
 function killEveryone
    {
-#     RVM_PID=`/usr/bin/ps -e | /usr/bin/awk '/RVMRunner/{print $1}'`
+#     RVM_PID=`/usr/bin/ps -e | /usr/bin/awk '/JikesRVM/{print $1}'`
 #     RUN_PID=`/usr/bin/ps -Af | /usr/bin/awk '/Run100/{print $2}'`
 #     RVM_PID="$RUN_PID $RVM_PID"
 #     if [[ $RVM_PID != "" ]]; then
