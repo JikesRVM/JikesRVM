@@ -77,18 +77,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  boolean setLink = false;
 
 	  if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
-	    if (branchStmt.getOpcode() == IG_PATCH_POINT_opcode) {
-	      // IG_PATCH_POINT throws OPT_PatchPointGuardedInliningException
-	      // if the targetOffset is not in the range.
-	      // The lower bound was checked in resolveBranch
-	      // see also VM_RuntimeOptCompilerInfrastructure.optCompile     
-	      throw new OPT_PatchPointGuardedInliningException(targetOffset);
-	    } else {
-	      // back to normal cases 
-	      throw  new OPT_OptimizingCompilerException("CodeGen", 
-				   "Branch positive offset too large: ", 
+	    throw  new OPT_OptimizingCompilerException("CodeGen", 
+						       "Branch positive offset too large: ", 
 						       targetOffset);
-	    }
 	  }
 
 	  switch (branchStmt.getOpcode()) {
@@ -824,23 +815,8 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	
       case IG_PATCH_POINT_opcode:
 	{
-	  /* Two options here:
-	   * 1. generate one nop:
-	   *   if the target offset is in the range of 2^25-1 ~ -2^25, 
-	   *      do nothing;
-	   *   otherwise, fail the compilation
-	   *
-	   * 2. generate three nops:
-	   *   do nothing, code patching will stop the world and handle this;
-	   */
-
-	  /* currently I am using option 1 which should be the common case, 
-	   * and patch back when resolving the label.
-	   */
-	  // verify the target is a label
 	  OPT_BranchOperand bop = InlineGuard.getTarget(p);
 	  OPT_Instruction target = bop.target;
-	  
 	  if (VM.VerifyAssertions) {
 	    VM._assert(target.getOpcode() == LABEL_opcode);
 	  }
@@ -920,20 +896,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
     } else {
       // backward branch target, which has been fixed.
       int targetOffset = tgt.getmcOffset() - (mi << LG_INSTRUCTION_WIDTH);
-
       if (targetOffset < (MIN_DISPL << LG_INSTRUCTION_WIDTH)) {
-
-	if (src.getOpcode() == IG_PATCH_POINT_opcode) {
-	  // IG_PATCH_POINT throws OPT_PatchPointGuardedInliningException
-	  // if the targetOffset is not in the range.
-	  // The upper bound is checked in 'case LABEL_opcode' block.
-	  // see also VM_RuntimeOptCompilerInfrastructure.java
-	  throw new OPT_PatchPointGuardedInliningException(targetOffset);
-	} else {
-	  throw new OPT_OptimizingCompilerException("CodeGen", 
-				  " Branch negative offset too large: ", 
-						    targetOffset);
-	}
+	throw new OPT_OptimizingCompilerException("CodeGen", 
+						  " Branch negative offset too large: ", 
+						  targetOffset);
       }
       return targetOffset;
     }
