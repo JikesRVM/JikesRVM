@@ -266,8 +266,8 @@ categorized into four types:
 
 \item [TI - Thread (locking) Id]
         Used to set (and test) the locking field of light weight object
-        locks.  Can also be shifted to get the index of an object
-        representing the current thread in into a global array.
+        locks.  Can also be shifted to get the index into a global
+        array of an object representing the current thread.
 
 \item [PR - Processor register]
         An object representing the current virtual processor (the one
@@ -352,7 +352,8 @@ The layout of the stackframe appears in a block comment in
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
-\item [Method epilogue responsibilities]
+\item [Method epilogue responsibilities] (some of these can be
+ommitted for leaf methods):
 
 \begin{enumerate}
 \item Restore FP to point to caller's stack frame.

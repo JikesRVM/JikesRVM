@@ -41,19 +41,17 @@ Transferring execution from one thread (A) to another (B) is a complex
 operation negotiated by the {\tt yield} and {\tt morph} methods of
 VM\_Thread and the {\tt dispatch} method of VM\_Processor.  {\tt
 yield} places A on an indicated queue (releasing the lock on the
-queue, if it is global).  {\tt morph} uses 
-\xlink{{\tt VM\_Magic}}{\VMMagicURL} 
-to capture the
-state of the running thread and transfers control to {\tt dispatch}.
-At this point, the virtual processor is executing in {\em phantom
-mode}, it is using A's stack, but not in a way that will be visible to
-A when it next gets executed.  {\tt dispatch} removes B from a queue
-of executable threads and, using more VM\_Magic, transfers control
-to B's stack.  (To B, it looks as if {\em its} call to {\tt dispatch}
-has just returned.)  To prevent a different processor from dispatching
-A while it is still executing in phantom mode, {\tt yield} sets the
-{\tt beingDispatched} field of A, which is only reset by the magic
-that transfers control to B.
+queue, if it is global).  {\tt morph} does some additional
+housekeeping and transfers control to {\tt dispatch} which selects the
+next thread to execute. Dispatch then invokes {\tt
+VM\_Magic.threadSwitch} to save the hardware context of A and restore
+the hardware context of B.  It now appears as if B's previous call to
+{\tt dispatch} has just returned and it continues executing. While
+dispatching is proceeding (from the time A is enqueued until B's
+hardware context is restored), the {\tt beingDispatched} field of A is
+set to prevent it from being scheduled for execution on some other
+virtual processor while it is still executing in {\tt morph } or {\tt
+dispatch}. 
 
 Beginning with version 2.0.1, the Jikes RVM has a simple load balancing
 mechanism. Every once in a while, a thread will move from one virtual
