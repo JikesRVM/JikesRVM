@@ -9,29 +9,26 @@
 #include <stdio.h>
 char *Me; // name to appear in error messages
 
-void
-shorthelp(FILE *out)
-{
-    fprintf(out, "\
-Usage: %s [ --disable-modification-exit-status ] [--trace]\n\
-            [ -D<name>[ =1 | =0 | =<string-value> ] ]... \n\
-	    [ -- ] <output directory> [ <input file> ]...\n", Me);
-    fprintf(out, "%s:   Use --help for more information.\n", Me);
-}
+const char short_help_msg[] = ""
+"Usage: %s [--help]\n"
+"        [ --disable-modification-exit-status ] [--trace]\n"
+"        [ -D<name>[ =1 | =0 | =<string-value> ] ]... \n"
+"	 [ -- ] <output directory> [ <input file> ]...\n";
 
       
 const char long_help_msg[] = ""
 "   Preprocess source files that are new or have changed.\n"
 "\n"
-"   The timestamp of each input file is compared with that of the corresponding\n"
-"   file in the output directory. If the output file doesn't exist, or is older\n"
-"   than the input file, then the input file is copied to the output directory,\n"
-"   applying any preprocessor directives specified on the command line.\n"
+"   The timestamp of each input file is compared with that\n"
+"   of the corresponding file in the <output directory>.  If the\n"
+"   output file doesn't exist, or is older than the input file,\n"
+"   then the input file is copied to the <output directory>, \n"
+"   with preprocessing.\n"
 "\n"
 "   Invocation parameters:\n"
 "      - zero or more preprocessor directives of the form \"-D<name>=1\", of the\n"
-"          equivalent shorthand form \"-D<name>\", of the form \"-D<name>=0\",\n"
-"	  and/or of the form \"-D<name>=<string-value>\".\n"
+"        equivalent shorthand form \"-D<name>\", of the form \"-D<name>=0\",\n"
+"	 and/or of the form \"-D<name>=<string-value>\".\n"
 "      - name of directory to receive output files\n"
 "      - names of zero or more input files\n"
 "      - other flags\n"
@@ -39,8 +36,22 @@ const char long_help_msg[] = ""
 "   Process exit status means:\n"
 "           0 - no files changed\n"
 "           1 - some files changed\n"
-"       other - error\n"
+"       other - trouble\n"
 "\n"
+"   With --disable-modification-exit-status, the process will\n"
+"   exit wtih status 0 even when some files changed.  Under\n"
+"   --disable-modification-exit-status, non-zero exit status\n"
+"   always means trouble.\n"
+"\n"
+"\n"
+"   --trace  The preprocessor prints a '.' for each file that did\n"
+"	  not need to be changed and a '+' for each file that needed\n"
+"	  preprocessing again.\n"
+"\n"
+"   --verbose, -v  The preprocessor prints a message for each file\n"
+"         examined, and prints a summary at the end \n"
+"\n"
+"   --help, -h  Show this long help message and exit with status 0.\n"
 "\n"
 "   -D<name>=0 is a no-op; equivalent to never defining <name>.\n"
 "\n"
@@ -49,23 +60,19 @@ const char long_help_msg[] = ""
 "   -D<name>=<any-string-value-but-0-or-1> will define a constant that is\n"
 "       usable in a //-#value dirctive.\n"
 "\n"
-"    -trace  tells the program to print a '.' for each file that did not\n"
-"	    need to be changed and a '+' for each file that needed\n"
-"	     preprocessing again.\n"
-"\n"
-"    -verbose directs the program to print a message for each file examined, \n"
-"	     and to print a summary at the end \n"
-"\n"
-"   The following preprocessor directives are recognized in source files.  They\n"
-"   must be the first non-whitespace characters on a line of input.\n"
+"   The following preprocessor directives are recognized\n"
+"   in source files.  They must be the first non-whitespace characters\n"
+"   on a line of input.\n"
 "\n"
 "      //-#if    <name>\n"
 "	    It is not an error for <name> to be undefined.  Only checks\n"
 "	    whether <name> is defined.\n"
 "\n"
 "	    \"//-#if\" also supports the constructs '!' (invert the sense of \n"
-"	     the next test), '&&', and '||'.  However, it has no notion of \n"
-"	     precedence \n"
+"	    the next test), '&&', and '||'.  '!' binds more tightly \n"
+"	    than '&&' and '||' do.   '&&' and '||' are at the same precedence.\n"
+"	    The preprocessor does not support parentheses in //-#if constructs\n"
+"	    If you don't mix '&&' and '||' in the same line, you'll be OK.\n"
 "\n"
 "      //-#elif  <name>\n"
 "            Takes the same arguments that //-#if does. \n"
@@ -83,9 +90,12 @@ const char long_help_msg[] = ""
 "	    It is an error for <preprocessor-symbol> to have been defined with\n"
 "	    -D<name>=1 or with -D<name>\n"
 "\n"
-"	(This is an odd restriction, but is the way the code was written\n"
-"         when I found it.  You're free to rewrite it if you want it to act\n"
-"         just like the C preprocessor does.)\n"
+"	   (This is an odd restriction, but is the way the code was written\n"
+"           when I found it.  You're free to rewrite it if you want it to act\n"
+"           just like the C preprocessor does.)\n"
+"\n"
+"     There is no equivalent to the C preprocessor's \"#define\" construct;\n"
+"     all constants are defined on the command line with \"-D\".\n"
 "\n"
 "   @author Derek Lieber\n"
 "   @date 13 Oct 1999\n"
@@ -227,6 +237,15 @@ delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *  dummy_
 }
 
 
+void
+shorthelp(FILE *out)
+{
+    fprintf(out,  short_help_msg, Me);
+    fprintf(out, "%s:   Use \"%s --help\" for more information.\n", Me, Me);
+}
+
+
+
 
 
 int
@@ -256,7 +275,8 @@ main(int argc, char **argv)
       }
 	  
       if (streql(arg, "-help") || streql(arg, "-h")) {
-	  shorthelp(stdout);
+//	  shorthelp(stdout);
+	  printf(short_help_msg, Me);
 	  fputs(long_help_msg, stdout);
 	  exit(0);
       }
