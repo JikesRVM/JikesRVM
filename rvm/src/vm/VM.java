@@ -409,20 +409,26 @@ public class VM extends VM_Properties implements VM_Constants,
     }
   }
 
+
+  public static void sysWriteField(int fieldWidth, String s) throws VM_PragmaLogicallyUninterruptible {
+      sysWrite(s);
+      int len = s.length();
+      while (fieldWidth > len++) sysWrite(" ");
+  }
+
   /**
    * Low level print to console.
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void sysWriteField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible {
-    if (runningVM) {
       int len = 1, temp = value;
       if (temp < 0) { len++; temp = -temp; }
       while (temp >= 10) { len++; temp /= 10; }
       while (fieldWidth > len++) sysWrite(" ");
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
-    } else {
-      System.err.print(value);
-    }
+      if (runningVM) 
+	  sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+      else 
+	  System.err.print(value);
   }
 
   /**
