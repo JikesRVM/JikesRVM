@@ -12,8 +12,6 @@ import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements {@link Uninterruptible} to suppress thread switching in 
- * the {@link VM#boot()} method.
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
@@ -62,6 +60,9 @@ public class VM extends VM_Properties
 
   /**
    * Begin vm execution.
+   * Uninterruptible because we are not setup to execute a yieldpoint
+   * or stackoverflow check in the prologue this early in booting.
+   * 
    * The following machine registers are set by "C" bootstrap program 
    * before calling this method:
    *    JTOC_POINTER        - required for accessing globals
@@ -69,8 +70,7 @@ public class VM extends VM_Properties
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception, 
-                                   LogicallyUninterruptiblePragma {
+  public static void boot() throws Exception, UninterruptibleNoWarnPragma {
     writingBootImage = false;
     runningVM        = true;
     runningAsSubsystem = false;
@@ -95,6 +95,17 @@ public class VM extends VM_Properties
     
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
     currentThread.startQuantum(VM_Time.cycles());
+
+    finishBooting();
+  }
+
+  /**
+   * Complete the task of booting Jikes RVM.
+   * Done in a secondary method mainly because this code
+   * doesn't have to be uninterruptible and this is the cleanest
+   * way to make that distinction.
+   */
+  private static void finishBooting() throws InterruptiblePragma {
     
     // get pthread_id from OS and store into vm_processor field
     // 
@@ -487,7 +498,7 @@ public class VM extends VM_Properties
 
 
   private static void _assertionFailure(String msg1, String msg2) 
-    throws LogicallyUninterruptiblePragma, NoInlinePragma 
+    throws UninterruptibleNoWarnPragma, NoInlinePragma 
   {
     if (msg1 == null && msg2 == null)
       msg1 = "vm internal error at:";
@@ -498,13 +509,10 @@ public class VM extends VM_Properties
     if (VM.runningVM) {
       if (msg1 != null) {
         sysWrite(msg1);
-        //      sysWrite(": ");
       }
       sysFail(msg2);
     }
-    throw new RuntimeException((msg1 != null ? msg1 : "") 
-                               // + ( (msg1 != null) ? ": " : "") 
-                               + msg2);
+    throw new RuntimeException((msg1 != null ? msg1 : "") + msg2);
   }
 
 

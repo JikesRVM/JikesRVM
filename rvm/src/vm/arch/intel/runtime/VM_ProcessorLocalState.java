@@ -31,7 +31,7 @@ extends OPT_IRTools
    * The C bootstrap program has placed a pointer to the initial
    * VM_Processor in ESI.  
    */
-  static void boot() {
+  static void boot() throws UninterruptiblePragma {
     // do nothing - everything is already set up.
   }
 
