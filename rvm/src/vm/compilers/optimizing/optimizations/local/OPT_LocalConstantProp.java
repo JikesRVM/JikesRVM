@@ -34,6 +34,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_ConstantOperand.
     java.util.HashMap info = new java.util.HashMap();
+    boolean runBranchOpts = false;
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
@@ -79,6 +80,10 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
 	}
 	info.clear();
       }
+      runBranchOpts |= OPT_BranchSimplifier.simplify(bb, ir);
+    }
+    if (runBranchOpts) {
+      new OPT_BranchOptimizations(0).perform(ir);
     }
   }
 }
