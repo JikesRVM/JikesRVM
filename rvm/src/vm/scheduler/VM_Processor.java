@@ -62,6 +62,10 @@ implements VM_Uninterruptible, VM_Constants {
   public  VM_HardwarePerformanceMonitor hpm;
   //-#endif
 
+  // How many times timer interrupt has occurred since last thread switch
+  public  int interruptQuantumCounter = 0;
+
+
   /**
    * Create data object to be associated with an o/s kernel thread 
    * (aka "virtual cpu" or "pthread").
