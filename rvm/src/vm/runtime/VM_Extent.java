@@ -47,17 +47,17 @@ public final class VM_Extent implements VM_Uninterruptible {
   /**
    * @deprecated
    */
-  public static VM_Extent fromInt(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent fromInt(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(address);
   }
 
-  public static VM_Extent fromIntSignExtend(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent fromIntSignExtend(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(address);
   }
 
-  public static VM_Extent fromIntZeroExtend(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent fromIntZeroExtend(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Extent(address);
@@ -68,23 +68,23 @@ public final class VM_Extent implements VM_Uninterruptible {
   }
 
   //-#if RVM_FOR_64_ADDR
-  public static VM_Extent fromLong (long offset) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent fromLong (long offset) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(offset);
   }
   //-#endif
 
-  public static VM_Extent zero () throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent zero () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(0);
   }
 
-  public static VM_Extent one () throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent one () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(1);
   }
 
-  public static VM_Extent max() throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Extent max() throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);
   }
@@ -103,26 +103,26 @@ public final class VM_Extent implements VM_Uninterruptible {
     }
   }
 
-  public VM_Word toWord() throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word toWord() throws VM_PragmaUninterruptibleNoWarn {
     return new VM_Word(value);
   }
 
-  public VM_Extent add (int byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Extent add (int byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(value + byteSize);
   }
 
-  public VM_Extent sub (int byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Extent sub (int byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(value - byteSize);
   }
 
-  public VM_Extent add (VM_Extent byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Extent add (VM_Extent byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(value + byteSize.value);
   }
 
-  public VM_Extent sub (VM_Extent byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Extent sub (VM_Extent byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(value - byteSize.value);
   }

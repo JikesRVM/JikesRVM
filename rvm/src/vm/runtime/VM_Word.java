@@ -46,17 +46,17 @@ public final class VM_Word implements VM_Uninterruptible {
   /**
    * @deprecated
    */
-  public static VM_Word fromInt (int val) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Word fromInt (int val) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(val);
   }
 
-  public static VM_Word fromIntSignExtend (int val) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Word fromIntSignExtend (int val) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(val);
   }
   
-  public static VM_Word fromIntZeroExtend (int val) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Word fromIntZeroExtend (int val) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Word(val);
@@ -67,18 +67,18 @@ public final class VM_Word implements VM_Uninterruptible {
   }
      
   //-#if RVM_FOR_64_ADDR
-  public static VM_Word fromLong (long val) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Word fromLong (long val) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(val);
   }
   //-#endif
 
-  public static VM_Word zero () throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Word zero () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(0);
   }
 
-  public static VM_Word one () throws VM_PragmaInline {
+  public static VM_Word one () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(1);
   }
@@ -93,7 +93,7 @@ public final class VM_Word implements VM_Uninterruptible {
     return (int) value;
   }
 
-  public long toLong () throws VM_PragmaLogicallyUninterruptible {
+  public long toLong () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -102,45 +102,45 @@ public final class VM_Word implements VM_Uninterruptible {
     }
   }
 
-  public VM_Address toAddress() throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address toAddress() throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(value);
   }
 
-  public VM_Offset toOffset () throws VM_PragmaLogicallyUninterruptible {
+  public VM_Offset toOffset () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(value);
   }
 
-  public VM_Extent toExtent () throws VM_PragmaLogicallyUninterruptible {
+  public VM_Extent toExtent () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Extent(value);
   }
 
-  public VM_Word add (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word add (VM_Word w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value + w2.value);
   }
 
-  public VM_Word add (VM_Offset w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word add (VM_Offset w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value + w2.toWord().value);
   }
 
-  public VM_Word add (VM_Extent w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word add (VM_Extent w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value + w2.toWord().value);
   }
 
-  public VM_Word sub (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word sub (VM_Word w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value - w2.value);
   }
-  public VM_Word sub (VM_Offset w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word sub (VM_Offset w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value - w2.toWord().value);
   }
-  public VM_Word sub (VM_Extent w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word sub (VM_Extent w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value - w2.toWord().value);
   }
@@ -188,37 +188,37 @@ public final class VM_Word implements VM_Uninterruptible {
     return !EQ(w2);
   }
 
-  public VM_Word and(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word and(VM_Word w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value & w2.value);
   }
 
-  public VM_Word or(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word or(VM_Word w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value | w2.value);
   }
 
-  public VM_Word not() throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word not() throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(~value);
   }
 
-  public VM_Word xor(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word xor(VM_Word w2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value ^ w2.value);
   }
 
-  public VM_Word lsh (int amt) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word lsh (int amt) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value << amt);
   }
 
-  public VM_Word rshl (int amt) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word rshl (int amt) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value >>> amt);
   }
 
-  public VM_Word rsha (int amt) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Word rsha (int amt) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value >> amt);
   }

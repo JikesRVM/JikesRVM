@@ -48,17 +48,17 @@ public final class VM_Offset implements VM_Uninterruptible {
   /**
    * @deprecated
    */
-  public static VM_Offset fromInt(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset fromInt(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(address);
   }
 
-  public static VM_Offset fromIntSignExtend(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset fromIntSignExtend(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(address);
   }
 
-  public static VM_Offset fromIntZeroExtend(int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset fromIntZeroExtend(int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Offset(address);
@@ -69,18 +69,18 @@ public final class VM_Offset implements VM_Uninterruptible {
   }
 
   //-#if RVM_FOR_64_ADDR
-  public static VM_Offset fromLong (long offset) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset fromLong (long offset) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(offset);
   }
   //-#endif
 
-  public static VM_Offset zero () throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset zero () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(0);
   }
 
-  public static VM_Offset max() throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Offset max() throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);
   }
@@ -99,22 +99,22 @@ public final class VM_Offset implements VM_Uninterruptible {
     }
   }
 
-  public VM_Word toWord() {
+  public VM_Word toWord() throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Word(value);
   }
 
-  public VM_Offset add (int byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Offset add (int byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(value + byteSize);
   }
 
-  public VM_Offset sub (int byteSize) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Offset sub (int byteSize) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(value - byteSize);
   }
 
-  public VM_Offset sub (VM_Offset off2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Offset sub (VM_Offset off2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(value - off2.value);
   }

@@ -246,7 +246,10 @@ public abstract class VM_Method extends VM_Member {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (isObjectInitializerHelper()) return true;
     if (VM_PragmaInterruptible.declaredBy(this)) return true;
+    if (VM_PragmaInterruptibleNoWarn.declaredBy(this)) return true;
     if (VM_PragmaUninterruptible.declaredBy(this)) return false;
+    if (VM_PragmaUninterruptibleNoWarn.declaredBy(this)) return false;
+    if (VM_PragmaNoYieldpoints.declaredBy(this)) return false;
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i) {
       if (interfaces[i].isUninterruptibleType()) return false;

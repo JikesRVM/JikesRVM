@@ -2179,7 +2179,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    * @param msg description of bytecode that is violating the invariant
    */
   protected final void forbiddenBytecode(String msg) throws VM_PragmaNoInline {
-    if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
+    if (!VM.ParanoidVerifyUnint) {
+      // Respect programmer overrides of uninterruptibility checking
+      if (VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; 
+      if (VM_PragmaUninterruptibleNoWarn.declaredBy(method)) return;
+      if (VM_PragmaNoYieldpoints.declaredBy(method)) return; // a weaker statement than being uninterruptible.
+    }
     VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
   }
 
@@ -2189,8 +2194,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    * @param target the target methodRef
    */
   protected final void checkTarget(VM_Method target) {
-    if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
-    if (target.isInterruptible()) {
+    if (!VM.ParanoidVerifyUnint) {
+      // Respect programmer overrides of uninterruptibility checking
+      if (VM_PragmaLogicallyUninterruptible.declaredBy(method)) return;
+      if (VM_PragmaUninterruptibleNoWarn.declaredBy(method)) return;
+    }
+    if (target.isInterruptible() && !VM_PragmaInterruptibleNoWarn.declaredBy(method)) {
       VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
     }
   }

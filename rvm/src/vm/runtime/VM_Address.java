@@ -46,17 +46,17 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
   /**
    * @deprecated
    */
-  public static VM_Address fromInt (int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Address fromInt (int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(address);
   }
 
-  public static VM_Address fromIntSignExtend (int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Address fromIntSignExtend (int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(address);
   }
 
-  public static VM_Address fromIntZeroExtend (int address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Address fromIntZeroExtend (int address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Address(address);
@@ -67,13 +67,13 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
   }
 
   //-#if RVM_FOR_64_ADDR
-  public static VM_Address fromLong (long address) throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Address fromLong (long address) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return new VM_Address(address);
   }
   //-#endif
 
-  public static VM_Address zero () throws VM_PragmaLogicallyUninterruptible {
+  public static VM_Address zero () throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(0);
   }
@@ -102,12 +102,12 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     return new VM_Word(value);
   }
 
-  public VM_Address add (int v) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address add (int v) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(value + v);
   }
 
-  public VM_Address add (VM_Offset offset) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address add (VM_Offset offset) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Address(value + offset.toInt());
@@ -116,7 +116,7 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     //-#endif
   }
 
-  public VM_Address add (VM_Extent extent) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address add (VM_Extent extent) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Address(value + extent.toInt());
@@ -125,7 +125,7 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     //-#endif
   }
 
-  public VM_Address sub (VM_Extent extent) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address sub (VM_Extent extent) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Address(value - extent.toInt());
@@ -134,7 +134,7 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     //-#endif
   }
 
-  public VM_Address sub (VM_Offset offset) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address sub (VM_Offset offset) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new VM_Address(value - offset.toInt());
@@ -143,12 +143,12 @@ public final class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     //-#endif
   }
 
-  public VM_Address sub (int v) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Address sub (int v) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Address(value - v);
   }
 
-  public VM_Offset diff (VM_Address addr2) throws VM_PragmaLogicallyUninterruptible {
+  public VM_Offset diff (VM_Address addr2) throws VM_PragmaUninterruptibleNoWarn {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return VM_Offset.fromIntZeroExtend(value - addr2.value);

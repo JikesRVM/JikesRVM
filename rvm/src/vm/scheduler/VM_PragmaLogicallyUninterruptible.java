@@ -27,6 +27,7 @@ import com.ibm.JikesRVM.classloader.*;
  * Extreme care must be exercised when using this pragma since it supresses 
  * the checking of uninterruptibility.
  * 
+ * @deprecated
  * @author Dave Grove
  */
 public class VM_PragmaLogicallyUninterruptible extends VM_PragmaException {
