@@ -1,56 +1,73 @@
-#!/bin/ksh
+#! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
 # @author Julian Dolby
 
-# do nothing by default
-NOBUILD=
-NORUN=
-
 # driver config file must be given
 DRIVER=
 
+# options given by the user
+ADDED=
+
+## -succeed-immediately flag.
+succeed_immediately=
+
+croak () {
+    exec >&2
+    echo "${0##*/}: $*";
+    exit 1
+}
+
 while [ $# != 0 ]; do
 
-  case $1 in
-   
-    -common)
-	ADDED=$2
-	shift
-    ;;
+    case $1 in
+	-succeed-immediately  )
+	    succeed_immediately="exit 0";
+	    ;;
+	    
 
+	-common)
+	    : ${2?"The -common flag requires an argument"}
+	    ADDED="$2"
+	    shift
+	    ;;
 
-    -config)
-        case $2 in
-	/*)
-	  DRIVER=$2
-        ;;
+	-config)
+	    : ${2?"The -driver flag requires an argument"}
+	    case "$2" in
+		/*)
+		    DRIVER="$2"
+		    ;;
+		
+		*?)
+		    DRIVER="$RVM_ROOT/rvm/regression/config/$2"
+		    ;;
+	    esac
+	    shift
+	    ;;
 
-	*)
-	  DRIVER=$RVM_ROOT/rvm/regression/config/$2
-	;;
-	esac
-	shift
-    ;;
-
-    *)
-	echo Invalid option $1
-	echo 'Valid options are'
-	echo '-common "options"         options to RunSanityTests'
-	echo '-config <file>            run tests given in file'
-        exit -1
-    ;;
-
+	*)  
+	    croak "Invalid option \"$1\"
+Valid options are
+-common \"options\"         options to RunSanityTests
+-config <file>            run tests given in file
+-die-immediately	  exit successfully, once the arguments are verified
+"
+	    ;;
     esac
     shift
 done
 
-# options given by the user
-#
-# the config file specifies a configuration to test, and any extra
-# arguments that RunSanityTests needs
-#
-awk "{ print \"$RVM_ROOT/rvm/regression/RunSanityTests -configurations \" \$0 \" $ADDED\" }" < $DRIVER | sh -s
+
+[[ -f $DRIVER ]] || croak "I cannot find a driver file named \"$DRIVER\""
+
+
+# The config file specifies a configuration to test, and any extra
+# arguments that RunSanityTests will need.
+
+$succeed_immediately
+
+awk "{ print \"$RVM_ROOT/rvm/regression/RunSanityTests -configurations \" \$0 \" $ADDED || echo >&2 'Running the test $0 died.'\" }" "${DRIVER}" | sh -s

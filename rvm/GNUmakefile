@@ -16,12 +16,12 @@ all:
 
 
 FIND:=find . -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
-FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.#*' -o -name '#*' -o -name '*#' -o -type f 
+FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f 
 
 .PHONY: FORCE
 TAGS: FORCE
 	$(RM) $@
-	$(FIND) -print0 | xargs -0 etags --append --output=$@
+	@$(FIND) -print0 | xargs -0 etags --append --output=$@
 
 FORCE:
 
@@ -41,3 +41,7 @@ findall: FORCE
 TAGS.ALL: FORCE
 	$(RM) $@
 	$(FINDALL) -print0 | xargs -0 etags --append --output=$@
+
+TAGS.REST: FORCE
+	$(RM) $@
+	$(FIND) -o  -name Old -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f -print0 | xargs -0 etags --append --output=$@

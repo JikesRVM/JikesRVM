@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
@@ -10,10 +10,11 @@
 # rules, etc in this file should be site independent
 #
 
-# Command shell.
-#
-SHELL:=ksh
-  
+## /bin/sh is the default for SHELL.  If you need or want a Bash
+## feature, it would be OK set it to /bin/bash, since we're already
+## committed to Bash. But we don't need it yet, so no point 
+## in overconstraining ourselves.
+
 # Java compiler.
 HOST_JAVAC = $(HOST_JIKES) +E -g
 HOST_JAVAC_CLASSPATH = -classpath $(HOST_REPOSITORIES):.:

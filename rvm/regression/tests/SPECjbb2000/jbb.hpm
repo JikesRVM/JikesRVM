@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -26,7 +26,7 @@ export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U.watrg1
 
 echo "RVM_HOST_CONFIG: $RVM_HOST_CONFIG"
 
-if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
   more <<EOF
    
   This shell script executes JikesRVM image for SPECjbb.
@@ -414,7 +414,7 @@ elif [[ $setting = 458 ]]; then
   setting=58
 else 
   echo "setting $setting is invalid"
-  exit -1
+  exit 3
 fi
 
 #####################################
@@ -449,7 +449,7 @@ if [[ $# = 6 || $# > 6 ]]; then
   fi
 fi
 
-echo "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; execution: $execution\n"
+echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; execution: $execution\n"
 
 # 4 processors
 # smallHeap=512

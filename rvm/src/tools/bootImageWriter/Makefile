@@ -24,7 +24,7 @@ UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
-	@print -n "(built workaround zip) "
+	@echo -n "(built workaround zip) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
@@ -64,5 +64,5 @@ $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	   $(RVM_BOOTIMAGE_COMPILER_ARGS) \
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)
-	@print -n "(bootimage linked) "
+	@echo -n "(bootimage linked) "
 

@@ -1,34 +1,72 @@
-#!/bin/ksh
+#! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
 # @author Julian Dolby
+#
+# @modified Steven Augart
 
 # This script will build the boot images
 # It then signals another script, night-sanity-run to perform the runs.
 
+ME="${0##*/}"
+function usage() {
+    echo >&2 "Usage: $ME <build-configuration>"
+    [ "$*" ] && echo >&2 "$ME: $*"
+    exit 1
+}
+function croak() {
+    exec >&2			# stderr
+    if [ "$*" ]; then
+	echo "$ME: $*"
+    fi
+    echo "$ME: Aborting Execution; goodbye!"
+    exit 2
+}
+
+(( $# == 1 )) || usage "You gave $# arguments; I expected exactly 1 argument."
+configuration="$1"
 export PATH=$PATH:.
 
+config_fullpath=$RVM_ROOT/rvm/regression/config/$configuration
+[ "$RVM_ROOT" ] || croak "RVM_ROOT must be set, but isn't."
+[[ -f "${config_fullpath}" ]] || croak "Cannot find $configuration in the directory $RVM_ROOT/rvm/regression/config/"
+
+[[ -d $RVM_ROOT/results ]] || croak "The directory $RVM_ROOT/results does not exist; I have no place to write my log files."
 # Where the fullshadow and other verbose output are placed, not mailed
-export VERBOSE_LOG=$RVM_ROOT/results/verbose.log
+export VERBOSE_LOG="$RVM_ROOT"/results/verbose.log
 
 # Where the build output is placed, this is mailed when the tests failed
-export BUILD_LOG=$RVM_ROOT/results/build.log
+export BUILD_LOG="$RVM_ROOT"/results/build.log
+
+trap "echo >&2 $ME: Aborting execution early due to an error while running some program" ERR
+set -e
 
 umask 022
 
+echo "Any further output will go to $BUILD_LOG"
+exec >> $BUILD_LOG 2>&1
+
 # build the boot images, but don't run any tests
-echo "Building the boot images\n" >> $BUILD_LOG
-
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results -norun -wait sem" -config $1 >> $BUILD_LOG 2>> $BUILD_LOG
-
-# build javadoc for FullAdaptiveSemispace image.
-. $RVM_ROOT/images/FullAdaptiveSemiSpace/jbuild.environment
-$RVM_ROOT/rvm/bin/jdoc.sh $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
-
-echo "\n\nBuild complete, builder script exiting.\n" >> $BUILD_LOG
+images="$RVM_ROOT/images"
+echo "Building the boot images, in $images"
+results="$RVM_ROOT/results"
+echo "Results go into $results";
+echo "Using the configuration $configuration, in $config_fullpath"
 
 
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
 
+echo "OK, now we will try to build the javadoc for the FullAdaptiveSemiSpace image"
+dir="$RVM_ROOT/images/FullAdaptiveSemiSpace"
+if [[ ! -d $dir ]]; then
+    echo "$ME: It looks as if you didn't make a FullAdaptiveSemiSpace build.  We'll skip jdoc.sh."
+else
+    je="$dir/jbuild.environment"
+    . $je || croak "Unable to load $je"
+    "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" both || croak "Trouble running jdoc.sh; sorry!"
+fi
+
+echo -e "\n\nBuild complete, builder script exiting.\n"

@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -11,7 +11,7 @@
 # Usage: RunSPECmark [spec output file]
 #
 OUTPUT_FILE=$1
-print "\t\tBest Run"
+echo -e "\t\tBest Run"
 product="1.00"
 for code in compress jess db javac mpegaudio mtrt jack
 do
@@ -27,7 +27,7 @@ one_seventh=0.1428571428571
 geo_mean=`perl -e 'printf("%1.2f",@ARGV[0]**@ARGV[1])' $product $one_seventh`
 perl -e 'printf("Bottom Line: Result: %10s\n",@ARGV[0])' $geo_mean
 
-print "\n\t\tFirst Run"
+echo -e "\n\t\tFirst Run"
 product="1.00"
 for code in compress jess db javac mpegaudio mtrt jack
 do

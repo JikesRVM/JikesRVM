@@ -24,7 +24,7 @@ tool:
 	@$(MAKE) $(TOOL)
 
 $(TOOL): ${TOOL_NAME}.C
-	$(CXX) $< -o $@
+	$(CXX) $(CXXFLAGS) $< -o $@
 
 
 # Preprocessor testing.

@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -99,6 +99,9 @@ function showHelp {
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemiSpace image'
+  echo '-inadequate                 run minimal test suite on BaseBaseSemiSpace image
+					(Get it, if it is worse than minimal, it
+					must not be adequate, right?)'
   echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
@@ -267,7 +270,7 @@ while [ $# != 0 ]; do
    *)
 	echo Unknown argument: $1
 	showHelp
-	exit -1
+	exit 3
    ;;
 
    esac
@@ -286,28 +289,25 @@ NAME="NoName"
 
 # Emit a message.
 #
-function say
-   {
+function say {
    echo "$ME: $*"
-   }
+}
 
 # Select a configuration to be built and tested.
 #
-function setConfiguration
-   {
-     NAME=$1$2
+function setConfiguration {
+    NAME=$1$2
 
-   # environment variable for use by "jconfigure" and "rvm" commands
-   export RVM_BUILD=$GENERATED_IMAGES/$1
+    # environment variable for use by "jconfigure" and "rvm" commands
+    export RVM_BUILD=$GENERATED_IMAGES/$1
 
-   }
+}
 
 
 
 # Build a virtual machine.
 #
-function doBuild
-   {
+function doBuild {
    if [[ $BUILD = "Yes" ]]; then
      say "creating $NAME $EXTRA_CONFIG_ARGS"
      $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
@@ -335,74 +335,79 @@ function doBuild
        cd $RVM_BUILD && ./jbuild -trace -booter >> RVM.trace 2>&1
      fi
    fi
-   }
+}
 
 # Run a test.
 # We impose a time limit to ensure that additional tests can proceed if this one hangs.
 #
-function doRun
-   {
-   if [[ $RUN = "Yes" ]]; then
-     # special arguments:
-     # JAVA_PACKAGES is for use by "toba" test
-     # RVMPATH       is for use by "ExecuteOptCode" tests !!TODO: clean this up by using "JCOMPILE:=$(RVM_BUILD)/jbuild.tool" line in Makefiles [--DL]
+function doRun {
+    if [[ $RUN != "Yes" ]]; then
+	return;
+    fi
+
+    # set extglob			# so that @( a | b  ) works in the case statement below.
+
+    # special arguments:
+    # JAVA_PACKAGES is for use by "toba" test
+    # RVMPATH       is for use by "ExecuteOptCode" tests !!TODO: clean this up by using "JCOMPILE:=$(RVM_BUILD)/jbuild.tool" line in Makefiles [--DL]
      
-     # Determine which set of runtime arguments to pass
-     case $NAME in
-       *Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS ;;
-       @(@(Base|Opt|Fast|Full|ExtremeAssertionsOpt)Opt*|FastMarkSweep|FastSemiSpace)  ) 
-	export RC_ARGS=$DEFAULT_NONADAPTIVE_OPT_RC_ARGS
-        # use opt. level, if requested
-        if [ x$OPT_LEVEL != x ]; then
-	     RC_ARGS="$RC_ARGS -X:irc:$OPT_LEVEL"
-	   else 
-	     RC_ARGS="$RC_ARGS -X:irc:O3"
-           fi
-        ;;
-       * ) # baseline must be the runtime compiler - no default options yet
-        ;;
-     esac
+    # Determine which set of runtime arguments to pass
+    case $NAME in
 
-     # start test running
-     say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
+	*Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS 
+	    ;;
 
-     # ignore -numprocs if image does not support it
-     if fgrep -q "VIRTUAL_PROCESSOR=1" $RVM_BUILD/RVM.configuration; then
+	BaseOpt* | OptOpt* | FastOpt* | FullOpt* | ExtremeAssertionsOptOpt* | FastMarkSweep | FastSemiSpace  )
+
+	    export RC_ARGS=$DEFAULT_NONADAPTIVE_OPT_RC_ARGS
+            # use opt. level, if requested
+	    RC_ARGS="$RC_ARGS -X:irc:${OPT_LEVEL-O3}"
+	    ;;
+
+	* ) # baseline must be the runtime compiler - no default options yet
+            ;;
+    esac
+
+    # start test running
+    say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
+
+    # ignore -numprocs if image does not support it
+    if fgrep -q "VIRTUAL_PROCESSOR=1" $RVM_BUILD/RVM.configuration; then
 	if [ $NUM_PROCS != 1 ]; then
 	    echo "Ignoring -numprocs for single cpu boot image"
 	fi
 	NUM_PROCS=1
-     fi
+    fi
 
-     # Supply a result dir
-     if [ x$RESULT = x ]; then
-       RESULT="$RVM_BUILD/sanity" 
-     fi
-     TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
-     RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
-     echo Results to $RESULT/$TEST_RESULT_DIR
+    # Supply a result dir
+    if [ x$RESULT = x ]; then
+	RESULT="$RVM_BUILD/sanity" 
+    fi
+    TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
+    RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
+    echo Results to $RESULT/$TEST_RESULT_DIR
 
-     # gather performance data, if appropriate
-     if [ x$PERFORMANCE != x ]; then
+    # gather performance data, if appropriate
+    if [ x$PERFORMANCE != x ]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
-	LIMIT_RAW=`cat TimeLimit.performance`
+	LIMIT_RAW=$(<TimeLimit.performance)
 	echo "Performance mode: results to $PERFORMANCE"
-     else
-	LIMIT_RAW=`cat TimeLimit.sanity`
+    else
+	LIMIT_RAW=$(< TimeLimit.sanity)
 	PERFORMANCE_STR=
-     fi
-     
-     # run in measure compilation mode
-     if [ x$MEASURE_COMPILATION != x ]; then
+    fi
+
+    # run in measure compilation mode
+    if [ x$MEASURE_COMPILATION != x ]; then
 	PERFORMANCE_STR="MODE=MEASURE_COMPILATION"
 	echo "Measure compilation mode"
-     fi
-     
-     #
-     # the following was necessary for cpu time limits
-     # we now use wall clock time
-     # LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`
-     LIMIT=$LIMIT_RAW
+    fi
+
+    #
+    # the following was necessary for cpu time limits
+    # we now use wall clock time
+    # LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`
+    LIMIT=$LIMIT_RAW
 
     # pass on opt. level information, if given
     if [ x$OPT_LEVEL != x ]; then
@@ -412,19 +417,9 @@ function doRun
     fi
 
     # suffix output files to distinguish multiple options
-    if [ x$OPT_LEVEL != x ]; then
-	if [ x$NUM_PROCS != x ]; then
-	    SUFFIX=".${OPT_LEVEL}.${NUM_PROCS}proc"
-	else
-	    SUFFIX=".${OPT_LEVEL}"
-	fi
-    else
-	if [ x$NUM_PROCS != x ]; then
-	    SUFFIX=".${NUM_PROCS}proc"
-	else
-	    SUFFIX=
-	fi
-    fi
+    SUFFIX=""
+    [ "$OPT_LEVEL" ] && SUFFIX=".${OPT_LEVEL}"
+    [ "$NUM_PROCS" ] && SUFFIX="${SUFFIX}.${NUM_PROCS}proc"
 
     if [ x$VERBOSE = xYES ]; then
 	FLAGS="-k"
@@ -444,11 +439,11 @@ function doRun
 
     # record status
     test_status=$?
-    total_tests=`expr $total_tests + 1`
-    if [ test_status -eq 0 ]; then 
-       passed_tests=`expr $passed_tests + 1`
+    let ++total_tests
+    if (( test_status == 0 )); then 
+	let ++passed_tests
     else
-       say "$NAME: You are NOT sane in `pwd`"
+	say "$NAME: You are NOT sane in `pwd`"
     fi
 
     # done
@@ -456,24 +451,22 @@ function doRun
 
     # allow process termination messages to finish printing before proceeding to next test
     sleep 1
-
-   fi
-   }
+}
 
 
 # Build and test: more detailed.
 #
 function doTests {
-   if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration)
-   then
-     echo "Ignoring -numprocs for single processor image"
-     NUM_PROCS=1
-     for test in $TEST_LIST; do
-       cd $RVM_ROOT/rvm/regression/tests/$test && doRun
-     done
-   else
-     for NUM_PROCS in $NUM_PROCS_LIST; do
-       for test in $TEST_LIST; do
+    if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration)
+	then
+	echo "Ignoring -numprocs for single processor image"
+	NUM_PROCS=1
+	for test in $TEST_LIST; do
+	    cd $RVM_ROOT/rvm/regression/tests/$test && doRun
+	done
+    else
+	for NUM_PROCS in $NUM_PROCS_LIST; do
+	    for test in $TEST_LIST; do
          cd $RVM_ROOT/rvm/regression/tests/$test && doRun
        done
      done

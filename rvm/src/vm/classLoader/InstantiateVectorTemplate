@@ -1,6 +1,6 @@
-#!/bin/ksh
+#!/bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #$Id$
 #
@@ -11,8 +11,8 @@
 # @author Derek Lieber
 
 if [ $# != 5 ]; then
-   echo "usage: $0 packageName vectorClassName elementTypeName templateFileName outputFileName"
-   exit 1
+    echo "usage: $0 packageName vectorClassName elementTypeName templateFileName outputFileName"
+    exit 1
 fi
 
 PNAME=$1

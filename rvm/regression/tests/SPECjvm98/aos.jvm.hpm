@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -22,7 +22,7 @@
 # @author: Peter F. Sweeney
 # @date: 10/5/2001
 
-if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
   more <<EOF
    
   This shell script executes the AOS configuration of an adaptive JikesRVM 
@@ -59,28 +59,28 @@ fi
 # JikesRVM root directory
 #
 if [[ $RVM_ROOT = "" ]]; then
-   print "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
+   echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
    exit 1
 fi
 
 # Place where Jikes RVM bootimage, booter, and runtime support files reside.
 #
 if [[ $RVM_BUILD = "" ]]; then
-   print "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
+   echo "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
    exit 1
 fi
 
 case $RVM_BUILD in
   *Adaptive* ) ;;
-  * ) print "Expecting an adaptive configuration"; exit 1;;
+  * ) echo "Expecting an adaptive configuration"; exit 1;;
 esac
 
 if [[ $RVM_SPECJVM98 = "" ]]; then
-  print "$0: RVM_SPECJVM98 environment variable not set; \n\tRVM_SPECJVM98=\"/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98\""
+  echo -e "$0: RVM_SPECJVM98 environment variable not set; \n\tRVM_SPECJVM98=\"/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98\""
   RVM_SPECJVM98="/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98"
 fi
 
-echo "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
+echo -e "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
 
 ##################
 # which benchmark?
@@ -96,8 +96,8 @@ if [[ $# = 2 || $# > 2 ]]; then
 fi
 # Make sure input size is valid
 if [[ $inputSize != 1 && $inputSize != 10 && $inputSize != 100 ]]; then
-  echo "\n"$0": third argument must be 1, 10, or 100!  "$inputSize" is not valid!\n"
-  exit -1
+  echo -e "\n"$0": third argument must be 1, 10, or 100!  "$inputSize" is not valid!\n"
+  exit 3
 fi
 
 ###########################
@@ -373,7 +373,7 @@ elif [[ $setting = 458 ]]; then
   setting=58
 else 
   echo "setting $setting is invalid"
-  exit -1
+  exit 3
 fi
 
 #####################################
@@ -391,7 +391,7 @@ if [[ $# = 7 || $# > 7 ]]; then
   fi
 fi
 
-echo "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode"
+echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode"
 
 
    aos_log="$outputDir/log.$benchmark.$inputSize.$numProcessors.$runs.$setting"

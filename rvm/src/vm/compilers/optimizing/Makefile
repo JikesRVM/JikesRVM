@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #$Id$
 #
@@ -11,5 +11,5 @@ MakeTemplates:;	(cd ir/instruction && $(MAKE))
 		(cd ir/conversions/lir2mir && $(MAKE))
 		(cd driver && $(MAKE))
 		(cd optimizations/local/instructionScheduler && $(MAKE))
-		@print -n "(opt templates expanded) "
+		@echo -n "(opt templates expanded) "
 

@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #

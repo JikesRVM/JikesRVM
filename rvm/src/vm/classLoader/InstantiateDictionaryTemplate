@@ -1,6 +1,6 @@
-#!/bin/ksh
+#!/bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #$Id$
 #
@@ -23,6 +23,7 @@ DNAME=$5
 IFILE=$6
 OFILE=$7
 
-echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'           >$OFILE
-echo                                                                                >>$OFILE
-sed -e s/PPP/$PNAME/g -e s/CCC/$CNAME/g -e s/KKK/$KNAME/g -e s/VVV/$VNAME/g -e s/DDD/$DNAME/g <$IFILE >>$OFILE
+exec > "${OFILE}"
+'/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'
+echo ""
+sed -e "s/PPP/$PNAME/g" -e "s/CCC/$CNAME/g" -e "s/KKK/$KNAME/g" -e "s/VVV/$VNAME/g" -e "s/DDD/$DNAME/g" $IFILE

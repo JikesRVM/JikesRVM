@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -19,7 +19,7 @@
 # @author: Peter F. Sweeney
 # @date: 10/5/2001
 
-if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
   more <<EOF
    
   This shell script executes the AOS configuration of an adaptive JikesRVM 
@@ -45,28 +45,28 @@ fi
 # JikesRVM root directory
 #
 if [[ $RVM_ROOT = "" ]]; then
-   print "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
+   echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
    exit 1
 fi
 
 # Place where Jikes RVM bootimage, booter, and runtime support files reside.
 #
 if [[ $RVM_BUILD = "" ]]; then
-   print "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
+   echo "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
    exit 1
 fi
 
 case $RVM_BUILD in
   *Adaptive* ) ;;
-  * ) print "Expecting an adaptive configuration"; exit 1;;
+  * ) echo "Expecting an adaptive configuration"; exit 1;;
 esac
 
 if [[ $RVM_SPECJVM98 = "" ]]; then
-   print "$0: please set your RVM_SPECJVM98 environment variable (e.g. /homes/fury5/jalapeno/contrib/benchmarks/SPECjvm98)"
+   echo "$0: please set your RVM_SPECJVM98 environment variable (e.g. /homes/fury5/jalapeno/contrib/benchmarks/SPECjvm98)"
     exit 1
 fi
 
-echo "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
+echo -e "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
 
 ##################
 # which benchmark?
@@ -82,8 +82,8 @@ if [[ $# = 2 || $# > 2 ]]; then
 fi
 # Make sure input size is valid
 if [[ $inputSize != 1 && $inputSize != 10 && $inputSize != 100 ]]; then
-  echo "\n"$0": third argument must be 1, 10, or 100!  "$inputSize" is not valid!\n"
-  exit -1
+  echo -e "\n"$0": third argument must be 1, 10, or 100!  "$inputSize" is not valid!\n"
+  exit 3
 fi
 
 ###########################
