@@ -9,15 +9,23 @@ IA32, and improvements to the build process.
 Highlights include:
 
   - Linux/IA32 SMP (pthreads) support on Linux 2.4.
-  - Improved IA32 floating-point code generation.
-  - IA32 optimizer emits conditional moves.
+  - Improved IA32 floating-point instruction selection in 
+    optimizing compiler.
+  - IA32 optimizer generates conditional moves.
   - Improved load balancing.
   - New optimization to coalesce moves after leaving SSA 
     form.
   - IA32 baseline compiler support for write barriers.
-  - Fix for missing definitions of guard registers in the
-    IR. (Bug #2123)
-  - Bug fixes for PowerPC/Linux build.
+  - numerous fixes for PowePC/Linuc build.
 
 To see more details on other miscellaneous bug fixes, see
-the developerWorks bug tracking software tool.
+the developerWorks bug tracking software tool.  
+The following bugs in version 2.0 are fixed in 2.0.1:
+  - 2015: GC crashes if invoked during exception delivery
+  - 2123: missing defs of guard registers in opts' IR. 
+  - 2164: PPC/Linux build 
+  - 2221: adaptive system hangs/exits
+  - 2227: rvm hangs instead of throwing NoSuchFieldError
+  - 2245: PPC/Linux build 
+  - 2248: hangs during BC2IR due to operand lattice bug
+  - 2286: PPC defined TSR as nonvolatile register
