@@ -39,7 +39,7 @@
  * Signature: (Ljava/lang/String;)[Ljava/net/InetAddress;
  */
 JNIEXPORT jobjectArray JNICALL 
-com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
+Java_com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
 		    JNIEnv *env, 
 		    jclass type, 
 		    jstring hostname) 
@@ -106,7 +106,7 @@ com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
  * Signature: (I)Ljava/net/InetAddress;
  */
 JNIEXPORT jobject JNICALL 
-com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
+Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
 	       JNIEnv *env, 
 	       jclass type, 
 	       jint inetAddress)
@@ -155,7 +155,7 @@ com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL 
-com_ibm_JikesRVM_VM_1InetAddress_getHostNameImpl(JNIEnv *env, jclass type) {
+Java_com_ibm_JikesRVM_VM_1InetAddress_getHostNameImpl(JNIEnv *env, jclass type) {
   char buf[ MAXHOSTNAMELEN ];
   int rc = gethostname(buf, MAXHOSTNAMELEN);
 
