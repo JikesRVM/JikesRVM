@@ -34,7 +34,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // Class variables
   //
   public static final boolean needsWriteBarrier = true;
-  public static final boolean needsRefCountWriteBarrier = true;
+  public static final boolean needsReadBarrier = false;
   public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
   public static final boolean sanityTracing = false;
@@ -324,9 +324,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	(((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
 	  metaDataMR.committedPages() > Options.metaDataPages)
 	 && VM_Interface.fullyInitialized())) {
-      if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
-      MM_Interface.triggerCollection(MM_Interface.RESOURCE_TRIGGERED_GC);
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
