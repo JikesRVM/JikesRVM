@@ -30,7 +30,7 @@ import com.ibm.JikesRVM.VM_Processor;
  * @version $Revision$
  * @date $Date$
  */
-public final class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
+public class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
 
   public final static String Id = "$Id$"; 
   public static final boolean needsWriteBarrier = false;
@@ -66,6 +66,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * Constructor
    */
   public Plan() {
+    // super(ss0VM);
     ss = new BumpPointer(ss0VM);
     los = new MarkSweepAllocator(losCollector);
     immortal = new BumpPointer(immortalVM);
@@ -84,13 +85,14 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, AllocAdvice advice) throws VM_PragmaInline {
+  final public VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, AllocAdvice advice) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~3)));
     if (allocator == SS_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) 
       allocator = LOS_ALLOCATOR;
     VM_Address region;
     switch (allocator) {
-      case       SS_ALLOCATOR: region = ss.alloc(isScalar, bytes); break;
+    case       SS_ALLOCATOR:  region = ss.alloc(isScalar, bytes); break;
+      //   region = alloc(isScalar, bytes); break;
       case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_ALLOCATOR: region = los.alloc(isScalar, bytes); break;
       default:                 region = VM_Address.zero(); VM.sysFail("No such allocator");
@@ -99,7 +101,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
 
   //  public void postAlloc(EXTENT bytes, Object obj, int allocator) throws VM_PragmaInline {
-  public void postAlloc(Object ref, Object[] tib, int size,
+  final public void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == SS_ALLOCATOR && size > LOS_SIZE_THRESHOLD) allocator = LOS_ALLOCATOR;
@@ -114,18 +116,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final void postCopy(Object ref, Object[] tib, int size,
 			     boolean isScalar) { } // do nothing
 
+  
   public void show() {
     ss.show();
   }
-
-  static public void showPlans() {
-    for (int i=0; i<VM_Scheduler.processors.length; i++) {
-      VM_Processor p = VM_Scheduler.processors[i];
-      if (p == null) continue;
-      VM.sysWrite(i, ": ");
-      p.mmPlan.show();
-    }
-  }
+  
 
   static public void showUsage() {
       VM.sysWrite("used pages = ", getPagesUsed());
@@ -144,9 +139,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public VM_Address allocCopy(VM_Address original, EXTENT bytes, boolean isScalar) throws VM_PragmaInline {
+  final public VM_Address allocCopy(VM_Address original, EXTENT bytes, boolean isScalar) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes < LOS_SIZE_THRESHOLD);
     return ss.alloc(isScalar, bytes);
+    // return alloc(isScalar, bytes);
   }
 
   /**
@@ -162,7 +158,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public int getAllocator(Type type, EXTENT bytes, CallSite callsite, AllocAdvice hint) {
+  final public int getAllocator(Type type, EXTENT bytes, CallSite callsite, AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_ALLOCATOR : SS_ALLOCATOR;
   }
 
@@ -205,25 +201,25 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @return Whether a collection is triggered
    */
 
-  public boolean poll(boolean mustCollect, MemoryResource mr) 
+  final public boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR)
 	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection();
+      VM_Interface.triggerCollection(" memory resource exhaustion");
       return true;
     }
     return false;
   }
   
-  public static boolean isSemiSpaceObject(Object base) {
+  final public static boolean isSemiSpaceObject(Object base) {
     VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
     return (addr.GE(SS_START) && addr.LE(HEAP_END));
   }
 
-  public static boolean isLive(VM_Address obj) {
+  final public static boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(SS_START))
@@ -245,7 +241,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * interior pointer.
    * @return The possibly moved reference.
    */
-  static public VM_Address traceObject(VM_Address obj) {
+  final static public VM_Address traceObject(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(SS_START)) {
@@ -266,7 +262,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
-  public boolean hasMoved(VM_Address obj) {
+  final public boolean hasMoved(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(SS_START)) 
@@ -288,11 +284,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     release();
   }
 
-  public static int getInitialHeaderValue(int size) {
+  final public static int getInitialHeaderValue(int size) {
     return losCollector.getInitialHeaderValue(size);
   }
 
-  public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
+  final public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
 				       int bytes) {
     return forwardingPtr; // a no-op for this collector
   }
@@ -319,7 +315,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    *
    * @return The number of pages reserved given the pending allocation
    */
-  private static int getPagesReserved() {
+  final private static int getPagesReserved() {
 
     int pages = ssMR.reservedPages();
     // we must account for the worst case number of pages required
@@ -333,7 +329,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
 
 
-  private static int getPagesUsed() {
+  final private static int getPagesUsed() {
     int pages = ssMR.reservedPages();
     pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
@@ -378,6 +374,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   protected void allPrepare(int count) {
     // rebind the semispace bump pointer to the appropriate semispace.
     ss.rebind(((hi) ? ss1VM : ss0VM)); 
+    // rebind(((hi) ? ss1VM : ss0VM)); 
     los.prepare();
   }
 

@@ -96,15 +96,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return false;
   }
 
-  public static void showPlans() {
-    for (int i=0; i<VM_Scheduler.processors.length; i++) {
-      VM_Processor p = VM_Scheduler.processors[i];
-      if (p == null) continue;
-      VM.sysWrite(i, ": ");
-      p.mmPlan.show();
-    }
-  }
-
   public static void showUsage() {
       VM.sysWrite("used pages = ", getPagesUsed());
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
