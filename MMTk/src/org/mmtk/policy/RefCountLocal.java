@@ -296,7 +296,7 @@ final class RefCountLocal extends SegregatedFreeList
   private final void release(VM_Address object) 
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
-    ScanObject.enumeratePointers(object, plan);
+    ScanObject.enumeratePointers(object, plan.enum);
     if (!Plan.refCountCycleDetection ||	!RCBaseHeader.isBuffered(object)) 
       free(object);
   }

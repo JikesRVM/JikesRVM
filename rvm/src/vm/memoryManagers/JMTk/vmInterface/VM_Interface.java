@@ -299,21 +299,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-  /**
-   * A pointer location has been enumerated by ScanObject.  This is
-   * the callback method, allowing the plan to perform an action with
-   * respect to that location.
-   *
-   * @param location An address known to contain a pointer.  The
-   * location is within the object being scanned by ScanObject.
-   * @param plan The plan that initiated the object scan.  A callback
-   * should be made to this plan.
-   */
-  public static void enumeratePtrLoc(VM_Address location, Plan plan)
-    throws VM_PragmaUninterruptible, VM_PragmaInline { 
-    plan.enumeratePointerLocation(location);
-  }
-
   private static SynchronizedCounter threadCounter = new SynchronizedCounter();
   public static void resetComputeAllRoots() {
     threadCounter.reset();

@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Enumerate;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -61,9 +61,9 @@ public class ScanObject implements VM_Constants, Constants {
    * @param object The object to be scanned.
    * @param plan The plan with respect to which the callback should be made.
    */
-  public static void enumeratePointers(VM_Address object, Plan plan) 
+  public static void enumeratePointers(VM_Address object, Enumerate enum) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(object, false, plan, false);
+    scan(object, false, enum, false);
   }
 
   /**
@@ -72,7 +72,7 @@ public class ScanObject implements VM_Constants, Constants {
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  private static void scan(VM_Address objRef, boolean root, Plan plan,
+  private static void scan(VM_Address objRef, boolean root, Enumerate enum,
 			   boolean trace)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
@@ -109,7 +109,7 @@ public class ScanObject implements VM_Constants, Constants {
 	if (trace)
 	  MM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
 	else
-	  VM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
+	  enum.enumeratePointerLocation(objRef.add(referenceOffsets[i]));
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -125,7 +125,7 @@ public class ScanObject implements VM_Constants, Constants {
 	  if (trace)
 	    MM_Interface.processPtrField(location, root);
 	  else
-	    VM_Interface.enumeratePtrLoc(location, plan);
+	    enum.enumeratePointerLocation(location);
           location = location.add(WORD_SIZE);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);

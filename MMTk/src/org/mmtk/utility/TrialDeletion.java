@@ -376,7 +376,7 @@ final class TrialDeletion
       visitCount++;
       if (!RCBaseHeader.isGrey(object)) {
 	RCBaseHeader.makeGrey(object);
-	ScanObject.enumeratePointers(object, plan);
+	ScanObject.enumeratePointers(object, plan.enum);
       }
       object = workQueue.pop();
     }
@@ -393,7 +393,7 @@ final class TrialDeletion
 	  phase = SCAN;
 	} else {
 	  RCBaseHeader.makeWhite(object);
-	  ScanObject.enumeratePointers(object, plan);
+	  ScanObject.enumeratePointers(object, plan.enum);
 	}
       } 
       object = workQueue.pop();
@@ -407,7 +407,7 @@ final class TrialDeletion
       //      if (!SimpleRCBaseHeader.isGreen(object)) {
       if (!RCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
 	RCBaseHeader.makeBlack(object);
-	ScanObject.enumeratePointers(object, plan);
+	ScanObject.enumeratePointers(object, plan.enum);
       }
       object = blackQueue.pop();
     }
@@ -418,7 +418,7 @@ final class TrialDeletion
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
 	RCBaseHeader.makeBlack(object);
-	ScanObject.enumeratePointers(object, plan);
+	ScanObject.enumeratePointers(object, plan.enum);
 	freeBuffer.push(object);
       }
       object = workQueue.pop();
