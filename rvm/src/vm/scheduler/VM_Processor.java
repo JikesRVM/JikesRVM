@@ -36,6 +36,14 @@ implements VM_Uninterruptible, VM_Constants {
    */
   public int deterministicThreadSwitchCount;
 
+  /**
+   * For builds using counter-based sampling.  This field holds a
+   * processor-specific counter so that it can be updated efficiently
+   * on SMP's.
+   */
+  public int processor_cbs_counter;
+
+
   // fields to track native processors - processors created for java threads 
   // found blocked in native code
   //

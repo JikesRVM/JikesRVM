@@ -100,3 +100,7 @@ V INVOCATION_COUNT_OPT_LEVEL int 1
 Opt level for recompilation in invocation count based system
 
 
+V COUNTER_BASED_SAMPLE_INTERVAL int 1000
+What is the sample interval for counter-based sampling
+
+

@@ -276,6 +276,13 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field invocationCountsField             = getField("Lcom/ibm/JikesRVM/adaptive/VM_InvocationCounts;", "counts", "[I");
   public static final VM_Method invocationCounterTrippedMethod   = getMethod("Lcom/ibm/JikesRVM/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
+
+
+  // Counter-based sampling fields
+  public static final VM_Field globalCBSField =  getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterBasedSampling;", "globalCounter", "I");
+  public static final VM_Field processorCBSField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "processor_cbs_counter", "I");
+  public static final VM_Field cbsResetValueField   = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterBasedSampling;","resetValue", "I");
+
   //-#endif
 
   public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");

@@ -148,6 +148,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     // boot the aos database
     VM_AOSDatabase.boot(options);
 
+    VM_CounterBasedSampling.boot(options);
+
     createControllerThread();
 
     VM_Controller controller = new VM_Controller();

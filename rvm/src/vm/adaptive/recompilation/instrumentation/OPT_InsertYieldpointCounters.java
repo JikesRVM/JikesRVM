@@ -68,20 +68,24 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
        
        OPT_Instruction i =  bb.firstInstruction();
        while (i!=null && i!=bb.lastInstruction()) {
-
+	 
 	 if (i.operator() == YIELDPOINT_PROLOGUE ||
-             i.operator() == YIELDPOINT_EPILOGUE ||
+	     i.operator() == YIELDPOINT_EPILOGUE ||
              i.operator() == YIELDPOINT_BACKEDGE) {
  	   String prefix = yieldpointPrefix(i.operator());
 	   double incrementValue = 1.0;
- 	   if (bb == ir.cfg.entry()) {
+	   
+ 	   if (i.operator() == YIELDPOINT_EPILOGUE) {
  	     prefix = "METHOD ENTRY ";
+	   }
+	   else if (i.operator() == YIELDPOINT_PROLOGUE) {
+	     prefix = "METHOD EXIT ";
 	   }
 	   else {
 	     prefix = "BACKEDGE ";
 	     incrementValue=1.0;  
 	   }
-
+	   
 	   // Create an instruction to increment the counter for this
 	   // method.  By appending the prefix and method name, it
 	   // maintains a separate counter for each method, and
@@ -89,11 +93,11 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
 	   OPT_Instruction counterInst = data.
 	     getCounterInstructionForEvent(prefix+ir.method.toString(),
 					   incrementValue);
-
+	   
 	   // Insert the new instruction into the code order
 	   i.insertAfter(counterInst);      
 	 }
-
+	 
 	 i = i.nextInstructionInCodeOrder();
        }
      }

@@ -437,6 +437,8 @@ public class OPT_OptimizationPlanner {
     // Perform peephole branch optimizations
     addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
+    addComponent(p, new OPT_InstrumentationSamplingFramework());
+
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Convert high level place holder instructions into actual instrumenation
     addComponent(p, new OPT_LowerInstrumentation());

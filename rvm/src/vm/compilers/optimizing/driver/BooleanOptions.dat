@@ -180,6 +180,18 @@ Leave guards in before BURS
 CW_STACK -1 true
 Process Stack to eliminate Loads/Stores
 
+INSTRUMENTATION_SAMPLING -1 false
+Perform code transformation to sample instrumentation code.
+
+NO_DUPLICATION -1 false
+When performing inst. sampling, should it be done without duplicating code?
+
+PROCESSOR_SPECIFIC_COUNTER -1 true
+Should there be one CBS counter per processor for SMP performance?
+			      
+REMOVE_YP_FROM_CHECKING -1 false
+Should yieldpoints be removed from the checking code (requires finite sample interval)
+
 ##########
 # Options for feedback-directed optimizations
 #
@@ -287,6 +299,12 @@ Enable debugging support for final assembly
 
 DEBUG_ABCD -1 false
 Enable debugging support for ABCD (Array Bound Check elimination on Demand)
+
+DEBUG_INSTRU_SAMPLING -1 false
+Enable debugging statements for instrumentation sampling
+
+DEBUG_INSTRU_SAMPLING_DETAIL -1 false
+Enable detailed debugging statements for instrumentation sampling
 
 ###########
 # Profiling options
