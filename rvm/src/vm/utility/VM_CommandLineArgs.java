@@ -57,14 +57,11 @@ public class VM_CommandLineArgs {
   public static final int ENVIRONMENT_ARG      =  3;
   public static final int VERBOSE_JNI_ARG      =  5;
   public static final int VERBOSE_CLS_ARG      =  6;
-  public static final int JAR_ARG = 27;
+  public static final int JAR_ARG              =  7;
 
   // -----------------------------------------------//
   // The following arguments are RVM-specific.      //
   // -----------------------------------------------//
-  public static final int VM_CLASSES_ARG       =  7;
-  public static final int CPUAFFINITY_ARG      =  8;
-  public static final int PROCESSORS_ARG       =  9;
   public static final int VM_HELP_ARG          = 10;
   public static final int VM_ARG               = 11;
   public static final int IRC_HELP_ARG         = 12;
@@ -84,6 +81,9 @@ public class VM_CommandLineArgs {
   public static final int HPM_ARG              = 26;
   public static final int QUICK_ARG            = 27;
   public static final int QUICK_HELP_ARG       = 28;
+  public static final int VM_CLASSES_ARG       = 29;
+  public static final int CPUAFFINITY_ARG      = 30;
+  public static final int PROCESSORS_ARG       = 31;
 
   /**
    * A catch-all prefix to find application name.
