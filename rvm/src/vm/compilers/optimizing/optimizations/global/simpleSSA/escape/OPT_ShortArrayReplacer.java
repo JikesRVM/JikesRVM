@@ -176,6 +176,7 @@ public class OPT_ShortArrayReplacer
           // In the following case, we could instead unconditionally throw
           // an array index out-of-bounds exception.
           if (index >= size) return true;
+          if (index < 0) return true;
           break;
           }
         case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
@@ -189,6 +190,7 @@ public class OPT_ShortArrayReplacer
           // In the following case, we could instead unconditionally throw
           // an array index out-of-bounds exception.
           if (index >= size) return true;
+          if (index < 0) return true;
           break;
           }
       }
