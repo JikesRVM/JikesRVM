@@ -192,7 +192,7 @@ public class VM_StackTrace implements VM_Constants {
       This needs to be run-time configurable, but isn't.   Set it in the code
       and recompile.  
   */
-  final static public boolean alsoStackTraceToSysWrite = false;
+  static public boolean alsoStackTraceToSysWrite = false;
 
   /** Show the context of an attempt to print a stack frame.  This is
       specifically to help figure out why Eclipse is dumping the stack in
@@ -200,7 +200,12 @@ public class VM_StackTrace implements VM_Constants {
       
       Needs to be made run-time configurable, but isn't. 
   */
-  final static public boolean showPrintingContext = false;
+  static public boolean showPrintingContext = false;
+
+
+  /** Announce via VM.syswrite() when we're printing a stack trace.  Needs to
+   * be made run-time configurable; isn't.  */
+  static public boolean announceWhenPrintingStackTrace = false;
 
 
   /**
@@ -228,8 +233,9 @@ public class VM_StackTrace implements VM_Constants {
   public void print(PrintLN out, Throwable trigger, Throwable effect, int depth) {
     boolean printed = false;
     try {
-      VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
-                    traceIndex);
+      if (announceWhenPrintingStackTrace)
+        VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
+                      traceIndex);
       if (alsoStackTraceToSysWrite) {
         if (! out.isSysWrite()) {
           VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
