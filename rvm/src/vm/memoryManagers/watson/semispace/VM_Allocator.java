@@ -197,6 +197,26 @@ public class VM_Allocator extends VM_GCStatistics
     return gcInProgress;
   }
 
+  public long totalSmallHeapMemory() {
+    return smallHeapSize;
+  }
+
+  public long totalSmallHeapSemispaceMemory() {
+    return smallHeapSize / 2;
+  }
+
+  long freeSmallHeapSemispaceMemory()  { // free memory in the current semispace
+    return fromHeap.freeMemory();
+  }
+
+  long totalLargeHeapMemory() {
+    return largeHeap.size;
+  }
+
+  long freeLargeHeapMemory() {  // free memory in the large heap
+    return largeHeap.freeSpace();
+  }
+
   /**
    * Get total amount of memory.  Includes both full size of the
    * small object heap and the size of the large object heap.
