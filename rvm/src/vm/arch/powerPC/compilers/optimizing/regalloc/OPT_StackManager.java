@@ -849,6 +849,10 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * r is in a scratch register is s (as opposed to a memory operand)
    */
   boolean needScratch(OPT_Register r, OPT_Instruction s) {
+    //-#if RVM_WITH_OSR
+    if (s.operator == YIELDPOINT_OSR) return false; 
+    //-#endif
+    
     // PowerPC does not support memory operands.
     return true;
   }
