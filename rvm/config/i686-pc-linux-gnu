@@ -12,12 +12,16 @@
 
 #########
 # PART I: Preprocessor directives that hold for every config on this target
+#
+# If you're using Debian GNU/Linux with a 2.2 or 2.4 kernel, then 
+# you'll want to enable RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  Otherwise, 
+# you should not need to change anything in this section.
 #########
 # target architecture is Intel x86 (IA32)
 export RVM_FOR_IA32=1
 export RVM_FOR_32_ADDR=1
 
-# target OS is Linux
+# The target OS kernel is Linux
 export RVM_FOR_LINUX=1
 
 # NOTE: the key requirement for setting this to 0 (ie having SMP support)
@@ -32,7 +36,7 @@ export RVM_FOR_LINUX=1
 #       GNU/Linux with a 2.4 or 2.2 kernel.  Debian with a 2.6 kernel will 
 #	work, but it won't work with a 2.4 or 2.2 kernel.
 #
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+[[ $RVM_FOR_SINGLE_VIRTUAL_PROCESSOR ]] || export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 ## Use this for Debian GNU/Linux with a Linux 2.4 kernel, 
 ## and for any Linux 2.2 kernel:
 # export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
@@ -42,7 +46,17 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 
 ##########
 # PART II: Where to find tools and resources on this target
+#
+# The configuration process can make use of auto-guessing features in
+# the RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of
+# its guesses in "RVM_BUILD/environment.host".  (This particular file
+# doesn't use those features, though, since they get confused if
+# you're doing a cross-build.)
 ########## 
+
+# HOST_VM_TYPE=Kaffe
+HOST_VM_TYPE=Sun
+# HOST_VM_TYPE=JikesRVM
 
 # Root of JDK installation.
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
