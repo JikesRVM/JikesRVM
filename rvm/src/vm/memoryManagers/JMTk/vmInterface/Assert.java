@@ -8,6 +8,7 @@ package org.mmtk.vm;
 
 import org.mmtk.policy.Space;
 
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Scheduler;
 
@@ -25,7 +26,8 @@ import org.vmmagic.pragma.*;
  */
 public class Assert implements Uninterruptible {
   public static final boolean VERIFY_ASSERTIONS = VM.VerifyAssertions;
-
+  /* wriggle-room to accommodate memory demands while handling failures */
+  private static final int EMERGENCY_HEAP_REQ = 5<<20; // 5MB
 
   /**
    * This method should be called whenever an error is encountered.
@@ -79,10 +81,14 @@ public class Assert implements Uninterruptible {
   }
 
   /**
-   * Throw an out of memory exception.
+   * Throw an out of memory exception.  If the context is one where
+   * we're already dealing with a problem, first request some
+   * emergency heap space.
    */
   public static void failWithOutOfMemoryError()
     throws LogicallyUninterruptiblePragma, NoInlinePragma {
+    if (VM.doEmergencyGrowHeap)
+      MM_Interface.emergencyGrowHeap(EMERGENCY_HEAP_REQ); // ask and pray
     throw new OutOfMemoryError();
   }
 
