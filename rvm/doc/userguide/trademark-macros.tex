@@ -16,9 +16,12 @@
 \T		 \protect\raisebox{.41\baselineskip}{\tiny \textregistered}}}
 
 %% The spaces do not hurt the HTML and may help it.
-\W \newcommand{\trademark}{\xmlsym{##8482}}
+%% If you get any complaints about an unknown LaTeX macro for \xmlsym,
+%% then uncomment the alternative lines.
+W \newcommand{\trademark}{\xmlsym{##8482}}
+% \W \newcommand{\trademark}{\xml{sup}\xml{small}(TM)\xml{/small}\xml{/sup}}
 \W \newcommand{\registeredTrademark}{\xml{sup}\xml{small}\xmlsym{reg}\xml{/small}\xml{/sup}}
-
+% \W \newcommand{\registeredTrademark}{\xml{sup}\xml{small}(R)\xml{/small}\xml{/sup}}
 
 %% The \*heading*{} forms of the macros are for inside
 %% LaTeX \section{} and \subsection{} commands.
