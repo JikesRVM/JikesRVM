@@ -759,8 +759,6 @@ public abstract class OPT_Operand {
    *         evaluates to <code>true</code>.
    *
    * @author Dave Grove
-   * @see OPT_BC2IR#rectifyLocals
-   * @see OPT_BC2IR#rectifyStacks()
    */
   public static OPT_Operand meet(OPT_Operand op1, 
 				 OPT_Operand op2, 

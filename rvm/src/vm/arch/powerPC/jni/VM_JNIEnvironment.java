@@ -520,7 +520,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * (object creation)
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
-   * @see VM_JNIFunctions.CallStaticIntMethod, VM_JNIFunctions.CallStaticLongMethod, etc.
    */
   public static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
 					 boolean isJvalue, boolean isDotDotStyle) 
@@ -567,7 +566,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethod, VM_JNIFunctions.CallStaticLongMethod, etc.
    */
   public static Object invokeWithDotDotVarArg(int methodID, VM_Type expectReturnType)
     throws Exception {
@@ -586,7 +584,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallIntMethod, VM_JNIFunctions.CallLongMethod, etc.
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
 					      VM_Type expectReturnType, boolean skip4Args)
@@ -780,7 +777,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodV, VM_JNIFunctions.CallStaticLongMethodV, etc.
    */
   public static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
     throws Exception {
@@ -797,7 +793,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodV, VM_JNIFunctions.CallStaticLongMethodV, etc.
    */
   public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args) 
@@ -812,7 +807,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodA, VM_JNIFunctions.CallStaticLongMethodA, etc.
    */
   public static Object invokeWithJValue(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
     throws Exception {
@@ -827,7 +821,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodA, VM_JNIFunctions.CallStaticLongMethodA, etc.
    */
   public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args) 
@@ -851,7 +844,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param isVarArg  This flag describes whether the array of parameters is in var arg format or
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see invokeWithJValue, invokeWithVarArg, invokeWithDotDotVarArg
    */
   public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args, 
@@ -901,7 +893,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
-   * @see packageAndInvoke()
    */
   static Object[] packageParameterFromVarArg(VM_Method targetMethod, VM_Address argAddress) {
     VM_Type[] argTypes = targetMethod.getParameterTypes();

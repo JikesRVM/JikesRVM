@@ -17,21 +17,13 @@ public class OPT_FilterIterator
   private Object next = null;
   private boolean done = false;
 
-  /**
-   * put your documentation comment here
-   * @param   java.util.Iterator i
-   * @param   Filter f
-   */
-  public OPT_FilterIterator (java.util.Iterator i, Filter f) {
+  public OPT_FilterIterator(java.util.Iterator i, Filter f) {
     this.i = i;
     this.f = f;
     advance();
   }
 
-  /**
-   * put your documentation comment here
-   */
-  private void advance () {
+  private void advance() {
     while (i.hasNext()) {
       next = i.next();
       if (f.isElement(next))
@@ -40,11 +32,7 @@ public class OPT_FilterIterator
     done = true;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public Object next () {
+  public Object next() {
     if (done)
       throw  new java.util.NoSuchElementException();
     Object o = next;
@@ -52,45 +40,22 @@ public class OPT_FilterIterator
     return  f.map(o);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public boolean hasNext () {
+  public boolean hasNext() {
     return  !done;
   }
 
-  /**
-   * put your documentation comment here
-   */
   public void remove () {
     throw  new java.lang.UnsupportedOperationException();
   }
 
-  /**
-   * put your documentation comment here
-   */
   public static class Filter {                  // override with your mapping.
 
-    /**
-     * put your documentation comment here
-     * @param o
-     * @return 
-     */
-    public boolean isElement (Object o) {
+    public boolean isElement(Object o) {
       return  true;
     }
 
-    /**
-     * put your documentation comment here
-     * @param o
-     * @return 
-     */
-    public Object map (Object o) {
+    public Object map(Object o) {
       return  o;
     }
   }
 }
-
-
-
