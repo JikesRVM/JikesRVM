@@ -10,8 +10,10 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
-
+public class VM_ThreadQueue 
+  extends VM_AbstractThreadQueue 
+  implements VM_Uninterruptible 
+{
   /**
    * ID of this queue, for event logging.
    */
@@ -135,12 +137,11 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   }
 
   /** Debugging. */
-  public boolean contains(VM_Thread x)
-     {
+  public boolean contains(VM_Thread x) {
      for (VM_Thread t = head; t != null; t = t.next)
         if (t == x) return true;
      return false;
-     }
+  }
      
   public void dump() {
     // We shall space-separate them, for compactness.  
@@ -153,4 +154,5 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
       pastFirst = true;
     }
     VM.sysWrite("\n");
+  }
 }
