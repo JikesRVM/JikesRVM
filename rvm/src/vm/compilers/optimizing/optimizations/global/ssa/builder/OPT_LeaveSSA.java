@@ -26,6 +26,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    */ 
   static final boolean DEBUG = false;
 
+  // control bias between adding blocks or adding temporaries
+  private static final boolean SplitBlockToAvoidRenaming = false;
+  private static final boolean SplitBlockForLocalLive = false;
+
   /**
    * The IR to manipulate
    */
@@ -151,6 +155,79 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     }
   }
 
+  private void performRename (OPT_BasicBlock bb, 
+	                      OPT_DominatorTree dom, 
+                              VariableStacks s) 
+  {
+    // substitute variables renamed in control parents
+    OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+    while (e.hasMoreElements()) {
+      OPT_Instruction i = e.next();
+      OPT_OperandEnumeration ee = i.getUses();
+      while (ee.hasMoreElements()) {
+        OPT_Operand o = ee.next();	
+        if (o instanceof OPT_RegisterOperand) {
+          OPT_Register r1 = ((OPT_RegisterOperand)o).register;
+	  if (r1.isValidation()) continue;
+          OPT_Operand r2 = s.peek(r1);
+          if (r2 != null) {
+	      i.replaceOperand(o, r2);
+	  }
+        }
+      }
+    }
+
+    // record renamings required in children
+    e = bb.forwardRealInstrEnumerator();
+    while (e.hasMoreElements()) {
+      OPT_Instruction i = e.next();
+      if (globalRenameTable.contains(i)) {
+	  OPT_Register original = Move.getVal(i).asRegister().register;
+	  OPT_RegisterOperand rename = Move.getResult(i);
+	  s.push(original, rename);
+      }
+    }
+
+    // insert copies in control children
+    Enumeration children = dom.getChildren(bb);
+    while (children.hasMoreElements()) {
+      OPT_BasicBlock c = ((OPT_DominatorTreeNode)children.nextElement()).
+          getBlock();
+      performRename(c, dom, s);
+    }
+
+    // pop renamings from this block off stack
+    e = bb.forwardRealInstrEnumerator();
+    while (e.hasMoreElements()) {
+      OPT_Instruction i = e.next();
+      if (globalRenameTable.contains(i)) {
+	  OPT_Register original = Move.getVal(i).asRegister().register;
+	  s.pop(original);
+      }
+    }
+  }
+
+  private Set globalRenameTable = new HashSet();
+  private Set globalRenamePhis = new HashSet();
+
+  private boolean usedBelowCopy(OPT_BasicBlock bb, OPT_Register r) {
+      OPT_InstructionEnumeration ie = bb.reverseRealInstrEnumerator();
+      while ( ie.hasMoreElements() ) {
+	  OPT_Instruction inst = ie.next();
+	  if (inst.isBranch()) {
+	      OPT_OperandEnumeration oe = inst.getUses();
+	      while (oe.hasMoreElements()) {
+		  OPT_Operand op = oe.next();
+		  if (op.isRegister() && op.asRegister().register == r)
+		      return true;
+	      }
+	  } else
+	      break;
+      }
+
+      return false;
+  }
+
   /**
    * Record pending copy operations needed to insert at the end of a basic
    * block.
@@ -158,10 +235,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @param live valid liveness information for the IR
    * @param s structure holding stacks of names for each symbolic register
    */
-  private java.util.Set scheduleCopies (OPT_BasicBlock bb, OPT_LiveAnalysis live, 
-                                   VariableStacks s) {
-    // pushed records variables renamed in this block
-    java.util.Set pushed = new java.util.HashSet(4);
+  private void scheduleCopies (OPT_BasicBlock bb, OPT_LiveAnalysis live) {
 
     // compute out liveness from information in LiveAnalysis
     OPT_LiveSet out = new OPT_LiveSet();
@@ -241,6 +315,17 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
           VM.sysWrite("OPT_SSA, warning: null type in " + c.destination
               + "\n");
         }
+
+	OPT_Register rr = null;
+	if (c.source.isRegister()) rr = c.source.asRegister().register;
+	boolean shouldSplitBlock = 
+	    ! c.phi.getBasicBlock().isExceptionHandlerBasicBlock()
+	                          &&
+	    ( (out.contains(r) && SplitBlockToAvoidRenaming)
+	                          ||
+	      (rr!=null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive) );
+	
+
         // this check captures cases when the result of a phi
         // in a control successor is live on exit of the current
         // block.  this means it is incorrect to simply insert
@@ -248,14 +333,23 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
         // we rename the destination to a new temporary, and
         // record the renaming so that dominator blocks get the
         // new name.
-        if (out.contains(r)) {
-          OPT_Register t = ir.regpool.getReg(r);
-          OPT_Instruction save = OPT_SSA.makeMoveInstruction(ir, t, r, 
-              tt);
-          c.phi.insertFront(save);
-          s.push(r, new OPT_RegisterOperand(t, tt));
-          pushed.add(r);
-        }
+        if (out.contains(r) && ! shouldSplitBlock) {
+
+	  VM.sysWrite("found " + r + " to be live on exit of " + bb + "\n");
+
+	  if (! globalRenamePhis.contains( r )) {
+
+	      OPT_Register t = ir.regpool.getReg(r);
+	      
+	      VM.sysWrite("will use " + t + " to rename " + r + "\n");
+
+	      OPT_Instruction save = OPT_SSA.makeMoveInstruction(ir, t, r, tt);
+	      c.phi.insertFront(save);
+	 
+	      globalRenamePhis.add( r );
+	      globalRenameTable.add( save );
+	  }
+	}
         OPT_Instruction ci = null;
         // insert copy operation required to remove phi
         if (c.source instanceof OPT_NullConstantOperand) {
@@ -278,8 +372,14 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
               + c.source + " encountered during SSA teardown", true);
         }
         if (ci != null)
-          OPT_SSA.addAtEnd(ir, bb, ci, 
-              c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
+	    if (shouldSplitBlock) {
+		OPT_BasicBlock criticalBlock =
+		    OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+
+		criticalBlock.appendInstructionRespectingTerminalBranch(ci);
+	    } else
+		OPT_SSA.addAtEnd(ir, bb, ci, 
+		  c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
         // source has been copied and so can now be overwritten
         // safely.  so now add any copies _to_ the source of the
         // current copy to the work list.
@@ -319,7 +419,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
         workList = OPT_LinkedListObjectElement.cons(c, workList);
       }
     }
-    return  pushed;
+
   }
 
   /**
@@ -331,39 +431,23 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @param live valid liveness information for the IR
    * @param s a structure holding stacks of names for symbolic registers
    */
-  private void insertCopies (OPT_BasicBlock bb, OPT_DominatorTree dom, 
-      OPT_LiveAnalysis live, VariableStacks s) {
-    // substitute variables renamed in control parents
-    OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-    while (e.hasMoreElements()) {
-      OPT_Instruction i = e.next();
-      OPT_OperandEnumeration ee = i.getOperands();
-      while (ee.hasMoreElements()) {
-        OPT_Operand o = ee.next();
-        if (o instanceof OPT_RegisterOperand) {
-          OPT_Register r1 = ((OPT_RegisterOperand)o).register;
-	  if (r1.isValidation()) continue;
-          OPT_Operand r2 = s.peek(r1);
-          if (r2 != null)
-            i.replaceOperand(o, r2);
-        }
-      }
-    }
-    // add copies required in this block to remove phis,
-    // recording needed renamings in s and pushed
-    java.util.Set pushed = scheduleCopies(bb, live, s);
+  private void insertCopies (OPT_BasicBlock bb, 
+                             OPT_DominatorTree dom, 
+                             OPT_LiveAnalysis live)
+  {
+    // add copies required in this block to remove phis.
+    // (record renaming required by simultaneous liveness in global tables)
+    scheduleCopies(bb, live);
+
     // insert copies in control children
     Enumeration children = dom.getChildren(bb);
     while (children.hasMoreElements()) {
       OPT_BasicBlock c = ((OPT_DominatorTreeNode)children.nextElement()).
           getBlock();
-      insertCopies(c, dom, live, s);
+      insertCopies(c, dom, live);
     }
-    // pop renamings from this block off stack
-    java.util.Iterator p = pushed.iterator();
-    while (p.hasNext())
-      s.pop((OPT_Register)p.next());
   }
+
 
   /**
    * Main driver to translate an IR out of SSA form.
@@ -389,8 +473,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     VariableStacks s = new VariableStacks();
     // 4. convert phi nodes into copies
     OPT_BasicBlock b = ((OPT_DominatorTreeNode)dom.getRoot()).getBlock();
-    insertCopies(b, dom, live, s);
-    // 5. phis are now redundant
+    insertCopies(b, dom, live);
+    // 5. compensate for copies required by simulataneous liveness
+    performRename(b, dom, s);
+    // 6. phis are now redundant
     removeAllPhis(ir);
   }
 
