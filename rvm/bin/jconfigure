@@ -936,7 +936,11 @@ function emitController
    print 'done'
 
    print ''
-   print '. ./jbuild.environment'
+   print 'if [[ $BOOTER_FLAG = -booter ]]; then'
+   print '  . ./environment'
+   print 'else'
+   print '  . ./jbuild.environment'
+   print 'fi'
    print ''
    print '# Ensure that we have the right version of the class libraries'
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
