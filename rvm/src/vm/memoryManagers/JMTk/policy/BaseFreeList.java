@@ -28,7 +28,10 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * the point of global synchronization, and synchronization only
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.  Subclasses may require finer grained
- * synchronization during a marking phase, for example.
+ * synchronization during a marking phase, for example.<p>
+ *
+ * This is a first cut implementation, with plenty of room for
+ * improvement...
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -105,21 +108,6 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
   }
 
   /**
-   * Allocate space for a copied object
-   *
-   * @param isScalar Is the object to be allocated a scalar (or array)?
-   * @param bytes The number of bytes allocated
-   * @return The address of the first byte of the allocated cell
-   */
-  public final VM_Address allocCopy(boolean isScalar, EXTENT bytes) 
-    throws VM_PragmaInline {
-    return alloc(isScalar, bytes, true);
-  }
-
-  abstract protected void postAlloc(VM_Address cell, boolean isScalar,
-				    EXTENT bytes, boolean small,
-				    boolean large, boolean copy);
-  /**
    * Allocate space for an object
    *
    * @param isScalar Is the object to be allocated a scalar (or array)?
@@ -142,6 +130,19 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     return allocSlow(isScalar, bytes, copy);
   }
 
+  /**
+   * Allocate space for an object.  This method is used to get
+   * uncommon cases out of line.  These are cases where the "fast
+   * path" fails or is inadequate: where a small object allocation
+   * fails due to a vailure of <code>expandSizeClass()</code>, or in
+   * the case of any non-small allocation.
+   *
+   * @param isScalar Is the object to be allocated a scalar (or array)?
+   * @param bytes The number of bytes allocated
+   * @param copy Is this object being copied (or is it a regular allocation?)
+   * @return The address of the first byte of the allocated cell Will
+   * not return zero.
+   */
   private final VM_Address allocSlow(boolean isScalar, EXTENT bytes,
 				     boolean copy) 
     throws VM_PragmaNoInline {
@@ -160,6 +161,21 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     return cell;
   }
 
+  /**
+   * Allocate space for a copied object
+   *
+   * @param isScalar Is the object to be allocated a scalar (or array)?
+   * @param bytes The number of bytes allocated
+   * @return The address of the first byte of the allocated cell
+   */
+  public final VM_Address allocCopy(boolean isScalar, EXTENT bytes) 
+    throws VM_PragmaInline {
+    return alloc(isScalar, bytes, true);
+  }
+
+  abstract protected void postAlloc(VM_Address cell, boolean isScalar,
+				    EXTENT bytes, boolean small,
+				    boolean large, boolean copy);
     
   /**
    * Allocate a cell. Cells are maintained on free lists (as opposed
@@ -178,14 +194,23 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(!isLarge(sizeClass));
 
-    // grab a freelist entry, expanding if necessary
-    VM_Address head = VM_Address.fromInt(superPageFreeList[sizeClass]);
-    if (head.isZero())
-      return slowUnlinkCell(head, sizeClass);
+    // grab a superpage from the superpage freelist
+    VM_Address headSP = VM_Address.fromInt(superPageFreeList[sizeClass]);
+    if (headSP.isZero())
+      return slowUnlinkCell(sizeClass);
     else 
-      return unlinkCell(head, sizeClass);
+      return unlinkCell(headSP, sizeClass);
   }
 
+  /**
+   * Take the first cell off a superpage's free list
+   *
+   * @param sp The superpage
+   * @param sizeClass The size class of the cell requested (should be
+   * the size class of this superpage).
+   * @return The address of the start of the first cell in the
+   * superpage's free list.
+   */
   private final VM_Address unlinkCell(VM_Address sp, int sizeClass) 
     throws VM_PragmaInline {
     // take off free list
@@ -199,7 +224,16 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     return cell;
   }
 
-  private final VM_Address slowUnlinkCell(VM_Address head, int sizeClass)
+  /**
+   * Allocate a new superpage (if possible), and take the first cell
+   * off the newly allocated superpage's free list
+   *
+   * @param sizeClass The size class of the cell requested
+   * @return The address of the start of the first cell in the newly
+   * allocated superpage's free list, or zero if no new superpage
+   * could be allocated
+   */
+  private final VM_Address slowUnlinkCell(int sizeClass)
     throws VM_PragmaNoInline {
     if (expandSizeClass(sizeClass))
       return unlinkCell(VM_Address.fromInt(superPageFreeList[sizeClass]),
