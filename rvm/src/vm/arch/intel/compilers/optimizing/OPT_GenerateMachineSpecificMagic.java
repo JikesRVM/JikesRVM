@@ -69,18 +69,17 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 	       methodName == VM_MagicNames.getTocPointer) {
       VM_TypeReference t = (methodName == VM_MagicNames.getJTOC ? VM_TypeReference.IntArray : VM_TypeReference.Address);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
-      OPT_RegisterOperand pr = null;
-      if (VM.dedicatedESI) {
-        pr = OPT_IRTools.R(phys.getESI());
-      } else {
-        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
-        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-      }
       if (gc.options.FIXED_JTOC) {
-        VM_Address jtoc = VM_Magic.getTocPointer();
-        OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc.toInt());
-        bc2ir.appendInstruction(Move.create(REF_MOVE, val, I));
+	OPT_AddressConstantOperand addr = new OPT_AddressConstantOperand(VM_Magic.getTocPointer());
+        bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       } else {
+	OPT_RegisterOperand pr = null;
+	if (VM.dedicatedESI) {
+	  pr = OPT_IRTools.R(phys.getESI());
+	} else {
+	  pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
+	  bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
+	}
         bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr.copy()));
       }
       bc2ir.push(val.copyD2U());
