@@ -55,21 +55,19 @@ public class ScanObject implements VM_Constants, Constants {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
       if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-        VM.sysWrite("ScanObject: tib is not Object[]\n");
-        VM.sysWrite("               objRef = ", objRef);
-        VM.sysWriteln("               tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("ScanObject: objRef = ", objRef, "   tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("            tib's type is not Object[]");
+        VM._assert(false);
       }
     }
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     if (VM.VerifyAssertions) {
       if (type == null) {
-        VM.sysWriteln("ScanObject: type is null");
-        VM.sysWriteln("               objRef = ",objRef);
-        VM.sysWriteln("ScanObject: objRef = ", VM_Magic.objectAsAddress(type));
-        VM._assert(type != null);
+        VM.sysWriteln("ScanObject: null type for objRef = ", objRef);
+        VM._assert(false);
       }
     }
-    if ( type.isClassType() ) {
+    if (type.isClassType()) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	VM_Interface.processPtrField( objRef.add(referenceOffsets[i]), root );
@@ -93,20 +91,21 @@ public class ScanObject implements VM_Constants, Constants {
     }
   } 
 
-  static void scan (Object objRef) throws VM_PragmaUninterruptible {
+  static void scan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaInline {
     scan(VM_Magic.objectAsAddress(objRef), false);
   }
-  public static void scan (VM_Address object) throws VM_PragmaUninterruptible {
+  public static void scan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
     scan(object, false);
   }
-  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible {
+  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     scan(VM_Magic.objectAsAddress(objRef), true);
   }
-  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible {
+  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     scan(object, true);
   }
 
-  public static boolean validateRefs( VM_Address ref, int depth ) throws VM_PragmaUninterruptible {
+  public static boolean validateRefs( VM_Address ref, int depth ) 
+      throws VM_PragmaUninterruptible, VM_PragmaNoInline {
 
     VM_Type    type;
 
