@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -36,8 +36,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * Compose together the argument elements into a composite element
    * of an optimization plan.
    *
-   * @param   String n the name for this phase
-   * @param   OPT_OptimizationPlanElement[] e the elements to compose
+   * @param   n     The name for this phase
+   * @param   e     The elements to compose
    */
   public OPT_OptimizationPlanCompositeElement(String n, 
                                               OPT_OptimizationPlanElement[] e) {
@@ -49,8 +49,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * Compose together the argument elements into a composite element
    * of an optimization plan.
    *
-   * @param   String n the name for this phase
-   * @param   Object[] e the elements to compose
+   * @param   n     The name for this phase
+   * @param   e     The elements to compose
    */
   public OPT_OptimizationPlanCompositeElement(String n, 
                                               Object[] e) {
