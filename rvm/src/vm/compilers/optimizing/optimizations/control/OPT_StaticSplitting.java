@@ -32,7 +32,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
   implements OPT_Operators {
 
   private static final boolean DEBUG = false;
-  private static int MAX_COST = 10; // upper bound on instructions duplicated
+  private static final int MAX_COST = 10; // upper bound on instructions duplicated
 
   String getName () { return  "Static Splitting"; }
   boolean shouldPerform (OPT_Options options) {
