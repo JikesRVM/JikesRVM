@@ -41,7 +41,6 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   public final VM_Address acquire(int pageRequest) {
     VM_Address result = super.acquire(pageRequest);
     acquireHelp(start, pageRequest);
-    if (VM.VerifyAssertions) VM._assert(!result.isZero());
     return result;
   }
 
