@@ -47,10 +47,12 @@ public abstract class BasePlan
   //
   // Class variables
   //
-  public static int verbose = 0;
+  public  static int verbose = 0;
+  private static final int MAX_PLANS = 100;
+  private static BasePlan [] plans = new BasePlan[MAX_PLANS];
+  private static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
-  private static int count = 0;        // Number of plan instances in existence
   protected static boolean gcInProgress = false;  // Controlled by subclasses
 
   // Timing variables
@@ -97,7 +99,7 @@ public abstract class BasePlan
   // Instance variables
   //
   private int id = 0;                     // Zero-based id of plan instance
-  protected BumpPointer immortal;
+  public BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -131,7 +133,8 @@ public abstract class BasePlan
    * Constructor
    */
   BasePlan() {
-    id = count++;
+    id = planCount++;
+    plans[id] = this;
     immortal = new BumpPointer(immortalVM);
   }
 
@@ -156,6 +159,34 @@ public abstract class BasePlan
     if (verbose > 2) VMResource.showAll();
   }
 
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Allocation
+  //
+
+  protected byte getSpaceFromAllocator (Allocator a) {
+    if (a == immortal) return IMMORTAL_SPACE;
+    return UNUSED_SPACE;
+  }
+
+  protected Allocator getAllocatorFromSpace (byte s) {
+    if (s == BOOT_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given boot space");
+    if (s == META_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given meta space");
+    if (s == IMMORTAL_SPACE) return immortal;
+    VM.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
+    return null;
+  }
+
+  static Allocator getOwnAllocator (Allocator a) {
+    byte space = UNUSED_SPACE;
+    for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
+      space = plans[i].getSpaceFromAllocator(a);
+    if (space == UNUSED_SPACE)
+      VM.sysFail("BasePlan.getOwnAllocator could not obtain space");
+    Plan plan = VM_Interface.getPlan();
+    return plan.getAllocatorFromSpace(space);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
