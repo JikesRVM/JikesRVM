@@ -17,12 +17,12 @@ import com.ibm.JikesRVM.classloader.VM_Method;
  * There is one instance of this class created for each VM_Processor instance.
  * <p>
  * If tracing has been specified, the HPM counter values are recorded into 
- * one or two buffers.  We use two buffers to ensure that tracing is not interrupted.
+ * one of two buffers.  We use two buffers to ensure that tracing is not interrupted.
  * When the buffer is full, a consumer (VM_TraceWriter) is activated.
  * There is one VM_TraceWriter instance for each instance of this class.
  * <p>
- * We maintain the constraint that only this code writes to the trace buffer's
- * during thread switch time!
+ * We maintain the constraint that only this code writes to the trace buffers, and
+ * only during thread switch time!
  * Methods are provided to handle callbacks.  The method writes information to a 
  * black board that is read when a thread switch occurs.
  * <p>
@@ -148,11 +148,11 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    */
   public void boot() throws VM_PragmaLogicallyUninterruptible
   {
-    if(VM_HardwarePerformanceMonitors.verbose>=1)VM.sysWriteln("VM_HPM.boot() PID ",vpid);
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() PID ",vpid);
     vp_counters  = new HPM_counters();
     tmp_counters = new HPM_counters();
     n_counters = VM_HardwarePerformanceMonitors.hpm_info.numberOfCounters;
-    if (VM_HardwarePerformanceMonitors.hpm_trace) {
+    if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",vpid," create VM_TraceWriter as a consumer");
       consumer     = new VM_TraceWriter(this, vpid);
       consumer.start();	// start the thread !
@@ -181,7 +181,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   public void updateHPMcounters(VM_Thread previous_thread, boolean timerInterrupted, boolean threadSwitch)
   {
     //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.hpm_trace && ! active) 
+    if (VM_HardwarePerformanceMonitors.trace && ! active) 
       // only collect what can be traced when tracing
       return;
 
@@ -210,7 +210,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       long value = VM_SysCall.sysHPMgetCounterMyThread(i);
       tmp_counters.counters[i] = value;
     }
-    if (VM_HardwarePerformanceMonitors.hpm_trace) {     // tracing on ?
+    if (VM_HardwarePerformanceMonitors.trace) {     // tracing on ?
       if (active) { 			// only acccumulate what is recorded!
 	tmp_counters.accumulate(                 vp_counters, n_counters);
 	tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
@@ -261,7 +261,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    *   (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), 
    *   global_tid(int), startOfWallTime(long), endOfWallTime(long), mid1(int), mid2(int) counters(long)*
    *
-   * CONSTRAINT: only called if VM_HardwarePerformanceMonitors.hpm_trace is true.
+   * CONSTRAINT: only called if VM_HardwarePerformanceMonitors.trace is true.
    * CONSTRAINT: only write to buffer when a valid buffer is found.
    * CONSTRAINT: only called if active is true
    *
@@ -364,7 +364,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     int thread_switch = (threadSwitch==true?1:0);
     int encoding = (tid  << 16) + (buffer_code << 15) + (thread_switch << 14) + 
                    (vpid <<  4) + TRACE_FORMAT;
-    if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
+    if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.trace_verbose == vpid) {
       if (threadSwitch) VM.sysWrite(" ");
       else              VM.sysWrite("*");
       VM.sysWrite(index,": ");
@@ -401,7 +401,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     }
     for(int i=1; i<=n_counters; i++) {
       long value = counters.counters[i];
-      if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
+      if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.trace_verbose == vpid) {
 	VM.sysWrite(" ",i,": ");VM.sysWriteLong(value); 
       }
       if (buffer != null) { // write HPM counter values
@@ -410,7 +410,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       }
     }
     if (VM_HardwarePerformanceMonitors.verbose>=5 || 
-	VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
+	VM_HardwarePerformanceMonitors.trace_verbose == vpid) {
       VM.sysWriteln();
     }
     updateBufferIndex();
