@@ -171,7 +171,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");
-  public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "[I");
+  public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "Lcom/ibm/JikesRVM/VM_WordArray;");
   public static final VM_Field registersInUseField= getField("Lcom/ibm/JikesRVM/VM_Registers;", "inuse", "Z");
   //-#if RVM_FOR_POWERPC
   public static final VM_Field registersLRField   = getField("Lcom/ibm/JikesRVM/VM_Registers;", "lr", "Lcom/ibm/JikesRVM/VM_Address;");

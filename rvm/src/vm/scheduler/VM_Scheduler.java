@@ -300,7 +300,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         //-#if RVM_FOR_POWERPC
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[i]),
-                                     target.contextRegisters.gprs[THREAD_ID_REGISTER],
+                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toInt(),
                                      target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {
@@ -326,7 +326,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         //-#if RVM_FOR_POWERPC
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     target.contextRegisters.gprs[THREAD_ID_REGISTER],
+                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toInt(),
                                      target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {

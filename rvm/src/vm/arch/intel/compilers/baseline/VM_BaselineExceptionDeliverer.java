@@ -34,7 +34,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     //
     sp = sp.sub(4);
     VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs[SP] = sp.toInt();
+    registers.gprs.set(SP, sp);
 
     // set address at which to resume executing frame
     registers.ip = catchBlockInstructionAddress;
@@ -83,8 +83,8 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     }
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM._assert(VM_Compiler.SAVED_GPRS == 2);
-    registers.gprs[JTOC] = VM_Magic.getMemoryInt(fp.add(VM_Compiler.JTOC_SAVE_OFFSET));
-    registers.gprs[EBX] = VM_Magic.getMemoryInt(fp.add(VM_Compiler.EBX_SAVE_OFFSET));
+    registers.gprs.set(JTOC, VM_Magic.getMemoryWord(fp.add(VM_Compiler.JTOC_SAVE_OFFSET)));
+    registers.gprs.set(EBX, VM_Magic.getMemoryWord(fp.add(VM_Compiler.EBX_SAVE_OFFSET)));
     
     registers.unwindStackFrame();
   }

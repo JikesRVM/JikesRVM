@@ -490,7 +490,7 @@ public abstract class OPT_Operand {
   }
 
   /**
-   * Does the operand represent a value of the reference data type?
+   * Does the operand represent a value of the address data type?
    * 
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is an address as defined by {@link VM_TypeReference#isWordType}

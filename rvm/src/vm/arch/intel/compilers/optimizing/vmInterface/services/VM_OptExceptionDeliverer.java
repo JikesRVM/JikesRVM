@@ -37,7 +37,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // reset sp to "empty params" state (ie same as it was after prologue)
     VM_Address sp = fp.sub(optMethod.getFrameFixedSize());
-    registers.gprs[STACK_POINTER] = sp.toInt();
+    registers.gprs.set(STACK_POINTER, sp);
 
     // store exception object for later retrieval by catch block
     int offset = optMethod.getUnsignedExceptionOffset();
@@ -64,7 +64,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
 	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs[i]);
+	VM.sysWrite(registers.gprs.get(i));
 	VM.sysWrite("\n");
       }
     }
@@ -114,7 +114,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
 	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs[i]);
+	VM.sysWrite(registers.gprs.get(i));
 	VM.sysWrite("\n");
       }
     }
@@ -124,7 +124,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     for (int i = optMethod.getFirstNonVolatileGPR(); 
 	 i<NUM_NONVOLATILE_GPRS; 
 	 i++, frameOffset += 4) {
-      registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryInt(fp.sub(frameOffset));
+      registers.gprs.set(NONVOLATILE_GPRS[i],VM_Magic.getMemoryWord(fp.sub(frameOffset)));
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     
@@ -137,7 +137,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
 	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs[i]);
+	VM.sysWrite(registers.gprs.get(i));
 	VM.sysWrite("\n");
       }
     }

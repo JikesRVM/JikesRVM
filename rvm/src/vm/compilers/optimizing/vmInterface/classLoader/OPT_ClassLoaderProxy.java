@@ -158,6 +158,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       return NO;
     if (parentType == childType)
       return YES;
+    if (parentType == VM_TypeReference.Word && childType.isWordType())
+      return YES;
     if (parentType.isPrimitiveType() || childType.isPrimitiveType())
       return NO;
     if (parentType == VM_TypeReference.JavaLangObject)

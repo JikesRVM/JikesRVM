@@ -516,7 +516,7 @@ implements VM_Uninterruptible, VM_Constants {
     target.registerThread(); // let scheduler know that thread is active.
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                  VM_Magic.objectAsAddress(newProcessor),
-                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
+                                 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toInt(),
                                  target.contextRegisters.getInnermostFramePointer());
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();

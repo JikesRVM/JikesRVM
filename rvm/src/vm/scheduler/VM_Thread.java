@@ -990,18 +990,20 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
         VM_CompiledMethods.getCompiledMethod(compiledMethodId);
       if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
         //-#if RVM_FOR_POWERPC
-	registers.gprs[VM_BaselineConstants.SP] += delta.toInt();
+	VM_Word old = registers.gprs.get(VM_BaselineConstants.SP);
+	registers.gprs.set(VM_BaselineConstants.SP, old.add(delta));
 	if (traceAdjustments) {
 	  VM.sysWrite(" sp=");
-	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
+	  VM.sysWrite(registers.gprs.get(VM_BaselineConstants.SP));
 	}
 	//-#endif
       }
       //-#if RVM_FOR_IA32
-      registers.gprs[ESP] += delta.toInt();
+      VM_Word old = registers.gprs.get(ESP);
+      registers.gprs.set(ESP, old.add(delta));
       if (traceAdjustments) {
 	VM.sysWrite(" esp =");
-	VM.sysWrite(registers.gprs[ESP]);
+	VM.sysWrite(registers.gprs.get(ESP));
       }
       //-#endif
       if (traceAdjustments) {
@@ -1179,31 +1181,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp = sp.sub(BYTES_IN_ADDRESS);                                 // allow for one local
-    contextRegisters.gprs[ESP] = sp.toInt();
-    contextRegisters.gprs[VM_BaselineConstants.JTOC] = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toInt();
+    contextRegisters.gprs.set(ESP, sp);
+    contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
+			      VM_Magic.objectAsAddress(VM_Magic.getJTOC()));
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 
 //-#else
 
-	// align stack frame
-	int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
-	fp = VM_Memory.alignDown(sp.sub(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
-	VM_Magic.setMemoryAddress(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
-	VM_Magic.setMemoryAddress(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip); // need to fix
-	VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
+    // align stack frame
+    int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
+    fp = VM_Memory.alignDown(sp.sub(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
+    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
+    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip); // need to fix
+    VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
 	
-    // initialize thread stack as if "startoff" method had been called
-    // by an empty "sentinal" frame  (with a single argument ???)
-    //
-	/*
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, ip.toInt());          // STACKFRAME_NEXT_INSTRUCTION_OFFSET
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, fp.toInt());          // STACKFRAME_FRAME_POINTER_OFFSET
-    fp = sp;
-    */
-
-    contextRegisters.gprs[FRAME_POINTER]  = fp.toInt();
+    contextRegisters.gprs.set(FRAME_POINTER, fp);
     contextRegisters.ip  = ip;
 //-#endif
 
@@ -1220,9 +1213,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     VM_Scheduler.threadCreationMutex.unlock();
 
-//-#if RVM_FOR_IA32 
-//-#else
-    contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
+//-#if !RVM_FOR_IA32 
+    contextRegisters.gprs.set(THREAD_ID_REGISTER, 
+			      VM_Word.fromInt(getLockingId()));
 //-#endif
     VM.enableGC();
 

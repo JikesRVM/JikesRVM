@@ -14,7 +14,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //
-  public int    gprs[]; // 32-bit general purpose registers
+  public VM_WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
   public double fprs[]; // 64-bit floating point registers
   public VM_Address ip; // instruction address register
   
@@ -29,7 +29,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   static VM_Address invalidIP = VM_Address.fromInt(-1);
   
   VM_Registers() {
-    gprs = new int[NUM_GPRS];
+    gprs = VM_WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     ip = invalidIP;
   }
@@ -37,7 +37,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // Return framepointer for the deepest stackframe
   //
   public final VM_Address getInnermostFramePointer () {
-      return VM_Address.fromInt(gprs[FRAME_POINTER]);
+    return gprs.get(FRAME_POINTER).toAddress();
   }
 
   // Return next instruction address for the deepest stackframe
@@ -51,7 +51,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // 
   public final void unwindStackFrame() {
     ip = invalidIP; // if there was a valid value in ip, it ain't valid anymore
-    gprs[FRAME_POINTER] = VM_Magic.getCallerFramePointer(getInnermostFramePointer()).toInt();
+    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(getInnermostFramePointer()));
   }
 
   // set ip & fp. used to control the stack frame at which a scan of
@@ -60,7 +60,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   //
   public final void setInnermost( VM_Address newip, VM_Address newfp ) {
     ip = newip;
-    gprs[FRAME_POINTER] = newfp.toInt();
+    gprs.set(FRAME_POINTER, newfp);
   }
 
   // set ip and fp values to those of the caller. used just prior to entering
@@ -70,7 +70,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   public final void setInnermost() {
     VM_Address fp = VM_Magic.getFramePointer();
     ip = VM_Magic.getReturnAddress(fp);
-    gprs[FRAME_POINTER] = VM_Magic.getCallerFramePointer(fp).toInt();
+    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(fp));
   }
 
   public final VM_Address getIPLocation() {

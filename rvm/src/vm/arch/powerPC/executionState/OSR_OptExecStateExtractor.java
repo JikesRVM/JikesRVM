@@ -167,7 +167,7 @@ public final class OSR_OptExecStateExtractor
     // stack word width in bytes.
     int SW_WIDTH = 1 << LG_STACKWORD_WIDTH;
     
-    int[] gprs = registers.gprs;
+    VM_WordArray gprs = registers.gprs;
     double[] fprs = registers.fprs;
       
     // temporarialy hold ct, xer, ctr register
@@ -187,8 +187,7 @@ public final class OSR_OptExecStateExtractor
 	 i >= FIRST_VOLATILE_GPR;
 	 i--) {
       lastVoffset -= SW_WIDTH;
-      gprs[i] = 
-	VM_Magic.getIntAtOffset(stack, lastVoffset);
+      gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(lastVoffset)));
     }
             
     // recover nonvolatile GPRs
@@ -196,7 +195,7 @@ public final class OSR_OptExecStateExtractor
       for (int i=firstGPR;
 	   i<=LAST_NONVOLATILE_GPR;
 	   i++) {
-	gprs[i] = VM_Magic.getIntAtOffset(stack, nvArea);
+	gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(nvArea)));
 	nvArea += SW_WIDTH;
       }
     }
@@ -230,7 +229,7 @@ public final class OSR_OptExecStateExtractor
     for (int i=1; i<NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
 	registers.objs[i] = 
-	  VM_Magic.addressAsObject(VM_Address.fromInt(registers.gprs[i]));
+	  VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
     
@@ -440,7 +439,7 @@ public final class OSR_OptExecStateExtractor
     // because all registers are saved in threadswitch's stack
     // frame, we get value from it.
     } else if (vtype == PHYREG) {
-      return registers.gprs[value];
+      return registers.gprs.get(value).toInt();
       
     // for spilled locals, the value is the spilled position
     // it is on FOO's stackframe.
