@@ -24,6 +24,7 @@ import java.io.*;
  * Any command that can be given to the optimizing compiler via -X:irc:<cmd>
  * can be given to the optimizing compiler by OptTestHarness via -oc:<cmd>.
  * In addition, the OptTestHarness supports the following commands:
+ * -useBootOptions           Use the same OptOptions as the bootimage compiler.
  * -longcommandline <filename>    Read commands (one per line) from a file
  * -inlineplan <filename>         Read an inline plan from a file
  * +baseline                      Switch default compiler to baseline
@@ -202,6 +203,8 @@ class OptTestHarness {
 	if (arg.startsWith("-oc:") && 
 	    options.processAsOption("-X:rc:", arg.substring(4))) {
 	  // handled in processAsOption
+	} else if (arg.equals("-useBootOptions")) {
+	  OPT_Compiler.setBootOptions(options);
 	} else if (arg.equals("-longcommandline")) {
 	  // the -longcommandline option reads options from a file.
 	  // use for cases when the command line is too long for AIX
