@@ -153,7 +153,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     int firstCR = -1;
     int prevCR = -1;
     for (int i = 0; i < NUM_CRS; i++) {
-      // TSR is non-volatile
+      // TSR is non-allocatable
       if (i == THREAD_SWITCH_REGISTER)
         continue;
       reg[FIRST_CONDITION + i].setVolatile();
@@ -623,9 +623,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    * Note that only the TSR is non-volatile.
    */
   Enumeration enumerateNonvolatileConditionRegisters() {
-    return new
-      PhysicalRegisterEnumeration(FIRST_CONDITION+THREAD_SWITCH_REGISTER,
-                                  FIRST_CONDITION+THREAD_SWITCH_REGISTER);
+    return new PhysicalRegisterEnumeration(0, -1);
   }
   /** 
    * Enumerate the volatile physical registers of a given class.
