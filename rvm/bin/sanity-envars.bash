@@ -114,7 +114,7 @@ function checkenv_example () {
 	    RVM_TARGET_CONFIG )
 		# example="$RVM_ROOT/rvm/config/i686-pc-linux";
 		checkenv RVM_HOST_CONFIG;
-		example="RVM_HOST_CONFIG" ;;
+		example="$RVM_HOST_CONFIG" ;;
 	    
 	esac
     fi
