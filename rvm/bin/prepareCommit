@@ -6,24 +6,39 @@
 #
 # @author Stephen Fink
 #
-# Run this script from a directory in your CVS shadow.  This script
-# emits a file, 'doit', holding the skeleton of a bunch of cvs commit
+# Run this script from anywhere.  
+# This script emits a file, $RVM_ROOT/doit, 
+# holding the skeleton of a bunch of cvs commit
 # commands to update the master repository according to the changes you've
 # made.  You will need to edit the file to insert your own log message.
 #
-# You will need to update the cvs path, below
 if [[ $RVM_HOST_CONFIG = "" ]]; then
    echo "$0: please set your RVM_HOST_CONFIG environment variable (eg. $HOME/rvm/config/i686-pc-linux.watson)"
    exit 1
 fi
 
 . $RVM_HOST_CONFIG
-echo "#! /bin/sh" > doit
-echo "cvs=$CVS" >> doit
 
-$CVS -q -n update -Idoit -I\*.class -I\*.html -I\*.gif $* | \
-grep -v "^[UP]" | \
-sed -e 's/^M /\$cvs commit -m "MSG" /' |\
-sed -e 's/^A /\$cvs commit -m "Initial Revision" /' |\
-sed -e 's/^R /\$cvs commit -m "deleted" /' >> doit
-chmod u+x doit
+cd $RVM_ROOT
+WORKING_DIRS="rvm MMTk"
+SCRIPT=$RVM_ROOT/doit
+
+echo "#! /bin/sh" > $SCRIPT
+echo "cvs=$CVS" >> $SCRIPT
+
+for dir in $WORKING_DIRS; do
+    if [[ -d $RVM_ROOT/$dir ]]; then 
+	cd $RVM_ROOT/$dir
+	echo >> $SCRIPT
+	echo "# Changed files in $dir" >> $SCRIPT
+	echo "cd $RVM_ROOT/$dir" >> $SCRIPT
+	$CVS -q -n update -I$SCRIPT -I\*.class -I\*.html -I\*.gif $* | \
+	    grep -v "^[UP]" | \
+	    sed -e 's/^M /cvs commit -m "MSG" /' |\
+	    sed -e 's/^A /cvs commit -m "Initial Revision" /' |\
+	    sed -e 's/^R /cvs commit -m "deleted" /' >> $SCRIPT
+    fi
+	
+done
+
+chmod u+x $SCRIPT
