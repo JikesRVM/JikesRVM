@@ -881,6 +881,20 @@ declare -i copy_MMTk_directories_too=0
 declare -i all_sources_are_top_level=0
 
 
+## You can also set the optimization and debugging levels
+## for the compiler.  We had a bunch of code in here that had hardwired
+## stuff like -O for HPM and -O2 for everything else.
+##
+## Override this in the config file if you want to.
+## For the fastest builds (quick turnaround when hacking on the C source code),
+## do this:
+RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS=""
+## Traditional values for Jikes RVM:
+RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS="-O2 -g"
+
+RVM_CXX_OPTIMIZER_AND_DEBUG_FLAGS="${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}"
+
+
 load_config_file "${RVM_HOST_CONFIG}"
 
 ## We normally check for a variable named CLASSPATH_ROOT in the config file.
@@ -3918,7 +3932,7 @@ EOF
 
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
 	cat <<- EOF
-		BOOTER_CXX="run $HOST_CPLUS_STR -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES"
+		BOOTER_CXX="run $HOST_CPLUS_STR -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES"
 		LDSHARED="$HOST_SHLD_STR"
 		BOOTER_CXXM="\$BOOTER_CXX -M"
 		CPP="$HOST_CC_STR -E $CC_DEFINES"
@@ -3931,7 +3945,7 @@ EOF
 	fi
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
@@ -3940,7 +3954,7 @@ EOF
 	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
@@ -3953,7 +3967,7 @@ EOF
 	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
 
 	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
@@ -3964,7 +3978,7 @@ EOF
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
+gnu_compiler_flags=(-rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR \${gnu_compiler_flags[@]}\""
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-lpthread -ldl"'
@@ -3974,7 +3988,7 @@ gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $C
 	fi
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
+gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR \${gnu_compiler_flags[@]}\""
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-ldl"'
@@ -3989,6 +4003,8 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	exit 2
     fi
     echo ""
+    echo "BOOTER_CC=\"\${BOOTER_CC} ${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}\""
+    echo "BOOTER_CXX=\"\${BOOTER_CXX} ${RVM_CXX_OPTIMIZER_AND_DEBUG_FLAGS}\""
     
     if (( HAS_DLCOMPAT )); then
 	DLCOMPAT_DEFINE_FLAG=-DHAS_DLCOMPAT
@@ -4000,13 +4016,13 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
     then
 	cat <<- EOF
 	chdir $BOOTIMAGE_RUNNER_DIR_STR && \
-	\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
+	\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
 		-I$BOOTIMAGE_RUNNER_SUBDIR_STR                          \
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BOOTIMAGE_STR\\"		\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C
 
 	chdir $BOOTIMAGE_RUNNER_SUBDIR_STR
-	\$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR		        \
+	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR		        \
 		-o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C
 	\$CPP -I$SCRATCH_DIRECTORY_STR -P                               \
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s
@@ -4021,7 +4037,8 @@ EOF
 	    cat <<- EOF
 		echo >&2 -n "(build libhpm.a library) "
 		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/powerPC
-		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
+		-o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
 
 		chdir $SCRATCH_DIRECTORY_STR && \
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
@@ -4029,7 +4046,7 @@ EOF
 
 		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		echo >&2 -n "(build libJava2HPM.a JNI library) "
-		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
+		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
 		  -I$ROOT_DIRECTORY_STR/rvm/src/include \
 		  -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
 		  -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
@@ -4042,7 +4059,7 @@ EOF
 
 		echo >&2 -n "(build RunBootImage.o) "		
 		chdir $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \$GCSPY_INCLUDES -DRVM_WITH_HPM=1 \
+		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \$GCSPY_INCLUDES -DRVM_WITH_HPM=1 \
 		$DLCOMPAT_DEFINE_FLAG \
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
 
@@ -4055,7 +4072,7 @@ EOF
 	    cat <<- EOF
 	    echo >&2 -n "(build RunBootImage.o) "		
 	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
 		${DLCOMPAT_DEFINE_FLAG} \
 		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 	    
@@ -4109,7 +4126,8 @@ EOF
 	    cat <<- EOF
 	    echo >&2 -n "(build libhpm.a library) "
 	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/intel && \
-		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+		\$BOOTER_CXX -I${SCRATCH_DIRECTORY_STR} -c \
+			-o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
 	    
 	    chdir $SCRATCH_DIRECTORY_STR && \
 	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
@@ -4117,7 +4135,7 @@ EOF
 	    
 	    echo >&2 -n "(build libJava2HPM.a JNI library) "
 	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM && \
-	    \$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
+	    \$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
 		-I$ROOT_DIRECTORY_STR/rvm/src/include \
 		-I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
 		-I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
