@@ -1752,7 +1752,7 @@ EOF
 	cat <<- EOF
 	# XXX Experimental; use a built GNU Classpath that was installed
 	# with "make install".
-	echo "SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip"
+	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
 EOF
     else
 	## The classic, stable, documented, and recommended way
