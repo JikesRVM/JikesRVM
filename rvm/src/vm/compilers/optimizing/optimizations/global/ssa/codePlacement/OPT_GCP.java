@@ -40,9 +40,11 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
       // 3. Perform global CSE
       new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
-      // 4. Perform loop invariant code motion
+      // 4. Repair SSA
+      new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+      // 5. Perform Loop Invariant Code Motion
       new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
-      // 5. Finalize GCP
+      // 6. Finalize GCP
       new OPT_OptimizationPlanAtomicElement(new GCPFinalization())
     });
   }

@@ -405,13 +405,13 @@ final class OPT_SSADictionary implements OPT_Operators {
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       for (Enumeration hp = getHeapPhiInstructions(bb); hp.hasMoreElements() ; ) {
-        OPT_Instruction phi = (OPT_Instruction)hp.nextElement(); 
+        OPT_Instruction phi = (OPT_Instruction)hp.nextElement();
         OPT_HeapOperand H = (OPT_HeapOperand)Phi.getResult(phi);
         OPT_HeapVariable v = H.getHeapVariable();
         DefChain.put(v,H);
         for (int i = 0; i < Phi.getNumberOfValues(phi); i++) {
           OPT_HeapOperand Hu = (OPT_HeapOperand)Phi.getValue(phi,i);
-          OPT_HeapVariable vu = H.getHeapVariable();
+          OPT_HeapVariable vu = Hu.getHeapVariable();
           HashSet u = (HashSet)UseChain.get(vu);
           u.add(Hu);
         }
@@ -547,6 +547,7 @@ final class OPT_SSADictionary implements OPT_Operators {
 	break;
       case UNINT_BEGIN_opcode: // only reached if insertPEIDeps
       case UNINT_END_opcode: // only reached if insertPEIDeps
+	registerUse (s, exceptionState);
 	registerDef (s, b, exceptionState);
 	break;
       case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:

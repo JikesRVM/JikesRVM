@@ -358,13 +358,19 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock guardBlock1
       = header.createSubBlock(header.firstInstruction().bcIndex, ir);
 
+    // landing pad for orig loop
+    OPT_BasicBlock olp
+      = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    olp.setLandingPad();
+    
     OPT_BasicBlock predSucc = predBlock.nextBasicBlockInCodeOrder();
     if (predSucc != null) {
       ir.cfg.breakCodeOrder(predBlock, predSucc);
-      ir.cfg.linkInCodeOrder(guardBlock1, predSucc);
+      ir.cfg.linkInCodeOrder(olp, predSucc);
     }
     ir.cfg.linkInCodeOrder(predBlock, guardBlock0);
     ir.cfg.linkInCodeOrder(guardBlock0, guardBlock1);
+    ir.cfg.linkInCodeOrder(guardBlock1, olp);
     
     // guard block for main loop
     OPT_BasicBlock guardBlock2
@@ -373,6 +379,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     // landing pad for main loop
     OPT_BasicBlock landingPad
       = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    landingPad.setLandingPad();
     
     OPT_BasicBlock mainLoop = exitBlock.nextBasicBlockInCodeOrder();
     ir.cfg.breakCodeOrder (exitBlock,   mainLoop);
@@ -389,16 +396,16 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     tmp = guardBlock0.lastInstruction();
     tmp.insertBefore (Move.create (INT_MOVE, limit, op2.copy()));
 
-    OPT_ConditionOperand g0cond = OPT_ConditionOperand.GREATER();
-    if   (stride == -1)  g0cond = OPT_ConditionOperand.LESS();
+    OPT_ConditionOperand g0cond = OPT_ConditionOperand.GREATER_EQUAL();
+    if   (stride == -1)  g0cond = OPT_ConditionOperand.LESS_EQUAL();
     
     tmp.insertBefore
       (IfCmp.create(INT_IFCMP, outerGuard.copyD2D(), rop1.copyD2U(),
-		    op2.copy(), g0cond, header.makeJumpTarget(),
+		    op2.copy(), g0cond, olp.makeJumpTarget(),
 		    OPT_BranchProfileOperand.unlikely()));
     tmp.insertBefore(Goto.create(GOTO, guardBlock1.makeJumpTarget()));
       
-    // jump over the original loop, if numbers of iteration is already aligned
+    // align the loop iterations
     tmp = guardBlock1.lastInstruction();
     if (stride == 1) 
       tmp.insertBefore
@@ -413,8 +420,16 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		       new OPT_IntConstantOperand(1)));
     
     tmp.insertBefore
+      (Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(),
+		     new OPT_IntConstantOperand(-1)));
+
+    tmp.insertBefore
       (Binary.create(INT_AND, remainder.copyD2D(), remainder.copyD2U(),
 		     new OPT_IntConstantOperand(unrollFactor-1)));
+
+    tmp.insertBefore
+      (Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(),
+		     new OPT_IntConstantOperand(1)));
 
     if (stride == 1)
       tmp.insertBefore
@@ -435,16 +450,14 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	(Binary.create(INT_ADD, limit.copyD2D(), limit.copyD2U(),
 		       new OPT_IntConstantOperand(1)));
     
-    tmp.insertBefore
-      (IfCmp.create(INT_IFCMP, outerGuard.copyD2D(), remainder.copyD2U(),
-		    new OPT_IntConstantOperand(0),
-		    OPT_ConditionOperand.EQUAL(),
-		    landingPad.makeJumpTarget(),
-		    new OPT_BranchProfileOperand(1.0f/unrollFactor)));
-    tmp.insertBefore(Goto.create(GOTO,header.makeJumpTarget()));
+    tmp.insertBefore(Goto.create(GOTO, olp.makeJumpTarget()));
+
+    // build landing pad for original loop
+    tmp = olp.lastInstruction();
+    tmp.insertBefore(Goto.create(GOTO, header.makeJumpTarget()));
+      
 
     // change the back branch in the original loop
-
     deleteBranches (exitBlock);
     tmp = exitBlock.lastInstruction();
     tmp.insertBefore 
@@ -490,6 +503,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     // recompute normal outs
     guardBlock0.recomputeNormalOut(ir);
     guardBlock1.recomputeNormalOut(ir);
+    olp.recomputeNormalOut(ir);
     guardBlock2.recomputeNormalOut(ir);
     exitBlock.recomputeNormalOut(ir);
     landingPad.recomputeNormalOut(ir);

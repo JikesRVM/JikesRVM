@@ -303,6 +303,8 @@ class OPT_OptimizationPlanner {
        new OPT_OptimizationPlanCompositeElement 
 	 ("LIR SSA transformations", 
 	  new Object[] {
+	    // restructure loops
+	    new OPT_CFGTransformations(),
 	    // Compute dominators
 	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier

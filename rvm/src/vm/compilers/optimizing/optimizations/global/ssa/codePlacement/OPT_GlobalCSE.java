@@ -39,7 +39,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     dominator = ir.HIRInfo.dominatorTree;
     (new OPT_GlobalValueNumber()).perform(ir);
     valueNumbers = ir.HIRInfo.valueNumbers;
-    if (ir.IRStage == ir.LIR) {
+    if (true || ir.IRStage == ir.LIR) {
       if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
       OPT_DefUse.computeDU(ir);
       OPT_Simple.copyPropagation(ir);
@@ -82,18 +82,20 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       Integer Vn = new Integer(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former != null) {
-	OPT_RegisterOperand formerDef;
-	formerDef = getResult(former);
+	// instead of trying to repair Heap SSA, we rebuild it after CSE 
+	
+	// relink scalar dependencies
+	OPT_RegisterOperand formerDef = getResult(former);
 	OPT_Register reg = result.register;
-	reg.setSpansBasicBlock();
+	formerDef.register.setSpansBasicBlock();
 	OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(reg);
-	if (verbose) {
-	  VM.sysWrite("using      " + former + "\n" + "instead of " + 
-		      inst + "\n");
-	}
 	while (uses.hasMoreElements()) {
 	  OPT_RegisterOperand use = uses.next();
 	  OPT_DefUse.transferUse(use, formerDef);
+	}
+	if (verbose) {
+	  VM.sysWrite("using      " + former + "\n" + "instead of " + 
+		      inst + "\n");
 	}
 	inst.remove();
       } 
@@ -152,7 +154,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * should this instruction be cse'd  ?
    * @param inst
-   * @param heapSSA
    */
   boolean shouldCSE (OPT_Instruction inst) {
     
