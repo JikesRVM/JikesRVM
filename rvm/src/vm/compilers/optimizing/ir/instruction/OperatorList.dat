@@ -15,20 +15,6 @@ IMPLUSES
 ###################################################################
 # The first set of operators are HIR only.
 ###################################################################
-# Load a reference value. Due to guards cannot be a PEI
-REF_LOAD
-Load
-load
-
-
-
-# Store a reference value. Due to guards cannot be a PEI
-REF_STORE
-Store
-store
-
-
-
 # Get the java.lang.Class object for a type
 GET_CLASS_OBJECT
 Unary
@@ -46,13 +32,6 @@ none
 # Move an exception object from a normal register operand to "magic land" (ie where get_caught_exception can find it)
 SET_CAUGHT_EXCEPTION
 CacheOp
-none
-
-
-
-# Get the current time
-GET_TIME_BASE
-Nullary
 none
 
 
@@ -164,7 +143,7 @@ immedPEI | dynLink
 
 # implement monitorenter bytecode.
 # because of explicit null check guards, this can never be a PEI.
-# For now, posisbly overly conservative with memory modeling?
+# For now, possibly overly conservative with memory modeling?
 # Mark as threadswitch point because thread may be suspended waiting for lock
 MONITORENTER
 MonitorOp
@@ -246,6 +225,80 @@ store | immedPEI | dynLink
 
 
 
+# Raises an ArithmeticException if its integer (register/constant) operand is zero.
+INT_ZERO_CHECK
+ZeroCheck
+immedPEI
+
+
+
+# Raises an ArithmeticException if its long (register/constant) operand is zero.
+LONG_ZERO_CHECK
+ZeroCheck
+immedPEI
+
+
+
+# Performs a store check (subclass test) to determine if it is valid to
+# store its second reference argument (register/constant) into the array
+# pointed to by its first reference argument (register). Raises an
+# ArrayStoreException if the validity check fails.
+OBJARRAY_STORE_CHECK
+StoreCheck
+immedPEI
+
+
+
+# Performs a store check (subclass test) to determine if it is valid to
+# store its second reference argument (register/constant) into the array
+# pointed to by its first reference argument (register). Raises an
+# ArrayStoreException if the validity check fails.
+# The argument being stored is known to not be null.
+OBJARRAY_STORE_CHECK_NOTNULL
+StoreCheck
+immedPEI
+
+
+
+# inlining guard with patch-point mechanism
+IG_PATCH_POINT
+InlineGuard
+branch | conditional
+
+
+
+# inlining gaurd with class-test mechanism
+IG_CLASS_TEST
+InlineGuard
+branch | conditional
+
+
+
+# inlining guard with method-test mechanism
+IG_METHOD_TEST
+InlineGuard
+branch | conditional
+
+
+
+# implement tableswitch bytecode
+TABLESWITCH
+TableSwitch
+branch
+
+
+
+# implement lookupswitch bytecode
+LOOKUPSWITCH
+LookupSwitch
+branch
+
+
+
+###################################################################################
+# Everything below this line is either an HIR/LIR operator or an
+# LIR only operator.
+###################################################################################
 # load a value from an int array; explicit guards means it cannot be a PEI
 INT_ALOAD
 ALoad
@@ -414,45 +467,6 @@ branch | conditional
 
 
 
-# inlining guard with patch-point mechanism
-IG_PATCH_POINT
-InlineGuard
-branch | conditional
-
-
-
-# inlining gaurd with class-test mechanism
-IG_CLASS_TEST
-InlineGuard
-branch | conditional
-
-
-
-# inlining guard with method-test mechanism
-IG_METHOD_TEST
-InlineGuard
-branch | conditional
-
-
-
-# implement tableswitch bytecode
-TABLESWITCH
-TableSwitch
-branch
-
-
-
-# implement lookupswitch bytecode
-LOOKUPSWITCH
-LookupSwitch
-branch
-
-
-
-###################################################################################
-## Everything below this line is either an HIR/LIR operator or an
-# LIR only operator.
-###################################################################################
 # A label instruction. All basic blocks start with a label,
 # and labels are only allowed to appear as the first instruction
 # of a basic block.
@@ -1116,41 +1130,6 @@ immedPEI
 
 
 
-# Raises an ArithmeticException if its integer (register/constant) operand is zero.
-INT_ZERO_CHECK
-ZeroCheck
-immedPEI
-
-
-
-# Raises an ArithmeticException if its long (register/constant) operand is zero.
-LONG_ZERO_CHECK
-ZeroCheck
-immedPEI
-
-
-
-# Performs a store check (subclass test) to determine if it is valid to
-# store its second reference argument (register/constant) into the array
-# pointed to by its first reference argument (register). Raises an
-# ArrayStoreException if the validity check fails.
-OBJARRAY_STORE_CHECK
-StoreCheck
-immedPEI
-
-
-
-# Performs a store check (subclass test) to determine if it is valid to
-# store its second reference argument (register/constant) into the array
-# pointed to by its first reference argument (register). Raises an
-# ArrayStoreException if the validity check fails.
-# The argument being stored is known to not be null.
-OBJARRAY_STORE_CHECK_NOTNULL
-StoreCheck
-immedPEI
-
-
-
 # Unconditional direct jump to the argument label
 GOTO
 Goto
@@ -1212,6 +1191,20 @@ load
 USHORT_LOAD
 Load
 load
+
+
+
+# Load a reference value. Due to guards cannot be a PEI
+REF_LOAD
+Load
+load
+
+
+
+# Store a reference value. Due to guards cannot be a PEI
+REF_STORE
+Store
+store
 
 
 
@@ -1380,6 +1373,13 @@ none
 RESOLVE
 CacheOp
 tsp | dynLink
+
+
+
+# Get the current time
+GET_TIME_BASE
+Nullary
+none
 
 
 
