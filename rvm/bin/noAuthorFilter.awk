@@ -9,6 +9,7 @@
 #
 # Files that don't have a javadoc author tag
 #
+/\/bin\/classpath.stamp/ { next }
 /\/bin\/ids\/rvmrt.stamp/ { next }
 /\/bin\/ids\/set\/R-/ { next }
 
