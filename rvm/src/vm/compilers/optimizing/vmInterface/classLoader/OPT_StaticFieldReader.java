@@ -224,13 +224,13 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     } else {
       Class rc = o.getClass();
       String className = rc.getName();
+      VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
       if (className.startsWith("[")) {
 	// an array
-	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), VM_Atom.findOrCreateAsciiAtom(className));
+	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classAtom);
       } else {
 	// a class
-	VM_Atom classDescriptor = 
-	  VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+	VM_Atom classDescriptor = classAtom.descriptorFromClassName();
 	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
       }
     }
