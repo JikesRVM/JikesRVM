@@ -1518,7 +1518,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
 	      }
-
 	      throw e;
 	    }
 	  }
