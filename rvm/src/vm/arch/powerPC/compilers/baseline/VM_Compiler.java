@@ -51,7 +51,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   //----------------//
   
   // position of spill area within method's stackframe.
-  static int getMaxSpillOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getMaxSpillOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int params = m.getOperandWords()<<2; // maximum parameter area
     int spill  = params - (MIN_PARAM_REGISTERS << 2);
     if (spill < 0) spill = 0;

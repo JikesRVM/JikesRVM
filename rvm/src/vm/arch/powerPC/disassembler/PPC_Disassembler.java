@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
 
 /**
  * Disassembler for Rios instruction set.
@@ -100,6 +99,8 @@ package com.ibm.JikesRVM;
  *  mtibatl		
  *  mtibatu		
  */
+import com.ibm.JikesRVM.*;
+
 class PPC_Disassembler implements VM_Constants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
