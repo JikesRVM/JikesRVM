@@ -52,6 +52,8 @@ import com.ibm.JikesRVM.VM_DynamicLibrary;
 
 public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
+  final public static boolean CHECK_MEMORY_IS_ZEROED = false;
+
   public static void logGarbageCollection() throws VM_PragmaUninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logGarbageCollectionEvent();
@@ -318,20 +320,24 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static Object allocateScalar(int size, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    AllocAdvice advice = getPlan().getAllocAdvice(null, size, null, null);
-    VM_Address region = getPlan().alloc(size, true, allocator, advice);
+    Plan plan = getPlan();
+    AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
+    VM_Address region = plan.alloc(size, true, allocator, advice);
+    if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    getPlan().postAlloc(size, result, allocator);
+    plan.postAlloc(size, result, allocator);
     return result;
   }
 
   public static Object allocateArray(int numElements, int size, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     size = (size + 3) & (~3);
-    AllocAdvice advice = getPlan().getAllocAdvice(null, size, null, null);
-    VM_Address region = getPlan().alloc(size, false, allocator, advice);
+    Plan plan = getPlan();
+    AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
+    VM_Address region = plan.alloc(size, false, allocator, advice);
+    if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
-    getPlan().postAlloc(size, result, allocator);
+    plan.postAlloc(size, result, allocator);
     return result;
   }
 
