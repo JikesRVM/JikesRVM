@@ -572,7 +572,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(String value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(String value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (value == null) {
       write("null");
     } else {
