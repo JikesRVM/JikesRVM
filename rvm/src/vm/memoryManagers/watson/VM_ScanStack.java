@@ -47,27 +47,38 @@ public class VM_ScanStack
   static void 
   scanStack (VM_Thread t, int top_frame, boolean relocate_code)  {
     int       ip, fp, code, newip, newcode, delta, refaddr, prevFp;
-    VM_GCMapIterator iterator;
-    VM_GCMapIteratorGroup iteratorGroup;
+    VM_Method              method;
+    VM_CompiledMethod      compiledMethod;
+    VM_GCMapIterator       iterator;
+    VM_GCMapIteratorGroup  iteratorGroup;
 
-    /*******
-    // [6/9/99 DL] [Can this still happen? 4/1/01 SES]
     // Before scanning the thread's stack, copy forward any machine code that is
-    // referenced by the thread's registers and adjust those registers to point
-    // to the moved code. Note that "contextRegisters" never hold any machine code 
-    // references, but "hardwareExceptionRegisters" might: namely in "lr" and "ip".
+    // referenced by the thread's hardwareExceptionRegisters, if they are in use.
     //
-    if (t.hardwareExceptionRegisters.inuse) {
-      // live registers: fixup lr & ip
-      int reg;
-      reg = t.hardwareExceptionRegisters.lr;
-      if (minFromRef <= reg && reg <= maxFromRef)
-	t.hardwareExceptionRegisters.lr = gc_copyCode(reg);
-      reg = t.hardwareExceptionRegisters.ip;
-      if (minFromRef <= reg && reg <= maxFromRef)
-	t.hardwareExceptionRegisters.ip = gc_copyCode(reg);
-    }
-    *******/
+    if (VM_Allocator.movesObjects && relocate_code && 
+	t.hardwareExceptionRegisters.inuse) {
+      ip = t.hardwareExceptionRegisters.ip;
+      compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
+      if (VM.VerifyAssertions) VM.assert(compiledMethod != null);
+      code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
+      newcode = VM_Allocator.processPtrValue( code );
+      if (newcode != code) {
+	delta = newcode - code;  // amount to relocate return addresses
+ 
+	// if the return address is in the BootImage ( in some OutOfLineMachineCode
+	// that called someone e.g. called native code ) do not relocate the return
+	// address.
+	//
+	if (! VM_GCUtil.addressInBootImage(ip)) {  // normal case
+	  newip = ip + delta;
+	} else {
+	  newip = ip;    // do not relocate
+	}
+        if (TRACE_STACKS)
+          VM_Scheduler.traceHex("  moved code - ", "in ExceptionRegister ip=", ip);
+        t.hardwareExceptionRegisters.ip = newip;
+      }                            
+    }  
     
     // get gc thread local iterator group from our VM_CollectorThread object
     VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -144,8 +155,8 @@ public class VM_ScanStack
 
       // following is for normal Java (and JNI Java to C transition) frames
       
-      VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
-      VM_Method         method = compiledMethod.getMethod();
+      compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+      method = compiledMethod.getMethod();
 
       // initialize MapIterator for this frame
       int offset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
