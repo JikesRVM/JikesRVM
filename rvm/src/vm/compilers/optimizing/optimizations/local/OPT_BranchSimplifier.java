@@ -222,6 +222,7 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
   
   private static void insertTrueGuard (OPT_Instruction inst,
 				       OPT_RegisterOperand guard) {
+    if (guard == null) return;  // Probably bad style but correct IR
     OPT_Instruction trueGuard = Move.create(GUARD_MOVE, guard.copyD2D(), 
 					    new OPT_TrueGuardOperand());
     trueGuard.position = inst.position;
