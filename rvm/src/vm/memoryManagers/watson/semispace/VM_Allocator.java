@@ -2199,15 +2199,7 @@ public class VM_Allocator
     mylocal.localcount3 = 0;
     mylocal.timeInRendezvous = 0;
     
-    // counters used for thread private work queue
-    mylocal.maxWorkCount = 0;
-    mylocal.currentWorkCount = 0;
-    mylocal.totalWorkCount = 0;
-    
-    // following for counting roots with BOTH workqueue approaches
-    mylocal.initialWorkCount = 0;
-    
-    // following for measuring new common work queue with local work buffers
+    // following for measuring work queue with local work buffers
     mylocal.putWorkCount = 0;
     mylocal.getWorkCount = 0;
     mylocal.swapBufferCount = 0;

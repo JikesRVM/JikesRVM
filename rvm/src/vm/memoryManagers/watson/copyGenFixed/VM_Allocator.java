@@ -866,11 +866,6 @@ public class VM_Allocator
   static int gcCount = 0;           // number of minor collections
   static int gcMajorCount = 0;      // number of major collections
   
-  // global counters - set to sum of thread local counters at end of GC
-  private static int initialWorkCount = 0; // initial work queue == roots this thread found
-  private static int maxWorkCount = 0;     // max size of work queue while processing/emptying
-  private static int totalWorkCount = 0;   // total number of workqueue entries processed
-  
   private static double gcStartTime = 0;
   private static double gcEndTime = 0;
   private static double gcTimeBeforeZeroing = 0;

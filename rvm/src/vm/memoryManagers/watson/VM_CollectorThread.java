@@ -549,25 +549,8 @@ class VM_CollectorThread extends VM_Thread
   int               gcOrdinal;
 
   /** used by each CollectorThread when scanning thread stacks for references */
-  VM_GCMapIteratorGroup iteratorGroup; // !!TODO: document this [--DL]
+  VM_GCMapIteratorGroup iteratorGroup;
   
-  // removed for 10/15/01 release - only used in internal noncopying generational 
-  // collector
-  // VM_RememberedSet  rs;	    // Remembered set for generational collection
-  
-  // following fields are used by the old thread private work queues for objects to
-  // be scanned during GC. They are not used, except for certain collectors that can
-  // still be compiled to use this queue, instead of the shared queue with thread
-  // private buffers. (see copyingGC/VM_Allocator with USE_COMMON_WORKQUEUE==false)
-  //
-  int workQueueTop;                  // next free entry in current buffer
-  int workQStartAddress;             // first entry in current buffer
-  int workQEndAddress;               // (just beyond) end of current buffer
-  
-  // The following will replace the above thread private work queue.  temporarily
-  // keep both set of pointers so we can measure performance with and without
-  // loadbalancing.
-  //
   // pointers into work queue put and get buffers, used with loadbalanced 
   // workqueues where per thread buffers when filled are given to a common shared
   // queue of buffers of work to be done, and buffers for scanning are obtained
@@ -604,10 +587,7 @@ class VM_CollectorThread extends VM_Thread
   int localcount1;            // copyCount
   int localcount2;            // biggestByteCountCopied
   int localcount3;            // markBootCount
-  int initialWorkCount;       // initial work queue == roots this thread found
-  int maxWorkCount;           // max size of work queue while processing/emptying
-  int totalWorkCount;         // total number of workqueue entries processed
-  int currentWorkCount;       // number of entries in work queue
+
   int timeInRendezvous;       // time waiting in rendezvous (milliseconds)
   
   double stoppingTime;        // mutator stopping time - until enter Rendezvous 1
@@ -641,7 +621,9 @@ class VM_CollectorThread extends VM_Thread
   double totalBufferWait;      // total time waiting for get buffers
   double totalFinishWait;      // total time waiting for no more buffers
   double totalRendezvousWait;  // total time waiting for no more buffers
-  
+
+  // constructor
+  //
   VM_CollectorThread(int[] stack, boolean isActive, VM_Processor processorAffinity) {
     super(stack);
     makeDaemon(true); // this is redundant, but harmless
@@ -652,13 +634,6 @@ class VM_CollectorThread extends VM_Thread
 
     // associate this collector thread with its affinity processor
     collectorThreads[processorAffinity.id] = this;
-
-    // RememberedSet removed (internalized) for 10/15/01 release
-    // The generational noncopying collector with more than one collection
-    // survived for old objects uses a RememberedSet
-    // if ((VM_Allocator.TYPE == 9) && (GC_STEPS > 2))
-    // this.rs		     = new VM_RememberedSet();
-
   }
   
   // Record number of processors that will be participating in gc synchronization.

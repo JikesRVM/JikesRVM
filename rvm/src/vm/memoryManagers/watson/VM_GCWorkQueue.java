@@ -20,11 +20,6 @@
  * <p>
  * The default size of each buffer is specified by <b>WORK_BUFFER_SIZE</b>,
  * which can be overridden by the command line argument -wbnnn
- * <p>
- * For measurement purposes only, it is possible to compile the system
- * to use the old thread private workqueues, which do not attempt
- * to balance the workload. To do this, set the flag USE_OLD_PRIVATE_WORKQUEUE
- * to <b>true</b>.
  *
  * @see VM_Allocator
  * @see VM_CollectorThread
@@ -42,17 +37,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 
   private static final boolean trace = false;
   private static final boolean debug = false;
-
-  /**
-   * Flag to cause the OLD thread private work queues to be used
-   * instead of the current load balancing work queues.  This option
-   * is retained only for measurement purposes.
-   * <p>
-   * Set to <b>true</b> to use the old private work queues.
-   * This will also cause the <b>WORKQUEUE_COUNTS</b> flags to print
-   * per threads counts of private work queue activity
-   */
-  static final boolean USE_OLD_PRIVATE_WORKQUEUE = false;
 
   /**
    * Flag to cause per thread counts of WorkQueue buffer activity
@@ -153,8 +137,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     int debug_counter = 0;
     int debug_counter_counter = 0;
 
-    if (USE_OLD_PRIVATE_WORKQUEUE) return;  // no shared data to reset
-
     if (trace) VM_Scheduler.trace("VM_GCWorkQueue.reset:","numThreadsWaiting =",
 				  numThreadsWaiting);
 
@@ -184,8 +166,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    */
   static void
     resetWorkQBuffers () {
-
-    if (USE_OLD_PRIVATE_WORKQUEUE) { resetPrivateWorkQueue(); return; }
 
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
@@ -369,8 +349,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
       }
     }
 
-    if (USE_OLD_PRIVATE_WORKQUEUE) { putToPrivateWorkQueue( ref ); return; }
-
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     if (COUNT_GETS_AND_PUTS) myThread.putWorkCount++;
@@ -406,8 +384,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     int newbufaddress;
     int temp;
     double temptime;
-
-    if (USE_OLD_PRIVATE_WORKQUEUE)  return getFromPrivateWorkQueue();
 
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
@@ -607,170 +583,10 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     }
   }  // emptyWorkQueue
 
-  // FOLLOWING IS IMPLEMENTATION OF OLD THREAD PRIVATE WORK QUEUE
-
-  // Following methods implement the old thread private work queue, which
-  // was found to not provide sufficient load balancing among the executing
-  // collector threads.  It is retained here only for measurement purposes.
-  // Setting the Flag USE_OLD_PRIVATE_WORKQUEUE==true, will cause the thread
-  // private work queue to be used instead of the load balancing work
-  // queue.  In this case the flag WORKQUEUE_COUNTS will cause -verbose:gc
-  // to pring out per thread counts for the thread private work queue.
-
-  /** Work Queue size for the OLD thread private workqueues */
-  final static int     WORK_QUEUE_SIZE = 128 * 1024;
-
-  // work queue for use by each GC thread during GC consists of a linked
-  // list of buffers, each WORK_QUEUE_SIZE bytes big. each buffer is
-  // allocated from system memory (not from VM heap) and not a java object.
-  // formated as follows:
-  //
-  //    | next ptr | back ptr | entry 0 | entry 1 | ....           |
-  //                            ^                  ^                ^
-  //                            WQStart            WQTop            WQEnd
-  //
-
-  /**
-   * Reset OLD thread private work queue, allocate queue buffer if necessary.
-   */
-  static void
-  resetPrivateWorkQueue () {
-    VM_CollectorThread mythread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-
-    if (mythread.workQStartAddress == 0) {
-      // allocate first workqueue buffer
-      int newbufaddress = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, WORK_QUEUE_SIZE);
-      if ( newbufaddress == 0 ) {
-	VM.sysWrite(" In VM_GCPrivateWorkQueue: sysMalloc for workqueue returned 0 \n");
-	VM.sysExit(1800);
-      }
-      VM_Magic.setMemoryWord( newbufaddress, 0 );              // next ptr = null
-      VM_Magic.setMemoryWord( newbufaddress+4, 0 );            // prev ptr = null
-      mythread.workQStartAddress = newbufaddress + 8;
-      mythread.workQEndAddress = newbufaddress + WORK_QUEUE_SIZE;
-    }
-    // reset queue to empty state, workQueueTop -> first free slot
-    mythread.workQueueTop = mythread.workQStartAddress;
-  }
-
-  /**
-   * Add a ref to the OLD thread private work queue of objects to be scanned.
-   * Note -  <b>workQueueTop</b> points to word beyond end of queue
-   *
-   * @param ref  object reference to add to work queue
-   */
-  static void
-  putToPrivateWorkQueue ( int ref ) {
-    int newbufaddress;
-
-    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-
-    // note:workQueueTop points to word beyond end of queue
-    if ( myThread.workQueueTop >= myThread.workQEndAddress ) {
-      newbufaddress = VM_Magic.getMemoryWord(myThread.workQStartAddress-8);  // next buffer ptr    
-      if ( newbufaddress == 0 ) {
-	// get new buffer, set to empty, and link to current buffer
-	if ((newbufaddress = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-					 WORK_QUEUE_SIZE)) == 0) {
-	  VM.sysWrite(" In putToPrivateWorkQueue, call to sysMalloc returned 0 \n");
-	  VM.sysExit(1800);
-	}
-	VM_Magic.setMemoryWord( myThread.workQStartAddress-8, newbufaddress );   // next prt
-	VM_Magic.setMemoryWord( newbufaddress, 0 );                             // next prt = null
-	VM_Magic.setMemoryWord( newbufaddress+4, myThread.workQStartAddress-8 ); // prev prt
-      }
-      // make next buffer the current buffer
-      myThread.workQStartAddress = myThread.workQueueTop = newbufaddress + 8;
-      myThread.workQEndAddress = newbufaddress + WORK_QUEUE_SIZE;
-    }
-    VM_Magic.setMemoryWord( myThread.workQueueTop, ref );
-    myThread.workQueueTop = myThread.workQueueTop + 4;
-
-    if (WORKQUEUE_COUNTS) {
-      myThread.putWorkCount++;
-      myThread.currentWorkCount++;
-      if ( myThread.currentWorkCount > myThread.maxWorkCount )
-	myThread.maxWorkCount = myThread.currentWorkCount;
-    }
-  }  // putToPrivateWorkQueue
-
-  /**
-   * Gets top reference from the OLD thread private work queue.
-   * Note -  <b>workQueueTop</b> points to word beyond end of queue
-   *
-   * @return top reference in queue, 0 if queue is empty
-   */
-  static int  
-  getFromPrivateWorkQueue () {
-
-    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-
-    if ( myThread.workQueueTop == myThread.workQStartAddress ) {
-      // current buffer is empty, make previous buffer the current buffer
-      int newbufaddress = VM_Magic.getMemoryWord(myThread.workQStartAddress-4); // prev ptr 
-      if ( newbufaddress == 0 ) {
-	// no more buffers to process, must be done
-	// could free EXTRA buffers, leaving one, for now just leave all buffers
-	return 0;
-      }
-      // make preceeding buffer the current buffer
-      myThread.workQStartAddress = newbufaddress + 8;
-      myThread.workQEndAddress = myThread.workQueueTop =
-	newbufaddress + WORK_QUEUE_SIZE;
-    }
-    if (WORKQUEUE_COUNTS)  myThread.currentWorkCount--;
-    myThread.workQueueTop = myThread.workQueueTop - 4;
-    return VM_Magic.getMemoryWord( myThread.workQueueTop );
-  }   // getFromPrivateWorkQueue
-
-
-  /**
-   * Process objects in the work queue until the queue is empty.
-   * Note -  <b>workQueueTop</b> points to word beyond end of queue
-   */
-  static void  
-  emptyPrivateWorkQueue () {
-    // take top object from work queue and process (possibly adding
-    // more objects to the work queue).  repeat until queue is empty
-    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-    int ref;
-
-    if (WORKQUEUE_COUNTS)
-      myThread.initialWorkCount = myThread.putWorkCount;
-    
-    while ( true ) {
-      if ( myThread.workQueueTop == myThread.workQStartAddress ) {
-	// current buffer is empty, make previous buffer the current buffer
-	int newbufaddress = VM_Magic.getMemoryWord(myThread.workQStartAddress-4); // prev ptr 
-	if ( newbufaddress == 0 ) {
-	  // no more buffers to process, must be done
-	  // could free EXTRA buffers, leaving one, for now just leave all buffers
-	  break;
-	}
-	// make preceeding buffer the current buffer
-	myThread.workQStartAddress = newbufaddress + 8;
-	myThread.workQEndAddress = myThread.workQueueTop =
-	  newbufaddress + WORK_QUEUE_SIZE;
-      }
-      if (WORKQUEUE_COUNTS)  myThread.currentWorkCount--;
-      myThread.workQueueTop = myThread.workQueueTop - 4;
-      VM_ScanObject.scanObjectOrArray(VM_Magic.getMemoryWord( myThread.workQueueTop ));
-    }  // end while true loop - all entries processed
-  }   // emptyPrivateWorkQueue
-
-// End of Private WorkQueue Routines
-// ------------------------------------------------------------
-//
+  // methods for measurement statistics
 
   static void
   resetCounters ( VM_CollectorThread ct ) {
-    // counters used for thread private work queue
-    ct.initialWorkCount = 0;
-    ct.maxWorkCount = 0;
-    ct.currentWorkCount = 0;
-    ct.totalWorkCount = 0;
-
-    // following for measuring new common work queue with local work buffers
     ct.copyCount = 0;
     ct.rootWorkCount = 0;
     ct.putWorkCount = 0;
@@ -849,18 +665,12 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     resetWaitTimes(ct);
   }
 
-
   static void
   printAllWaitTimes () {
     int i;
     VM_CollectorThread ct;
-
-    if ( VM_GCWorkQueue.USE_OLD_PRIVATE_WORKQUEUE )
-      return;    // times not measured for old work queue strategy
-
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-
       VM.sysWrite(i,false);
       VM.sysWrite(" number of waits ");
       VM.sysWrite(ct.bufferWaitCount1,false);
@@ -881,34 +691,20 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
       VM.sysWrite(i, false);
-      if ( !VM_GCWorkQueue.USE_OLD_PRIVATE_WORKQUEUE ) {
-
-	VM.sysWrite(" copied ");
-	VM.sysWrite(ct.copyCount1,false);
-	VM.sysWrite(" roots ");
-	VM.sysWrite(ct.rootWorkCount1,false);
-	VM.sysWrite(" puts ");
-	VM.sysWrite(ct.putWorkCount1,false);
-	VM.sysWrite(" gets ");
-	VM.sysWrite(ct.getWorkCount1,false);
-	VM.sysWrite(" put bufs ");
-	VM.sysWrite(ct.putBufferCount1,false);
-	VM.sysWrite(" get bufs ");
-	VM.sysWrite(ct.getBufferCount1,false);
-	VM.sysWrite(" swaps ");
-	VM.sysWrite(ct.swapBufferCount1,false);
-      }
-      else {
-	// print thread private work queue counts
-	VM.sysWrite(" copied ");
-	VM.sysWrite(ct.copyCount1, false);
-	VM.sysWrite(" roots ");
-	VM.sysWrite(ct.initialWorkCount,false);
-	VM.sysWrite(" maxWorkCount ");
-	VM.sysWrite(ct.maxWorkCount,false);
-	VM.sysWrite(" totalWorkCount ");
-	VM.sysWrite(ct.putWorkCount,false);
-      }
+      VM.sysWrite(" copied ");
+      VM.sysWrite(ct.copyCount1,false);
+      VM.sysWrite(" roots ");
+      VM.sysWrite(ct.rootWorkCount1,false);
+      VM.sysWrite(" puts ");
+      VM.sysWrite(ct.putWorkCount1,false);
+      VM.sysWrite(" gets ");
+      VM.sysWrite(ct.getWorkCount1,false);
+      VM.sysWrite(" put bufs ");
+      VM.sysWrite(ct.putBufferCount1,false);
+      VM.sysWrite(" get bufs ");
+      VM.sysWrite(ct.getBufferCount1,false);
+      VM.sysWrite(" swaps ");
+      VM.sysWrite(ct.swapBufferCount1,false);
       VM.sysWrite("\n");
     }
   }
