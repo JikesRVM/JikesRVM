@@ -28,7 +28,6 @@ class jdp {
     boolean interpreted = true;
     boolean commandLine = true;
     boolean viewBoot = false; // if false, will start debugger at main() of user program
-    boolean dejavu = false; // true if we're recording or replaying
     int processID = 0;
     int cnt, i;
 
@@ -106,11 +105,6 @@ class jdp {
         viewBoot = true;
       }
 
-      else if (arg.startsWith("-jdprecord") || arg.startsWith("-jdpreplay"))
-      {
-        dejavu = true;
-      }
-            
       // no more valid jdp args, drop out
       else {
 	break;
@@ -150,10 +144,10 @@ class jdp {
       // run in command line mode
       CommandLineDebugger db;
       if (attach) {
-        db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot, dejavu);
+        db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot);
         db.runAttached(processID, userArgs);
       } else {
-        db = new CommandLineDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot, dejavu);
+        db = new CommandLineDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
         if (args.length==0) {
           System.out.println("no program specified");
           System.exit(1);
@@ -167,10 +161,10 @@ class jdp {
       // run in server mode
       NetworkDebugger db;
       if (attach) {
-        db = new NetworkDebugger(0, null, false, interpreted, null, viewBoot, dejavu);
+        db = new NetworkDebugger(0, null, false, interpreted, null, viewBoot);
         db.runAttached(processID, userArgs);
       } else {
-        db = new NetworkDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot, dejavu);
+        db = new NetworkDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
         if (args.length==0) {
           System.out.println("no program specified");
           System.exit(1);

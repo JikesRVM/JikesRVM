@@ -74,13 +74,6 @@ class Debugger implements jdpConstants {
    */
   private breakpointList saved_bpset;
 
-
-
-  /// /**
-  /// * BootImageWriter for compiling a boot image
-  /// */
-  /// private BootImageWriter bi;
-
   /**
    * Flag set to true if the previous command was for java source debugging 
    * (e.g. stepline), false if machine code debugging (e.g. step).
@@ -98,11 +91,6 @@ class Debugger implements jdpConstants {
    * flag to view booting of VM
    */
   private boolean viewBoot;
-
-  /**
-   * flag to see whether we are using dejavu
-   */
-  private boolean dejavu;
 
   /**
    * Macro file holding jdp commands
@@ -156,8 +144,7 @@ class Debugger implements jdpConstants {
    * @see     jdp
    */  
   public Debugger(int bp, String runner, boolean rawMode, boolean interpreted, String init_macro,
-                  JDPCommandInterface console, boolean _viewBoot, boolean _dejavu)
-  {
+                  JDPCommandInterface console, boolean _viewBoot) {
     // load the JNI library to access ptrace
     Platform.init();
 
@@ -177,7 +164,6 @@ class Debugger implements jdpConstants {
 
     interpretMode = interpreted;
     viewBoot = _viewBoot;
-    dejavu = _dejavu;
 
     // default:  out of process debugger
     if (runner==null)
@@ -187,23 +173,6 @@ class Debugger implements jdpConstants {
 
     macro = new jdpMacro();
   }
-
-  /**
-   * Instance of an internal Debugger (inside the JVM)
-   * @param   
-   * @return  
-   * @see  
-   */    
-  // public Debugger() {
-  //   jdp_console = new CommandLine("jvm>", false);
-  //   printMode = PRINTASSEMBLY;
-  //   debuggerEnvironment = INTERNAL;          // internal debugger
-  //   interpretMode = false;
-  //   // macro = new jdpMacro();  // StringTokenizer is not in JVM yet
-  //   
-  //   // for the internal debugger, create the process once only
-  //   user = new OsProcessInternal();
-  // }
 
 
   /**
@@ -216,8 +185,7 @@ class Debugger implements jdpConstants {
    * @return  
    * @see     jdp  
    */  
-  public void init(String args[])
-  {
+  public void init(String args[]) {
     int i, status;
     saved_args = args;
     VM_Method mymethod[];
@@ -255,8 +223,7 @@ class Debugger implements jdpConstants {
   /**
    * Exit the debugger
    */
-  public void exit()
-  {
+  public void exit() {
     // exiting debugger
     if (user!=null) 
       user.pkill();
@@ -282,7 +249,6 @@ class Debugger implements jdpConstants {
                                    classesNeededFilename, classpath);
 
       // wait for the attachment to complete
-
       // cache the JTOC value before referring to other JVM structures
       user.reg.cacheJTOC();
       
@@ -296,24 +262,17 @@ class Debugger implements jdpConstants {
       // we will need use the dictionary pointers)
       user.bmap.fillBootMethodTable();
 
-
-
       jdp_console.writeOutput(user.mem.printCurrentInstr());
     }
-    /*
-     */
     catch (OsProcessException e) {
-
     }
   }
 
   /**
    * detach the debugger and exit
    */
-  public void exitAttached()
-  {
-    if (user!=null)
-    {
+  public void exitAttached() {
+    if (user!=null) {
       user.bpset.clearAllBreakpoint();
       user.mdetach();
     }
@@ -409,13 +368,11 @@ class Debugger implements jdpConstants {
 
 
 
-  public boolean runCommand()
-  {
+  public boolean runCommand() {
     String cmd; 
     String cmd_args[];
     // if we are processing a macro file, get the next line
-    if (macro.next())
-    {
+    if (macro.next()) {
       String cmd_arg_string=" ";
       cmd = macro.cmd();
       cmd_args = macro.args();
@@ -427,27 +384,21 @@ class Debugger implements jdpConstants {
       jdp_console.writeOutput("Macro line " + macro.currentLine() + ": " + 
                               cmd + cmd_arg_string);
     }
-    else
-    {
+    else {
       // otherwise parse the jdp_console input into command and args 
       jdp_console.readCommand(user);     
       cmd = jdp_console.cmd();
       cmd_args = jdp_console.args();
     }
-    if (!cmd.equals(""))
-    {    
-      if (cmd.equals("quit") || cmd.equals("q"))
-      {
+    if (!cmd.equals("")) {    
+      if (cmd.equals("quit") || cmd.equals("q")) {
         return true;
       }
-      else
-      {
-        try
-        {
+      else {
+        try {
           return jdpCommand(cmd, cmd_args);
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
           jdp_console.writeOutput("ERROR executing jdp command: " + e.getMessage());
           //e.printStackTrace();
           jdp_console.writeOutput("email to jvm-coders or try again . . . ");
@@ -769,10 +720,8 @@ class Debugger implements jdpConstants {
 
   }
 
-  public boolean checkCleanup()
-  {
-    if (!runstat && (user != null))
-    {
+  public boolean checkCleanup() {
+    if (!runstat && (user != null)) {
       saved_bpset = user.bpset;
       user.pkill();
       user = null;         /* drop reference, process terminated */
@@ -780,8 +729,7 @@ class Debugger implements jdpConstants {
     return !runstat;
   }
 
-  public int getThreadNumber()
-  {
+  public int getThreadNumber() {
     return user.reg.getContextThreadID();
   }
   
@@ -924,24 +872,11 @@ class Debugger implements jdpConstants {
     user.pcontinue(0, PRINTASSEMBLY, true);
 
     refreshEnvironment();
-    if (dejavu)
-    {
-      System.out.println("An extra continue for Dejavu ...");
-      user.pcontinue(0, PRINTASSEMBLY, true);
-      refreshEnvironment();
-    }
-    // user.pcontinueToReturn(0, PRINTASSEMBLY);    // up one frame to return to MainThread
-    
     refreshEnvironment();
     
     
     // set breakpoint in main() method of user program
-    breakpoint main_bp;
-    if (dejavu) {
-      main_bp = setDejaVuMainBreakpoint();
-    } else {
-      main_bp = setMainBreakpoint();
-    }
+    breakpoint main_bp = setMainBreakpoint();
     // remove original breakpoint
     user.bpset.clearBreakpoint(bp);
     
@@ -956,33 +891,6 @@ class Debugger implements jdpConstants {
     user.bpset.clearBreakpoint(main_bp);
   }
 
-
-  /**
-   * set a breakpoint at the user main() method when
-   * running DejaVu
-   * @return the breakpoint
-   */
-  private breakpoint setDejaVuMainBreakpoint()
-  {
-    JDP_Class dejavuClass = null;
-    // get DejaVu class
-    try
-    {
-      dejavuClass = user.bmap.objectToJDPClass("DejaVu", 0, true);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    // get mainClassName static field
-    JDP_Field classNameField = null;
-    for (int i = 0; i < dejavuClass.fields.size(); i++)
-    {
-      classNameField = (JDP_Field)dejavuClass.fields.elementAt(i);
-      if (classNameField.name.equals("mainClassName")) break;
-    }
-    return setBreakpointAtStringClass(classNameField);
-  }
 
   /**
    * set a breakpoint at the user main() method
