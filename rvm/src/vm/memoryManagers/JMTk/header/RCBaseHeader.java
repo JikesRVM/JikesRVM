@@ -189,10 +189,24 @@ public abstract class RCBaseHeader implements Constants {
       }
     } while (!VM_Magic.attemptInt(object, RC_SANITY_HEADER_OFFSET, oldValue,
 				  newValue));
-    if (oldValue == 0) {
-      RefCountLocal.sanityLiveObjects++;
-    }
     return (oldValue == 0);
+  }
+
+  /**
+   * Check the ref count and sanity ref count for an object that
+   * should have just died.
+   *
+   * @param object The object to be checked.
+   */
+  static void checkOldObject(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int rcv = (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1));
+    int sanityRCV = (VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(sanityRCV == 0);
+    if (sanityRCV == 0 && rcv != 0) {
+      VM_Interface.sysFail("");
+    }
   }
 
   /**
@@ -208,17 +222,24 @@ public abstract class RCBaseHeader implements Constants {
     int sanityValue = VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET);
     int sanityRC = sanityValue >>> INCREMENT_SHIFT;
     boolean sanityRoot = (sanityValue & ROOT_REACHABLE) == ROOT_REACHABLE;
+    boolean root = (value & ROOT_REACHABLE) == ROOT_REACHABLE;
     if (sanityValue == 0) {
       return false;
     } else {
+      RefCountLocal.sanityLiveObjects++;
       int rc = value >>> INCREMENT_SHIFT;
       if (sanityRC != rc) {
 	Log.write("RC mismatch for object: ");
 	Log.write(object);
 	Log.write(" "); Log.write(rc);
 	Log.write(" (rc) != "); Log.write(sanityRC);
-	Log.writeln(" (sanityRC)");
-	VM_Interface.sysFail("");
+	Log.write(" (sanityRC)");
+	if (root) Log.write(" r");
+	if (sanityRoot) Log.write(" sr");
+	Log.writeln("");
+ 	if (((sanityRC == 0) && !sanityRoot) || ((rc == 0) && !root)) {
+ 	  VM_Interface.sysFail("");
+ 	}
       }
       VM_Magic.setIntAtOffset(object, RC_SANITY_HEADER_OFFSET, 0);
       return true;

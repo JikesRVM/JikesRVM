@@ -174,7 +174,8 @@ final class TrialDeletion extends CycleDetector
       long targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
 
       long gcTimeCap = VM_Interface.millisToCycles(Options.gcTimeCap);
-      if (remaining > gcTimeCap/FILTER_TIME_FRACTION) {
+      if (remaining > gcTimeCap/FILTER_TIME_FRACTION ||
+	  RefCountSpace.RC_SANITY_CHECK) {
 	filterPurpleBufs(targetTime);
 	processFreeBufs();
 	if (shouldCollectCycles()) {
@@ -186,7 +187,8 @@ final class TrialDeletion extends CycleDetector
 	  remaining = finishTarget - cycleStart;
 	  boolean abort = false;
 	  while (maturePurplePool.enqueuedPages()> 0 && !abort &&
-		 remaining > gcTimeCap/CYCLE_TIME_FRACTION) {
+		 (remaining > gcTimeCap/CYCLE_TIME_FRACTION ||
+		  RefCountSpace.RC_SANITY_CHECK)) {
 	    abort = collectSomeCycles(time, finishTarget);
 	    remaining = finishTarget - VM_Interface.cycles();
 	  }
@@ -300,7 +302,9 @@ final class TrialDeletion extends CycleDetector
 	p++;
       }
       purple += p;
-    } while (!obj.isZero() && VM_Interface.cycles() < timeCap && purple < limit);
+    } while (!obj.isZero() && 
+	     ((VM_Interface.cycles() < timeCap && purple < limit) ||
+	      RefCountSpace.RC_SANITY_CHECK));
     return purple;
   }
 
@@ -374,7 +378,9 @@ final class TrialDeletion extends CycleDetector
 	  maturePurpleBuffer.insert(obj);
 	}
       }
-    } while (!obj.isZero() && !abort && VM_Interface.cycles() < timeCap);
+    } while (!obj.isZero() && !abort && 
+	     ((VM_Interface.cycles() < timeCap) || 
+	      RefCountSpace.RC_SANITY_CHECK));
     return abort;
   }
   private final boolean processGreyObject(VM_Address object, AddressDeque tgt,
@@ -413,7 +419,8 @@ final class TrialDeletion extends CycleDetector
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       visitCount++;
-      if (visitCount % GREY_VISIT_GRAIN == 0 && VM_Interface.cycles() > timeCap) {
+      if (visitCount % GREY_VISIT_GRAIN == 0 && !RefCountSpace.RC_SANITY_CHECK 
+	  && VM_Interface.cycles() > timeCap) {
 	abort = true;
       }
       

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
@@ -42,6 +43,9 @@ final class RefCountLocal extends SegregatedFreeList
   private static SharedDeque incSanityRootsPool;
   private static SharedDeque sanityWorkQueuePool;
   private static SharedDeque checkSanityRootsPool;
+  private static SharedDeque sanityImmortalPoolA;
+  private static SharedDeque sanityImmortalPoolB;
+  private static SharedDeque sanityLastGCPool;
   public static int rcLiveObjects = 0;
   public static int sanityLiveObjects = 0;
 
@@ -83,6 +87,9 @@ final class RefCountLocal extends SegregatedFreeList
   private AddressDeque incSanityRoots;
   private AddressPairDeque sanityWorkQueue;
   private AddressDeque checkSanityRoots;
+  private AddressDeque sanityImmortalSetA;
+  private AddressDeque sanityImmortalSetB;
+  private AddressDeque sanityLastGCSet;
 
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
@@ -109,6 +116,12 @@ final class RefCountLocal extends SegregatedFreeList
       sanityWorkQueuePool.newClient();
       checkSanityRootsPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
       checkSanityRootsPool.newClient();
+      sanityImmortalPoolA = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolA.newClient();
+      sanityImmortalPoolB = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolB.newClient();
+      sanityLastGCPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityLastGCPool.newClient();
     }
 
     cellSize = new int[SIZE_CLASSES];
@@ -157,6 +170,9 @@ final class RefCountLocal extends SegregatedFreeList
       incSanityRoots = new AddressDeque("sanity increment root set", incSanityRootsPool);
       sanityWorkQueue = new AddressPairDeque(sanityWorkQueuePool);
       checkSanityRoots = new AddressDeque("sanity check root set", checkSanityRootsPool);
+      sanityImmortalSetA = new AddressDeque("immortal set A", sanityImmortalPoolA);
+      sanityImmortalSetB = new AddressDeque("immortal set B", sanityImmortalPoolB);
+      sanityLastGCSet = new AddressDeque("last GC set", sanityLastGCPool);
     }
     if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
@@ -245,7 +261,7 @@ final class RefCountLocal extends SegregatedFreeList
 	count++;
       } 
       decCounter += count;
-    } while (!tgt.isZero() && VM_Interface.cycles() < limit);
+    } while (!tgt.isZero() && (RefCountSpace.RC_SANITY_CHECK || VM_Interface.cycles() < limit));
     decrementPhase = false;
   }
 
@@ -441,6 +457,10 @@ final class RefCountLocal extends SegregatedFreeList
   final void incSanityTrace() {
     sanityLiveObjects = 0;
     VM_Address object;
+    while (!(object = sanityImmortalSetA.pop()).isZero()) {
+      plan.checkSanityTrace(object, VM_Address.zero());
+      sanityImmortalSetB.push(object);
+    }
     while (!(object = incSanityRoots.pop()).isZero()) {
       plan.incSanityTrace(object, VM_Address.zero(), true);
       checkSanityRoots.push(object);
@@ -459,25 +479,51 @@ final class RefCountLocal extends SegregatedFreeList
    * tracing).
    */
   final void checkSanityTrace() {
+    VM_Address object;
+    while (!(object = sanityLastGCSet.pop()).isZero()) {
+      RCBaseHeader.checkOldObject(object);
+    }
+    while (!(object = sanityImmortalSetB.pop()).isZero()) {
+      plan.checkSanityTrace(object, VM_Address.zero());
+      sanityImmortalSetA.push(object);
+    }
+    while (!(object = checkSanityRoots.pop()).isZero()) {
+      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      plan.checkSanityTrace(object, VM_Address.zero());
+    }
+    while (!(object = sanityWorkQueue.pop1()).isZero()) {
+      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      plan.checkSanityTrace(object, sanityWorkQueue.pop2());
+    }
     if (rcLiveObjects != sanityLiveObjects) {
       Log.write("live mismatch: "); Log.write(rcLiveObjects); 
       Log.write(" (rc) != "); Log.write(sanityLiveObjects);
       Log.writeln(" (sanityRC)");
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
-    VM_Address object;
-    while (!(object = checkSanityRoots.pop()).isZero()) {
-     plan.checkSanityTrace(object, VM_Address.zero());
-    }
-    while (!(object = sanityWorkQueue.pop1()).isZero()) {
-      plan.checkSanityTrace(object, sanityWorkQueue.pop2());
+  }
+
+  static int lastGCsize = 0;
+  final void addLiveSanityObject(VM_Address object) {
+    lastGCsize++;
+    sanityLastGCSet.push(object);
+  }
+
+  final void addImmortalObject(VM_Address object) {
+    sanityImmortalSetA.push(object);
+  }
+
+  final void checkForImmortal(VM_Address object) {
+    byte space = VMResource.getSpace(VM_Interface.refToAddress(object));
+    if (space == Plan.IMMORTAL_SPACE || space == Plan.BOOT_SPACE) {
+      addImmortalObject(object);
     }
   }
 
   /**
    * An allocation has occured, so increment the count of live objects.
    */
-  final static void sanityAllocCount() {
+  final static void sanityAllocCount(VM_Address object) {
     rcLiveObjects++;
   }
 

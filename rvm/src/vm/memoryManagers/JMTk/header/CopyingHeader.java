@@ -109,6 +109,13 @@ public class CopyingHeader {
   }
 
   /**
+   * Non-atomic read of forwarding pointer
+   */
+  static VM_Address getForwardingPtr(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return VM_Address.fromInt(VM_Interface.readAvailableBitsWord(base) & ~GC_FORWARDING_MASK);
+  }
+
+  /**
    * Has the object been forwarded?
    */
   public static boolean isForwarded(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
