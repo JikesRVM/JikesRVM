@@ -89,24 +89,26 @@ public class VM_BootRecord {
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
-    heapRanges = new int[2 * (1 + MM_Interface.getMaxHeaps())];
+    int len = 2 * (1 + MM_Interface.getMaxHeaps());
+    heapRanges = VM_AddressArray.create(len);
     // Indicate end of array with sentinel value
-    heapRanges[heapRanges.length - 1] = -1;
-    heapRanges[heapRanges.length - 2] = -1;
+    heapRanges.set(len -1, VM_Address.fromIntSignExtend(-1));
+    heapRanges.set(len -2, VM_Address.fromIntSignExtend(-1));
   }
 
   public void showHeapRanges() {
-    for (int i=0; i<heapRanges.length / 2; i++) {
+    for (int i=0; i<heapRanges.length() / 2; i++) {
       VM.sysWrite(i, "  ");
-      VM.sysWrite(heapRanges[2 * i], "  ");
-      VM.sysWriteln(heapRanges[2 * i + 1], "  ");
+      VM.sysWrite(heapRanges.get(2 * i));
+      VM.sysWrite("  ", heapRanges.get(2 * i + 1));
+      VM.sysWrite("  ");
     }
   }
 
   public void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length - 2); 
-    heapRanges[2 * id] = start.toInt();
-    heapRanges[2 * id + 1] = end.toInt();
+    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2); 
+    heapRanges.set(2 * id, start);
+    heapRanges.set(2 * id + 1, end);
   }
   
   // The following fields are written when the virtual machine image
@@ -133,16 +135,15 @@ public class VM_BootRecord {
    */
   public int maximumHeapSize;
 
-  // int[] should be VM_Address[] but compiler erroneously emits barriers
-  public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
-                                    // C-style termination with sentinel values
+  public VM_AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
+                                     // C-style termination with sentinel values
 
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
-  public VM_Address spRegister;          // value to place into SP register
-  public VM_Address ipRegister;          // value to place into IP register
-  public VM_Address tocRegister;         // value to place into TOC register
+  public VM_Address spRegister;   // value to place into SP register
+  public VM_Address ipRegister;   // value to place into IP register
+  public VM_Address tocRegister;  // value to place into JTOC register
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
