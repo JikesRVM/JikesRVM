@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.PrintLN;  /* This import statement isn't necessary,
 				     --S. Augart */ 
 import java.io.PrintWriter;
 import java.io.PrintStream;
+import com.ibm.JikesRVM.VM;
 
 /**
  * This class is used by java.lang.Throwable to print stack traces; it lets
@@ -50,6 +51,19 @@ public class PrintContainer
       stream.println(s);
     else
       throw new InternalError("inconsistent internal state of ibm.com.JikesRVM.PrintContainer.PrintContainer object");
+  }
+
+  /** This class does printing via VM.sysWriteln() */
+  public static class VMSysWriteln 
+    implements PrintLN
+  {
+    public VMSysWriteln() {}
+    public void println(String s) {
+      VM.sysWriteln(s);
+    }
+    public void print(String s) {
+      VM.sysWrite(s);
+    }
   }
 }
 
