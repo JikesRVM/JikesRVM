@@ -171,7 +171,8 @@ class OptTestHarness {
 
     s = s.replace('.','/');
 
-    return (VM_Class)java.lang.Class.forName(s, true, cl).getVMType();
+    return (VM_Class)
+	java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
   }
 
   static void printFormatString() {
@@ -313,7 +314,7 @@ class OptTestHarness {
 	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
 	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
 	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
-	  java.lang.reflect.Method reflectoid = new java.lang.reflect.Method(method) ;
+	  java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method) ;
           reflectoidVector.addElement(reflectoid) ;
           reflectMethodVector.addElement(method) ;
           reflectMethodArgsVector.addElement(reflectMethodArgs) ;
