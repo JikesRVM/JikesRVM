@@ -1634,7 +1634,6 @@ function emitImageLinker
           print "   print '[LOPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LOPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LOPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_GenericStackManager\$SpillRecord;' >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
