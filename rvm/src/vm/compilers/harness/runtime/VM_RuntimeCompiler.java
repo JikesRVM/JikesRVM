@@ -64,9 +64,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // We compute  e ** ((log a + log b + ... + log n) / n )
   private static double totalLogOfRates[]   = {0,0,0};
 
-  // Only used if we are computing the inferior arithmetic mean, geo is better!
-  private static double totalRates[]        = {0,0,0};
-
   // We can't record values until Math.log is loaded, so we miss the first few
   private static int totalLogValueMethods[] = {0,0,0};
 
@@ -178,10 +175,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
       totalBCLength[compiler] += BCLength; 
       double rate = BCLength / compTime;
 
-      // for now let's also accumate for arithmetic mean
-      //  soon we'll just use geomean, which is the statistically right one to choose
-      totalRates[compiler] += rate;
-
       // need to be fully booted before calling log
       if (VM.fullyBooted) {
 	// we want the geometric mean, but the product of rates is too big 
@@ -214,25 +207,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
 	  VM.sysWrite("NA");
 	} else {
 	  // Bytecode bytes per millisecond, 
-	  // 2 ways to compute controlled by a AOS option for now
-	  //-#if RVM_WITH_ADAPTIVE_SYSTEM
-	  if (VM_Controller.options.WEIGHTED_COMPILATION_RATE) {
-	    VM.sysWrite((double)totalBCLength[i]/totalCompTime[i], 2);
-	  } else {// unweighted rate
-	    // Should use geomean, but need to get past the "log" problem, so
-	    //   we make arith an option for now
-	    if (VM_Controller.options.ARITH_MEAN_COMPILATION_RATE) {
-	      // arith mean
-	      VM.sysWrite(totalRates[i] / totalMethods[i], 2);
-	    } else {
-	      // geometric mean
-	      VM.sysWrite(Math.exp(totalLogOfRates[i] / totalLogValueMethods[i]), 2);
-	    }
-	  }
-	  //-#else
-	  //  use unweighted geomean as default
+	  //  use unweighted geomean 
 	  VM.sysWrite(Math.exp(totalLogOfRates[i] / totalLogValueMethods[i]), 2);
-	  //-#endif
 	}
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
@@ -281,22 +257,12 @@ public class VM_RuntimeCompiler implements VM_Constants,
     //-#endif
   }
    
-  //-#if RVM_WITH_ADAPTIVE_SYSTEM 
   /**
    * Return the current estimate of basline-compiler rate, in bcb/msec
    */
   public static double getBaselineRate() {
-    double rate = 0.0;
-    if (VM_Controller.options.WEIGHTED_COMPILATION_RATE) {
-      double bytes = (double) totalBCLength[BASELINE_COMPILER];
-      double time = totalCompTime[BASELINE_COMPILER];
-      rate = bytes / time;
-    } else {
-      rate = Math.exp(totalLogOfRates[BASELINE_COMPILER] / totalLogValueMethods[BASELINE_COMPILER]);
-    }
-    return rate;
+    return Math.exp(totalLogOfRates[BASELINE_COMPILER] / totalLogValueMethods[BASELINE_COMPILER]);
   }
-  //-#endif
 
   /**
    * This method will compile the passed method using the baseline compiler.
