@@ -40,8 +40,10 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -296,7 +298,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    */
 
   /**
-   * Allocate a scalar object
+   * Allocate a scalar object.
    *
    * @param size Size in bytes of the object, including any headers
    *		 that need space.
@@ -304,7 +306,6 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param allocator Specify which allocation scheme/area JMTk should allocate
    *		 the memory from.
    */
-
   public static Object allocateScalar(int size, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     Plan plan = VM_Interface.getPlan();
@@ -316,9 +317,27 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return result;
   }
 
-  public static Object allocateArray(int numElements, int size, Object [] tib, int allocator) 
+  /**
+   * Allocate an array object.
+   * 
+   * @param numElements number of array elements
+   * @param logElementSize size in bytes of an array element, log base 2.
+   * @param headerSize size in bytes of array header
+   * @param tib type information block for array object
+   * @param allocator int that encodes which allocator should be used
+   * @return array object with header installed and all elements set 
+   *         to zero/null
+   * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
+   */ 
+  public static Object allocateArray(int numElements, int logElementSize, 
+				     int headerSize, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
+    int elemBytes = numElements << logElementSize;
+    if ((elemBytes >>> logElementSize) != numElements) {
+      // asked to allocate more than Integer.MAX_VALUE bytes
+      failWithOutOfMemoryError();
+    }
+    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
     VM_Address region = plan.alloc(size, false, allocator, advice);
@@ -327,6 +346,12 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, false, allocator);
     return result;
   }
+
+  private static void failWithOutOfMemoryError() throws VM_PragmaLogicallyUninterruptible,
+							VM_PragmaNoInline {
+    throw new OutOfMemoryError();
+  }
+							
 
   /*
    * Clone an array: 2 flavours - same length as the original, and different length
@@ -339,8 +364,9 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
       throws VM_PragmaUninterruptible {
     VM_Array type = VM_Magic.getObjectType(array).asArray();
     Object [] tib = type.getTypeInformationBlock();
-    int size = type.getInstanceSize(length);
-    return allocateArray(length, size, tib, allocator);
+    return allocateArray(length, type.getLogElementSize(), 
+			 VM_ObjectModel.computeArrayHeaderSize(type),
+			 tib, allocator);
   }
 
   public static VM_Address allocateCopy(VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -429,9 +455,9 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     if (VM.runningVM) {
       VM_Array shortArrayType = VM_Array.ShortArray;
       Object [] shortArrayTib = shortArrayType.getTypeInformationBlock();
-      int offset = VM_JavaHeader.computeArrayHeaderSize(shortArrayType);
-      int arraySize = shortArrayType.getInstanceSize(n);
-      Object result = allocateArray(n, arraySize, shortArrayTib, Plan.IMMORTAL_SPACE);
+      Object result = allocateArray(n, shortArrayType.getLogElementSize(),
+				    VM_ObjectModel.computeArrayHeaderSize(shortArrayType),
+				    shortArrayTib, Plan.IMMORTAL_SPACE);
       return (short []) result;
     }
 
@@ -504,8 +530,9 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     if (VM.runningVM) {
       VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;
       Object [] objectArrayTib = objectArrayType.getTypeInformationBlock();
-      int arraySize = objectArrayType.getInstanceSize(n);
-      Object result = allocateArray(n, arraySize, objectArrayTib, Plan.IMMORTAL_SPACE);
+      Object result = allocateArray(n, objectArrayType.getLogElementSize(),
+				    VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
+				    objectArrayTib, Plan.IMMORTAL_SPACE);
       return (Object []) result;
     } else
       return new Object[n];

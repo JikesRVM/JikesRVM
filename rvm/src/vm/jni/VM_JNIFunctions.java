@@ -4089,10 +4089,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 	arrayType.instantiate();
 	arrayType.initialize();
       }
-
-      Object[] tib = arrayType.getTypeInformationBlock();
-      int allocator = MM_Interface.pickAllocator(arrayType);
-      Object newArray[] = (Object []) VM_Runtime.resolvedNewArray(length, arrayType.getInstanceSize(length), tib, allocator);
+      Object newArray[] = (Object []) VM_Runtime.resolvedNewArray(length, arrayType);
 
       if (initElement != null) {
 	for (int i=0; i<length; i++) {

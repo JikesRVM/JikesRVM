@@ -578,10 +578,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     } else {
       // the arrays overlap: must use temp array
       VM_Array ary = VM_Magic.getObjectType(src).asArray();
-      int allocator = MM_Interface.pickAllocator(ary);
-      Object temp[] = (Object[])
-	VM_Runtime.resolvedNewArray(len, ary.getInstanceSize(len), 
-				    ary.getTypeInformationBlock(), allocator);
+      Object temp[] = (Object[])VM_Runtime.resolvedNewArray(len, ary);
       int cnt = len;
       int tempIdx = 0;
       while (cnt-- != 0)

@@ -2671,11 +2671,11 @@ public class VM_Compiler extends VM_BaselineCompiler
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
-    peekInt(T0,0);                // T0 := number of elements
-    asm.emitSLWI  (T1, T0, width);             // T1 := number of bytes
-    asm.emitADDI  (T1, headerSize, T1);        //    += header bytes
-    asm.emitLAddrToc(T2, tibOffset);             // T2 := tib
-    asm.emitLVAL (T3, whichAllocator);
+    peekInt(T0,0);                    // T0 := number of elements
+    asm.emitLVAL (T1, width);         // T1 := log element size
+    asm.emitLVAL (T2, headerSize);    // T2 := header bytes
+    asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
+    asm.emitLVAL (T4, whichAllocator);// T4 := allocator
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }

@@ -2271,13 +2271,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     // count is already on stack- nothing required
-    asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
-    asm.emitSHL_Reg_Imm (T0, width);              // compute array size
-    asm.emitADD_Reg_Imm(T0, headerSize);
-    asm.emitPUSH_Reg(T0);      
-    asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
-    asm.emitPUSH_Imm(whichAllocator);
-    genParameterRegisterLoad(4);          // pass 4 parameter words
+    asm.emitPUSH_Imm(width);                 // logElementSize
+    asm.emitPUSH_Imm(headerSize);            // headerSize
+    asm.emitPUSH_RegDisp(JTOC, tibOffset);   // tib
+    asm.emitPUSH_Imm(whichAllocator);        // allocator
+    genParameterRegisterLoad(5);             // pass 5 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }

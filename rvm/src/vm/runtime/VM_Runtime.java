@@ -286,8 +286,8 @@ public class VM_Runtime implements VM_Constants {
    
   /**
    * Allocate something like "new Foo[]".
-   * @param id id of type reference of class to create.
    * @param numElements number of array elements
+   * @param id id of type reference of array to create.
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
@@ -300,24 +300,40 @@ public class VM_Runtime implements VM_Constants {
       array.instantiate();
     }
 
-    int allocator = MM_Interface.pickAllocator(array);
+    return resolvedNewArray(numElements, array);
+  }
+
+  /**
+   * Allocate something like "new Foo[]".
+   * @param numElements number of array elements
+   * @param array VM_Array of array to create 
+   * @return array with header installed and all fields set to zero/null
+   * See also: bytecode 0xbc ("anewarray")
+   */ 
+  public static Object resolvedNewArray(int numElements, VM_Array array) 
+    throws OutOfMemoryError, NegativeArraySizeException { 
+
     return resolvedNewArray(numElements, 
-			    array.getInstanceSize(numElements),
+			    array.getLogElementSize(),
+			    VM_ObjectModel.computeArrayHeaderSize(array),
 			    array.getTypeInformationBlock(),
-			    allocator);
+			    MM_Interface.pickAllocator(array));
   }
    
   /**
    * Allocate something like "new int[cnt]" or "new Foo[cnt]".
    * @param numElements number of array elements
-   * @param size size of array object (including header), in bytes
+   * @param logElementSize size in bytes of an array element, log base 2.
+   * @param headerSize size in bytes of array header
    * @param tib type information block for array object
+   * @param allocator int that encodes which allocator should be used
    * @return array object with header installed and all elements set 
-   * to zero/null
+   *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   public static Object resolvedNewArray(int numElements, 
-					int size, 
+					int logElementSize,
+					int headerSize, 
 					Object[] tib,
 					int allocator)
     throws OutOfMemoryError, NegativeArraySizeException {
@@ -338,7 +354,8 @@ public class VM_Runtime implements VM_Constants {
       VM_EventLogger.logObjectAllocationEvent();
 
     // Allocate the array and initialize its header
-    return MM_Interface.allocateArray(numElements, size, tib, allocator);
+    return MM_Interface.allocateArray(numElements, logElementSize, 
+				      headerSize, tib, allocator);
   }
 
 
@@ -364,9 +381,7 @@ public class VM_Runtime implements VM_Constants {
     if (type.isArrayType()) {
       VM_Array ary   = type.asArray();
       int      nelts = VM_ObjectModel.getArrayLength(obj);
-      int      size  = ary.getInstanceSize(nelts);
-      Object[] tib   = ary.getTypeInformationBlock();
-      Object newObj  = resolvedNewArray(nelts, size, tib, allocator);
+      Object newObj  = resolvedNewArray(nelts, ary);
       System.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
@@ -738,9 +753,7 @@ public class VM_Runtime implements VM_Constants {
     }
 
     int    nelts     = numElements[dimIndex];
-    int    size      = arrayType.getInstanceSize(nelts);
-    int allocator    = MM_Interface.pickAllocator(arrayType, method);
-    Object newObject = resolvedNewArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
+    Object newObject = resolvedNewArray(nelts, arrayType);
 
     if (++dimIndex == numElements.length)
       return newObject; // all dimensions have been built
