@@ -22,9 +22,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
 
   private static boolean DEBUG = false;
 
-  // gack
-  private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
-
   /**
    * This is the method that actually does the work of the phase.
    */
@@ -49,7 +46,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
 
     ensureLandingPads (ir);
     
-    //branchOpts.perform(ir, false);
     dom.perform(ir);
     ir.cfg.compactNodeNumbering();
   }
@@ -68,7 +64,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * Returns the name of the phase.
    */
   public String getName() {
-    return "CFGTransformations";
+    return "Loop Normalization";
   }
 
   /**

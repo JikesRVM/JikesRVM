@@ -181,7 +181,7 @@ public class OPT_OptimizationPlanner {
   private static void HIROptimizations(Vector p) {
     // Various large-scale CFG transformations.
     // Do these very early in the pipe so that all HIR opts can benefit.
-    composeComponents(p, "CFG Trasformations", new Object[] {
+    composeComponents(p, "CFG Transformations", new Object[] {
       // tail recursion elimination
       new  OPT_TailRecursionElimination(),
       // Estimate block frequencies if doing any of
