@@ -330,9 +330,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
     VM_Address old = VM_Magic.getMemoryAddress(src);
-    if (old.GE(RC_START))
+    //    if (old.GE(RC_START))
+    if (old.toInt() >= RC)
       decBuffer.push(old);
-    if (tgt.GE(RC_START))
+    //    if (tgt.GE(RC_START))
+    if (tgt.toInt() >= RC)
       incBuffer.push(tgt);
   }
 
@@ -505,6 +507,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   // Final class variables (aka constants)
   //
   private static final VM_Address       RC_START = PLAN_START;
+  private static final int RC = RC_START.toInt();
   private static final EXTENT            RC_SIZE = 1024 * 1024 * 1024;              // size of each space
   private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
   private static final VM_Address       HEAP_END = RC_END;

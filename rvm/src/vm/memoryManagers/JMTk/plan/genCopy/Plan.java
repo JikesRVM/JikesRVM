@@ -358,7 +358,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
 
   private void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
-    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
+    //    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
+    if (src.toInt() < NS && tgt.toInt() >= NS)
       remset.insert(src);
   }
 
@@ -516,6 +517,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   private static final EXTENT           LOS_SIZE = 128 * 1024 * 1024;
   private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
   private static final VM_Address   MATURE_START = LOS_END;
+  private static final int NS = NURSERY_START.toInt();
   private static final EXTENT     MATURE_SS_SIZE = 256 * 1024 * 1024;              // size of each space
   private static final VM_Address MATURE_LO_START = MATURE_START;
   private static final VM_Address MATURE_HI_START = MATURE_START.add(MATURE_SS_SIZE);
