@@ -732,7 +732,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (VM_Collector.gcInProgress())
+    if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
     int[] newStack = new int[newSize];
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
