@@ -121,7 +121,7 @@ public final class SynchronizationBarrier {
    */
   public void resetRendezvous () throws UninterruptiblePragma {
 
-    if ( ! VM.BuildForSingleVirtualProcessor) {
+    if (!VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
       // waitABit() to spin when running with fewer VM_Procssors than real processors
       numRealProcessors = VM_SysCall.sysNumProcessors();
