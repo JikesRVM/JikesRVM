@@ -87,7 +87,7 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
 tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
-(find $RVM_ROOT/results -name cp -exec rm -rf {} \;; $GNU_TAR czvf $RVM_ROOT/results $tarfile) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+(find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 
 echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 cd $RVM_ROOT/sanityResults
@@ -116,6 +116,10 @@ else
   echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
 fi
 
+# Also report the number of javadoc errors
+numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc -l`
+echo "There were $numjavadocErrors javadoc warnings" >> $MSG
+
 # Print some details on the failures
 if [[ $numfailed -gt 0 ]] then
   echo >> $MSG
@@ -142,10 +146,6 @@ echo >> $MSG
 echo >> $MSG
 echo Performance Summary >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
-
-# Report on javadoc errors
-numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc`
-echo "There were $numjavadocErrors javadoc warnings" >> $MSG
 
 # Print verbose performance data for SPECjvm98
 echo >> $MSG
