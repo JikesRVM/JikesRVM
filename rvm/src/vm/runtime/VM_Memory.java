@@ -19,12 +19,8 @@ class VM_Memory implements VM_Uninterruptible {
   // (1) Utilities for copying/filling/zeroing memory
   ////////////////////////
   /** 
-   * Should we call C stdlib memcopy for large copies? 
-   */
-  private static final boolean USE_NATIVE_CODE = true;
-  /** 
-   * How many bytes is considered large enough to call C stdlib
-   * (when USE_NATIVE_CODE is true)?
+   * How many bytes is considered large enough to justify the transition to
+   * C code to use memcpy?
    */
   private static final int NATIVE_THRESHOLD = 256; 
 
@@ -40,7 +36,7 @@ class VM_Memory implements VM_Uninterruptible {
    */
   static void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
-    if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD)) {
+    if (len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
 	      VM_Magic.objectAsAddress(src) + srcPos, 
 	      len);
@@ -99,7 +95,7 @@ class VM_Memory implements VM_Uninterruptible {
    */
   static void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
-    if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD)) {
+    if (len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
 	      VM_Magic.objectAsAddress(src) + srcPos, 
 	      len);
@@ -159,7 +155,7 @@ class VM_Memory implements VM_Uninterruptible {
    */
   static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
-    if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD/2)) {
+    if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
 	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
 	      len<<1);
@@ -205,7 +201,7 @@ class VM_Memory implements VM_Uninterruptible {
    */
   static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
-    if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD/2)) {
+    if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
 	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
 	      len<<1);
@@ -250,7 +246,7 @@ class VM_Memory implements VM_Uninterruptible {
    */
   static void aligned32Copy(int dst, int src, int numBytes) {
     VM_Magic.pragmaInline();
-    if (USE_NATIVE_CODE && (numBytes > NATIVE_THRESHOLD)) {
+    if (numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {
       internalAligned32Copy(dst, src, numBytes);
