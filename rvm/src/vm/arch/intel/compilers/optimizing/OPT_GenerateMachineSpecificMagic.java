@@ -26,7 +26,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  static void generateMagic(OPT_BC2IR bc2ir, 
+  static boolean generateMagic(OPT_BC2IR bc2ir, 
 			    OPT_GenerationContext gc, 
 			    VM_Method meth) 
     throws OPT_MagicNotImplementedException {
@@ -133,9 +133,9 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Load.create(INT_ADD, val, 
-					  fp,
-					  new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
+      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+					    fp,
+					    new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.sysCall0) {
       OPT_Operand ip = bc2ir.popInt();
