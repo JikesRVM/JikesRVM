@@ -217,6 +217,8 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 		signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
 
     write (SysErrorFd, buf, sprintf (buf, "handler stack 0x%x\n", &buf));
+    if (signo == SIGSEGV)
+      write (SysErrorFd, buf, sprintf (buf, "si->si_addr   0x%08x\n", si->si_addr));
     write (SysErrorFd, buf, sprintf (buf, "gs            0x%08x\n", gregs[REG_GS]));
     write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", gregs[REG_FS]));
     write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", gregs[REG_ES]));
