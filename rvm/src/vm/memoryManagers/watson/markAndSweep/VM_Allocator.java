@@ -2451,11 +2451,11 @@ tib));
             (t.nativeAffinity.activeThread == t)))
             fp  = t.jniEnv.JNITopJavaFP;
 
-          else fp = t.contextRegisters.gprs[FRAME_POINTER];
+          else fp = t.contextRegisters.getInnermostFramePointer();
 		//-#else
 		// default implementaton of jni
 
-        fp = t.contextRegisters.gprs[FRAME_POINTER];
+	  fp = t.contextRegisters.getInnermostFramePointer();
 		//-#endif
   
           VM_ScanStack.scanStack( t, VM_NULL, false /*relocate_code*/ );
