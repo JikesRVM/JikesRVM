@@ -88,7 +88,7 @@ export LDSHARED="${CPLUS} -shared"
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 #  some Unix commands
-export AWK="/bin/awk"
+export AWK="/usr/bin/awk"
 export BASH="/bin/bash"
 # You need one of YACC or Bison (one will usually be installed)
 # If you're using Bison, uncomment the line below:
