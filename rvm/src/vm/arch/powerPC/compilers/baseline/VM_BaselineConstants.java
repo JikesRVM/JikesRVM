@@ -26,7 +26,9 @@ public interface VM_BaselineConstants extends VM_Constants {
   static final int T2   = FIRST_VOLATILE_GPR+2;
   static final int T3   = FIRST_VOLATILE_GPR+3;
   static final int T4   = FIRST_VOLATILE_GPR+4;
-  
+  static final int T5   = FIRST_VOLATILE_GPR+5;
+  static final int T6   = FIRST_VOLATILE_GPR+6;
+
   // Temporary floating-point registers;
   static final int F0   = FIRST_VOLATILE_FPR;
   static final int F1   = FIRST_VOLATILE_FPR+1;

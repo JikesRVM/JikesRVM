@@ -2243,11 +2243,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef);
+    int align = VM_ObjectModel.getAlignment(typeRef);
+    int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
     asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
     asm.emitPUSH_Imm(whichAllocator);
-    genParameterRegisterLoad(4);                  // pass 4 parameter words
+    asm.emitPUSH_Imm(align);
+    asm.emitPUSH_Imm(offset);
+    genParameterRegisterLoad(6);                  // pass 6 parameter words
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
@@ -2272,12 +2276,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int align = VM_ObjectModel.getAlignment(array);
+    int offset = VM_ObjectModel.getOffsetForAlignment(array);
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(width);                 // logElementSize
     asm.emitPUSH_Imm(headerSize);            // headerSize
     asm.emitPUSH_RegDisp(JTOC, tibOffset);   // tib
     asm.emitPUSH_Imm(whichAllocator);        // allocator
-    genParameterRegisterLoad(5);             // pass 5 parameter words
+    asm.emitPUSH_Imm(align);
+    asm.emitPUSH_Imm(offset);
+    genParameterRegisterLoad(7);             // pass 7 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }

@@ -40,7 +40,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   VM_Compiler(VM_BaselineCompiledMethod cm) {
     super(cm);
-    if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
+    if (VM.VerifyAssertions) VM._assert(T6 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
     if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
     stackHeights = new int[bcodes.length()];
@@ -2637,12 +2637,16 @@ public class VM_Compiler extends VM_BaselineCompiler
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
+    int align = VM_ObjectModel.getAlignment(typeRef);
+    int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
     asm.emitLAddrToc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
     asm.emitLAddrToc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer()?1:0);
     asm.emitLVAL(T3, whichAllocator);
+    asm.emitLVAL(T4, align);
+    asm.emitLVAL(T5, offset);
     asm.emitBCCTRL();
     pushAddr(T0);
   }
@@ -2668,6 +2672,8 @@ public class VM_Compiler extends VM_BaselineCompiler
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int align = VM_ObjectModel.getAlignment(array);
+    int offset = VM_ObjectModel.getOffsetForAlignment(array);
     asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                    // T0 := number of elements
@@ -2675,6 +2681,8 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLVAL(T2, headerSize);    // T2 := header bytes
     asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
     asm.emitLVAL(T4, whichAllocator);// T4 := allocator
+    asm.emitLVAL(T5, align);
+    asm.emitLVAL(T6, align);
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }

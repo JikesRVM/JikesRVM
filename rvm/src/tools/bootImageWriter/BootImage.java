@@ -100,7 +100,6 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Allocate a scalar object.
-   * Note: size should be divisible by 4
    *
    * @param klass VM_Class object of scalar being allocated
    * @return offset of object within bootimage, in bytes
@@ -113,19 +112,16 @@ public class BootImage extends BootImageWriterMessages
   }
 
   /**
-   * Allocate an array object.  Unconditionally 8-byte align for 64-bit.
+   * Allocate an array object.
    *
    * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
    * @return offset of object within bootimage, in bytes
    */
-  int bootStackCount = 0;
-  int bootStackBytes = 0;
   public int allocateArray(VM_Array array, int numElements) {
     numObjects++;
     array.bootCount++;
-    int size = array.getInstanceSize(numElements);
-    array.bootBytes += ((size + BYTES_IN_ADDRESS -1)&~(BYTES_IN_ADDRESS-1));
+    array.bootBytes += array.getInstanceSize(numElements);
     return VM_ObjectModel.allocateArray(this, array, numElements);
   }
 
@@ -133,17 +129,28 @@ public class BootImage extends BootImageWriterMessages
    * Allocate space in bootimage. Moral equivalent of 
    * memory managers allocating raw storage at runtime.
    *
-   * Unconditionally 8-byte align for 64-bit.
    * @param size the number of bytes to allocate
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
    */
-  public int allocateStorage(int size) {
+  public int allocateStorage(int size, int align, int offset) {
+    int originalBP = freeOffset;
+    // establish (freeOffset + offset) % align == 0
+    int mod = (freeOffset + offset) & (align-1);
+    int delta = (align - mod) & (align-1);
+    freeOffset += delta;
+    if (VM.ExtremeAssertions) {
+      VM._assert(delta >=0);
+      VM._assert(((freeOffset + offset) & (align -1)) == 0); 
+      VM._assert((freeOffset & ~3) == freeOffset);
+    }
     int lowAddr = freeOffset;
-    freeOffset += ((size + BYTES_IN_ADDRESS -1)&~(BYTES_IN_ADDRESS-1));
+    freeOffset += size;
     if (freeOffset > endOffset)
       fail("bootimage full (need " + size + " more bytes)");
+
     return lowAddr;
   }
-
 
   /**
    * Fill in 1 byte of bootimage.
@@ -200,7 +207,7 @@ public class BootImage extends BootImageWriterMessages
 //-#if RVM_FOR_32_ADDR
   public void setAddressWord(int offset, int value) {
     setFullWord(offset, value);
-   numAddresses++;
+    numAddresses++;
   }
 //-#endif
 //-#if RVM_FOR_64_ADDR

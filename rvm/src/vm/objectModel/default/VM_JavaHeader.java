@@ -63,12 +63,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   // SCALAR_HEADER + ARRAY LENGTH;
   private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
 
-  private static final int ARRAY_HEADER_SIZE_ALIGNED = VM_Memory.alignUp(ARRAY_HEADER_SIZE,BYTES_IN_ADDRESS);
-  
   private static final int STATUS_OFFSET  = JAVA_HEADER_OFFSET;
   private static final int TIB_OFFSET     = STATUS_OFFSET + STATUS_BYTES;
 
-  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
+  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + STATUS_BYTES-1);
 
   /*
    * Stuff for 10 bit header hash code in header
@@ -157,15 +155,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-    int headersize = VM_ObjectModel.computeArrayHeaderSize(type) ; 
-    int size = VM_Memory.alignUp(type.getInstanceSize(numElements) - headersize , BYTES_IN_ADDRESS); //align elmnts to right, assuming elmnts start aligned
+    // JMTk requires all sizes to be multiples of 4
+    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), 4);
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
       if (hashState != HASH_STATE_UNHASHED) {
-	headersize += HASHCODE_BYTES;
+	size += HASHCODE_BYTES;
       }
     }
-    return VM_Memory.alignUp(size+headersize,BYTES_IN_ADDRESS); //align header on left
+    return size;
   }
 
   /**
@@ -221,17 +219,17 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static Object moveObject(VM_Address toAddress, Object fromObj,
 				  int numBytes, VM_Array type,
 				  int availBitsWord) throws VM_PragmaInline {
-    int headersizeAligned; 
+    int headersize; 
     int hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
-      headersizeAligned = ARRAY_HEADER_SIZE_ALIGNED; 
+      headersize = ARRAY_HEADER_SIZE; 
     } else {
-      headersizeAligned = VM_Memory.alignUp(ARRAY_HEADER_SIZE + HASHCODE_BYTES, BYTES_IN_ADDRESS);
+      headersize = ARRAY_HEADER_SIZE + HASHCODE_BYTES;
     }
-    VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersizeAligned);
+    VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersize);
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-    Object toObj = VM_Magic.addressAsObject(toAddress.add(headersizeAligned));
+    Object toObj = VM_Magic.addressAsObject(toAddress.add(headersize));
     if (hashState == HASH_STATE_HASHED) {
       int hashCode = VM_Magic.objectAsAddress(fromObj).toInt() >>> LOG_BYTES_IN_ADDRESS;  
       VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, hashCode);
@@ -456,21 +454,37 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must meet natural alignment.
-   * @param tib the TIB of the instance being created
-   * @param size the number of bytes allocated by the GC system for this object.
+   * Return the desired aligment of the alignment point in the object returned
+   * by getScalarOffsetForAlignment.
+   * @param cls the VM_Class of the instance being created
    */
-  public static int getScalarOffsetForAlignment(Object[] tib, int size) {
-    return size; // TIB is at the end
+  public static int getAlignment(VM_Class cls) {
+    return BYTES_IN_ADDRESS;
+  }
+
+  /**
+   * Return the desired aligment of the alignment point in the object returned
+   * by getArrayOffsetForAlignment.
+   * @param array  VM_Array of the instance being created
+   */
+  public static int getAlignment(VM_Array array) {
+    return BYTES_IN_ADDRESS;
   }
 
   /**
    * Return the offset relative to physical beginning of object that must meet natural alignment.
-   * @param tib the TIB of the instance being created
-   * @param size the number of bytes allocated by the GC system for this object.
+   * @param cls the VM_Class of the instance being created
    */
-  public static int getArrayOffsetForAlignment(Object[] tib, int size) {
-    return ARRAY_HEADER_SIZE_ALIGNED; // TIB is at end of header
+  public static int getOffsetForAlignment(VM_Class cls) {
+    return cls.getInstanceSize(); // TIB is at the end
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * @param array  VM_Array of the instance being created
+   */
+  public static int getOffsetForAlignment(VM_Array array) {
+    return ARRAY_HEADER_SIZE; // TIB is at end of header
   }
 
   /**
@@ -528,7 +542,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static Object initializeArrayHeader(VM_Address ptr, Object[] tib, int size) {
     // (TIB and array length set by VM_ObjectModel)
-    Object ref = VM_Magic.addressAsObject(ptr.add(ARRAY_HEADER_SIZE_ALIGNED));
+    Object ref = VM_Magic.addressAsObject(ptr.add(ARRAY_HEADER_SIZE));
     return ref;
   }
 
@@ -541,7 +555,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
 					  Object[] tib, int size) throws VM_PragmaInterruptible {
-    int ref = ptr + ARRAY_HEADER_SIZE_ALIGNED;
+    int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
     //    if (MM_Interface.NEEDS_WRITE_BARRIER) {

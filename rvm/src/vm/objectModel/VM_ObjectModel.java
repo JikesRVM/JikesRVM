@@ -146,7 +146,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 	    fieldOffset -= fieldSize; // lay out fields 'backwards'
 	    field.setOffset(fieldOffset);
 	    klass.increaseInstanceSize(fieldSize);
-	  }
+          }
       }
     }
   }
@@ -458,12 +458,38 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     return computeHeaderSize(VM_Magic.objectAsType(tib[0]));
   }
 
-  public static int getScalarOffsetForAlignment(Object[] tib, int size) {
-    return VM_JavaHeader.getScalarOffsetForAlignment(tib, size);
+  /**
+   * Return the desired aligment of the alignment point in the object returned
+   * by getScalarOffsetForAlignment.
+   * @param t VM_Class instance being created
+   */
+  public static int getAlignment(VM_Class t) {
+    return VM_JavaHeader.getAlignment(t);
   }
 
-  public static int getArrayOffsetForAlignment(Object[] tib, int size) {
-    return VM_JavaHeader.getArrayOffsetForAlignment(tib, size);
+  /**
+   * Return the desired aligment of the alignment point in the object returned
+   * by getArrayOffsetForAlignment.
+   * @param t VM_Array instance being created
+   */
+  public static int getAlignment(VM_Array t) {
+    return VM_JavaHeader.getAlignment(t);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * @param t VM_Class instance being created
+   */
+  public static int getOffsetForAlignment(VM_Class t) {
+    return VM_JavaHeader.getOffsetForAlignment(t);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * @param t VM_Array instance being created
+   */
+  public static int getOffsetForAlignment(VM_Array t) {
+    return VM_JavaHeader.getOffsetForAlignment(t);
   }
 
   /**
@@ -494,7 +520,9 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws VM_PragmaInterruptible {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
-    int ptr = bootImage.allocateStorage(size);
+    int align = getAlignment(klass);
+    int offset = getOffsetForAlignment(klass);
+    int ptr = bootImage.allocateStorage(size, align, offset);
     int ref = VM_JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, true);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
@@ -536,8 +564,9 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 				  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
-    int ptr = bootImage.allocateStorage(size);
-
+    int align = getAlignment(array);
+    int offset = getOffsetForAlignment(array);
+    int ptr = bootImage.allocateStorage(size, align, offset);
     int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref + getArrayLengthOffset(), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);

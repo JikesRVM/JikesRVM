@@ -377,14 +377,8 @@ class VM_JNIFunctions implements VM_NativeBridge,
 	env.recordException(new InstantiationException());
 	return 0;
       }
-
-      int allocator = MM_Interface.pickAllocator(cls);
-      Object newObj = VM_Runtime.resolvedNewScalar(cls.getInstanceSize(), 
-						   cls.getTypeInformationBlock(),
-						   cls.hasFinalizer(),
-						   allocator);
-
-      return newObj == null ? 0 : env.pushJNIRef(newObj);
+      Object newObj = VM_Runtime.resolvedNewScalar(cls);
+      return env.pushJNIRef(newObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);

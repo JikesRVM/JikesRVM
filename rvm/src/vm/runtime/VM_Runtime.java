@@ -277,16 +277,44 @@ public class VM_Runtime implements VM_Constants {
       initializeClassForDynamicLink(cls);
 
     int allocator = MM_Interface.pickAllocator(cls);
+    int align = VM_ObjectModel.getAlignment(cls);
+    int offset = VM_ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
 			     cls.getTypeInformationBlock(), 
 			     cls.hasFinalizer(),
-			     allocator);
+			     allocator,
+                             align,
+                             offset);
   }
    
   /**
    * Allocate something like "new Foo()".
+   * @param cls VM_Class of array to create 
+   * @return object with header installed and all fields set to zero/null
+   *           (ready for initializer to be run on it)
+   * See also: bytecode 0xbb ("new")
+   */
+  public static Object resolvedNewScalar(VM_Class cls) {
+    
+    int allocator = MM_Interface.pickAllocator(cls);
+    int align = VM_ObjectModel.getAlignment(cls);
+    int offset = VM_ObjectModel.getOffsetForAlignment(cls);
+    return resolvedNewScalar(cls.getInstanceSize(), 
+			     cls.getTypeInformationBlock(), 
+			     cls.hasFinalizer(),
+			     allocator,
+                             align,
+                             offset);
+  }
+
+  /**
+   * Allocate something like "new Foo()".
    * @param size size of object (including header), in bytes
    * @param tib  type information block for object
+   * @param hasFinalizer does this type have a finalizer?
+   * @param allocator int that encodes which allocator should be used
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -294,7 +322,9 @@ public class VM_Runtime implements VM_Constants {
   public static Object resolvedNewScalar(int size, 
 					 Object[] tib, 
 					 boolean hasFinalizer, 
-					 int allocator) 
+					 int allocator,
+                                         int align,
+                                         int offset) 
     throws OutOfMemoryError {
 
     // GC stress testing
@@ -305,9 +335,9 @@ public class VM_Runtime implements VM_Constants {
 	MM_Interface.gc();
       }
     }
-    
+
     // Allocate the object and initialize its header
-    Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
+    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, size);
 
     // Deal with finalization
     if (hasFinalizer) MM_Interface.addFinalizer(newObj);
@@ -352,7 +382,9 @@ public class VM_Runtime implements VM_Constants {
 			    array.getLogElementSize(),
 			    VM_ObjectModel.computeArrayHeaderSize(array),
 			    array.getTypeInformationBlock(),
-			    MM_Interface.pickAllocator(array));
+			    MM_Interface.pickAllocator(array),
+                            VM_ObjectModel.getAlignment(array),
+                            VM_ObjectModel.getOffsetForAlignment(array));
   }
    
   /**
@@ -362,6 +394,8 @@ public class VM_Runtime implements VM_Constants {
    * @param headerSize size in bytes of array header
    * @param tib type information block for array object
    * @param allocator int that encodes which allocator should be used
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
    * @return array object with header installed and all elements set 
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
@@ -370,7 +404,9 @@ public class VM_Runtime implements VM_Constants {
 					int logElementSize,
 					int headerSize, 
 					Object[] tib,
-					int allocator)
+					int allocator,
+                                        int align,
+                                        int offset)
     throws OutOfMemoryError, NegativeArraySizeException {
 
     if (numElements < 0) raiseNegativeArraySizeException();
@@ -386,7 +422,7 @@ public class VM_Runtime implements VM_Constants {
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, 
-				      headerSize, tib, allocator);
+				      headerSize, tib, allocator, align, offset);
   }
 
 
@@ -408,7 +444,6 @@ public class VM_Runtime implements VM_Constants {
   public static Object clone (Object obj)
     throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
-    int allocator = MM_Interface.pickAllocator(type);
     if (type.isArrayType()) {
       VM_Array ary   = type.asArray();
       int      nelts = VM_ObjectModel.getArrayLength(obj);
@@ -419,9 +454,7 @@ public class VM_Runtime implements VM_Constants {
       if (!(obj instanceof Cloneable))
 	throw new CloneNotSupportedException();
       VM_Class cls   = type.asClass();
-      int      size  = cls.getInstanceSize();
-      Object[] tib   = cls.getTypeInformationBlock();
-      Object newObj  = resolvedNewScalar(size, tib, cls.hasFinalizer(), allocator);
+      Object newObj  = resolvedNewScalar(cls);
       VM_Field[] instanceFields = cls.getInstanceFields();
       for (int i=0; i<instanceFields.length; i++) {
 	VM_Field f = instanceFields[i];

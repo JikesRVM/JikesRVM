@@ -611,12 +611,7 @@ public final class Class implements java.io.Serializable {
     }
 
     // Allocate an uninitialized instance;
-    int      size = cls.getInstanceSize();
-    Object[] tib  = cls.getTypeInformationBlock();
-    boolean  hasFinalizer = cls.hasFinalizer();
-    int allocator = MM_Interface.pickAllocator(cls);
-    Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, 
-						 hasFinalizer, allocator);
+    Object obj = VM_Runtime.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
     try {

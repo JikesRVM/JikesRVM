@@ -262,7 +262,7 @@ Attempt
 
 
 Call
-1 0 3 1 U 5
+1 0 3 1 U 7
 "D Result OPT_RegisterOperand" \
 "U Address OPT_Operand" "U Method OPT_MethodOperand" "U Guard OPT_Operand opt"
 "Param OPT_Operand"

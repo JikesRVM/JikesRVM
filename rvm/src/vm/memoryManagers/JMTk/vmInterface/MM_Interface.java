@@ -31,6 +31,7 @@ import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -476,20 +477,29 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param tib  Type of the object (pointer to TIB).
    * @param allocator Specify which allocation scheme/area JMTk should
    * allocate the memory from.
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
    * @return the initialized Object
    */
-  public static Object allocateScalar(int size, Object [] tib, int allocator)
+  public static Object allocateScalar(int size, Object [] tib, int allocator,
+                                      int align, int offset)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     Plan plan = VM_Interface.getPlan();
-    int rawSize = VM.BuildFor64Addr ? (size + 8) : size;
+    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
+    // Jikes RVM currently forces scalars to have this property;
+    // we may change this later to waste less space in 64bit mode.
+    int rawSize = (align != 4) ? (size + align) : size;
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (VM.BuildFor64Addr) {
-      int offset = VM_ObjectModel.getScalarOffsetForAlignment(tib, size);
-      if (!region.add(offset).toWord().and(VM_Word.fromInt(7)).isZero())
-	region = region.add(4);
+    if (align != 4) {
+      // This code is based on some fancy modulo artihmetic.
+      // It ensures the property (region + offset) % alignment == 0
+      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+      region = region.add(delta);
     }
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, true,
@@ -505,29 +515,38 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param headerSize size in bytes of array header
    * @param tib type information block for array object
    * @param allocator int that encodes which allocator should be used
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
    * @return array object with header installed and all elements set 
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   public static Object allocateArray(int numElements, int logElementSize, 
 				     int headerSize, Object [] tib,
-				     int allocator) 
+				     int allocator,
+                                     int align, int offset) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
       // asked to allocate more than Integer.MAX_VALUE bytes
       VM_Interface.failWithOutOfMemoryError();
     }
+    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
+    // Jikes RVM does not ensure this for arrays, so we must round up here.
     int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
-    int rawSize = VM.BuildFor64Addr ? (size + 8) : size;
+    int rawSize = (align != 4) ? (size + align) : size;
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (VM.BuildFor64Addr) {
-      int offset = VM_ObjectModel.getScalarOffsetForAlignment(tib, size);
-      if (!region.add(offset).toWord().and(VM_Word.fromInt(7)).isZero())
-	region = region.add(4);
+    if (align != 4) {
+      // This code is based on some fancy modulo artihmetic.
+      // It ensures the property (region + offset) % alignment == 0
+      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+      region = region.add(delta);
     }
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
 						   size);
@@ -550,9 +569,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       throws VM_PragmaUninterruptible {
     VM_Array type = VM_Magic.getObjectType(array).asArray();
     Object [] tib = type.getTypeInformationBlock();
-    return allocateArray(length, type.getLogElementSize(), 
-			 VM_ObjectModel.computeArrayHeaderSize(type),
-			 tib, allocator);
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
+    int align = VM_ObjectModel.getAlignment(type);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type);
+    return allocateArray(length, type.getLogElementSize(), headerSize,
+                         tib, allocator, align, offset);
   }
 
 
@@ -586,7 +607,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Array stackType = VM_Array.ByteArray;
     Object [] stackTib = stackType.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = stackType.getInstanceSize(bytes);
+    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_ADDRESS);
     int fullSize = arraySize + alignment;  // somewhat wasteful
     if (VM.VerifyAssertions) VM._assert(alignment > offset);
     AllocAdvice advice = VM_Interface.getPlan().getAllocAdvice(null, fullSize, null, null);
@@ -613,9 +634,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
 
     VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;
     Object [] objectArrayTib = objectArrayType.getTypeInformationBlock();
+    int align = VM_ObjectModel.getAlignment(objectArrayType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
     Object result = allocateArray(n, objectArrayType.getLogElementSize(),
 				  VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-				  objectArrayTib, Plan.IMMORTAL_SPACE);
+				  objectArrayTib, Plan.IMMORTAL_SPACE, align, offset);
     return (Object []) result;
   }
 
@@ -828,25 +851,6 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      */
     return VMResource.getMaxVMResource();
   }
-
-   /**
-    * Allocate an immortal short array that will live forever and does not move
-    * @param n The number of elements
-    * @return The short array
-    */ 
-   public static short[] newImmortalShortArray (int n)
-     throws VM_PragmaInterruptible {
-
-     if (VM.runningVM) {
-       VM_Array shortArrayType = VM_Array.ShortArray;
-       Object [] shortArrayTib = shortArrayType.getTypeInformationBlock();
-       Object result = allocateArray(n, shortArrayType.getLogElementSize(),
-				     VM_ObjectModel.computeArrayHeaderSize(shortArrayType),
-				     shortArrayTib, Plan.IMMORTAL_SPACE);
-       return (short []) result;
-     }
-     return new short[n];
-   }
 
   /**
    * Allocate a contiguous int array

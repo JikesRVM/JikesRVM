@@ -435,7 +435,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
       // to check it all over the reflection code. 
       if (!isResolved()) {
 	resolve();
-      } 
+      }
       synchronized(this) {
 	if (classForType == null) {
 	  classForType = java.lang.JikesRVMSupport.createClass(this);
