@@ -3385,6 +3385,12 @@ public class VM_Compiler extends VM_BaselineCompiler
             peekLong(gp, gp, stackIndex);
             gp++;  
           } else {
+          //-#if RVM_FOR_LINUX
+          /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+           * was implemented in GCC.
+           */
+            gp += (gp + 1) & 0x01; // if gpr is even, gpr += 1
+          //-#endif
             peekInt(gp++, stackIndex);      // lo register := lo mem (== hi order word)
             peekInt(gp++, stackIndex+1);    // hi register := hi mem (== lo order word)
           }
