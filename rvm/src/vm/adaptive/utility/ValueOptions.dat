@@ -13,14 +13,6 @@ V INITIAL_SAMPLE_SIZE int 20
 Initial value of how many samples to take before reporting method hotness to controller
 
 
-V MAX_OPT_LEVEL int VM.BuildForIA32?1:2
-What is the highest optimization level to use when adaptive recompilation is employed?
-
-
-V FILTER_OPT_LEVEL int VM.BuildForIA32?1:2
-At what optimization level should we begin to NOT return to methods to the controller
-
-
 E PRIMARY_STRATEGY byte PS_ADAPTIVE
 Selection of primary controller strategy
 "PS_BASE_ONLY baselineOnly baseonly" \

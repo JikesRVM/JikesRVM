@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_Magic;
  *
  * @author Dave Grove
  **/
-public class VM_AOSOptions implements Cloneable {
+public class VM_AOSExternalOptions implements Cloneable {
 
   private String printToStringHeader() {
     return "Current value of options:\n";

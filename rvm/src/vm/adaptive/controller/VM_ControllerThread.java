@@ -62,6 +62,10 @@ class VM_ControllerThread extends VM_Thread {
       return; // controller thread exits.
     }
 
+    // Initialize the CompilerDNA class
+    // This computes some internal options, must be done early in boot process
+    VM_CompilerDNA.init();
+
     // Create the organizerThreads and schedule them
     createOrganizerThreads();
 
@@ -70,9 +74,6 @@ class VM_ControllerThread extends VM_Thread {
 
     // Initialize the controller "memory"
     VM_ControllerMemory.init();
-
-    // Initialize the CompilerDNA class
-    VM_CompilerDNA.init();
 
     // Create our set of standard optimization plans.
     VM_Controller.recompilationStrategy.init();

@@ -163,6 +163,18 @@ public class VM_CompilerDNA implements VM_Constants {
 	
       }
     }
+
+    // Compute MAX_OPT_LEVEL
+    int maxProfitableCompiler = 0;
+    for (int compiler = 1; compiler < numCompilers; compiler++) {
+      if (compilationRates[compiler] > compilationRates[compiler-1] ||
+	  speedupRates[compiler] > speedupRates[compiler-1]) {
+	maxProfitableCompiler = compiler;
+      }
+    }
+    int maxOptLevel = getOptLevel(maxProfitableCompiler);
+    VM_Controller.options.MAX_OPT_LEVEL = maxOptLevel;
+    VM_Controller.options.FILTER_OPT_LEVEL = maxOptLevel;
   }
 
 
