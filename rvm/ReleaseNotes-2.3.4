@@ -10,6 +10,7 @@ At the moment they reflect Jikes RVM 2.3.3 + CVS head.
  *Bug Fixes
 
 *Highlights of this release include:
+**We now run Eclipse 3.0
 
 *Other notes:
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
@@ -27,4 +28,9 @@ JNI_OK.
 **Class.getResourceAsStream() and Class.getResource() would fail 
 with a NullPointerException when invoked on a Class object that was
 loaded by the Bootstrap Class Loader. 
+**Defect #3601 is fixed -- java.lang.Thread no longer inherits from VM_Thread.
 
+*Internal Changes
+**Jikes RVM now uses GNU Classpath's java.lang.Class instead of its own.
+**The VM_Magic classes have been moved to the org.vmmagic namespace, 
+and rationalized.
