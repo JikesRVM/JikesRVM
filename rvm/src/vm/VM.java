@@ -399,6 +399,8 @@ public class VM extends VM_Properties implements VM_Constants,
           eieio.initCause(t);
           throw eieio;
         }
+        // <clinit> is no longer needed: reclaim space by removing references to it
+        clinit.invalidateCompiledMethod(clinit.getCurrentCompiledMethod());
       } else {
         if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
       } 
