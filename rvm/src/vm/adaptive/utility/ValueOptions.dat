@@ -39,7 +39,7 @@ Name of log file
 
 
 V COMPILER_DNA_FILE_NAME String \"\" dna
-Name of compiler DNA file (no name ==> use default DNA)
+Name of compiler DNA file (no name ==> use default DNA).  Discussed in a comment at the head of VM_CompilerDNA.java
 
 
 V LOGGING_LEVEL int 0
