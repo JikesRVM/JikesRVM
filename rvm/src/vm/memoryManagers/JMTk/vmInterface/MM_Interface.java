@@ -519,9 +519,10 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
     // Jikes RVM currently forces scalars to be multiples of
     // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
+    int alignedSize = size; // Still need original size !
     if (BYTES_IN_ADDRESS != BYTES_IN_INT)
-      size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
-    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
+      alignedSize = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
+    int rawSize = (align != BYTES_IN_ADDRESS) ? (alignedSize + align) : alignedSize;
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
