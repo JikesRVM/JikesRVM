@@ -25,10 +25,13 @@
 ## USE_LOCAL_CLASSPATH
 ## CLASSPATH_ROOT		( optional )
 
-ME="${0##*/}"
 
 trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || :
 set -e
+ME="${0##*/}"
+if [[ ! ${GREP-} ]]; then
+    . ${RVM_BUILD}/environment.host
+fi
 
 
 ##
