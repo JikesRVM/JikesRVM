@@ -24,10 +24,18 @@
 	      ;; I like the auto-newline and hungry-delete-key features.
 	      ;; You can learn about them with C-h f c-toggle-auto-state and
 	      ;; C-h f c-toggle-hungry-state.  
-	      (c-toggle-auto-state 1)
-	      (c-toggle-hungry-state 1)
+	      ;;
+	      ;; auto-newline is good for writing new code, but for some it
+	      ;; will make it annoying to edit existing code.  Uncomment the
+	      ;; line below if you're writing new code, or manually enable the
+	      ;; auto-newline in that situation.
 
-	      ;; Guard the use of c-context-line-break, since it is not present
-	      ;; in GNU Emacs 20.7
+;	      (c-toggle-auto-state 1)
+
+	      ;; If you find the hungry-delete-key feature annoying, then
+	      ;; you'll want to leave the code below commented out too.
+;	      (c-toggle-hungry-state 1)
+
+	      ;; c-context-line-break is not part of GNU Emacs 20.7
 	      (if (fboundp 'c-context-line-break)
 		  (define-key c-mode-base-map "\r" 'c-context-line-break))))
