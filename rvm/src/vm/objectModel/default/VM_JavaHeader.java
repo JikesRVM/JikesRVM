@@ -195,14 +195,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
                                   int numBytes, VM_Class type, 
 				  VM_Word availBitsWord) throws VM_PragmaInline {
-    int objectEndOffset;
     VM_Word hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord.and(HASH_STATE_MASK);
-    if (hashState.EQ(HASH_STATE_UNHASHED)) {
-      objectEndOffset = -numBytes;
-    } else {
-      objectEndOffset = -numBytes + HASHCODE_BYTES;
-    }
+    int objectEndOffset = objectEndOffset(type);
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).add(objectEndOffset);
     int copyBytes = numBytes;
     if (VM_AllocatorHeader.STEAL_NURSERY_SCALAR_GC_HEADER)
