@@ -3562,22 +3562,14 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (methodName == VM_MagicNames.prepareInt) {
         if (types.length == 0) {
           popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitLWZ(T0, 0, T0);                // *(base)
-          } else {
-            asm.emitLWARX(T0, 0, T0);              // *(base), setting 
-                                                   // reservation address
-          } // this Integer is not sign extended !!
+          asm.emitLWARX(T0, 0, T0);                // *(base), setting reservation address
+          // this Integer is not sign extended !!
           pushInt(T0);                             // push *(base+offset)
         } else {
           popInt(T1);                              // pop offset
           popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitLWZX (T0, T1, T0);             // *(base+offset)
-          } else {
-            asm.emitLWARX(T0,  T1, T0);            // *(base+offset), setting 
-                                                   // reservation address
-          } // this Integer is not sign extended !!
+          asm.emitLWARX(T0,  T1, T0);              // *(base+offset), setting reservation address
+          // this Integer is not sign extended !!
           pushInt(T0);                             // push *(base+offset)
         }
         return true;
@@ -3587,27 +3579,19 @@ public class VM_Compiler extends VM_BaselineCompiler
           methodName == VM_MagicNames.prepareAddress) {
         if (types.length == 0) {
           popAddr(T0);                             // pop base
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitLAddrX(T0, 0, T0);             // *(base+offset)
-          } else {
-            if (VM.BuildFor32Addr) {
-              asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting 
-            } else {                               // reservation address
-              asm.emitLDARX(T0, 0, T0);
-            }
+          if (VM.BuildFor32Addr) {
+            asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting 
+          } else {                               // reservation address
+            asm.emitLDARX(T0, 0, T0);
           }
           pushAddr(T0);                            // push *(base+offset)
         } else {
           popInt(T1);                              // pop offset
           popAddr(T0);                             // pop base
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitLAddrX(T0, T1, T0);            // *(base+offset)
-          } else {
-            if (VM.BuildFor32Addr) {
-              asm.emitLWARX(T0,  T1, T0);          // *(base+offset), setting 
-            } else {                               // reservation address
-              asm.emitLDARX(T0, T1, T0);
-            }
+          if (VM.BuildFor32Addr) {
+            asm.emitLWARX(T0,  T1, T0);          // *(base+offset), setting 
+          } else {                               // reservation address
+            asm.emitLDARX(T0, T1, T0);
           }
           pushAddr(T0);                            // push *(base+offset)
         }
@@ -3620,40 +3604,26 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (methodName == VM_MagicNames.attempt && 
           types[0] == VM_TypeReference.Int) {
         if (types.length == 2) { 
-          popInt(T2);                              // pop newValue                 
-          discardSlot();                           // ignore oldValue            
-          popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitSTWX(T2, 0, T0);               // store new value (single VP)
-            asm.emitLVAL(T0,  1);                  // T0 := true      
-            pushInt(T0);                           // push success of store
-          } else {
-            asm.emitSTWCXr(T2,  0, T0);            // store new value and set CR0
-            asm.emitLVAL(T0,  0);                  // T0 := false
-            VM_ForwardReference fr 
-              = asm.emitForwardBC(NE);             // skip, if store failed
-            asm.emitLVAL(T0,  1);                  // T0 := true
-            fr.resolve(asm);
-            pushInt(T0);                           // push success of store
-          }
+          popInt(T2);                            // pop newValue                 
+          discardSlot();                         // ignore oldValue            
+          popAddr(T0);                           // pop base 
+          asm.emitSTWCXr(T2,  0, T0);            // store new value and set CR0
+          asm.emitLVAL(T0,  0);                  // T0 := false
+          VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
+          asm.emitLVAL(T0,  1);                  // T0 := true
+          fr.resolve(asm);
+          pushInt(T0);                           // push success of store
         } else {
-          popInt(T1);                              // pop offset
-          popInt(T2);                              // pop newValue                 
-          discardSlot();                           // ignore oldValue            
-          popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitSTWX(T2, T1, T0);              // store new value (single VP)
-            asm.emitLVAL(T0,  1);                  // T0 := true      
-            pushInt(T0);                           // push success of store
-          } else {
-            asm.emitSTWCXr(T2,  T1, T0);           // store new value and set CR0
-            asm.emitLVAL(T0,  0);                  // T0 := false
-            VM_ForwardReference fr 
-              = asm.emitForwardBC(NE);             // skip, if store failed
-            asm.emitLVAL(T0,  1);                  // T0 := true
-            fr.resolve(asm);
-            pushInt(T0);                           // push success of store
-          } 
+          popInt(T1);                            // pop offset
+          popInt(T2);                            // pop newValue                 
+          discardSlot();                         // ignore oldValue            
+          popAddr(T0);                           // pop base 
+          asm.emitSTWCXr(T2,  T1, T0);           // store new value and set CR0
+          asm.emitLVAL(T0,  0);                  // T0 := false
+          VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
+          asm.emitLVAL(T0,  1);                  // T0 := true
+          fr.resolve(asm);
+          pushInt(T0);                           // push success of store
         }
         return true;
       }
@@ -3666,45 +3636,31 @@ public class VM_Compiler extends VM_BaselineCompiler
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitSTAddrX(T2,  0, T0);           // store new value (single VP)
-            asm.emitLVAL(T0,  1);                  // T0 := true
-            pushInt(T0);                           // push success of store
-          } else {
-            if (VM.BuildFor32Addr) {
-              asm.emitSTWCXr(T2,  0, T0);          // store new value and set CR0
-            } else { 
-              asm.emitSTDCXr(T2,  0, T0);          // store new value and set CR0
-            }
-            asm.emitLVAL(T0, 0);                   // T0 := false
-            VM_ForwardReference fr 
-              = asm.emitForwardBC(NE);             // skip, if store failed
-            asm.emitLVAL(T0, 1);                   // T0 := true
-            fr.resolve(asm);  
-            pushInt(T0);                           // push success of store
+          if (VM.BuildFor32Addr) {
+            asm.emitSTWCXr(T2,  0, T0);          // store new value and set CR0
+          } else { 
+            asm.emitSTDCXr(T2,  0, T0);          // store new value and set CR0
           }
+          asm.emitLVAL(T0, 0);                   // T0 := false
+          VM_ForwardReference fr = asm.emitForwardBC(NE);  // skip, if store failed
+          asm.emitLVAL(T0, 1);                   // T0 := true
+          fr.resolve(asm);  
+          pushInt(T0);                           // push success of store
         } else {
           popInt(T1);                              // pop offset
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base 
-          if (VM.BuildForSingleVirtualProcessor) {
-            asm.emitSTAddrX(T2,  T1, T0);          // store new value (single VP)
-            asm.emitLVAL(T0,  1);                  // T0 := true
-            pushInt(T0);                           // push success of store
+          if (VM.BuildFor32Addr) {
+            asm.emitSTWCXr(T2,  T1, T0);         // store new value and set CR0
           } else {
-            if (VM.BuildFor32Addr) {
-              asm.emitSTWCXr(T2,  T1, T0);         // store new value and set CR0
-            } else {
-              asm.emitSTDCXr(T2,  T1, T0);         // store new value and set CR0
-            }
-            asm.emitLVAL(T0, 0);                   // T0 := false
-            VM_ForwardReference fr 
-              = asm.emitForwardBC(NE);             // skip, if store failed
-            asm.emitLVAL(T0, 1);                   // T0 := true
-            fr.resolve(asm);  
-            pushInt(T0);                           // push success of store
+            asm.emitSTDCXr(T2,  T1, T0);         // store new value and set CR0
           }
+          asm.emitLVAL(T0, 0);                   // T0 := false
+          VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
+          asm.emitLVAL(T0, 1);                   // T0 := true
+          fr.resolve(asm);  
+          pushInt(T0);                           // push success of store
         }
         return true;
       }
@@ -3988,25 +3944,18 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.prepareInt){
       popInt(T1); // pop offset
       popAddr(T0); // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitLWZX (T0, T1, T0); // *(object+offset)
-      } else {
-        asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
-      } //this Integer is not sign extended !!
+      asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
+      // this Integer is not sign extended !!
       pushInt(T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.prepareObject ||
                methodName == VM_MagicNames.prepareAddress ||
                methodName == VM_MagicNames.prepareWord) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitLAddrX(T0, T1, T0); // *(object+offset)
+      if (VM.BuildFor32Addr) {
+        asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
       } else {
-        if (VM.BuildFor32Addr) {
-          asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
-        } else {
-          asm.emitLDARX(T0, T1, T0);
-        } 
+        asm.emitLDARX(T0, T1, T0);
       }
       pushAddr(T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.attemptInt){
@@ -4014,18 +3963,12 @@ public class VM_Compiler extends VM_BaselineCompiler
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset
       popAddr(T0);  // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitSTWX(T2, T1, T0); // store new value (on one VP this succeeds by definition)
-        asm.emitLVAL(T0,  1);   // T0 := true
-        pushInt(T0);  // push success of conditional store
-      } else {
-        asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-        asm.emitLVAL(T0,  0);  // T0 := false
-        VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
-        asm.emitLVAL(T0,  1);   // T0 := true
-        fr.resolve(asm);
-        pushInt(T0);  // push success of conditional store
-      }
+      asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
+      asm.emitLVAL(T0,  0);  // T0 := false
+      VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+      asm.emitLVAL(T0,  1);   // T0 := true
+      fr.resolve(asm);
+      pushInt(T0);  // push success of conditional store
     } else if (methodName == VM_MagicNames.attemptObject ||
                methodName == VM_MagicNames.attemptAddress ||
                methodName == VM_MagicNames.attemptWord) {
@@ -4033,22 +3976,16 @@ public class VM_Compiler extends VM_BaselineCompiler
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset
       popAddr(T0);  // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitSTAddrX(T2,  T1, T0); // store new value (on one VP this succeeds by definition)
-        asm.emitLVAL(T0,  1);   // T0 := true
-        pushInt(T0);  // push success of conditional store
+      if (VM.BuildFor32Addr) {
+        asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
       } else {
-        if (VM.BuildFor32Addr) {
-          asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-        } else {
-          asm.emitSTDCXr(T2,  T1, T0); // store new value and set CR0
-        }
-        asm.emitLVAL(T0, 0);  // T0 := false
-        VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
-        asm.emitLVAL(T0, 1);   // T0 := true
-        fr.resolve(asm);
-        pushInt(T0);  // push success of conditional store
+        asm.emitSTDCXr(T2,  T1, T0); // store new value and set CR0
       }
+      asm.emitLVAL(T0, 0);  // T0 := false
+      VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+      asm.emitLVAL(T0, 1);   // T0 := true
+      fr.resolve(asm);
+      pushInt(T0);  // push success of conditional store
     } else if (methodName == VM_MagicNames.saveThreadState) {
       peekAddr(T0, 0); // T0 := address of VM_Registers object
       asm.emitLAddrToc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());

@@ -3130,17 +3130,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
         }        
 
-        if (VM.BuildForSingleVirtualProcessor) {
-          asm.emitMOV_RegInd_Reg (S0, T1);       // simply a store on uniprocessor (need not be atomic or cmp/xchg)
-          asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-        } else {
-          asm.emitLockNextInstruction();
-          asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
-          asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
-          VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
-          asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-          fr.resolve(asm);
-        }
+        asm.emitLockNextInstruction();
+        asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
+        asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
+        VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
+        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+        fr.resolve(asm);
         return true;
       }
     }
@@ -3157,17 +3152,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg (EAX);           // oldVal (EAX is implicit arg to LCMPXCNG
       asm.emitPOP_Reg (S0);            // S0 = offset
       asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitMOV_RegInd_Reg (S0, T1);       // simply a store on uniprocessor (need not be atomic or cmp/xchg)
-        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-      } else {
-        asm.emitLockNextInstruction();
-        asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
-        asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
-        VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
-        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-        fr.resolve(asm);
-      }
+      asm.emitLockNextInstruction();
+      asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
+      asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
+      VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
+      asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+      fr.resolve(asm);
       return true;
     }
     
