@@ -3,6 +3,7 @@ BaseBaseMarkSweep -test-list nightly-tests
 BaseAdaptiveSemispace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2"  -test-list nightly-tests
 FullAdaptiveSemispace -test-list nightly-tests
-Fast -test-list nightly-tests
+FastSemispace -test-list nightly-tests
+FastMarkSweep -test-list nightly-tests
 FastAdaptiveSemispace -test-list nightly-tests
 ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
