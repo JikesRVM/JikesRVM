@@ -275,12 +275,8 @@ public class OPT_OptimizationPlanner {
         new OPT_LoadElimination(5), 
         // eliminate redundant conditional branches
         new OPT_RedundantBranchElimination(),
-        // store elimination
-        new OPT_DeadStoreElimination(), 
         // path sensitive constant propagation
         new OPT_SSATuneUp(), 
-        // ABCD
-        new OPT_GlobalBoundsCheck(), 
         // clean up Pi Nodes
         new OPT_PiNodes(false), 
         // Simple SSA optimizations,
