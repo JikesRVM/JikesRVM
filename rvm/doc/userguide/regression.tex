@@ -269,7 +269,7 @@ because the information stored in the local configuration file is kept
 in terms of benchmark names.  This section must always be the
 following single line.
 \begin{verbatim}
-include		$(JAL_ROOT)/rvm/regression/Local.rules
+include         $(JAL_ROOT)/rvm/regression/Local.rules
 \end{verbatim}
 
 \item[Define benchmark-specific parameters]  This defines essential
@@ -360,7 +360,7 @@ required to actually compile any Java files that need it, run the
 program, check the output for correctness and assess performance.
 This section must always have the following single line:
 \begin{verbatim}
-include		$(JAL_ROOT)/rvm/regression/Make.rules
+include         $(JAL_ROOT)/rvm/regression/Make.rules
 \end{verbatim}
 
 \item[Define benchmark-specific rules]  This section defines the rules
@@ -488,24 +488,24 @@ javalex
 selection of boot images using these two sets of regression tests.
 Note that we use the nightly-tests-short list of tests for
 configurations that mainly for debugging purposes
-(ExtremeAssertionsOptOptSemispace) or are configurations that one can
-create but would not want to use in practice (BaseAdaptiveSemispace).
+(ExtremeAssertionsOptOptSemiSpace) or are configurations that one can
+create but would not want to use in practice (BaseAdaptiveSemiSpace).
 To ensure relatively complete coverage testing of the optimizing
 compiler, we chose one optimizing configuration (FullOptMarkSweep) on
 which to run with all the different optimization levels.
 
 \begin{verbatim}
-BaseBaseSemispace -test-list nightly-tests
+BaseBaseSemiSpace -test-list nightly-tests
 BaseBaseMarkSweep -test-list nightly-tests
-BaseBaseCopyGenVariable -test-list nightly-tests 
-BaseAdaptiveSemispace -test-list nightly-tests-short
+BaseBaseGenCopy -test-list nightly-tests 
+BaseAdaptiveSemiSpace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
-FullOptCopyGenVariable -test-list nightly-tests
-FullAdaptiveSemispace -test-list nightly-tests
-FastSemispace -test-list nightly-tests
+FullOptGenCopy -test-list nightly-tests
+FullAdaptiveSemiSpace -test-list nightly-tests
+FastSemiSpace -test-list nightly-tests
 FastMarkSweep -test-list nightly-tests
-FastAdaptiveSemispace -test-list nightly-tests
-ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
+FastAdaptiveSemiSpace -test-list nightly-tests
+ExtremeAssertionsOptOptSemiSpace -test-list nightly-tests-short
 \end{verbatim}
 
  To make all of this run every night, it is necessary merely to put a

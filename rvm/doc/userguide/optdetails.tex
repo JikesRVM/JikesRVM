@@ -529,7 +529,7 @@ For more information on the BURS algorithm see
 
 For optimizing compiler development, it is sometimes useful to exercise
 careful control over which classes are compiled, and with which
-optimization level.  In many cases, a {\tt BaseOptSemispace} image will
+optimization level.  In many cases, a {\tt BaseOptSemiSpace} image will
 suit this process.  This configuration invokes the optimizing compiler on
 each method run.  Since the optimizing compiler is not in the boot image, 
 you can modify its classes without re-linking the boot image.  Instead,
@@ -540,7 +540,7 @@ The {\tt OptTestHarness} program provides even more control over the
 optimizing compiler.  This driver program allows you to invoke the
 optimizing compiler as an ``application'' running on top of the VM.
 The most useful configuration for this is probably {\tt
-BaseBaseOTHSemispace}; this image provides a BaseBase configuration with just
+BaseBaseOTHSemiSpace}; this image provides a BaseBase configuration with just
 enough support to invoke the optimizing compiler through {\tt
 OptTestHarness}.  Like the {\tt BaseOpt} images, you can use {\tt jbuild
 -nolink} to skip a time-consuming boot image writing during development.

@@ -268,14 +268,14 @@ first choose a Jikes RVM configuration.
 For quick turnaround time while modifying Jikes RVM, you will usually
 want to use the baseline compiler to build the Jikes RVM bootimage.
 A typical configuration that builds very quickly (but performs poorly)
-is {\tt BaseBaseSemispace}: a non-adaptive system that uses the
+is {\tt BaseBaseSemiSpace}: a non-adaptive system that uses the
 baseline compiler everywhere, with the semispace copying collector. 
 
 To obtain reasonable performance from Jikes RVM, you will need to use
 the optimizing compiler to build the bootimage.  This takes longer,
 but generates a Jikes RVM image with reasonable runtime performance.
-We recommend either the {\tt FullAdaptiveSemispace} or {\tt
-FastAdaptiveSemispace} images depending on whether or not you want
+We recommend either the {\tt FullAdaptiveSemiSpace} or {\tt
+FastAdaptiveSemiSpace} images depending on whether or not you want
 VM assertion checking enabled. (A discussion 
 of Jikes RVM configurations appears in Section~\ref{configs}.)
 
@@ -295,11 +295,11 @@ configuration desired:
 \end{verbatim}
 
 For example, to configure a build 
-directory for the {\tt OptOptSemispace} configuration, type
+directory for the {\tt OptOptSemiSpace} configuration, type
 the following command:
 
 \begin{verbatim}
-% jconfigure OptOptSemispace
+% jconfigure OptOptSemiSpace
 \end{verbatim}
 
 \index{jbuild script}
@@ -370,21 +370,24 @@ A garbage collector may have any of the following types:
 
 \begin{description}
 \item[NoGC] no garbage collection is performed
-\item[Semispace] a copying semi-space collector
+\item[SemiSpace] a copying semi-space collector
 \item[MarkSweep] a mark-and-sweep (non copying) collector
-\item[CopyGen] a copying generational collector with a
-fixed-size nursery
-\item[CopyGenVariable] a copying generational collector with a
-variable-size nursery
-\item[Hybrid] a hybrid generational collector, semi-space for the
-nursery and mark-and-sweep for the mature space
+\item[GenCopy] a classic copying generational collector with a copying
+  higher generation
+\item[GenMS] a copying generational collector with a non-copying
+  mark-and-sweep mature space
+\item[CopyMS] a hybrid non-generational collector with a copying space
+  (into which all allocation goes), and a non-copying space into which
+  survivors go
+\item[WatsonSemispace] the original `watson' copying semi-space collector 
+\item[WatsonMarkSweep] the original `watson' mark-and-sweep collector
 \end{description}
 
 For example, to specify a compiler with a baseline-compiled boot image
 that will 
 compile classes loaded at runtime using the optimizing compiler and that uses
 a non-generational semi-space copying garbage collector use the name 
-{\em BaseOptSemispace}.
+{\em BaseOptSemiSpace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
@@ -440,7 +443,7 @@ and assertions are turned on), and the semi-space garbage collector is
 used, use the following command:
 
 \begin{verbatim}
-% jconfigure OptAdaptiveSemispace
+% jconfigure OptAdaptiveSemiSpace
 \end{verbatim}
 
 Section~\ref{section:running} describes how this image can be used in
@@ -469,7 +472,7 @@ than the target platform.  To cross build, simply set your
 RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
 be different files.
 
-For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote\
+For example, to build a BaseBaseSemiSpace system for AIX\AIXTMFootnote\
 {\em on a Linux host}:
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
@@ -477,7 +480,7 @@ For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote\
 % setenv PATH $RVM_ROOT/rvm/bin:$PATH
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
-% jconfigure BaseBaseSemispace
+% jconfigure BaseBaseSemiSpace
 % cd $RVM_BUILD
 % jbuild
 \end{verbatim}

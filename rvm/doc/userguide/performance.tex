@@ -9,8 +9,8 @@ To make a long story short the best performing configuration of Jikes
 RVM will almost always be {\tt FastAdaptive}{\em<some GC>}.  Unless you really
 know what you are doing, don't use any other configuration to do a 
 performance evaluation of Jikes RVM. In most cases,
-{\tt FastAdaptiveSemispace} is likely to be your best choice. You can
-use the {\tt FastSemispace} configuration if you want to force all
+{\tt FastAdaptiveSemiSpace} is likely to be your best choice. You can
+use the {\tt FastSemiSpace} configuration if you want to force all
 dynamically loaded methods to be compiled by the optimizing compiler,
 but this configuration will have extremely poor startup behavior and
 will not perform any profile-directed optimizations. 
