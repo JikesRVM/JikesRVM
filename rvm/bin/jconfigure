@@ -248,7 +248,7 @@ integer GENERATE_MAP=1
 export GENERATE_MAP=1
 
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.2.0"
+JIKESRVM_VERSION="Jikes Research VM for Java post-2.2.0 (CVS)"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -346,9 +346,6 @@ integer RVM_FOR_STRESSGC=0
 
 # Are we building the library source?
 integer BUILD_RVMRT_JAR=0
-
-# Should we extract java.math from the host repositories?
-integer RVM_WITH_HOST_JAVA_MATH=0
 
 # using on stack replacement 
 integer RVM_WITH_OSR=0
@@ -662,21 +659,6 @@ function emitSourceList
    fi
    fi
 
-   # standard library support
-   #
-   if (( RVM_WITH_GNU_CLASSPATH )); then
-      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang
-      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/ref
-      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/reflect
-      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/net
-      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/io
-   else
-      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang/reflect
-      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang
-      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/net
-      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/io
-   fi
-
    if (( $RVM_WITH_JMTK )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
@@ -703,6 +685,21 @@ function emitSourceList
       fi
    fi
 
+   # standard library support
+   #
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/ref
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/reflect
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/net
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/io
+   else
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang/reflect
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/net
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/io
+   fi
+
    # Add support for hardware performance monitors on PowerPC
    #
    if (( $RVM_WITH_HPM )); then
@@ -724,8 +721,8 @@ function emitSourceList
 function emitEnvironmentKsh
    {
 
-# read the target environment file
-#
+   # read the target environment file
+   #
    print '#!/bin/ksh'
    print '# Set the enviroment.'
    print ""
@@ -938,7 +935,7 @@ function emitController
    print ''
    print '. ./jbuild.environment'
    print ''
-   print '# do we have the right version of the class libraries?'
+   print '# Ensure that we have the right version of the class libraries'
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
     print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
    else
@@ -1106,7 +1103,6 @@ function emitCopier
    print 'set -e'
    print 'ME=`basename $0`'
 
-#  print 'TRACE_FLAG=-trace' # always on, for now
    print 'if [[ $1 = -trace ]]; then'
    print '   TRACE_FLAG=-trace'
    print '   shift'
@@ -1167,7 +1163,6 @@ function emitCopier
    print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR/'"'
    print 'fi'
    print 'FILES=`$FIND '$GENERATED_FILES_DIRECTORY_STR' -name "*.java"`'
-#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
    print 'set +e'
    print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
    print 'RC=$?'
@@ -1180,26 +1175,6 @@ function emitCopier
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
    print 'fi'
-#if (( RVM_WITH_OPT_COMPILER )); then
-#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-#   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
-#   print 'fi'
-#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
-#   print 'set +e'
-#   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
-#   print 'RC=$?'
-#   print 'if [[ $RC = 1 ]]; then'
-#   print '   FILES_HAVE_CHANGED=1'
-#   print 'elif [[ $RC != 0 ]]; then'
-#   print '   exit 1'
-#   print 'fi'
-#   print 'set -e'
-#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-#   print '  print ""'
-#   print 'fi'
-#   print ''
-#fi
-
 
    # script to preprocess GenerateInterfaceDeclarations.java
    #
@@ -1389,9 +1364,7 @@ function emitImageLinker
 
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
 
-   
    # skip: needed to build bootimage, but not to run it
-#   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
    print "   print BootImageInterface               > $EXCLUDED_CLASSES_STR"
    print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
    print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
@@ -1496,7 +1469,6 @@ function emitImageLinker
    print "   print 'Ljava/lang/InternalError;'                >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/IllegalMonitorStateException;' >> $PRIMORDIAL_CLASSES_STR"
 
-
    # primitive wrapper types
    #
    print "   print 'Ljava/lang/Boolean;'   >> $PRIMORDIAL_CLASSES_STR"
@@ -1508,7 +1480,6 @@ function emitImageLinker
    print "   print 'Ljava/lang/Long;'      >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/Number;'    >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/Short;'     >> $PRIMORDIAL_CLASSES_STR"
-
 
    # class loading errors
    #
@@ -1852,7 +1823,7 @@ function emitImageLinker
    fi
 
    # For performance testing, a full opt base boot image should have all classes
-   # that would be in FulLcom/ibm/JikesRVM/OPT, except for the OPT compiler-related ones.
+   # that would be in FullOPT, except for the OPT compiler-related ones.
    # Here we include such classes that do not have the VM prefix.
 
    # Add the configuration specific primordials
@@ -2385,12 +2356,10 @@ chmod +x$PERM		      $BUILD_DIRECTORY/environment
 emitEnvironmentPerl	      >$BUILD_DIRECTORY/environment.pl
 chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
 
-
 # write the GNU Classpath security properties file
 #
 mkdir -p $BUILD_DIRECTORY/security
 echo "security.provider.1=gnu.java.security.provider.Gnu" > $BUILD_DIRECTORY/security/JikesRVM.security
-
 
 print "(control files and scripts installed) "
 
