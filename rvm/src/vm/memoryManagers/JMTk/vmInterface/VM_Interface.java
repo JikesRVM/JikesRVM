@@ -508,7 +508,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param dstBegin the start offset in the desination array
    * @param dstEnd the index after the last character in the
    * destination to copy to
-   * @returns the number of charactes copied.
+   * @return the number of charactes copied.
    */
   public static int copyStringToChars(String src, char [] dst,
 				      int dstBegin, int dstEnd)
