@@ -639,43 +639,28 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.
+   * A new reference is about to be created.  Perform appropriate
+   * write barrier action.<p>
    *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
+   * In this case, we remember the address of the source of the
+   * pointer if the new reference points into the nursery from
+   * non-nursery space.  This method is <b>inlined</b> by the
+   * optimizing compiler, and the methods it calls are forced out of
+   * line.
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
-  public final void putFieldWriteBarrier(VM_Address src, int offset,
-                                         VM_Address tgt)
+  public final void writeBarrier(VM_Address src, VM_Address slot,
+                                 VM_Address tgt, int mode) 
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src, src.add(offset), tgt);
-    else
-      writeBarrierOOL(src, src.add(offset), tgt);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.
-   *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
-   * @param tgt The target of the new reference
-   */
-  public final void arrayStoreWriteBarrier(VM_Address src, int index,
-                                           VM_Address tgt)
-    throws VM_PragmaInline {
-    if (INLINE_WRITE_BARRIER)
-      writeBarrier(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
-    else
-      writeBarrierOOL(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
+      writeBarrier(src, slot, tgt);
+    else 
+      writeBarrierOOL(src, slot, tgt);
   }
 
   /**
@@ -688,24 +673,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * optimizing compiler, and the methods it calls are forced out of
    * line.
    *
-   * @param obj The object being mutated.
-   * @param src The address of the word (slot) being mutated.
+   * @param src The object being mutated.
+   * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
    */
-  private final void writeBarrier(VM_Address obj, VM_Address src,
+  private final void writeBarrier(VM_Address src, VM_Address slot,
                                   VM_Address tgt) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
-      if (Header.logRequired(obj)) {
-        coalescingWriteBarrierSlow(obj);
+      if (Header.logRequired(src)) {
+        coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(src, tgt);
+      VM_Magic.setMemoryAddress(slot, tgt);
     } else {      
       VM_Address old;
       do {
-        old = VM_Magic.prepareAddress(src, 0);
-      } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+        old = VM_Magic.prepareAddress(slot, 0);
+      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
       if (old.GE(RC_START))
         decBuffer.pushOOL(old);
       if (tgt.GE(RC_START))
@@ -718,24 +703,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * forced <b>out of line</b> by the optimizing compiler, and the
    * methods it calls are forced out of inline.
    *
-   * @param obj The object being mutated.
-   * @param src The address of the word (slot) being mutated.
+   * @param src The object being mutated.
+   * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
    */
-  private final void writeBarrierOOL(VM_Address obj, VM_Address src,
+  private final void writeBarrierOOL(VM_Address src, VM_Address slot,
                                      VM_Address tgt) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
-      if (Header.logRequired(obj)) {
-        coalescingWriteBarrierSlow(obj);
+      if (Header.logRequired(src)) {
+        coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(src, tgt);
+      VM_Magic.setMemoryAddress(slot, tgt);
     } else {
       VM_Address old;
       do {
-        old = VM_Magic.prepareAddress(src, 0);
-      } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+        old = VM_Magic.prepareAddress(slot, 0);
+      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
       if (old.GE(RC_START))
         decBuffer.push(old);
       if (tgt.GE(RC_START))

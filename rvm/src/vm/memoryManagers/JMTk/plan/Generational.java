@@ -614,60 +614,28 @@ public abstract class Generational extends StopTheWorldGC
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.
-   *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
-   * @param tgt The target of the new reference
-   */
-  public final void putFieldWriteBarrier(VM_Address src, int offset,
-                                         VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.
-   *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
-   * @param tgt The target of the new reference
-   */
-  public final void arrayStoreWriteBarrier(VM_Address src, int index,
-                                           VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
-  }
-
-  /**
-   * A new reference is about to be created.  Perform appropriate
-   * write barrier action.<p>
+   * A new reference is about to be created.  Take appropriate write
+   * barrier actions.<p> 
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
    *
-   * @param src The address of the word (slot) containing the new
-   * reference.
-   * @param tgt The target of the new reference (about to become the
-   * contents of src).
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  private final void writeBarrier(VM_Address src, VM_Address tgt) 
+  public final void writeBarrier(VM_Address src, VM_Address slot,
+                                 VM_Address tgt, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
-    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
+    if (slot.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
-      remset.insert(src);
+      remset.insert(slot);
     }
-    VM_Magic.setMemoryAddress(src, tgt);
+    VM_Magic.setMemoryAddress(slot, tgt);
   }
 
   /****************************************************************************

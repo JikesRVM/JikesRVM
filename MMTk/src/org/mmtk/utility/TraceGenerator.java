@@ -169,23 +169,16 @@ public final class TraceGenerator
    *
    * @param isScalar If this is a pointer store to a scalar object
    * @param src The address of the source object
-   * @param offset The offset into the object of the field being updated for 
-   * the trace
+   * @param slot The address within <code>src</code> into which
+   * <code>tgt</code> will be stored
    * @param tgt The target of the pointer store
    */
   public static void processPointerUpdate(boolean isScalar, VM_Address src,
-					  int offset, VM_Address tgt)
+					  VM_Address slot, VM_Address tgt)
     throws VM_PragmaNoInline {
     /* Assert that this isn't the result of tracing */
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!traceBusy);
 
-    VM_Address slot;
-    if (isScalar) {
-      slot = src.add(offset);
-    } else {
-      offset = offset << LOG_BYTES_IN_ADDRESS;
-      slot = src.add(offset);
-    }
     /* Process the old target potentially becoming unreachable, when needed. */
     if (MERLIN_ANALYSIS) {
       VM_Address oldTgt = VM_Magic.getMemoryAddress(slot);
@@ -195,7 +188,7 @@ public final class TraceGenerator
 
     traceBusy = true;
     /* Add the pointer store to the trace */
-    VM_Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, offset);
+    VM_Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, src, slot);
     if (isScalar)
       trace.push(TRACE_FIELD_SET);
     else

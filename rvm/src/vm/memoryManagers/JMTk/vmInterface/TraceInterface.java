@@ -119,18 +119,21 @@ public final class TraceInterface implements VM_Constants, VM_Uninterruptible {
    * pointer.
    *
    * @param isScalar If this is a pointer store to a scalar object
-   * @param offset The offset into the object of the field being updated for 
-   * the trace
+   * @param src The address of the source object
+   * @param slot The address within <code>src</code> into which
+   * the update will be stored
    * @return The easy to understand offset of the slot
    */
   public static final VM_Offset adjustSlotOffset(boolean isScalar, 
-						 int offset) {
+						 VM_Address src,
+                                                 VM_Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
        of the object. */
+    VM_Offset offset = slot.diff(src);
     if (isScalar)
-      return VM_Offset.fromInt(getHeaderEndOffset() - offset);
+      return VM_Offset.fromInt(getHeaderEndOffset()).sub(offset);
     else
-      return VM_Offset.fromInt(offset);
+      return offset;
   }
 
   /**

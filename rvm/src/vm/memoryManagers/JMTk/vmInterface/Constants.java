@@ -30,6 +30,14 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  */
 public interface Constants extends VM_SizeConstants {
 
+  /* Read and write barrier flavors */
+  static final int PUTFIELD_WRITE_BARRIER = 0;
+  static final int GETFIELD_READ_BARRIER = 0;
+  static final int PUTSTATIC_WRITE_BARRIER = 1;
+  static final int GETSTATIC_READ_BARRIER = 1;
+  static final int AASTORE_WRITE_BARRIER = 2;
+  static final int AALOAD_READ_BARRIER = 2;
+
   static final int MAX_INT = 0x7fffffff;
 
   static final int LOG_BYTES_IN_MBYTE = 20;

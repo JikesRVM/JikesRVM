@@ -692,45 +692,29 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   /****************************************************************************
    *
-   * Write barriers. 
+   * Write barrier. 
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.
+   * A new reference is about to be created.  Take appropriate write
+   * barrier actions.<p> 
    *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
-   * @param tgt The target of the new reference
-   */
-  public final void putFieldWriteBarrier(VM_Address src, int offset,
-					 VM_Address tgt)
-    throws VM_PragmaInline {
-    TraceGenerator.processPointerUpdate(true, VM_Magic.objectAsAddress(src), 
-					offset, VM_Magic.objectAsAddress(tgt));
-    VM_Magic.setMemoryAddress(src.add(offset), tgt);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.
+   * In this case, we remember the address of the source of the
+   * pointer if the new reference points into the nursery from
+   * non-nursery space.
    *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  public final void arrayStoreWriteBarrier(VM_Address src, int index,
-					   VM_Address tgt)
+  public final void writeBarrier(VM_Address src, VM_Address slot,
+                                 VM_Address tgt, int mode) 
     throws VM_PragmaInline {
-    TraceGenerator.processPointerUpdate(false, VM_Magic.objectAsAddress(src), 
-					index, VM_Magic.objectAsAddress(tgt));
-    VM_Magic.setMemoryAddress(src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
+    TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
+                                        src, slot, tgt);
+    VM_Magic.setMemoryAddress(slot, tgt);
   }
 
   /****************************************************************************

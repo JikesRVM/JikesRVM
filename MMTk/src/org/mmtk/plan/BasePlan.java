@@ -445,83 +445,40 @@ public abstract class BasePlan
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.<p>
+   * A new reference is about to be created. Take appropriate write
+   * barrier actions.<p> 
+   *
    * <b>By default do nothing, override if appropriate.</b>
    *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
+   * @param context The context in which the store occured
    */
-  public void putFieldWriteBarrier(VM_Address src, int offset,
-                                   VM_Address tgt) {
-    // Either: barriers are used and this is overridden, or 
-    //         barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
-   * @param tgt The target of the new reference
-   */
-  public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-                                     VM_Address value) {
+  public void writeBarrier(VM_Address src, VM_Address slot,
+                           VM_Address tgt, int context) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
-   * A new reference is about to be created by a putStatic bytecode.
-   * Take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
+   * Read a reference. Take appropriate read barrier action, and
+   * return the value that was read.<p> This is a <b>substituting<b>
+   * barrier.  The call to this barrier takes the place of a load.<p>
    *
-   * @param slot The location into which the new reference will be
-   * stored (the address of the static field being stored into).
-   * @param tgt The target of the new reference
+   * @param src The object being read.
+   * @param src The address being read.
+   * @param context The context in which the read arose (getfield, for example)
+   * @return The reference that was read.
    */
-  public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
-    // Either: write barriers are used and this is overridden, or 
-    //         write barriers are not used and this is never called
+  public final VM_Address readBarrier(VM_Address src, VM_Address slot,
+                                      int context)
+    throws VM_PragmaInline {
+    // read barrier currently unimplemented
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-  }
-
-  /**
-   * A reference is about to be read by a getField bytecode.  Take
-   * appropriate read barrier action.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param tgt The address of the object containing the pointer
-   * about to be read
-   * @param offset The offset from tgt of the field to be read from
-   */
-  public final void getFieldReadBarrier(VM_Address tgt, int offset) {
-    // getfield barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-  }
-
-  /**
-   * A reference is about to be read by a getStatic bytecode. Take
-   * appropriate read barrier action.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param slot The location from which the reference will be read
-   * (the address of the static field being read).
-   */
-  public final void getStaticReadBarrier(VM_Address slot) {
-    // getstatic barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    return VM_Address.max();
   }
 
   /****************************************************************************

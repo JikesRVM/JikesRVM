@@ -228,9 +228,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static void putfieldWriteBarrier(Object ref, int offset, Object value)
     throws VM_PragmaInline {
-    VM_Interface.getPlan().putFieldWriteBarrier(
-                                   VM_Magic.objectAsAddress(ref), offset,
-                                   VM_Magic.objectAsAddress(value));
+    VM_Address src = VM_Magic.objectAsAddress(ref);
+    VM_Interface.getPlan().writeBarrier(src,
+                                        src.add(offset),
+                                        VM_Magic.objectAsAddress(value),
+                                        PUTFIELD_WRITE_BARRIER);
   }
   
   /**
@@ -244,8 +246,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
-    //     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
-    //     VM_Interface.getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
+//     VM_Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+//     VM_Interface.getPlan().writeBarrier(jtoc,
+//                                         jtoc.add(offset),
+//                                         VM_Magic.objectAsAddress(value),
+//                                         PUTSTATIC_WRITE_BARRIER);
   }
 
   /**
@@ -261,9 +266,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static void arrayStoreWriteBarrier(Object ref, int index,
                                             Object value)
     throws VM_PragmaInline {
-    VM_Interface.getPlan().arrayStoreWriteBarrier(
-                                     VM_Magic.objectAsAddress(ref), index,
-                                     VM_Magic.objectAsAddress(value));
+    VM_Address array = VM_Magic.objectAsAddress(ref);
+    VM_Interface.getPlan().writeBarrier(array,
+                                        array.add(index<<LOG_BYTES_IN_ADDRESS),
+                                        VM_Magic.objectAsAddress(value),
+                                        AASTORE_WRITE_BARRIER);
   }
 
   /**
