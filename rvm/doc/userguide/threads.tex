@@ -1,5 +1,5 @@
 This section provides some explanation of how Java\trademark threads are
-scheduled and synchronized by the Jikes\trademark RVM.
+scheduled and synchronized by Jikes\trademark RVM.
 
 \index{threads}
 \index{scheduling}
@@ -52,7 +52,7 @@ set to prevent it from being scheduled for execution on some other
 virtual processor while it is still executing in {\tt morph } or {\tt
 dispatch}. 
 
-Beginning with version 2.0.1, the Jikes RVM has a simple load balancing
+Beginning with version 2.0.1, Jikes RVM has a simple load balancing
 mechanism. Every once in a while, a thread will move from one virtual
 processor to the next.  Such movement happens when a thread is
 interrupted by a timer tick (or garbage collection) or when it comes
@@ -74,7 +74,7 @@ execution.
 Currently, Jikes RVM has no priority mechanism, that is, all threads run at
 the same priority.
 
-If the Jikes RVM detects that a thread is stuck executing native code (JNI)
+If Jikes RVM detects that a thread is stuck executing native code (JNI)
 for a long time, it temporarily prevents it from returning to Java and
 creates a new pThread (or recycles one previously created for this 
 purpose) and transfers the stuck thread's virtual processor to the

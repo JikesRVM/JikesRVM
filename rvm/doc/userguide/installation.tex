@@ -112,7 +112,8 @@ automake       & 1.6.3+   & \xlink{\tt \automakeURL}{\automakeURL} \\
 autoconf       & 2.53+    & \xlink{\tt \autoconfURL}{\autoconfURL} \\
 gcc            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
 unzip          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
-Jikes          & 1.18+    & \xlink{\tt \jikesURL}{\jikesURL}       \\
+Jikes Compiler & 1.18+    & \xlink{\tt \jikesURL}{\jikesURL}       \\
+\hline
 \multicolumn{3}{|c|}{\em Linux/IA32}                      \\ \hline
 kernel         & 2.4+ ({\em See below}) & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
 JDK            & Blackdown 1.3.1 or 1.4.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
@@ -135,6 +136,7 @@ if that scares you, use a recent RedHat Linux distribution.
 \item It is possible to use 2.2 Linux kernels with multiprocessor
 support disabled in Jikes RVM.  We do not recommend this; if you
 insist, look in {\tt jconfigure} for details.
+\item We have also used the Sun JDK 1.4.1 to build Jikes RVM.
 \end{itemize}
 \end{center}
 \caption{System prerequisites for Jikes RVM}
@@ -147,7 +149,7 @@ insist, look in {\tt jconfigure} for details.
 
 \subsubsection{Installation Overview}
 
-To install and build the Jikes\trademark RVM, two items are required
+To install and build Jikes\trademark RVM, two items are required
 \begin{itemize}
 \item The Jikes RVM source distribution.  This is available as a
 compressed tar file {\tt \RVMTarFile}.  You can also work with the
@@ -271,8 +273,8 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 \end{verbatim}
 
 These two variables point to the same file when the type of system  
-doing the build is the same as where  you are going 
-the execute the Jikes RVM. To cross build a system
+doing the build is the same as where you are going 
+the execute Jikes RVM.  To cross build a system
 e.g., build on AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote\ for a
 Linux/IA32 platform, see the section on Cross 
 Platform Building.
@@ -404,8 +406,8 @@ Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
 {\tt \$RVM\_BUILD/RVM.classes}, preprocesses these files, generates
 some code with template expansions, builds an executable C program to
-start the Jikes RVM, and writes the Jikes RVM boot image.  The boot
-image is the binary image of a ready-to-go instance of the Jikes RVM.
+start Jikes RVM, and writes the Jikes RVM boot image.  The boot
+image is the binary image of a ready-to-go instance of Jikes RVM.
 
 The {\tt jbuild} script must be run from the {\tt \$RVM\_BUILD}
 directory. It prints a copious report of its operation which you may
@@ -430,7 +432,7 @@ affect system viability.
 \subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
 
-This section describes the Jikes\trademark RVM build configurations.
+This section describes Jikes\trademark RVM's build configurations.
 The various 
 build configurations are defined by files in {\tt
 \$RVM\_ROOT/rvm/config/build}.
@@ -446,7 +448,7 @@ following naming scheme
 where
 \begin{itemize}
 \item the {\em boot image compiler} is the compiler used to compile
-the Jikes RVM boot image. 
+Jikes RVM's boot image. 
 \item the {\em runtime compiler} is the ``compiler'' used to compile
 the classes loaded at runtime.  
 \item the {\em garbage collector} is the garbage collection scheme used.
