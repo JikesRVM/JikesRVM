@@ -89,6 +89,7 @@ function showHelp {
   echo '-wait <file>                sync build and run using file'
   echo '-performance <file>         record performance results to file'
   echo '-rc-args "args"             supply args to all runs'
+  echo '-minimal                    run minimal test suite on OptOptSemispace image'
   echo '-help                       display this message'
 }
 
@@ -225,6 +226,13 @@ while [ $# != 0 ]; do
    -rc-args)
 	EXTRA_RC_ARGS=$2
 	shift
+   ;;
+
+   ## set up to run a minimal test suite on OptOptSemispace
+   #
+   -minimal)
+	CONFIG_LIST=OptOptSemispace
+        TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/small-sanity-tests`
    ;;
 
    ## print usage help
