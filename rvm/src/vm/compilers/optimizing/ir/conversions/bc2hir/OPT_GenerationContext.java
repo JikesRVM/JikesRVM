@@ -254,11 +254,6 @@ final class OPT_GenerationContext implements OPT_Constants,
       }
     }
     VM_Type returnType = meth.getReturnType();
-
-    try {
-	Class.forName("OPT_ClassLoaderProxy");
-    } catch (Throwable e) {
-    }
     if (returnType != OPT_ClassLoaderProxy.VoidType) {
       resultReg = temps.makeTemp(returnType).register;
     }
