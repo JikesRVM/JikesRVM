@@ -537,6 +537,18 @@ public class VM extends VM_Properties
 
   /**
    * Low level print to console.
+   * @param value	what is printed, as int only
+   */
+  public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    if (runningVM)
+      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0 /*just decimal*/);
+    else {
+      System.err.print(value);
+    }
+  }
+
+  /**
+   * Low level print to console.
    * @param value   what is printed
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
@@ -635,6 +647,8 @@ public class VM extends VM_Properties
   public static void sysWriteField (int w, int v)      throws VM_PragmaNoInline { swLock(); writeField(w, v); swUnlock(); }
   public static void sysWriteField (int w, String s)   throws VM_PragmaNoInline { swLock(); writeField(w, s); swUnlock(); }
   public static void sysWriteHex(int v)                throws VM_PragmaNoInline { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteInt(int v)                throws VM_PragmaNoInline { swLock(); writeInt(v); swUnlock(); }
+  public static void sysWriteLong(long v)              throws VM_PragmaNoInline { swLock(); write(v,false); swUnlock(); }
   public static void sysWrite   (double d, int p)      throws VM_PragmaNoInline { swLock(); write(d, p); swUnlock(); }
   public static void sysWrite   (double d)             throws VM_PragmaNoInline { swLock(); write(d); swUnlock(); }
   public static void sysWrite   (String s)             throws VM_PragmaNoInline { swLock(); write(s); swUnlock(); }
