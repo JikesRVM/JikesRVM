@@ -325,28 +325,12 @@ public abstract class Generational extends StopTheWorldGC
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
-
   /**
    * Perform a collection.
    */
   public final void collect () {
     if ((verbose == 1) && (fullHeapGC)) VM.sysWrite("[Full heap]");
-    prepare();
     super.collect();
-    release();
   }
 
   abstract void globalMaturePrepare();
@@ -361,6 +345,7 @@ public abstract class Generational extends StopTheWorldGC
   protected final void globalPrepare() {
     nurseryMR.reset(); // reset the nursery
     if (fullHeapGC) {
+      Statistics.gcMajorCount++;
       // prepare each of the collected regions
       if (Plan.usesLOS) losCollector.prepare(losVM, losMR);
       globalMaturePrepare();

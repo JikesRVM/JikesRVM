@@ -265,6 +265,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Perform a collection.
    */
   public final void collect () {
+    if (VM.VerifyAssertions) VM._assert(false);
   }
 
   /**

@@ -302,29 +302,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
-
-  /**
-   * Perform a collection.
-   */
-  public final void collect () {
-    prepare();
-    super.collect();
-    release();
-  }
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a

@@ -52,7 +52,6 @@ public abstract class BasePlan
   // GC state and control variables
   private static int count = 0;        // Number of plan instances in existence
   protected static boolean gcInProgress = false;  // Controlled by subclasses
-  protected static int gcCount = 0;    // Number of GCs initiated
 
   // Timing variables
   protected static double bootTime;
@@ -344,7 +343,7 @@ public abstract class BasePlan
   // Space management
   //
 
-  static public void addSpace (byte sp, String name) {
+  static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
     if (spaceNames[sp] != null) VM.sysFail("addSpace called on already registed space");
     spaceNames[sp] = name;
   }
@@ -435,7 +434,7 @@ public abstract class BasePlan
    * each GC).
    */
   public static int gcCount() { 
-    return gcCount;
+    return Statistics.gcCount;
   }
 
   /**
@@ -454,8 +453,8 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (verbose == 1) {
-      VM.sysWrite("[End ", ((VM_Interface.now() - bootTime)*1000));
-      VM.sysWrite("ms]\n");
+      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
+      // VM.sysWrite(" s]\n");
     }
   }
 

@@ -290,14 +290,6 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   final public SimpleRCAllocator getAllocator() {
     return rc;
   }
-  /**
-   * Perform a collection.
-   */
-  final public void collect () {
-    prepare();
-    super.collect();
-    release();
-  }
 
   /* We reset the state for a GC thread that is not participating in this GC
    */

@@ -143,15 +143,45 @@ public abstract class StopTheWorldGC extends BasePlan
 
   /**
    * Perform a collection.
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.:
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
    */
-  protected void collect() {
+  public void collect () {
+
+    boolean designated = (VM_CollectorThread.gcBarrier.rendezvous() == 1);
+
+    if (designated) Statistics.initTime.start();
+    prepare();        
+    if (designated) Statistics.initTime.stop();
+
+    if (designated) Statistics.rootTime.start();
     VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
-    processAllWork();
-    int order = VM_CollectorThread.gcBarrier.rendezvous();
-    if (order == 1)
-      Finalizer.moveToFinalizable();
+    if (designated) Statistics.rootTime.stop();
+
+    if (designated) Statistics.scanTime.start();
+    processAllWork(); 
+    if (designated) Statistics.scanTime.stop();
+
+    if (designated) Statistics.finalizeTime.start();
+    if (designated) Finalizer.moveToFinalizable(); 
     VM_CollectorThread.gcBarrier.rendezvous();
+    if (designated) Statistics.finalizeTime.stop();
+
+    if (designated) Statistics.scanTime.start();
     processAllWork();
+    if (designated) Statistics.scanTime.stop();
+
+    if (designated) Statistics.finishTime.start();
+    release();
+    if (designated) Statistics.finishTime.stop();
   }
 
   /**
@@ -179,16 +209,17 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseGlobalPrepare(double start) {
     gcInProgress = true;
-    gcCount++;
+    Statistics.gcCount++;
     gcStartTime = start;
     if (verbose == 1) {
-      VM.sysWrite("[GC ", gcCount);
-      VM.sysWrite(" start ", ((gcStartTime - bootTime)*1000));
-      VM.sysWrite("ms ");
+      VM.sysWrite("[GC ", Statistics.gcCount);
+      VM.sysWrite(" Start ", (gcStartTime - bootTime));
+      VM.sysWrite(" s    ");
       VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
+      VM.sysWrite(" KB ");
     }
     if (verbose > 2) {
-      VM.sysWrite("Collection ", gcCount);
+      VM.sysWrite("Collection ", Statistics.gcCount);
       VM.sysWrite(":      reserved = ", Plan.getPagesReserved());
       VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20)); 
       VM.sysWrite(" Mb) ");
@@ -236,6 +267,7 @@ public abstract class StopTheWorldGC extends BasePlan
       baseGlobalRelease();
     VM_CollectorThread.gcBarrier.rendezvous();
     threadLocalReset();
+    VM_CollectorThread.gcBarrier.rendezvous();
   }
 
   /**
@@ -249,28 +281,24 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseGlobalRelease() {
     globalRelease();
+    gcInProgress = false;    // GC is in progress until after release!
+    gcStopTime = VM_Interface.now();
     if (verbose == 1) {
-      VM.sysWrite("->");
+      VM.sysWrite("-> ");
       VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
-      VM.sysWrite("KB ");
+      VM.sysWrite(" KB   ");
+      VM.sysWrite(((gcStopTime - bootTime)*1000));
+      VM.sysWriteln(" ms]");
     }
     if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
       MemoryResource.showUsage(PAGES);
       VM.sysWrite("                     ");
       MemoryResource.showUsage(MB);
-      VM.sysWrite("   Collection ", gcCount);
+      VM.sysWrite("   Collection ", Statistics.gcCount);
       writePages(":       reserved = ", Plan.getPagesReserved(), PAGES_MB);
       writePages("      total = ", getTotalPages(), PAGES_MB);
       VM.sysWriteln();
-    }
-    gcInProgress = false;    // GC is in progress until after release!
-    gcStopTime = VM_Interface.now();
-    if (verbose == 1) {
-      VM.sysWrite("stop ", ((gcStopTime - bootTime)*1000));
-      VM.sysWriteln("ms]");
-    }
-    if (verbose > 2) {
       VM.sysWrite("    Collection time: ");
       VM.sysWrite(gcStopTime - gcStartTime, 3);
       VM.sysWriteln(" seconds");
@@ -330,6 +358,8 @@ public abstract class StopTheWorldGC extends BasePlan
       
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
+
+    VM_CollectorThread.gcBarrier.rendezvous();
   }
 
 
