@@ -2,7 +2,9 @@
 #
 # (C) Copyright IBM Corp. 2002
 #
-# Author: Martin Trapp
+# $Id$
+#
+# @author: Martin Trapp
 #
 
 
