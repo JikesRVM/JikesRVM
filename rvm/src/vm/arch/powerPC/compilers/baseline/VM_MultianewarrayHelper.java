@@ -29,7 +29,7 @@ public class VM_MultianewarrayHelper {
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
-  static Object newArrayArray(int numDimensions, int id, int argOffset)
+  static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
     throws NegativeArraySizeException, 
 	   OutOfMemoryError,
 	   ClassNotFoundException {
