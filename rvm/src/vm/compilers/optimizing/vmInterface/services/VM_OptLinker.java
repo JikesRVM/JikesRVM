@@ -67,28 +67,4 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     VM_Array aType = VM_ClassLoader.getTypeFromId(dictionaryId).asArray();
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
-
-  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  public static Object allocAdviceNewArrayArray(int[] dimensions, 
-						int dictionaryId, 
-						int generation) 
-    throws VM_ResolutionException, 
-	   NegativeArraySizeException, 
-	   OutOfMemoryError { 
-    
-    // validate arguments
-    for (int i = 0; i < dimensions.length; i++) {
-      if (dimensions[i] < 0)
-	throw new NegativeArraySizeException();
-    }
-    
-    // create array
-    //
-    return VM_Runtime.buildMultiDimensionalArray(dimensions, 
-						 0, VM_ClassLoader.getTypeFromId(dictionaryId).asArray(), generation);
-  }
-  //-#endif
 }
-
-
-

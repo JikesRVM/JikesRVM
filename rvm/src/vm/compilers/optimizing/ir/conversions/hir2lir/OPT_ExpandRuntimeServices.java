@@ -486,10 +486,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 
-  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  static private final boolean debug_alloc_advice = false;
-  //-#endif
-
   private static final class OPT_RedirectResult {
       OPT_Instruction next;
       OPT_RegisterOperand newValue;
@@ -499,11 +495,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       }
   }
 
-  // Insert basic blocks AFTER the given instructions that will check the contents of
-  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
-  // of the original register value.  
-  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
-  // and returned along with the first instruction after the added code is returned.
+  /**
+   * Insert basic blocks AFTER the given instructions that will check the contents of
+   * the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
+   * of the original register value.  
+   * The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
+   * and returned along with the first instruction after the added code is returned.
+   */
   private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
 	
       OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 

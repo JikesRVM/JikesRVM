@@ -52,7 +52,7 @@ extern "C" void processTimerTick(void);
 // [--DL]
 //
 
-#if (defined __linux__) || (defined GCTk)
+#if (defined __linux__)
 #define USE_MMAP 1 // choose mmap() for Linux --SB
 #else
 #define USE_MMAP 0 // choose shmat() --DL

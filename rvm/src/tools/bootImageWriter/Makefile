@@ -21,15 +21,6 @@ $SRCS=	BootImage.java \
 	BootImageWriterConstants.java \
 	BootImageWriterMessages.java
 
-# The following will set the build time alloc advice flag appropriately
-# if the GCTk_ALLOC_ADVICE_FILE environment variable is set.
-ifdef GCTk_ALLOC_ADVICE_FILE
-ALLOC_ADVICE_INFO=-X:bc:alloc_advice_file=$(GCTk_ALLOC_ADVICE_FILE)
-else
-ALLOC_ADVICE_INFO=
-endif
-
-
 ZIP_KLUDGE_CLASSES = java/util/zip/ZipConstants.class
 MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/util/AbstractMap*
 TREEMAP_KLUDGE_CLASSES = java/util/TreeMap* java/util/SortedMap* java/util/Iterator* java/util/TreeSet*
@@ -79,7 +70,6 @@ $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter.class $(UTIL_KLUDGE_JAR)
 	   -classpath $(RVM_REPOSITORIES) \
 	   -n $(RVM_BOOTIMAGE_CLASSES) \
 	   -o $(RVM_BOOTIMAGE) \
-	   $(ALLOC_ADVICE_INFO) \
 	   $(RVM_BOOTIMAGE_COMPILER_ARGS) \
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)
