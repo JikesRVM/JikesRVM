@@ -1249,22 +1249,6 @@ createJVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
         return 1;
     }
-#elif defined RVM_FOR_AIX
-    struct sigstack stackInfo;
-    stackInfo.ss_sp = topOfSignalStack;
-    stackInfo.ss_onstack = 0;
-    if (sigstack(&stackInfo, 0)) {
-        fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-    // install hardware trap handler
-    //
-    struct sigaction action;
-    action.sa_handler = (SIGNAL_HANDLER) cTrapHandler;
-    action.sa_flags   = SA_ONSTACK | SA_RESTART;
-    SIGFILLSET(action.sa_mask);
-    SIGDELSET(action.sa_mask, SIGCONT);
-#elif defined RVM_FOR_OSX
     struct sigaction action;
     action.sa_handler = (SIGNAL_HANDLER)cTrapHandler;
     action.sa_flags   = SA_ONSTACK | SA_RESTART;
@@ -1283,11 +1267,26 @@ createJVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
         return 1;
     }
+#elif defined RVM_FOR_AIX
+    struct sigstack stackInfo;
+    stackInfo.ss_sp = topOfSignalStack;
+    stackInfo.ss_onstack = 0;
+    if (sigstack(&stackInfo, 0)) {
+        fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
+        return 1;
+    }
+    // install hardware trap handler
+    //
+    struct sigaction action;
+    action.sa_handler = (SIGNAL_HANDLER) cTrapHandler;
+    action.sa_flags   = SA_ONSTACK | SA_RESTART;
+    SIGFILLSET(action.sa_mask);
+    SIGDELSET(action.sa_mask, SIGCONT);
 #endif
-    if (sigaction(SIGSEGV, &action, 0) || // catch null pointer references
-        sigaction(SIGTRAP, &action, 0) || // catch array bounds violations
-        sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
-                                             give a traceback) */
+    if (sigaction(SIGSEGV, &action, 0) // catch null pointer references
+        || sigaction(SIGTRAP, &action, 0) // catch array bounds violations
+        || sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
+                                          give a traceback) */
     {
         fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
         return 1;
