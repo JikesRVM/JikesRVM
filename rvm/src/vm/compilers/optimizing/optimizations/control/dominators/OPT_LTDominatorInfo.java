@@ -37,8 +37,7 @@ class OPT_LTDominatorInfo {
   private OPT_BasicBlockEnumeration enum;
 
   /**
-   * @param  the basic block this info is associated with
-   *
+   * @param block the basic block this info is associated with
    */
   OPT_LTDominatorInfo(OPT_BasicBlock block) {
     semiDominator = 0;
@@ -56,8 +55,6 @@ class OPT_LTDominatorInfo {
    *   This method returns the set of blocks that dominates the passed
    *   block, i.e., it answers the question "Who dominates me?"
    *
-   *   @param size  the size of the BitVector, i.e., 
-   *                the number of blocks in the CFG
    *   @param block the block of interest
    *   @param ir    the governing ir
    *   @return a BitVector containing those blocks that dominate the passed one

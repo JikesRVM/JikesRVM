@@ -4,30 +4,24 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
-import org.mmtk.plan.RCBaseHeader;
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
-import org.mmtk.utility.BlockAllocator;
+import org.mmtk.plan.RefCountBase;
+import org.mmtk.utility.alloc.BlockAllocator;
+import org.mmtk.utility.alloc.SegregatedFreeList;
+import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
-import org.mmtk.utility.Scan;
-import org.mmtk.utility.SegregatedFreeList;
-import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.utility.RCSanityEnumerator;
 import org.mmtk.utility.TrialDeletion;
-import org.mmtk.utility.VMResource;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Statistics;
+import org.mmtk.vm.Collection;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements thread-local behavior for a reference counted
@@ -41,7 +35,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public final class RefCountLocal extends SegregatedFreeList
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -60,8 +54,6 @@ public final class RefCountLocal extends SegregatedFreeList
   public static int rcLiveObjects = 0;
   public static int sanityLiveObjects = 0;
 
-  private static final int RCL_TAG_OFFSET = FREE_LIST_HEADER_BYTES;
-  private static final int RC_BLOCK_HEADER = BYTES_IN_ADDRESS; 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
@@ -76,17 +68,11 @@ public final class RefCountLocal extends SegregatedFreeList
    * Instance variables
    */
   private RefCountSpace rcSpace;
-  private RefCountLOSLocal los;
-  private Plan plan;
+  private LargeRCObjectLocal los;
 
-  private Lock deferredFreeLock;
-
-  private AddressDeque incBuffer;
-  private AddressDeque decBuffer;
-  private AddressDeque newRootSet;
-  private AddressDeque oldRootSet;
-  private SharedDeque deferredFreePool;
-  private AddressPairDeque deferredFreeBuffer;
+  private ObjectReferenceDeque decBuffer;
+  private ObjectReferenceDeque newRootSet;
+  private ObjectReferenceDeque oldRootSet;
 
   private boolean decrementPhase = false;
 
@@ -101,12 +87,12 @@ public final class RefCountLocal extends SegregatedFreeList
   private boolean cycleBufferAisOpen = true;
 
   // sanity tracing
-  private AddressDeque incSanityRoots;
+  private ObjectReferenceDeque incSanityRoots;
   private AddressPairDeque sanityWorkQueue;
-  private AddressDeque checkSanityRoots;
-  private AddressDeque sanityImmortalSetA;
-  private AddressDeque sanityImmortalSetB;
-  private AddressDeque sanityLastGCSet;
+  private ObjectReferenceDeque checkSanityRoots;
+  private ObjectReferenceDeque sanityImmortalSetA;
+  private ObjectReferenceDeque sanityImmortalSetB;
+  private ObjectReferenceDeque sanityLastGCSet;
 
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
@@ -123,6 +109,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(LAZY_SWEEP);
     oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     oldRootPool.newClient();
 
@@ -149,15 +136,15 @@ public final class RefCountLocal extends SegregatedFreeList
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       cellSize[sc] = getBaseCellSize(sc);
       for (byte blk = 0; blk < BlockAllocator.BLOCK_SIZE_CLASSES; blk++) {
-        int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES - RC_BLOCK_HEADER;
-        int cells = avail/cellSize[sc];
+        int usableBytes = BlockAllocator.blockSize(blk);
+        int cells = usableBytes/cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
         /*cells must start at multiple of BYTES_IN_PARTICLE
            because cellSize is also supposed to be multiple, this should do the trick: */
         blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
-        if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
-            ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
+        if (((usableBytes < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+            ((usableBytes > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
           break;
       }
     }
@@ -173,44 +160,46 @@ public final class RefCountLocal extends SegregatedFreeList
    * associated.
    * @param plan The plan with which this local thread is associated.
    */
-  public RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-                       AddressDeque dec, AddressDeque root) {
-    super(space.getVMResource(), space.getMemoryResource(), plan_);
+  public RefCountLocal(RefCountSpace space, LargeRCObjectLocal los, 
+                       ObjectReferenceDeque dec, ObjectReferenceDeque root) {
+    super(space);
     rcSpace = space;
-    plan = plan_;
-    los = los_;
-
-    deferredFreeLock = new Lock("RefCountLocal.deferredFreeLock");
+    this.los = los;
 
     decBuffer = dec;
     newRootSet = root;
-    oldRootSet = new AddressDeque("old root set", oldRootPool);
-    deferredFreePool = new SharedDeque(Plan.getMetaDataRPA(), 2);
-    deferredFreePool.newClient();
-    deferredFreeBuffer = new AddressPairDeque(deferredFreePool);
+    oldRootSet = new ObjectReferenceDeque("old root set", oldRootPool);
     if (RefCountSpace.RC_SANITY_CHECK) {
-      incSanityRoots = new AddressDeque("sanity increment root set", incSanityRootsPool);
+      incSanityRoots = new ObjectReferenceDeque("sanity increment root set", incSanityRootsPool);
       sanityWorkQueue = new AddressPairDeque(sanityWorkQueuePool);
-      checkSanityRoots = new AddressDeque("sanity check root set", checkSanityRootsPool);
-      sanityImmortalSetA = new AddressDeque("immortal set A", sanityImmortalPoolA);
-      sanityImmortalSetB = new AddressDeque("immortal set B", sanityImmortalPoolB);
-      sanityLastGCSet = new AddressDeque("last GC set", sanityLastGCPool);
+      checkSanityRoots = new ObjectReferenceDeque("sanity check root set", checkSanityRootsPool);
+      sanityImmortalSetA = new ObjectReferenceDeque("immortal set A", sanityImmortalPoolA);
+      sanityImmortalSetB = new ObjectReferenceDeque("immortal set B", sanityImmortalPoolB);
+      sanityLastGCSet = new ObjectReferenceDeque("last GC set", sanityLastGCPool);
     }
-    if (Plan.REF_COUNT_CYCLE_DETECTION)
-      cycleDetector = new TrialDeletion(this, plan_);
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION)
+      cycleDetector = new TrialDeletion(this);
   }
 
   /****************************************************************************
    *
    * Allocation
    */
-  public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-                              int bytes, boolean inGC) throws VM_PragmaInline{}
-  public final void postExpandSizeClass(VM_Address block, int sizeClass) {
-    VM_Magic.setMemoryAddress(block.add(RCL_TAG_OFFSET), VM_Magic.objectAsAddress(this));
-  }
-  protected final VM_Address advanceToBlock(VM_Address block, int sizeClass){
-    return getFreeList(block);
+
+  /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
+  protected final Address advanceToBlock(Address block, int sizeClass) {
+    return makeFreeListFromLiveBits(block, sizeClass);
   }
 
   /****************************************************************************
@@ -222,12 +211,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * Prepare for a collection.
    */
   public final void prepare(boolean time) { 
-    if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer) 
-      VM_Interface.sysFail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
+    if (RefCountSpace.RC_SANITY_CHECK && !Plan.noFinalizer.getValue()) 
+      Assert.fail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
 
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
-      if (Options.verbose > 2)
+      if (Plan.verbose.getValue() > 2)
         processRootBufsAndCount(); 
       else
         processRootBufs();
@@ -236,29 +225,34 @@ public final class RefCountLocal extends SegregatedFreeList
 
   /**
    * Finish up after a collection.
+   *
+   * @param plan The plan instance performing this operation
+   * @param count The ordinal number of the plan instance performing
+   * this operation
    */
-  public final void release(int count, boolean timekeeper) {
+  public final void release(RefCountBase plan, int count) {
+    boolean timekeeper = (Plan.verboseTiming.getValue() && count == 1);
     flushFreeLists();
-    VM_Interface.rendezvous(4400);
+    Collection.rendezvous(4400);
     if (!RefCountSpace.INC_DEC_ROOT) {
-      processOldRootBufs();
+      processOldRootBufs(plan);
     }
     if (timekeeper) decTime.start();
     if (RefCountSpace.RC_SANITY_CHECK) incSanityTrace();
-    processDecBufs();
+    processDecBufs(plan);
     if (timekeeper) decTime.stop();
-    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+    Collection.rendezvous(4410);
+    sweepBlocks();
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
       if (timekeeper) cdTime.start();
       if (cycleDetector.collectCycles(count, timekeeper)) 
-        processDecBufs();
+        processDecBufs(plan);
       if (timekeeper) cdTime.stop();
     }
-    VM_Interface.rendezvous(4410);
-    processDeferredFreeBufs();
-    VM_Interface.rendezvous(4420);
+    Collection.rendezvous(4420);
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     if (!RefCountSpace.INC_DEC_ROOT) {
-      if (Options.verbose > 2) 
+      if (Plan.verbose.getValue() > 2) 
         processRootBufsAndCount(); 
       else 
         processRootBufs();
@@ -269,33 +263,35 @@ public final class RefCountLocal extends SegregatedFreeList
   /**
    * Process the decrement buffers
    */
-  private final void processDecBufs() {
-    VM_Address tgt = VM_Address.zero();
+  private final void processDecBufs(RefCountBase plan) {
+    ObjectReference tgt = ObjectReference.nullReference();
     long tc = Plan.getTimeCap();
-    long remaining =  tc - VM_Interface.cycles();
+    long remaining =  tc - Statistics.cycles();
     long limit = tc - (long)(remaining * (1 - DEC_TIME_FRACTION));
     decrementPhase = true;
     decCounter = 0;
     do {
       int count = 0;
-      while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isZero()) {
-        decrement(tgt);
+      while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isNull()) {
+        decrement(tgt, plan);
         count++;
       } 
       decCounter += count;
-    } while (!tgt.isZero() && (RefCountSpace.RC_SANITY_CHECK || VM_Interface.cycles() < limit));
+    } while (!tgt.isNull() && (RefCountSpace.RC_SANITY_CHECK || Statistics.cycles() < limit));
     decrementPhase = false;
   }
 
   /**
    * Process the root buffers from the previous GC, if the object is
    * no longer live release it.
+   *
+   * @param plan The plan instance performing this operation
    */
-  private final void processOldRootBufs() {
-    VM_Address object;
-    while (!(object = oldRootSet.pop()).isZero()) {
-      if (!RCBaseHeader.isLiveRC(object))
-        release(object);
+  private final void processOldRootBufs(RefCountBase plan) {
+    ObjectReference object;
+    while (!(object = oldRootSet.pop()).isNull()) {
+      if (!RefCountSpace.isLiveRC(object))
+        release(object, plan);
     }
   }
 
@@ -304,12 +300,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * buffers for the next GC. 
    */
   private final void processRootBufs() {
-    VM_Address object;
-    while (!(object = newRootSet.pop()).isZero()) {
+    ObjectReference object;
+    while (!(object = newRootSet.pop()).isNull()) {
       if (RefCountSpace.INC_DEC_ROOT)
         decBuffer.push(object);
       else {
-        RCBaseHeader.unsetRoot(object);
+        RefCountSpace.unsetRoot(object);
         oldRootSet.push(object);
       }
     }
@@ -319,31 +315,16 @@ public final class RefCountLocal extends SegregatedFreeList
    * Process the root buffers and maintain statistics.
    */
   private final void processRootBufsAndCount() {
-    VM_Address object;
+    ObjectReference object;
     rootCounter = 0;
-    while (!(object = newRootSet.pop()).isZero()) {
+    while (!(object = newRootSet.pop()).isNull()) {
       if (RefCountSpace.INC_DEC_ROOT)
         decBuffer.push(object);
       else {
-        RCBaseHeader.unsetRoot(object);
+        RefCountSpace.unsetRoot(object);
         oldRootSet.push(object);
       }
       rootCounter++;
-    }
-  }
-
-  /**
-   * Process the deferred free buffers
-   */
-  private final void processDeferredFreeBufs() {
-    VM_Address cell;
-    while (!(cell = deferredFreeBuffer.pop1()).isZero()) {
-      VM_Address block = deferredFreeBuffer.pop2();
-      int sizeClass = getBlockSizeClass(block);
-      if (VM_Interface.VerifyAssertions) {
-        VM_Interface._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET))));
-      }
-      free(cell, block, sizeClass);
     }
   }
 
@@ -361,13 +342,15 @@ public final class RefCountLocal extends SegregatedFreeList
    * cycles of garbage.
    *
    * @param object The object whose count is to be decremented
+   * @param plan The plan instance performing this operation
    */
-  public final void decrement(VM_Address object) 
-    throws VM_PragmaInline {
-    int state = RCBaseHeader.decRC(object);
-    if (state == RCBaseHeader.DEC_KILL)
-      release(object);
-    else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
+  public final void decrement(ObjectReference object, RefCountBase plan) 
+    throws InlinePragma {
+    int state = RefCountSpace.decRC(object);
+    if (state == RefCountSpace.DEC_KILL)
+      release(object, plan);
+    else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
+	     state == RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -381,13 +364,15 @@ public final class RefCountLocal extends SegregatedFreeList
    * the cycle detector processes its buffers.
    *
    * @param object The object to be released
+   * @param plan The plan instance performing this operation
    */
-  private final void release(VM_Address object) 
-    throws VM_PragmaInline {
+  private final void release(ObjectReference object, RefCountBase plan) 
+    throws InlinePragma {
     // this object is now dead, scan it for recursive decrement
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
-    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
+    if (!RefCountBase.REF_COUNT_CYCLE_DETECTION ||
+	!RefCountSpace.isBuffered(object)) 
       free(object);
   }
 
@@ -399,32 +384,12 @@ public final class RefCountLocal extends SegregatedFreeList
    *
    * @param object The object to be freed.
    */
-  public final void free(VM_Address object) 
-    throws VM_PragmaInline {
-    VM_Address ref = VM_Interface.refToAddress(object);
-    byte space = VMResource.getSpace(ref);
-    if (space == Plan.LOS_SPACE) {
-      los.free(ref);
-    } else {
-      byte tag = VMResource.getTag(ref);
-      
-      VM_Address block = BlockAllocator.getBlockStart(ref, tag);
-      int sizeClass = getBlockSizeClass(block);
-      int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
-      VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
-      VM_Address owner = VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET));
-      if (owner.EQ(VM_Magic.objectAsAddress(this)))
-        free(cell, block, sizeClass);
-      else {
-        ((RefCountLocal) VM_Magic.addressAsObject(owner)).deferredFree(cell, block);
-      }
-    }
-  }
-
-  private final void deferredFree(VM_Address cell, VM_Address block) {
-    deferredFreeLock.acquire();
-    deferredFreeBuffer.push(cell, block);
-    deferredFreeLock.release();
+  public final void free(ObjectReference object) 
+    throws InlinePragma {
+    if (Space.isInSpace(Plan.LOS, object))
+      los.free(ObjectModel.refToAddress(object));
+    else
+      deadObject(object);
   }
 
   /****************************************************************************
@@ -454,7 +419,7 @@ public final class RefCountLocal extends SegregatedFreeList
    *
    * @param object The object to be added to the root buffer
    */
-  public final void incSanityTraceRoot(VM_Address object) {
+  public final void incSanityTraceRoot(ObjectReference object) {
     incSanityRoots.push(object);
   }
 
@@ -466,9 +431,9 @@ public final class RefCountLocal extends SegregatedFreeList
    * @param object The object to be added to the work queue buffer
    * @param location The location from which the object is reached
    */
-  public final void sanityTraceEnqueue(VM_Address object, 
-                                       VM_Address location) {
-    sanityWorkQueue.push(object, location);
+  public final void sanityTraceEnqueue(ObjectReference object, 
+                                       Address location) {
+    sanityWorkQueue.push(object.toAddress(), location);
   }
 
 
@@ -479,17 +444,17 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   final void incSanityTrace() {
     sanityLiveObjects = 0;
-    VM_Address object;
-    while (!(object = sanityImmortalSetA.pop()).isZero()) {
-      plan.checkSanityTrace(object, VM_Address.zero());
+    ObjectReference object;
+    while (!(object = sanityImmortalSetA.pop()).isNull()) {
+      Plan.getInstance().checkSanityTrace(object, Address.zero());
       sanityImmortalSetB.push(object);
     }
-    while (!(object = incSanityRoots.pop()).isZero()) {
-      plan.incSanityTrace(object, VM_Address.zero(), true);
+    while (!(object = incSanityRoots.pop()).isNull()) {
+      Plan.getInstance().incSanityTrace(object, Address.zero(), true);
       checkSanityRoots.push(object);
     }
-    while (!(object = sanityWorkQueue.pop1()).isZero()) {
-      plan.incSanityTrace(object, sanityWorkQueue.pop2(), false);
+    while (!(object = sanityWorkQueue.pop1().toObjectReference()).isNull()) {
+      Plan.getInstance().incSanityTrace(object, sanityWorkQueue.pop2(), false);
     }
   }
 
@@ -502,51 +467,49 @@ public final class RefCountLocal extends SegregatedFreeList
    * tracing).
    */
   final void checkSanityTrace() {
-    VM_Address object;
-    while (!(object = sanityLastGCSet.pop()).isZero()) {
-      RCBaseHeader.checkOldObject(object);
+    ObjectReference object;
+    while (!(object = sanityLastGCSet.pop()).isNull()) {
+      RefCountSpace.checkOldObject(object);
     }
-    while (!(object = sanityImmortalSetB.pop()).isZero()) {
-      plan.checkSanityTrace(object, VM_Address.zero());
+    while (!(object = sanityImmortalSetB.pop()).isNull()) {
+      Plan.getInstance().checkSanityTrace(object, Address.zero());
       sanityImmortalSetA.push(object);
     }
-    while (!(object = checkSanityRoots.pop()).isZero()) {
-      if (VM_Interface.getCollectionCount() == 1) checkForImmortal(object);
-      plan.checkSanityTrace(object, VM_Address.zero());
+    while (!(object = checkSanityRoots.pop()).isNull()) {
+      if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
+      Plan.getInstance().checkSanityTrace(object, Address.zero());
     }
-    while (!(object = sanityWorkQueue.pop1()).isZero()) {
-      if (VM_Interface.getCollectionCount() == 1) checkForImmortal(object);
-      plan.checkSanityTrace(object, sanityWorkQueue.pop2());
+    while (!(object = sanityWorkQueue.pop1().toObjectReference()).isNull()) {
+      if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
+      Plan.getInstance().checkSanityTrace(object, sanityWorkQueue.pop2());
     }
     if (rcLiveObjects != sanityLiveObjects) {
       Log.write("live mismatch: "); Log.write(rcLiveObjects); 
       Log.write(" (rc) != "); Log.write(sanityLiveObjects);
       Log.writeln(" (sanityRC)");
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
   }
 
   static int lastGCsize = 0;
-  public final void addLiveSanityObject(VM_Address object) {
+  public final void addLiveSanityObject(ObjectReference object) {
     lastGCsize++;
     sanityLastGCSet.push(object);
   }
 
-  public final void addImmortalObject(VM_Address object) {
+  public final void addImmortalObject(ObjectReference object) {
     sanityImmortalSetA.push(object);
   }
 
-  final void checkForImmortal(VM_Address object) {
-    byte space = VMResource.getSpace(VM_Interface.refToAddress(object));
-    if (space == Plan.IMMORTAL_SPACE || space == Plan.BOOT_SPACE) {
+  final void checkForImmortal(ObjectReference object) {
+    if (Space.getSpaceForObject(object) instanceof ImmortalSpace) 
       addImmortalObject(object);
     }
-  }
 
   /**
    * An allocation has occured, so increment the count of live objects.
    */
-  public final static void sanityAllocCount(VM_Address object) {
+  public final static void sanityAllocCount(ObjectReference object) {
     rcLiveObjects++;
   }
 
@@ -574,7 +537,7 @@ public final class RefCountLocal extends SegregatedFreeList
     Log.write(incCounter); Log.write(" incs, ");
     Log.write(decCounter); Log.write(" decs, ");
     Log.write(rootCounter); Log.write(" roots");
-    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
       Log.write(", "); 
       Log.write(purpleCounter);Log.write(" purple");
     }

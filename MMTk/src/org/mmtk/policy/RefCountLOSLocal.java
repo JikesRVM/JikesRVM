@@ -4,17 +4,12 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.utility.FreeListVMResource;
-import org.mmtk.utility.LargeObjectAllocator;
-import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.alloc.LargeObjectAllocator;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  *
@@ -23,11 +18,12 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @date $Date$
  */
 public final class RefCountLOSLocal extends LargeObjectAllocator
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  public RefCountLOSLocal(FreeListVMResource vmr, MemoryResource mr) {
-    super(vmr, mr);
+   public RefCountLOSLocal(LargeObjectSpace space) {
+     super(space);
+     Assert._assert(false);
   }
 
   /****************************************************************************
@@ -43,7 +39,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
    *
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc(VM_Address cell) throws VM_PragmaInline {};
+  protected final void postAlloc(Address cell) throws InlinePragma {};
 
   /****************************************************************************
    *
@@ -60,7 +56,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
    * system.
    */
   protected final int superPageHeaderSize()
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return 0;
   }
 
@@ -72,7 +68,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
    * size.
    */
   protected final int cellHeaderSize()
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return 0;
   }
 }

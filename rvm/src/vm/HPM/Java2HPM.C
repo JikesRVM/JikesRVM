@@ -21,7 +21,8 @@ static char *Sccs_id = "@(#)37  1.5  JNI2HPM.c, 06/27/2001 17:41:09";
 #include <stdlib.h>
 #include "jni.h"
 #include "hpm.h"
-#include "sys.h"
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
 
 static int debug=0;
 /*

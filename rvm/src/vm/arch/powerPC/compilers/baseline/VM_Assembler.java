@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Machine code generators:
  *
@@ -26,9 +29,11 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @modified Dave Grove
  * @modified Kris Venstermans
+ * @modified Daniel Frampton
  */
 public final class VM_Assembler implements VM_BaselineConstants,
                                     VM_AssemblerConstants {
+
 
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
@@ -50,47 +55,47 @@ public final class VM_Assembler implements VM_BaselineConstants,
     shouldPrint = sp;
   }
 
-  final static boolean fits (long val, int bits) {
+  public final static boolean fits (long val, int bits) {
     val = val >> bits-1;
     return (val == 0L || val == -1L);
   }
 
-  final static boolean fits (int val, int bits) {
+  public final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
 
-  void noteBytecode (int i, String bcode) throws VM_PragmaNoInline {
+  public void noteBytecode (int i, String bcode) throws NoInlinePragma {
     String s1 = VM_Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
 
-  void noteBytecode (int i, String bcode, int x) throws VM_PragmaNoInline {
+  public void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  void noteBytecode (int i, String bcode, long x) throws VM_PragmaNoInline {
+  public void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  void noteBytecode (int i, String bcode, Object o) throws VM_PragmaNoInline {
+  public void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+o);
   }
 
-  void noteBytecode (int i, String bcode, int x, int y) throws VM_PragmaNoInline {
+  public void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
-  void noteBranchBytecode (int i, String bcode, int off,
-                           int bt) throws VM_PragmaNoInline {
+  public void noteBranchBytecode (int i, String bcode, int off,
+                           int bt) throws NoInlinePragma {
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  void noteTableswitchBytecode (int i, int l, int h, int d) throws VM_PragmaNoInline {
+  public void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  void noteLookupswitchBytecode (int i, int n, int d) throws VM_PragmaNoInline {
+  public void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   
@@ -173,7 +178,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
  
-  final void registerLoadAddrConst(int target) {
+  final void registerLoadRetAddrConst(int target) {
     toBePatchedMCAddr = mIP;
     targetBCpc = target;
   }
@@ -189,7 +194,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
    * The third instruction should be patched with accurate relative address.
    * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
    */
-  final void patchLoadAddrConst(int bIP){
+  final void patchLoadRetAddrConst(int bIP){
     if (bIP != targetBCpc) return;
  
     int offset = (mIP - toBePatchedMCAddr + 1)*4;
@@ -426,6 +431,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   static final int BCCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
 
   public final void emitBCCTR () {
+
     int mi = BCCTRtemplate;
     mIP++;
     mc.addInstruction(mi);
@@ -775,11 +781,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFSXtemplate = 31<<26 | 535<<1;
 
-  static final int LFSX (int FRT, int RA, int RB) {
+  public static final int LFSX (int FRT, int RA, int RB) {
     return 31<<26 | FRT<<21 | RA<<16 | RB<<11 | 535<<1;
   }
 
-  final void emitLFSX (int FRT, int RA, int RB) {
+  public final void emitLFSX (int FRT, int RA, int RB) {
     int mi = LFSXtemplate | FRT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -876,7 +882,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
  
   static final int FMRtemplate = 63<<26 | 72<<1;
 
-  final void emitFMR (int RA, int RB) {
+  public final void emitFMR (int RA, int RB) {
     int mi = FMRtemplate | RA<<21 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -888,7 +894,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return 63<<26 | RT<<21 |  RB<<11 | 12<<1;
   }
 
-  final void emitFRSP (int RT, int RB) {
+  public final void emitFRSP (int RT, int RB) {
     int mi = FRSPtemplate | RT<<21 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -1105,11 +1111,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
   static final int STFSXtemplate = 31<<26 | 663<<1;
 
-  static final int STFSX(int FRS, int RA, int RB) {
+  public static final int STFSX(int FRS, int RA, int RB) {
     return 31<<26 | FRS<<21 | RA<<16 | RB<<11 | 663<<1;
   }
 
-  final void emitSTFSX (int FRS, int RA, int RB) {
+  public final void emitSTFSX (int FRS, int RA, int RB) {
     int mi = STFSXtemplate | FRS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
@@ -1233,7 +1239,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mIP++;
     mc.addInstruction(mi);
   }
-
+  
   static final int TWWItemplate = TWItemplate | 0x3EC<<16;      // RA == 12
 
   public final void emitTWWI (int imm) {
@@ -1405,7 +1411,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  public final void emitLVALAddr (int RT, VM_Address addr) {
+  public final void emitLVALAddr (int RT, Address addr) {
 //-#if RVM_FOR_64_ADDR
     long val = addr.toLong();
     if (!fits(val,48)){
@@ -1468,6 +1474,21 @@ public final class VM_Assembler implements VM_BaselineConstants,
       }
     }
     return mc;
+  }
+
+
+  public void disassemble(int start, int stop) {
+      try {
+        for (int i = start; i < stop; i++) {
+          VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+          VM.sysWrite(" : ");
+          VM.sysWrite(VM_Services.getHexString(mc.getInstruction(i), false));
+          VM.sysWrite("  ");
+          VM.sysWrite(PPC_Disassembler.disasm(mc.getInstruction(i), i << LG_INSTRUCTION_WIDTH));
+          VM.sysWrite("\n");
+        }
+      } finally {
+      }
   }
 
   /**
@@ -1600,6 +1621,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   static final int LDtemplate = 58<<26;
 
   public final void emitLD (int RT, int DS, int RA) {
+
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
     int mi = LDtemplate  | RT<<21 | RA<<16 | (DS&0xFFFC);
@@ -1852,6 +1874,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitCMPAddr(int reg1, int reg2){                    
+
     if (VM.BuildFor64Addr)
       emitCMPD(reg1, reg2);
     else
@@ -1943,6 +1966,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitSTAddr(int src_reg, int offset, int dest_reg){                    
+
     if (VM.BuildFor64Addr)
       emitSTD(src_reg, offset, dest_reg);                   
     else
@@ -1950,6 +1974,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitSTAddrX(int src_reg, int offset_reg, int dest_reg){           
+
     if (VM.BuildFor64Addr) 
       emitSTDX(src_reg, offset_reg, dest_reg);           
     else 
@@ -1957,6 +1982,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitSTAddrU(int src_reg, int offset, int dest_reg){            
+
     if (VM.BuildFor64Addr) 
       emitSTDU(src_reg, offset, dest_reg);           
     else 
@@ -1964,6 +1990,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLAddr(int dest_reg, int offset, int src_reg){         
+
     if (VM.BuildFor64Addr) 
       emitLD(dest_reg, offset, src_reg);         
     else 
@@ -1971,6 +1998,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLAddrX(int dest_reg, int offset_reg, int src_reg){ 
+
     if (VM.BuildFor64Addr) 
       emitLDX(dest_reg, offset_reg, src_reg);
     else 
@@ -1978,6 +2006,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final void emitLAddrU(int dest_reg, int offset, int src_reg){         
+
     if (VM.BuildFor64Addr) 
       emitLDU(dest_reg, offset, src_reg);         
     else 
@@ -1985,6 +2014,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLAddrToc(int dest_reg, int TOCoffset){            
+
     if (VM.BuildFor64Addr) 
       emitLDtoc(dest_reg, TOCoffset);
     else 
@@ -1992,6 +2022,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
   
   final void emitRLAddrINM (int RA, int RS, int SH, int MB, int ME) {
+
     if (VM.BuildFor64Addr) 
       emitRLDINM(RA, RS, SH, MB, ME);
     else 
@@ -1999,6 +2030,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLInt(int dest_reg, int offset, int src_reg){         
+
     if (VM.BuildFor64Addr) 
       emitLWA(dest_reg, offset, src_reg);         
     else 
@@ -2006,6 +2038,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLIntX(int dest_reg, int offset_reg, int src_reg){         
+
     if (VM.BuildFor64Addr) 
       emitLWAX(dest_reg, offset_reg, src_reg);         
     else 
@@ -2013,6 +2046,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   public final void emitLIntToc(int dest_reg, int TOCoffset){            
+
     if (VM.BuildFor64Addr) 
       emitLWAtoc(dest_reg, TOCoffset);
     else 
@@ -2044,12 +2078,24 @@ public final class VM_Assembler implements VM_BaselineConstants,
   //           PR is the current VM_Processor, which contains a pointer to the active thread.
   // After:    R0, S0 destroyed
   //
-  void emitStackOverflowCheck (int frameSize) {
+
+  public void emitStackOverflowCheck (int frameSize) {
     emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
 
+  /**
+   * Emit the trap pattern (trap LLT 1) we use for nullchecks on reg; 
+   * @param RA  The register number containing the ptr to null check
+   */
+  void emitNullCheck (int RA) {
+    // TDLLT 1 or TWLLT 1
+    int mi = (VM.BuildFor64Addr ? TDItemplate : TWItemplate ) | 0x2<<21 | RA<<16 | 1;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+  
   // Emit baseline stack overflow instruction sequence for native method prolog.
   // For the lowest Java to C transition frame in the stack, check that there is space of
   // STACK_SIZE_NATIVE words available on the stack;  enlarge stack if necessary.
@@ -2099,6 +2145,93 @@ public final class VM_Assembler implements VM_BaselineConstants,
       }
     }
   }
+
+  public static int getTargetOffset(int instr) {
+     int opcode = (instr >>> 26) & 0x3F;
+     int extendedOpcode;
+     switch (opcode) {
+     case 63:
+       // A-form
+       extendedOpcode = 0x1F & (instr >> 1);
+       switch (extendedOpcode) {
+       case  21:                 // fadd
+       case  20:                 // fsub
+       case  25:                 // fmul
+       case  18:                 // fdiv
+         return 21;                // bits 6-11
+       }
+       // X-form
+       extendedOpcode = 0x3FF & (instr >> 1);
+       switch (extendedOpcode) {
+       case  40:                 // fneg
+       case  12:                 // fsrp
+         return 21;                // bits 6-11
+       }
+       break;
+     case 59:                    
+       // A-form
+       extendedOpcode = 0x1F &(instr >> 1);
+       switch (extendedOpcode) {
+       case  21:                 // fadds
+       case  20:                 // fsubs
+       case  25:                 // fmuls
+       case  18:                 // fdivs
+         return 21;                // bits 6-11
+       }
+       break;
+     case 31:
+       // X-form
+       extendedOpcode = 0x3FF & (instr >> 1);
+       switch (extendedOpcode) {
+       case  24:                 // slw
+       case 792:                 // sraw
+       case 536:                 // srw
+       case  28:                 // and
+       case 444:                 // or
+       case 316:                 // xor
+       case 824:                 // srawi
+         return 16;              // bits 11-15
+       }
+       // XO-form
+       extendedOpcode = 0x1FF & (instr >> 1);
+       switch (extendedOpcode) {
+       case 266:                 // add
+       case  10:                 // addc
+       case   8:                 // subfc
+       case 235:                 // mullw
+       case 491:                 // divw
+       case 104:                 // neg
+         return 21;                // bits 6-11
+       }
+       break;
+     case 28:                    // andi
+       // D-form
+       return 16;
+     }
+     return -1;
+   }
+   
+   public boolean retargetInstruction(int mcIndex, int newRegister) {
+     
+     int instr = mc.getInstruction(mcIndex);
+     int offset = getTargetOffset(instr);
+     if (offset < 0) {
+       VM.sysWrite("Failed to retarget index=");
+       VM.sysWrite(mcIndex);
+       VM.sysWrite(", instr=");
+       VM.sysWriteHex(instr);
+       VM.sysWriteln();
+       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+       return false;
+     }
+ 
+     
+     instr = (instr &  ~(0x1F << offset)) | (newRegister << offset);
+     
+     mc.putInstruction(mcIndex, instr);
+     return true;
+   }
+
   public static String getOpcodeName(int opcode) {
     String s;
     switch (opcode) {

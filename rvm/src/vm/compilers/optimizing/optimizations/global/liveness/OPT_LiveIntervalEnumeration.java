@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -19,7 +19,7 @@ public class OPT_LiveIntervalEnumeration implements Enumeration {
   private OPT_LiveIntervalElement currentElement;
 
   /**
-   * @param the first live interval in a list to be enumerated
+   * @param first  The first live interval in a list to be enumerated
    */
   public OPT_LiveIntervalEnumeration(OPT_LiveIntervalElement first) {
     this.currentElement = first;

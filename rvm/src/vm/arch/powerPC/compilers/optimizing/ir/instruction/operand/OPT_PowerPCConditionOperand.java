@@ -25,9 +25,6 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   public static final int UNORDERED = (12 << 5) | 3;
   public static final int NOT_UNORDERED = (4 << 5) | 3;
 
-  /* special RVM value */
-  public static final int NO_THREAD_SWITCH = (4 << 5) | 0;             // same as !geq
-  public static final int THREAD_SWITCH = (12 << 5) | 0;               // same as less
   // --CTR == 0
   public static final int CTRZ = (17 << 5) | 0;
   // --CTR != 0
@@ -87,14 +84,6 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
 
   public static OPT_PowerPCConditionOperand UNORDERED() {
     return  new OPT_PowerPCConditionOperand(UNORDERED);
-  }
-
-  public static OPT_PowerPCConditionOperand NO_THREAD_SWITCH() {
-    return  new OPT_PowerPCConditionOperand(NO_THREAD_SWITCH);
-  }
-
-  public static OPT_PowerPCConditionOperand THREAD_SWITCH() {
-    return  new OPT_PowerPCConditionOperand(THREAD_SWITCH);
   }
 
   public static OPT_PowerPCConditionOperand get(OPT_ConditionOperand cond) {

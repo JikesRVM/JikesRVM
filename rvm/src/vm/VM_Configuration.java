@@ -90,6 +90,18 @@ public abstract class VM_Configuration {
         //-#else
           false;
         //-#endif
+
+  /**
+   * Can a dereference of a null pointer result in an access
+   * to 'low' memory addresses that must be explicitly guarded because the
+   * target OS doesn't allow us to read protect low memory?
+   */
+  public static final boolean ExplicitlyGuardLowMemory =
+      //-#if RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY
+      true;
+      //-#else
+      false;
+      //-#endif
   
  /** Assertion checking.
       <dl>
@@ -134,19 +146,6 @@ public abstract class VM_Configuration {
   //
   public static final boolean BuildForSingleVirtualProcessor =
         //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          true;
-        //-#else
-          false;
-        //-#endif
-
-  /** Use count of method prologues executed rather than timer interrupts to
-      drive preemptive thread switching.  Non preemptive thread switching is
-      achieved by setting the number of prologues between thread switches to
-      infinity (-1).  */
-  public static final boolean BuildForDeterministicThreadSwitching =
-        //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-          true;
-        //-#elif RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
           true;
         //-#else
           false;

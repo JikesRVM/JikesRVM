@@ -4,7 +4,8 @@ $Id$
 
 Building Classpath 0.10 on AIX
 
-[This was originally sent as a message to the jikesrvm-core mailing list]
+[This is slightly modified from a message sent July 21, 2004 to the
+jikesrvm-core mailing list] 
 
 David P Grove wrote:
 

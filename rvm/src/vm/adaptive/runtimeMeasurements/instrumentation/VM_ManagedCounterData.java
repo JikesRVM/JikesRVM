@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -196,7 +196,6 @@ public class VM_ManagedCounterData {
     *  This method prints the (sorted) nonzero elements a counter
     *  array.
     *
-    * @param handle identifier of the counter array to print
     * @param f a function that gets the "name" for each counter
     */
    final void report(VM_CounterNameFunction f) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -79,7 +79,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * Transform to eliminate redundant branches passed on 
      * GVNs and dominator information.
      * 
-     * @param OPT_IR the IR on which to apply the phase
+     * @param ir   The IR on which to apply the phase
      */
     public final void perform (OPT_IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs

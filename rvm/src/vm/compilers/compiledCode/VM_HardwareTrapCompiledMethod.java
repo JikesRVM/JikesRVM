@@ -7,6 +7,8 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.classloader.VM_Method;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Information associated with artifical stackframe inserted by hardware 
  * trap handler.
@@ -20,7 +22,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     super(id,m);    
   }
 
-  public final int getCompilerType() throws VM_PragmaUninterruptible { 
+  public final int getCompilerType() throws UninterruptiblePragma { 
     return TRAP; 
   }
 
@@ -28,7 +30,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return "<hardware trap>";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible {
+  public final VM_ExceptionDeliverer getExceptionDeliverer() throws UninterruptiblePragma {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -41,7 +43,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return -1;
   }
    
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws UninterruptiblePragma {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object

@@ -7,6 +7,8 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import java.util.ArrayList;
 
+import org.vmmagic.unboxed.*;
+
 /*
  * A block of machine code in the running virtual machine image.
  *
@@ -45,6 +47,8 @@ public final class VM_MachineCode {
   void finish () {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
+    /* NOTE: MM_Interface.pickAllocator() depends on the name of this
+       class and method to identify code allocation */
     int n = (next_bundle-1)*size+next;
     instructions = VM_CodeArray.create(n);
     int k = 0;

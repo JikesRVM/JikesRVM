@@ -6,22 +6,14 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Entrypoints;
 
 import java.lang.ref.Reference;
@@ -56,12 +48,13 @@ import java.lang.ref.PhantomReference;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public class ReferenceGlue implements VM_Uninterruptible {
+public class ReferenceGlue implements Uninterruptible {
   /**
-   * <code>true</code> if references are heap objects.  In this
-   * context references are soft, weak or phantom references.
+   * <code>true</code> if the references are implemented as heap
+   * objects (rather than in a table, for example).  In this context
+   * references are soft, weak or phantom references.
    */
-  public static final boolean REFERENCES_ON_HEAP = true;
+  public static final boolean REFERENCES_ARE_OBJECTS = true;
 
   private static boolean clearSoftReferences = false;
 
@@ -77,7 +70,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
   // Debug flags
   private static final boolean TRACE = false;
 
-  private VM_Address waitingListHead = VM_Address.zero();
+  private Address waitingListHead = Address.zero();
   private int countOnWaitingList = 0;
   private int semantics;
 
@@ -94,12 +87,12 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param ref the reference to add
    */
   private void addCandidate(Reference ref)
-    throws VM_PragmaNoInline, VM_PragmaInterruptible {
+    throws NoInlinePragma, InterruptiblePragma {
     if (TRACE) {
-        VM_Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
-        VM_Address referent = getReferent(referenceAsAddress);
+        Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
+        ObjectReference referent = getReferent(referenceAsAddress);
         VM.sysWriteln("Adding Reference: ", referenceAsAddress);
-        VM.sysWriteln("       ReferENT:  ", referent);
+        VM.sysWriteln("       Referent:  ", referent);
     }
     
     lock.acquire();
@@ -115,14 +108,14 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * list of those references still active.
    */
   private void scanReferences()
-    throws VM_PragmaLogicallyUninterruptible {
-    VM_Address reference = waitingListHead;
-    VM_Address prevReference = VM_Address.zero();
-    VM_Address newHead = VM_Address.zero();
+    throws LogicallyUninterruptiblePragma {
+    Address reference = waitingListHead;
+    Address prevReference = Address.zero();
+    Address newHead = Address.zero();
     int waiting = 0;
       
     while (!reference.isZero()) {
-      VM_Address newReference =
+      Address newReference =
         ReferenceProcessor.processReference(reference, semantics);
       if (!newReference.isZero()) {
         /*
@@ -140,7 +133,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
       reference = getNextReferenceAsAddress(reference);
     }
     if (!prevReference.isZero()) {
-      setNextReferenceAsAddress(prevReference, VM_Address.zero());
+      setNextReferenceAsAddress(prevReference, Address.zero());
     }
     countOnWaitingList = waiting;
     waitingListHead = newHead;
@@ -151,8 +144,8 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param semantics the number representing the semantics
    */
   public static void scanReferences(int semantics) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(ReferenceProcessor.SOFT_SEMANTICS <= semantics
+    if (VM.VerifyAssertions)
+      VM._assert(ReferenceProcessor.SOFT_SEMANTICS <= semantics
                            &&
                            semantics <= ReferenceProcessor.PHANTOM_SEMANTICS);
     if (TRACE) {
@@ -192,7 +185,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * been enqueued previously it will not be enqueued
    * @return <code>true</code> if the reference was enqueued
    */
-  public static final boolean enqueueReference(VM_Address addr,
+  public static final boolean enqueueReference(Address addr,
                                                boolean onlyOnce) {
     Reference reference = (Reference)VM_Magic.addressAsObject(addr);
     if (!onlyOnce || !reference.wasEverEnqueued())
@@ -206,7 +199,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param ref the SoftReference to add
    */
   public static void addSoftCandidate(SoftReference ref)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     softReferenceProcessor.addCandidate(ref);
   }
 
@@ -215,7 +208,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param ref the WeakReference to add
    */
   public static void addWeakCandidate(WeakReference ref)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     weakReferenceProcessor.addCandidate(ref);
   }
   
@@ -224,7 +217,7 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param ref the PhantomReference to add
    */
   public static void addPhantomCandidate(PhantomReference ref)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     phantomReferenceProcessor.addCandidate(ref);
   }
   
@@ -239,9 +232,8 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param addr the address of the reference
    * @return the referent address
    */
-  public static VM_Address getReferent(VM_Address addr) {
-    return VM_Magic.getMemoryAddress
-      (addr.add(VM_Entrypoints.referenceReferentField.getOffset()));    
+  public static ObjectReference getReferent(Address addr) {
+    return addr.loadObjectReference(Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
   }
   
   /**
@@ -250,20 +242,17 @@ public class ReferenceGlue implements VM_Uninterruptible {
    * @param addr the address of the reference
    * @param referent the referent address
    */
-  public static void setReferent(VM_Address addr, VM_Address referent) {
-    VM_Magic.setMemoryAddress
-      (addr.add(VM_Entrypoints.referenceReferentField.getOffset()), referent);
+  public static void setReferent(Address addr, ObjectReference referent) {
+    addr.store(referent, Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
   }
   
-  private static VM_Address getNextReferenceAsAddress(VM_Address ref) {
-    return VM_Magic.getMemoryAddress
-      (ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
+  private static Address getNextReferenceAsAddress(Address ref) {
+    return ref.loadAddress(Offset.fromInt(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
   }
   
-  private static void setNextReferenceAsAddress(VM_Address ref,
-                                               VM_Address next) {
-    VM_Magic.setMemoryAddress
-      (ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()), next);
+  private static void setNextReferenceAsAddress(Address ref,
+                                                Address next) {
+    ref.store(next, Offset.fromInt(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
   }
 
   /***********************************************************************

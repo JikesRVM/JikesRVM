@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Facility for remapping object addresses across virtual machine address 
  * spaces.  Used by boot image writer to map local (jdk) objects into remote 
@@ -21,11 +23,11 @@ public interface VM_ObjectAddressRemapper
    // Taken:    an object in "local" virtual machine
    // Returned: its address in a foreign virtual machine
    //
-   public VM_Address objectAsAddress(Object object);
+   public Address objectAsAddress(Object object);
 
    // Map an address to an object.
    // Taken:    value obtained from "objectAsAddress"
    // Returned: corresponding object
    //
-   public Object addressAsObject(VM_Address address);
+   public Object addressAsObject(Address address);
    }

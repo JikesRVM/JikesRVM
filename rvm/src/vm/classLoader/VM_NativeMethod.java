@@ -6,6 +6,8 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * A native method of a java class.
  *
@@ -23,17 +25,18 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * the IP of the native p rocedure
    */
-  private VM_Address nativeIP;                               
+  private Address nativeIP;                               
 
   //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * the TOC of the native procedure
    */
-  private VM_Address nativeTOC;                              
+  private Address nativeTOC;                              
   //-#endif
   
   /**
-   * @param declaringClass the VM_Class object of the class that declared this method.
+   * @param declaringClass the VM_Class object of the class that
+   *                       declared this method.
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
@@ -46,7 +49,7 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Generate the code for this method
    */
-  protected VM_CompiledMethod genCode() {
+  protected synchronized VM_CompiledMethod genCode() {
     if (!resolveNativeMethod()) {
       // if fail to resolve native, get code to throw unsatifiedLinkError
       VM_Entrypoints.unimplementedNativeMethodMethod.compile();
@@ -63,18 +66,18 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Get the native IP for this method
    */
-  public final VM_Address getNativeIP() { 
+  public final Address getNativeIP() { 
     return nativeIP;
   }
   
   /**
    * get the native TOC for this method
    */
-  public VM_Address getNativeTOC() { 
+  public Address getNativeTOC() { 
     //-#if RVM_WITH_POWEROPEN_ABI
     return nativeTOC;
     //-#else
-    return VM_Address.zero();
+    return Address.zero();
     //-#endif
   }
 
@@ -139,10 +142,15 @@ public final class VM_NativeMethod extends VM_Method {
   }
 
   private boolean resolveNativeMethod() {
+    if (!nativeIP.isZero()) {
+      // method has already been resolved via registerNative.
+      return true;
+    }
+
     nativeProcedureName = getMangledName(false);
     String nativeProcedureNameWithSignature = getMangledName(true);
 
-    VM_Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
+    Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
     if (symbolAddress.isZero()) {
       symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureName);
     }
@@ -152,12 +160,40 @@ public final class VM_NativeMethod extends VM_Method {
       return false;
     } else {
       //-#if RVM_WITH_POWEROPEN_ABI
-      nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);
-      nativeTOC = VM_Magic.getMemoryAddress(symbolAddress.add(BYTES_IN_ADDRESS));
+      nativeIP  = symbolAddress.loadAddress();
+      nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
       //-#else
       nativeIP = symbolAddress;
       //-#endif
       return true;
     }
+  }
+
+
+  /**
+   * Registers a native method
+   * @param symbolAddress address of native function that implements the method
+   */
+  public synchronized void registerNativeSymbol(Address symbolAddress) {
+    //-#if RVM_WITH_POWEROPEN_ABI
+    nativeIP  = symbolAddress.loadAddress();
+    nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
+    //-#else
+    nativeIP = symbolAddress;
+    //-#endif
+    replaceCompiledMethod(null);
+  }
+
+  /**
+   * Unregisters a native method
+   */
+  public synchronized void unregisterNativeSymbol() {
+    //-#if RVM_WITH_POWEROPEN_ABI
+    nativeIP  = Address.zero();
+    nativeTOC = Address.zero();
+    //-#else
+    nativeIP  = Address.zero();
+    //-#endif
+    replaceCompiledMethod(null);
   }
 }

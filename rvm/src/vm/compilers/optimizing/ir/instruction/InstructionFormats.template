@@ -169,7 +169,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   }
   /**
    * InstructionFormat identification method for OPTYPE.NAME.
-   * @param i an instruction
+   * @param o an instruction
    * @return <code>true</code> if the InstructionFormat of the argument
    *         operator is OPTYPE.NAME or <code>false</code>
    *         if it is not.
@@ -326,7 +326,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * instruction.
    * @param i the instruction in which to store the operand
    * @param k the index of the operand 
-   * @param NAME the operand to store
+   * @param o the operand to store
    */
   public static void setNAME(OPT_Instruction i, int k, TYPE o) {
            $$$$ IF VERIFY_INSTRUCTION_FORMATS != ""
@@ -832,7 +832,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
   /**
    * Does the operator belong to an instruction format that
    * has an operand called CNAME?
-   * @param op the operator to test
+   * @param o the operator to test
    * @return <code>true</code> if the instruction's instruction
    *         format has an operand called CNAME and 
    *         <code>false</code> if it does not.

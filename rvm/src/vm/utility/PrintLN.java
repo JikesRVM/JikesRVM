@@ -94,7 +94,7 @@ public abstract class PrintLN {
 
   /** Print the name of the class represented by the class descriptor.
    * 
-   * @param d The class descriptor whose name we'll print. */
+   * @param descriptor The class descriptor whose name we'll print. */
   public void printClassName(VM_Atom descriptor) {
     // toByteArray does not allocate; just returns an existing descriptor.
     byte[] val = descriptor.toByteArray();

@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.*;
 import java.util.*;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * A VM_EdgeListener defines a listener 
  * that computes a call graph edge from the call stack.
@@ -25,7 +28,7 @@ import java.util.*;
  * @date   May 18, 2000
  */
 class VM_EdgeListener extends VM_ContextListener 
-  implements VM_Uninterruptible, VM_StackframeLayoutConstants {
+  implements Uninterruptible, VM_StackframeLayoutConstants {
 
   protected static final boolean DEBUG = false;
 
@@ -104,7 +107,7 @@ class VM_EdgeListener extends VM_ContextListener
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  public final void update(VM_Address sfp, int whereFrom) {
+  public final void update(Address sfp, int whereFrom) {
     if (DEBUG) {
       VM.sysWrite("VM_EdgeListener.update(", sfp, ",", whereFrom);
       VM.sysWriteln("): enter ", samplesTaken);
@@ -119,9 +122,9 @@ class VM_EdgeListener extends VM_ContextListener
 
     int calleeCMID    = 0;
     int callerCMID    = 0;
-    VM_Address returnAddress = VM_Address.zero();
+    Address returnAddress = Address.zero();
 
-    if (VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
+    if (sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");   
       return;
     }
@@ -137,7 +140,7 @@ class VM_EdgeListener extends VM_ContextListener
 
     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if(VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
+    if(sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack\n");    
       return;
     }
@@ -159,8 +162,8 @@ class VM_EdgeListener extends VM_ContextListener
       }
       return;
     }
-    VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-    VM_Offset callSite = returnAddress.diff(beginningOfMachineCode);
+    Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
+    Offset callSite = returnAddress.diff(beginningOfMachineCode);
 
     if (DEBUG){ 
       VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");

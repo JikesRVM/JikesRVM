@@ -63,9 +63,9 @@ public final class OPT_CompilationPlan {
   public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement[] op, 
                               OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
+    inlinePlan = new OPT_DefaultInlineOracle();
     optimizationPlan = op;
     instrumentationPlan = mp;
-    inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
     options = opts;
   }
 
@@ -78,13 +78,7 @@ public final class OPT_CompilationPlan {
    */
   public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement op, 
                               OPT_InstrumentationPlan mp, OPT_Options opts) {
-    method = m;
-    optimizationPlan = new OPT_OptimizationPlanElement[] {
-      op
-    };
-    instrumentationPlan = mp;
-    inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
-    options = opts;
+    this(m, new OPT_OptimizationPlanElement[] { op }, mp, opts);
   }
 
   /**

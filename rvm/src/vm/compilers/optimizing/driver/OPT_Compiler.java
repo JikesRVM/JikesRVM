@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /**
  * <p> The main driver of the OPT_Compiler. 
  * <p> External drivers are responsible for providing the policies; the 
@@ -125,7 +127,6 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     // Be slightly more aggressive when building the boot image then we are normally.
     options.IC_MAX_TARGET_SIZE = 5*VM_NormalMethod.CALL_COST;
     options.IC_MAX_INLINE_DEPTH = 6;
-    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
   }
 
   /**
@@ -175,7 +176,6 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * Call the static init functions for the OPT_Compiler subsystems
    */
   private static void initializeStatics () {
-    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
   }
 
@@ -336,7 +336,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
     if (method.hasNoOptCompilePragma()) {
-      String msg = "Method throws VM_PragmaNoOptCompile";
+      String msg = "Method throws NoOptCompilePragma";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
     if (options.hasEXCLUDE()) {

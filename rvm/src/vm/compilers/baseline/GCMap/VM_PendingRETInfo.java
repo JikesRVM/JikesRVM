@@ -15,7 +15,7 @@ package com.ibm.JikesRVM;
  *
  * @author Anthony Cocchi
  */
-final class VM_PendingRETInfo {
+public final class VM_PendingRETInfo {
 
   // --------------------- Instance Data -------------------
 

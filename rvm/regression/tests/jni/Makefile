@@ -20,7 +20,7 @@ EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 CFLAGS+=-Wno-unused -Wno-conversion		#for GCC
-CFLAGS+=-std=gnu99
+QUIET = -quiet
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -30,7 +30,7 @@ include 	$(JAL_ROOT)/rvm/regression/Make.rules
 # Tests for JNI 1.1
 TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
-	StringFunctions TestGC t3GT3
+	NullIdentity StringFunctions TestGC t3GT3
 
 # Tests for JNI 1.2
 TESTS_12 := JNI12 StringRegion
@@ -50,7 +50,7 @@ check:
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so) $(ONE_TEST:%=lib%.jnilib)
 
 single:	$(ONE_TEST_LIB)
-	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
+	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=$(QUIET) do-sanity-compare
 	$(MAKE) do-sanity-finish
 
 vpath %.c	$(BENCH_HOME)
@@ -69,6 +69,6 @@ lib%.a:	%.c %.h
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :
-	$(MAKE) START_NAME=$@ START_ARGS=-quiet do-sanity-check-rule
+	$(MAKE) START_NAME=$@ START_ARGS=$(QUIET) do-sanity-check-rule
 
 

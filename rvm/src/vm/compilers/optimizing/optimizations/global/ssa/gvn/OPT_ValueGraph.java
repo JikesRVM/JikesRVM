@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -555,8 +555,8 @@ class OPT_ValueGraph implements OPT_Operators {
    * Find or create an OPT_ValueGraphVertex corresponding to a 
    * given variable.
    *
-   * @param op the variable
-   * @return a value graph vertex corresponding to this variable
+   * @param var   The variable
+   * @return A value graph vertex corresponding to this variable
    */
   private OPT_ValueGraphVertex findOrCreateVertex(Object var) {
     if (var instanceof OPT_Register)
@@ -605,7 +605,12 @@ class OPT_ValueGraph implements OPT_Operators {
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
     if (op.isAddressConstant()) {
+      //-#if RVM_FOR_32_ADDR
       name = new Integer(op.asAddressConstant().value.toInt());
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      name = new Long(op.asAddressConstant().value.toLong());
+      //-#endif
     } else if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
     } else if (op.isFloatConstant()) {

@@ -5,8 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
 import com.ibm.JikesRVM.VM_SizeConstants;
 
 /**
@@ -20,14 +19,14 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  public VM_Address value;
+  public Address value;
 
   /**
    * Constructs a new address constant operand with the specified value.
    *
    * @param v value
    */
-  public OPT_AddressConstantOperand(VM_Address v) {
+  public OPT_AddressConstantOperand(Address v) {
     value = v;
   }
 
@@ -58,11 +57,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   }
 
   public int hashCode() {
-    //-#if RVM_FOR_64_ADDR
-    return (int)(value.toLong() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS);
-    //-#elif RVM_FOR_32_ADDR
-    return value.toInt() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS;  
-    //-#endif
+    return value.toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();  
   }
   
   /**

@@ -17,12 +17,6 @@ Should profile data be gathered and reported at the end of the run?
 ADAPTIVE_INLINING -1 true
 Should we use adaptive feedback-directed inlining?
 
-DUMP_AI_DECISIONS -1 false
-After completion, should we dump inlining decisions?
-
-USE_OFFLINE_INLINE_PLAN -1 false
-Should we read a inlining plan from disk and use it to perform inlining?
-
 EARLY_EXIT -1 false
 Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 
@@ -43,3 +37,7 @@ Insert counters on all instructions in opt recompiled code?
 
 INSERT_DEBUGGING_COUNTERS -1 false
 Enable easy insertion of (debugging) counters in opt recompiled code.
+
+REPORT_INTERRUPT_STATS -1 false
+Report stats related to timer interrupts and AOS listeners on exit
+

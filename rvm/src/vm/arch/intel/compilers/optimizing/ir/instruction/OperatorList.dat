@@ -13,6 +13,12 @@ IMPLUSES
 ###################
 # Operators only needed for BURS rules, not real instructions
 ###################
+ADDRESS_CONSTANT
+Unassigned
+none
+
+
+
 ####################
 INT_CONSTANT
 Unassigned

@@ -52,27 +52,18 @@ public class VM_Properties extends VM_Options {
   public static boolean dynamicClassLoadingEnabled = false;
 
   /**
+   * Is it safe to create a java.lang.Thread now?  Set by VM.boot at the
+   * appropriate time. 
+   */
+  public static boolean safeToAllocateJavaThread = false;
+
+  /**
    * If true, don't exit from the process.  As of July, 2003, this has not
    * worked in a couple of years, nor has there been much interest in using it.
    * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
    * sure that instead we just kill the proper threads. 
    */
   public static boolean runningAsSubsystem = false;
-
-  // Use count of method prologues executed rather than timer interrupts to drive
-  // preemptive thread switching.  Non preemptive thread switching is achieved by
-  // setting the number of prologues between thread switches to infinity (-1).
-  //
-  public static int deterministicThreadSwitchInterval =
-    //-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
-    -1;
-    //-#else
-      //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-      1000;
-      //-#else // the normal case (timer-driven preemptive thread switching)
-      0;
-      //-#endif
-    //-#endif
 
   /**
    * The following is set on by -X:verboseBoot= command line arg.

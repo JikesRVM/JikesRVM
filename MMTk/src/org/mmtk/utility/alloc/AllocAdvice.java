@@ -3,9 +3,7 @@
  */
 //$Id$
 
-package org.mmtk.utility;
-
-import org.mmtk.vm.VM_Interface;
+package org.mmtk.utility.alloc;
 
 /*
  * @author Perry Cheng

@@ -1,10 +1,13 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * class that provides stack (and local var) map for a baseline compiled method
@@ -14,7 +17,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @modified Perry Cheng
  * @modified Dave Grove
  */
-public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
+public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterruptible  {
 
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;
@@ -32,7 +35,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   private int MCSites[];
   final private int bitsPerMap;   // number of bits in each map
   private int mapCount;
-  final private int local0Offset; // distance from frame pointer to first Local area
+  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private VM_JSRInfo jsrInfo;
 
   /*
@@ -48,7 +51,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     // save input information and compute related data
     this.bitsPerMap   = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
  
-    this.local0Offset = VM_Compiler.getFirstLocalOffset(method);
+    this.startLocal0Offset = VM_Compiler.getStartLocalOffset(method);
 
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_ReferenceMaps constructor. Method name is:");
@@ -58,7 +61,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       VM.sysWrite("\n");
       VM.sysWrite(" bytesPerMap = ", bytesPerMap());
       VM.sysWrite(" - bitsPerMap = ", bitsPerMap);
-      VM.sysWriteln(" - local0Offset = ", local0Offset);
+      VM.sysWriteln(" - startLocal0Offset = ", startLocal0Offset);
     }
 
     // define the basic blocks
@@ -354,7 +357,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
-  int size() throws VM_PragmaInterruptible {
+  int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
     if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
@@ -365,7 +368,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   /**
    * start setting up the reference maps for this method.
    */
-  public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) throws VM_PragmaInterruptible {
+  public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) throws InterruptiblePragma {
     //  normal map information
     mapCount      = 0;
     MCSites       = new int[gcPointCount];
@@ -420,7 +423,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *      a boolean to indicate that this map is a replacement for a currently
    *        existing map.
    */ 
-  public void recordStkMap(int byteindex, byte[] byteMap, int BBLastPtr, boolean replacemap) throws VM_PragmaInterruptible {
+  public void recordStkMap(int byteindex, byte[] byteMap, int BBLastPtr, boolean replacemap) throws InterruptiblePragma {
 
     int mapNum = 0;
 
@@ -545,7 +548,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *                          recorded.
    */
   public void recordJSRSubroutineMap(int byteindex, byte[] currReferenceMap, int BBLastPtr, 
-                                     int returnAddrIndex, boolean replacemap) throws VM_PragmaInterruptible {
+                                     int returnAddrIndex, boolean replacemap) throws InterruptiblePragma {
     int mapNum = 0;
     int unusualMapIndex = 0;
     int returnOffset;
@@ -683,7 +686,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    * @param jsrSiteMap   unusualMap to be added to array
    *
    */
-  private int addUnusualMap(VM_UnusualMaps jsrSiteMap) throws VM_PragmaInterruptible {
+  private int addUnusualMap(VM_UnusualMaps jsrSiteMap) throws InterruptiblePragma {
     if (jsrInfo.unusualMaps == null) {
       // start up code
       jsrInfo.unusualMaps = new VM_UnusualMaps[5];
@@ -716,14 +719,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   /**
    * Setup a map  within a JSR Subroutine. This requires using up one
    * of the unusual maps. This routine is called when the caller gets a
-   *  negative mapindex value return from locateGCPoint. This routine
+   *  negative mapindex value return from {@link #locateGCPoint}. This routine
    *  searches the map tables and uses its stack frameAddress input to build
    *  reference and returnAddress maps. The caller uses the getNext...
    *  routines to scan these maps for offsets in the frame of the
    *  related references.
    *
-   * @param frameAddr         address of stack frame being scanned
-   * @param mapid             index of map of instruction where map is required
+   * @param frameAddress      Address of stack frame being scanned
+   * @param mapid             Index of map of instruction where map is required
    *                          ( this value was returned by locateGCpoint)
    * steps for this routine
    *   use the mapid to get index of the Unusual Map
@@ -735,7 +738,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *   else the invoker was not already in a jsr merge the unusual map differences
    *     with the invoker map
    */
-  public void setupJSRSubroutineMap(VM_Address frameAddress, int mapid, 
+  public void setupJSRSubroutineMap(Address frameAddress, int mapid, 
                                     VM_CompiledMethod compiledMethod)  {
 
     // first clear the  maps in the jsrInfo.extraUnusualMap
@@ -771,8 +774,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     // from the unusual map and the frame - get the location of the jsr invoker
     //
     int jsrAddressOffset = unusualMap.getReturnAddressOffset();
-    VM_Address callerAddress 
-      = VM_Magic.getMemoryAddress(frameAddress.add(jsrAddressOffset));
+    Address callerAddress = frameAddress.add(jsrAddressOffset).loadAddress();
     // NOTE: -4 is subtracted when the map is determined ie locateGCpoint
 
     // from the invoker address and the code base address - get the machine
@@ -819,7 +821,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       //
       VM_UnusualMaps thisMap = jsrInfo.unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
-      VM_Address nextCallerAddress = VM_Magic.getMemoryAddress(frameAddress.add(thisJsrAddressOffset));
+      Address nextCallerAddress = frameAddress.add(thisJsrAddressOffset).loadAddress();
       int nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
@@ -901,7 +903,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   /**
    * get Next free word in referencemaps for gc call sites
    */ 
-  private int getNextMapElement() throws VM_PragmaInterruptible {
+  private int getNextMapElement() throws InterruptiblePragma {
     if (jsrInfo.unusualReferenceMaps == null) {
       // start up code
       jsrInfo.unusualReferenceMaps = new byte[ ((6 * 3) + 1) * bytesPerMap() ];  // 3 maps per unusual map
@@ -931,7 +933,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     if (offset == 0) return 1; // initial call return first map bit
 
     // convert from offset to bitnumber
-    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1 +1; // 1 for being 1 based +1 for jsr bit
+    int bitnum = ((startLocal0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) +1; // +1 for jsr bit
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertOffsetToBitnum- offset = ", offset, "  bitnum = ", bitnum);
@@ -945,14 +947,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *   this routine determines the correspondig offset in the stack
    */ 
   private int convertBitNumToOffset(int bitnum)   {
-    // local0Offset is the distance from the frame pointer to the first local word
+    // startLocal0Offset is the distance from the frame pointer to the start of the local word area
     //   it includes the Linkage area ( 12 bytes)
     //               the Local area and
     //               the Java operand stack area
     //               and possibly a parameter spill area
 
     // convert from top of local words
-    int offset = local0Offset - ((bitnum -1 -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, minus 1 for jsrbit
+    int offset = startLocal0Offset - ((bitnum -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for jsrbit
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertBitnumToOffset- bitnum = ", bitnum, "  offset = ", offset);
     }
@@ -965,7 +967,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    */
   private int convertJsrBitNumToOffset(int bitnum)   {
     // convert from top of local words
-    int jsroffset = local0Offset - ((bitnum -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, no jsrbit here
+    int jsroffset = startLocal0Offset - (bitnum <<LOG_BYTES_IN_ADDRESS); // no jsrbit here
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertJsrBitnumToOffset- input bitnum = ", bitnum, "  offset = ", jsroffset);
     }
@@ -981,10 +983,10 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   private int convertJsrOffsetToBitNum(int offset)   {
     if (offset==0) return 1; // initial call return first map bit
 
-    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1; // 1 for being 1 based; no jsr bit
+    int bitnum = ((startLocal0Offset - offset) >>>LOG_BYTES_IN_ADDRESS); // no jsr bit
 
     if (VM.TraceStkMaps) {
-      VM.sysWrite("convertJsrOffsetToBitnum- local0Offset = ", local0Offset);
+      VM.sysWrite("convertJsrOffsetToBitnum- startLocal0Offset = ", startLocal0Offset);
       VM.sysWrite("    Input offset = ", offset );
       VM.sysWriteln(  " jsr  bitnum = ", bitnum);
     }
@@ -1090,7 +1092,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *   However, we leave the retAddrMap alone.
    * it returns the index of the map in the reference map
    */
-  int scanByteArray(byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit) throws VM_PragmaInterruptible {
+  int scanByteArray(byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit) throws InterruptiblePragma {
     skipOneBit = false;
 
     if (BBLastPtr == -1) return -1;     // no map for this jsr
@@ -1411,7 +1413,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     VM.sysWrite(" MCSites.length = ", MCSites.length );
     VM.sysWrite(" mapCount = ", mapCount);
-    VM.sysWriteln(" local0Offset = ", local0Offset);
+    VM.sysWriteln(" startLocal0Offset = ", startLocal0Offset);
 
     for (int i=0; i<mapCount; i++) {
       VM.sysWrite("mapid = ", i);
@@ -1469,7 +1471,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     }
   }
 
-  public int showReferenceMapStatistics(VM_Method method) throws VM_PragmaInterruptible {
+  public int showReferenceMapStatistics(VM_Method method) throws InterruptiblePragma {
     int offset = 0;
     int totalCount  = 0;
     int count;
@@ -1513,9 +1515,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    * or a local variable is a reference.
    */
 
-  /** Query if a local variable at a bytecode index has a reference type value
-   * @param bcidx, the bytecode index
-   * @param lidx, the local index
+  /** Query if a local variable has a reference type value
+   * @param method  The method we're asking about.
+   * @param mcoff  The machine code offset of the instruction *following* the
+   *               actual instruction.
+   * @param lidx the local index
    * @return true, if it is a reference type
    *         false, otherwise
    */

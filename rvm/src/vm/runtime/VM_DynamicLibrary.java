@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import org.vmmagic.unboxed.*;
 
 /**
  * Interface to the dynamic libraries of our underlying operating system.
@@ -29,7 +30,7 @@ public class VM_DynamicLibrary {
   /**
    * Value returned from dlopen
    */
-  private VM_Address libHandler;
+  private Address libHandler;
 
   /**
    * Load a dynamic library and maintain it in this object.
@@ -45,7 +46,7 @@ public class VM_DynamicLibrary {
     // make sure we have enough stack to load the library.  
     // This operation has been known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
-    VM_Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
+    Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
     int stackNeededInBytes = VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
     if (stackNeededInBytes > 0) {
       if (myThread.hasNativeStackFrame()) {
@@ -77,11 +78,11 @@ public class VM_DynamicLibrary {
   /**
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
-   * @return The <code>VM_Address</code> of the symbol system handler
+   * @return The <code>Address</code> of the symbol system handler
    * (actually an address to an AixLinkage triplet).
    *           (-1: not found or couldn't be created)
    */ 
-  public VM_Address getSymbol(String symbolName) {
+  public Address getSymbol(String symbolName) {
     // Convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now).
     //
@@ -128,16 +129,16 @@ public class VM_DynamicLibrary {
 
   /**
    * Resolve a symbol to an address in a currently loaded dynamic library.
-   * @return the address of the symbol of VM_Address.zero() if it cannot be resolved
+   * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
-  public static synchronized VM_Address resolveSymbol(String symbol) {
+  public static synchronized Address resolveSymbol(String symbol) {
     for (Iterator i = dynamicLibraries.values().iterator(); i.hasNext();) {
       VM_DynamicLibrary lib = (VM_DynamicLibrary)i.next();
-      VM_Address symbolAddress = lib.getSymbol(symbol);
+      Address symbolAddress = lib.getSymbol(symbol);
       if (!symbolAddress.isZero()) {
         return symbolAddress;
       }
     }
-    return VM_Address.zero();
+    return Address.zero();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -8,6 +8,8 @@ package com.ibm.JikesRVM;
  * Low priority thread to run when there's nothing else to do.
  * This thread also handles initializing the virtual processor
  * for execution.
+ *
+ * This follows the Singleton pattern.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -29,11 +31,14 @@ class VM_IdleThread extends VM_Thread {
    * primordial processor.
    */
   private boolean runInitProc;
+
+  final private static String myName = "VM_IdleThread";
   
   /**
    * A thread to run if there is no other work for a virtual processor.
    */
   VM_IdleThread(VM_Processor processorAffinity, boolean runInitProcessor) {
+    super(null, myName);
     makeDaemon(true);
     super.isIdleThread = true;
     super.processorAffinity = processorAffinity;
@@ -41,11 +46,13 @@ class VM_IdleThread extends VM_Thread {
   }
 
   public String toString() { // overrides VM_Thread
-    return "VM_IdleThread";
+    return myName;
   }
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
+    if (VM.ExtremeAssertions) VM._assert(myProcessor == processorAffinity);
+    
     if (runInitProc) myProcessor.initializeProcessor();
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main: while (true) {
@@ -60,17 +67,26 @@ class VM_IdleThread extends VM_Thread {
       do {
         VM_Processor.idleProcessor = myProcessor;
         if (availableWork(myProcessor)) {
+          if (VM.ExtremeAssertions) 
+            VM._assert(myProcessor == VM_Processor.getCurrentProcessor());
           VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
           continue main;
         }
       } while (VM_Time.cycles()<t);
       
-      VM.sysVirtualProcessorYield();
+      /* Now go into the long-term sleep/check-for-work loop. */
+      for (;;) {
+        VM.sysVirtualProcessorYield();
+        if (availableWork(myProcessor))
+          continue main;
+        /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */
+        VM_SysCall.sysNanosleep(1000 * 1000);
+      }
     }
   }
 
   /**
-   * @return true, if their appears to be a runnable thread for the processor to execute
+   * @return true, if there appears to be a runnable thread for the processor to execute
    */
   private static boolean availableWork ( VM_Processor p ) {
     if (!p.readyQueue.isEmpty())        return true;

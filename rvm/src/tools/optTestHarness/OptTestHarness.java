@@ -29,7 +29,6 @@ import com.ibm.JikesRVM.opt.*;
  * In addition, the OptTestHarness supports the following commands:
  * -useBootOptions           Use the same OptOptions as the bootimage compiler.
  * -longcommandline <filename>    Read commands (one per line) from a file
- * -inlineplan <filename>         Read an inline plan from a file
  * +baseline                      Switch default compiler to baseline
  * -baseline                      Switch default compiler to optimizing
  * -load  <class    >             Load a class
@@ -218,13 +217,6 @@ class OptTestHarness {
             av[j] = t.nextToken();
           }
           processOptionString(av);
-        } else if (arg.equals("-inlineplan")) {
-          // -inlineplan is used to read an inline plan from a file
-          i++;
-          OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-          plan.readObject(new LineNumberReader(new FileReader(args[i])));
-          System.out.println(plan.toString());
-          OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
           BASELINE = true;
         } else if (arg.equals("-baseline")) {
@@ -395,7 +387,6 @@ class OptTestHarness {
     reflectoidVector = new Vector(10);
     reflectMethodVector = new Vector(10);
     reflectMethodArgsVector = new Vector(10);
-    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     if (!OPT_Compiler.isInitialized()) {
       OPT_Compiler.init(options);
     }

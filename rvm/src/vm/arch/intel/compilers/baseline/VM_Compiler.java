@@ -21,6 +21,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private final int parameterWords;
   private int firstLocalOffset;
+  private boolean hasCounterArray;
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -29,6 +30,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
+    hasCounterArray = cm.hasCounterArray();
   }
 
   /**
@@ -50,6 +52,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
   }
   
+  public static int getStartLocalOffset (VM_NormalMethod method) {
+    return getFirstLocalOffset(method) + WORDSIZE;
+  }
 
   /*
    * implementation of abstract methods of VM_BaselineCompiler
@@ -415,7 +420,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
-    VM_Barriers.compileModifyCheck(asm, 12);
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -1729,7 +1734,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
 
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
       edgeCounterIdx += (n + 1);
 
@@ -1776,7 +1781,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int offset  = bcodes.getLookupSwitchOffset(i);
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
         // Flip conditions so we can jump over the increment of the taken counter.
         VM_ForwardReference fr = asm.forwardJcc(asm.NE);
         incEdgeCounter(S0, edgeCounterIdx++);
@@ -1789,7 +1794,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     bcodes.skipLookupSwitchPairs(npairs);
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       incEdgeCounter(S0, edgeCounterIdx++); // increment default counter
     }
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
@@ -2073,8 +2078,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement a dynamically linked invokespecial
-   * @param methodRef the referenced method
-   * @param targetRef the method to invoke
+   * @param methodRef The referenced method
+   * @param target    The method to invoke
    */
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) {
@@ -2475,7 +2480,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // establish the JTOC register
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
-      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this methods counter array
         asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
         asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
@@ -2632,7 +2637,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   private final void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       // Allocate two counters: taken and not taken
       int entry = edgeCounterIdx;
       edgeCounterIdx += 2;
@@ -2654,7 +2659,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
 
   private final void incEdgeCounter(byte scratch, int counterIdx) {
-    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
@@ -2662,7 +2667,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   private final void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
-    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, asm.WORD, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
@@ -2900,40 +2905,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (!isInterruptible) {
       return;
     } 
-    if (VM.BuildForDeterministicThreadSwitching) {
-      // decrement the deterministic thread switch count field in the
-      // processor object
-      VM_ProcessorLocalState.emitDecrementField(asm, 
-                                                VM_Entrypoints.deterministicThreadSwitchCountField.getOffset());
-      VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);                  // if not, skip
-      
-      // reset the count.
-      VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(),
-                                                VM.deterministicThreadSwitchInterval);
 
-      if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset()); 
-      } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset()); 
-      } else { // EPILOGUE
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset()); 
-      }
-      fr1.resolve(asm);
-    } else {
-      // thread switch requested ??
-      VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
-                                                     VM_Entrypoints.threadSwitchRequestedField.getOffset(),
-                                                     0);
-      VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
-      if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset()); 
-      } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset()); 
-      } else { // EPILOGUE
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset()); 
-      }
-      fr1.resolve(asm);
+    // thread switch requested ??
+    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, VM_Entrypoints.takeYieldpointField.getOffset(), 0);
+    VM_ForwardReference fr1;
+    if (whereFrom == VM_Thread.PROLOGUE) {
+      // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+      fr1 = asm.forwardJcc(asm.EQ);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
+    } else if (whereFrom == VM_Thread.BACKEDGE) {
+      // Take yieldpoint if yieldpoint flag is >0
+      fr1 = asm.forwardJcc(asm.LE);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
+    } else { // EPILOGUE
+      // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+      fr1 = asm.forwardJcc(asm.EQ);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
     }
+    fr1.resolve(asm);
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (options.INVOCATION_COUNTERS) {
@@ -2970,6 +2959,195 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final boolean genMagic (VM_MethodReference m) {
     VM_Atom methodName = m.getName();
 
+    if (m.getType() == VM_TypeReference.Address) {
+      // Address magic
+
+      VM_TypeReference[] types = m.getParameterTypes();
+
+      // Loads all take the form:
+      // ..., Address, [Offset] -> ..., Value
+
+      if (methodName == VM_MagicNames.loadAddress ||
+          methodName == VM_MagicNames.prepareAddress ||
+          methodName == VM_MagicNames.prepareObjectReference ||
+          methodName == VM_MagicNames.loadWord ||
+          methodName == VM_MagicNames.loadObjectReference ||
+          methodName == VM_MagicNames.prepareWord ||
+          methodName == VM_MagicNames.loadInt ||
+          methodName == VM_MagicNames.prepareInt ||
+          methodName == VM_MagicNames.loadFloat) {
+
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg(T0);                      // address
+          asm.emitPUSH_RegInd(T0);                  // pushes [T0+0]
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // object ref
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadByte) {
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegInd_Byte(T0, T0) ;
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort ||
+          methodName == VM_MagicNames.loadChar) {
+
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegInd_Word(T0, T0);
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend word [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadLong ||
+          methodName == VM_MagicNames.loadDouble) {
+      
+        if (types.length == 0) {
+          // No offset
+          throw new RuntimeException("Magic not implemented");
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 4); // pushes [T0+S0+4]
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+        }
+        return true;
+      }
+
+      // Stores all take the form:
+      // ..., Address, [Offset], Value -> ...
+      if (methodName == VM_MagicNames.store) {
+        // Always at least one parameter to a store. 
+        // First parameter is the type to be stored.
+        VM_TypeReference storeType = types[0];
+
+        if (storeType == VM_TypeReference.Int ||
+            storeType == VM_TypeReference.Address ||
+            storeType == VM_TypeReference.ObjectReference ||
+            storeType == VM_TypeReference.Word ||
+            storeType == VM_TypeReference.Float) {
+        
+          if (types.length == 1) {
+            // No offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(S0);                   // address
+            asm.emitMOV_RegInd_Reg(S0,T0);         // [S0+0] <- T0
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // address 
+            asm.emitMOV_RegIdx_Reg(T1, S0,
+                                 asm.BYTE, 0, T0); // [T1+S0] <- T0
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Byte) {
+          if (types.length == 1) {
+            // No offset 
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegInd_Reg_Byte(T1, T0);
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegIdx_Reg_Byte(T1, S0, 
+                                 asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0     
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Short ||
+            storeType == VM_TypeReference.Char) { 
+
+          if (types.length == 1) {
+            // No offset 
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegInd_Reg_Word(T1, T0);
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset    
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base      
+            asm.emitMOV_RegIdx_Reg_Word(T1, S0, 
+                                 asm.BYTE, 0, T0); // [T1+S0] <- (word) T0     
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Double ||
+            storeType == VM_TypeReference.Long) { 
+
+          if (types.length == 1) {
+            // No offset 
+            throw new RuntimeException("Magic not implemented");
+          } else {
+            // Store at offset
+            asm.emitMOV_Reg_RegDisp(T0, SP, +4);          // value high
+            asm.emitMOV_Reg_RegInd (S0, SP);     // offset
+            asm.emitMOV_Reg_RegDisp(T1, SP, +12);     // base 
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
+            asm.emitMOV_Reg_RegDisp(T0, SP, +8);     // value low
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+            asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
+          }
+          return true;
+        }
+      } else if (methodName == VM_MagicNames.attempt) {
+        // All attempts are similar 32 bit values.
+	if (types.length == 3) {
+          // Offset passed
+          asm.emitPOP_Reg (S0);        // S0 = offset
+        }
+	asm.emitPOP_Reg (T1);          // newVal
+        asm.emitPOP_Reg (EAX);         // oldVal (EAX is implicit arg to LCMPX
+        if (types.length == 3) {
+          asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
+        } else {
+          // No offset
+          asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
+        }        
+
+        asm.emitLockNextInstruction();
+        asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
+        asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
+        VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
+        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+        fr.resolve(asm);
+        return true;
+      }
+    }
+
     if (methodName == VM_MagicNames.attemptInt ||
         methodName == VM_MagicNames.attemptObject ||
         methodName == VM_MagicNames.attemptAddress ||
@@ -2982,17 +3160,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg (EAX);           // oldVal (EAX is implicit arg to LCMPXCNG
       asm.emitPOP_Reg (S0);            // S0 = offset
       asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitMOV_RegInd_Reg (S0, T1);       // simply a store on uniprocessor (need not be atomic or cmp/xchg)
-        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-      } else {
-        asm.emitLockNextInstruction();
-        asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
-        asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
-        VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
-        asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
-        fr.resolve(asm);
-      }
+      asm.emitLockNextInstruction();
+      asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
+      asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
+      VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
+      asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+      fr.resolve(asm);
       return true;
     }
     
@@ -3479,11 +3652,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.wordFromInt ||
+        methodName == VM_MagicNames.wordFromObject ||
         methodName == VM_MagicNames.wordFromIntZeroExtend ||
         methodName == VM_MagicNames.wordFromIntSignExtend ||
         methodName == VM_MagicNames.wordToInt ||
         methodName == VM_MagicNames.wordToAddress ||
         methodName == VM_MagicNames.wordToOffset ||
+        methodName == VM_MagicNames.wordToObject ||
+        methodName == VM_MagicNames.wordToObjectReference ||
         methodName == VM_MagicNames.wordToExtent ||
         methodName == VM_MagicNames.wordToWord) {
         if (VM.BuildFor32Addr) return true;     // no-op for 32-bit
@@ -3536,7 +3712,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
     }
 
-    if (methodName == VM_MagicNames.wordZero) {
+    if (methodName == VM_MagicNames.wordZero ||
+        methodName == VM_MagicNames.wordNull) {
         asm.emitPUSH_Imm(0);
         return true;
     }
@@ -3592,6 +3769,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
     }
     if (methodName == VM_MagicNames.wordIsZero) {
+        asm.emitPUSH_Imm(0);
+        generateAddrComparison(asm.EQ);
+        return true;
+    }
+    if (methodName == VM_MagicNames.wordIsNull) {
         asm.emitPUSH_Imm(0);
         generateAddrComparison(asm.EQ);
         return true;
@@ -3683,10 +3865,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   //-#if RVM_WITH_OSR
-  protected final void emit_threadSwitch(int whereFrom) {
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset());
-  }
-
   /**
    * Emit code to invoke a compiled method (with known jtoc offset).
    * Treat it like a resolved invoke static, but take care of
@@ -3703,8 +3881,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     genResultRegisterUnload(ref);
   }
 
-  protected final void emit_loadaddrconst(int bcIndex) {
-    asm.registerLoadAddrConst(bcIndex);
+  protected final void emit_loadretaddrconst(int bcIndex) {
+    asm.registerLoadRetAddrConst(bcIndex);
     asm.emitPUSH_Imm(bcIndex);
   }
 

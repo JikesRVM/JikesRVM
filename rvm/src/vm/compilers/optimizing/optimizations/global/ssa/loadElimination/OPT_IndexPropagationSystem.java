@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -415,7 +415,7 @@ implements OPT_Operators {
    * 
    * @param A1 variable in the equation
    * @param A2 variable in the equation
-   * @param address variable in the equation
+   * @param array variable in the equation
    * @param index variable in the equation
    */
   void addUpdateArrayDefEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
@@ -437,7 +437,7 @@ implements OPT_Operators {
    * 
    * @param A1 variable in the equation
    * @param A2 variable in the equation
-   * @param address variable in the equation
+   * @param array variable in the equation
    * @param index variable in the equation
    */
   void addUpdateArrayUseEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 

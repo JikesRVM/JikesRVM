@@ -108,7 +108,7 @@ public final class VM_MethodCountData implements VM_Reportable {
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
       VM.sysWrite(counts[i] + " ("+percent+"%) ");
       if (cm == null) {
-        VM.sysWrite("OBSOLETE");                // Compiled Method Obsolete
+        VM.sysWriteln("OBSOLETE");                // Compiled Method Obsolete
       } else {
         if (cm.getCompilerType() == VM_CompiledMethod.TRAP) {
           VM.sysWriteln("<Hardware Trap Frame>");
@@ -119,11 +119,18 @@ public final class VM_MethodCountData implements VM_Reportable {
             VM.sysWrite("\tBOOT");
           }
         }
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }    
   }
 
+  /**
+   * @return the total number of samples taken
+   */
+  public final double getTotalNumberOfSamples() {
+    return totalCountsTaken;
+  }
+  
   /**
    * Reset (clear) the method counts
    */

@@ -596,7 +596,21 @@ function rationalize_config_file_settings () {
 }
 
 function load_config_file () {
-    . "$1"
+    ## There appears to be a bug in Bash 2.05b, leading to
+    ## inconsistent error handling here -- if RVM_TARGET_CONFIG
+    ## is bogus, we get the error handling executed as follows below
+    ## (it used to be that execution would just continue, despite the
+    ## ERR Trap!), but if RVM_HOST_CONFIG is bogus, we just get a
+    ## message like: 
+    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/rvm/bin/jconfigure: line 599: $RVM_ROOT/rvm/config/i686-pc-linux.watson: No such file or directory
+    ## and then Bash exits on its own with status 1.   Certainly, the
+    ## right behavior would be for it to be consistent one way or the
+    ## other.  
+    if ! . "$1"; then
+	show_mesg >&2 "Unable to load the configuration file \"$1\"  -- aborting execution"
+	trap '' EXIT
+	exit 2
+    fi
     export CURRENT_CONFIG_FILE="$1"
     rationalize_config_file_settings
 }
@@ -610,15 +624,28 @@ function load_config_file () {
 load_config_file "${RVM_HOST_CONFIG}"
 
 ## We normally check for a variable named CLASSPATH_ROOT in the config file.
-## An EXPERIMENTAL alternative is to set
+
+## There are alternatives to CLASSPATH_ROOT:
+##
+## First, is to set
 ## CLASSPATH_INSTALLATION in your config file.  If you've run "make install"
 ## in the default configuration, then CLASSPATH_INSTALLATION will be
 ## "/usr/local/classpath".
 ##
-## This does not have the checks in it that we normally get
+## This automatically skips the usual consistency checks we perform on 
+## CLASSPATH_ROOT.
+##
+## Second, if you haven't installed GNU Classpath, you can set
+## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
+## *and* set CLASSPATH_BUILD_DIR to the directory
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
+
+
 
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r HOST_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION} # XXX Experimental
+[[ ${CLASSPATH_BUILD_DIR-} ]]  && declare -r HOST_CLASSPATH_BUILD_DIR=${CLASSPATH_BUILD_DIR} # XXX Experimental
+[[ ${CLASSPATH_SOURCE_DIR-} ]]  && declare -r HOST_CLASSPATH_SOURCE_DIR=${CLASSPATH_SOURCE_DIR} # XXX Experimental
 
 
 
@@ -777,7 +804,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 CVS_TIMESTAMP=$(cat $f)
-JIKESRVM_VERSION="Jikes RVM 2.3.3"
+JIKESRVM_VERSION="Jikes RVM 2.3.4"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -798,6 +825,10 @@ declare -i RVM_FOR_AIX=0	   # Implies PPC
 declare -i RVM_FOR_LINUX=0	   # Implies nothing.
 declare -i RVM_FOR_OSX=0	   # Implies PPC.
 
+# Does the OS protect low memory or will the RVM have to?
+# 
+declare -i RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY=0 # Currently only AIX.
+
 # 32-bit or 64-bit address size
 #
 declare -i RVM_FOR_32_ADDR=0
@@ -807,6 +838,7 @@ declare -i RVM_FOR_64_ADDR=0
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
 #
 declare -i RVM_WITH_OPT_COMPILER=0
+declare -i RVM_WITH_QUICK_COMPILER=0
 declare -i RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
@@ -828,6 +860,7 @@ declare -i RVM_WITH_GCTRACE=0
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
 declare -i RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
+declare -i RVM_WITH_QUICK_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 
 # Here are the choices for the object model
@@ -847,6 +880,28 @@ declare -i RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
+declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
+
+# Should we use our own version of java.lang.Class, and ignore GNU
+# Classpath's implementation?  The old default was to have this set;
+# the new default is to use the GNU Classpath version of
+# java.lang.Class (which requires our new helper implementation
+# java.lang.VMClass).  
+# NOTE: currently doesn't work to use classpath + VMClass.
+#       revert to old default until it works again.
+declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
+
+## Classpath 0.12 is the default on Linux.
+## We have build problems on AIX, so are using Classpath 0.10 on that platform
+## for now.  The minimum required version is Classpath 0.11
+
+declare -i RVM_WITH_CLASSPATH_0_10=0
+
+declare -i RVM_WITH_CLASSPATH_0_11=0
+
+## There are a few syscalls that seem to have fallen into disuse -- 
+## I've surrounded them with this. --Steve Augart
+declare -i RVM_WITH_UNUSED_SYSCALLS=0
 
 #
 # intercept blocking system calls (currently Linux-only)
@@ -936,7 +991,9 @@ function unsetEnvironment() {
     unset WGET XARGS UNZIP 
     unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
-    unset CLASSPATH_INSTALLATION # XXX Experimental
+    unset CLASSPATH_INSTALLATION
+    unset CLASSPATH_SOURCE_DIR # XXX Experimental
+    unset CLASSPATH_BUILD_DIR # XXX Experimental
     unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
     unset BENCHMARK_ROOT
     set $flags;			# turn back on -e, if it was off.
@@ -953,6 +1010,8 @@ unsetEnvironment;
 load_config_file "${RVM_TARGET_CONFIG}"
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r TARGET_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r TARGET_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION}
+[[ ${CLASSPATH_SOURCE_DIR-} ]]  && declare -r TARGET_CLASSPATH_SOURCE_DIR=${CLASSPATH_SOURCE_DIR}
+[[ ${CLASSPATH_BUILD_DIR-} ]]  && declare -r TARGET_CLASSPATH_BUILD_DIR=${CLASSPATH_BUILD_DIR}
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
@@ -1026,6 +1085,15 @@ else
     croak_usage "Unknown configuration ${CONFIGURATION_NAME}"
 fi
 
+if (( RVM_WITH_QUICK_COMPILER )) && (( ! RVM_FOR_POWERPC )) ; then
+	    echo >&2 "\
+    $ME: Quick compiler configurations are only valid when the target is a PowerPC."
+	    trap '' EXIT
+	    exit 2
+
+fi
+
+
 # set the relative path to the object model.
 if (( RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL )); then
     OBJECT_MODEL_PATH_STR=objectModel/oneWordMaskTIB
@@ -1039,6 +1107,10 @@ fi
 
 if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
+fi
+
+if (( RVM_FOR_AIX )); then
+    RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY=1
 fi
 
 if (( RVM_FOR_OSX )); then
@@ -1169,6 +1241,8 @@ function emitSourceList () {
 	$RVM_ROOT/rvm/src/vm/scheduler
 	$RVM_ROOT/rvm/src/vm/utility
 	$RVM_ROOT/rvm/src/vm/verifier
+	$RVM_ROOT/rvm/src/vm/vmmagic/unboxed
+	$RVM_ROOT/rvm/src/vm/vmmagic/pragma
 	$RVM_ROOT/rvm/src/vm/compilers/compiledCode
     
 
@@ -1282,6 +1356,25 @@ EOF
 EOF
     fi
 
+    if (( RVM_WITH_QUICK_COMPILER )); then
+      # core components
+      #
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick/util
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick/GCMap
+      # The inliner
+	if (( RVM_WITH_QUICK_COMPILER_INLINING )); then
+	    echo $RVM_ROOT/rvm/src/vm/compilers/quick/inline
+	fi
+
+      # architecture-specific components
+      #
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/GCMap
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/writeBarrier
+
+    fi
+
     # On stack replacement components.
     #
     if (( RVM_WITH_OSR )); then
@@ -1305,6 +1398,8 @@ EOF
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/baseline
     elif (( ${RVM_WITH_OPT_BOOTIMAGE_COMPILER} )); then
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/optimizing
+    elif (( $RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
+	echo $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/quick
     fi
     cleanFileList <<- EOF
     # Runtime compiler components.
@@ -1315,44 +1410,32 @@ EOF
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/statistics
+	$RVM_ROOT/MMTk/src/org/mmtk/plan
+	$RVM_ROOT/MMTk/src/org/mmtk/policy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
+
 
     # Local projects (template)
     #
     #    $RVM_ROOT/projects/myproject
 EOF
-    # collector specific classes
-    #
-    if (( $RVM_WITH_SEMI_SPACE )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
-    elif (( $RVM_WITH_MARK_SWEEP )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
-    elif (( $RVM_WITH_GEN_COPY )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
-    elif (( $RVM_WITH_GEN_MS )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
-    elif (( $RVM_WITH_GEN_RC )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genRC
-    elif (( $RVM_WITH_COPY_MS )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
-    elif (( $RVM_WITH_REF_COUNT )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
-    elif (( $RVM_WITH_GCTRACE )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/gcTrace
-    elif (( $RVM_WITH_NO_GC )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
-    fi
 
     # GCSpy specific classes
-    GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
-    echo $GCSPY_ROOT
-    echo $GCSPY_ROOT/util
-    # TODO Would be better to load only drivers needed rather than all
-    echo $GCSPY_ROOT/drivers
+    if (( ${RVM_WITH_GCSPY} )); then
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/drivers
+    else
+	echo $RVM_ROOT/MMTk/src/org/mmtk/vm/gcspy
+    fi
 
     # standard library support
     #
@@ -1364,6 +1447,14 @@ EOF
 	$RVM_ROOT/rvm/src/vm/libSupport/java/net
 	$RVM_ROOT/rvm/src/vm/libSupport/java/io
 EOF
+    if (( ! RVM_WITH_CLASSPATH_0_10 )); then
+	## Later than Classpath 0.10
+
+	# We actually aren't using java.security right now, except in a branch,
+	# but this does no harm.	
+	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
+	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
+    fi
 
     # Add support for hardware performance monitors on PowerPC
     #
@@ -1497,11 +1588,10 @@ cat <<- EOF
 	export WGET='$WGET'
 	export XARGS='$XARGS'
 	export UNZIP_CMD='$UNZIP_CMD'
-	export CLASSPATH_LIBRARIES=YES
+	export CLASSPATH_LIBRARIES=YES # XXX We always use Classpath; this should go away.
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
 	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
-
 EOF
     [[ ${HOST_JAVA_HOME-} ]] && echo "export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'"
     if [ "${HOST_JAVA_LD_LIBRARY_PATH-}" ]; then
@@ -1517,14 +1607,20 @@ EOF
     [[ ! ${ANT_CMD-} ]] || echo "export ANT_CMD='$ANT_CMD'"
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
+    [[ ! ${XALAN_J_DIR-} ]] || echo "export XALAN_J_DIR='${XALAN_J_DIR}'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
-    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"	# XXX Experimental
+    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"
+    [[ ! ${CLASSPATH_SOURCE_DIR-} ]] || echo "export CLASSPATH_SOURCE_DIR=$CLASSPATH_SOURCE_DIR"
+    [[ ! ${CLASSPATH_BUILD_DIR-} ]] || echo "export CLASSPATH_BUILD_DIR=$CLASSPATH_BUILD_DIR"
     echo ""
     # For self-booting with Jikes RVM (work in progress)
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
     [[ ! ${DONOR_RVM_BUILD-} ]] || echo "export DONOR_RVM_BUILD=$DONOR_RVM_BUILD"
-    echo ""
+    if [[ ${OBJECT_MODE-} ]]; then
+	echo ""
+	echo "export OBJECT_MODE=$OBJECT_MODE   # Horrible kludge for AIX"
+    fi
 }
 
 #
@@ -1619,6 +1715,7 @@ EOF
 
 
 	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
+	# XXX CLASSPATH_LIBRARIES should go away; we don't need it any more.
 	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
@@ -1626,6 +1723,10 @@ EOF
     [[ ! ${BENCHMARK_ROOT-} ]] || echo "BENCHMARK_ROOT = $BENCHMARK_ROOT"
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "DONOR_RVM_ROOT = $DONOR_RVM_ROOT"
     [[ ! ${DONOR_RVM_BUILD-} ]] || echo "DONOR_RVM_BUILD = $DONOR_RVM_BUILD"
+    if [[ ${OBJECT_MODE-} ]]; then
+	echo "# Horrible kludge for AIX:"
+	echo "export OBJECT_MODE = $OBJECT_MODE"
+    fi
 }
 
 
@@ -1790,30 +1891,22 @@ function emitController () {
 	# Copy over rvmrt.jar; we need that to get a working compiler
 	# (at least when we're operating in open-source mode, under the 
 	# Jikes compiler, which doesn't have a default bootclasspath)
-EOF
-    if [[ ${CLASSPATH_INSTALLATION-} ]]; then
-	cat <<- EOF
-	# Experimental; use a built GNU Classpath that was installed
-	# with "make install".
-	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
-EOF
-    else
-	## The classic, stable, documented, and recommended way
-	cat <<- EOF
-	# Ensure that we have the right version of the class libraries
-	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
+        if [[ \${CLASSPATH_BUILD_DIR-} ]]; then
+	    # Use a pre-built GNU Classpath in a 
+	    # user-specified directory.
+	    SRC=\${CLASSPATH_BUILD_DIR}/lib/glibj.zip
+	elif [[ \${CLASSPATH_INSTALLATION-} ]]; then
+	    SRC=\${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
+	else
+	    # Ensure that we have the right version of the class libraries
+	    $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
 
-	CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
-	SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
-	SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
-EOF
-    fi
-    cat <<- EOF
+	    CPS="\${CLASSPATH_ROOT-$ROOT_DIRECTORY_STR/classpath}"
+	    SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
+	    SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
+	fi
 	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
 	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
-EOF
-	
-    cat <<- EOF
 	if [[ \$CLEAN_FLAG = -clean ]]; then
 	    rm -rf $TOOL_DIRECTORY_STR
 	    timeit ./jbuild.expand      -clean
@@ -1878,7 +1971,7 @@ EOF
 	    show_mesg "To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
 	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
 	    if ! type -p rvm > /dev/null; then
-	        show_mesg "You will also need to add ${RVM_ROOT}/rvm/bin to your path"
+	        show_mesg "You will also need to add ${ROOT_DIRECTORY_STR}/rvm/bin to your path"
 	    fi
 	fi
 	trap '' EXIT
@@ -1931,6 +2024,8 @@ function emitExpander () {
 	if [[ \$CLEAN_FLAG ]]; then
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
+	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/unboxed
+	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/pragma
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
 	    echo *.* | \$XARGS rm -f
 	EOF
@@ -1968,8 +2063,6 @@ EOF
 	# Build the command line options for the core VM
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
-	# Build the command line options for JMTk
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
@@ -1990,6 +2083,13 @@ run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rv
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
+    if (( RVM_WITH_QUICK_COMPILER )); then
+	cat <<- EOF
+		# (QUICK Compiler only:)
+		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/quick MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+EOF
+
+    fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 		# (OPT Compiler only:)
@@ -2161,6 +2261,9 @@ EOF
 	fi
 EOF
 
+    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
+	echo "rm -f ${CLASSES_DIRECTORY_STR}/java/lang/Class.java"
+    fi
 
     cat <<- EOF
 	# Remember if any new (or modified) source files were discovered.
@@ -2267,7 +2370,10 @@ EOF
 	    fi
 
 	    open_paren 'building jksvm.jar'
-	    rm -f jksvm.jar
+	    ## We do not want Dummy.class or OptDummy.class to go into 
+	    ## jksvm.jar -- otherwise, "rvm Dummy" or "rvm OptDummy" would run
+	    ## that class!  And that's NOT what the user expects :)
+	    run rm -f jksvm.jar Dummy.class OptDummy.class
 	    ## NB: "fastjar", the open-source program, has a broken -u flag,
 	    ## at least temporarily.  However, it DOES have a very nice @ flag,
 	    ## which the Sun-derived JDKs lack.
@@ -2277,7 +2383,10 @@ EOF
 	        ## The Sun JAR manual page claims that '-O' (the letter Oh) 
 	        ## is the flag for no-compression.  It is actually
 	        ## '0' (the number zero), not the letter 'O'.
-	        $JAR_STR -c0f jksvm.jar Dummy.class
+
+		## Create a blank .jar file
+		run touch jksvm.jar
+		## Then populate it.
 	        \$FIND . -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
 	    fi
 	    close_paren 'jksvm.jar built'
@@ -2287,8 +2396,7 @@ EOF
 	    if [[ \${FASTJAR-} ]]; then
  	        \$FIND . -name '*.java' | \$FASTJAR -c0@f jksvmsrc.jar
 	    else
-	        run $JAR_STR -c0f jksvmsrc.jar Dummy.java
-	        ## -r is XARGS's no-run-if-empty flag.
+	        run touch jksvmsrc.jar
 	        \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
 	    fi
 	    close_paren 'jksvmsrc.jar built'
@@ -2527,8 +2635,14 @@ function emitImageLinker () {
 	    OptDummy.class
 	    BuildJNIFunctionTable.class
 
-	# skip: JikesRVMSocketImpl; do not load native libs unless needed
-	    JikesRVMSocketImpl.class
+# XXX JikesRVMSocketImpl is used in booting.  It cannot really help us
+# to keep it out of the boot image.
+#
+# TODO: revise JikesRVMSocketImpl so that we just initialize the
+# parts of it that have to be initialized, without bringing in the 
+# native library. 
+#	# skip: JikesRVMSocketImpl; do not load native libs unless needed
+#	    JikesRVMSocketImpl.class
 
 	# We can not carry these from bootimage writing to runtime 
 	# without special treatment
@@ -2570,6 +2684,7 @@ EOF
         fi
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
+	echo "    \$FIND ./org/vmmagic -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
     echo ") > ${PRIMORDIAL_CLASSES_STR}.want-these"
@@ -2723,7 +2838,24 @@ java/io/FileDescriptor
 gnu/java/nio/channels/FileChannelImpl
 EOF
 
-	cat <<EOF
+    if (( ! RVM_WITH_CLASSPATH_0_10 )); then
+        # Boot classes we need to work with Classpath 0.11, but don't 
+	# need to work with Classpath 0.10
+
+        cat <<EOF
+gnu/java/security/action/GetPropertyAction
+java/security/VMAccessController
+java/security/AccessControlContext
+# Used by Classpath 0.11's reference VMAccessController
+java/lang/ThreadLocal
+# Used by ThreadLocal
+java/util/LinkedList
+java/util/VMTimeZone
+EOF
+   fi
+
+
+    cat <<EOF
     # class loading from zip files
     #
 java/util/zip/ZipFile
@@ -2762,6 +2894,13 @@ java/security/AllPermissionCollection
 java/lang/RuntimePermission
 EOF
     
+    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
+	cat <<- EOF
+	java/lang/reflect/Modifier
+EOF
+    fi
+
+
     # the application class loader uses jar classes (which can be loaded or not)
 
     if (( RVM_WITH_ALL_CLASSES )); then
@@ -2793,6 +2932,7 @@ com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan
 com/ibm/JikesRVM/adaptive/OSR_OrganizerThread
+com/ibm/JikesRVM/adaptive/OSR_Listener
 EOF
     fi
 
@@ -2848,9 +2988,22 @@ com/ibm/JikesRVM/opt/OPT_MethodSummary
 EOF
 	fi
 
-	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	    echo com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan
-	fi
+    fi
+
+    if (( RVM_WITH_QUICK_COMPILER )); then
+	# data structures that need to carry over from boot image writing
+	# and/or classes that quick wants to be in the bootimage to 
+	# generate decent code (avoid dynamic linking, get them quick compiled)
+	if (( RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
+	cat <<- EOF
+java/util/Enumeration
+java/util/Dictionary
+java/util/TreeMap
+java/util/TreeSet
+java/util/Stack
+com/ibm/JikesRVM/VM_QuickCompilerException
+EOF
+        fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
@@ -2907,17 +3060,17 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
 	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
 	[Lorg/mmtk/vm/SynchronizedCounter;
-	[Lorg/mmtk/plan/Plan;
-	[Lorg/mmtk/utility/VMResource;
-	[Lorg/mmtk/utility/MemoryResource;
+	[Lorg/mmtk/vm/Plan;
+	[Lorg/mmtk/policy/Space;
 	[Lorg/mmtk/utility/statistics/Stats;
 	[Lorg/mmtk/utility/statistics/Counter;
 	[Lorg/mmtk/utility/statistics/EventCounter;
 	[Lorg/mmtk/utility/statistics/LongCounter;
 	[Lorg/mmtk/utility/statistics/SizeCounter;
 	[Lorg/mmtk/utility/statistics/Timer;
-	[Lorg/mmtk/utility/MMType;
-	[Lorg/mmtk/utility/Scan;
+	[Lorg/mmtk/utility/options/Option;
+	[Lorg/mmtk/utility/scan/MMType;
+	[Lorg/mmtk/utility/scan/Scan;
 	[Ljava/lang/Object;
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;
@@ -2945,14 +3098,16 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 
 	# These next arrays are really arrays of primitves to Jikes RVM 
 	#  (even though Java does not think they are...)
-	[Lcom/ibm/JikesRVM/VM_Address;
-	[Lcom/ibm/JikesRVM/VM_Word;
-	[Lcom/ibm/JikesRVM/VM_Offset;
-	[Lcom/ibm/JikesRVM/VM_Extent;
+	[Lorg/vmmagic/unboxed/Address;
+	[Lorg/vmmagic/unboxed/ObjectReference;
+	[Lorg/vmmagic/unboxed/Word;
+	[Lorg/vmmagic/unboxed/Offset;
+	[Lorg/vmmagic/unboxed/Extent;
 	[Lcom/ibm/JikesRVM/VM_Code;
 	    
 	[Lcom/ibm/JikesRVM/VM_CodeArray;
-        [Lcom/ibm/JikesRVM/VM_AddressArray;
+        [Lorg/vmmagic/unboxed/AddressArray;
+        [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
 	[Lcom/ibm/JikesRVM/classloader/VM_Class;
 	[Lcom/ibm/JikesRVM/VM_UnusualMaps;
@@ -3219,22 +3374,43 @@ function emitBooterLinker () {
     echo ""
 
     if	   [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]] \
-	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]]
+	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]] \
+	&& [[ ! ${TARGET_CLASSPATH_BUILD_DIR-} ]]
     then
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
 
-    if [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+    if [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
+	if (( ! RVM_FOR_LINUX && ! RVM_FOR_AIX )); then
+	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  If that happens, then a workaround is not to set TARGET_CLASSPATH_BUILD_DIR in your config file."
+	fi
+    elif [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	if (( ! RVM_FOR_LINUX )); then
 	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
 	fi
     else
-	# copy native libraries
-	CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+	# source from which to copy native libraries
+	CPS="${TARGET_CLASSPATH_ROOT-$ROOT_DIRECTORY_STR/classpath}"
 	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     fi
 
-    if (( RVM_FOR_AIX )); then
+    if (( RVM_FOR_AIX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
+	local -r shlib_suffix=.a
+
+	cat <<- EOF
+
+	## AIX requires that dynamically loaded libraries end in .a, 
+	## so that dlopen() will find them.  Also, the classpath builder, 
+	## on AIX, generates the files with the suffix ".so.0".  
+	## We transform one to the other.
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*.so.0
+	do
+	    oldbase="\$(basename \${_library} .so.0)"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    copyIfNewer "\$_library" "\$dest_lib"
+	done
+EOF
+    elif (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
 
 	cat <<- EOF
@@ -3249,7 +3425,6 @@ function emitBooterLinker () {
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_OSX )); then
 	local -r shlib_suffix=.jnilib
@@ -3264,7 +3439,6 @@ cat <<- EOF
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	local -r shlib_suffix=.so
@@ -3275,7 +3449,16 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" ${BUILD_DIRECTORY_STR}
 	done
-	unset oldbase dest_lib _library || :
+EOF
+    elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]] ; then
+	local -r shlib_suffix=.so
+cat <<- EOF
+	## On Linux, dynamically loaded libraries end in .so.
+	## The classpath builder conveniently generates them with that suffix.
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*${shlib_suffix}
+	do
+	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
+	done
 EOF
     elif (( RVM_FOR_LINUX )); then
 	local -r shlib_suffix=.so
@@ -3286,13 +3469,13 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     else
 	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
 neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
     fi
     cat <<- EOF
+	unset oldbase dest_lib _library || :
 	echo >&2  -n '(classpath native libraries copied) '
 	CONFIG_H_DIR=${SCRATCH_DIRECTORY_STR}/Config.target
 
@@ -4153,7 +4336,7 @@ chmod -x${PERM}	$f
 unsetEnvironment;		# throw out leftovers
 load_config_file ${RVM_HOST_CONFIG}
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-
+    
 f=${BUILD_DIRECTORY}/Make.rules.host
 rm -f			$f
 emitMakefile	      > $f

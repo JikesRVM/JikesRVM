@@ -17,11 +17,23 @@ import java.util.*;
  */
 public class VM_CompilerDNA implements VM_Constants {
 
-  private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
+  private static final String[] compilerNames = {"Baseline", 
+                                                 //-#if RVM_WITH_QUICK_COMPILER
+                                                 "Quick", 
+                                                 //-#endif
+                                                 "Opt0", "Opt1", "Opt2"};
   final static int BASELINE = 0;
+  //-#if RVM_WITH_QUICK_COMPILER
+  final static int QUICK = 1;
+  final static int OPT0 = 2;
+  final static int OPT1 = 3;
+  final static int OPT2 = 4;
+  //-#else
   final static int OPT0 = 1;
   final static int OPT1 = 2;
   final static int OPT2 = 3;
+  //-#endif
+
 
   /**
    *  The number of compilers available
@@ -31,23 +43,36 @@ public class VM_CompilerDNA implements VM_Constants {
   /**
    * Average bytecodes compiled per millisec
    * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
-   * and turangalila (Linux/IA32) using unweighted compilation rate.
+   * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
   //-#if RVM_FOR_POWERPC
-  private static final double[] compilationRates = {359.17, 10.44, 4.69, 1.56};
+  private static final double[] compilationRates = {
+    359.17,
+    //-#if RVM_WITH_QUICK_COMPILER
+    300, 
+    //-#endif
+    10.44, 4.69, 1.56};
   //-#elif RVM_FOR_IA32
-  private static final double[] compilationRates = {332.79, 9.58, 4.11, 1.66};
+  private static final double[] compilationRates = {
+    696.58,
+    18.19, 8.90, 3.90};
   //-#endif
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
    * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
-   * and turangalila (Linux/IA32) using unweighted compilation rate.
+   * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
   //-#if RVM_FOR_POWERPC
-  private static final double[] speedupRates = {1.00, 4.73, 6.65, 7.39};
+  private static final double[] speedupRates = {
+    1.00, 
+    //-#if RVM_WITH_QUICK_COMPILER
+    1.32, 
+    //-#endif
+    4.73, 6.65, 7.39};
   //-#elif RVM_FOR_IA32
-  private static final double[] speedupRates = {1.00, 4.66, 6.82, 7.04};
+  private static final double[] speedupRates = {1.00,
+                                                4.56, 7.13, 7.35};
   //-#endif
 
   /**
@@ -258,6 +283,9 @@ public class VM_CompilerDNA implements VM_Constants {
   public static int getOptLevel(int compiler) {
     switch (compiler) {
       case BASELINE: return -1;
+      //-#if RVM_WITH_QUICK_COMPILER
+      case QUICK: return -1;
+      //-#endif
       case OPT0: return 0;
       case OPT1: return 1;
       case OPT2: return 2;

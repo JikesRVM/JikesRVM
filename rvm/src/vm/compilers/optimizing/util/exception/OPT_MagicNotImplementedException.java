@@ -26,10 +26,10 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
   }
 
   /**
-   * Create a MagicNotImplemented exception with message s when we
+   * Create a MagicNotImplemented exception with message <code>s</code> when we
    * encounter a magic that we have decided to not implement in the opt
    * compiler.
-   * @param  String s
+   * @param   s The message for the exception.
    * @return the newly created exception object
    */
   public static OPT_MagicNotImplementedException EXPECTED(String s) {
@@ -37,10 +37,10 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
   }
     
   /**
-   * Create a MagicNotImplemented exception with message s when we
+   * Create a MagicNotImplemented exception with message <code>s</code> when we
    * encounter a magic that we have decided to not implement in the opt
    * compiler.
-   * @param  String s
+   * @param  s   The exception's message
    * @return the newly created exception object
    */
   public static OPT_MagicNotImplementedException UNEXPECTED(String s) {

@@ -7,7 +7,7 @@ package com.ibm.JikesRVM;
 /**
  * @author Anthony Cocchi
  */
-final class VM_BasicBlock {
+public final class VM_BasicBlock {
 
  // structure to describe the basic blocks of the byte code
  // Used in calculating stack map and local variable map for
@@ -20,10 +20,10 @@ final class VM_BasicBlock {
 
   // ------------------- Static Class Fields -----------------
 
-  static final int NOTBLOCK = 0;
-  static final int EXITBLOCK = 1;
-  static final int STARTPREDSIZE = 4;
-  static final int STARTBBNUMBER = 2;
+  public static final int NOTBLOCK = 0;
+  public static final int EXITBLOCK = 1;
+  public static final int STARTPREDSIZE = 4;
+  public static final int STARTBBNUMBER = 2;
 
   static final byte JSRENTRY = 1;
   static final byte JSREXIT  = 2;
@@ -35,7 +35,7 @@ final class VM_BasicBlock {
 
   // --------------------- Instance Fields ---------------------
 
-  int     blockNumber;       // ID number (index into block array)
+  public int     blockNumber;// ID number (index into block array)
   int     start;             // starting byte in byte code array
   int     end;               // ending byte in byte code array
   int     predcount = 0;     // number of preceeding basic blocks
@@ -92,47 +92,47 @@ final class VM_BasicBlock {
    state |= stateval;
  }
 
- int getStart(){
+ public int getStart(){
    return start;
  }
 
- int getEnd() {
+ public int getEnd() {
    return end;
  }
 
- int getBlockNumber() {
+ public int getBlockNumber() {
    return blockNumber;
  }
 
- byte getState() {
+ public byte getState() {
     return  state;
  }
 
- boolean isJSRExit() {
+ public boolean isJSRExit() {
      return ((state&JSREXIT)==JSREXIT);
  }
 
- boolean isJSREntry() {
+ public boolean isJSREntry() {
      return ((state&JSRENTRY)==JSRENTRY);
  }
 
- boolean isInJSR() {
+ public boolean isInJSR() {
    return ((state&INJSR)==INJSR);
  }
 
- boolean isMethodEntry() {
+ public boolean isMethodEntry() {
    return ((state&METHODENTRY)==METHODENTRY);
  }
 
- boolean isTryStart() {
+ public boolean isTryStart() {
    return ((state&TRYSTART)==TRYSTART);
  }
 
- boolean isTryBlock() {
+ public boolean isTryBlock() {
    return ((state&TRYBLOCK)==TRYBLOCK);
  }
 
- boolean isTryHandlerStart() {
+ public boolean isTryHandlerStart() {
    return ((state&TRYHANDLERSTART)==TRYHANDLERSTART);
  }
 

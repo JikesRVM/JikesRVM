@@ -28,7 +28,7 @@ extern "C" int sched_yield(void);
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>		// getenv() and others
 #include <unistd.h>
 #include <string.h>
 #include <dirent.h>
@@ -36,12 +36,11 @@ extern "C" int sched_yield(void);
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
+#include <time.h>               // nanosleep() and other
 #include <utime.h>
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
@@ -95,7 +94,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <dlfcn.h>
 #include <inttypes.h>           // uintptr_t
 
-#include "sys.h"
 #ifdef _AIX
 extern "C" timer_t gettimerid(int timer_type, int notify_type);
 extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
@@ -103,8 +101,10 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #endif
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner.
+#include "../../include/jni.h"                // For the jlong type.
 
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 #include <pthread.h>
@@ -127,6 +127,11 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *sysVirtualProcessorStartup(void *args);
 #endif
+
+/* This routine is not yet used by all of the functions that return strings in
+ * buffers, but I hope that it will be one day. */
+static int loadResultBuf(char * buf, int limit, const char *result);
+
 
 /*
  * Network addresses are sensible, that is big endian, and the intel
@@ -219,7 +224,7 @@ pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 static bool systemExiting = false;
-
+    
 extern "C" void
 sysExit(int value)
 {
@@ -260,7 +265,7 @@ sysArg(int argno, char *buf, int buflen)
             return i;
         **************/
     } else { // return i-th arg
-        char *src = JavaArgs[argno];
+        const char *src = JavaArgs[argno];
         for (int i = 0;; ++i)
         {
             if (*src == 0)
@@ -272,6 +277,65 @@ sysArg(int argno, char *buf, int buflen)
     }
     /* NOTREACHED */
 }
+
+/** Get the value of an enviroment variable.  (This refers to the C
+    per-process environment.)   Used, indirectly, by VMSystem.getenv()
+
+    Taken:    Name of the envar we want.
+	      buffer in which to place results
+              buffer size
+
+    Returned: Number of bytes writen to buffer, if the envar is set.
+	      If there is not enough space, we write what we can and return
+	      the # of characters that WOULD have been written to the final
+	      string BUF if enough space had been available, excluding any
+	      trailing '\0'.  This error handling is consistent with the C '99
+	      standard's behavior for the snprintf() system library function.
+	      
+	      Note that this is NOT consistent with the behavior of other
+	      functions in this file -- that should change with time. 
+
+	      This function will append a trailing '\0', if there is enough
+	      space, even though our caller does not need it nor use it.  
+	      
+	      0: A return value of 0 indicates that the envar was set with a
+	      zero-length value.   (Distinguised from unset, see below)
+
+	      -2: Indicates that the envar was unset.  This is distinguished
+		  from a zero-length value (see above).
+*/
+extern "C" int
+sysGetenv(const char *varName, char *buf, int limit)
+{
+    return loadResultBuf(buf, limit, getenv(varName));
+}
+
+	      
+	      
+/* Copy SRC, a string or NULL pointer, into DEST, a buffer with LIMIT
+ * characters capacity. 
+ *
+ * Handle the error handling for running out of space in BUF, in accordance
+ * with the C '99 specification for snprintf() -- see sysGetEnv().   
+ *
+ *
+ * Return -2 if the value was unset. 
+ */
+static int
+loadResultBuf(char * dest, int limit, const char *src)
+{
+    if ( ! src )			// Is it set?
+	return -2;		// Tell caller it was unset.
+
+    for (int i = 0;; ++i) {
+	if ( i < limit ) // If there's room for the next char of the value ... 
+	    dest[i] = src[i];	// ... write it into the destination buffer.
+	if (src[i] == '\0')
+	    return i;		// done, return # of chars needed for SRC
+    }
+}
+
+
 
 //------------------------//
 // Filesystem operations. //
@@ -783,19 +847,27 @@ timeSlicerThreadMain(void *arg)
  * Actions to take on a timer tick
  */
 extern "C" void processTimerTick(void) {
+
+    VM_Address VmToc = (VM_Address) getJTOC();
+    
+    /*
+     * Increment VM_Processor.timerTicks
+     */
+    int* ttp = (int *) ((char *) VmToc + VM_Processor_timerTicks_offset);
+    *ttp = *ttp + 1;
+
     /* 
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    VM_Address VmToc = (VM_Address) getJTOC();
     int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
     /*
-     * Increment VM_Processor.epoch
+     * Increment VM_Processor.reportedTimerTicks
      */
-    int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-    *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+    int* rttp = (int *) ((char *) VmToc + VM_Processor_reportedTimerTicks_offset);
+    *rttp = *rttp + 1;
 
     /*
      * Turn on thread-switch flag in each virtual processor.
@@ -803,15 +875,15 @@ extern "C" void processTimerTick(void) {
      * interrupted C-library code, so we use boot image 
      * jtoc address (== VmToc) instead. 
      */
-    VM_Address *processors 
-        = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
+    VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
     for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
-        // During how many ticks has this VM_Processor ignored 
-        // a thread switch request? 
-        int val = (*(int *)((char *)processors[i] + 
-                            VM_Processor_threadSwitchRequested_offset))--;
+        // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
+        // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
+        *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;
+        int val = (*(int *)((char *)processors[i] + VM_Processor_timeSliceExpired_offset))--;
+        
         if (longest_stuck_ticks < (unsigned) -val)
             longest_stuck_ticks = -val;
     }
@@ -867,7 +939,7 @@ setTimeSlicer(int msTimerDelay)
                 Me, strerror(errorCode));
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#elif (defined RVM_FOR_LINUX)  || (defined __MACH__) 
+#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)
     /* && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR */
 
     /* NOTE: This code is ONLY called if we have defined
@@ -890,7 +962,7 @@ setTimeSlicer(int msTimerDelay)
         perror(NULL);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#else  /* RMV_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
+#else  /* RVM_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
           defined __MACH__ */
     // fetch system timer
     //
@@ -994,6 +1066,42 @@ sysGetTimeOfDay()
     return returnValue;
 }
 
+
+/** Routine to sleep for a number of nanoseconds (howLongNanos).  This is
+ * ridiculous on regular Linux, where we actually only sleep in increments of
+ * 1/HZ (1/100 of a second on x86).  Luckily, Linux will round up.
+ *
+ * This is just used internally in the scheduler, but we might as well make
+ * the function work properly even if it gets used for other purposes.
+ *
+ * We don't return anything, since we don't need to right now.  Just try to
+ * sleep; if interrupted, return.
+ */
+extern "C" void
+sysNanosleep(long long howLongNanos)
+{
+    struct timespec req;
+    const long long nanosPerSec = 1000LL * 1000 * 1000;
+    req.tv_sec = howLongNanos / nanosPerSec;
+    req.tv_nsec = howLongNanos % nanosPerSec;
+    int ret = nanosleep(&req, (struct timespec *) NULL);
+    if (ret < 0) {
+        if (errno == EINTR)
+            /* EINTR is expected, since we do use signals internally. */
+            return;
+
+        fprintf(SysErrorFile, "%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
+                " %s (errno=%d)\n"
+                "  That should never happen; please report it as a bug.\n", 
+                Me, req.tv_sec, req.tv_nsec,
+                strerror( errno ), errno);
+    }
+    // Done.
+}
+
+
+
+    
 
 //-----------------------//
 // Processor operations. //
@@ -1688,6 +1796,7 @@ sysWaitForMultithreadingStart()
 // CRA, Maria
 // 09/14/00
 //
+
 /*
   I have filed defect report # 3925 about this function, with the following
   description of the defect: --Steve Augart:
@@ -1713,13 +1822,25 @@ sysPthreadSelf()
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
     int thread;
-    int rc;
 
     thread = (int)pthread_self();
 
     if (VERBOSE_PTHREAD)
         fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
+    return thread;
+#endif
+}
+
+extern "C" void
+sysPthreadSetupSignalHandling()
+{
+#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#else
+
+    int rc;                     // retval from subfunction.
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     /*
@@ -1735,9 +1856,10 @@ sysPthreadSelf()
 
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
+        /* Only fails with EINVAL, ENOMEM, EPERM */
         fprintf (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
         perror(NULL);
-        return 1;
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
 #endif
 
@@ -1752,13 +1874,26 @@ sysPthreadSelf()
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-#else
+    /* pthread_sigmask can only return the following errors.  Either of them
+     * indicates serious trouble and is grounds for aborting the process:
+     * EINVAL EFAULT.  */
+    if (rc) {
+        fprintf (SysErrorFile, "pthread_sigmask failed (errno=%d): ", errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
+    
+#elif defined RVM_FOR_AIX
     rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
+#else
+    #error "Unsupported Operating System"
 #endif
 
-    return thread;
+    
 #endif
 }
+
+
 
 //
 extern "C" int
@@ -2049,6 +2184,30 @@ sysPrimitiveParseInt(const char * buf)
     }
     return ret;
 }
+
+/** Parse memory sizes.  
+    @return negative values to indicate errors. */
+extern "C" jlong
+sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
+                                            or "initial stack" or 
+                                            "maximum stack" */ 
+                   const char *sizeFlag, // e.g., "ms" or "mx" or "ss" or "sg" or "sx"
+                   const char *defaultFactor, // "M" or "K" are used
+                   int roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+                   const char *subtoken /* e.g., "200M" or "200" */)
+{
+    bool fastExit = false;
+    unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
+                                         (unsigned) roundTo, token, subtoken, 
+                                         &fastExit);
+    if (fastExit)
+        return -1;
+    else
+        return (jlong) ret_uns;
+}
+
+
 
 //-------------------//
 // Memory operations //
@@ -2469,6 +2628,7 @@ int selectInterrupts = 0;
 int acceptInterrupts = 0;
 int connectInterrupts = 0;
 
+#if RVM_WITH_UNUSED_SYSCALLS
 // Get network name of machine we're running on.
 // Taken:    buffer in which to place results
 //           buffer size
@@ -2618,6 +2778,7 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
     return i;
 }
 #endif
+#endif // RVM_WITH_UNUSED_SYSCALLS
 
 // Create a socket, unassociated with any particular address + port.
 // Taken:    kind of socket to create (0: datagram, 1: stream)
@@ -2670,6 +2831,36 @@ sysNetSocketPort(int fd)
 #endif
 
     return MANGLE16(info.sin_port);
+}
+
+// Obtain send buffer size associated with a socket.
+// Taken: socket descriptor
+// Returned: size (-1: error)
+//
+extern "C" int
+sysNetSocketSndBuf(int fd)
+{
+    int val = 0;
+#if defined RVM_FOR_OSX
+    int len;
+#endif
+#if defined RVM_FOR_AIX || defined RVM_FOR_LINUX
+    socklen_t len;
+#endif
+
+    len = sizeof(int);
+    if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) == -1)
+    {
+        fprintf(SysErrorFile, "%s: getsockopt on %d failed: %s (errno=%d)\n", 
+                Me, fd, strerror(errno), errno);
+        return -1;
+    }
+
+#ifdef DEBUG_NET
+    fprintf(SysTraceFile, "%s: socket %d sndbuf size %d\n", Me, fd, val);
+#endif
+
+    return val;
 }
 
 // Obtain local address associated with a socket.
@@ -3400,7 +3591,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, VM_Address start, V
 #else
   sprintf(name, "   [%08x-%08x)", start, end); 
 #endif
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
   gcspy_driverSetTileName(driver, tile, name);
 }
@@ -3431,7 +3622,7 @@ gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
 
 extern "C" void
 gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3440,7 +3631,7 @@ gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
 
 extern "C" void
 gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3449,7 +3640,7 @@ gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
 
 extern "C" void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3468,7 +3659,7 @@ gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
 
 extern "C" void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3518,9 +3709,9 @@ gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
   int res = gcspy_mainServerIsConnected(server, event);
   if (GCSPY_TRACE)
     if (res)
-      fprintf(SysTraceFile, "connected");
+      fprintf(SysTraceFile, "connected\n");
     else
-      fprintf(SysTraceFile, "not connected");
+      fprintf(SysTraceFile, "not connected\n");
   return res;
 }
 
@@ -3606,19 +3797,19 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
 
 extern "C" void
 gcspyFormatSize (char *buffer, int size) {
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
   strcpy(buffer, gcspy_formatSize(size));
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "buffer=%s\n", buffer);
 }
 
 extern "C" int
 gcspySprintf(char *str, const char *format, char *arg) {
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
   int res = sprintf(str, format, arg);
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
   return res;
 }

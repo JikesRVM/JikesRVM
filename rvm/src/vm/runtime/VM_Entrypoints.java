@@ -28,6 +28,15 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
+  public static final VM_Field threadLocalValueMap = 
+    getField("Ljava/lang/ThreadLocal;", "valueMap", "Ljava/util/Map;");
+
+  //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10
+  public static final VM_Field javaLangClassProtectionDomain =
+    getField("Ljava/lang/Class;", "pd", "Ljava/security/ProtectionDomain;");
+  //-#endif
+
+
   // Allocation-related entry points
   //
   public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIII)Ljava/lang/Object;");
@@ -37,7 +46,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
 
 
-  public static final VM_Field sysWriteLockField        = getField("Lcom/ibm/JikesRVM/VM;", "sysWriteLock", "I");  
+  public static final VM_Field sysWriteLockField     = getField("Lcom/ibm/JikesRVM/VM;", "sysWriteLock", "I");  
+  public static final VM_Field intBufferLockField    = getField("Lcom/ibm/JikesRVM/VM_Thread;", "intBufferLock", "I");  
+  public static final VM_Field dumpBufferLockField   = getField("Lcom/ibm/JikesRVM/VM_Thread;", "dumpBufferLock", "I");  
 
   public static final VM_NormalMethod unimplementedBytecodeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unimplementedBytecode", "(I)V");
   public static final VM_NormalMethod unexpectedAbstractMethodCallMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
@@ -91,36 +102,37 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
 
-  public static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
-
   public static final VM_Field scratchStorageField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "scratchStorage", "D");
-  public static final VM_Field threadSwitchRequestedField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadSwitchRequested", "I");
+  public static final VM_Field timeSliceExpiredField      = getField("Lcom/ibm/JikesRVM/VM_Processor;", "timeSliceExpired", "I");
+  public static final VM_Field takeYieldpointField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "takeYieldpoint", "I");
   public static final VM_Field activeThreadField          = getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThread", "Lcom/ibm/JikesRVM/VM_Thread;");
-  public static final VM_Field activeThreadStackLimitField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThreadStackLimit", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field activeThreadStackLimitField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThreadStackLimit", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field pthreadIDField             = getField("Lcom/ibm/JikesRVM/VM_Processor;", "pthread_id", "I");
-  public static final VM_Field epochField                 = getField("Lcom/ibm/JikesRVM/VM_Processor;", "epoch", "I");
+  public static final VM_Field timerTicksField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "timerTicks", "I");
+  public static final VM_Field reportedTimerTicksField    = getField("Lcom/ibm/JikesRVM/VM_Processor;", "reportedTimerTicks", "I");
   public static final VM_Field vpStatusField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "vpStatus", "I");
   public static final VM_Field threadIdField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
   //-#if RVM_FOR_IA32
   public static final VM_Field jtocField               = getField("Lcom/ibm/JikesRVM/VM_Processor;", "jtoc", "Ljava/lang/Object;");
-  public static final VM_Field framePointerField       = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field framePointerField       = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field hiddenSignatureIdField  = getField("Lcom/ibm/JikesRVM/VM_Processor;", "hiddenSignatureId", "I");
   public static final VM_Field arrayIndexTrapParamField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
   //-#endif
    
-  public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
 
-  //-#if RVM_WITH_OSR
-  public static final VM_NormalMethod threadSwitchFromOsrBaseMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromOsrBase", "()V");
-  //-#endif
-  public static final VM_NormalMethod threadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromPrologue", "()V");
-  public static final VM_NormalMethod threadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromBackedge", "()V");
-  public static final VM_NormalMethod threadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromEpilogue", "()V");
+  /** Used in deciding which stack frames we can elide when printing. */
+  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lcom/ibm/JikesRVM/MainThread;", "run", "()V");
 
+  public static final VM_NormalMethod yieldpointFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromPrologue", "()V");
+  public static final VM_NormalMethod yieldpointFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromBackedge", "()V");
+  public static final VM_NormalMethod yieldpointFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromEpilogue", "()V");
+
+  public static final VM_NormalMethod threadRunMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "run", "()V");
   public static final VM_NormalMethod threadStartoffMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "startoff", "()V");
   public static final VM_Field threadStackField                = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stack", "[B");
-  public static final VM_Field stackLimitField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stackLimit", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field stackLimitField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stackLimit", "Lorg/vmmagic/unboxed/Address;");
 
   public static final VM_Field beingDispatchedField            = getField("Lcom/ibm/JikesRVM/VM_Thread;", "beingDispatched", "Z");
   public static final VM_Field threadSlotField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "threadSlot", "I");
@@ -129,43 +141,43 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
   public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "I");
-  public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lcom/ibm/JikesRVM/VM_Word;");
+  public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field dispenserField = getField("Lorg/mmtk/vm/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lorg/mmtk/vm/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lorg/mmtk/vm/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field lockStartField = getField("Lorg/mmtk/vm/Lock;", "start","J");
   public static final VM_Field gcStatusField = getField("Lorg/mmtk/plan/BasePlan;", "gcStatus","I");
-  public static final VM_Field tailField = getField("Lorg/mmtk/utility/LocalSSB;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field SQCFField = getField("Lorg/mmtk/utility/SharedDeque;", "completionFlag","I");
-  public static final VM_Field SQNCField = getField("Lorg/mmtk/utility/SharedDeque;", "numClients","I");
-  public static final VM_Field SQNCWField = getField("Lorg/mmtk/utility/SharedDeque;", "numClientsWaiting","I");
-  public static final VM_Field SQheadField = getField("Lorg/mmtk/utility/SharedDeque;", "head","Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field SQtailField = getField("Lorg/mmtk/utility/SharedDeque;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field LQheadField = getField("Lorg/mmtk/utility/LocalQueue;", "head","Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/SharedDeque;", "bufsenqueued","I");
+  public static final VM_Field tailField = getField("Lorg/mmtk/utility/deque/LocalSSB;", "tail","Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field SQCFField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "completionFlag","I");
+  public static final VM_Field SQNCField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numClients","I");
+  public static final VM_Field SQNCWField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numClientsWaiting","I");
+  public static final VM_Field SQheadField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "head","Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field SQtailField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "tail","Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field LQheadField = getField("Lorg/mmtk/utility/deque/LocalQueue;", "head","Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lorg/mmtk/vm/SynchronizedCounter;", "count", "I");
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;I)V");
   public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
   public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
-  public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");
-  public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "Lcom/ibm/JikesRVM/VM_WordArray;");
+  public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_Field registersInUseField= getField("Lcom/ibm/JikesRVM/VM_Registers;", "inuse", "Z");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field registersLRField   = getField("Lcom/ibm/JikesRVM/VM_Registers;", "lr", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field registersLRField   = getField("Lcom/ibm/JikesRVM/VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;");
   static final VM_Field toSyncProcessorsField          = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "toSyncProcessors", "I");
   //-#endif
   //-#if RVM_FOR_IA32
-  public static final VM_Field registersFPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "fp",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field registersFPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;");
   //-#endif
 
   static final VM_Field outputLockField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "outputLock", "I");
 
   public static final VM_Field processorsField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "processors", "[Lcom/ibm/JikesRVM/VM_Processor;");
   public static final VM_Field debugRequestedField            = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "debugRequested", "Z");
-  public static final VM_NormalMethod dumpStackAndDieMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Scheduler;", "dumpStackAndDie", "(Lcom/ibm/JikesRVM/VM_Address;)V");
+  public static final VM_NormalMethod dumpStackAndDieMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Scheduler;", "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final VM_Field latestContenderField            = getField("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "latestContender", "Lcom/ibm/JikesRVM/VM_Processor;");
 
@@ -177,31 +189,31 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/classloader/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/classloader/VM_Type;");
 
   public static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
-  public static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIRefs", "Lcom/ibm/JikesRVM/VM_AddressArray;");
+  public static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIRefs", "Lorg/vmmagic/unboxed/AddressArray;");
   public static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIRefsTop", "I");
   public static final VM_Field JNIRefsMaxField            = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIRefsMax", "I");
   public static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIRefsSavedFP", "I");
-  public static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNITopJavaFP", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNITopJavaFP", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
-  public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lorg/vmmagic/unboxed/Address;");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOC", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOC", "Lorg/vmmagic/unboxed/Address;");
   //-#endif
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
-  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field externalSignalFlagField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "externalSignalFlag", "I");
-  public static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysLongRemainderIPField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongRemainderIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysLongToFloatIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToFloatIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysLongToDoubleIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToDoubleIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysFloatToIntIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToIntIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysDoubleToIntIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToIntIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysFloatToLongIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToLongIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongRemainderIPField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongToFloatIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToFloatIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongToDoubleIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToDoubleIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysFloatToIntIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToIntIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysDoubleToIntIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToIntIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysFloatToLongIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToLongIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC",  "Lorg/vmmagic/unboxed/Address;");
   //-#endif
 
   public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");
@@ -221,13 +233,13 @@ public class VM_Entrypoints implements VM_Constants {
 
 //-#if RVM_WITH_OSR
   public static final VM_Field osrOrganizerQueueLockField = getField("Lcom/ibm/JikesRVM/adaptive/OSR_OrganizerThread;", "queueLock", "I");
-  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromOsrOpt", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
 //-#endif
-  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromPrologue", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromBackedge", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
-  public static final VM_NormalMethod threadSwitchFromNativePrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromNativePrologue", "()V");
-  public static final VM_NormalMethod threadSwitchFromNativeEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromNativeEpilogue", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
+  public static final VM_NormalMethod yieldpointFromNativePrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
+  public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
   public static final VM_NormalMethod optResolveMethod                  = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
   public static final VM_NormalMethod optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
@@ -262,7 +274,12 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field cbsResetValueField   = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterBasedSampling;","resetValue", "I");
   //-#endif
 
-  public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+  public static final VM_Field classLoaderDefinedPackages =
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+    //-#else
+    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
+    //-#endif
 
   static {
 
@@ -329,7 +346,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static VM_Field getSysCallField(String name) {
     return (VM_Field)getMember("Lcom/ibm/JikesRVM/VM_BootRecord;", 
                                name+"IP", 
-                               "Lcom/ibm/JikesRVM/VM_Address;");
+                               "Lorg/vmmagic/unboxed/Address;");
   }
 
 }

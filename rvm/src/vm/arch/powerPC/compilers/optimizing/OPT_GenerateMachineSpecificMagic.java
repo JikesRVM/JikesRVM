@@ -66,7 +66,7 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       OPT_Operand val = bc2ir.popInt();
-      OPT_Operand fp = bc2ir.popInt();
+      OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
                                            fp, 
                                            new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
@@ -94,7 +94,7 @@ class OPT_GenerateMachineSpecificMagic
                                           fp,
                                           new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
                                           null));
-      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+      bc2ir.appendInstruction(Binary.create(REF_ADD, val, 
                                             callerFP,
                                             new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());

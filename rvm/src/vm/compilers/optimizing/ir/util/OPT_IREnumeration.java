@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
+import org.vmmagic.pragma.*;
+
 /**
  * This class is not meant to be instantiated.
  * It simply serves as a place to collect the implementation of
@@ -188,7 +190,7 @@ public abstract class OPT_IREnumeration {
   }
   
   private static final void fail(String msg) throws java.util.NoSuchElementException, 
-                                                    com.ibm.JikesRVM.VM_PragmaNoInline {
+                                                    NoInlinePragma {
     throw new java.util.NoSuchElementException(msg);
   }
 }

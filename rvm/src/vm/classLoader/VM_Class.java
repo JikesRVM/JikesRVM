@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -10,6 +10,9 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -131,42 +134,42 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Stack space requirement.
   */
-  public final int getStackWords() throws VM_PragmaUninterruptible {
+  public final int getStackWords() throws UninterruptiblePragma {
     return 1;
   }
 
   /**
    * An "interface" description rather than a "class" description?
    */ 
-  public final boolean isInterface() throws VM_PragmaUninterruptible { 
+  public final boolean isInterface() throws UninterruptiblePragma { 
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
 
   /**
    * Usable from other packages?
    */ 
-  public final boolean isPublic() throws VM_PragmaUninterruptible { 
+  public final boolean isPublic() throws UninterruptiblePragma { 
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
   /**
    * Non-subclassable?
    */ 
-  public final boolean isFinal() throws VM_PragmaUninterruptible { 
+  public final boolean isFinal() throws UninterruptiblePragma { 
     return (modifiers & ACC_FINAL) != 0; 
   }
 
   /**
    * Non-instantiable?
    */ 
-  public final boolean isAbstract() throws VM_PragmaUninterruptible { 
+  public final boolean isAbstract() throws UninterruptiblePragma { 
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
 
   /**
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
-  public final boolean isSpecial() throws VM_PragmaUninterruptible { 
+  public final boolean isSpecial() throws UninterruptiblePragma { 
     return (modifiers & ACC_SUPER) != 0; 
   }
 
@@ -187,14 +190,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Superclass of this class (null means "no superclass", 
    * ie. class is "java/lang/Object").
    */
-  public final VM_Class getSuperClass() throws VM_PragmaUninterruptible { 
+  public final VM_Class getSuperClass() throws UninterruptiblePragma { 
     return superClass;
   }
 
   /**
    * Currently loaded classes that "extend" this class.
    */ 
-  public final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
+  public final VM_Class[] getSubClasses() throws UninterruptiblePragma {
     return subClasses;
   }
 
@@ -202,21 +205,21 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Interfaces implemented directly by this class 
    * (ie. not including superclasses).
    */
-  public final VM_Class[] getDeclaredInterfaces() throws VM_PragmaUninterruptible { 
+  public final VM_Class[] getDeclaredInterfaces() throws UninterruptiblePragma { 
     return declaredInterfaces;
   }
 
   /**
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
-  public final VM_Field[] getDeclaredFields() throws VM_PragmaUninterruptible { 
+  public final VM_Field[] getDeclaredFields() throws UninterruptiblePragma { 
     return declaredFields;
   }
 
   /**
    * Methods defined directly by this class (ie. not including superclasses).
    */
-  public final VM_Method[] getDeclaredMethods() throws VM_PragmaUninterruptible { 
+  public final VM_Method[] getDeclaredMethods() throws UninterruptiblePragma { 
     return declaredMethods;
   }
 
@@ -238,7 +241,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */ 
-  public final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
+  public final VM_Method getClassInitializerMethod() throws UninterruptiblePragma {
     return classInitializerMethod;
   }
 
@@ -324,28 +327,28 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  public final VM_TypeReference getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getTypeRef(int constantPoolIndex) throws UninterruptiblePragma {
     return VM_TypeReference.getTypeRef(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "methodRef" constant pool entry.
    */
-  public final VM_MethodReference getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_MethodReference getMethodRef(int constantPoolIndex) throws UninterruptiblePragma {
     return (VM_MethodReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "fieldRef" constant pool entry.
    */
-  public final VM_FieldReference getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_FieldReference getFieldRef(int constantPoolIndex) throws UninterruptiblePragma {
     return (VM_FieldReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "utf" constant pool entry.
    */
-  final VM_Atom getUtf(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  final VM_Atom getUtf(int constantPoolIndex) throws UninterruptiblePragma {
     return VM_Atom.getAtom(constantPool[constantPoolIndex]);
   }
 
@@ -353,7 +356,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Does this object implement the VM_SynchronizedObject interface?
    * @see VM_SynchronizedObject
    */ 
-  final boolean isSynchronizedObject() throws VM_PragmaUninterruptible {
+  final boolean isSynchronizedObject() throws UninterruptiblePragma {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSynchronizedObjectType()) return true;
@@ -365,7 +368,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * register save/restore logic?
    * @see VM_DynamicBridge
    */
-  public final boolean isDynamicBridge () throws VM_PragmaUninterruptible {
+  public final boolean isDynamicBridge () throws UninterruptiblePragma {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isDynamicBridgeType()) return true;
@@ -377,7 +380,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
-  public final boolean isBridgeFromNative() throws VM_PragmaUninterruptible {
+  public final boolean isBridgeFromNative() throws UninterruptiblePragma {
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
     // If this class is not loaded yet, we can assume that it
@@ -392,7 +395,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */
-  public final boolean isSaveVolatile() throws VM_PragmaUninterruptible {
+  public final boolean isSaveVolatile() throws UninterruptiblePragma {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;
@@ -406,7 +409,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
+  public final boolean hasFinalizer() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return (finalizeMethod != null);
   }
@@ -415,7 +418,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get finalize method that overrides java.lang.Object.finalize(), 
    * if one exists
    */
-  public final VM_Method getFinalizer() throws VM_PragmaUninterruptible {
+  public final VM_Method getFinalizer() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return finalizeMethod;
   }
@@ -499,12 +502,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Total size, in bytes, of an instance of this class 
    * (including object header).
    */
-  public final int getInstanceSize() throws VM_PragmaUninterruptible {
+  public final int getInstanceSize() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceSize;
   }
 
-  public final int getInstanceSizeInternal() throws VM_PragmaUninterruptible {
+  public final int getInstanceSizeInternal() throws UninterruptiblePragma {
     return instanceSize;
   }
 
@@ -512,7 +515,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Add a field to the object; only meant to be called from VM_ObjectModel et al.
    * must be called when lock on class object is already held (ie from resolve).
    */
-  public final void increaseInstanceSize(int numBytes) throws VM_PragmaUninterruptible {
+  public final void increaseInstanceSize(int numBytes) throws UninterruptiblePragma {
     instanceSize += numBytes;
   }
 
@@ -520,7 +523,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Offsets of reference-containing instance fields of this class type.
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
-  public final int[] getReferenceOffsets() throws VM_PragmaUninterruptible {
+  public final int[] getReferenceOffsets() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
@@ -546,7 +549,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * @return alignment for instances of this class type
    */
-  public final int getAlignment() throws VM_PragmaUninterruptible {
+  public final int getAlignment() throws UninterruptiblePragma {
     return alignment;
   }
 
@@ -598,7 +601,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Find specified initializer method description.
-   * @param    init method descriptor - something like "(I)V"
+   * @param  memberDescriptor  init method descriptor - something like "(I)V"
    * @return method description (null --> not found)
    */
   public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
@@ -615,7 +618,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Runtime type information for this class type.
    */
-  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
+  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -634,8 +637,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    *
    * @author Julian Dolby
    * 
-   * @param frames specifies the number of frames back from the 
-   * caller to the method whose class's loader is required
+   * @param skip specifies the number of frames back from the 
+   *             caller to the method whose class's loader is required
    */
   public static ClassLoader getClassLoaderFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
@@ -651,8 +654,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Used for accessibility checks in reflection code.
    * Find the class of the method that corresponds to the requested frame.
    * 
-   * @param frames specifies the number of frames back from the 
-   * caller to the method whose class is required
+   * @param skip   Specifies the number of frames back from the 
+   *               caller to the method whose class is required
    */
   public static VM_Class getClassFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
@@ -947,6 +950,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load file " + 
                                                           getDescriptor() + "\n");
+    if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + this + "]\n");
   }
 
   /**
@@ -1031,7 +1035,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
         if (VM.VerifyUnint) {
           if (!method.isInterruptible() && method.isSynchronized()) {
-            if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+            if (VM.ParanoidVerifyUnint || !LogicallyUninterruptiblePragma.declaredBy(method)) {
               VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
             }
           }
@@ -1215,6 +1219,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
+    if (VM.writingBootImage) {
+      //-#if RVM_WITH_OPT_COMPILER
+      OptCLDepManager.classInitialized(this, true);
+      //-#endif
+    }
+    
     
     VM_Callbacks.notifyClassResolved(this);
     MM_Interface.notifyClassResolved(this);
@@ -1237,7 +1247,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // final (otherwise the reference could be to a subsequently loaded
   // cyclic subclass).
   //
-  public final boolean isAcyclicReference() throws VM_PragmaUninterruptible {
+  public final boolean isAcyclicReference() throws UninterruptiblePragma {
     return acyclic && isFinal();
   }
 
@@ -1336,14 +1346,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_InterfaceInvocation.initializeDispatchStructures(this);
 
     if (VM.writingBootImage) { 
-      state = CLASS_INITIALIZED; 
+      state = CLASS_INITIALIZED;
     } else {
       state = CLASS_INSTANTIATED;
     }
 
     VM_Callbacks.notifyClassInstantiated(this);
-    if (VM.writingBootImage)
+    if (VM.writingBootImage) {
       VM_Callbacks.notifyClassInitialized(this);
+    }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   instantiate " +this);
   }
@@ -1406,7 +1417,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // the opt compiler so it can invalidate speculative CHA optimizations
     // before an instance of this class could actually be created.
     //-#if RVM_WITH_OPT_COMPILER
-    OptCLDepManager.classInitialized(this);
+    OptCLDepManager.classInitialized(this, false);
     //-#endif
 
     state = CLASS_INITIALIZED;
@@ -1444,6 +1455,22 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Method m = methods[i];
       if (m.isNative()) {
         m.replaceCompiledMethod(null);
+      }
+    }
+  }
+
+
+  /**
+   * Unregisters all native methods
+   */
+  public void unregisterNativeMethods() {
+    if (VM.VerifyAssertions) VM._assert (isInitialized());
+    for (int i=0; i<declaredMethods.length; i++) {
+      VM_Method m = declaredMethods[i];
+      if (m.isNative()) {
+	  VM_NativeMethod nm = (VM_NativeMethod)m;
+          nm.unregisterNativeSymbol(); 
+          m.replaceCompiledMethod(null); 
       }
     }
   }

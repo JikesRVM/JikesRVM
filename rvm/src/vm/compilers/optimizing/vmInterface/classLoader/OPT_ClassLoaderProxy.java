@@ -60,7 +60,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
       if (t1 == t2) { 
-        // Kludge around the fact that we have two names for VM_AddressArray
+        // Kludge around the fact that we have two names for AddressArray
         if (t1.isWordType()) {
           arrayDimensions++;
           type = t1;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -160,11 +160,10 @@ public final class OPT_GenerationContext
    * Use this constructor to create an outermost (non-inlined) 
    * OPT_GenerationContext.
    * 
-   * @param meth the VM_NormalMethod whose IR will be generated
-   * @param cmid the compiled method id to be used for this compilation
-   * @param opts the OPT_Options to be used for the generation
-   * @param ip the OPT_InlineOracle to be used for the generation
-   * @param context the specialization context (null if none)
+   * @param meth The VM_NormalMethod whose IR will be generated
+   * @param cm   The compiled method id to be used for this compilation
+   * @param opts The OPT_Options to be used for the generation
+   * @param ip   The OPT_InlineOracle to be used for the generation
    */
   OPT_GenerationContext(VM_NormalMethod meth, 
                         VM_CompiledMethod cm, 
@@ -450,8 +449,9 @@ public final class OPT_GenerationContext
   ///////////
 
   // The registers to use for various types of locals.
-  // Note that "int" really means 32-bit gpr and thus includes references.
+  // Note that "int" really means 32-bit gpr.
   private OPT_Register[] intLocals;
+  private OPT_Register[] addressLocals;
   private OPT_Register[] floatLocals;
   private OPT_Register[] longLocals;
   private OPT_Register[] doubleLocals;
@@ -459,6 +459,7 @@ public final class OPT_GenerationContext
   private void initLocalPool() {
     int numLocals = method.getLocalWords();
     intLocals = new OPT_Register[numLocals];
+    addressLocals = new OPT_Register[numLocals];
     floatLocals = new OPT_Register[numLocals];
     longLocals = new OPT_Register[numLocals];
     doubleLocals = new OPT_Register[numLocals];
@@ -471,6 +472,8 @@ public final class OPT_GenerationContext
       return longLocals;
     } else if (type == VM_TypeReference.Double) {
       return doubleLocals;
+    } else if (type.isReferenceType() || type.isWordType()) {
+      return addressLocals;
     } else {
       return intLocals;
     }

@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * An interactive debugger that runs inside the virtual machine.
  * This thread is normally dormant and only scheduled for execution
@@ -21,6 +23,7 @@ import java.util.Vector;
 class DebuggerThread extends VM_Thread {
 
   DebuggerThread() {
+    super(null);
     makeDaemon(true);
     //-#if RVM_WITH_OSR
     super.isSystemThread = true;
@@ -90,7 +93,7 @@ class DebuggerThread extends VM_Thread {
 
         VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
                
-        VM_Address fp = (thread == VM_Thread.getCurrentThread()) 
+        Address fp = (thread == VM_Thread.getCurrentThread()) 
           ? VM_Magic.getFramePointer()
           : thread.contextRegisters.getInnermostFramePointer();
         
@@ -105,14 +108,14 @@ class DebuggerThread extends VM_Thread {
     case 'p': // print object 
       if (tokens.length == 2) {
         //-#if RVM_FOR_64_ADDR
-        VM_Address addr = VM_Address.fromLong(Long.parseLong(tokens[1], 16));
+        Address addr = Address.fromLong(Long.parseLong(tokens[1], 16));
         //-#else
-        VM_Address addr = VM_Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
+        Address addr = Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
         //-#endif
         VM.sysWrite("Object at addr 0x");
         VM.sysWriteHex(addr);
         VM.sysWrite(": ");
-        VM_ObjectModel.describeObject(addr);
+        VM_ObjectModel.describeObject(addr.toObjectReference());
         VM.sysWriteln();
       } else {
         VM.sysWriteln("Please specify an address\n");
@@ -131,7 +134,7 @@ class DebuggerThread extends VM_Thread {
 
     case 'q': // terminate execution of virtual machine
       VM.sysWrite("terminating execution\n");
-      VM.sysExit(VM.exitStatusMiscTrouble);
+      VM.sysExit(VM.EXIT_STATUS_MISC_TROUBLE);
       return;
 
     default:

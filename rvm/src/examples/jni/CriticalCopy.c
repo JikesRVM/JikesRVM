@@ -9,7 +9,7 @@
  * @date   6/19/00
  */
 
-#include <CriticalCopy.h>
+#include "CriticalCopy.h"
 
 int verbose=1;
 

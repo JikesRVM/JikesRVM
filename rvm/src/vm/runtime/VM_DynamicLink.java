@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
@@ -13,7 +14,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  */
 public final class VM_DynamicLink implements VM_BytecodeConstants, 
-                                      VM_Uninterruptible {
+                                      Uninterruptible {
   private VM_MethodReference methodRef; // method referenced at a call site
   private int       bytecode;  // how method was called at that site
 

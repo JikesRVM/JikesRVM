@@ -39,7 +39,7 @@
 
 /* Forward declaration of a function defined later on in this file.  Goes into
    the JNI dispatch table. */
-extern jint GetEnv(JavaVM *, void **, jint);
+static jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
 
@@ -352,28 +352,72 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 // JNI Invocation API functions
 //////////////////////////////////////////////////////////////
 
-/** Destroying the Java VM only makes sense if you can first attach it.  */
+/** Destroying the Java VM only makes sense if programs can create a VM
+ * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
+ * unloading virtual machine instances.  It is supposed to block until all
+ * other user threads are gone, and then return an error code.
+ *
+ * TODO: Implement.
+ */
+static
 jint 
 DestroyJavaVM(JavaVM UNUSED * vm) 
 {
-    fprintf(stderr, "unimplemented DestroyJavaVM");
-    return 0;
+    fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+    return JNI_ERR;
 }
 
+/* "Trying to attach a thread that is already attached is a no-op".  We
+ * implement that common case.  (In other words, it works like GetEnv()).
+ * However, we do not implement the more difficult case of actually attempting
+ * to attach a native thread that is not currently attached to the VM.
+ *
+ * TODO: Implement for actually attaching unattached threads.
+ */
+static
 jint 
-AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
 {
-    fprintf(stderr, "unimplemented AttachCurrentThread");
-    return 0;
+    JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
+    jint version;
+    if (args == NULL) {
+        version = JNI_VERSION_1_1;
+    } else {
+        version = aargs->version ;
+        /* We'd like to handle aargs->name and aargs->group */
+    }
+
+    // Handled for us by GetEnv().  We do it here anyway so that we avoid
+    // printing an error message further along in this function.
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+    
+    /* If we're already attached, we're gold. */
+    register jint retval = GetEnv(vm, penv, version);
+    if (retval == JNI_OK)
+        return retval;
+    else if (retval == JNI_EDETACHED) {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+    } else {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    }
+
+    // Upon failure:
+    *penv = NULL;               // Make sure we don't yield a bogus one to use.
+    return retval;
 }
 
+
+/* TODO: Implement */
+static
 jint 
 DetachCurrentThread(JavaVM UNUSED *vm) 
 {
-    fprintf(stderr, "unimplemented DetachCurrentThread");
-    return 0;
+    fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+    return JNI_ERR;
 }
  
+static
 jint 
 GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
 { 
@@ -384,7 +428,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     // Return NULL if we are not on a VM pthread
     if (pthread_getspecific(IsVmProcessorKey) == NULL) {
         *penv = NULL;
-        return -1;
+        return JNI_EDETACHED;
     }
 #endif
 
@@ -405,11 +449,13 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 }
 
 /** JNI 1.4 */
+/* TODO: Implement */
+static
 jint 
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
-    fprintf(stderr, "unimplemented AttachCurrentThreadAsDaemon");
-    return 0;
+    fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
+    return JNI_ERR;
 }
 
 struct JNIInvokeInterface_ externalJNIFunctions = {
@@ -424,6 +470,7 @@ struct JNIInvokeInterface_ externalJNIFunctions = {
 };
 
 
+static
 VM_Address 
 createJavaVM(void)
 {

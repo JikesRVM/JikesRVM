@@ -5,12 +5,14 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  *
  * @author David Bacon
  */
 
-final class VM_Stats implements VM_Uninterruptible {
+final class VM_Stats implements Uninterruptible {
 
   static final void println() { VM.sysWrite("\n"); }
   static final void print(String s) { VM.sysWrite(s); }

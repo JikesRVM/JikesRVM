@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * A queue to handle a set of  virtual processors  
  *  For Example A Native Virtual Processor VM_Thread has terminated and
@@ -19,7 +22,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-final class VM_ProcessorQueue implements VM_Uninterruptible {
+final class VM_ProcessorQueue implements Uninterruptible {
 
   /**
    * first thread on list
@@ -40,7 +43,7 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
   /**
    * Add a VP to tail of queue.
    */ 
-  synchronized void enqueue (VM_Processor p) throws VM_PragmaInterruptible {
+  synchronized void enqueue (VM_Processor p) throws InterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(p.next == null); // not currently on any other queue
     if (head == null)
       head = p;
@@ -53,7 +56,7 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
    * Remove VP from head of queue.
    * @return the thread (null --> queue is empty)
    */ 
-  synchronized VM_Processor dequeue () throws VM_PragmaInterruptible {
+  synchronized VM_Processor dequeue () throws InterruptiblePragma {
     VM_Processor p = head;
     if (p == null)
        return null;
@@ -78,7 +81,7 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
   /**
    * dump the vp queue
    */ 
-  void dump () throws VM_PragmaInterruptible {
+  void dump () throws InterruptiblePragma {
     VM.sysWrite("Virtual Processor Dead Queue\n");
     for (VM_Processor p = head; p != null; p = p.next)
       p.dumpProcessorState();

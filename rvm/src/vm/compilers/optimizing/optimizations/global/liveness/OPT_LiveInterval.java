@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -49,14 +49,15 @@ final class OPT_LiveInterval {
   }
 
   /**
-   * This method checks if an existing unresolved live interval node,
-   * i.e., one that has an end instruction, but no beginning instruction,
-   * is present for the register and basic block passed.  If one does not exist,
-   * it creates a node with the end instruction being "inst".  
-   * If one already exists no action is taken.
+   * This method checks if an existing unresolved live interval node, i.e.,
+   * one that has an end instruction, but no beginning instruction, is present
+   * for the register and basic block passed.  If one does not exist, it
+   * creates a node with the end instruction being <code>inst</code>.  If one
+   * already exists no action is taken.
    *
-   * @param set  the set of registers, encoded as a OPT_LiveSet object 
-   * @param block the basic block
+   * @param reg   The register
+   * @param block The basic block
+   * @param inst  The end instruction to use, if we have to create a neode.
    */
   static public void createEndLiveRange(OPT_Register reg, 
                                         OPT_BasicBlock block,

@@ -1,0 +1,16 @@
+#
+# (C) Copyright IBM Corp. 2004
+#
+#$Id$
+#
+# @author David Grove
+
+ifeq ($(RVM_FOR_64_ADDR),1)
+  ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
+             $(ARCH_IR_DIR)/OperatorList_Alu64.dat \
+             $(ARCH_IR_DIR)/OperatorList_Mem64.dat
+else 
+  ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
+             $(ARCH_IR_DIR)/OperatorList_Alu32.dat \
+             $(ARCH_IR_DIR)/OperatorList_Mem32.dat
+endif

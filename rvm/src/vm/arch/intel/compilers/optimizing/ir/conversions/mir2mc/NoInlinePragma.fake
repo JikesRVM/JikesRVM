@@ -1,0 +1,11 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+package org.vmmagic.pragma; 
+
+/**
+ * @author Dave Grove
+ */
+public class NoInlinePragma extends RuntimeException {
+}

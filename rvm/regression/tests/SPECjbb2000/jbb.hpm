@@ -464,13 +464,13 @@ logging_level=0
 ###############################
 # set up command line arguments
 # notify_vm_complete and measureCompilation results in compilation statistics
-jvm_options="-Xmx$smallHeap -X:processors=$numProcs -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc" 
+rvm_options="-Xmx${smallHeap}M -X:processors=$numProcs -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc" 
 
 hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:trace_verbose=$trace_verbose -X:hpm:filename=$out_file  -X:hpm:trace=true"
 
 cp="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb_no_precompile.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/check.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/reporter.jar:/homes/turangalila/jalapeno/nightShadow/results/sanity//rvm/regression/tests/SPECjbb2000/cp:jbb.jar:jbb_no_precompile.jar:check.jar:reporter.jar"
 
-echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config"
+echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config"
 
-      $RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config
+      $RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config
 

@@ -123,12 +123,11 @@ public interface VM_TIBLayoutConstants {
    // offset is not yet known or the class's static initializer has not yet been run.
    //
    // We choose a value that will never match a valid jtoc-, instance-, 
-   // or virtual method table- offset. Zero is a good value because:
-   //      slot 0 of jtoc is never used
-   //      instance field offsets are always negative w.r.t. object pointer
+   // or virtual method table- offset. -1 is a good value:
+   //      the jtoc uses offsets over 0
+   //      instance field offsets are always more than 1 byte aligned w.r.t. object pointer
    //      virtual method offsets are always positive w.r.t. TIB pointer
-   //      0 is a "free" (default) data initialization value
    //
-   public static final int NEEDS_DYNAMIC_LINK = 0;
+   public static final int NEEDS_DYNAMIC_LINK = -1;
 }
 

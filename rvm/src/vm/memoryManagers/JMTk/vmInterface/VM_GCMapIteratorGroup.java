@@ -11,15 +11,19 @@ import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.VM_QuickGCMapIterator;
+//-#endif
 import com.ibm.JikesRVM.jni.VM_JNIGCMapIterator;
 import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_WordArray;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_SizeConstants;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 
@@ -44,7 +48,7 @@ import com.ibm.JikesRVM.VM_SizeConstants;
 public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   
   /** current location (memory address) of each gpr register */
-  private final VM_WordArray registerLocations;
+  private final WordArray registerLocations;
 
   /** iterator for baseline compiled frames */
   private final VM_BaselineGCMapIterator baselineIterator;
@@ -56,6 +60,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   private final VM_GCMapIterator optIterator = null;
   //-#endif
   
+  /** iterator for quick compiled frames */
+  private VM_GCMapIterator     quickIterator;
+  
   /** iterator for VM_HardwareTrap stackframes */
   private final VM_HardwareTrapGCMapIterator hardwareTrapIterator;
   
@@ -63,12 +70,15 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   private final VM_JNIGCMapIterator jniIterator;
   
   
-  public VM_GCMapIteratorGroup() throws VM_PragmaUninterruptible {
-    registerLocations         = VM_WordArray.create(VM_Constants.NUM_GPRS);
+  public VM_GCMapIteratorGroup() throws UninterruptiblePragma {
+    registerLocations         = WordArray.create(VM_Constants.NUM_GPRS);
     
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     //-#if RVM_WITH_OPT_COMPILER
     optIterator = new VM_OptGCMapIterator(registerLocations);
+    //-#endif
+    //-#if RVM_WITH_QUICK_COMPILER
+    quickIterator = new VM_QuickGCMapIterator(registerLocations);
     //-#endif
     jniIterator = new VM_JNIGCMapIterator(registerLocations);
     hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
@@ -87,14 +97,15 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * <p>
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
-  public void newStackWalk(VM_Thread thread) throws VM_PragmaUninterruptible {
-    VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
+  public void newStackWalk(VM_Thread thread) throws UninterruptiblePragma {
+    Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
     }
     baselineIterator.newStackWalk(thread);
     if (optIterator != null) optIterator.newStackWalk(thread);
+    if (quickIterator != null) quickIterator.newStackWalk(thread);
     hardwareTrapIterator.newStackWalk(thread);
     jniIterator.newStackWalk(thread);
   }
@@ -108,11 +119,14 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    *
    * @return VM_GCMapIterator to use
    */
-  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) throws VM_PragmaUninterruptible {
+  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) throws UninterruptiblePragma {
     switch (compiledMethod.getCompilerType()) {
     case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
     case VM_CompiledMethod.BASELINE: return baselineIterator;
     case VM_CompiledMethod.OPT: return optIterator;
+      //-#if RVM_WITH_QUICK_COMPILER
+    case VM_CompiledMethod.QUICK: return quickIterator;
+      //-#endif
     case VM_CompiledMethod.JNI: return jniIterator;
     }
     if (VM.VerifyAssertions) {
@@ -126,7 +140,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    *
    * @return jniIterator
    */
-  public VM_GCMapIterator getJniIterator() throws VM_PragmaUninterruptible {
+  public VM_GCMapIterator getJniIterator() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(jniIterator!=null);
     return jniIterator;  
   }

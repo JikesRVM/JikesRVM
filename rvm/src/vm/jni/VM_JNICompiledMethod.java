@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Information associated with artifical stackframe inserted at the
  * transition from Jave to JNI Native C.  
@@ -25,7 +27,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     super(id,m);    
   }
 
-  public final int getCompilerType() throws VM_PragmaUninterruptible { 
+  public final int getCompilerType() throws UninterruptiblePragma { 
     return JNI; 
   }
 
@@ -33,13 +35,13 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return "JNI compiler";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
+  public final VM_ExceptionDeliverer getExceptionDeliverer() throws UninterruptiblePragma { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
       
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws UninterruptiblePragma { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }

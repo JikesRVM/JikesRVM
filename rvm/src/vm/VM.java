@@ -6,12 +6,15 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 import java.lang.ref.Reference;
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.*;
+//-#endif
 
 /**
  * A virtual machine.
- * Implements {@link VM_Uninterruptible} to suppress thread switching in 
- * the {@link VM#boot()} method.
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
@@ -21,7 +24,7 @@ import java.lang.ref.Reference;
  * @date 10 July 2003
  */
 public class VM extends VM_Properties 
-  implements VM_Constants, VM_Uninterruptible 
+  implements VM_Constants, Uninterruptible 
 { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
@@ -34,7 +37,10 @@ public class VM extends VM_Properties
    */ 
   public static void initForBootImageWriter(String classPath, 
                                             String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma 
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -43,9 +49,9 @@ public class VM extends VM_Properties
    * Prepare vm classes for use by tools.
    */
   public static void initForTool() 
-    throws VM_PragmaInterruptible {
-    runningTool = true;
-    init(System.getProperty("java.class.path"), null);
+    throws InterruptiblePragma 
+  {
+    initForTool(System.getProperty("java.class.path"));
   }
 
   /**
@@ -53,13 +59,19 @@ public class VM extends VM_Properties
    * @param classpath class path to be used by VM_ClassLoader
    */
   public static void initForTool(String classpath) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma 
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    if (VM.VerifyAssertions) VM._assert(!VM.writingBootImage);
     runningTool = true;
     init(classpath, null);
   }
 
   /**
    * Begin vm execution.
+   * Uninterruptible because we are not setup to execute a yieldpoint
+   * or stackoverflow check in the prologue this early in booting.
+   * 
    * The following machine registers are set by "C" bootstrap program 
    * before calling this method:
    *    JTOC_POINTER        - required for accessing globals
@@ -67,8 +79,7 @@ public class VM extends VM_Properties
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception, 
-                                   VM_PragmaLogicallyUninterruptible {
+  public static void boot() throws Exception, UninterruptibleNoWarnPragma {
     writingBootImage = false;
     runningVM        = true;
     runningAsSubsystem = false;
@@ -89,13 +100,34 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
+    currentThread.isBootThread = true;
+    
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
     currentThread.startQuantum(VM_Time.cycles());
+
+    finishBooting();
+  }
+
+  /**
+   * Complete the task of booting Jikes RVM.
+   * Done in a secondary method mainly because this code
+   * doesn't have to be uninterruptible and this is the cleanest
+   * way to make that distinction.
+   */
+  private static void finishBooting() throws InterruptiblePragma {
     
     // get pthread_id from OS and store into vm_processor field
     // 
-    if (!BuildForSingleVirtualProcessor)
-      VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
+    if (!BuildForSingleVirtualProcessor) {
+      VM_SysCall.sysPthreadSetupSignalHandling();
+      VM_Processor.getCurrentProcessor().pthread_id = 
+        VM_SysCall.sysPthreadSelf();
+    }
+
+    // Set up buffer locks used by VM_Thread for logging and status dumping.
+    //    This can happen at any point before we start running
+    //    multi-threaded.  
+    VM_Thread.boot();
 
     // Initialize memory manager's virtual processor local state.
     // This must happen before any putfield or arraystore of object refs
@@ -119,6 +151,14 @@ public class VM extends VM_Properties
     // 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
+
+    //-#if RVM_WITH_QUICK_COMPILER
+    // Reset the options for the quick compiler to avoid carrying 
+    // them over from bootimage writing time.
+    // 
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing quick compiler options to defaults");
+    VM_QuickCompiler.initOptions();
+    //-#endif
 
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any static synchronized methods of bootimage 
@@ -163,8 +203,12 @@ public class VM extends VM_Properties
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("java.lang.Runtime");
-    runClassInitializer("java.lang.System");
-    runClassInitializer("java.io.File");
+    //-#if !RVM_WITH_CLASSPATH_0_11 && !RVM_WITH_CLASSPATH_0_10
+    // Classpath 0.12 and later:
+    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#else
+    runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
+    //-#endif
     runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
@@ -174,21 +218,55 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Character");
-    runClassInitializer("gnu.java.io.EncodingManager");
+    runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
+    // Turn off security checks; about to hit EncodingManager.
+    // Commented out because we haven't incorporated this into the CVS head
+    // yet. 
+    // java.security.JikesRVMSupport.turnOffChecks();
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
-    runClassInitializer("java.io.PrintWriter");
+
+    /* We can safely allocate a java.lang.Thread now.  The boot
+       thread (running right now, as a VM_Thread) has to become a full-fledged
+       Thread, since we're about to encounter a security check:
+
+       EncodingManager checks a system property, 
+        which means that the permissions checks have to be working,
+        which means that VMAccessController will be invoked,
+        which means that ThreadLocal.get() will be called,
+        which calls Thread.getCurrentThread().
+
+        So the boot VM_Thread needs to be associated with a real Thread for
+        Thread.getCurrentThread() to return. */
+    VM.safeToAllocateJavaThread = true;
+    VM_Scheduler.giveBootVM_ThreadAJavaLangThread();
+
+    runClassInitializer("java.lang.ThreadLocal");
+    // Possibly fix VMAccessController's contexts and inGetContext fields
+    runClassInitializer("java.security.VMAccessController");
+    
+
+    runClassInitializer("java.io.File"); // needed for when we initialize the
+                                         // system/application class loader.
     runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
     runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
-    runClassInitializer("java.util.WeakHashMap");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
-    runClassInitializer("java.lang.ClassLoader");
+    // Calls System.getProperty().  However, the only thing it uses the
+    // property for is to set the default protection domain, and THAT is only
+    // used in defineClass.  so, since we haven't needed to call defineClass
+    // up to this point, we are OK deferring its proper re-initialization.
+    runClassInitializer("java.lang.ClassLoader"); 
+    //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
+    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
+    //-#endif
+    runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
+    runClassInitializer("java.io.PrintWriter"); // Uses system.getProperty
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
@@ -261,6 +339,10 @@ public class VM extends VM_Properties
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
 
+    //-#if RVM_WITH_QUICK_COMPILER
+    VM_QuickCompiler.fullyBootedVM();
+    //-#endif
+
     // Allow profile information to be read in from a file
     // 
     VM_EdgeCounts.boot();
@@ -285,6 +367,11 @@ public class VM extends VM_Properties
     com.ibm.JikesRVM.adaptive.VM_Controller.boot();
     //-#endif
 
+    // Turn on security checks again.
+    // Commented out because we haven't incorporated this into the main CVS
+    // tree yet. 
+    // java.security.JikesRVMSupport.fullyBootedVM();
+
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
     if (applicationArguments.length == 0) {
@@ -298,19 +385,17 @@ public class VM extends VM_Properties
       pleaseSpecifyAClass();
     }
 
+    // Schedule "main" thread for execution.
+    if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
-    // Work around class incompatibilities in boot image writer
-    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    // Junk this when we do feature 3601.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread      xx         = new MainThread(applicationArguments);
-    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
-    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
+    Thread mainThread = new MainThread(applicationArguments);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
+    if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
     // Create one debugger thread.
     VM_Thread t = new DebuggerThread();
     t.start(VM_Scheduler.debuggerQueue);
@@ -329,14 +414,17 @@ public class VM extends VM_Properties
     // End of boot thread.
     //
     if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
+    if (verboseBoot >= 2) 
+      VM.sysWriteln("Boot sequence completed; finishing boot thread");
+    
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  private static void pleaseSpecifyAClass() throws VM_PragmaInterruptible {
+  private static void pleaseSpecifyAClass() throws InterruptiblePragma {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
-    VM.sysExit(VM.exitStatusBogusCommandLineArg);
+    VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
 
@@ -345,7 +433,7 @@ public class VM extends VM_Properties
    * Called by the compilers when compiling a static synchronized method
    * during bootimage writing.
    */
-  public static void deferClassObjectCreation(VM_Class c) throws VM_PragmaInterruptible {
+  public static void deferClassObjectCreation(VM_Class c) throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
       if (classObjects[i] == c) return; // already recorded
     }
@@ -359,7 +447,7 @@ public class VM extends VM_Properties
    * Create the java.lang.Class objects needed for 
    * static synchronized methods in the bootimage.
    */
-  private static void createClassObjects() throws VM_PragmaInterruptible {
+  private static void createClassObjects() throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
       if (verboseBoot >= 2) {
         VM.sysWriteln(classObjects[i].toString()); 
@@ -378,7 +466,7 @@ public class VM extends VM_Properties
    * 
    * @param className
    */
-  static void runClassInitializer(String className) throws VM_PragmaInterruptible {
+  static void runClassInitializer(String className) throws InterruptiblePragma {
     if (verboseBoot >= 2) {
       sysWrite("running class intializer for ");
       sysWriteln(className);
@@ -450,7 +538,7 @@ public class VM extends VM_Properties
 
 
   private static void _assertionFailure(String msg1, String msg2) 
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
+    throws UninterruptibleNoWarnPragma, NoInlinePragma 
   {
     if (msg1 == null && msg2 == null)
       msg1 = "vm internal error at:";
@@ -461,13 +549,10 @@ public class VM extends VM_Properties
     if (VM.runningVM) {
       if (msg1 != null) {
         sysWrite(msg1);
-        //      sysWrite(": ");
       }
       sysFail(msg2);
     }
-    throw new RuntimeException((msg1 != null ? msg1 : "") 
-                               // + ( (msg1 != null) ? ": " : "") 
-                               + msg2);
+    throw new RuntimeException((msg1 != null ? msg1 : "") + msg2);
   }
 
 
@@ -479,7 +564,7 @@ public class VM extends VM_Properties
    * @param number
    * @return a String with the hex representation of the integer
    */
-  public static String intAsHexString(int number) throws VM_PragmaInterruptible {
+  public static String intAsHexString(int number) throws InterruptiblePragma {
     char[] buf   = new char[10];
     int    index = 10;
     while (--index > 1) {
@@ -493,15 +578,39 @@ public class VM extends VM_Properties
   }
 
 
+  //-#if RVM_WITH_QUICK_COMPILER
+  /**
+   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Do this without referencing Long or Character classes, 
+   * in order to avoid dynamic linking.
+   * TODO: move this method to VM_Services.
+   * @param number
+   * @return a String with the hex representation of the long
+   */
+  public static String longAsHexString(long number) throws InterruptiblePragma {
+    char[] buf   = new char[18];
+    int    index = 18;
+    while (--index > 1) {
+      int digit = (int)(number & 0x000000000000000fL);
+      buf[index] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index]   = '0';
+    return new String(buf);
+  }
+  //-#endif
+
+
   /**
    * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
-   * @param number
+   * @param addr  The 32/64 bit number to format.
    * @return a String with the hex representation of an Address
    */
-  public static String addressAsHexString(VM_Address addr) throws VM_PragmaInterruptible {
+  public static String addressAsHexString(Address addr) throws InterruptiblePragma {
     int len = 2 + (BITS_IN_ADDRESS>>2);
     char[] buf   = new char[len];
     while (--len > 1) {
@@ -532,7 +641,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_Atom value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(VM_Atom value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     value.sysWrite();
   }
 
@@ -540,7 +649,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_Member value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(VM_Member value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     write(value.getMemberRef());
   }
 
@@ -548,7 +657,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_MemberReference value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(VM_MemberReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     write(value.getType().getName());
     write(".");
     write(value.getName());
@@ -560,7 +669,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(String value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(String value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (value == null) {
       write("null");
     } else {
@@ -581,9 +690,13 @@ public class VM extends VM_Properties
    * @param value character array that is printed
    * @param len number of characters printed
    */
-  public static void write(char[] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(char[] value, int len) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     for (int i = 0, n = len; i < n; ++i) {
       if (runningVM)
+        /*  Avoid triggering a potential read barrier
+         *
+         *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
+         */  
         write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
       else
         write(value[i]);
@@ -591,10 +704,10 @@ public class VM extends VM_Properties
   }
 
   /**
-    * Low level print to console.
-   * @param value       what is printed
+    * Low level print of a <code>char</code>to console.
+   * @param value       The character to print
    */
-  public static void write(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(char value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
       VM_SysCall.sysWriteChar(value);
     else
@@ -603,13 +716,13 @@ public class VM extends VM_Properties
 
 
   /**
-   * Low level print of double to console.
+   * Low level print of <code>double</code> to console.
    *
-   * @param value   double to be printed
-   * @param int     number of decimal places
+   * @param value               <code>double</code> to be printed
+   * @param postDecimalDigits   Number of decimal places
    */
   public static void write(double value, int postDecimalDigits) 
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
       VM_SysCall.sysWriteDouble(value, postDecimalDigits);
     else
@@ -617,10 +730,10 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Low level print to console.
+   * Low level print of an <code>int</code> to console.
    * @param value       what is printed
    */
-  public static void write(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
       VM_SysCall.sysWrite(value, mode);
@@ -631,9 +744,9 @@ public class VM extends VM_Properties
 
   /**
    * Low level print to console.
-   * @param value       what is printed, as hex only
+   * @param value       What is printed, as hex only
    */
-  public static void writeHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
       VM_SysCall.sysWrite(value, 2 /*just hex*/);
     else {
@@ -645,7 +758,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value       what is printed, as hex only
    */
-  public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(long value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM){
       VM_SysCall.sysWriteLong(value, 2);
     } else {
@@ -653,7 +766,7 @@ public class VM extends VM_Properties
     }
   }
 
-  public static void writeHex(VM_Word value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
     //-#else
@@ -661,7 +774,7 @@ public class VM extends VM_Properties
     //-#endif
   }
 
-  public static void writeHex(VM_Address value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(Address value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
     //-#else
@@ -669,7 +782,11 @@ public class VM extends VM_Properties
     //-#endif
   }
 
-  public static void writeHex(VM_Extent value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(ObjectReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+    writeHex(value.toAddress());
+  }
+
+  public static void writeHex(Extent value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
     //-#else
@@ -677,7 +794,7 @@ public class VM extends VM_Properties
     //-#endif
   }
 
-  public static void writeHex(VM_Offset value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeHex(Offset value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
     //-#else
@@ -689,7 +806,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value       what is printed, as int only
    */
-  public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeInt(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
       VM_SysCall.sysWrite(value, 0 /*just decimal*/);
     else {
@@ -703,7 +820,7 @@ public class VM extends VM_Properties
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void write(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(int value, boolean hexToo) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
       VM_SysCall.sysWrite(value, hexToo?1:0);
     else
@@ -714,7 +831,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(long value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(long value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     write(value, true);
   }
   
@@ -724,7 +841,7 @@ public class VM extends VM_Properties
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void write(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(long value, boolean hexToo) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM) 
       VM_SysCall.sysWriteLong(value, hexToo?1:0);
     else
@@ -732,7 +849,7 @@ public class VM extends VM_Properties
   }
 
 
-  public static void writeField(int fieldWidth, String s) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeField(int fieldWidth, String s) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     write(s);
     int len = s.length();
     while (fieldWidth > len++) write(" ");
@@ -742,7 +859,7 @@ public class VM extends VM_Properties
    * Low level print to console.
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  public static void writeField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeField(int fieldWidth, int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     int len = 1, temp = value;
     if (temp < 0) { len++; temp = -temp; }
     while (temp >= 10) { len++; temp /= 10; }
@@ -754,10 +871,13 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Low level print to console.
-   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
+   * Low level print of the {@link VM_Atom} <code>s</code> to the console.  
+   * Left-fill with enough spaces to print at least <code>fieldWidth</code>
+   * characters  
+   * @param fieldWidth  Minimum width to print.
+   * @param s       The {@link VM_Atom} to print.       
    */
-  public static void writeField(int fieldWidth, VM_Atom s) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void writeField(int fieldWidth, VM_Atom s) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     int len = s.length();
     while (fieldWidth > len++) write(" ");
     write(s);
@@ -771,19 +891,23 @@ public class VM extends VM_Properties
     write(d, 2);
   }
 
-  public static void write (VM_Word addr) { 
+  public static void write (Word addr) { 
     writeHex(addr);
   }
 
-  public static void write (VM_Address addr) { 
+  public static void write (Address addr) { 
     writeHex(addr);
   }
 
-  public static void write (VM_Offset addr) { 
+  public static void write (ObjectReference object) { 
+    writeHex(object);
+  }
+
+  public static void write (Offset addr) { 
     writeHex(addr);
   }
 
-  public static void write (VM_Extent addr) { 
+  public static void write (Extent addr) { 
     writeHex(addr);
   }
 
@@ -794,87 +918,98 @@ public class VM extends VM_Properties
   /**
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
-  public static void sysWrite(VM_Atom a)               throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
-  public static void sysWriteln(VM_Atom a)             throws VM_PragmaNoInline { swLock(); write(a); write("\n"); swUnlock(); }
-  public static void sysWrite(VM_Member m)             throws VM_PragmaNoInline { swLock(); write(m); swUnlock(); }
-  public static void sysWrite(VM_MemberReference mr)   throws VM_PragmaNoInline { swLock(); write(mr); swUnlock(); }
-  public static void sysWriteln ()                     throws VM_PragmaNoInline { swLock(); write("\n"); swUnlock(); }
-  public static void sysWrite(char c)                  throws VM_PragmaNoInline { write(c); }
-  public static void sysWriteField (int w, int v)      throws VM_PragmaNoInline { swLock(); writeField(w, v); swUnlock(); }
-  public static void sysWriteField (int w, String s)   throws VM_PragmaNoInline { swLock(); writeField(w, s); swUnlock(); }
-  public static void sysWriteHex(int v)                throws VM_PragmaNoInline { swLock(); writeHex(v); swUnlock(); }
-  public static void sysWriteHex(VM_Address v)         throws VM_PragmaNoInline { swLock(); writeHex(v); swUnlock(); }
-  public static void sysWriteInt(int v)                throws VM_PragmaNoInline { swLock(); writeInt(v); swUnlock(); }
-  public static void sysWriteLong(long v)              throws VM_PragmaNoInline { swLock(); write(v,false); swUnlock(); }
-  public static void sysWrite   (double d, int p)      throws VM_PragmaNoInline { swLock(); write(d, p); swUnlock(); }
-  public static void sysWrite   (double d)             throws VM_PragmaNoInline { swLock(); write(d); swUnlock(); }
-  public static void sysWrite   (String s)             throws VM_PragmaNoInline { swLock(); write(s); swUnlock(); }
-  public static void sysWrite   (char [] c, int l)     throws VM_PragmaNoInline { swLock(); write(c, l); swUnlock(); }
-  public static void sysWrite   (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
-  public static void sysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); writeln(); swUnlock(); }
-  public static void sysWrite   (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); swUnlock(); }
-  public static void sysWriteln (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
-  public static void sysWrite   (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); swUnlock(); }
-  public static void sysWriteln (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); writeln(); swUnlock(); }
-  public static void sysWrite   (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); swUnlock(); }
-  public static void sysWriteln (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); writeln(); swUnlock(); }
-  public static void sysWrite   (boolean b)            throws VM_PragmaNoInline { swLock(); write(b); swUnlock(); }
-  public static void sysWrite   (int i)                throws VM_PragmaNoInline { swLock(); write(i); swUnlock(); }
-  public static void sysWriteln (int i)                throws VM_PragmaNoInline { swLock(); write(i);   writeln(); swUnlock(); }
-  public static void sysWriteln (double d)             throws VM_PragmaNoInline { swLock(); write(d);   writeln(); swUnlock(); }
-  public static void sysWriteln (long l)               throws VM_PragmaNoInline { swLock(); write(l);   writeln(); swUnlock(); }
-  public static void sysWriteln (boolean b)            throws VM_PragmaNoInline { swLock(); write(b);   writeln(); swUnlock(); }
-  public static void sysWriteln (String s)             throws VM_PragmaNoInline { swLock(); write(s);   writeln(); swUnlock(); }
-  public static void sysWrite   (String s, int i)           throws VM_PragmaNoInline { swLock(); write(s);   write(i); swUnlock(); }
-  public static void sysWriteln (String s, int i)           throws VM_PragmaNoInline { swLock(); write(s);   write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, boolean b)       throws VM_PragmaNoInline { swLock(); write(s);   write(b); swUnlock(); }
-  public static void sysWriteln (String s, boolean b)       throws VM_PragmaNoInline { swLock(); write(s);   write(b); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, double d)        throws VM_PragmaNoInline { swLock(); write(s);   write(d); swUnlock(); }
-  public static void sysWriteln (String s, double d)        throws VM_PragmaNoInline { swLock(); write(s);   write(d); writeln(); swUnlock(); }
-  public static void sysWrite   (double d, String s)        throws VM_PragmaNoInline { swLock(); write(d);   write(s); swUnlock(); }
-  public static void sysWriteln (double d, String s)        throws VM_PragmaNoInline { swLock(); write(d);   write(s); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, long i)           throws VM_PragmaNoInline { swLock(); write(s);   write(i); swUnlock(); }
-  public static void sysWriteln (String s, long i)           throws VM_PragmaNoInline { swLock(); write(s);   write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (int i, String s)           throws VM_PragmaNoInline { swLock(); write(i);   write(s); swUnlock(); }
-  public static void sysWriteln (int i, String s)           throws VM_PragmaNoInline { swLock(); write(i);   write(s); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2)      throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, String s2)      throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, VM_Address a)    throws VM_PragmaNoInline { swLock(); write(s);   write(a); swUnlock(); }
-  public static void sysWriteln (String s, VM_Address a)    throws VM_PragmaNoInline { swLock(); write(s);   write(a); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, VM_Offset o)    throws VM_PragmaNoInline { swLock(); write(s);   write(o); swUnlock(); }
-  public static void sysWriteln (String s, VM_Offset o)    throws VM_PragmaNoInline { swLock(); write(s);   write(o); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, VM_Word w)       throws VM_PragmaNoInline { swLock(); write(s);   write(w); swUnlock(); }
-  public static void sysWriteln (String s, VM_Word w)       throws VM_PragmaNoInline { swLock(); write(s);   write(w); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, VM_Address a)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(a); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, VM_Address a)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(a); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, int i)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(i); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, int i)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i, String s2)  throws VM_PragmaNoInline { swLock(); write(s1);  write(i);  write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, int i, String s2)  throws VM_PragmaNoInline { swLock(); write(s1);  write(i);  write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); writeln(); swUnlock(); }
-  public static void sysWrite   (int i1, String s, int i2)     throws VM_PragmaNoInline { swLock(); write(i1);  write(s);  write(i2); swUnlock(); }
-  public static void sysWriteln (int i1, String s, int i2)     throws VM_PragmaNoInline { swLock(); write(i1);  write(s);  write(i2); writeln(); swUnlock(); }
-  public static void sysWrite   (int i1, String s1, String s2) throws VM_PragmaNoInline { swLock(); write(i1);  write(s1); write(s2); swUnlock(); }
-  public static void sysWriteln (int i1, String s1, String s2) throws VM_PragmaNoInline { swLock(); write(i1);  write(s1); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i1, String s2, int i2) throws VM_PragmaNoInline { swLock(); write(s1);  write(i1); write(s2); write(i2); swUnlock(); }
-  public static void sysWriteln (String s1, int i1, String s2, int i2) throws VM_PragmaNoInline { swLock(); write(s1);  write(i1); write(s2); write(i2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { swLock(); write(s1);  write(i1); write(s2); write(  l1); swUnlock(); }
-  public static void sysWriteln (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { swLock(); write(s1);  write(i1); write(s2); write(l1); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, double d, String s2)        throws VM_PragmaNoInline { swLock(); write(s1);   write(d); write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, double d, String s2)        throws VM_PragmaNoInline { swLock(); write(s1);   write(d); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(i1); write(  s3); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(i1); write(s3); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(  i1); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); writeln(); swUnlock(); }
-  public static void sysWrite   (int i, String s1, double d, String s2) throws VM_PragmaNoInline { swLock(); write(i); write(s1);  write(d); write(s2); swUnlock(); }
-  public static void sysWriteln (int i, String s1, double d, String s2) throws VM_PragmaNoInline { swLock(); write(i); write(s1);  write(d); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); write(  s4); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); write(s1);  write(a1); write(s2); write(a2); swUnlock(); }
-  public static void sysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, VM_Address a, String s2, int i) throws VM_PragmaNoInline { swLock(); write(s1);  write(a); write(s2); write(i); swUnlock(); }
-  public static void sysWriteln   (String s1, VM_Address a, String s2, int i) throws VM_PragmaNoInline { swLock(); write(s1);  write(a); write(s2); write(i); writeln(); swUnlock(); }
+  public static void sysWrite(VM_Atom a)               throws NoInlinePragma { swLock(); write(a); swUnlock(); }
+  public static void sysWriteln(VM_Atom a)             throws NoInlinePragma { swLock(); write(a); write("\n"); swUnlock(); }
+  public static void sysWrite(VM_Member m)             throws NoInlinePragma { swLock(); write(m); swUnlock(); }
+  public static void sysWrite(VM_MemberReference mr)   throws NoInlinePragma { swLock(); write(mr); swUnlock(); }
+  public static void sysWriteln ()                     throws NoInlinePragma { swLock(); write("\n"); swUnlock(); }
+  public static void sysWrite(char c)                  throws NoInlinePragma { write(c); }
+  public static void sysWriteField (int w, int v)      throws NoInlinePragma { swLock(); writeField(w, v); swUnlock(); }
+  public static void sysWriteField (int w, String s)   throws NoInlinePragma { swLock(); writeField(w, s); swUnlock(); }
+  public static void sysWriteHex(int v)                throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteHex(long v)               throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteHex(Address v)         throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteInt(int v)                throws NoInlinePragma { swLock(); writeInt(v); swUnlock(); }
+  public static void sysWriteLong(long v)              throws NoInlinePragma { swLock(); write(v,false); swUnlock(); }
+  public static void sysWrite   (double d, int p)      throws NoInlinePragma { swLock(); write(d, p); swUnlock(); }
+  public static void sysWrite   (double d)             throws NoInlinePragma { swLock(); write(d); swUnlock(); }
+  public static void sysWrite   (String s)             throws NoInlinePragma { swLock(); write(s); swUnlock(); }
+  public static void sysWrite   (char [] c, int l)     throws NoInlinePragma { swLock(); write(c, l); swUnlock(); }
+  public static void sysWrite   (Address a)         throws NoInlinePragma { swLock(); write(a); swUnlock(); }
+  public static void sysWriteln (Address a)         throws NoInlinePragma { swLock(); write(a); writeln(); swUnlock(); }
+  public static void sysWrite   (ObjectReference o) throws NoInlinePragma { swLock(); write(o); swUnlock(); }
+  public static void sysWriteln (ObjectReference o)         throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
+  public static void sysWrite   (Offset o)          throws NoInlinePragma { swLock(); write(o); swUnlock(); }
+  public static void sysWriteln (Offset o)          throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
+  public static void sysWrite   (Word w)            throws NoInlinePragma { swLock(); write(w); swUnlock(); }
+  public static void sysWriteln (Word w)            throws NoInlinePragma { swLock(); write(w); writeln(); swUnlock(); }
+  public static void sysWrite   (Extent e)          throws NoInlinePragma { swLock(); write(e); swUnlock(); }
+  public static void sysWriteln (Extent e)          throws NoInlinePragma { swLock(); write(e); writeln(); swUnlock(); }
+  public static void sysWrite   (boolean b)            throws NoInlinePragma { swLock(); write(b); swUnlock(); }
+  public static void sysWrite   (int i)                throws NoInlinePragma { swLock(); write(i); swUnlock(); }
+  public static void sysWriteln (int i)                throws NoInlinePragma { swLock(); write(i);   writeln(); swUnlock(); }
+  public static void sysWriteln (double d)             throws NoInlinePragma { swLock(); write(d);   writeln(); swUnlock(); }
+  public static void sysWriteln (long l)               throws NoInlinePragma { swLock(); write(l);   writeln(); swUnlock(); }
+  public static void sysWriteln (boolean b)            throws NoInlinePragma { swLock(); write(b);   writeln(); swUnlock(); }
+  public static void sysWriteln (String s)             throws NoInlinePragma { swLock(); write(s);   writeln(); swUnlock(); }
+  public static void sysWrite   (String s, int i)           throws NoInlinePragma { swLock(); write(s);   write(i); swUnlock(); }
+  public static void sysWriteln (String s, int i)           throws NoInlinePragma { swLock(); write(s);   write(i); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, boolean b)       throws NoInlinePragma { swLock(); write(s);   write(b); swUnlock(); }
+  public static void sysWriteln (String s, boolean b)       throws NoInlinePragma { swLock(); write(s);   write(b); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, double d)        throws NoInlinePragma { swLock(); write(s);   write(d); swUnlock(); }
+  public static void sysWriteln (String s, double d)        throws NoInlinePragma { swLock(); write(s);   write(d); writeln(); swUnlock(); }
+  public static void sysWrite   (double d, String s)        throws NoInlinePragma { swLock(); write(d);   write(s); swUnlock(); }
+  public static void sysWriteln (double d, String s)        throws NoInlinePragma { swLock(); write(d);   write(s); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, long i)           throws NoInlinePragma { swLock(); write(s);   write(i); swUnlock(); }
+  public static void sysWriteln (String s, long i)           throws NoInlinePragma { swLock(); write(s);   write(i); writeln(); swUnlock(); }
+  public static void sysWrite   (int i, String s)           throws NoInlinePragma { swLock(); write(i);   write(s); swUnlock(); }
+  public static void sysWriteln (int i, String s)           throws NoInlinePragma { swLock(); write(i);   write(s); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2)      throws NoInlinePragma { swLock(); write(s1);  write(s2); swUnlock(); }
+  public static void sysWriteln (String s1, String s2)      throws NoInlinePragma { swLock(); write(s1);  write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); swUnlock(); }
+  public static void sysWriteln (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); writeln(); swUnlock(); }
+  public static void sysWrite (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); swUnlock(); }
+  public static void sysWriteln (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); swUnlock(); }
+  public static void sysWriteln (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, Word w)       throws NoInlinePragma { swLock(); write(s);   write(w); swUnlock(); }
+  public static void sysWriteln (String s, Word w)       throws NoInlinePragma { swLock(); write(s);   write(w); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, Address a)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(a); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, Address a)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(a); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); swUnlock(); }
+  public static void sysWriteln (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); writeln(); swUnlock(); }
+  public static void sysWrite   (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); swUnlock(); }
+  public static void sysWriteln (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); writeln(); swUnlock(); }
+  public static void sysWrite   (int i1, String s1, String s2) throws NoInlinePragma { swLock(); write(i1);  write(s1); write(s2); swUnlock(); }
+  public static void sysWriteln (int i1, String s1, String s2) throws NoInlinePragma { swLock(); write(i1);  write(s1); write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3,String s4)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3,String s4)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3,String s4, String s5)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(s5); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3,String s4, String s5)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(s5); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); swUnlock(); }
+  public static void sysWriteln (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(  l1); swUnlock(); }
+  public static void sysWriteln (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(l1); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); swUnlock(); }
+  public static void sysWriteln (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(  s3); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(s3); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3, int i1) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(  i1); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3, int i1) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3,String s4, int i5, String s6)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(i5); write(s6); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3,String s4, int i5, String s6)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(i5); write(s6); writeln(); swUnlock(); }
+  public static void sysWrite   (int i, String s1, double d, String s2) throws NoInlinePragma { swLock(); write(i); write(s1);  write(d); write(s2); swUnlock(); }
+  public static void sysWriteln (int i, String s1, double d, String s2) throws NoInlinePragma { swLock(); write(i); write(s1);  write(d); write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); write(  s4); swUnlock(); }
+  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); write(s1);  write(a1); write(s2); write(a2); swUnlock(); }
+  public static void sysWriteln   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Address a, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(a); write(s2); write(i); swUnlock(); }
+  public static void sysWriteln   (String s1, Address a, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(a); write(s2); write(i); writeln(); swUnlock(); }
 
   private static void showProc() { 
     VM_Processor p = VM_Processor.getCurrentProcessor();
@@ -889,68 +1024,93 @@ public class VM extends VM_Properties
     write(": ");
   }
 
-  public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
+  public static void ptsysWriteln (String s)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
 
-  public static void psysWrite    (char [] c, int l)     throws VM_PragmaNoInline { swLock(); showProc(); write(c, l); swUnlock(); }
+  public static void ptsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(i4); write(s5); write(s6); writeln(); swUnlock(); }
 
-  public static void psysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); showProc(); write(a); writeln(); swUnlock(); }
-  public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }
-  public static void psysWriteln (String s, int i)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
-  public static void psysWriteln (String s, VM_Address a)      throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4, String s5, VM_Address a5) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); writeln(); swUnlock(); }
+
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13, int i14)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); write(i14); writeln(); swUnlock(); }
   
-  // Exit statuses, pending a better location.
-  // We also use the explicit constant -1 as an exit status (that gets mapped
-  // to 255).  -1 is for things that are particularly bad.
-  public static int exitStatusRecursivelyShuttingDown = 128;
-  public static int exitStatusDumpStackAndDie = 124;
-  public static int exitStatusMainThreadCouldNotLaunch = 123;
-  public static int exitStatusMiscTrouble = 122;
-  public static int exitStatusSysFail = exitStatusDumpStackAndDie;
+  public static void psysWrite    (char [] c, int l)     throws NoInlinePragma { swLock(); showProc(); write(c, l); swUnlock(); }
 
-  /* See sys.C; if you change one of the following macros here,
-     change them there too! */
-
-  // EXIT_STATUS_SYSCALL_TROUBLE
-  final public static int exitStatusSyscallTrouble = 121;
-  // EXIT_STATUS_TIMER_TROUBLE
-  final public static int exitStatusTimerTrouble = exitStatusSyscallTrouble;
-
-  // EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
-  final public static int exitStatusUnexpectedCallToSys = 120;
-  // EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
-  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
-
-  public static int exitStatusDyingWithUncaughtException = 113;
+  public static void psysWriteln (Address a)         throws NoInlinePragma { swLock(); showProc(); write(a); writeln(); swUnlock(); }
+  public static void psysWriteln (String s)             throws NoInlinePragma { swLock(); showProc(); write(s); writeln(); swUnlock(); }
+  public static void psysWriteln (String s, int i)             throws NoInlinePragma { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
+  public static void psysWriteln (String s, Address a)      throws NoInlinePragma { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
+  
+  /* Exit statuses, pending a better location.
+     Please keep this list in numerical order.
+     We also use the explicit constant -1 as an exit status (it gets mapped
+     / to 255).  -1 is for things that are particularly bad.
+  */
+  final public static int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
+  final public static int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
+  final public static int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
+  final public static int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
+  final public static int EXIT_STATUS_MISC_TROUBLE = 122;
+  final public static int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
+  final public static int EXIT_STATUS_SYSCALL_TROUBLE = 121;
+  final public static int EXIT_STATUS_TIMER_TROUBLE = 
+    EXIT_STATUS_SYSCALL_TROUBLE;
+  final public static int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
+  final public static int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 
+    EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
+  public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
   /** Trouble with the Hardware Performance Monitors */
-  public static int exitStatusHPMTrouble = 110;
-  public static int exitStatusOptCompilerFailed = 101;
-  /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
-   * this value, change it there too. */
-  public static int exitStatusBogusCommandLineArg = 100;
-  public static int exitStatusTooManyThrowableErrors = 99;
-  public static int exitStatusTooManyOutOfMemoryErrors = exitStatusTooManyThrowableErrors;
-  /* See EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C.  If you change
-     this value, change it there too.  */
-  public static int exitStatusJNITrouble = 98;
+  public static int EXIT_STATUS_HPM_TROUBLE = 110;
+  //-#if RVM_WITH_QUICK_COMPILER
+  public static int EXIT_STATUS_QUICK_COMPILER_FAILED = 102;
+  //-#endif
+  public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
+  public static int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
+  public static int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
+  public static int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
+    EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
+  public static int EXIT_STATUS_JNI_TROUBLE = 98;
+  /* Used in VM_0005fProcess.C */
+  public static int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   
 
   /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
-  public static void sysFail(String message) throws VM_PragmaNoInline {
+  public static void sysFail(String message) throws NoInlinePragma {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
     VM_Scheduler.traceback(message);
     if (VM.runningVM)
-      VM.shutdown(exitStatusSysFail);
+      VM.shutdown(EXIT_STATUS_SYSFAIL);
     else
-      VM.sysExit(exitStatusSysFail);
+      VM.sysExit(EXIT_STATUS_SYSFAIL);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /**
+   * Exit virtual machine due to internal failure of some sort.  This
+   * two-argument form is  needed for us to call before the VM's Integer class
+   * is initialized.   
+   *
+   * @param message  error message describing the problem
+   * @param number  an integer to append to <code>message</code>.  
+   */
+  public static void sysFail(String message, int number) 
+    throws NoInlinePragma 
+  {
+    handlePossibleRecursiveCallToSysFail(message, number);
+
+    // print a traceback and die
+    VM_Scheduler.traceback(message, number);
+    if (VM.runningVM)
+      VM.shutdown(EXIT_STATUS_SYSFAIL);
+    else
+      VM.sysExit(EXIT_STATUS_SYSFAIL);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -966,13 +1126,21 @@ public class VM extends VM_Properties
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+  public static void sysExit(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma {
     handlePossibleRecursiveCallToSysExit();
     if (debugOOM) {
-      sysWrite("entered VM.sysExit(");
-      sysWrite(value);
-      sysWriteln(")");
+      sysWriteln("entered VM.sysExit(", value, ")");
     }
+    if (VM_Options.stackTraceAtExit) {
+      VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value,
+                    ")...:");
+      VM.disableGC();
+      VM_Scheduler.dumpStack();
+      VM.enableGC();
+      VM.sysWriteln("... END context of the call to VM.sysExit]");
+
+    }
+
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -1003,54 +1171,97 @@ public class VM extends VM_Properties
 
   private static int inSysFail = 0;
   private static void handlePossibleRecursiveCallToSysFail(String message) {
-    ++inSysFail;
-    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
-      sysWrite(inSysFail);
-      sysWriteln(" deep.");
-      sysWrite("sysFail was called with the message: ");
-      sysWriteln(message);
-     }
-    if (inSysFail > maxSystemTroubleRecursionDepth) {
-      dieAbruptlyRecursiveSystemTrouble();
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
+    handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
+  }
+
+  private static void handlePossibleRecursiveCallToSysFail(String message, 
+                                                           int number) 
+  {
+    handlePossibleRecursiveExit("sysFail", ++inSysFail, message, number);
   }
 
 
   private static int inSysExit = 0;
   private static void handlePossibleRecursiveCallToSysExit() {
-    ++inSysExit;
-    /* Message if we've been here before. */
-    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWrite("In a recursive call to VM.sysExit(), ");
-      sysWrite(inSysExit);
-      sysWriteln(" deep.");
-    }
-    
-    if (inSysExit > maxSystemTroubleRecursionDepth ) {
-      dieAbruptlyRecursiveSystemTrouble();
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
+    handlePossibleRecursiveExit("sysExit", ++inSysExit);
   }
 
   private static int inShutdown = 0;
   /** Used only by VM.shutdown() */
   private static void handlePossibleRecursiveShutdown() {
-    ++inShutdown;
-    /* If we've been here only a few times, print message. */
-    if (   inShutdown > 1 
-        && inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWriteln("We're in a recursive call to VM.shutdown()");
-      sysWrite(inShutdown);
-      sysWriteln(" deep!");
+    handlePossibleRecursiveExit("shutdown", ++inShutdown);
+  }
+  
+  private static void handlePossibleRecursiveExit(String called, int depth) {
+    handlePossibleRecursiveExit(called, depth, null);
+  }
+
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message) {
+    handlePossibleRecursiveExit(called, depth, message, false, -9999999);
+  }
+
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message, int number) {
+    handlePossibleRecursiveExit(called, depth, message, true, number);
+  }
+
+
+  /** @param called Name of the function called: "sysExit", "sysFail", or
+   *    "shutdown".
+   * @param depth How deep are we in that function?
+   * @param message What message did it have?  null means this particular
+   *    shutdown function  does not come with a message.
+   * @param showNumber Print <code>number</code> following
+   *    <code>message</code>? 
+   * @param number Print this number, if <code>showNumber</code> is true. */
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message,
+                                                  boolean showNumber,
+                                                  int number) 
+  {
+    /* We adjust up by nProcessorAdjust since we do not want to prematurely
+       abort.  Consider the case where VM_Scheduler.numProcessors is greater
+       than maxSystemTroubleRecursionDepth.  (This actually happened.)
+
+       Possible change: Instead of adjusting by the # of processors, make the
+       "depth" variable a per-processor variable. */
+    int nProcessors = VM_Scheduler.numProcessors;
+    int nProcessorAdjust = nProcessors - 1;
+    if (depth > 1
+        && (depth <= maxSystemTroubleRecursionDepth 
+            + nProcessorAdjust
+            + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) 
+    {
+      if (showNumber) {
+        ptsysWriteln("VM.", called, "(): We're in a",
+                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " recursive call to VM.", called, "(), ", depth, 
+                     " deep\n",
+                     message == null ? "" : "   ", 
+                     message == null ? "" : called, 
+                     message == null ? "": " was called with the message: ", 
+                     message == null ? "" : message, 
+                     number);
+      } else {
+        ptsysWriteln("VM.", called, "(): We're in a",
+                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " recursive call to VM.", called, "(), ", depth, 
+                     " deep\n",
+                     message == null ? "" : "   ", 
+                     message == null ? "" : called, 
+                     message == null ? "": " was called with the message: ", 
+                     message == null ? "" : message);
+      }
     }
-    if (inShutdown > maxSystemTroubleRecursionDepth ) {
+    if (depth > maxSystemTroubleRecursionDepth + nProcessorAdjust) {
       dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
-  
+
+
+
   /** Have we already called dieAbruptlyRecursiveSystemTrouble()?  
       Only for use if we're recursively shutting down!  Used by
       dieAbruptlyRecursiveSystemTrouble() only.  */
@@ -1060,12 +1271,17 @@ public class VM extends VM_Properties
   public static void dieAbruptlyRecursiveSystemTrouble() {
     if (! inDieAbruptlyRecursiveSystemTrouble) {
       inDieAbruptlyRecursiveSystemTrouble = true;
-      VM.sysWrite("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly");
-      VM.sysWriteln("; we're stuck in a recursive shutdown/exit.");
+      sysWriteln("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly",
+                    "; we're stuck in a recursive shutdown/exit.");
     }
     /* Emergency death. */
-    VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    VM_SysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+    /* And if THAT fails, go into an inf. loop.  Ugly, but it's better than
+       returning from this function and leading to yet more cascading errors.
+       and misleading error messages.   (To the best of my knowledge, we have
+       never yet reached this point.)  */
+    while (true)
+      ;
   }
 
 
@@ -1090,7 +1306,10 @@ public class VM extends VM_Properties
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma
+  {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();
@@ -1138,7 +1357,7 @@ public class VM extends VM_Properties
    * they are never called while gc is disabled.
    */
   public static void disableGC()
-    throws VM_PragmaInline, VM_PragmaInterruptible  
+    throws InlinePragma, InterruptiblePragma  
   {
     disableGC(false);           // Recursion is not allowed in this context.
   }
@@ -1150,7 +1369,7 @@ public class VM extends VM_Properties
    * enableGC().
    */
   public static void disableGC(boolean recursiveOK) 
-    throws VM_PragmaInline, VM_PragmaInterruptible  
+    throws InlinePragma, InterruptiblePragma  
   {
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
@@ -1199,7 +1418,7 @@ public class VM extends VM_Properties
   /**
    * enable GC; entry point when recursion is not OK.
    */
-  public static void enableGC() throws VM_PragmaInline { 
+  public static void enableGC() throws InlinePragma { 
     enableGC(false);            // recursion not OK.
   }
 
@@ -1211,7 +1430,7 @@ public class VM extends VM_Properties
    * Should be matched with a preceding call to disableGC().
    */
   public static void enableGC(boolean recursiveOK) 
-    throws VM_PragmaInline 
+    throws InlinePragma 
   { 
     VM_Thread myThread = VM_Thread.getCurrentThread();
     if (VM.VerifyAssertions) {
@@ -1230,7 +1449,7 @@ public class VM extends VM_Properties
   /**
    * Place to set breakpoints (called by compiled code).
    */
-  public static void debugBreakpoint() throws VM_PragmaNoInline, VM_PragmaNoOptCompile {
+  public static void debugBreakpoint() throws NoInlinePragma, NoOptCompilePragma {
     // no inline to make sure it doesn't disappear from callee
     // no opt compile to force a full prologue sequence (easier for debugger to grok)
   }

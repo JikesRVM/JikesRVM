@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
+import org.vmmagic.unboxed.*;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
@@ -567,10 +568,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Should we simply merge the live interval live into a previous 
-     * BasicInterval?
+     * Should we simply merge the live interval <code>live</code> into a
+     *  previous BasicInterval?
      *
-     * @param previous the previous linear scan interval in question
      * @param live the live interval being queried
      * @param bb the basic block in which live resides.
      */
@@ -833,7 +833,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * instruction.
      *
      * If there is no such interval, return null;
-     * @param n DFN of instruction in question
+     * @param s   The instruction in question
      */
     BasicInterval getBasicInterval(OPT_Instruction s) {
       return getBasicInterval(getDFN(s));
@@ -843,7 +843,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * instruction.
      *
      * If there is no such interval, return null;
-     * @param n DFN of instruction in question
+     * @param n The DFN of the instruction in question
      */
     BasicInterval getBasicInterval(int n) {
       SortedSet headSet = headSetInclusive(n);
@@ -1096,8 +1096,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             CompoundInterval spillCandidate = getSpillCandidate(container);
             if (VM.VerifyAssertions) {
               VM._assert(!spillCandidate.isSpilled());
-              VM._assert(spillCandidate.getRegister().getType() ==
-                        r.getType());
+              VM._assert((spillCandidate.getRegister().getType() == r.getType())
+                || (spillCandidate.getRegister().isNatural() && r.isNatural()));
               VM._assert(!ir.stackManager.getRestrictions().mustNotSpill
                         (spillCandidate.getRegister()));
               if (spillCandidate.getAssignment() != null) {
@@ -1577,7 +1577,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           if (i.isSpilled())  {
             System.out.println(" not candidate, already spilled: " + newR);
           }
-          if (r.getType() != newR.getType()) {
+          if ((r.getType() != newR.getType()) || (r.isNatural() && newR.isNatural())) {
             System.out.println(" not candidate, type mismatch : " +
                                r.getType() + " " + newR + " " +
                                newR.getType());
@@ -1587,7 +1587,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           }
         }
         if (!newR.isPhysical() && !i.isSpilled() && 
-            r.getType()== newR.getType() &&
+            (r.getType()== newR.getType() || (r.isNatural() && newR.isNatural())) &&
             !restrict.mustNotSpill(newR)) {
           // Found a potential spill interval. Check if the assignment
           // works if we spill this interval.  
@@ -1829,10 +1829,12 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         setInterval(reg, null); 
         OPT_RegisterAllocatorState.setSpill(reg,0);
         // clear the 'long' type if it's persisted to here.
+//-#if RVM_FOR_32_ADDR
         if (reg.isLong()) {
           reg.clearType();
           reg.setInteger();
         }
+//-#endif
       }
     }
 
@@ -2587,7 +2589,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               setRealPosition(tuple, sym_reg);
 
               // get another half part of long register
-              if (tuple.typeCode == OSR_Constants.LongTypeCode) {
+              if (VM.BuildFor32Addr && (tuple.typeCode == OSR_Constants.LongTypeCode)) {
 
                 OSR_LocalRegPair other = tuple._otherHalf;
                 OPT_Operand other_op = other.operand;
@@ -2611,7 +2613,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                             OSR_Constants.ICONST,
                             ((OPT_IntConstantOperand)op).value
                             );
-              if (tuple.typeCode == OSR_Constants.LongTypeCode) {
+              if (VM.BuildFor32Addr && (tuple.typeCode == OSR_Constants.LongTypeCode)) {
                 OSR_LocalRegPair other = tuple._otherHalf;
                 OPT_Operand other_op = other.operand;
 
@@ -2621,6 +2623,18 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                               ((OPT_IntConstantOperand)other_op).value
                               );                              
               } 
+            } else if (op.isAddressConstant()) {
+              setTupleValue(tuple,
+                            OSR_Constants.ACONST,
+                            ((OPT_AddressConstantOperand)op).value.toWord()
+                            );
+            //-#if RVM_FOR_64_ADDR
+            } else if (op.isLongConstant()) {
+              setTupleValue(tuple,
+                            OSR_Constants.LCONST,
+                            Word.fromLong(((OPT_LongConstantOperand)op).value)
+                            );
+            //-#endif
             } else {
               throw new OPT_OptimizingCompilerException("OPT_LinearScan",
                         "Unexpected operand type at ", op.toString());
@@ -2669,6 +2683,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     final static void setTupleValue(OSR_LocalRegPair tuple,
                                     int type,
                                     int value) {
+      tuple.valueType = type;
+      tuple.value     = Word.fromIntSignExtend(value);
+    } // end of setTupleValue
+
+    final static void setTupleValue(OSR_LocalRegPair tuple,
+                                    int type,
+                                    Word value) {
       tuple.valueType = type;
       tuple.value     = value;
     } // end of setTupleValue

@@ -29,7 +29,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // END   Architecture Independent opcodes.
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
-  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
     $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
       "OSYM ",
     $$$$ END LET

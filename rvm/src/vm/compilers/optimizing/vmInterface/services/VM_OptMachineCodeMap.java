@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
@@ -46,7 +47,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 public final class VM_OptMachineCodeMap implements VM_Constants, 
                                                    OPT_Constants,
-                                                   VM_Uninterruptible {
+                                                   Uninterruptible {
   
   /**
    * Constructor, called during compilation
@@ -125,7 +126,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  If no map is present, an error has occurred and VM_OptGCMap.ERROR
    *  is returned.
    *
-   *  @param MCOFfset the machine code offset to look for
+   *  @param MCOffset the machine code offset to look for
    *  @return         the GC map index or VM_OptGCMap.ERROR
    */
   public int findGCMapIndex(int MCOffset) {
@@ -135,37 +136,54 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   }
 
   /**
-   * This method searches the machine code maps and determines if
-   * there is a call instruction in the compiled code that corresponds to
-   * a source level call of <caller, bytecodeIndex>.
-   * It only returns true when the callsite is defintely present and
-   * is not the off-branch of a guarded inlining.
-   * 
-   * @param caller  the source-level caller method
-   * @param bcIndex the bci of the source-level call
+   * @return an arraylist of VM_CallSite objects representing all non-inlined
+   *         callsites in the method. Returns null if there are no such callsites.
    */
-  public boolean callsitePresent(VM_Method caller, 
-                                 int bcIndex) {
-    if (MCInformation == null) return false;
+  public java.util.ArrayList getNonInlinedCallSites() throws InterruptiblePragma {
+    java.util.ArrayList ans = null;
+    if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
-      if (getBytecodeIndex(entry) == bcIndex) {         // bytecode matches
-        int iei = getInlineEncodingIndex(entry);
-        if (iei != -1) {
-          int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-          if (mid == caller.getId()) {        // caller matches
-            int callInfo = getCallInfo(entry);
-            if (callInfo == IS_UNGUARDED_CALL) return true;
+      int callInfo = getCallInfo(entry);
+      if (callInfo == IS_UNGUARDED_CALL) {
+        int bcIndex = getBytecodeIndex(entry);
+        if (bcIndex != -1) {
+          int iei = getInlineEncodingIndex(entry);
+          if (iei != -1) {
+            int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+            VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            if (caller != null) {
+              if (ans == null) ans = new java.util.ArrayList();
+              ans.add(new com.ibm.JikesRVM.adaptive.VM_CallSite(caller, bcIndex));
+            }
           }
         }
       }
       entry = nextEntry(entry);
     }
-    return false;
+    return ans;
   }
+  
+  /**
+   * This method searches the machine code maps and determines if
+   * the given call edge is definitely inlined into the method.
+   * NOTE: This current implementation may return false even if the
+   * edge actually was inlined.  This happens when no GC point occurs within
+   * the inlined body.  This is less than ideal; we need to fix this at some point.
+   * @param caller caller VM_Method
+   * @param bcIndex bytecode index of the caller method
+   * @param callee callee VM_Method
+   * @return true if the call edge is <em>definitely</em> inlined in this compiled method.
+   */
+  public boolean hasInlinedEdge(VM_Method caller, int bcIndex, VM_Method callee) {
+    if (MCInformation == null) return false;
+    if (inlineEncoding == null) return false;
+    return VM_OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
+  }
+  
 
   /**
    * Returns the GC map information for the GC map information entry passed
-   * @param  entry     GCmap entry
+   * @param  index     GCmap entry 
    */
   public final int gcMapInformation(int index) {
     return VM_OptGCMap.gcMapInformation(index, gcMaps);
@@ -248,9 +266,8 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  the machine code mapping information for the entry.
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
-   *  @param gcMap  the VM_OptGCMap instance that is building the encoded GCMap
    */
-  private void generateMCInformation(OPT_GCIRMap irMap) throws VM_PragmaInterruptible {
+  private void generateMCInformation(OPT_GCIRMap irMap) throws InterruptiblePragma {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -532,7 +549,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   //  Debugging
   ////////////////////////////////////////////
 
-  public void dumpMCInformation() throws VM_PragmaInterruptible {
+  public void dumpMCInformation() throws InterruptiblePragma {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       if (MCInformation == null) return;
@@ -547,7 +564,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  private final void printMCInformationEntry(int entry) throws VM_PragmaInterruptible {
+  private final void printMCInformationEntry(int entry) throws InterruptiblePragma {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";
@@ -592,7 +609,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param machineCodeSize
    */
   private void recordStats(VM_Method method, int mapSize, 
-                           int machineCodeSize) throws VM_PragmaInterruptible {
+                           int machineCodeSize) throws InterruptiblePragma {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double)mapSize/machineCodeSize;
       VM.sysWrite(method);

@@ -1,19 +1,35 @@
 This section provides information on ``magic'' which is an escape
-hatch that Jikes\TMweb{} RVM provides to implement
-functionality that is not 
-possible using the pure Java\TMweb{} programming language.  For example, the Jikes RVM garbage
-collectors and 
-runtime system must, on occasion, access memory or perform unsafe
-casts.  Users are {\it strongly} discouraged from using magic in their code
-except where absolutely necessary.  
+hatch that Jikes\TMweb{} RVM provides to implement functionality that
+is not possible using the pure Java\TMweb{} programming language.  For
+example, the Jikes RVM garbage collectors and runtime system must, on
+occasion, access memory or perform unsafe casts.  Users are {\it
+strongly} discouraged from using magic in their code except where
+absolutely necessary.
+
+We are currently in the midst of a major rework of the ``syntax'' for
+magic. The general trend is that we are replacing static methods of
+{\tt VM\_Magic} with virtual methods defined on classes such as {\tt
+VM\_Address}. This results in more natural (and less verbose) usages
+in code that is manipulating raw memory. As of version 2.3.4, this
+transition is complete in MMTk, but only partially done in the rest of
+Jikes RVM. Completing this transision is one of the work items for the
+3.0 release of Jikes RVM. 
 
 There are currently three types of magical operations which are
-described in the remainder of this section.  The first is a collection
+described in the remainder of this section.  
+%
+The first is a collection
 of magical methods that are static methods of the class {\tt
-VM\_Magic}\IndexttClass{VM\_Magic}.  The second is the magical classes {\tt VM\_Address}\IndexttClass{VM\_Address}, {\tt
-VM\_Word}\IndexttClass{VM\_Word}, {\tt VM\_Offset}\IndexttClass{VM\_Offset}, and  {\tt VM\_Extent}\IndexttClass{VM\_Extent} used in
-parts of the runtime and garbage collector. The third is various
-mechanisms to declare code {\em uninterruptible}.
+VM\_Magic}\IndexttClass{VM\_Magic}.  
+%
+The second is the magical classes 
+{\tt VM\_Address}\IndexttClass{VM\_Address}, 
+{\tt VM\_Word}\IndexttClass{VM\_Word}, 
+{\tt VM\_Offset}\IndexttClass{VM\_Offset}, and 
+{\tt VM\_Extent}\IndexttClass{VM\_Extent} used in parts of the 
+runtime and garbage collector.
+%
+The third is various mechanisms to declare code {\em uninterruptible}.
 
 \subsection{\texttt{VM\_Magic}}%
 \index{magic methods}%

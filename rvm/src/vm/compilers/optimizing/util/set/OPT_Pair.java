@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -13,9 +13,9 @@ class OPT_Pair {
   Object second;
 
   /**
-   * put your documentation comment here
-   * @param   Object f
-   * @param   Object s
+   * Constructor
+   * @param    f  The first element in the pair.
+   * @param    s  The second element in the pair.
    */
   OPT_Pair (Object f, Object s) {
     first = f;

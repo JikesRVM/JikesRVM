@@ -1,4 +1,4 @@
-# $Id$
+## $Id$
 
 ## First, we go through a lot of cruft in order to decide whether we'll be
 ## generating the *_options.tex files out of source.
@@ -34,20 +34,15 @@ ifneq (${RVM_HOST_CONFIG},)
 endif
 
 
+.DELETE_ON_ERROR:  # Clean up.
+
 GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
 VM_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/utility
 VM_BOOLEAN_DAT_FILES := $(VM_OPTION_DIR)/BooleanOptions.dat
 VM_VALUE_DAT_FILES   := $(VM_OPTION_DIR)/ValueOptions.dat
-# VM_DAT_FILES must be =, not :=, because JMTK_VALUE_DAT_FILES are 
-# defined below.
-VM_DAT_FILES         = $(VM_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
-
-JMTK_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/memoryManagers/JMTk/utility
-JMTK_BOOLEAN_DAT_FILES := $(JMTK_OPTION_DIR)/BooleanOptions.dat
-JMTK_VALUE_DAT_FILES   := $(JMTK_OPTION_DIR)/ValueOptions.dat
-JMTK_DAT_FILES         := $(JMTK_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
+VM_DAT_FILES         := $(VM_BOOLEAN_DAT_FILES)
 
 ADAPT_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
 ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.dat
@@ -99,12 +94,12 @@ INPUT_FILES = 	userguide.tex \
 		gcspy.tex \
 		installation.tex \
 		intro.tex \
-		JMTk.tex \
 		jni.tex \
 		libraries.tex \
 		licenses.tex \
 		cpl-text.tex \
 		magic.tex \
+		MMTk.tex \
 		optdetails.tex \
 		performance.tex \
 		preprocessor.tex \
@@ -120,14 +115,14 @@ INPUT_FILES = 	userguide.tex \
 INCLUSIONS_FILE:=inclusions.filenames
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex \
-                jmtk_options.tex vm_options.tex
+	        vm_options.tex
 
 GENERATOR_FILES = ${GENERATOR}.class QuotedStringTokenizer.class \
 		  UnterminatedStringException.class
 
 TEX_FILES = $(INPUT_FILES) $(GEN_INPUTS) 
 
-TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux jmtk_options.tex missfont.log
+TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux missfont.log
 
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
@@ -214,15 +209,6 @@ vm_options.tex:		${GENERATOR_FILES} options.template $(VM_DAT_FILES)
 			  OPTPREFIX="-X:vm" \
 			  USE_OPT_LEVELS="NO" \
 			  OPTION_TYPE="VM"
-
-jmtk_options.tex:	${GENERATOR_FILES} options.template $(JMTK_DAT_FILES)
-			$(HOST_VM_RT) ${GENERATOR} options.template \
-			  jmtk_options.tex \
-			  BOOLEAN_DAT_FILES="$(JMTK_BOOLEAN_DAT_FILES)" \
-			  VALUE_DAT_FILES="$(JMTK_VALUE_DAT_FILES)" \
-			  OPTPREFIX="-X:gc" \
-			  USE_OPT_LEVELS="NO" \
-			  OPTION_TYPE="JMTK"
 
 adaptive_options.tex:	${GENERATOR_FILES} options.template $(ADAPT_DAT_FILES)
 			$(HOST_VM_RT) ${GENERATOR} options.template \

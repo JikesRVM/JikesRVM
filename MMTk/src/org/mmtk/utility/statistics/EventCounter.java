@@ -7,8 +7,9 @@ package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.mmtk.vm.Assert;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple event counter (counting number
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * $Id$
  */
 public class EventCounter extends Counter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -104,7 +105,7 @@ public class EventCounter extends Counter
    */
   protected void start() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions)  VM_Interface._assert(!running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!running);
     running = true;
   }
 
@@ -113,7 +114,7 @@ public class EventCounter extends Counter
    */
   protected void stop() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(running);
     running = false;
   }
 
@@ -138,8 +139,8 @@ public class EventCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (VM_Interface.VerifyAssertions && mergePhases()) 
-      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue(count[phase] + count[phase+1]);
     else

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Primitives from which to build interval and absolute timers.
  * 
@@ -11,7 +13,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_Time implements VM_Uninterruptible {
+public class VM_Time implements Uninterruptible {
 
   /**
    * Conversion factor from cycles to time in milliseconds

@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import java.lang.ref.WeakReference;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * @author Julian Dolby
  * @date May 20, 2002
@@ -23,7 +25,7 @@ class VM_JNIGlobalRefTable {
   static private int free = 1;
 
   static int newGlobalRef(Object referent) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef( VM_Magic.objectAsAddress(referent) ) );
+    if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef(ObjectReference.fromObject(referent)));
         
     if (free >= refs.length) {
       Object[] newrefs = new Object[ refs.length * 2 ];

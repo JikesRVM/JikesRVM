@@ -5,7 +5,8 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
-import java.util.*;
+
+import org.vmmagic.pragma.*;
 
 /**
  * A VM_YieldCounterListener samples yield points, and
@@ -17,7 +18,7 @@ import java.util.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-class VM_YieldCounterListener extends VM_NullListener implements VM_Uninterruptible {
+class VM_YieldCounterListener extends VM_NullListener implements Uninterruptible {
 
   /**
    * Constructor

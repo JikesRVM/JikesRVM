@@ -115,16 +115,25 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       switch(s.getOpcode()) {
       case BOOLEAN_NOT_opcode: unary(s, BOOLEAN_NOT_ACC, ir); break;
 
+      case REF_ADD_opcode: commutative(s, INT_ADD_ACC, ir); break;
       case INT_ADD_opcode: commutative(s, INT_ADD_ACC, ir); break;
+      case REF_SUB_opcode: noncommutative(s, INT_SUB_ACC, ir); break;
       case INT_SUB_opcode: noncommutative(s, INT_SUB_ACC, ir); break;
       case INT_MUL_opcode: commutative(s, INT_MUL_ACC, ir); break;
+      case REF_SHL_opcode: noncommutative(s, INT_SHL_ACC, ir); break;
       case INT_SHL_opcode: noncommutative(s, INT_SHL_ACC, ir); break;
+      case REF_SHR_opcode: noncommutative(s, INT_SHR_ACC, ir); break;
       case INT_SHR_opcode: noncommutative(s, INT_SHR_ACC, ir); break;
+      case REF_USHR_opcode: noncommutative(s, INT_USHR_ACC, ir); break;
       case INT_USHR_opcode: noncommutative(s, INT_USHR_ACC, ir); break;
+      case REF_AND_opcode: commutative(s, INT_AND_ACC, ir); break;
       case INT_AND_opcode: commutative(s, INT_AND_ACC, ir); break;
+      case REF_OR_opcode: commutative(s, INT_OR_ACC, ir); break;
       case INT_OR_opcode: commutative(s, INT_OR_ACC, ir); break;
+      case REF_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
       case INT_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
       case INT_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
+      case REF_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
       case INT_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
 
       case LONG_ADD_opcode: commutative(s, LONG_ADD_ACC, ir); break;
@@ -138,6 +147,9 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case LONG_XOR_opcode: commutative(s, LONG_XOR_ACC, ir); break;
       case LONG_NEG_opcode: unary(s, LONG_NEG_ACC, ir); break;
       case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
+      
+		// BURS doesn't really care, so consolidate to reduce rule space
+      case BOOLEAN_CMP_ADDR_opcode: s.operator = BOOLEAN_CMP_INT; break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case FLOAT_ADD_opcode: s.operator = FP_ADD; break;
@@ -174,7 +186,13 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case REF_ASTORE_opcode: s.operator = INT_ASTORE; break;
       case REF_MOVE_opcode: s.operator = INT_MOVE; break;
       case REF_IFCMP_opcode: s.operator = INT_IFCMP; break;
-      }
+      case ATTEMPT_ADDR_opcode: s.operator = ATTEMPT_INT; break;
+      case PREPARE_ADDR_opcode: s.operator = PREPARE_INT; break;
+      case INT_2ADDRSigExt_opcode: s.operator = INT_MOVE; break;
+      case INT_2ADDRZerExt_opcode: s.operator = INT_MOVE; break;
+      case ADDR_2INT_opcode: s.operator = INT_MOVE; break;
+      case ADDR_2LONG_opcode: s.operator = INT_2LONG; break;
+		}
 
       if (OPTIMIZE) {
         // update liveness 

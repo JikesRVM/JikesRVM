@@ -50,12 +50,18 @@ public class Throwable implements java.io.Serializable {
     
   public Throwable() {
     super();
-    fillInStackTrace();         // fillInStackTrace() catches its own errors.
+    fillInStackTrace();         // fillInStackTrace() catches its own errors,
+                                // and performs reporting.
   }
     
   public Throwable(String detailMessage) {
     this();
     this.detailMessage = detailMessage;
+    if (stackTrace.isVerbose()) {
+      VM.sysWrite("[ Throwable for VM_StackTrace # ", stackTrace.traceIndex);
+      VM.sysWrite(" created w/ message:", detailMessage);
+      VM.sysWriteln("]");
+    }
   }
     
   public Throwable(String message, Throwable cause) {
@@ -74,7 +80,7 @@ public class Throwable implements java.io.Serializable {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
          everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+      VM.sysExit(VM.EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS);
     }
     if (numWeirdErrors > 1 ) {
       VM.sysWriteln("I'm now ", numWeirdErrors, " levels deep in weird Errors while handling this Throwable");
@@ -88,7 +94,7 @@ public class Throwable implements java.io.Serializable {
     if (++numOutOfMemoryErrors >= maxOutOfMemoryErrors) {
       /* We exit before printing, in case we're in some weird hell where
           everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
+      VM.sysExit(VM.EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS);
     }
     if (numOutOfMemoryErrors > 1 ) {
       VM.sysWriteln("GC Warning: I'm now ", numOutOfMemoryErrors, " levels deep in OutOfMemoryErrors while handling this Throwable");
@@ -129,8 +135,10 @@ public class Throwable implements java.io.Serializable {
     return detailMessage;
   }
     
+  /** This has a stub implementation.  How gross.  But legal. */
   public StackTraceElement[] getStackTrace() {
-    throw new VM_UnimplementedError();
+    return new StackTraceElement[0];
+    // throw new VM_UnimplementedError();
   }
 
   public Throwable initCause(Throwable cause) {
@@ -226,7 +234,7 @@ public class Throwable implements java.io.Serializable {
         if (++depth == maxDepth)
           VM.sysWriteln("We got ", depth, " deep in printing stack traces; trouble.  Aborting.");
         if (depth >= maxDepth)
-          VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+          VM.sysExit(VM.EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS);
         doPrintStackTrace(err, effect, depth);
         if (VM.VerifyAssertions) VM._assert(depth >= 1);
       } finally {
@@ -345,21 +353,29 @@ public class Throwable implements java.io.Serializable {
     printStackTrace(pln, depth);
   }
     
+  /** Currently only implemented as a stub */
   public void setStackTrace(StackTraceElement[] stackTrace) {
-    throw new VM_UnimplementedError(); // if we run out of memory, so be it. 
+    stackTrace = null;          // throw out the old Jikes RVM stack trace.
+    
+    // throw new VM_UnimplementedError(); 
   }
 
   void printlnMyClassAndMessage(PrintLN out, int depth) {
-    // depth is unused.
-    out.print(classNameAsVM_Atom(this));
-    /* Avoid diving into the contents of detailMessage since a subclass MIGHT
-     * override getMessage(). */
-    String msg = getMessage();
-    if (msg != null) {
-      out.print(": ");
-      out.print(msg);
-    }
+    printMyClassAndMessage(out, depth);
     out.println();
+  }
+
+  void printMyClassAndMessage(PrintLN out, int depth) {
+    // depth is unused.
+    out.print(toString());
+//     out.print(classNameAsVM_Atom(this));
+//     /* Avoid diving into the contents of detailMessage since a subclass MIGHT
+//      * override getMessage(). */
+//     String msg = getMessage();
+//     if (msg != null) {
+//       out.print(": ");
+//       out.print(msg);
+//     }
   }
   
   public void sysWrite() {
@@ -378,12 +394,13 @@ public class Throwable implements java.io.Serializable {
     sysWrite(depth);
     VM.sysWriteln();
   }
-  public static VM_Atom classNameAsVM_Atom(Object o) {
-    VM_Type me_type = VM_ObjectModel.getObjectType(o);
-    VM_TypeReference me_tRef = me_type.getTypeRef();
-    VM_Atom me_name = me_tRef.getName();
-    return me_name;
-  }
+
+//   public static VM_Atom classNameAsVM_Atom(Object o) {
+//     VM_Type me_type = VM_ObjectModel.getObjectType(o);
+//     VM_TypeReference me_tRef = me_type.getTypeRef();
+//     VM_Atom me_name = me_tRef.getName();
+//     return me_name;
+//   }
 
 //   public void sysWriteClassName() {
 //     VM_Atom me_name = classNameAsVM_Atom(this);

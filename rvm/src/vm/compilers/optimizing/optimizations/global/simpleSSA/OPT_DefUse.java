@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -7,6 +7,8 @@ import com.ibm.JikesRVM.*;
 import java.util.Enumeration;
 
 import com.ibm.JikesRVM.opt.ir.*;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class computes du-lists and associated information.
@@ -55,7 +57,7 @@ public final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  public static void computeDU(OPT_IR ir) throws VM_PragmaNoInline {
+  public static void computeDU(OPT_IR ir) throws NoInlinePragma {
     // Clear old register list (if any)
     clearDU(ir);
     // Create register defList and useList
@@ -180,12 +182,14 @@ public final class OPT_DefUse implements OPT_Operators {
   }
 
   /**
-   *  This code changes the use in regOp to use the use in newRegOp.
+   *  This code changes the use in <code>origRegOp</code> to use
+   *    the use in <code>newRegOp</code>.
    *
-   *  <p> If the type of regOp is not a reference, but the type of newRegOp
-   *  is a reference, we need to update regOp to be a reference.
+   *  <p> If the type of <code>origRegOp</code> is not a reference, but the
+   *  type of <code>newRegOp</code> is a reference, we need to update
+   *  <code>origRegOp</code> to be a reference. 
    *  Otherwise, the GC map code will be incorrect.   -- Mike Hind
-   *  @param regOp the register operand to change
+   *  @param origRegOp the register operand to change
    *  @param newRegOp the register operand to use for the change
    */
   static void transferUse(OPT_RegisterOperand origRegOp, 
@@ -468,7 +472,7 @@ public final class OPT_DefUse implements OPT_Operators {
       current = current.getNext();
       return tmp;
     }
-    private static void raiseNoSuchElementException() throws VM_PragmaNoInline {
+    private static void raiseNoSuchElementException() throws NoInlinePragma {
       throw new java.util.NoSuchElementException("RegOpListWalker");
     }
   }

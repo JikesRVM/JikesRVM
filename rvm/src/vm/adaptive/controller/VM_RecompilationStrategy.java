@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -84,12 +84,6 @@ abstract class VM_RecompilationStrategy {
      OPT_CompilationPlan compPlan = 
        createCompilationPlan((VM_NormalMethod)method, optLevel, instPlan);
 
-     if (VM_Controller.options.ADAPTIVE_INLINING) {
-       OPT_InlineOracle inlineOracle = 
-         VM_AdaptiveInlining.getInlineOracle(method);
-       compPlan.setInlineOracle(inlineOracle);
-     }
-
      // Create the controller plan
      return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
                                   prevCMID, expectedSpeedup, expectedCompilationTime,
@@ -119,7 +113,7 @@ abstract class VM_RecompilationStrategy {
    * 
    * @param hme the VM_HotMethodEvent
    * @param plan the VM_ControllerPlan for the compiled method (may be null)
-   * @param prevCompiler the previous compiler 
+   * @return true/false value
    * 
    */
   boolean considerForRecompilation(VM_HotMethodEvent hme, 
@@ -202,6 +196,9 @@ abstract class VM_RecompilationStrategy {
     case VM_CompiledMethod.TRAP: 
     case VM_CompiledMethod.JNI:
       return -1; // don't try to optimize these guys!
+  //-#if RVM_WITH_QUICK_COMPILER
+    case VM_CompiledMethod.QUICK:
+    //-#endif
     case VM_CompiledMethod.BASELINE:
       { 
         // Prevent the adaptive system from recompiling certain classes
@@ -228,7 +225,17 @@ abstract class VM_RecompilationStrategy {
           //      (C code may have a return address or other naked pointer into the old instruction array)
           return -1;
         }
+        //-#if RVM_WITH_QUICK_COMPILER
+        switch (cmpMethod.getCompilerType())
+          {
+          case VM_CompiledMethod.BASELINE:
+            return VM_CompilerDNA.BASELINE;
+          case VM_CompiledMethod.QUICK:
+            return VM_CompilerDNA.QUICK;
+          }
+        //-#else
         return 0;
+        //-#endif
       }
     case VM_CompiledMethod.OPT:
       VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;
@@ -267,7 +274,7 @@ abstract class VM_RecompilationStrategy {
       _optPlans[i]=OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
       if (_options[i].PRELOAD_CLASS != null) {
         VM.sysWrite("PRELOAD_CLASS should be specified with -X:irc not -X:recomp\n");
-        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
     }
   }

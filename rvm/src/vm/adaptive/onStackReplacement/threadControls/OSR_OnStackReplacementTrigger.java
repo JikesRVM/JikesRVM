@@ -7,6 +7,10 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Trigger an OSR from a running thread.
  * 
@@ -18,10 +22,10 @@ public class OSR_OnStackReplacementTrigger {
    * Trigger an OSR from a running thread.
    */
   public static void trigger(int ypTakenInCMID,
-                             VM_Offset tsFromFPoff,
-                             VM_Offset ypTakenFPoff,
+                             Offset tsFromFPoff,
+                             Offset ypTakenFPoff,
                              int whereFrom) 
-  throws VM_PragmaNoInline, VM_PragmaUninterruptible {
+  throws NoInlinePragma, UninterruptiblePragma {
 
 
     VM_Thread thread = VM_Thread.getCurrentThread();    
@@ -40,7 +44,7 @@ public class OSR_OnStackReplacementTrigger {
     // consumer:
     thread.requesting_osr = true;
         
-        // osr organizer must be initialized already
+    // osr organizer must be initialized already
     if (VM_Controller.osrOrganizer.osr_flag == false) {
       VM_Controller.osrOrganizer.osr_flag = true;
       VM_Controller.osrOrganizer.activate();

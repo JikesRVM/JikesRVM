@@ -5,7 +5,7 @@
 
 package org.mmtk.utility.statistics;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  *
@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  * $Id$
  */
-public abstract class Counter implements VM_Uninterruptible {
+public abstract class Counter implements Uninterruptible {
 
   /****************************************************************************
    *

@@ -5,14 +5,14 @@ DECL
 # Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
 DESCRIP
 
-VerifyBytecode false verify
-Should bytecodes be verified?  XXX Does not work reliably; user contributions welcome.
-
 MeasureCompilation false measureCompilation
 Time all compilations and report on exit
 
 stackTraceVMSysWrite false 
 Exclusively use VM.sysWrite to print stack dumps
+
+stackTraceAtExit false 
+Dump a stack trace (via VM.syswrite) upon exit
 
 stackTraceAlsoToVMSysWrite false
 When printing a stack dump, print a copy via VM.sysWrite (if not doing so already)

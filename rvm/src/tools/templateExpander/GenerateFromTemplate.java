@@ -1126,7 +1126,12 @@ public class GenerateFromTemplate {
     for (int i = 0; i < value.length; i++)
        value[i] = pst.nextToken();
 
-    if (DEBUG) System.out.println("doing conditional "+arg+" "+op+" "+value[0]);
+    if (DEBUG) {
+      if (value.length > 0) 
+        System.out.println("doing conditional "+arg+" "+op+" "+value[0]);
+      else
+        System.out.println("doing conditional "+arg+" "+op+" <NO ARGUMENT TOKEN FOUND>");
+    }        
 
     // Evaluate conditional.
     Vector newRegion = (Vector) region.elementAt(1);

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-
+import org.vmmagic.pragma.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -56,7 +56,7 @@ public final class VM_Field extends VM_Member {
   /**
    * Get type of this field's value.
    */ 
-  public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getType() throws UninterruptiblePragma {
     return memRef.asFieldReference().getFieldContentsType();
   }
   
@@ -77,28 +77,28 @@ public final class VM_Field extends VM_Member {
   /**
    * Shared among all instances of this class?
    */ 
-  public final boolean isStatic() throws VM_PragmaUninterruptible {
+  public final boolean isStatic() throws UninterruptiblePragma {
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * May only be assigned once?
    */ 
-  public final boolean isFinal() throws VM_PragmaUninterruptible {
+  public final boolean isFinal() throws UninterruptiblePragma {
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Value not to be cached in a register?
    */ 
-  public final boolean isVolatile() throws VM_PragmaUninterruptible {
+  public final boolean isVolatile() throws UninterruptiblePragma {
     return (modifiers & ACC_VOLATILE) != 0;
   }
 
   /**
    * Value not to be written/read by persistent object manager?
    */ 
-  public final boolean isTransient() throws VM_PragmaUninterruptible {
+  public final boolean isTransient() throws UninterruptiblePragma {
     return (modifiers & ACC_TRANSIENT) != 0;
   }
 
@@ -107,7 +107,7 @@ public final class VM_Field extends VM_Member {
    * "static final constant" field's value.
    * @return constant pool index (0 --> field is not a "static final constant")
    */ 
-  final int getConstantValueIndex() throws VM_PragmaUninterruptible {
+  final int getConstantValueIndex() throws UninterruptiblePragma {
     return constantValueIndex;
   }
 

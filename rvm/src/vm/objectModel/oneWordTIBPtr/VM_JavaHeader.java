@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  */
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
-  implements VM_Uninterruptible
+  implements Uninterruptible
              //-#if RVM_WITH_OPT_COMPILER
              ,OPT_Operators
              //-#endif
@@ -47,24 +47,24 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Object o) throws VM_PragmaInline { 
+  public static Object[] getTIB(Object o) throws InlinePragma { 
     int tibWord = VM_Magic.getIntAtOffset(o,TIB_OFFSET);
-    return VM_Magic.addressAsObjectArray(VM_Address.fromInt(tibWord));
+    return VM_Magic.addressAsObjectArray(Address.fromInt(tibWord));
   }
   
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
-    VM_Address tibPtr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(ref).add(TIB_OFFSET), tibPtr);
+  public static void setTIB(Object ref, Object[] tib) throws InlinePragma {
+    Address tibPtr = VM_Magic.objectAsAddress(tib);
+    VM_Magic.objectAsAddress(ref).store(tibPtr, Offset.intAsOffset(TIB_OFFSET));
   }
 
   /**
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            Address tibAddr, VM_Type type) throws InterruptiblePragma {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toWord());
   }
 
@@ -72,11 +72,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Process the TIB field during copyingGC.  NOT IMPLEMENTED, since
    * copyingGC not currently supported.
    */
-  public static void gcProcessTIB(VM_Address ref) {
+  public static void gcProcessTIB(Address ref) {
     VM._assert(NOT_REACHED);
   }
 
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
+  public static void gcProcessTIB(Address ref, boolean root) {
     VM._assert(NOT_REACHED);
   }
 
@@ -90,12 +90,12 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
-                                         int object) throws VM_PragmaInterruptible {
+                                         int object) throws InterruptiblePragma {
     asm.emitLAddr(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
-                                         byte object) throws VM_PragmaInterruptible {
+                                         byte object) throws InterruptiblePragma {
     asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
   }
   //-#endif
@@ -108,7 +108,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws InterruptiblePragma {
     OPT_Operand address = GuardedUnary.getClearVal(s);
     OPT_RegisterOperand result = GuardedUnary.getClearResult(s);
     Load.mutate(s,INT_LOAD, result.copyRO(),

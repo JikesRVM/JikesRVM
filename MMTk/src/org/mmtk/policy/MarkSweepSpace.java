@@ -4,21 +4,19 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.MarkSweepHeader;
-import org.mmtk.plan.Plan;
-import org.mmtk.utility.FreeListVMResource;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.VMResource;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.utility.alloc.BlockAllocator;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.heap.*;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.statistics.Stats;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.ObjectModel;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one mark-sweep *space*.
@@ -29,25 +27,29 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  *
+ *  $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
-  public final static String Id = "$Id$"; 
+public final class MarkSweepSpace extends Space
+  implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
-  
+  public static final int LOCAL_GC_BITS_REQUIRED = 1;
+  public static final int GLOBAL_GC_BITS_REQUIRED = 0;
+  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final Word MARK_BIT_MASK = Word.one();  // ...01
+
   /****************************************************************************
    *
    * Instance variables
    */
-  private VM_Word markState;
-  private FreeListVMResource vmResource;
-  private MemoryResource memoryResource;
+  private Word markState;
   public boolean inMSCollection = false;
 
   /****************************************************************************
@@ -56,30 +58,103 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    */
 
   /**
-   * Constructor
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
    *
-   * @param vmr The virtual memory resource through which allocations
-   * for this collector will go.
-   * @param mr The memory resource against which allocations
-   * associated with this collector will be accounted.
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
    */
-  public MarkSweepSpace(FreeListVMResource vmr, MemoryResource mr) {
-    vmResource = vmr;
-    memoryResource = mr;
+  public MarkSweepSpace(String name, int pageBudget, Address start, 
+			Extent bytes) {
+    super(name, false, false, start, bytes);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
   }
 
-  /****************************************************************************
-   *
-   * Allocation
-   */
-
   /**
-   * Return the initial value for the header of a new object instance.
-   * The header for this collector includes a mark bit.
+   * Construct a space of a given number of megabytes in size.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>.  If there is insufficient address
+   * space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
    */
-  public final VM_Word getInitialHeaderValue() 
-    throws VM_PragmaInline {
-    return markState;
+  public MarkSweepSpace(String name, int pageBudget, int mb) {
+    super(name, false, false, mb);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>.  If there
+   * is insufficient address space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   */
+  public MarkSweepSpace(String name, int pageBudget, float frac) {
+    super(name, false, false, frac);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+   
+  /**
+   * Construct a space that consumes a given number of megabytes of
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>, and whether it should be at the
+   * top or bottom of the available virtual memory.  If the request
+   * clashes with existing virtual memory allocations, then the
+   * constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
+  public MarkSweepSpace(String name, int pageBudget, int mb, boolean top) {
+    super(name, false, false, mb, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+  
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>, and
+   * whether it should be at the top or bottom of the available
+   * virtual memory.  If the request clashes with existing virtual
+   * memory allocations, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
+  public MarkSweepSpace(String name, int pageBudget, float frac, boolean top) {
+    super(name, false, false, frac, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
   }
 
   /****************************************************************************
@@ -92,11 +167,11 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * collector we must flip the state of the mark bit between
    * collections.
    *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void prepare(VMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
+  public void prepare() { 
+    markState = MARK_BIT_MASK.sub(markState);
+    
+    MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     inMSCollection = true;
   }
 
@@ -104,8 +179,6 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
    *
-   * @param vm (unused)
-   * @param mr (unused)
    */
   public void release() {
     inMSCollection = false;
@@ -116,9 +189,17 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * @return True if this mark-sweep space is currently being collected.
    */
-  public boolean inMSCollection() 
-    throws VM_PragmaInline {
+  public final boolean inMSCollection() throws InlinePragma {
     return inMSCollection;
+  }
+
+  /**
+   * Release an allocated page or pages
+   *
+   * @param start The address of the start of the page or pages
+   */
+  public final void release(Address start) throws InlinePragma {
+    ((FreeListPageResource) pr).releasePages(start); 
   }
 
   /****************************************************************************
@@ -135,37 +216,108 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * marked.
    *
    * @param object The object to be traced.
-   * XXX No param Javadoc for tag.
    * @return The object (there is no object forwarding in this
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final VM_Address traceObject(VM_Address object, byte tag)
-    throws VM_PragmaInline {
-    if (MarkSweepHeader.testAndMark(object, markState)) {
-      if (Plan.GATHER_MARK_CONS_STATS)
-	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
-      MarkSweepLocal.internalMarkObject(object, tag);
-      VM_Interface.getPlan().enqueue(object);
+  public final ObjectReference traceObject(ObjectReference object)
+    throws InlinePragma {
+    if (testAndMark(object, markState)) {
+      if (Stats.GATHER_MARK_CONS_STATS)
+	Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
+      MarkSweepLocal.liveObject(object);
+      Plan.enqueue(object);
     }
     return object;
   }
 
   /**
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(VM_Address obj)
-    throws VM_PragmaInline {
-     return MarkSweepHeader.testMarkBit(obj, markState);
-   }
+  public boolean isLive(ObjectReference object)
+    throws InlinePragma {
+    return testMarkBit(object, markState);
+  }
 
   /****************************************************************************
    *
-   * Misc
+   * Header manipulation
    */
-  public final FreeListVMResource getVMResource() { return vmResource;}
-  public final MemoryResource getMemoryResource() { return memoryResource;}
+
+  /**
+   * Perform any required post allocation initialization
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+  public final void postAlloc(ObjectReference object) 
+    throws InlinePragma {
+    initializeHeader(object);
+  }
+ 
+  /**
+   * Perform any required post copy (i.e. in-GC allocation) initialization
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+  public final void postCopy(ObjectReference object) 
+    throws InlinePragma {
+    writeMarkBit(object);      // TODO one of these two is redundant!
+    	MarkSweepLocal.liveObject(object);
+  }
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * 
+   * @param object the object ref to the storage to be initialized
+   */
+  public final void initializeHeader(ObjectReference object) 
+    throws InlinePragma {
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
+  }
+
+  /**
+   * Atomically attempt to set the mark bit of an object.  Return true
+   * if successful, false if the mark bit was already set.
+   *
+   * @param object The object whose mark bit is to be written
+   * @param value The value to which the mark bit will be set
+   */
+  private static boolean testAndMark(ObjectReference object, Word value)
+    throws InlinePragma {
+    Word oldValue, markBit;
+    do {
+      oldValue = ObjectModel.prepareAvailableBits(object);
+      markBit = oldValue.and(MARK_BIT_MASK);
+      if (markBit.EQ(value)) return false;
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+                                                oldValue.xor(MARK_BIT_MASK)));
+    return true;
+  }
+
+  /**
+   * Return true if the mark bit for an object has the given value.
+   *
+   * @param object The object whose mark bit is to be tested
+   * @param value The value against which the mark bit will be tested
+   * @return True if the mark bit for the object has the given value.
+   */
+  private static boolean testMarkBit(ObjectReference object, Word value)
+    throws InlinePragma {
+    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+  }
+
+  /**
+   * Write a given value in the mark bit of an object non-atomically
+   *
+   * @param object The object whose mark bit is to be written
+   */
+  public void writeMarkBit(ObjectReference object) throws InlinePragma {
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
+  }
 
 }

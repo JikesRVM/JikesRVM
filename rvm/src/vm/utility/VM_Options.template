@@ -6,6 +6,9 @@
  */
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Class to handle command-line arguments and options meant
  * for the core runtime system of the VM.	
@@ -27,7 +30,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  **/
 public class VM_Options extends VM_Configuration 
-                        implements VM_Uninterruptible {
+                        implements Uninterruptible {
 
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
@@ -77,8 +80,8 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public static boolean process(String arg) throws VM_PragmaNoOptCompile,
-	                                           VM_PragmaInterruptible {
+  public static boolean process(String arg) throws NoOptCompilePragma,
+	                                           InterruptiblePragma {
 
     // First handle the "option commands"
     if (arg.equals("help")) {

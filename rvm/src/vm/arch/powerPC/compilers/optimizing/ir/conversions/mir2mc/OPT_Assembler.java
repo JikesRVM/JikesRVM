@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -34,6 +34,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
   private static final int MIN_COND_DISPL = MIN_14_BITS;// min conditional displacement
   private static final int MAX_DISPL = MAX_24_BITS;     // max unconditional displacement
   private static final int MIN_DISPL = MIN_24_BITS;     // min unconditional displacement
+
+  private static final int SHORT14_MASK = 0x3FFF;       // for 14-bit integer; used as offset 
+                                                        // (DS field) in ld (load doubleword, etc.)
+  private static final int SIXBIT_MASK = 0x3F;          // for 6-bit integer; used to specify 
+                                                        // shift and mask bits
 
   private static final int CFLIP_MASK = 0x14 << 21;     // used to flip BO by XOR
   private static final int NOPtemplate = (24 << 26);
@@ -182,6 +187,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_MULHWU_opcode:
       case PPC_FSUB_opcode:
       case PPC_FSUBS_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_MULLD_opcode:
+      case PPC64_DIVD_opcode:
+//-#endif
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
@@ -198,6 +207,12 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_LHZX_opcode:
       case PPC_LFDX_opcode:
       case PPC_LFSX_opcode:
+      case PPC_LIntX_opcode:
+      case PPC_LAddrARX_opcode:
+      case PPC_LAddrX_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_LDX_opcode:
+//-#endif
         {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
@@ -213,6 +228,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_STHX_opcode:
       case PPC_STFDX_opcode:
       case PPC_STFSX_opcode:
+      case PPC_STAddrCXr_opcode:
+      case PPC_STAddrX_opcode:
+      case PPC_STAddrUX_opcode:
         {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = MIR_Store.getAddress(p).register.number & REG_MASK;
@@ -224,6 +242,8 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_LWZUX_opcode:
       case PPC_LBZUX_opcode:
+      case PPC_LIntUX_opcode:
+      case PPC_LAddrUX_opcode:
         {
           int op0 = MIR_LoadUpdate.getResult(p).register.number & REG_MASK;
           int op1 = MIR_LoadUpdate.getAddress(p).register.number & REG_MASK;
@@ -245,6 +265,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
 
       case PPC_TW_opcode:
+      case PPC_TAddr_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_TD_opcode:
+//-#endif
         {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
@@ -255,6 +279,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_TWI_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_TDI_opcode:
+//-#endif
         {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
@@ -301,9 +328,15 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_CNTLZW_opcode:
+      case PPC_CNTLZAddr_opcode:
       case PPC_EXTSB_opcode:
-      case PPC_EXTSBr_opcode:case PPC_EXTSH_opcode:
+      case PPC_EXTSBr_opcode:
+      case PPC_EXTSH_opcode:
       case PPC_EXTSHr_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_EXTSW_opcode:
+      case PPC64_EXTSWr_opcode:
+//-#endif
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
@@ -311,6 +344,18 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
+
+//-#if RVM_FOR_64_ADDR
+      case PPC64_EXTZW_opcode:
+        {
+          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op3high = 1;  //op3low = 0, so op3 == 32
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+//-#endif
 
       case PPC_ADDZE_opcode:case PPC_SUBFZE_opcode:
       case PPC_NEG_opcode:
@@ -349,6 +394,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_SLWr_opcode:case PPC_SRW_opcode:
       case PPC_SRWr_opcode:case PPC_SRAW_opcode:
       case PPC_SRAWr_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_SLD_opcode:case PPC64_SLDr_opcode:
+      case PPC64_SRD_opcode:case PPC64_SRDr_opcode:
+      case PPC64_SRAD_opcode:case PPC64_SRADr_opcode:
+//-#endif
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
@@ -368,6 +418,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+//-#if RVM_FOR_32_ADDR
+      case PPC_SRAddrI_opcode:
+//-#endif
       case PPC_SRWI_opcode:
         /* pseudo opcode, equal to rlwinm Rx,Ry,32-n,n,31 */
       case PPC_SRWIr_opcode:
@@ -396,6 +449,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+//-#if RVM_FOR_32_ADDR
+      case PPC_SRAAddrI_opcode:
+//-#endif
       case PPC_SRAWI_opcode:
       case PPC_SRAWIr_opcode:
         {
@@ -406,6 +462,53 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
+
+//-#if RVM_FOR_64_ADDR
+      case PPC_SRAAddrI_opcode:
+      case PPC64_SRADI_opcode:
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
+          int op2low = op2 & 0x1F;
+          int op2high = (op2 & 0x20) >>> 5;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
+      case PPC_SRAddrI_opcode:
+      case PPC64_SRDI_opcode:
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op3 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
+          int op2 = 64 - op3;
+          int op2low = op2 & 0x1F;
+          int op2high = (op2 & 0x20) >>> 5;
+          int op3low = op3 & 0x1F;
+          int op3high = (op3 & 0x20) >>> 5;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
+      case PPC64_SLDI_opcode: //shorthand for RLDICR
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int shift = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
+          int op2 = shift;
+          int op2low = op2 & 0x1F;
+          int op2high = (op2 & 0x20) >>> 5;
+          int op3 = 63 - shift;
+          int op3low = op3 & 0x1F;
+          int op3high = (op3 & 0x20) >>> 5;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+//-#endif
 
         // Bit positions of op1 and op2 are reversed.
       case PPC_ANDIr_opcode:
@@ -625,6 +728,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_CMP_opcode:
       case PPC_CMPL_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_CMP_opcode:
+      case PPC64_CMPL_opcode:
+//-#endif
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
@@ -636,6 +743,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_CMPI_opcode:
       case PPC_CMPLI_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_CMPI_opcode:
+      case PPC64_CMPLI_opcode:
+//-#endif
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
@@ -655,10 +766,13 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_FABS_opcode:
-      case PPC_FCFID_opcode:
       case PPC_FNEG_opcode:
       case PPC_FRSP_opcode:
       case PPC_FCTIW_opcode:case PPC_FCTIWZ_opcode:
+//-#if RVM_FOR_64_ADDR
+      case PPC64_FCFID_opcode:
+      case PPC64_FCTIDZ_opcode:
+//-#endif
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
@@ -716,6 +830,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_LFD_opcode:
       case PPC_LFS_opcode:
       case PPC_LMW_opcode:
+     //-#if RVM_FOR_32_ADDR
+      case PPC_LAddr_opcode:
+      case PPC_LInt_opcode:
+     //-#endif
         {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
@@ -724,6 +842,19 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
+     //-#if RVM_FOR_64_ADDR
+      case PPC64_LD_opcode:
+      case PPC_LAddr_opcode:
+      case PPC_LInt_opcode:
+        {
+          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+          int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+          int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+     //-#endif
 
       case PPC_STW_opcode:
       case PPC_STB_opcode:
@@ -731,6 +862,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_STFD_opcode:
       case PPC_STFS_opcode:
       case PPC_STMW_opcode:
+      //-#if RVM_FOR_32_ADDR
+      case PPC_STAddr_opcode:
+      //-#endif
         {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
@@ -740,6 +874,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+      //-#if RVM_FOR_32_ADDR
+      case PPC_STAddrU_opcode:
+      //-#endif
       case PPC_STWU_opcode:
       case PPC_STFDU_opcode:
       case PPC_STFSU_opcode:
@@ -751,6 +888,27 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
+      //-#if RVM_FOR_64_ADDR
+      case PPC64_STD_opcode:
+      case PPC_STAddr_opcode:
+        {
+          int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+          int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+          int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+      case PPC_STAddrU_opcode:
+        {
+          int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
+          int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+          int op2 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+      //-#endif
 
       case PPC_MFSPR_opcode:
         {
@@ -913,7 +1071,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
   /**
    * Debugging support (return a printable representation of the machine code).
    *
-   * @param instr, an integer to be interpreted as a PowerPC instruction
+   * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
    */
   private String disasm (int instr, int offset) {

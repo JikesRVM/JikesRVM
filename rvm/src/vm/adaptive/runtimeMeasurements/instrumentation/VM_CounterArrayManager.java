@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
 package com.ibm.JikesRVM.adaptive;
@@ -103,8 +103,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   /**
    * Create a place holder instruction to represent the counted event.
    *
-   * @param counterHandle  The handle of the array for the method
-   * @param index  Index within that array
+   * @param handle  The handle of the array for the method
+   * @param index   Index within that array
    * @param incrementValue The value to add to the counter
    * @return The counter instruction
    **/
@@ -138,8 +138,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    *
    *  Precondition: IR is in LIR
    *
-   * @param s The counter instruction to mutate
-   * @param ir The governing IR
+   * @param counterInst   The counter instruction to mutate
+   * @param ir            The governing IR
    **/
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
                                                OPT_IR ir) {
@@ -185,7 +185,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // Store it
     OPT_Instruction store = AStore.mutate(counterInst,DOUBLE_ASTORE,
                                          newValue, array2.copyU2D(),
-                                         OPT_IRTools.I(index),null,null);
+                                         OPT_IRTools.IC(index),null,null);
     OPT_ConvertToLowLevelIR.doArrayStore(store, ir, DOUBLE_STORE, 3);
                                        
   }
@@ -207,7 +207,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
                                                 int offset){
     OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);
     OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2,
-                                      OPT_IRTools.I(offset),
+                                      OPT_IRTools.IC(offset),
                                       null,null);
     s.insertBack(s2);
     return  regTarget.copyD2U();
@@ -224,8 +224,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   /**
    * decay counters
    *
-   * @param handle, the identifier of the counter array to decay
-   * @param rate, the rate at which to decay, i.e. a value of 2 will divide
+   * @param handle  The identifier of the counter array to decay
+   * @param rate    The rate at which to decay, i.e. a value of 2 will divide
    *                all values in half
    */
   static void decay(int handle, double rate) {

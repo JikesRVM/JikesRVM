@@ -81,7 +81,7 @@ class OPT_LTDominators extends OPT_Stack {
 
   /**
    * The constructor, called by the perform method
-   * @param   OPT_IR ir
+   * @param ir
    * @param forward Should we compute regular dominators, or post-dominators?
    */
   OPT_LTDominators(OPT_IR ir, boolean forward) {
@@ -398,7 +398,7 @@ class OPT_LTDominators extends OPT_Stack {
 
   /**
    *  This recursive method performs the path compression
-   *  @param the block of interest
+   *  @param block the block of interest
    */
   private void compress(OPT_BasicBlock block) {
     if (getAncestor(getAncestor(block)) != null) {

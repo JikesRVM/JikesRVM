@@ -21,7 +21,7 @@ $$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
 $$$$ END FOREACH
 $$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL == "ARCH_INDEPENDENT_END"
-     $$$$ FOREACH INNEROP ARCHITECTURE_IR_DIR/OperatorList.dat
+     $$$$ FOREACH INNEROP ARCH_OP_LIST
      $$$$ LET TMPVAL OPERATOR.INDEX + INNEROP.INDEX
 %term INNEROP.SYMBOL = TMPVAL
      $$$$ END LET

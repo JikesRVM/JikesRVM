@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //VM_BuildReferenceMaps.java
 //$Id$
@@ -1755,11 +1755,15 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    * the local variable given by the index with 1 or 2 words, has been set to a 
    * non reference value (eg int, float, etc)
    *
-   * @param localVariable variable index in the map
+   * @param localVariable             Variable index in the map
    * @param wordCount                 2 for doubles and longs, 1 otherwise
-   * @param reachableHandlerBBNum     the array with all the block numbers of
+   * @param reachableHandlerBBNums    The array with all the block numbers of
    *                                  reachable handlers 
-   * @param reachableHandlerCount     0 - reachableHandlerCount-1 valid array indices
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
+   *                                   - 1 </code> will all be valid   
+   *                                  array indices
+   * @param inJSRSub                  TODO Document ME XXX
+   * @param bbMaps                    TODO Document ME XXX
    * @return Void
    */
   private void setHandlersMapsNonRef(int localVariable, int wordCount, 
@@ -1794,11 +1798,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    * a non-reference if we
    * are tracking the difference maps (for a JSR subroutine).
    *
-   * @param localVariable             variable index in the map
-   * @param reachableHandlerBBNum     the array with all the block numbers of
+   * @param localVariable             Variable index in the map
+   * @param reachableHandlerBBNums    The array with all the block numbers of
    *                                  reachable handlers 
-   * @param reachableHandlerCount     0 - reachableHandlerCount-1 
-   * valid array indices
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
+   *                                   - 1 </code> will all be valid   
+   *                                  array indices
+   * @param bbMaps                    TODO Document ME XXX
    * @return Void
    */
   private void setHandlersMapsRef(int localVariable, 
@@ -1828,10 +1834,12 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    * are tracking the difference maps (for a JSR subroutine).
    *
    * @param localVariable             variable index in the map
-   * @param reachableHandlerBBNum     the array with all the block numbers of 
+   * @param reachableHandlerBBNums     the array with all the block numbers of 
    *                                  reachable handlers
-   * @param reachableHandlerCount     0 - reachableHandlerCount-1 valid 
-   * array indices
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
+   *                                   - 1 </code> will all be valid   
+   *                                  array indices
+   * @param bbMaps                    TODO Document ME XXX
    * @return Void
    */
   private void setHandlersMapsReturnAddress(int localVariable, 

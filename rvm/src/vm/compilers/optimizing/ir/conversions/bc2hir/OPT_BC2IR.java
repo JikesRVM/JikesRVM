@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -14,6 +14,9 @@ import com.ibm.JikesRVM.OSR.*;
 import com.ibm.JikesRVM.adaptive.*;
 import java.util.*;
 //-#endif
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class translates from bytecode to HIR.
@@ -192,7 +195,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
 
-  private void start(OPT_GenerationContext context) throws VM_PragmaNoInline {
+  private void start(OPT_GenerationContext context) throws NoInlinePragma {
     gc = context;
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java
@@ -1419,11 +1422,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           OPT_Operand op0 = popRef();
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
-            VM_TypeReference retType = getRefTypeOf(op0);
-            // fudge to deal with conservative approximation 
-            // in OPT_ClassLoaderProxy.findCommonSuperclass
-            if (retType != VM_TypeReference.JavaLangObject)
-              assertIsAssignable(gc.method.getReturnType(), getRefTypeOf(op0));
+            VM_TypeReference retType = op0.getType();
+            if (retType.isWordType()) {
+              VM._assert(gc.method.getReturnType().isWordType());
+            } else {
+              // fudge to deal with conservative approximation 
+              // in OPT_ClassLoaderProxy.findCommonSuperclass
+              if (retType != VM_TypeReference.JavaLangObject) {
+                assertIsAssignable(gc.method.getReturnType(), retType);
+              }
+            }
           }
           _returnHelper(REF_MOVE, op0);
         }
@@ -1616,7 +1624,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           VM_MethodReference ref = bcodes.getMethodReference();
 
-          // See if this is a magic method (VM_Address, VM_Word, etc.)
+          // See if this is a magic method (Address, Word, etc.)
           // If it is, generate the inline code and we are done.
           if (ref.getType().isMagicType()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
@@ -1675,6 +1683,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             isPreciseType = true;
             tr = VM_TypeReference.JavaLangString;
           } else if (VM.VerifyAssertions) {
+          if (isPreciseType && target != null) {
+            methOp.refine(target, true);
+          }
             VM._assert(false, "unexpected receiver");
           }
           VM_Type type = tr.peekResolvedType();
@@ -1745,7 +1756,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           VM_MethodReference ref = bcodes.getMethodReference();
 
-          // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
+          // See if this is a magic method (VM_Magic, Address, Word, etc.)
           // If it is, generate the inline code and we are done.
           if (ref.getType().isMagicType()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
@@ -2290,6 +2301,24 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           pushDual(new OPT_LongConstantOperand(value, offset));
           break;
         }
+        case PSEUDO_LoadWordConst: {
+          Address a;
+          //-#if RVM_FOR_32_ADDR
+          a = Address.fromIntSignExtend(bcodes.readIntConst());
+          //-#endif
+          //-#if RVM_FOR_64_ADDR
+          a = Address.fromLong(bcodes.readLongConst());
+          //-#endif
+
+          push(new OPT_AddressConstantOperand(a));
+          
+          if (VM.TraceOnStackReplacement) 
+            VM.sysWrite("PSEUDO_LoadWordConst 0x");
+            VM.sysWrite(a);
+            VM.sysWriteln();
+
+          break;
+        }
         case PSEUDO_LoadFloatConst:
         {
           int ibits = bcodes.readIntConst();
@@ -2320,12 +2349,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           break;
         }
 
-        case PSEUDO_LoadAddrConst:
+        case PSEUDO_LoadRetAddrConst:
         {
           int value = bcodes.readIntConst();
 
-              if (VM.TraceOnStackReplacement) 
-                VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
+          if (VM.TraceOnStackReplacement) 
+                VM.sysWriteln("PSEUDO_LoadRetAddrConst "+value);
 
           push(new ReturnAddressOperand(value));
           break;
@@ -2709,7 +2738,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Make a type operand that refers to the given type.
    *
-   * @param typ desired type
+   * @param type desired type
    */
   private OPT_TypeOperand makeTypeOperand(VM_TypeReference type) {
     return new OPT_TypeOperand(type);
@@ -2718,7 +2747,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Make a type operand that refers to the given type.
    *
-   * @param typ desired type
+   * @param type desired type
    */
   private OPT_TypeOperand makeTypeOperand(VM_Type type) {
     return new OPT_TypeOperand(type);
@@ -2936,7 +2965,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return null;
     }
     boolean doConstantProp = false;
-    if (op1 instanceof OPT_NullConstantOperand) {
+    if ((op1 instanceof OPT_NullConstantOperand) ||
+      (op1 instanceof OPT_AddressConstantOperand)) {
       doConstantProp = true;
     }
     VM_TypeReference type = op1.getType();
@@ -4257,8 +4287,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Should we inline a call site?
    *
    * @param call the call instruction being considered for inlining
-   * @param target target of the resolved method reference
-   * @param preciseTarget non-NULL => we're CERTAIN that the call will resolve to this target
    * @param isExtant is the receiver of a virtual method an extant object?
    */
   private OPT_InlineDecision shouldInline(OPT_Instruction call, 
@@ -4320,7 +4348,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // We could write code to deal with this, but since in practice the
     // opt compiler implements all but a few fringe magics, it is just fine
     // to completely give up rather than take heroic measures here.
-    // In a few cases we do care about, we use VM_PragmaNoInline to
+    // In a few cases we do care about, we use NoInlinePragma to
     // prevent the opt compiler from inlining a method that contains an
     // unimplemented magic.
     OPT_GenerationContext inlinedContext = 
@@ -4422,9 +4450,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         num_llocals++;
  
         if (op instanceof ReturnAddressOperand) {
-          ltypes[i] = AddressTypeCode;
+          ltypes[i] = ReturnAddressTypeCode;
         } else {
-          ltypes[i] = op.getType().getName().parseForTypeCode();
+          VM_TypeReference typ = op.getType();
+          if (typ.isWordType() || (typ == VM_TypeReference.NULL_TYPE)) {
+            ltypes[i] = WordTypeCode;
+          } else { 
+            ltypes[i] = typ.getName().parseForTypeCode();
+          }
         }
  
       } else {
@@ -4450,16 +4483,21 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         num_lstacks++;
  
         if (op instanceof ReturnAddressOperand) {
-          stypes[i] = AddressTypeCode;
+          stypes[i] = ReturnAddressTypeCode;
         } else {
-          /* for stack operand, reverse the order for long and double */
-          byte tcode = op.getType().getName().parseForTypeCode();
-          if ((tcode == LongTypeCode)
-              || (tcode == DoubleTypeCode)) {
-            stypes[i-1] = tcode;
-            stypes[i] = VoidTypeCode;
-          } else {
-            stypes[i] = op.getType().getName().parseForTypeCode();
+          VM_TypeReference typ = op.getType();
+          if (typ.isWordType() || (typ == VM_TypeReference.NULL_TYPE)) {
+            stypes[i] = WordTypeCode;
+          } else { 
+            /* for stack operand, reverse the order for long and double */
+            byte tcode = typ.getName().parseForTypeCode();
+            if ((tcode == LongTypeCode)
+                || (tcode == DoubleTypeCode)) {
+              stypes[i-1] = tcode;
+              stypes[i] = VoidTypeCode;
+            } else {
+              stypes[i] = tcode;
+            }
           }
         }
  
@@ -5355,9 +5393,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * To deal with the code bloat, we detect excessive code duplication and
      * stop IR generation (bail out to the baseline compiler).
      *
-     * @param simStack the expression stack to match
-     * @param simLocals the local variables to match
-     * @param candBBLE, the candidate BaseicBlockLE
+     * @param simStack  The expression stack to match
+     * @param simLocals The local variables to match
+     * @param candBBLE  The candidate BaseicBlockLE
      */
     private boolean matchingJSRcontext(OperandStack simStack,
                                        OPT_Operand[] simLocals,
@@ -5622,9 +5660,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Insert newBBLE as a child of parent in our Red/Black tree.
+     * Insert <code>newBBLE</code> as a child of parent in our Red/Black tree.
      * @param parent the parent node
-     * @param child  the new child node
+     * @param newBBLE  the new child node
      * @param left   is the child the left or right child of parent?
      */
     private void treeInsert(BasicBlockLE parent, 
@@ -6102,7 +6140,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      *
      * @param loc bytecode index
      * @param position inline sequence
-     * @param ex exception type
+     * @param eType   exception type
      * @param temps the register pool to allocate exceptionObject from
      * @param exprStackSize max size of expression stack
      * @param cfg OPT_ControlFlowGraph into which the block 

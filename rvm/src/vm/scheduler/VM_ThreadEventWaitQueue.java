@@ -5,13 +5,15 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Queue of threads waiting for a specific kind of event to occur.
  * This class contains the high level functionality of enqueueing
  * and dequeueing threads and implementing timeouts.
  * Subclasses implement methods which determine when events
  * have occurred. Subclasses <em>must</em> directly implement the
- * {@link VM_Uninterruptible} interface.
+ * {@link Uninterruptible} interface.
  *
  * <p>This class was adapted from the original
  * <code>VM_ThreadIOQueue</code>, which is now a subclass.
@@ -24,7 +26,7 @@ package com.ibm.JikesRVM;
  * @see VM_ThreadEventConstants
  */
 abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
-  implements VM_Uninterruptible, VM_ThreadEventConstants {
+  implements Uninterruptible, VM_ThreadEventConstants {
 
   protected VM_Thread head, tail;
 
@@ -52,14 +54,14 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
   /**
    * Dump state for debugging.
    */
-  void dump() throws VM_PragmaInterruptible {
+  void dump() throws InterruptiblePragma {
     dump(" ");
   }
  
   /**
    * Dump state for debugging.
    */
-  void dump(String prefix) throws VM_PragmaInterruptible {
+  void dump(String prefix) throws InterruptiblePragma {
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
       VM.sysWrite(t.getIndex());
@@ -73,13 +75,13 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
-  abstract void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
+  abstract void dumpWaitDescription(VM_Thread thread) throws InterruptiblePragma;
 
   /**
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  abstract String getWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
+  abstract String getWaitDescription(VM_Thread thread) throws InterruptiblePragma;
 
   /**
    * Check to see if any threads are ready to run, either because

@@ -3,17 +3,13 @@
  *     Australian National University. 2003
  */
 //$Id$
-package org.mmtk.utility;
+package org.mmtk.utility.scan;
 
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.ObjectModel;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class encapsulates type-specific memory management information. 
@@ -23,12 +19,12 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-public final class MMType implements Constants, VM_Uninterruptible {
+public final class MMType implements Constants, Uninterruptible {
   // AJG: Maybe should make this immutable.  See Item 13 of Effective Java.
   private boolean isReferenceArray;
   private boolean isDelegated;
   private boolean isAcyclic;
-  private VM_Offset arrayOffset;
+  private Offset arrayOffset;
   private int [] offsets;
   private int allocator;
   
@@ -62,7 +58,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    */
   public MMType(boolean isDelegated, boolean isReferenceArray, 
                 boolean isAcyclic, int allocator, int [] offsets)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
@@ -84,11 +80,12 @@ public final class MMType implements Constants, VM_Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  VM_Address getSlot(VM_Address object, int reference) throws VM_PragmaInline {
+  Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+    Address addr = object.toAddress();
     if (isReferenceArray)
-      return object.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
     else
-      return object.add(offsets[reference]);
+      return addr.add(offsets[reference]);
   }
 
   /**
@@ -99,9 +96,9 @@ public final class MMType implements Constants, VM_Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  int getReferences(VM_Address object) throws VM_PragmaInline {
+  int getReferences(ObjectReference object) throws InlinePragma {
     if (isReferenceArray)
-      return VM_Interface.getArrayLength(object);
+      return ObjectModel.getArrayLength(object);
     else
       return offsets.length;
   }
@@ -116,7 +113,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes allocated
    */
-  void profileAlloc(int size) throws VM_PragmaInline {
+  void profileAlloc(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       allocCount++;
       allocBytes += size;
@@ -128,7 +125,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes copied. 
    */
-  public void profileCopy(int size) throws VM_PragmaInline {
+  public void profileCopy(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       copyCount++;
       copyBytes += size;
@@ -140,7 +137,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes scanned. 
    */
-  void profileScan(int size) throws VM_PragmaInline {
+  void profileScan(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       scanCount++;
       scanBytes += size;
@@ -156,7 +153,10 @@ public final class MMType implements Constants, VM_Uninterruptible {
   boolean isDelegated() { return isDelegated; }
 
   /** @return True if this type is an array of references */
-  boolean isReferenceArray() { return isReferenceArray; }
+  // FIXME made public so that GCspy drivers can determine whether
+  // object is a reference array or not. Actually, we'like to do better
+  // and distinguish arrays of primitives as well.
+  public boolean isReferenceArray() { return isReferenceArray; }
 
   /** @return True if this type is known to be inherently acyclic */
   public boolean isAcyclic() { return isAcyclic; }

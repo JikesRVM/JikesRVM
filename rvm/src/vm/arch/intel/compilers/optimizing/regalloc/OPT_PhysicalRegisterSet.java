@@ -395,7 +395,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return one of INT_REG, DOUBLE_REG 
    */
   public static final int getPhysicalRegisterType(OPT_Register r) {
-    if (r.isInteger() || r.isLong()) {
+    if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_REG;
     } else if (r.isFloatingPoint()) {
       return DOUBLE_REG;

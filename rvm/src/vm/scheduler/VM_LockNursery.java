@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
 
 /**
  *   VM_LockNursery provides RVM support for synchronization on objects that
@@ -18,7 +19,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  *  @author Stephen Fink
  *  @author Dave Grove
  */
-public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
+public final class VM_LockNursery implements VM_Constants, Uninterruptible {
 
   private static final class VM_LockBucket {
     public VM_LockBucket next;

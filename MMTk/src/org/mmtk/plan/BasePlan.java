@@ -5,33 +5,28 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.policy.ImmortalLocal;
+import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.policy.LargeObjectLocal;
+import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.HeapGrowthManager;
-import org.mmtk.utility.ImmortalVMResource;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.MonotoneVMResource;
-import org.mmtk.utility.Options;
-import org.mmtk.utility.RawPageAllocator;
+import org.mmtk.utility.options.*;
+import org.mmtk.utility.deque.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.utility.VMResource;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This abstract class implments the core functionality for all memory
@@ -56,7 +51,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */
 public abstract class BasePlan 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -66,8 +61,7 @@ public abstract class BasePlan
   public static final boolean NEEDS_WRITE_BARRIER = false;
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
-  public static final boolean REF_COUNT_CYCLE_DETECTION = false;
-  public static final boolean REF_COUNT_SANITY_TRACING = false;
+  public static final boolean NEEDS_LINEAR_SCAN = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
@@ -77,74 +71,73 @@ public abstract class BasePlan
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
+  // GC state and control variables
   public static final int NOT_IN_GC = 0;   // this must be zero for C code
   public static final int GC_PREPARE = 1;  // before setup and obtaining root
   public static final int GC_PROPER = 2;
-
-  // GC state and control variables
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
   protected static int collectionsInitiated = 0;
   private static int gcStatus = NOT_IN_GC; // shared variable
   protected static int exceptionReserve = 0;
+  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
 
-  // Timing variables
-  protected static boolean insideHarness = false;
+  // Spaces
+  protected static final int IMMORTAL_MB = 32;
+  protected static final int META_DATA_MB = 32;
+  protected static final float LOS_FRAC = (float) 0.1;
+  protected static Space vmSpace = Memory.getVMSpace();
+  protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
+  protected static final int IMMORTAL = immortalSpace.getDescriptor();
+  protected static RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  protected static final int META = metaDataSpace.getDescriptor();
+  protected static LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
+  public static final int LOS = loSpace.getDescriptor();
 
-  // Meta data resources
-  private static MonotoneVMResource metaDataVM;
-  protected static MemoryResource metaDataMR;
-  protected static RawPageAllocator metaDataRPA;
-  public static MonotoneVMResource bootVM;
-  public static MemoryResource bootMR;
-  public static MonotoneVMResource immortalVM;
-  protected static MemoryResource immortalMR;
-  public static MonotoneVMResource gcspyVM;
-  protected static MemoryResource gcspyMR;
-  // 
-  // Space constants
-  private static final String[] spaceNames = new String[128];
-  public static final byte UNUSED_SPACE = 127;
-  public static final byte BOOT_SPACE = 126;
-  public static final byte META_SPACE = 125;
-  public static final byte IMMORTAL_SPACE = 124;
-  public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
-  public static final byte LOS_SPACE = 123;
+  // Allocators
+  public static final int ALLOC_DEFAULT = 0;
+  public static final int ALLOC_IMMORTAL = 1;
+  public static final int ALLOC_LOS = 2;
+  public static final int ALLOC_GCSPY = 3;
+  public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
+  public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
+  public static final int BASE_ALLOCATORS = 4;
 
   // Statistics
+  protected static boolean insideHarness = false;
   public static Timer totalTime;
   public static SizeCounter mark;
   public static SizeCounter cons;
 
   // Miscellaneous constants
-  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int LOS_SIZE_THRESHOLD = 8 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  public static final boolean GATHER_MARK_CONS_STATS = false;
 
   public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
-  // Memory layout constants
-  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromIntZeroExtend(0x10000000);
-  public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
-  protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
-  protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
-  protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
-  protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
-  protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
-  protected static final VM_Address      PLAN_START = META_DATA_END;
+  // options
+  public static Verbose verbose;
+  public static MetaDataLimit metaDataLimit;
+  public static NoFinalizer noFinalizer;
+  public static NoReferenceTypes noReferenceTypes;
+  public static StressFactor stressFactor;
+  public static NurserySize nurserySize;
+  public static FullHeapSystemGC fullHeapSystemGC;
+  public static VariableSizeHeap variableSizeHeap;
+  public static IgnoreSystemGC ignoreSystemGC;
+  public static VerboseTiming verboseTiming;
+  public static DummyEnum dummyEnum;
 
   /****************************************************************************
    *
    * Instance variables
    */
   private int id = 0;                     // Zero-based id of plan instance
-  public BumpPointer immortal;
+  public ImmortalLocal immortal;
+  protected LargeObjectLocal los;
   Log log;
 
   /****************************************************************************
@@ -159,23 +152,19 @@ public abstract class BasePlan
    * into the boot image by the build process.
    */
   static {
-    metaDataMR = new MemoryResource("meta", META_DATA_POLL_FREQUENCY);
-    metaDataVM = new MonotoneVMResource(META_SPACE, "Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
-    metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
-
-    bootMR = new MemoryResource("boot", META_DATA_POLL_FREQUENCY);
-    bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
-
-    immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
-    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE);
-
-    addSpace(UNUSED_SPACE, "Unused");
-    addSpace(BOOT_SPACE, "Boot");
-    addSpace(META_SPACE, "Meta");
-    addSpace(IMMORTAL_SPACE, "Immortal");
-
+    verbose = new Verbose();
+    verboseTiming = new VerboseTiming();
+    stressFactor = new StressFactor();
+    noFinalizer = new NoFinalizer();
+    noReferenceTypes = new NoReferenceTypes();
+    fullHeapSystemGC = new FullHeapSystemGC();
+    ignoreSystemGC = new IgnoreSystemGC();
+    metaDataLimit = new MetaDataLimit();
+    nurserySize = new NurserySize();
+    variableSizeHeap = new VariableSizeHeap();
+    dummyEnum = new DummyEnum();
     totalTime = new Timer("time");
-    if (GATHER_MARK_CONS_STATS) {
+    if (Stats.GATHER_MARK_CONS_STATS) {
       mark = new SizeCounter("mark", true, true);
       cons = new SizeCounter("cons", true, true);
     }
@@ -188,7 +177,8 @@ public abstract class BasePlan
   BasePlan() {
     id = planCount++;
     plans[id] = (Plan) this;
-    immortal = new BumpPointer(immortalVM);
+    immortal = new ImmortalLocal(immortalSpace);
+    los = new LargeObjectLocal(loSpace);
     log = new Log();
   }
 
@@ -196,9 +186,8 @@ public abstract class BasePlan
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public static void boot() throws VM_PragmaInterruptible {
-    if (Plan.GENERATE_GC_TRACE)
-      TraceGenerator.boot(BOOT_START);
+  public static void boot() throws InterruptiblePragma {
+    if (Plan.GENERATE_GC_TRACE) TraceGenerator.boot(Memory.HEAP_START());
   }
 
   /**
@@ -211,13 +200,13 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (Options.verbose > 2) VMResource.showAll();
-    if (Options.verbose > 0) Stats.startAll();
+    if (verbose.getValue() > 2) Space.printVMMap();
+    if (verbose.getValue() > 0) Stats.startAll();
   }
 
   public static void fullyBooted() {
     initialized = true;
-    exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
+    exceptionReserve = (int) (getTotalPages() * (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
   }
 
   /****************************************************************************
@@ -238,45 +227,145 @@ public abstract class BasePlan
    * @return The allocator dyncamically assigned to this allocation
    */
   public static int checkAllocator(int bytes, int align, int allocator) 
-    throws VM_PragmaInline {
-    if (allocator == Plan.DEFAULT_SPACE && 
+    throws InlinePragma {
+    if (allocator == ALLOC_DEFAULT && 
         Allocator.getMaximumAlignedSize(bytes, align) > LOS_SIZE_THRESHOLD)
-      return LOS_SPACE;
+      return ALLOC_LOS;
     else 
       return allocator;
   }
 
-  protected byte getSpaceFromAllocator(Allocator a) {
-    if (a == immortal) return IMMORTAL_SPACE;
-    return UNUSED_SPACE;
+  /**
+   * Given an allocator, <code>a</code>, determine the space into
+   * which <code>a</code> is allocating and then return an allocator
+   * (possibly <code>a</code>) associated with <i>this plan
+   * instance</i> which is allocating into the same space as
+   * <code>a</code>.<p>
+   *
+   * The need for the method is subtle.  The problem arises because
+   * application threads may change their affinity with
+   * processors/posix threads, and this may happen during a GC (at the
+   * point at which the scheduler performs thread switching associated
+   * with the GC). At the end of a GC, the thread that triggered the
+   * GC may now be bound to a different processor and thus the
+   * allocator instance on its stack may be no longer be valid
+   * (i.e. it may pertain to a different plan instance).<p>
+   *
+   * This method allows the correct allocator instance to be
+   * established and associated with the thread (see {@link
+   * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, int,
+   * boolean) Allocator.allocSlowBody()}).
+   *
+   * @see org.mmtk.utility.alloc.Allocator
+   * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int,
+   * int, boolean)
+   * @param a An allocator instance.
+   * @return An allocator instance associated with <i>this plan
+   * instance</i> that allocates into the same space as <code>a</code>
+   * (this may in fact be <code>a</code>).
+   */
+  public final Allocator getOwnAllocator(Allocator a) {
+    Space space = getSpaceFromAllocatorAnyPlan(a);
+    if (space == null)
+      Assert.fail("BasePlan.getOwnAllocator could not obtain space");
+    return getAllocatorFromSpace(space);
   }
 
-  public static byte getSpaceFromAllocatorAnyPlan(Allocator a) {
-    for (int i=0; i<plans.length; i++) {
-      byte space = plans[i].getSpaceFromAllocator(a);
-      if (space != UNUSED_SPACE)
-        return space;
+  /**
+   * Return the name of the space into which an allocator is
+   * allocating.  The allocator, <code>a</code> may be assocaited with
+   * any plan instance.
+   *
+   * @param a An allocator
+   * @return The name of the space into which <code>a</code> is
+   * allocating, or "<null>" if there is no space associated with
+   * <code>a</code>.
+   */
+  public static String getSpaceNameFromAllocatorAnyPlan(Allocator a) {
+    Space space = getSpaceFromAllocatorAnyPlan(a);
+    if (space == null)
+      return "<null>";
+    else
+      return space.getName();
+  }
+
+  /** 
+   * Return the space into which an allocator is allocating.  The
+   * allocator, <code>a</code> may be assocaited with any plan
+   * instance.
+   *
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  private static Space getSpaceFromAllocatorAnyPlan(Allocator a) {
+    for (int i = 0; i < plans.length; i++) {
+      if (plans[i] != null) {
+	Space space = plans[i].getSpaceFromAllocator(a);
+	if (space != null)
+	  return space;
+      }
     }
-    return UNUSED_SPACE;
-  }
-
-  protected Allocator getAllocatorFromSpace (byte s) {
-    if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
-    if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
-    if (s == IMMORTAL_SPACE) return immortal;
-    VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
     return null;
   }
 
-  public static Allocator getOwnAllocator (Allocator a) {
-    byte space = getSpaceFromAllocatorAnyPlan(a);
-    if (space == UNUSED_SPACE)
-      VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
-    Plan plan = VM_Interface.getPlan();
-    return plan.getAllocatorFromSpace(space);
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.
+   *
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   * <code>null</code> if there is no space associated with
+   * <code>a</code>.
+   */
+  protected Space getSpaceFromAllocator(Allocator a) {
+    if (a == immortal) return immortalSpace;
+    else if (a == los) return loSpace;
+    return null;
   }
 
-  /****************************************************************************
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.
+   *
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  protected Allocator getAllocatorFromSpace(Space space) {
+    if (space == immortalSpace) return immortal;
+    else if (space == loSpace) return los;
+    else if (space == metaDataSpace)
+      Assert.fail("BasePlan.getAllocatorFromSpace given meta space");
+    else if (space != null)
+      Assert.fail("BasePlan.getAllocatorFromSpace given invalid space");
+    else
+      Assert.fail("BasePlan.getAllocatorFromSpace given null space");
+    return null;
+  }
+
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
+   * 
+   * @param ref the object ref to the storage to be initialized
+   * @param typeRef the type reference for the instance being created
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @param status the initial value of the status word
+   * @return The new value of the status word
+   */
+  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
+                                              int size, Word status)
+    throws InlinePragma {
+    return status; // nothing to do (no bytes of GC header)
+  }
+
+ /****************************************************************************
    *
    * Object processing and tracing
    */
@@ -284,22 +373,33 @@ public abstract class BasePlan
   /**
    * Add a gray object
    *
-   * @param obj The object to be enqueued
+   * @param object The object to be enqueued
    */
-  public static final void enqueue(VM_Address obj)
-    throws VM_PragmaInline {
-    VM_Interface.getPlan().values.push(obj);
+  public static final void enqueue(ObjectReference object)
+    throws InlinePragma {
+    Plan.getInstance().values.push(object);
+  }
+
+  /**
+   * Return true if the object is either forwarded or being forwarded
+   *
+   * @param object
+   * @return True if the object is either forwarded or being forwarded
+   */
+  public static boolean isForwardedOrBeingForwarded(ObjectReference object) 
+    throws InlinePragma {
+    return false;
   }
 
   /**
    * Add an unscanned, forwarded object for subseqent processing.
    * This mechanism is necessary for "pre-copying".
    *
-   * @param obj The object to be enqueued
+   * @param object The object to be enqueued
    */
-  public static final void enqueueForwardedUnscannedObject(VM_Address obj)
-    throws VM_PragmaInline {
-    VM_Interface.getPlan().forwardedObjects.push(obj);
+  public static final void enqueueForwardedUnscannedObject(ObjectReference object)
+    throws InlinePragma {
+    Plan.getInstance().forwardedObjects.push(object);
   }
 
   /**
@@ -311,11 +411,11 @@ public abstract class BasePlan
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    * @param root True if <code>objLoc</code> is within a root.
    */
-  public static final void traceObjectLocation(VM_Address objLoc, boolean root)
-    throws VM_PragmaInline {
-    VM_Address obj = VM_Magic.getMemoryAddress(objLoc);
-    VM_Address newObj = Plan.traceObject(obj, root);
-    VM_Magic.setMemoryAddress(objLoc, newObj);
+  public static final void traceObjectLocation(Address objLoc, boolean root)
+    throws InlinePragma {
+    ObjectReference object = objLoc.loadObjectReference();
+    ObjectReference newObject = Plan.traceObject(object, root);
+    objLoc.store(newObject);
   }
 
   /**
@@ -327,8 +427,8 @@ public abstract class BasePlan
    * @param objLoc The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    */
-  public static final void traceObjectLocation(VM_Address objLoc)
-    throws VM_PragmaInline {
+  public static final void traceObjectLocation(Address objLoc)
+    throws InlinePragma {
     traceObjectLocation(objLoc, false);
   }
 
@@ -337,27 +437,26 @@ public abstract class BasePlan
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
-   * interior pointer.
+   * @param object The object reference to be traced.
    * @param interiorRef The interior reference inside obj that must be traced.
    * @param root True if the reference to <code>obj</code> was held in a root.
    * @return The possibly moved interior reference.
    */
-  public static final VM_Address traceInteriorReference(VM_Address obj,
-                                                        VM_Address interiorRef,
+  public static final Address traceInteriorReference(ObjectReference object,
+                                                        Address interiorRef,
                                                         boolean root) {
-    VM_Offset offset = interiorRef.diff(obj);
-    VM_Address newObj = Plan.traceObject(obj, root);
-    if (VM_Interface.VerifyAssertions) {
-      if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
+    Offset offset = interiorRef.diff(object.toAddress());
+    ObjectReference newObject = Plan.traceObject(object, root);
+    if (Assert.VERIFY_ASSERTIONS) {
+      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
-        Log.write("       object base = "); Log.writeln(obj);
+        Log.write("       object base = "); Log.writeln(object);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
-        VM_Interface._assert(false);
+        Assert._assert(false);
       }
     }
-    return newObj.add(offset);
+    return newObject.toAddress().add(offset);
   }
 
   /**
@@ -368,10 +467,20 @@ public abstract class BasePlan
    * @param location An address known to contain a pointer.  The
    * location is within the object being scanned by ScanObject.
    */
-  public void enumeratePointerLocation(VM_Address location) {}
-  // XXX Javadoc comment missing.
-  public static boolean willNotMove(VM_Address obj) {
-    return !VMResource.refIsMovable(obj);
+  public void enumeratePointerLocation(Address location) {}
+
+  /**
+   * Return true if an object is known to be immovable.  This method
+   * should be refined by subclasses.  At this level we simply make a
+   * conservative check whether the object resides in a space that is
+   * declared to be immovable.
+   *
+   * @param object The object whose movability is being tested
+   * @return True if the object resides in a space that is known to be
+   * immovable.
+   */
+  public static boolean willNotMove(ObjectReference object) {
+    return !Space.isMovable(object);
   }
 
   /**
@@ -387,9 +496,8 @@ public abstract class BasePlan
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  public static void forwardObjectLocation(VM_Address location) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+  public static void forwardObjectLocation(Address location) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
   }
 
   /**
@@ -404,9 +512,8 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  public static VM_Address getForwardedReference(VM_Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+  public static ObjectReference getForwardedReference(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
     return object;
   }
 
@@ -416,7 +523,7 @@ public abstract class BasePlan
    *
    * @param object The object which is to be made alive.
    */
-  public static void makeAlive(VM_Address object) {
+  public static void makeAlive(ObjectReference object) {
     Plan.traceObject(object);
   }
  
@@ -436,7 +543,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  public static VM_Address retainFinalizable(VM_Address object) {
+  public static ObjectReference retainFinalizable(ObjectReference object) {
     return Plan.traceObject(object);
   }
 
@@ -449,7 +556,7 @@ public abstract class BasePlan
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  public static boolean isFinalizable(VM_Address object) {
+  public static boolean isFinalizable(ObjectReference object) {
     return !Plan.isLive(object);
   }
 
@@ -473,11 +580,12 @@ public abstract class BasePlan
    * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The context in which the store occured
    */
-  public void writeBarrier(VM_Address src, VM_Address slot,
-                           VM_Address tgt, int metaDataA, int metaDataB, int mode) {
+  public void writeBarrier(ObjectReference src, Address slot,
+                           ObjectReference tgt, int metaDataA, int metaDataB,
+                           int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
 
   /**
@@ -498,12 +606,12 @@ public abstract class BasePlan
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(VM_Address src, int srcOffset,
-			      VM_Address dst, int dstOffset,
+  public boolean writeBarrier(ObjectReference src, int srcOffset,
+			      ObjectReference dst, int dstOffset,
 			      int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return false;
   }
 
@@ -512,17 +620,16 @@ public abstract class BasePlan
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
-   * @param src The object being read.
-   * @param src The address being read.
+   * @param src The object reference being read.
    * @param context The context in which the read arose (getfield, for example)
    * @return The reference that was read.
    */
-  public final VM_Address readBarrier(VM_Address src, VM_Address slot,
-                                      int context)
-    throws VM_PragmaInline {
+  public final Address readBarrier(ObjectReference src, Address slot,
+				   int context)
+    throws InlinePragma {
     // read barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return VM_Address.max();
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return Address.max();
   }
 
   /****************************************************************************
@@ -537,26 +644,21 @@ public abstract class BasePlan
    * <i> For this method to be accurate, collectors must override this method
    * to define results for the spaces they create.</i>
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a reachable object in a space known by
    *         the class; unreachable objects may still be live, however.  False 
    *         will be returned if it cannot be determined if the object is 
    *         reachable (e.g., resides in a space unknown to the class).
    */
-  public boolean isReachable(VM_Address obj) {
-    if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
-    byte space = VMResource.getSpace(addr);
-    switch (space) {
-    case IMMORTAL_SPACE:  return ImmortalSpace.isReachable(obj);
-    case BOOT_SPACE:      return ImmortalSpace.isReachable(obj);
-    default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysFail("BasePlan.isReachable given object from unknown space");
-      }
+  public boolean isReachable(ObjectReference object) {
+    if (object.isNull()) return false;
+    if (Space.isImmortal(object)) {
+      return ImmortalSpace.isReachable(object);
+    }
+      if (Assert.VERIFY_ASSERTIONS)
+	Assert.fail("BasePlan.isReachable given object from unknown space");
       return false;
     }
-  }
 
   /**
    * Follow a reference during GC.  This involves determining which
@@ -565,30 +667,19 @@ public abstract class BasePlan
    * <i> For this method to be accurate, collectors must override this method
    * to define results for the spaces they create.</i>   
    *
-   * @param obj The object reference to be followed.  This is <i>NOT</i> an
-   * interior pointer.
+   * @param object The object reference to be followed.  This is
+   * <i>NOT</i> an interior pointer.
    * @return The possibly moved reference.
    */
-  public static VM_Address followObject(VM_Address obj) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
-    return VM_Address.zero();
+  public static ObjectReference followObject(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
+    return ObjectReference.nullReference();
   }
   
   /****************************************************************************
    *
    * Space management
    */
-
-  static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
-    if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
-    spaceNames[sp] = name;
-  }
-
-  static public String getSpaceName (byte sp) {
-    if (spaceNames[sp] == null) VM_Interface.sysFail("getSpace called on unregisted space");
-    return spaceNames[sp];
-  }
 
   /**
    * Return the amount of <i>free memory</i>, in bytes (where free is
@@ -600,8 +691,8 @@ public abstract class BasePlan
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
-  public static long freeMemory() throws VM_PragmaUninterruptible {
-    return totalMemory() - usedMemory();
+  public static Extent freeMemory() throws UninterruptiblePragma {
+    return totalMemory().sub(usedMemory());
   }
 
   /**
@@ -611,8 +702,8 @@ public abstract class BasePlan
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static long usedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesUsed()).toLong();
+  public static Extent usedMemory() throws UninterruptiblePragma {
+    return Conversions.pagesToBytes(Plan.getPagesUsed());
   }
 
 
@@ -623,8 +714,8 @@ public abstract class BasePlan
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static long reservedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesReserved()).toLong();
+  public static Extent reservedMemory() throws UninterruptiblePragma {
+    return Conversions.pagesToBytes(Plan.getPagesReserved());
   }
 
   /**
@@ -634,7 +725,7 @@ public abstract class BasePlan
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
-  public static long totalMemory() throws VM_PragmaUninterruptible {
+  public static Extent totalMemory() throws UninterruptiblePragma {
     return HeapGrowthManager.getCurrentHeapSize();
   }
 
@@ -645,8 +736,8 @@ public abstract class BasePlan
    * @return The total amount of memory managed to the memory
    * management system, in pages.
    */
-  public static int getTotalPages() throws VM_PragmaUninterruptible { 
-    return Conversions.bytesToPages((int) totalMemory()); 
+  public static int getTotalPages() throws UninterruptiblePragma { 
+    return totalMemory().toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**
@@ -674,9 +765,9 @@ public abstract class BasePlan
    * thus it is unsynchronized.
    */
   public static void checkForAsyncCollection() {
-    if (awaitingCollection && VM_Interface.noThreadsInGC()) {
+    if (awaitingCollection && Collection.noThreadsInGC()) {
       awaitingCollection = false;
-      VM_Interface.triggerAsyncCollection();
+      Collection.triggerAsyncCollection();
     }
   }
 
@@ -684,7 +775,7 @@ public abstract class BasePlan
    * A collection has been initiated.  Increment the collectionInitiated
    * state variable appropriately.
    */
-  public static void collectionInitiated() throws VM_PragmaUninterruptible {
+  public static void collectionInitiated() throws UninterruptiblePragma {
     collectionsInitiated++;
   }
 
@@ -692,9 +783,8 @@ public abstract class BasePlan
    * A collection has fully completed.  Decrement the collectionInitiated
    * state variable appropriately.
    */
-  public static void collectionComplete() throws VM_PragmaUninterruptible {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(collectionsInitiated > 0);
+  public static void collectionComplete() throws UninterruptiblePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
     // FIXME The following will probably break async GC.  A better fix
     // is needed
     collectionsInitiated = 0;
@@ -724,16 +814,16 @@ public abstract class BasePlan
    * @return True if a collection is in progress.
    */
   protected static void setGcStatus (int s) {
-    VM_Magic.isync();
+    Memory.isync();
     gcStatus = s;
-    VM_Magic.sync();
+    Memory.sync();
   }
 
   /**
    * A user-triggered GC has been initiated.  By default, do nothing,
    * but this may be overridden.
    */
-  public static void userTriggeredGC() throws VM_PragmaUninterruptible {
+  public static void userTriggeredGC() throws UninterruptiblePragma {
   }
 
   /****************************************************************************
@@ -748,10 +838,10 @@ public abstract class BasePlan
    * instrumentation, etc.  By default do nothing.  Subclasses may
    * override.
    */
-  public static void harnessBegin() throws VM_PragmaInterruptible {
-    Options.fullHeapSystemGC = true;
+  public static void harnessBegin() throws InterruptiblePragma {
+    fullHeapSystemGC.setValue(true);
     System.gc();
-    Options.fullHeapSystemGC = false;
+    fullHeapSystemGC.setValue(false);
  
     insideHarness = true;
     Stats.startAll();
@@ -771,17 +861,6 @@ public abstract class BasePlan
   }
 
   /**
-   * This method should be called whenever an error is encountered.
-   *
-   * @param str A string describing the error condition.
-   */
-  public void error(String str) {
-    MemoryResource.showUsage(PAGES);
-    MemoryResource.showUsage(MB);
-    VM_Interface.sysFail(str);
-  }
-
-  /**
    * Return the GC count (the count is incremented at the start of
    * each GC).
    *
@@ -797,8 +876,8 @@ public abstract class BasePlan
    *
    * @return The <code>RawPageAllocator</code> being used.
    */
-  public static RawPageAllocator getMetaDataRPA() {
-    return metaDataRPA;
+  public static RawPageSpace getMetaDataRPA() {
+    return metaDataSpace;
   }
 
   /**
@@ -807,16 +886,16 @@ public abstract class BasePlan
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    if (Options.verbose == 1) {
+    if (verbose.getValue() == 1) {
       Log.write("[End "); 
       totalTime.printTotalSecs();
       Log.writeln(" s]");
-    } else if (Options.verbose == 2) {
+    } else if (verbose.getValue() == 2) {
       Log.write("[End ");
       totalTime.printTotalMillis();
       Log.writeln(" ms]");
     }
-    if (Options.verboseTiming) printDetailedTiming(true);
+    if (verboseTiming.getValue()) printDetailedTiming(true);
     planExit(value);
     if (Plan.GENERATE_GC_TRACE)
       TraceGenerator.notifyExit(value);
@@ -843,64 +922,8 @@ public abstract class BasePlan
 
   /****************************************************************************
    *
-   * Miscellaneous
+   * GCspy
    */
-
-  final static int PAGES = 0;
-  public final static int MB = 1;
-  final static int PAGES_MB = 2;
-  final static int MB_PAGES = 3;
-
-  /**
-   * Print out the number of pages and or megabytes, depending on the mode.
-   * A prefix string is outputted first.
-   *
-   * @param prefix A prefix string
-   * @param pages The number of pages
-   */
-  public static void writePages(int pages, int mode) {
-    double mb = Conversions.pagesToBytes(pages).toWord().rshl(20).toInt();
-    switch (mode) {
-      case PAGES: Log.write(pages); Log.write(" pgs"); break; 
-      case MB:    Log.write(mb); Log.write(" Mb"); break;
-      case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
-    case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
-      default: VM_Interface.sysFail("writePages passed illegal printing mode");
-    }
-  }
-
-  /**
-   * Print a failure message for the case where an object in an
-   * unknown space is traced.
-   *
-   * @param obj The object being traced
-   * @param space The space with which the object is associated
-   * @param source Information about the source of the problem
-   */
-  protected static void spaceFailure(VM_Address obj, byte space, 
-                                     String source) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
-    Log.write(source);
-    Log.write(": obj "); Log.write(obj);
-    Log.write(" or addr "); Log.write(addr);
-    Log.write(" of page "); Log.write(Conversions.addressToPagesDown(addr));
-    Log.write(" is in unknown space ");
-    Log.writeln(space);
-    Log.write("Type = ");
-    Log.write(VM_Interface.getTypeDescriptor(obj));
-    Log.writeln();
-    Log.write(source);
-    VM_Interface.sysFail(": unknown space");
-  }
-
-  /**
-   * Return the <code>Log</code> instance for this plan.
-   *
-   * @return the <code>Log</code> instance
-   */
-  public Log getLog() {
-    return log;
-  }
 
   /**
    * Start the GCSpy server
@@ -911,50 +934,50 @@ public abstract class BasePlan
   protected static void startGCSpyServer(int port, boolean wait) {}
 
   /**
-   * Prepare GCSpy for a collection
-   * Order of operations is guaranteed by StopTheWorld plan
-   *	1. globalPrepare()
-   *	2. threadLocalPrepare()
-   *	3. gcspyPrepare()
-   *	4. gcspyPreRelease()
-   *	5. threadLocalRelease()
-   *	6. gcspyRelease()
-   *	7. globalRelease()
-   *
-   * Typically, zero gcspy's buffers
-   */
-  protected void gcspyPrepare() {}
-
-  /**
    * Deal with root locations
-   *
    */
   protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
 
   /**
    * Before thread-local release
-   *
    */
   protected void gcspyPreRelease() {}
 
   /**
    * After thread-local release
-   *
    */
   protected void gcspyPostRelease() {}  
-  
+
   /**
-   * After VMResource release
-   * @param start the start of the released resource
-   * @param bytes the number of bytes released
+   * Called by GCspy drivers (this version is either overridden or unused)
+   * @return a unique space ID
    */
-  public static void releaseVMResource(VM_Address start, VM_Extent bytes) {} 
-  
+  public static int getNextServerSpaceId() { 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return 0; 
+  }
+
   /**
-   * After VMResource acquisition
-   * @param start the start of the acquired resource
-   * @param bytes the number of bytes acquired
+   * Start the server and wait if necessary
+   * 
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  public static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
+  public static void startGCspyServer(int port, boolean wait)
+    throws InterruptiblePragma {}
+
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
+
+  /**
+   * Return the <code>Log</code> instance for this plan.
+   *
+   * @return the <code>Log</code> instance
+   */
+  public Log getLog() {
+    return log;
+  }
 
 }

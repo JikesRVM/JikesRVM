@@ -87,8 +87,8 @@ classpath="   -classpath $MY_SPEC_HOME/src"
 heapSize=400
 verbose=1
 
-# jvm_options="-Xms$heapSize -verbose:gc  -X:opt:errors_fatal=true"
-jvm_options="-Xms$heapSize -X:opt:errors_fatal=true"
+# rvm_options="-Xms${heapSize}M -verbose:gc  -X:opt:errors_fatal=true"
+rvm_options="-Xms${heapSize}M -X:opt:errors_fatal=true"
 
 #### Run 1 ####
 
@@ -98,12 +98,12 @@ echo "RVM: BUILD: $RVM_BUILD"
 echo "host: "`uname -a`
 echo " numProcessors: $numProcessors"
 echo " output_log   : $output_log"
-echo " options      : $jvm_options"
+echo " options      : $rvm_options"
 echo " config       : $config"
 echo ""
 
-echo "$RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1"
+echo "$RVM_ROOT/rvm/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1"
 
-      $RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
+      $RVM_ROOT/rvm/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
 
 

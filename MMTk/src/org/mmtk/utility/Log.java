@@ -7,18 +7,14 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Strings;
+import org.mmtk.vm.Barriers;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Word;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Error and trace logging.
@@ -28,7 +24,7 @@ import com.ibm.JikesRVM.VM_Word;
  * @version $Revision$
  * @date $Date$
  */ 
-public class Log implements Constants, VM_Uninterruptible {
+public class Log implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -37,18 +33,22 @@ public class Log implements Constants, VM_Uninterruptible {
 
   /**
    * characters in the write buffer for the caller's message.  This
-   * does not inlcude characters reserved for the overflow message.
+   * does not include characters reserved for the overflow message.
+   *
+   * This needs to be large because Jikes RVM's implementation of Lock.java
+   * logs a lot of information when there is potential GC deadlock.
    */
-  private static final int MESSAGE_BUFFER_SIZE = 1000;
+  private static final int MESSAGE_BUFFER_SIZE = 3000;
 
   /** message added when the write buffer has overflown */
   private static final String OVERFLOW_MESSAGE =
-    "... WARNING: Text truncated.";
+    "... WARNING: Text truncated.\n";
 
   private static final char OVERFLOW_MESSAGE_FIRST_CHAR =
     OVERFLOW_MESSAGE.charAt(0);
 
-  /** characters in the overflow message */
+  /** characters in the overflow message, including the (optional) final
+   * newline  */ 
   private static final int OVERFLOW_SIZE = OVERFLOW_MESSAGE.length();
 
   /**
@@ -103,6 +103,10 @@ public class Log implements Constants, VM_Uninterruptible {
   
   /** <code>true</code> if the buffer has overflown */
   private boolean overflow = false;
+  
+  /** The last character that was written by #addToBuffer(char).  This is
+      used to check whether we want to newline-terminate the text. */
+  private char overflowLastChar = '\0';
 
   /** <code>true</code> if a thread id will be prepended */
   private boolean threadIdFlag = false;
@@ -113,7 +117,7 @@ public class Log implements Constants, VM_Uninterruptible {
   /** constructor */
   public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
-      VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
+      Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
                                      OVERFLOW_MESSAGE.charAt(i));
   }
   
@@ -150,28 +154,28 @@ public class Log implements Constants, VM_Uninterruptible {
     char [] intBuffer = getIntBuffer();
     
     nextDigit = (int)(l % 10);
-    nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+    nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                               negative
                                               ? - nextDigit
                                               : nextDigit);
-    VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
+    Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
     
     while (l != 0) {
       nextDigit = (int)(l % 10);
-      nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+      nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                                 negative
                                                 ? - nextDigit
                                                 : nextDigit);
-      VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
+      Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
     
     if (negative)
-      VM_Interface.setArrayNoBarrier(intBuffer, index--, '-');
+      Barriers.setArrayNoBarrier(intBuffer, index--, '-');
     
     for (index++; index < TEMP_BUFFER_SIZE; index++)
-      add(VM_Interface.getArrayNoBarrier(intBuffer, index));
+      add(Barriers.getArrayNoBarrier(intBuffer, index));
   }
 
   /**
@@ -198,7 +202,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * "TooSmall".  If <code>d</code> is NaN is is logged as "NaN".
    *
    * @param d the double to be logged
-   * @param postDecimaldigits the number of digits to be logged after
+   * @param postDecimalDigits the number of digits to be logged after
    * the decimal point.  If less than or equal to zero no digits are
    * logged, but the decimal point is.
    */
@@ -250,9 +254,9 @@ public class Log implements Constants, VM_Uninterruptible {
    * the first character
    */
   public static void write(char [] c, int len) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(len <= c.length);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(len <= c.length);
     for (int i = 0; i < len; i++)
-      add(VM_Interface.getArrayNoBarrier(c, i));
+      add(Barriers.getArrayNoBarrier(c, i));
   }
 
   /**
@@ -263,7 +267,7 @@ public class Log implements Constants, VM_Uninterruptible {
    */
   public static void write(byte [] b) {
     for (int i = 0; i < b.length; i++)
-      add((char)VM_Interface.getArrayNoBarrier(b, i));
+      add((char)Barriers.getArrayNoBarrier(b, i));
   }
 
   /**
@@ -281,7 +285,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param w the word to be logged
    */
-  public static void write(VM_Word w) {
+  public static void write(Word w) {
     writeHex(w, BYTES_IN_ADDRESS);
   }
 
@@ -290,8 +294,17 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param a the address to be logged
    */
-  public static void write(VM_Address a) {
+  public static void write(Address a) {
     writeHex(a.toWord(), BYTES_IN_ADDRESS);
+  }
+
+  /**
+   * writes an object reference, in hexademical.  It is zero-padded.
+   *
+   * @param o the object reference to be logged
+   */
+  public static void write(ObjectReference o) {
+    writeHex(o.toAddress().toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -299,8 +312,17 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param o the offset to be logged
    */
-  public static void write(VM_Offset o) {
+  public static void write(Offset o) {
     writeHex(o.toWord(), BYTES_IN_ADDRESS);
+  }
+
+  /**
+   * writes an extent, in hexademical.  It is zero-padded.
+   *
+   * @param e the extent to be logged
+   */
+  public static void write(Extent e) {
+    writeHex(e.toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -355,7 +377,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * writes an array of characters and a new-line, then flushes the buffer.
    * @see #write(char [])
    *
-   * @param c the array of characters to be logged
+   * @param ca the array of characters to be logged
    */
   public static void writeln(char [] ca) { writeln(ca, true); }
 
@@ -364,7 +386,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * flushes the buffer.
    * @see #write(char [], int)
    *
-   * @param c the array of characters
+   * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    */
@@ -388,27 +410,45 @@ public class Log implements Constants, VM_Uninterruptible {
 
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
-   * @see #write(VM_Word)
+   * @see #write(Word)
    *
    * @param w the word to be logged
    */
-  public static void writeln(VM_Word w) { writeln(w, true); }
+  public static void writeln(Word w) { writeln(w, true); }
 
   /**
-   * writes an address, in hexademical, and a new-line, then flushes the buffer.
-   * @see #write(VM_Address)
+   * writes an address, in hexademical, and a new-line, then flushes
+   * the buffer.
+   * @see #write(Address)
    *
    * @param a the address to be logged
    */
-  public static void writeln(VM_Address a) { writeln(a, true); }
+  public static void writeln(Address a) { writeln(a, true); }
+
+  /**
+   * writes an object reference, in hexademical, and a new-line, then
+   * flushes the buffer.
+   * @see #write(ObjectReference)
+   *
+   * @param o the object reference to be logged
+   */
+  public static void writeln(ObjectReference o) { writeln(o, true); }
 
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
-   * @see #write(VM_Offset)
+   * @see #write(Offset)
    *
    * @param o the offset to be logged
    */
-  public static void writeln(VM_Offset o) { writeln(o, true); }
+  public static void writeln(Offset o) { writeln(o, true); }
+
+  /**
+   * writes an extent, in hexademical, and a new-line, then flushes the buffer.
+   * @see #write(Extent)
+   *
+   * @param e the extent to be logged
+   */
+  public static void writeln(Extent e) { writeln(e, true); }
 
   /**
    * writes a new-line without flushing the buffer
@@ -487,7 +527,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * flushes the buffer.
    * @see #write(char [])
    *
-   * @param c the array of characters to be logged
+   * @param ca the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
   public static void writeln(char [] ca, boolean flush) {
@@ -500,7 +540,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * optionally flushes the buffer.
    * @see #write(char [], int)
    *
-   * @param c the array of characters
+   * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    * @param flush if <code>true</code> then flushes the buffer
@@ -543,12 +583,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a word, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Word)
+   * @see #write(Word)
    *
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Word w, boolean flush) {
+  public static void writeln(Word w, boolean flush) {
     write(w);
     writelnWithFlush(flush);
   }
@@ -557,56 +597,64 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes an address, in hexademical, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Address a, boolean flush) {
+  public static void writeln(Address a, boolean flush) {
     write(a);
+    writelnWithFlush(flush);
+  }
+
+  /**
+   * writes an object reference, in hexademical, and a new-line, then
+   * optionally flushes the buffer.
+   * @see #write(ObjectReference)
+   *
+   * @param o the object reference to be logged
+   * @param flush if <code>true</code> then flushes the buffer
+   */
+  public static void writeln(ObjectReference o, boolean flush) {
+    write(o);
     writelnWithFlush(flush);
   }
 
   /**
    * writes an offset, in hexademical, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Offset)
+   * @see #write(Offset)
    *
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Offset o, boolean flush) {
+  public static void writeln(Offset o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
   }
 
   /**
-   * writes a string followed by a VM_Address
-   * @see #write(String)
-   * @see #write(VM_Address)
+   * writes an extent, in hexademical, and a new-line, then optionally
+   * flushes the buffer.
+   * @see #write(Extent)
    *
-   * @param s the string to be logged
-   * @param a the VM_Address to be logged
+   * @param e the extent to be logged
+   * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void write (String s, VM_Address a) {
-    write(s);
-    write(a);
-  }
-
-  public static void write (String s, long l) {
-    write(s);
-    write(l);
+  public static void writeln(Extent e, boolean flush) {
+    write(e);
+    writelnWithFlush(flush);
   }
 
   /**
-   * writes a string followed by a VM_Address
+   * writes a string followed by a Address
    * @see #write(String)
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param s the string to be logged
-   * @param a the VM_Address to be logged
+   * @param a the Address to be logged
    */
-  public static void writeln (String s, VM_Address a) {
+  public static void writeln (String s, Address a) {
     write(s);
     writeln(a);
   }
@@ -642,12 +690,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a <code>long</code> in hexadecimal
    *
-   * @param l the VM_Word to be logged
+   * @param w the Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
    * of the most significant bytes are ignored.
    */
-  private static void writeHex(VM_Word w, int bytes) {
+  private static void writeHex(Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
     char [] intBuffer = getIntBuffer();
@@ -656,7 +704,7 @@ public class Log implements Constants, VM_Uninterruptible {
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+      char nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                                      nextDigit);
       add(nextChar);
     }
@@ -681,8 +729,8 @@ public class Log implements Constants, VM_Uninterruptible {
   }
 
   private static Log getLog() {
-    if (VM_Interface.runningVM())
-      return VM_Interface.getPlan().getLog();
+    if (Assert.runningVM())
+      return Plan.getInstance().getLog();
     else
       return log;
   }
@@ -694,9 +742,11 @@ public class Log implements Constants, VM_Uninterruptible {
    */
   private void addToBuffer(char c) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE)
-      VM_Interface.setArrayNoBarrier(buffer, bufferIndex++, c);
-    else
+      Barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
+    else {
       overflow = true;
+      overflowLastChar = c;
+    }
   }
 
   /**
@@ -706,11 +756,14 @@ public class Log implements Constants, VM_Uninterruptible {
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
-      bufferIndex += VM_Interface.copyStringToChars(s, buffer, bufferIndex,
+      bufferIndex += Strings.copyStringToChars(s, buffer, bufferIndex,
                                                     MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
-        VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
+        // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
+        // MMTk method that lets us peek into a string.  Anyway, it's just a
+        // convenience to get the newline right.
+        Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
                                        OVERFLOW_MESSAGE_FIRST_CHAR); 
         bufferIndex--;
       }
@@ -722,14 +775,17 @@ public class Log implements Constants, VM_Uninterruptible {
    * flushes the buffer
    */
   private void flushBuffer() {
-    int totalMessageSize = overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE
+    int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
+    int totalMessageSize = 
+      overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust
       : bufferIndex;
     if (threadIdFlag)
-      VM_Interface.sysWriteThreadId(buffer, totalMessageSize);
+      Strings.writeThreadId(buffer, totalMessageSize);
     else
-      VM_Interface.sysWrite(buffer, totalMessageSize);
+      Strings.write(buffer, totalMessageSize);
     threadIdFlag = false;
     overflow = false;
+    overflowLastChar = '\0';
     bufferIndex = 0;
   }
 

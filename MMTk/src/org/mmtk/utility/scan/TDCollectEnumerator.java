@@ -3,12 +3,12 @@
  * Australian National University. 2003
  */
 //$Id$
-package org.mmtk.utility;
+package org.mmtk.utility.scan;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.mmtk.utility.TrialDeletion;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used by the trial
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $date: $
  */
-class TDCollectEnumerator extends Enumerate implements VM_Uninterruptible {
+public class TDCollectEnumerator extends Enumerate implements Uninterruptible {
   private TrialDeletion td;
 
   /**
@@ -28,7 +28,7 @@ class TDCollectEnumerator extends Enumerate implements VM_Uninterruptible {
    * @param plan The plan instance with respect to which the
    * enumeration will occur.
    */
-  TDCollectEnumerator(TrialDeletion td) {
+  public TDCollectEnumerator(TrialDeletion td) {
     this.td = td;
   }
 
@@ -37,8 +37,8 @@ class TDCollectEnumerator extends Enumerate implements VM_Uninterruptible {
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address objLoc) 
-    throws VM_PragmaInline {
-    td.enumerateCollect(VM_Magic.getMemoryAddress(objLoc));
+  public void enumeratePointerLocation(Address objLoc) 
+    throws InlinePragma {
+    td.enumerateCollect(objLoc.loadObjectReference());
   }
 }

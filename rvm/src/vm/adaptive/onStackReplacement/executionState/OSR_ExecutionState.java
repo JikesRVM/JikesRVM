@@ -16,6 +16,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import java.util.LinkedList;
 
+import org.vmmagic.unboxed.*;
+
 public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
  
   /* the caller's state if this method is an inlinee */
@@ -300,8 +302,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       }
       break;
     }
-    case ADDR: {
-      tail.next = new BC_LoadAddrConst(var.getIntBits());
+    case RET_ADDR: {
+      tail.next = new BC_LoadRetAddrConst(var.getIntBits());
       tail = tail.next;
       
       if (var.isLocal()) {
@@ -339,6 +341,16 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       
       this.objnum++;
 
+      break;
+    }
+    case WORD: {
+      tail.next = new BC_LoadWordConst(var.getWord());
+      tail = tail.next;
+      
+      if (var.isLocal()) {
+        tail.next = new BC_RefStore(var.getNumber());
+        tail = tail.next;
+      }
       break;
     }
     default:
@@ -427,8 +439,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 
       int size = bcode.getSize();
 
-      if (bcode instanceof BC_LoadAddrConst) {
-        BC_LoadAddrConst laddr = (BC_LoadAddrConst)bcode;
+      if (bcode instanceof BC_LoadRetAddrConst) {
+        BC_LoadRetAddrConst laddr = (BC_LoadRetAddrConst)bcode;
 
         /* CAUTION: path relative offset only. */
         laddr.patch(laddr.getOffset()+bsize);

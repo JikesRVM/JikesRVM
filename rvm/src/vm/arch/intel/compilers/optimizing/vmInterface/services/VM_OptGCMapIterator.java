@@ -1,9 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * An instance of this class provides iteration across the references 
@@ -16,11 +19,11 @@ import com.ibm.JikesRVM.*;
  * @author Michael Hind
  */
 public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-  implements VM_Uninterruptible , VM_SizeConstants{
+  implements Uninterruptible , VM_SizeConstants{
 
   private static final boolean DEBUG = false;
  
-  public VM_OptGCMapIterator(VM_WordArray registerLocations) {
+  public VM_OptGCMapIterator(WordArray registerLocations) {
     super(registerLocations);
   }
 
@@ -60,13 +63,13 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
       // get to the non vol area
-      VM_Address nonVolArea = framePtr.sub(frameOffset);
+      Address nonVolArea = framePtr.sub(frameOffset);
     
       // update non-volatiles
       int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
         // move to the beginning of the nonVol area
-        VM_Address location = nonVolArea;
+        Address location = nonVolArea;
         
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
@@ -86,7 +89,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the nonVol area
-        VM_Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
+        Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
         
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
@@ -112,25 +115,23 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param offset  the offset for the spill 
    *  @return the resulting spill location
    */
-  public VM_Address getStackLocation(VM_Address framePtr, int offset) {
+  public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.sub(offset);
   }
 
   /** 
    *  Get address of the first spill location for the given frame ptr
-   *  @param the frame pointer
    *  @return the first spill location
    */
-  public VM_Address getFirstSpillLoc() {
+  public Address getFirstSpillLoc() {
     return framePtr.sub(-VM.STACKFRAME_BODY_OFFSET);
   }
 
   /** 
    *  Get address of the last spill location for the given frame ptr
-   *  @param the frame pointer
    *  @return the last spill location
    */
-  public VM_Address getLastSpillLoc() {
+  public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
       return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
     } else {

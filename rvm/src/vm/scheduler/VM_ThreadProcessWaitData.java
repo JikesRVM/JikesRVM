@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Object specifying a process to wait for,
  * and for recording its exit status.
@@ -14,7 +16,7 @@ package com.ibm.JikesRVM;
  */
 public class VM_ThreadProcessWaitData
   extends VM_ThreadEventWaitData
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /** Process ID of process being waited for. */
   int pid;

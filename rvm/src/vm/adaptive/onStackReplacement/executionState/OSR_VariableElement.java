@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.*;
 
 /** 
  * An instance of OSR_VariableElement represents a byte code variable
@@ -30,12 +31,12 @@ public class OSR_VariableElement implements OSR_Constants {
    */
   private int num;
 
-  /* type code, can only be INT, FLOAT, LONG, DOUBLE, ADDR, or REF */
+  /* type code, can only be INT, FLOAT, LONG, DOUBLE, RET_ADDR, WORD or REF */
   private int tcode;
 
   /* The value of this element. 
-   * For type INT, FLOAT, and ADDR, the lower 32 bits are valid.
-   * For type LONG and DOUBLE, 64 bits are valid.
+   * For type INT, FLOAT, RET_ADDR and WORD (32-bit), the lower 32 bits are valid.
+   * For type LONG and DOUBLE and WORD(64-bit), 64 bits are valid.
    * For REF type, next field 'ref' is valid.
    *
    * For FLOAT, and DOUBLE, use VM_Magic.intBitsAsFloat
@@ -54,21 +55,34 @@ public class OSR_VariableElement implements OSR_Constants {
     switch (tcode) {
     case INT:
     case FLOAT:
-    case ADDR:
+    case RET_ADDR:
       return true;
+    case WORD:
+      return VM.BuildFor32Addr;
     default:
       return false;
     }
   }
 
   final static boolean isLBitsType(int tcode) {
-    return ((tcode == LONG) ||(tcode == DOUBLE));
+    switch (tcode) {
+    case LONG:
+    case DOUBLE:
+      return true;
+    case WORD:
+      return VM.BuildFor64Addr;
+    default:
+      return false;
+    }
   }
 
   final static boolean isRefType(int tcode) {
     return tcode == REF;
   }
 
+  final static boolean isWordType(int tcode) {
+    return tcode == WORD;
+  }
 
   //////////////////////////////////////
   // Initializer
@@ -86,7 +100,7 @@ public class OSR_VariableElement implements OSR_Constants {
     this.kind  = what_kind;
     this.num   = which_num;
     this.tcode = type;
-    this.value = (long)ibits & 0x0FFFFFFFF;
+    this.value = (long)ibits & 0x0FFFFFFFFL;
   }
 
   /* for 64-bit value */
@@ -119,6 +133,24 @@ public class OSR_VariableElement implements OSR_Constants {
     this.ref   = ref;
   }
 
+  /* for word type */
+  OSR_VariableElement(int what_kind,
+                     int which_num,
+                     int type,
+                     Word word) {
+    if (VM.VerifyAssertions) {
+      VM._assert(isWordType(type));
+    }
+
+    this.kind  = what_kind;
+    this.num   = which_num;
+    this.tcode = type;
+    if (VM.BuildFor32Addr)
+      this.value = ((long)word.toInt()) & 0x0FFFFFFFFL;
+    else 
+      this.value = word.toLong();
+  }
+
   ////////////////////////////////
   // instance method
   ////////////////////////////////
@@ -144,6 +176,20 @@ public class OSR_VariableElement implements OSR_Constants {
 
   Object getObject() {
     return ref;
+  }
+
+  /* is word type */
+  boolean isWordType() {
+    return (this.tcode == WORD);
+  }
+
+  Word getWord() {
+    //-#if RVM_FOR_32_ADDR
+    return Word.fromIntSignExtend((int)value);
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    return Word.fromLong(value);
+    //-#endif
   }
 
   /* for numerical */
@@ -180,11 +226,14 @@ public class OSR_VariableElement implements OSR_Constants {
     case DOUBLE:
       t = 'D';
       break;
-    case ADDR:
-      t = 'A';
+    case RET_ADDR:
+      t = 'R';
       break;
     case REF:
       t = 'L';
+      break;
+    case WORD:
+      t = 'W';
       break;
     }
 
@@ -198,10 +247,21 @@ public class OSR_VariableElement implements OSR_Constants {
         buf.append("null");
       } else {
         buf.append("0x");
-        buf.append(Integer.toHexString(VM_Magic.objectAsAddress(ref).toInt()));
+        if (VM.BuildFor32Addr)
+          buf.append(Integer.toHexString(VM_Magic.objectAsAddress(ref).toInt()));
+        else
+          buf.append(Long.toHexString(VM_Magic.objectAsAddress(ref).toLong()));
         buf.append(" ");
 //      buf.append(ref.toString());
       }
+      break;
+    case WORD:
+      buf.append("0x");
+      if (VM.BuildFor32Addr)
+        buf.append(Integer.toHexString((int)(value & 0x0FFFFFFFFL)));
+      else
+        buf.append(Long.toHexString(value));
+      buf.append(" ");
       break;
     case FLOAT:
       buf.append(VM_Magic.intBitsAsFloat((int)(value & 0x0FFFFFFFF)));

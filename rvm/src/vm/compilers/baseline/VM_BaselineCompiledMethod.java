@@ -7,6 +7,8 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.PrintLN; // not needed.
 
+import org.vmmagic.pragma.*;
+
 /**
  * Compiler-specific information associated with a method's machine 
  * instructions.
@@ -43,14 +45,14 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   //-#if RVM_WITH_OSR
   /* To make a compiled method's local/stack offset independ of
-   * original method, we move 'getFirstLocalOffset' and 'getEmptyStackOffset'
+   * original method, we move 'getStartLocalOffset' and 'getEmptyStackOffset'
    * here.
    */
-  private int firstLocalOffset;
+  private int startLocalOffset;
   private int emptyStackOffset;
  
-  public int getFirstLocalOffset() {
-    return firstLocalOffset;
+  public int getStartLocalOffset() {
+    return startLocalOffset;
   }
  
   public int getEmptyStackOffset() {
@@ -60,7 +62,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
     VM_NormalMethod nm = (VM_NormalMethod)m;
-    this.firstLocalOffset = VM_Compiler.getFirstLocalOffset(nm);
+    this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
   }
   //-#else
@@ -69,7 +71,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
   //-#endif
 
-  public final int getCompilerType () throws VM_PragmaUninterruptible {
+  public final int getCompilerType () throws UninterruptiblePragma {
     return BASELINE;
   }
 
@@ -77,7 +79,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return "baseline compiler";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
+  public final VM_ExceptionDeliverer getExceptionDeliverer () throws UninterruptiblePragma {
     return exceptionDeliverer;
   }
 
@@ -89,13 +91,13 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws UninterruptiblePragma {
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionIndex);
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
-  public final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
+  public final int findLineNumberForInstruction (int instructionOffset) throws UninterruptiblePragma {
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH; 
     int bci = findBytecodeIndexForInstruction(instructionIndex);
     if (bci == -1) return 0;
@@ -116,7 +118,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * @return the bytecode index for the machine instruction, -1 if
    *            not available or not found.
    */
-  public final int findBytecodeIndexForInstruction (int instructionIndex) throws VM_PragmaUninterruptible {
+  public final int findBytecodeIndexForInstruction (int instructionIndex) throws UninterruptiblePragma {
     int candidateIndex = -1;
     int bcIndex = 0, instrIndex = 0;
     for (int i = 0; i < bytecodeMap.length; ) {
@@ -215,7 +217,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     bitField1 |= HAS_COUNTERS;
   }
 
-  boolean hasCounterArray() throws VM_PragmaUninterruptible {
+  boolean hasCounterArray() throws UninterruptiblePragma {
     return (bitField1 & HAS_COUNTERS) != 0;
   }
 

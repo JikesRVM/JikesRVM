@@ -6,6 +6,8 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * An VM_Organizer acts an an intermediary between the low level 
  * online measurements and the controller.  An organizer may perform
@@ -71,7 +73,7 @@ abstract class VM_Organizer extends VM_Thread {
    * listener uses its own protocol to ensure that exactly 1 
    * thread will attempt to activate the organizer.
    */
-  private void passivate() throws VM_PragmaUninterruptible {
+  private void passivate() throws UninterruptiblePragma {
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());
       listener.activate();
@@ -82,7 +84,7 @@ abstract class VM_Organizer extends VM_Thread {
   /**
    * Called to activate the organizer thread (ie schedule it for execution).
    */
-  void activate() throws VM_PragmaUninterruptible {
+  void activate() throws UninterruptiblePragma {
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(listener.isActive());
       listener.passivate();

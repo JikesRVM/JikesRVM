@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * This pass adjusts branch probabilities derived from static estimates
  * to account for blocks that are statically guessed to be infrequent.

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A basic block in the 
  * {@link OPT_ControlFlowGraph Factored Control Flow Graph (FCFG)}.
@@ -1911,7 +1913,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
       return value;
     }      
     protected abstract OPT_BasicBlock advance();
-    protected static void fail() throws java.util.NoSuchElementException, VM_PragmaNoInline {
+    protected static void fail() throws java.util.NoSuchElementException, NoInlinePragma {
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }
@@ -1939,7 +1941,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
       if (current >=  numBlocks) fail();
       return blocks[current++];
     }
-    protected static void fail() throws java.util.NoSuchElementException, VM_PragmaNoInline {
+    protected static void fail() throws java.util.NoSuchElementException, NoInlinePragma {
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }

@@ -43,16 +43,18 @@ jobject heldGlobal = NULL;
 jobject JNICALL 
 Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject oldMethObj) 
 {
+    jmethodID methID;
+    jobject newMethObj;
     if (TRACE)
         fprintf(stderr, "Entering testReflectedMethods\n");
-    jmethodID methID = (*env)->FromReflectedMethod(env, oldMethObj);
+    methID = (*env)->FromReflectedMethod(env, oldMethObj);
     if (TRACE || verbose)
         printf("derived methID = %p\n", methID);
     if ( ! methID ) {
         fprintf(stderr, "FromReflectedMethod failed!\n");
         return NULL;
     }
-    jobject newMethObj = 
+    newMethObj = 
         (*env)->ToReflectedMethod(env, cls, methID, JNI_FALSE);
 
     if (TRACE)
@@ -92,7 +94,7 @@ Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 
 
 /** 0 on success, nonzero on failure. */
-jint JNICALL 
+jint JNICALL  
 Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj) 
 {
     if (TRACE) 
@@ -135,11 +137,13 @@ jobject JNICALL
 Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass, 
                                jclass cls, jobject oldFldObj)
 {
+    jfieldID fldID;
+    jobject newFldObj;
     if (TRACE) {
         fprintf(stderr, "Entering testReflectedFields\n");
         fprintf(stderr, "oldFldObj = %p \n", oldFldObj);
     }
-    jfieldID fldID = (*env)->FromReflectedField(env, oldFldObj);
+    fldID = (*env)->FromReflectedField(env, oldFldObj);
     if (TRACE)
         fprintf(stderr, "ran FromReflectedField\n");
     if (TRACE || verbose)
@@ -150,7 +154,7 @@ Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass,
     }
     if (TRACE)
         fprintf(stderr, "calling ToReflectedField\n");
-    jobject newFldObj = (*env)->ToReflectedField(env, cls, fldID, JNI_FALSE);
+    newFldObj = (*env)->ToReflectedField(env, cls, fldID, JNI_FALSE);
     if (TRACE) {
         fprintf(stderr, "ran ToReflectedField\n");
         fprintf(stderr, "Exiting testReflectedFields\n");

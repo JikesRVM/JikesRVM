@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002,2003
+ * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
 // $Id$
 /* Handles "extern" declarations shared among files in
@@ -11,6 +11,7 @@
 // #include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,7 @@ extern int   SysTraceFd;	// libvm.C
 
 // Command line arguments to be passed to boot image.
 //
-extern char **	JavaArgs;	// libvm.C
+extern const char **	JavaArgs;	// libvm.C
 extern int	JavaArgc; 	// libvm.C
 
 // Emit trace information?
@@ -43,8 +44,21 @@ extern const char *bootFilename;	/* Defined in libvm.C */
 extern char *Me;		// Defined in libvm.C
 
 /* libvm.C and RunBootImage.C */
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
+extern uint64_t initialHeapSize;
+extern uint64_t maximumHeapSize;
+// #define RVM_WITH_FLEXIBLE_STACK_SIZES
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+extern uint64_t initialStackSize;
+extern uint64_t stackGrowIncrement;
+extern uint64_t maximumStackSize;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+
+/* Defined in RunBootImage.C */
+unsigned int parse_memory_size(
+    const char *sizeName, const char *sizeFlag, 
+    const char *defaultFactor, unsigned roundTo,
+    const char *token, const char *subtoken, bool *fastExit);
+
 extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */

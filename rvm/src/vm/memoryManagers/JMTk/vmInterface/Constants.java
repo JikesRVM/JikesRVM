@@ -8,7 +8,7 @@ package org.mmtk.vm;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_SizeConstants;
-import com.ibm.JikesRVM.VM_Address;
+import org.vmmagic.unboxed.*;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
@@ -39,9 +39,13 @@ public interface Constants extends VM_SizeConstants {
   static final int AALOAD_READ_BARRIER = 2;
 
   static final int MAX_INT = 0x7fffffff;
+  static final int MIN_INT = 0x80000000;
 
   static final int LOG_BYTES_IN_MBYTE = 20;
   static final int BYTES_IN_MBYTE = 1 << LOG_BYTES_IN_MBYTE;
+
+  static final int LOG_BYTES_IN_KBYTE = 10;
+  static final int BYTES_IN_KBYTE = 1 << LOG_BYTES_IN_KBYTE;
 
   static final int LOG_BYTES_IN_PAGE = 12;
   static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
@@ -57,7 +61,8 @@ public interface Constants extends VM_SizeConstants {
    *
    * This value is required to be a power of 2.
    */
-  static final int BYTES_IN_PARTICLE = BYTES_IN_INT;
+  static final int LOG_BYTES_IN_PARTICLE = LOG_BYTES_IN_INT;
+  static final int BYTES_IN_PARTICLE = 1<<LOG_BYTES_IN_PARTICLE;
 
   /**
    * The maximum alignment request the vm will make. This must be a 

@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
 
 /**
  * Description of a java "array" type. <p>
@@ -69,28 +70,28 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /** 
    * @return java Expression stack space requirement. 
   */
-  public final int getStackWords() throws VM_PragmaUninterruptible {
+  public final int getStackWords() throws UninterruptiblePragma {
     return 1;
   }
       
   /** 
    * @return element type.
    */
-  public final VM_Type getElementType() throws VM_PragmaUninterruptible { 
+  public final VM_Type getElementType() throws UninterruptiblePragma { 
     return elementType;
   }
 
   /**
    * @return innermost element type
    */
-  public final VM_Type getInnermostElementType() throws VM_PragmaUninterruptible {
+  public final VM_Type getInnermostElementType() throws UninterruptiblePragma {
     return innermostElementType;
   }
       
   /**
    * @return alignment for instances of this array type
    */
-  public final int getAlignment() throws VM_PragmaUninterruptible {
+  public final int getAlignment() throws UninterruptiblePragma {
     return alignment;
   }
 
@@ -98,7 +99,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
    */
-  public final int getLogElementSize() throws VM_PragmaUninterruptible {
+  public final int getLogElementSize() throws UninterruptiblePragma {
     if (this == VM_Type.CodeArrayType) {
       return LG_INSTRUCTION_WIDTH;
     }
@@ -123,14 +124,14 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param numelts number of array elements in the instance
    * @return size in bytes
    */
-  public final int getInstanceSize(int numelts) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public final int getInstanceSize(int numelts) throws UninterruptiblePragma, InlinePragma {
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
+  public final boolean hasFinalizer() throws UninterruptiblePragma {
     return false;
   }
 
@@ -165,7 +166,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /**
    * Runtime type information for this array type.
    */
-  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
+  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -331,7 +332,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -370,7 +371,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -409,7 +410,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -448,7 +449,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -487,7 +488,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -526,7 +527,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -565,7 +566,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -604,7 +605,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) throws NoInlinePragma {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -734,7 +735,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
 
-  private static void failWithIndexOutOfBoundsException() throws VM_PragmaNoInline {
+  private static void failWithIndexOutOfBoundsException() throws NoInlinePragma {
     throw new ArrayIndexOutOfBoundsException();
   }
 }

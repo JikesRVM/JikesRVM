@@ -36,6 +36,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
 
+  private final static boolean dbg  = false;
 
   public static void boot() {
     zipFileCache = new HashMap();
@@ -158,8 +159,13 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       } catch (ClassNotFoundException e) {
         throw e;
       } catch (Throwable e) {
+        if (dbg) {
+          VM.sysWrite("About to throw ClassNotFoundException(", className,
+                      ") because we got this Throwable:");
+          e.printStackTrace();
+        }
         // We didn't find the class, or it wasn't valid, etc.
-        throw new ClassNotFoundException(className);
+        throw new ClassNotFoundException(className, e);
       }
     }
   }

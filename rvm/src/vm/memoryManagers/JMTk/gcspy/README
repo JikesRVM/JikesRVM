@@ -1,31 +1,31 @@
-GCSpy interface for Jikes RVM  2.3.1
+GCspy interface for Jikes RVM  2.3.3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Notes. 
 
-In order to run GCSpy, your RVM must interact properly with pthreads. See the
+In order to run GCspy, your RVM must interact properly with pthreads. See the
 JikesRVM mailing lists for a discussion of this. Out of the box, Red Hat 7.3
-and upwards seems to work fine, but Debian did not (last time I looked).
+and upwards seems to work fine.
 
 I have not tried with other architectures.
 
-We have assumed that you will place all the GCSpy code and required libraries
+We have assumed that you will place all the GCspy code and required libraries
 in $RVM_ROOT. If you wish to change this, you'll need to modify these 
-instructions and the $RVM_ROOT/rvm/config/build/gcspy/GCSpy config file
+instructions and the $RVM_ROOT/rvm/config/build/gcspy/GCspy config file
 appropriately.
 
 1. Download
 -----------
-Download the GCSpy files from 
+Download the GCspy files from 
    http://www.experimentalstuff.com/Technologies/GCspy/.
 
 You want the C infrastructure (not the C++ one) and the Java visualiser. 
-The C infrastructure provides a GCSpy server to the JikesRVM.
+The C infrastructure provides a GCspy server to the JikesRVM.
 
 Note that you will also need the Java Advanced Imaging (JAI) API which you can
 get from http://java.sun.com/products/java-media/jai/.
 
-Unpack the GCSpy and JAI sources into $RVM_ROOT. You should then have 
+Unpack the GCspy and JAI sources into $RVM_ROOT. You should then have 
 directories:
      $RVM_ROOT/gcspy0.9
  and $RVM_ROOT/jai-1_1_2.
@@ -33,11 +33,11 @@ directories:
 2. Installation
 ---------------
 
-2.1 First, you must apply a patch to the GCSpy sources:
+2.1 First, you must apply a patch to the GCspy sources:
     % cd $RVM_ROOT
     % patch -p0 < $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/gcspy.patch
 
-2.2 Make the GCSpy visualiser and server.
+2.2 Make the GCspy visualiser and server.
     % cd $RVM_ROOT/gcspy0.9/src/
     % make install c java
 
@@ -52,16 +52,16 @@ Here's a typical example (probably better executed from 2 windows).
 First, build an image:
     [set appropriate Jikes RVM environment variables]
     % export RVM_BUILD=<name of your build>
-    % jconfigure BaseBaseSemiSpaceGCSpy
+    % jconfigure BaseBaseSemiSpaceGCspy
     % cd $RVM_BUILD
     % ./jbuild
 
-Next, start rvm, first adding the GCSpy server library to your
+Next, start rvm, first adding the GCspy server library to your
 LD_LIBRARY_PATH:
     % export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GCSPY_ROOT/src/c/lib
     % rvm -Xms20m -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess &
 
-Then, start the GCSpy visualiser:
+Then, start the GCspy visualiser:
     % cd $GCSPY_CLASSES
     % java gcspy.Main -server localhost 3000
 
@@ -81,7 +81,7 @@ Additional arguments to rvm:
 
 4. Testing
 ----------
-The easiest way to test is to connect the rvm to the GCSpy trace writing tool.
+The easiest way to test is to connect the rvm to the GCspy trace writing tool.
 For example, to test with rvm and the trace tool running on the same server, 
 communicating on port 3000:
 
@@ -89,50 +89,57 @@ communicating on port 3000:
   % cd $GCSPY_CLASSES
   % java gcspy.tools.TerminalStoreTrace -server localhost 3000 -overwrite -output gcspy.trace >test.out
 
-In case of a GCSpy failure (e.g. something wrong with the protocol),
+In case of a GCspy failure (e.g. something wrong with the protocol),
 . rvm will die with a non-zero exit status and (possibly) a clearly marked
-  GCSpy error;
+  GCspy error;
 . the trace tool will die with a non-zero exit status and the usual Java
   exception message and stack dump.
 
-5. The GCSpy interface
+5. The GCspy interface
 ----------------------
-The following files comprise the GCSpy interface:
+The following files comprise the GCspy interface for MMTk.
+
+* VM-independent:
 
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/AbstractTile.java
 	Abstract notion of a tile.
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/GCSpy.java
-	Collector-independent GCSpy functionality to start the GCSpy server.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/GCspy.java
+	Collector-independent GCspy functionality to start the GCspy server.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/README.html
 	This file.
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerInterpreter.java
-	The GCSpy server.
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerSpace.java
-	The GCspy Space abstraction.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/StreamConstants.java
 	Constants used by the GCspy framework.
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/Stream.java
-	A GCSpy stream.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/Subspace.java
 	A convenient abstraction of a sub-Space.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/Color.java 
 	A simple mechanism for specifying colours.
+
+* JikesRVM-dependent:
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerInterpreter.java
+	The GCspy server.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerSpace.java
+	The GCspy Space abstraction.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/Stream.java
+	A GCspy stream.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/Util.java
 	Various generally useful methods.
 
-and drivers
+* Drivers
+The GCspy space drivers are all JikesRVM-independent. Two drivers are included,
+ContiguousSpaceDriver for CopySpaces and ImmortalSpaces and TreadmillDriver
+for LargeObjectSpaces; both extend AbstractDriver. 
 
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/AbstractDriver.java
 	Parent class for all space drivers
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/ImmortalSpaceDriver.java
-	A space driver for the immortal space.
-$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/SemiSpaceDriver.java
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/ContiguousSpaceDriver.java
 	A space driver for the SemiSpace collector.
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/TreadmillDriver.java
 	A space driver for the Treadmill collector.
 
 
-In addition, in order to be able to sweep through a semispace, gathering
-data, we provide a mechanism for keeping track of objects allocated:
-
+The class ObjectMap provide a mechanism for keeping track of objects allocated,
+in order to be able to sweep through a space. However, with the new
+heap layout, Daniel Frampton's LinearScan provides the required functionality
+for spaces managed by BumpPointers without having to track every allocation. 
 $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/ObjectMap.java  

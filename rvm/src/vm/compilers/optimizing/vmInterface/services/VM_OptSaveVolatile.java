@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
  * save/restore all registers (both volatile and non-volatile).
@@ -22,66 +25,67 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  */
 public class VM_OptSaveVolatile implements VM_SaveVolatile,
-                                           VM_Uninterruptible {
+                                           Uninterruptible {
  
   /**
    * Handle timer interrupt taken in method prologue.
-   * This method is identical to the threadSwitchFromPrologue() 
+   * This method is identical to the yieldpointFromPrologue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromPrologue() {
-    VM_Thread.threadSwitch(VM_Thread.PROLOGUE);
+  public static void OPT_yieldpointFromPrologue() {
+    VM_Thread.yieldpoint(VM_Thread.PROLOGUE);
   }
 
   /**
    * Handle timer interrupt taken in method epilogue.
-   * This method is identical to the threadSwitchFromEpilogue() 
+   * This method is identical to the yieldpointFromEpilogue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromEpilogue() {
-    VM_Thread.threadSwitch(VM_Thread.EPILOGUE);
+  public static void OPT_yieldpointFromEpilogue() {
+    VM_Thread.yieldpoint(VM_Thread.EPILOGUE);
   }
 
   /**
    * Handle timer interrupt taken on loop backedge.
-   * This method is identical to the threadSwitchFromBackedge() method used 
+   * This method is identical to the yieldpointFromBackedge() method used 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
    */         
-  public static void OPT_threadSwitchFromBackedge() {
-    VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
+  public static void OPT_yieldpointFromBackedge() {
+    VM_Thread.yieldpoint(VM_Thread.BACKEDGE);
   }
 
   /**
    * Handle timer interrupt taken in the prologue of a native method.
    */         
-  public static void OPT_threadSwitchFromNativePrologue() {
+  public static void OPT_yieldpointFromNativePrologue() {
     // VM.sysWriteln(123);
     // VM.sysWriteln(VM_Magic.getFramePointer());
     // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     // System.gc();
     // VM.sysWriteln("Survived GC");
-    // VM_Thread.threadSwitch(VM_Thread.NATIVE_PROLOGUE);
+    // VM_Thread.yieldpoint(VM_Thread.NATIVE_PROLOGUE);
   }
 
   /**
    * Handle timer interrupt taken in the epilogue of a native method.
    */         
-  public static void OPT_threadSwitchFromNativeEpilogue() {
+  public static void OPT_yieldpointFromNativeEpilogue() {
     // VM.sysWriteln(321);
     // VM.sysWriteln(VM_Magic.getFramePointer());
     // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     // System.gc();
     // VM.sysWriteln("Survived GC");
-    // VM_Thread.threadSwitch(VM_Thread.NATIVE_EPILOGUE);
+    // VM_Thread.yieldpoint(VM_Thread.NATIVE_EPILOGUE);
   }
 
   //-#if RVM_WITH_OSR
-  public static void OPT_threadSwitchFromOsrOpt() 
-    throws VM_PragmaUninterruptible {
-    VM_Thread.threadSwitch(VM_Thread.OSROPT);
+  public static void OPT_yieldpointFromOsrOpt() 
+    throws UninterruptiblePragma {
+    VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
+    VM_Thread.yieldpoint(VM_Thread.OSROPT);
   }
   //-#endif 
 
@@ -90,15 +94,15 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile,
    * dynamically loaded/resolved/etc.
    */
   public static void OPT_resolve() throws NoClassDefFoundError,
-                                          VM_PragmaInterruptible {
+                                          InterruptiblePragma {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve
-    VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+    Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
     VM_OptCompiledMethod cm = (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address 
-    VM_Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
+    Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     int offset = cm.getInstructionOffset(ip);
     VM.enableGC();
     // (3) Call the routine in VM_OptLinker that does all the real work.

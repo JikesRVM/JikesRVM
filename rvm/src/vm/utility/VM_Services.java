@@ -5,6 +5,8 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
  *
@@ -32,6 +34,6 @@ public class VM_Services {
     return buf.toString();
   }
   
-  public static void breakStub() throws VM_PragmaNoInline {
+  public static void breakStub() throws NoInlinePragma {
   }
 }

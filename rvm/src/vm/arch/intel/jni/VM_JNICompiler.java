@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.jni;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C
@@ -49,7 +52,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     VM_Assembler asm     = new VM_Assembler(100);   // some size for the instruction array
-    VM_Address nativeIP         = method.getNativeIP();
+    Address nativeIP         = method.getNativeIP();
     // recompute some constants
     int parameterWords   = method.getParameterWords();
 
@@ -112,6 +115,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     if (method.getReturnType().isReferenceType()) {
+	// XXX TODO: This code is broken. It only handles Local references.
       asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd (T0, T0);   // get the reference
     } else if (method.getReturnType().isLongType()) {
@@ -552,6 +556,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
   /**
    * Generate the code to pop the frame in JNIRefs array for this Java to C transition.
+   *
    * <pre>
    * Expect:
    *  -JTOC, PR registers are valid
@@ -626,8 +631,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_Reg (EBP, SP); 
 
     // set first word of header: method ID
-    asm.emitPUSH_Imm (methodID); 
-    asm.emitSUB_Reg_Imm (SP, WORDSIZE);  // leave room for saved -> preceeding java frame, set later
+    asm.emitPUSH_Imm (methodID);
+    // buy space for the rest of the header (values stored later)
+    asm.emitSUB_Reg_Imm (SP, STACKFRAME_HEADER_SIZE - 2 * WORDSIZE);
 
     // save registers that will be used in RVM, to be restored on return to C
     // TODO: I don't think we need to do this: C has no nonvolatile registers on Linux/x86 --dave

@@ -1,0 +1,21 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL
+# Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+##########
+# First all the non-printing, non-debugging options
+# Should not start with PRINT_ or DEBUG_ prefix
+##########
+INSTRUCTION_RETARGET -1 true
+Allow quick compiler to rewrite generated code to eliminate register moves
+
+EDGE_COUNTERS -1 VM.BuildForAdaptiveSystem
+Insert edge counters on all bytecode-level conditional branches
+
+INVOCATION_COUNTERS -1 false
+Select methods for optimized recompilation by using invocation counters
+
+

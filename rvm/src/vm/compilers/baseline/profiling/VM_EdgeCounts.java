@@ -15,8 +15,8 @@ import java.io.*;
  */
 public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 
-  static final int TAKEN     = 0;
-  static final int NOT_TAKEN = 1;
+  public static final int TAKEN     = 0;
+  public static final int NOT_TAKEN = 1;
 
   private static boolean registered = false;
 
@@ -30,7 +30,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     }
   }
 
-  static synchronized void allocateCounters(VM_NormalMethod m, int numEntries) {
+  public static synchronized void allocateCounters(VM_NormalMethod m, int numEntries) {
     if (numEntries == 0) return;
     if (!VM.BuildForAdaptiveSystem && !registered) {
       // Assumption: If edge counters were enabled in a non-adaptive system
@@ -108,23 +108,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
         String firstToken = parser.nextToken();
         if (firstToken.equals("M")) {
           int numCounts = Integer.parseInt(parser.nextToken());
-          parser.nextToken(); // discard '<'
-          String clName = parser.nextToken();
-          VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-          VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-          VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-          parser.nextToken(); // discard '>'
-          ClassLoader cl;
-          if (clName.equals("BootstrapCL")) {
-            cl = VM_SystemClassLoader.getVMClassLoader();
-          } else if (clName.equals("SystemAppCL")) {
-            cl = VM_ClassLoader.getApplicationClassLoader();
-          } else {
-            VM.sysFail("Unable to match classloader "+clName);
-            cl = null;
-          }
-          VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
-          VM_MemberReference key = VM_MemberReference.findOrCreate(tref, mn, md);
+          VM_MemberReference key = VM_MemberReference.parse(parser);
           int id = key.getId();
           allocateCounters(id, numCounts);
           cur = data[id];

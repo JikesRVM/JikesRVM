@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * See VM_Proxy
  *
@@ -12,7 +14,7 @@ package com.ibm.JikesRVM;
  */
 final class VM_ProxyWaitingQueue 
   extends VM_AbstractThreadQueue 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   private VM_Proxy tail;
   private VM_Proxy head;

@@ -7,8 +7,9 @@ package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.mmtk.vm.Assert;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This abstract class implements a simple counter (counting some
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * $Id$
  */
 public abstract class LongCounter extends Counter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -92,7 +93,7 @@ public abstract class LongCounter extends Counter
    */
   public void start() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions)  VM_Interface._assert(!running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!running);
     running = true;
     startValue = getCurrentValue();
   }
@@ -102,7 +103,7 @@ public abstract class LongCounter extends Counter
    */
   public void stop() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(running);
     running = false;
     long delta = getCurrentValue() - startValue;
     count[Stats.phase] += delta;
@@ -133,8 +134,8 @@ public abstract class LongCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (VM_Interface.VerifyAssertions && mergePhases()) 
-      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue(count[phase] + count[phase+1]);
     else

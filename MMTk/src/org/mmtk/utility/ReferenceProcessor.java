@@ -6,19 +6,12 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.ReferenceGlue;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class manages soft, weak and phantom references.
@@ -35,7 +28,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public class ReferenceProcessor implements VM_Uninterruptible {
+public class ReferenceProcessor implements Uninterruptible {
 
   public static final int SOFT_SEMANTICS = 0;
   public static final int WEAK_SEMANTICS = 1;
@@ -60,7 +53,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
    * @param semantics the number representing the semantics
    */
   private static void traverse(int semantics)
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");
@@ -81,34 +74,33 @@ public class ReferenceProcessor implements VM_Uninterruptible {
    * be the address of a heap object, depending on the VM.
    * @param semantics the code number of the semantics
    */
-  public static VM_Address processReference(VM_Address reference,
-                                            int semantics)
-  {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!reference.isZero());
+  public static Address processReference(Address reference,
+					 int semantics) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
     
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);
     }
 
-    VM_Address newReference;
+    Address newReference;
     /*
      * If the reference is dead, we're done with it. Let it (and
      * possibly its referent) be garbage-collected.
      */
-    if (ReferenceGlue.REFERENCES_ON_HEAP && !Plan.isLive(reference)) {
-      newReference = VM_Address.zero();
+    if (ReferenceGlue.REFERENCES_ARE_OBJECTS && 
+	!Plan.isLive(reference.toObjectReference())) {
+      newReference = Address.zero();
     } else {
       /* Otherwise... */
-      if (ReferenceGlue.REFERENCES_ON_HEAP)
-        newReference = Plan.getForwardedReference(reference);
+      if (ReferenceGlue.REFERENCES_ARE_OBJECTS)
+        newReference = Plan.getForwardedReference(reference.toObjectReference()).toAddress();
       else
         newReference = reference;
-      VM_Address oldReferent = ReferenceGlue.getReferent(reference);
+      ObjectReference oldReferent = ReferenceGlue.getReferent(reference);
 
       if (TRACE_DETAIL) {
         Log.write("    new reference: "); Log.writeln(newReference);
-        Log.write(" old referENT: "); Log.writeln(oldReferent);
+        Log.write(" old referent: "); Log.writeln(oldReferent);
       }
       /*
        * If the application has cleared the referent the Java spec says
@@ -116,13 +108,12 @@ public class ReferenceProcessor implements VM_Uninterruptible {
        * simply allow the Reference object to fall out of our
        * waiting list.
        */
-      if (oldReferent.isZero()) {
-        newReference = VM_Address.zero();
+      if (oldReferent.isNull()) {
+        newReference = Address.zero();
       } else {
         boolean enqueue = false;
 
-        if (semantics == PHANTOM_SEMANTICS && !Plan.isLive(oldReferent))
-          {
+        if (semantics == PHANTOM_SEMANTICS && !Plan.isLive(oldReferent)) {
             /*
              * Keep phantomly reachable objects from being collected
              * until they are completely unreachable.
@@ -132,8 +123,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             }
             Plan.makeAlive(oldReferent);
             enqueue = true;
-          }
-        else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
+	} else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
           /*
            * Unless we've completely run out of memory, we keep
            * softly reachable objects alive.
@@ -149,10 +139,10 @@ public class ReferenceProcessor implements VM_Uninterruptible {
            * Referent is still reachable in a way that is as strong as
            * or stronger than the current reference level.
            */
-          VM_Address newReferent = Plan.getForwardedReference(oldReferent);
+          ObjectReference newReferent = Plan.getForwardedReference(oldReferent);
 
           if (TRACE) {
-            Log.write(" new referENT: "); Log.writeln(newReferent);
+            Log.write(" new referent: "); Log.writeln(newReferent);
           }
             
           /*
@@ -184,7 +174,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             if (TRACE_DETAIL) {
               Log.write(" clearing: "); Log.writeln(oldReferent);
             }
-            ReferenceGlue.setReferent(newReference, VM_Address.zero());
+            ReferenceGlue.setReferent(newReference, ObjectReference.nullReference());
           }
           enqueue = true;
         }

@@ -80,12 +80,12 @@ ifneq (x$(PROCESSORS),x)
   RVM_ARGS += -X:processors=$(PROCESSORS)
 endif
 ifneq (x$(HEAPSIZE),x)
-  RVM_ARGS += -Xmx$(HEAPSIZE)
+  RVM_ARGS += -Xmx$(HEAPSIZE)M
   JDK_ARGS += -Xmx$(HEAPSIZE)M
 endif
 ifneq (x$(INITIAL_HEAPSIZE),x)
-  RVM_ARGS += -Xms$(INITIAL_HEAPSIZE)
-  JDK_ARGS += -Xmx$(INITIAL_HEAPSIZE)M
+  RVM_ARGS += -Xms$(INITIAL_HEAPSIZE)M
+  JDK_ARGS += -Xms$(INITIAL_HEAPSIZE)M
 endif
 RVM_ARGS += $(RC_ARGS)
 

@@ -3,12 +3,10 @@
  */
 //$Id$
 
-
-
 package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /** <p>A Java class for parsing type descriptors and class names.  The class
      is <code>abstract</code> to eliminate the temptation to instantiate it,
@@ -107,7 +105,7 @@ public abstract class VM_TypeDescriptorParsing
    * <code>Character.isJavaIdentifier<i>*</i>()</code> is written.  Or is the
    * <code>String.charAt()</code> method inexpensive?</small> */
   public static boolean isJavaClassName(String s) 
-    throws VM_PragmaInterruptible 
+    throws InterruptiblePragma 
   {
     boolean identStart = true;  // pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
@@ -186,7 +184,7 @@ public abstract class VM_TypeDescriptorParsing
 
   public static void validateAsTypeDescriptor(VM_Atom a) 
     throws IllegalArgumentException,
-           VM_PragmaInterruptible
+           InterruptiblePragma
   {
     try {
       // Atoms are always utf-8.
@@ -204,7 +202,7 @@ public abstract class VM_TypeDescriptorParsing
   */
   public static void validateAsTypeDescriptor(String s) 
     throws IllegalArgumentException,
-           VM_PragmaInterruptible
+           InterruptiblePragma
   {
     char val[] = s.toCharArray();
     

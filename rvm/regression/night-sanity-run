@@ -80,13 +80,7 @@ fi
 NS_OS=$( echo $NS_OS | sed "s/ //;" )
 NS_ARCH=$( echo $NS_ARCH | sed "s/ //;" )
 
-
-# Set number of processors based on OS
-if [[ $NS_OS = 'Linux' ]]; then
-  NUM_PROCS=4
-else
-  NUM_PROCS=2
-fi
+NUM_PROCS=2
 
 # cd to the SHADOW to get things started
 cd $RVM_ROOT
@@ -372,9 +366,9 @@ elif (( numfailed == 0 )); then
 # if [[ $numran -gt 0 && $numfailed -eq 0 ]]; then
     subject="SUCCEEDED"
 else
-    subject="Failed $numfailed tests"
+    subject="FAILED $numfailed tests"
 fi
-subject="[$NS_OS/$NS_ARCH/$NS_BITS] regression $subject"
+subject="$subject [$NS_OS/$NS_ARCH/$NS_BITS]"
 if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
     echo "$ME: this is a dry run.  Won't actually mail."

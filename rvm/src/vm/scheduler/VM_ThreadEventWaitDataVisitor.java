@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Visitor class for <code>VM_ThreadEventWaitData</code> objects.
  * Subclasses can recover the actual type of an object from a
@@ -12,7 +14,7 @@ package com.ibm.JikesRVM;
  *
  * @author David Hovemeyer
  */
-public abstract class VM_ThreadEventWaitDataVisitor implements VM_Uninterruptible {
+public abstract class VM_ThreadEventWaitDataVisitor implements Uninterruptible {
 
   /**
    * Visit a VM_ThreadIOWaitData object.

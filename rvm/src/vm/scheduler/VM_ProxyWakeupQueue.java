@@ -4,13 +4,15 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A queue of VM_Proxys prioritized by their thread wakeup times.
  * based on VM_WakeupQueue (14 October 1998 Bowen Alpern)
  *
  * @author Bowen Alpern
  */
-final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements Uninterruptible {
   
   private VM_Proxy head; // first thread on list
 

@@ -25,7 +25,7 @@ The general syntax is
 \tt{}   rvm \MZeroOrMore{rvm options\ldots} class \MZeroOrMore{args\ldots}
 \end{example}
 
-\index{command-line options}
+\index{command-line options}%
 You may choose from a myriad of options for the {\tt rvm} command-line.  
 Options fall into two categories: {\em standard} and {\em
 non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
@@ -33,7 +33,7 @@ non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Standard Command-Line Options}
 
-We currently support a subset of the JDK 1.3 standard options.  Below
+We currently support a subset of the JDK 1.4 standard options.  Below
 is a list of all options and their descriptions.  Unless otherwise noted each
 option is supported in Jikes RVM.\@
 \begin{description}
@@ -76,11 +76,16 @@ during run, print out additional information for GC and hardware trap handling
 print out additional information while VM is booting, using verbosity
 level \Mmeta{number}.
 
-\item[{\tt -Xms\Mmeta{number}}]
-set the initial heap size to \Mmeta{number} megabytes
+\item[{\tt -Xms\Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{}}]
+set the initial heap size to \Mmeta{number}\Mmeta{unit} bytes.
+ \link{The section on MMTk Command-Line Options \texonly{(see
+     appendix~\Ref, page~\Pageref{})} explains the syntax for
+     expressing memory sizes}{section:mmtkoptions}%
+.
 
-\item[{\tt -Xmx\Mmeta{number}}]
-set the maximum heap size to \Mmeta{number} megabytes
+\item[{\tt -Xmx\Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{}}]
+set the maximum heap size to \Mmeta{number}\Mmeta{unit} bytes.
+
 
 \item[{\tt -X:sysLogfile=\Mmeta{filename}}]
 redirects messages that would go to standard error to \Mmeta{filename} instead.

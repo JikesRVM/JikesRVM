@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -26,8 +26,9 @@ final class OPT_LiveSetElement {
   private OPT_LiveSetElement next;
 
   /**
-   * constructor
-   * @param OPT_RegisterOperand register
+   * Construct an {@link OPT_LiveSetElement}.
+   *
+   * @param register    An {@link OPT_RegisterOperand}
    */
   OPT_LiveSetElement(OPT_RegisterOperand register) {
     regOp = register;
@@ -39,6 +40,15 @@ final class OPT_LiveSetElement {
    */
   public final OPT_RegisterOperand getRegisterOperand() {
     return  regOp;
+  }
+
+  /**
+   * Change the register operand.  New operand must represent the same register
+   * This is done to promote something of WordType to ReferenceType for the purposes of GC mapping.
+   */
+  public final void setRegisterOperand(OPT_RegisterOperand newRegOp) {
+    if (VM.VerifyAssertions) VM._assert(regOp.register.number == newRegOp.register.number);
+    regOp = newRegOp;
   }
 
   /**

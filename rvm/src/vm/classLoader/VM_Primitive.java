@@ -1,11 +1,12 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
 
 /**
  * Description of a java "primitive" type (int, float, etc.)
@@ -56,7 +57,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Stack space requirement.
    */ 
-  public final int getStackWords() throws VM_PragmaUninterruptible {
+  public final int getStackWords() throws UninterruptiblePragma {
     return stackWords;
   }
       
@@ -82,19 +83,19 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
     return new VM_Method[0];
   }
 
-  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
+  public final boolean hasFinalizer() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
   }
       
-  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
+  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
 
   /**
-   * Create an instance of a VM_Primitive
-   * @param typeRef the canonical type reference for this primitive
+   * Create an instance of a {@link VM_Primitive}
+   * @param tr   The canonical type reference for this primitive
    */
   VM_Primitive(VM_TypeReference tr) {
     super(tr);
@@ -144,7 +145,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
           tr == VM_TypeReference.Offset ||
           tr == VM_TypeReference.Extent ||
           tr == VM_TypeReference.Code) {
-        stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
+        stackWords = 1;
         name = tr.getName();
       } else {
         if (VM.VerifyAssertions) VM._assert(false);

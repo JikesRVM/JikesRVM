@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -94,12 +94,17 @@ public class OPT_LiveSet {
       }
       // check if there is a next item
       if (current != null) {
-        // check for duplicate
-        if (current.getRegister().number != itemNumber) {
+        if (current.getRegister().number == itemNumber) {
+          // already in there.  Check to see if we have an Address/Reference confusion.
+          // If we do, then prefer to have the Reference in the LiveSet as that will
+          // include item in the GC maps from this program point "up"
+          if (current.getRegisterType().isWordType() && item.type.isReferenceType()) {
+            current.setRegisterOperand(item);
+          }
+        } else {
           createAndAddToCurrentList(item, prev);
         }
-      } 
-      else {                    // current == null
+      } else {                    // current == null
         // we ran off the end of the list, but prev still has the last element
         createAndAddToCurrentList(item, prev);
       }
@@ -335,7 +340,7 @@ public class OPT_LiveSet {
    * Copy the newElement into a new object and add it to the list 
    * after prevElement.  If prevElement is null, update the "start"
    * data member by inserting at the begining.
-   * @param  newElement the element to copy and insert
+   * @param  register the element to copy and insert
    * @param  prevElement the element on the current list to insert after
    *                     or null, indicating insert at the front
    * @return the element that is prior to the newly inserted element

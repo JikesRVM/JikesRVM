@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -127,7 +127,7 @@ public class VM_Wait {
    * {@link VM_ThreadIOConstants#FD_INVALID_BIT FD_INVALID_BIT} set.
    *
    * @param readFds array of read file descriptors
-   * @param waitFds array of write file descriptors
+   * @param writeFds array of write file descriptors
    * @param exceptFds array of exception file descriptors
    * @param totalWaitTime amount of time to wait, in seconds; if
    *   negative, wait indefinitely

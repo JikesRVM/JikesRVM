@@ -29,6 +29,10 @@ V AI_MAX_TARGET_SIZE int (22*com.ibm.JikesRVM.classloader.VM_NormalMethod.CALL_C
 Adaptive inlining heuristic: Upper bound on callee size
 
 
+V AI_MIN_CALLSITE_FRACTION double 0.4
+Adaptive inlining heuristc: Minimum fraction of callsite distribution for guarded inlining of a callee
+
+
 E INLINING_GUARD byte IG_CODE_PATCH
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \

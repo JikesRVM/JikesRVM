@@ -83,6 +83,7 @@ implements OPT_PhysicalRegisterConstants {
 
     /* compute the parameter space */
     int numberParams = Call.getNumberOfParams(s);
+    //-#if RVM_FOR_32_ADDR
     int parameterWords = 0;
     for (int i = 0; i < numberParams; i++) {
       parameterWords++;
@@ -95,25 +96,29 @@ implements OPT_PhysicalRegisterConstants {
                  (op instanceof OPT_DoubleConstantOperand))
         parameterWords++;
     }
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    int parameterWords = numberParams;
+    //-#endif
     // see PowerPC Compiler Writer's Guide, pp. 162
-    ir.stackManager.allocateParameterSpace((6 + parameterWords)*4);
+    ir.stackManager.allocateParameterSpace((6 + parameterWords)*BYTES_IN_ADDRESS);
     // IMPORTANT WARNING: as the callee C routine may destroy the cmid field
     // (it is the saved CR field of the callee in C convention) 
     // we are restoring the methodID after a sysCall. 
-    OPT_Instruction s2 = Store.create(INT_STORE, ir.regpool.makeJTOCOp(ir,s), 
+    OPT_Instruction s2 = Store.create(REF_STORE, ir.regpool.makeJTOCOp(ir,s), 
                                       ir.regpool.makeFPOp(), 
-                                      I(20), null);         // TODO: valid location?
+                                      IC(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
     s.insertBack(s2);
-    s.insertBack(Move.create(INT_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
+    s.insertBack(Move.create(REF_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
-    s2 = Load.create(INT_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
-                     I(20), null);         // TODO: valid location?
+    s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
+                     IC(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
     s.insertFront(s2);
     OPT_RegisterOperand temp = ir.regpool.makeTempInt();
-    s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethod.getId()));
+    s2 = Move.create(INT_MOVE, temp, IC(ir.compiledMethod.getId()));
     OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
                                       ir.regpool.makeFPOp(), 
-                                      I(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
+                                      IC(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
     s.insertFront(s3);
     s.insertFront(s2);
   }
@@ -142,7 +147,7 @@ implements OPT_PhysicalRegisterConstants {
     int int_index = 0;
     int double_index = 0;
     int spilledArgumentCounter = 
-      (-256 - VM_Constants.STACKFRAME_HEADER_SIZE) >> 2;
+      (-256 - VM_Constants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     for (OPT_OperandEnumeration symParams = prologueInstr.getDefs();
@@ -161,8 +166,8 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_FMR, F(symParam), F(param)));
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFS, F(symParam), 
-                                             R(FP), 
-                                             I(spilledArgumentCounter << 2)));
+                                             A(FP), 
+                                             IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_FLOAT)));
             spilledArgumentCounter--;
           }
         }
@@ -177,9 +182,9 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_FMR, D(symParam), D(param)));
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFD, D(symParam), 
-                                             R(FP), 
-                                             I(spilledArgumentCounter << 2)));
-            spilledArgumentCounter -= 2;
+                                             A(FP), 
+                                             IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+            spilledArgumentCounter -= BYTES_IN_DOUBLE/BYTES_IN_ADDRESS;
           }
         }
         double_index++;
@@ -193,10 +198,16 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_MOVE, 
                                              new OPT_RegisterOperand
                                              (symParam, t),
-                                             R(param)));
+                                             A(param)));
           } else {                  // spilled parameter
-            start.insertBack(MIR_Load.create(PPC_LWZ, new OPT_RegisterOperand(symParam, t), 
-                                             R(FP), I(spilledArgumentCounter << 2)));
+            //-#if RVM_FOR_64_ADDR
+            if (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())
+              start.insertBack(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
+                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_INT )));
+            else //a reference or numeric long
+            //-#endif
+              start.insertBack(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
+                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             spilledArgumentCounter--;
           }
         }
@@ -243,8 +254,8 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), R(FP), I(callSpillLoc)));
-          callSpillLoc += 4;
+          callSpillLoc += BYTES_IN_ADDRESS;
+          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), A(FP), IC(callSpillLoc - BYTES_IN_FLOAT)));
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
@@ -258,8 +269,8 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STFD, D(reg), R(FP), I(callSpillLoc)));
-          callSpillLoc += 8;
+          p.insertBack(MIR_Store.create(PPC_STFD, D(reg), A(FP), IC(callSpillLoc)));
+          callSpillLoc += BYTES_IN_DOUBLE;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
@@ -288,10 +299,18 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STW, 
-                                        new OPT_RegisterOperand(reg, Reg.type), 
-                                        R(FP), I(callSpillLoc)));
-          callSpillLoc += 4;
+          callSpillLoc += BYTES_IN_ADDRESS;
+          //-#if RVM_FOR_64_ADDR
+          if (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
+              Reg.type.isCharType() || Reg.type.isBooleanType()){
+                  p.insertBack(MIR_Store.create(PPC_STW,
+                                                new OPT_RegisterOperand(reg, Reg.type),
+                                                A(FP), IC(callSpillLoc - BYTES_IN_INT)));
+          } else //a reference or numeric long
+          //-#endif
+                  p.insertBack(MIR_Store.create(PPC_STAddr,
+                                                new OPT_RegisterOperand(reg, Reg.type),
+                                                A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
@@ -305,6 +324,7 @@ implements OPT_PhysicalRegisterConstants {
     OPT_RegisterOperand callResult = null;
     OPT_Instruction lastCallSeqInstr = s;
     if (MIR_Call.hasResult2(s)) {
+      //-#if RVM_FOR_32_ADDR
       OPT_RegisterOperand result2 = MIR_Call.getClearResult2(s);
       OPT_RegisterOperand physical = new OPT_RegisterOperand(phys.get
                                                              (FIRST_INT_RETURN 
@@ -314,6 +334,10 @@ implements OPT_PhysicalRegisterConstants {
       lastCallSeqInstr.insertFront(tmp);
       lastCallSeqInstr = tmp;
       MIR_Call.setResult2(s, null);
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      //-#endif
     }
     if (MIR_Call.hasResult(s)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(s);
@@ -358,10 +382,15 @@ implements OPT_PhysicalRegisterConstants {
       MIR_Return.setVal(s, phys1.copyD2U());
     }
     if (MIR_Return.hasVal2(s)) {
+      //-#if RVM_FOR_32_ADDR
       OPT_RegisterOperand symb2 = MIR_Return.getClearVal2(s);
-      OPT_RegisterOperand phys2 = R(phys.get(FIRST_INT_RETURN + 1));
+      OPT_RegisterOperand phys2 = I(phys.get(FIRST_INT_RETURN + 1));
       s.insertBack(MIR_Move.create(PPC_MOVE, phys2, symb2));
       MIR_Return.setVal2(s, phys2.copyD2U());
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      //-#endif
     }
   }
 }

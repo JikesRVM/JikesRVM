@@ -1,24 +1,28 @@
 This section provides some information on various
 implementation details for the Jikes\TMweb{} RVM runtime system.
 
-
 \subsection{Object Model}\label{sssec:objects}
 \index{object model}
 
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
 operations while minimizing storage overhead. \jrvm's
-object model 
-is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
+object model is defined by 
+\xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
+The \jrvm object model underwent major changes between versions 2.3.3
+and 2.3.4 of the system.  In particular, in 2.3.3 and before a
+``reverse scalar'' object model was used in which scalar objects and
+arrays were layed out in different directions in memory to optimize
+null pointer checks on AIX.
 
 \paragraph{Overview}
 Values in the Java\TMweb{} programming language are either {\em
-primitive} ({\it e.g.}\ {\tt int}, {\tt double}, etc.)  or they are {\em
-references} (that is, pointers) to objects.  Objects are either {\em
-arrays} having elements or {\em scalar objects} having fields.
+primitive} ({\it e.g.}\ {\tt int}, {\tt double}, etc.)  or they are
+{\em references} (that is, pointers) to objects.  Objects are either
+{\em arrays} having elements or {\em scalar objects} having fields.
 Objects are logically composed of two primary sections: an object
 header (described in more detail below) and the object's instance
-fields (or array elements). 
+fields (or array elements).
 
 The following non-functional requirements govern the Jikes RVM object model:
 \begin{itemize}
@@ -27,7 +31,7 @@ instance field and array accesses should be as fast as possible,
 \item
 null-pointer checks should be performed by the hardware if possible, 
 \item
-virtual method dispatch should be fast,
+method dispatch and other frequent runtime services should be fast,
 \item
 other (less frequent) Java operations should not be prohibitively
 slow, and
@@ -38,46 +42,38 @@ as possible.
 
 \index{field access}
 \index{array access}
-Assuming the reference to an object resides in a register, compiled code can 
-access the object's fields at a fixed displacement in a single
-instruction.  To facilitate array access, the reference to an array
-points to the first (zeroth) element of an array and the remaining
-elements are laid out in ascending order.  The number of elements in
-an array, its {\em length}, resides just before its first
+Assuming the reference to an object resides in a register, compiled
+code can access the object's fields at a fixed displacement in a
+single instruction.  To facilitate array access, the reference to an
+array points to the first (zeroth) element of an array and the
+remaining elements are laid out in ascending order.  The number of
+elements in an array, its {\em length}, resides just before its first
 element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
 The Java programming language requires that an attempt to access an
-object through a {\tt null} 
-object reference generates a \IndexTexttt{NullPointerException}.
-In Jikes RVM, references
-are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\TMweb{} operating system permits loads from low memory,
-but accesses 
-to very high memory (at small {\em negative} offsets from a null
-pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
-least theoretically possible for another process to cause a shared
-system library to get loaded into very high memory.  This remote
-possibility is not a concern in a research project, but would need to
-be addressed by a commercial JVM.\@  It would be sufficient to forbid
-read and write access to the last page of addressable memory.
-(Accesses to some of the fields of objects bigger than a page could be
-checked explicitly without having a major impact on performance.)}
-Thus, attempts to index off a null array reference are trapped by
-the hardware, because array accesses require loading the array length
-which is $-4$ bytes off the array reference.  A hardware null-pointer
-check for field accesses is effected by locating fields at negative
-offsets from the object reference.
+object through a {\tt null} object reference generates a
+\IndexTexttt{NullPointerException}.  In Jikes RVM, references are
+machine addresses, and {\tt null} is represented by address $0$.  
+On Linux, accesses to both very low and very high memory can be
+trapped by the hardware, thus all null checks can be made implicit.
+However, the AIX\TMweb{} operating system permits loads from low
+memory, but accesses to very high memory (at small {\em negative}
+offsets from a null pointer) normally cause hardware 
+interrupts. Therefore on AIX only a subset of pointer dereferences can
+be protected by an implicit null check. 
 
 \paragraph{Object Header}
 \index{object header}
 Logically, every object header contains the following components:
 \begin{description}
 %
-\index{TIB}
-\index{superclass}
-\index{interfaces}
-\index{virtual methods}
+\index{TIB}%
+\index{superclass}%
+\index{interfaces}%
+\index{virtual methods}%
+\index{instance methods}%
+\index{interface methods}%
 \begin{Label}{TIB}
 \item[TIB Pointer] The TIB (Type Information Block) holds information that
 applies to all objects of a type.  The structure of the TIB is defined by 
@@ -131,7 +127,7 @@ A compiled method body is an array of machine instructions (stored as
 {\tt int}s on PowerPC\TMweb{} and {\tt byte}s on x86-32). 
 The {\em Jikes RVM Table of Contents} (JTOC),
 stores pointers to static fields and methods.  However, 
-pointers for instance fields and virtual methods are stored in the receiver 
+pointers for instance fields and instance methods are stored in the receiver 
 class's \link{TIB}{TIB}.  Consequently, the dispatch mechanism differs
 between static methods and instance methods.
 \end{Label}
@@ -147,9 +143,9 @@ between static methods and instance methods.
 \caption{The Jikes RVM Table Of Contents and other objects.}
 \label{fig:jtoc}
 \end{figure}
-\index{literals}
-\index{constants}
-\index{dynamic type checking}
+\index{literals}%
+\index{constants}%
+\index{dynamic type checking}%
 The JTOC holds pointers to 
 each of Jikes\TMweb{} RVM's global data structures, as well as
 literals, numeric constants and references to \texttt{String} constants.
@@ -163,26 +159,36 @@ to identify the entries containing references.
 The JTOC
 is depicted \link*{in this figure}[in figure~\Ref, on page~\Pageref{}]{fig:jtoc}.  
 
-\paragraph{Virtual Methods}
-\index{virtual methods}
+\paragraph{Virtual Methods}%
+\index{virtual methods}%
+\index{instance methods}
 A \link{TIB}{TIB} contains pointers to the compiled method 
-bodies (executable code) for the virtual methods of its class. 
+bodies (executable code) for the virtual methods and other instance
+methods of its class. 
 Thus, the \link{TIB}{TIB} serves as Jikes RVM's virtual method table.
 A virtual method dispatch entails loading the \link{TIB}{TIB} pointer from 
 the object reference, loading the address of the method
 body at a given offset off the \link{TIB}{TIB} pointer, and making an indirect
-branch and link to it.
+branch and link to it.  A virtual method is dispatched to with the
+{\instruction invokevirtual} bytecode; other instance methods are
+invoked by the {\instruction invokespecial} bytecode.
 
-\paragraph{Static Fields and Methods} 
+\paragraph{Static Fields and Methods}%
 \index{static methods}
 Static fields and pointers to static method bodies are stored in the \link{JTOC}{JTOC}. 
 Static method dispatch is simpler than virtual dispatch, since 
-a well-known \link{JTOC}{JTOC} entry method holds the address of the compiled method
-body. 
+a well-known \link{JTOC}{JTOC} entry method holds the address of the
+compiled method body.  
 
-\paragraph{Lazy Method Compilation}\label{par:lazy}
-\index{lazy method compilation}
-\index{deferred compilation}
+\paragraph{Instance Initialization Methods}%
+\index{instance initialization methods}
+Pointers to the bodies of instance initialization
+methods, \texttt{<init>}, are stored in the \link{JTOC}{JTOC}.
+(They are always dispatched to with the {\instruction invokespecial} bytecode.)
+
+\paragraph{Lazy Method Compilation}\label{par:lazy}%
+\index{lazy method compilation}%
+\index{deferred compilation}%
 \index{lazy method invocation stub}
 Method slots in a \link{TIB}{TIB} or the \link{JTOC}{JTOC} may hold either
 a pointer to the compiled code, 
@@ -192,9 +198,9 @@ method, installs a pointer to the compiled code in the appropriate
 \link{TIB}{TIB} or the \link{JTOC}{JTOC} slot, then 
 jumps to the start of the compiled code. 
 
-\paragraph{Interface Methods}
-\index{interface methods}
-\index{IMT}
+\paragraph{Interface Methods}%
+\index{interface methods}%
+\index{IMT}%
 \index{conflict resolution stub}
 Regardless of whether or not a virtual method is overridden,
 virtual method dispatch is still simple since the method will occupy 

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
-import com.ibm.JikesRVM.VM_Address;
+import org.vmmagic.unboxed.*;
 
 /**
  * Encodes the condition codes for branches.
@@ -297,10 +297,10 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         return evaluate(v1.asAddressConstant().value, 
                         v2.asAddressConstant().value);
       } else if (v2.isNullConstant()) {
-        return evaluate(v1.asAddressConstant().value, VM_Address.zero()); 
+        return evaluate(v1.asAddressConstant().value, Address.zero()); 
       } else if (v2.isIntConstant()) {
-        return evaluate(v1.asAddressConstant().value.toInt(), 
-                        v2.asIntConstant().value); 
+        return evaluate(v1.asAddressConstant().value, 
+                        Address.fromIntSignExtend(v2.asIntConstant().value)); 
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
@@ -308,8 +308,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isNullConstant()) {
         return evaluate(v1.asIntConstant().value, 0); 
       } else if (v2.isAddressConstant()) {
-        return evaluate(v1.asIntConstant().value,
-                        v2.asAddressConstant().value.toInt());
+        return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value),
+                        v2.asAddressConstant().value);
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
@@ -347,7 +347,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isIntConstant()) {
         return evaluate(0, v2.asIntConstant().value);
       } else if (v2.isAddressConstant()) {
-        return evaluate(VM_Address.zero(), v2.asAddressConstant().value);
+        return evaluate(Address.zero(), v2.asAddressConstant().value);
       } else if (v2.isStringConstant()) {
         if (isEQUAL()) {
           return FALSE;
@@ -462,7 +462,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   }
 
   /**
-   * Given two VM_Addresses, evaluate the condition on them.
+   * Given two Addresses, evaluate the condition on them.
    * 
    * @param v1 first operand to condition
    * @param v2 second operand to condition
@@ -470,10 +470,14 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *         <code>FALSE</code> if !(v1 cond v2) or 
    *         <code>UNKNOWN</code>
    */
-  public int evaluate(VM_Address v1, VM_Address v2) {
+  public int evaluate(Address v1, Address v2) {
     switch (value) {
     case EQUAL: return (v1.EQ(v2)) ? TRUE : FALSE;
     case NOT_EQUAL: return (v1.NE(v2)) ? TRUE : FALSE;
+    case GREATER:   return (v1.toWord().toOffset().sGT(v2.toWord().toOffset()))  ? TRUE : FALSE;
+    case LESS:     return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
+    case GREATER_EQUAL: return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
+    case LESS_EQUAL:    return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
     case LOWER: return (v1.LT(v2)) ? TRUE : FALSE;
     case LOWER_EQUAL: return (v1.LE(v2)) ? TRUE : FALSE;
     case HIGHER: return (v1.GT(v2)) ? TRUE : FALSE;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -21,7 +21,7 @@ final class OPT_TreeNodeChildrenEnumerator implements Enumeration {
 
   /**
    * Provides iteration over a list of children tree nodes
-   * @param   OPT_TreeNode node
+   * @param   node  Root of the tree to iterate over.
    */
   OPT_TreeNodeChildrenEnumerator(OPT_TreeNode node) {
     // start at the first child

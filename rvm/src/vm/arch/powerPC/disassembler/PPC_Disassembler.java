@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * @author Ton Ngo
  *
  * Defined: disasm(inst, addr, buf, reg)
- *          INSTRUCTION inst; VM_Address addr;  CHAR *buf; CHAR reg[4][10];
+ *          INSTRUCTION inst; Address addr;  CHAR *buf; CHAR reg[4][10];
  *
  * 31 Jul 1990 Derek Lieber.
  *      Borrowed from libdbx (opcode.c, decode.c).
@@ -933,7 +933,7 @@ public class PPC_Disassembler implements VM_Constants {
         }
       case 3: /* Trap immediate */
         common_opt = TO_ext(TO);
-        asm_mnemonic = "t"+common_opt+"i";
+        asm_mnemonic = ((opcode == 2) ? "td" : "tw")+common_opt+"i";
         if (common_opt!=null) {
           return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
             "   "+rname(RA)+","+datafield;

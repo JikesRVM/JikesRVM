@@ -5,20 +5,24 @@
 
 package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Code used for recover register value after on stack replacement.
  *
  * @author Feng Qian
  */
 
-public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterruptible {
+public class OSR_PostThreadSwitch implements VM_BaselineConstants, Uninterruptible {
 
   /* This method must be inlined to keep the correctness 
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom<...>
    */
   public static void postProcess(VM_Thread myThread) 
-    throws VM_PragmaNoInline {
+    throws NoInlinePragma {
 
     /* We need to generate thread specific code and install new code.
      * We have to make sure that no GC happens from here and before 
@@ -27,11 +31,11 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
     // add branch instruction from CTR.
     VM_CodeArray bridge   = myThread.bridgeInstructions;
       
-    VM_Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
+    Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
+
+    Offset offset = Offset.fromInt(myThread.fooFPOffset + STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
         
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(myThread.stack).add( 
-                            myThread.fooFPOffset + STACKFRAME_NEXT_INSTRUCTION_OFFSET), 
-                            bridgeaddr);
     myThread.fooFPOffset = 0;
 
     myThread.isWaitingForOsr = false;

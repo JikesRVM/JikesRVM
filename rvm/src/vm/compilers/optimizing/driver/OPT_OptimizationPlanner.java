@@ -438,8 +438,6 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalCSE(false));
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(0, false, false));
-    // Late expansion of counter-based yieldpoints
-    addComponent(p, new OPT_DeterministicYieldpoints());
 
     // Use the LST to estimate basic block frequency
     addComponent(p, new OPT_OptimizationPlanCompositeElement

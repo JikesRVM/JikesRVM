@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)
  * contains all the per-compilation information associated with 
@@ -202,9 +204,9 @@ public final class OPT_IR implements OPT_Operators {
   public void setHasSysCall(boolean b) { hasSysCall = b; }
   
   /**
-   * @param meth the method to compile
-   * @param ip   the inlining oracle to use for the compilation
-   * @param opts the options to use for the compilation
+   * @param m    The method to compile
+   * @param ip   The inlining oracle to use for the compilation
+   * @param opts The options to use for the compilation
    */
   public OPT_IR(VM_NormalMethod m, OPT_InlineOracle ip, OPT_Options opts) {
     method = m;
@@ -213,8 +215,8 @@ public final class OPT_IR implements OPT_Operators {
   }
 
   /**
-   * @param meth the method to compile
-   * @param cp   the compilation plan to execute
+   * @param m    The method to compile
+   * @param cp   The compilation plan to execute
    */
   public OPT_IR(VM_NormalMethod m, OPT_CompilationPlan cp) {
     method = m;
@@ -887,6 +889,7 @@ public final class OPT_IR implements OPT_Operators {
       if (r.isLong()) types++;
       if (r.isDouble()) types++;
       if (r.isInteger()) types++;
+      if (r.isAddress()) types++;
       if (r.isFloat()) types++;
       if (types > 1) {
         verror(where, "Register " + r + " has incompatible types.");
@@ -894,7 +897,7 @@ public final class OPT_IR implements OPT_Operators {
     }
   }
 
-  private void verror(String where, String msg) throws VM_PragmaNoInline {
+  private void verror(String where, String msg) throws NoInlinePragma {
     throw new OPT_OptimizingCompilerException("VERIFY: "+where, msg);
   }
 }

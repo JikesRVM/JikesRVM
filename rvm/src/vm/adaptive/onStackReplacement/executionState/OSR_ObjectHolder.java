@@ -5,6 +5,9 @@
 
 package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
+
+import org.vmmagic.pragma.*;
+
 /**
  * OSR_ObjectHolder helps the specialized prologue to load reference
  * get around of GC problem
@@ -12,14 +15,14 @@ import com.ibm.JikesRVM.*;
  * @author Feng Qian
  */
 
-public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
+public class OSR_ObjectHolder implements Uninterruptible, VM_SizeConstants {
 
   // initialize pool size
   private final static int POOLSIZE = 8;
 
   private static Object[][] refs; 
 
-  public static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws InterruptiblePragma {
     refs = new Object[POOLSIZE][];
     
     // exercise the method to avoid lazy compilation in the future
@@ -36,7 +39,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
   /**
    * The JVM scope descriptor extractor can hand in an object here
    */
-  public final static int handinRefs(Object[] objs) throws VM_PragmaInterruptible {    
+  public final static int handinRefs(Object[] objs) throws InterruptiblePragma {    
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {
@@ -57,7 +60,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
    * Get the object handed in before, only called by specialized code.
    */ 
   public final static Object getRefAt(int h, int i) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
         
         if (VM.TraceOnStackReplacement) {
           VM.sysWriteln("OSR_ObjectHolder getRefAt");
@@ -71,7 +74,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
    * Uses magic because it must be uninterruptible
    */
   public final static void cleanRefs(int i) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }

@@ -17,11 +17,13 @@ running Eclipse on Jikes RVM}%
  (Section~\ref{section:eclipse}, page~\pageref{section:eclipse})%
 ]{section:eclipse}.\@
 
-\subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.0, or SuSE Linux 8.x and 9.0 for~Intel~x86}
+\subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.0, or SuSE Linux 8.x and 9.x for~Intel~x86}
 
 Red~Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA-32 and AMD\Rboth{} x86-32 has emerged as the 
-primary platform for Jikes\TMweb{} RVM.\@  SuSE\Rboth{} Linux is also in daily use
-by one of the Jikes RVM core team members.
+primary platform for Jikes\TMweb{} RVM.\@ 
+%% %% No longer true for me --Steve Augart, 28 September 2004
+%% SuSE\Rboth{} Linux is also in daily use
+%% by one of the Jikes RVM core team members.
 If you have either a developer or full install of Red~Hat
 Linux~7.3 or later, your system has almost everything you need
 to run Jikes RVM.\@  The following instructions describe how to install
@@ -68,13 +70,14 @@ done so (it is included in the standard SuSE Linux install, but not in
 the standard Red Hat Linux install).  You can 
 obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL};
 use the pre-build RPM file.
-If you're using SuSE Linux~8.2 or newer, Jikes~1.18 is on the install
-CD in the package {\tt jikes}.
+If you're using SuSE Linux versions 8.2 through 9.1, Jikes~1.18 or 1.19 is on the install
+CD in the package {\tt jikes}.  SuSE Linux 9.2 comes with Jikes 1.21,
+which will not work; you'll have to manually download it.  
 
 We have had mixed experiences with different releases of the Jikes
 compiler. Versions 1.13 and 1.18 are known to work for building Jikes
-RVM. Versions 1.14 through 1.17 and 1.20 are known to {\em not}\/
-work. Version 1.19 has worked for many people, but we have had
+RVM. Versions 1.14 through 1.17, 1.20, 1.21, and 1.22 are known {\em not}\/ to
+work.  Version 1.19 has worked for many people, but we have had
 problems reported on OSX. 
 
 
@@ -82,9 +85,12 @@ problems reported on OSX.
 {\tt jikes-1.15} in
 particular --- installed by default with SuSE Linux 8.1 --- has a
 byte-code generation bug that will cause Jikes RVM to crash with an
-{\tt ArrayIndexOutOfBounds} exception.  {\tt jikes-1.13}, as of the last
-time we tried it (August 8, 2003) works fine, and sometimes generates
-better error messages than {\tt jikes-1.18}.
+{\tt ArrayIndexOutOfBounds} exception.  Jikes 1.21 and 1.22 dump core
+with an assertion failure when they builds Jikes RVM.
+
+{\tt jikes-1.13}, as of the last
+time we tried it (September 28, 2004) works fine, and sometimes generates
+better error messages than {\tt jikes-1.18} and {\tt jikes-1.19}.
 \end{small}
 
 \item Download Jikes RVM from the \xlink{Jikes RVM
@@ -97,18 +103,17 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
 \item You will need version \classpathversion{} of the GNU
-Classpath libraries.  The cvs head of Jikes RVM also works with the
-cvs head of GNU Classpath and with GNU Classpath 0.09 on Linux/IA32.
-However, we are currently recommending that users do not upgrade to
-Classpath 0.09.  There is a severe performance problem with Classpath
-0.09's I/O layer and Classpath 0.09 does not compile out-of-the-box on
-AIX.  We hope that these issues will be resolved for Classpath 0.10.
+Classpath libraries.\footnote{0.10 and 0.11 also work; you'll have to
+  set the configuration variable {\tt RVM\_WITH\_CLASSPATH\_0\_10=1} or
+  {\tt RVM\_WITH\_CLASSPATH\_0\_11=1} to use them, as appropriate.}
 The Jikes RVM build process can automatically download, 
 configure, and build the appropriate version of Classpath for you.
 
 This has historically sometimes led to confusion on the part of the
-person installing Jikes RVM.\@  We expect to have these glitches ironed
-out before the next release.  If you have any difficulty, look \AtManualClasspathRootDiscussion{}
+person installing Jikes RVM.\@  
+%% We expect to have these glitches ironed
+%% out before the next release.  
+If you have any difficulty, look \AtManualClasspathRootDiscussion{}
 
 \item Edit a configuration file so that it fits your machine.  One of
 the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/rvm/config} will probably be
@@ -194,26 +199,27 @@ GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\
 {\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
 Jikes\TMweb{} Compiler & 1.19, 1.18 or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
 Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
+Xalan-Java \textit{(optional)} & {\it any}    \link{\SeeBelow}{xalan-why}  & \xlink{\tt \xalanURL}{\xalanURL} \\
 \hline
 \hline \multicolumn{3}{|c|}{\em If \link{automatically Building GNU
         Classpath via {\tt wget}}{wget-why} (the default)} \\ \hline
 
 {\tt wget} & {\it any}    \link{\SeeBelow}{wget-why}  & \xlink{\tt \wgetURL}{\wgetURL} \\
 
-\hline \hline \multicolumn{3}{|c|}{\em If automatically Building GNU
-        Classpath from CVS (the default until October~2003)} \\ \hline
-{\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
-{\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
-{\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
+%% \hline \hline \multicolumn{3}{|c|}{\em If automatically Building GNU
+%%         Classpath from CVS (the default until October~2003)} \\ \hline
+%% {\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
+%% {\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
+%% {\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
 \hline \hline \multicolumn{3}{|c|}{\em Linux/x86-32}                      \\ \hline
 kernel         & 2.4+ \SeeBelow{} & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
-JDK            & Blackdown 1.3.1 or 1.4.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
+JDK            & Blackdown 1.3.1 or 1.4.1 or 1.4.2 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ \SeeBelow & \xlink{\tt \glibcURL}{\glibcURL} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em AIX\TMweb{}/PowerPC\TMweb{}}                     \\ \hline
 
 AIX            & 4.3+     & %   \center{---}                      
 \\
-JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
+JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 or 1.4.2 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline \hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
@@ -244,22 +250,43 @@ installation} below}[\textit{Mac OS~X is further discussed in subsection~\Ref{},
 \T Jikes RVM}, on page~\pageref{prereq-table}:
 \T
 \begin{itemize}
-\begin{Label}{auto-and-cvs}
-\item \texttt{automake}, \texttt{autoconf}, and \texttt{cvs}
-are only required \link{to build the GNU Classpath libaries 
-        from GNU Classpath's CVS}{manual-classpath-root}.
-If you instead \link{download a GNU Classpath tarball release}{manual-classpath-root}
-via FTP (we recommend this), then you don't need
-these.\texonly{  Look \AtManualClasspathRootDiscussion{ before
- you make your decision}}
-\end{Label}
+%% \begin{Label}{auto-and-cvs}
+%% \item \texttt{automake}, \texttt{autoconf}, and \texttt{cvs}
+%% are only required \link{to build the GNU Classpath libaries 
+%%         from GNU Classpath's CVS}{manual-classpath-root}.  This is an
+%% obscure option, intended mainly for classpath hackers.
+%% If you instead \link{download a GNU Classpath tarball release}{manual-classpath-root}
+%% via FTP (we recommend this), or let the \jrvm{} build process retrieve and build
+%% GNU Classpath for you, then you don't need
+%% these.\texonly{  Look \AtManualClasspathRootDiscussion{ before
+%%  you make your decision}}
+%% \end{Label}
 
 \begin{Label}{wget-why}
-As of this writing (October 16, 2003), the version of {\tt
-  jBuildClasspathJar} available through the CVS head now uses
-\texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@  If this continues
-to work, then the Jikes RVM build process won't require {\tt
-  automake}, \texttt{autoconf}, or \texttt{cvs}.
+%% As of this writing (October 16, 2003), the version of 
+\item {\tt jBuildClasspathJar} %% available through the CVS head now 
+uses \texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@   If
+you \link{retrieve Classpath yourself}{manual-classpath-root} then you
+won't need \texttt{wget}.
+
+%% If this continues
+%% to work, then the Jikes RVM build process won't require {\tt
+%%   automake}, \texttt{autoconf}, or \texttt{cvs}.
+\end{Label}
+
+\begin{Label}{xalan-why}
+%% As of this writing (October 16, 2003), the version of 
+\item The Xalan-Java XSLT processor and the Xerces XML processor are an
+optional
+part of the Jikes RVM run-time library.  If you are using any programs
+that use XML,
+then we recommend adding them, since the XML support in Classpath is
+not mature.  They are also necessary if you wish to run Eclipse.  
+We have tested using Xalan-Java 2.6.0 (the latest version as of this
+writing); visit \xlink{\texttt{\xalanURL}}{\xalanURL} and download the ``Xalan
+Java binary distribution'', which has Xerces packaged with it.  The
+file to download is \texttt{\xalanFile}.   You can just unpack it
+without having to build it. 
 \end{Label}
 
 \item \texttt{glibc} for Linux/x86 must use the GS register for
@@ -282,7 +309,9 @@ insist, look in \texttt{jconfigure} for details.
   \texttt{jconfigure}, because of what appears to be a bug in its handling of
   the here-document redirection operator (\texttt{$<<$- EOF}).  Unfortunately, the
   version of Bash distributed with AIX 5.1 in /usr/contrib/bin is
-  2.05.   Bash 2.05a, 2.05b, 2.02 and 2.03 seem to work adequately.
+  2.05.   Bash 2.05a, and 2.05b seem to work adequately.  
+  \texttt{jconfigure} will test for a working version of Bash and warn
+  you of problems.
 
 \end{itemize}
 
@@ -325,7 +354,9 @@ one working directory.   \texonly{See Section~\ref{configs} (page~\pageref{confi
 The Jikes RVM {\em boot image\index{boot image}} and other files generated during the 
 configuration process
 are stored in a {\em build directory\index{build directory}},
- which is logically separate from the working directory. 
+ which is logically separate from the working directory.   Each
+distinct configuration of \jrvm{} you build will have its own 
+{\em build directory}. 
 
 To install Jikes RVM  you must do the following:
 \begin{enumerate}
@@ -468,21 +499,21 @@ whose default values are defined with reference to \texttt{HOST\_JAVA\_HOME}.
 
 {\bf The setting of \texttt{CLASSPATH\_ROOT} is tricky}, so we will go
 into some depth here.  For this example, we'll assume you downloaded
-\texttt{classpath-0.10.tgz}.  Create a directory to hold it.  You can
+\texttt{classpath-0.12.tgz}.  Create a directory to hold it.  You can
 name that directory anything; we'll name it 
-{\it \texttt{\$RVM\_\-ROOT/}classpath-0.10-build}.  
+{\it \texttt{\$RVM\_\-ROOT/}classpath-0.12}.  
 A command like 
 ``\texttt{/usr/gnu/tar -C
-  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.10-build} xzf classpath-0.10.tgz}''
+  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.12-build} xzf classpath-0.12.tgz}''
 will create the directory
-``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.10-build}\texttt{/\-class\-path-0.10}''.  
+``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.12-build}\texttt{/\-class\-path-0.12}''.  
 
 You {\bf must rename} ``\texttt{\$\{RVM\_\-ROOT\}/{\it
-    class\-path-0.10-build}/\-class\-path-0.10}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.10-build}/\-class\-path}''.  Now set your {\tt
-  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.10-build}}''
+    class\-path-0.12-build}/\-class\-path-0.12}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
+    class\-path-0.12-build}/\-class\-path}''.  Now set your {\tt
+  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.12-build}}''
 ({\bf not} to \texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.10-build}/\-class\-path}).
+    class\-path-0.12-build}/\-class\-path}).
 
 
 The first time you run Jikes RVM's build process, it will
@@ -761,11 +792,11 @@ configuration such that all the Jikes RVM classes are included in the
 boot image.  (By default 
 only a small subset of these classes are included in the boot image.)
 
-\Mlitch{FulAdaptive} images 
+\Mlitch{FullAdaptive} images 
 have all of the included classes already compiled by the optimizing
-compiler.  \Mlitch{FullBaseAdaptive} images have the classes compiled
-by the baseline compiler; the adaptive system will later recompile any
-hot methods.
+compiler.  \Mlitch{FullBaseAdaptive} images have the included classes
+already compiled by the baseline compiler; the adaptive system will
+later recompile any hot methods.
 
 \item The word \Mlitch{Fast} at the beginning of 
 the configuration name identifies a \Mlitch{Full} configuration where

@@ -1,11 +1,11 @@
 This section contains guidelines on the process of
-submitting a contribution to JMTk.
+submitting a contribution to MMTk.
 
 \index{contributions}
 
-\subsection{JMTk Contributions}
+\subsection{MMTk Contributions}
 
-We encourage contributions to JMTk in any of these forms: additional
+We encourage contributions to MMTk in any of these forms: additional
 components or collectors, generalization of architecture,
 and instrumentation infrastructure.  Because of the sometimes significant
 maintenance cost of memory managers, we expect submitted contributions
@@ -15,12 +15,12 @@ to adhere to the following guidelines:
 \begin{enumerate}
 
 \item {\bf Coding style}  
-JMTk judiciously uses modularity and abstraction to lower maintenance
+MMTk judiciously uses modularity and abstraction to lower maintenance
 cost and increase code clarity.  We expect contributions, especially
 large ones, to follow the same discipline.  Specifically, we highly
 encourage reuse of existing components or contributing patches to
-augment the functionality of existing components.  Since JMTk is
-designed to be a separable module within the VM, JMTk contributions
+augment the functionality of existing components.  Since MMTk is
+designed to be a separable module within the VM, MMTk contributions
 should adhere to certain modularity constraints.  Namely,
 communication with the rest of the VM should occur only through the
 classes {\tt VM\_Interface} and {\tt MM\_Interface} and certain magic classes

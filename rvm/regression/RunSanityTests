@@ -471,6 +471,7 @@ function doRun {
 	    ;;
 
 	* ) # baseline must be the runtime compiler - no default options yet
+            export RC_ARGS=""
             ;;
     esac
 

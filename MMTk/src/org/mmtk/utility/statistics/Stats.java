@@ -6,12 +6,11 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
-import org.mmtk.plan.Plan;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.PrintPhaseStats;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
-import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
@@ -21,12 +20,14 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @date $Date$
  * $Id$
  */
-public class Stats implements VM_Uninterruptible {
+public class Stats implements Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
+
+  public static final boolean GATHER_MARK_CONS_STATS = false;
 
   /** Maximum number of gc/mutator phases that can be counted */
   static final int MAX_PHASES = 1<<12;
@@ -38,6 +39,7 @@ public class Stats implements VM_Uninterruptible {
   static int phase = 0;
   static private int gcCount = 0;
   static boolean gatheringStats = false;
+  static PrintPhaseStats printPhaseStats;
 
   /****************************************************************************
    *
@@ -52,6 +54,7 @@ public class Stats implements VM_Uninterruptible {
    */
   static {
     counter = new Counter[MAX_COUNTERS];
+    printPhaseStats = new PrintPhaseStats();
   }
 
   /**
@@ -59,7 +62,7 @@ public class Stats implements VM_Uninterruptible {
    * 
    * @param ctr The counter to be added.
    */
-  static void newCounter(Counter ctr) throws VM_PragmaInterruptible {
+  static void newCounter(Counter ctr) throws InterruptiblePragma {
     if (counters < (MAX_COUNTERS - 1)) {
       counter[counters++] = ctr;
     } else {
@@ -108,7 +111,7 @@ public class Stats implements VM_Uninterruptible {
     if (gatheringStats) {
       Log.writeln("Error: calling Stats.startAll() while stats running");
       Log.writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {
@@ -132,7 +135,7 @@ public class Stats implements VM_Uninterruptible {
    * Print out statistics
    */
   public static void printStats() {
-    if (Options.printPhaseStats)
+    if (printPhaseStats.getValue())
       printPhases();
     printTotals();
   }

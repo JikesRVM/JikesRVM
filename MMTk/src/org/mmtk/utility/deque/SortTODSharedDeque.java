@@ -2,14 +2,13 @@
   * (C) Copyright Department of Computer Science,
   * Australian National University. 2004.
   */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
+import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.TraceInterface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class specializes SortSharedQueue to sort objects according to
@@ -20,21 +19,21 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */ 
 final public class SortTODSharedDeque extends SortSharedDeque 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final VM_Offset INSERTION_SORT_LIMIT = VM_Offset.fromInt(80);
+  private static final Offset INSERTION_SORT_LIMIT = Offset.fromInt(80);
   
   /**
    * Constructor
    *
-   * @param rpa The allocator from which the instance should obtain buffers.
-   * @param airty The arity of the data to be enqueued
+   * @param rps The space from which the instance should obtain buffers.
+   * @param arity The arity of the data to be enqueued
    */
-  public SortTODSharedDeque(RawPageAllocator rpa, int arity) {
-    super(rpa, arity);
+  public SortTODSharedDeque(RawPageSpace rps, int arity) {
+    super(rps, arity);
   }
   
   /**
@@ -43,7 +42,7 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  protected final VM_Word getKey(VM_Address obj) {
-    return TraceInterface.getDeathTime(obj);
+  protected final Word getKey(Address obj) {
+    return TraceInterface.getDeathTime(obj.toObjectReference());
   }
 }

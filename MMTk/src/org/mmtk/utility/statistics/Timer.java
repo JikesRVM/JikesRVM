@@ -6,10 +6,9 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
+import org.mmtk.vm.Statistics;
 
-import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple timer.
@@ -20,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * $Id$
  */
 public class Timer extends LongCounter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -72,8 +71,8 @@ public class Timer extends LongCounter
    *
    * @return The current value for this timer
    */
-  final protected long getCurrentValue() throws VM_PragmaInline {
-    return VM_Interface.cycles();
+  final protected long getCurrentValue() throws InlinePragma {
+    return Statistics.cycles();
   }
 
   /**
@@ -112,7 +111,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printMicro(long value) {
-    Log.write(1000*VM_Interface.cyclesToMillis(value));
+    Log.write(1000*Statistics.cyclesToMillis(value));
   }
 
   /**
@@ -121,7 +120,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printMillis(long value) {
-    Log.write(VM_Interface.cyclesToMillis(value));
+    Log.write(Statistics.cyclesToMillis(value));
   }
 
   /**
@@ -130,7 +129,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printSecs(long value) {
-    Log.write(VM_Interface.cyclesToSecs(value));
+    Log.write(Statistics.cyclesToSecs(value));
   }
 }
 

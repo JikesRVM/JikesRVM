@@ -4,12 +4,12 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Statistics;
 import org.mmtk.vm.SynchronizedCounter;
+import org.mmtk.vm.Memory;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements barrier synchronization.
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  *
  * @author   Perry Cheng
  */
-public final class Barrier implements VM_Uninterruptible {
+public final class Barrier implements Uninterruptible {
 
   public static int verbose = 0;
 
@@ -39,7 +39,7 @@ public final class Barrier implements VM_Uninterruptible {
   private static long TIME_OUT =  Long.MAX_VALUE; // set to a real value by fullyBooted
 
   public static void fullyBooted() {
-    WARN_PERIOD = VM_Interface.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
+    WARN_PERIOD = Statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
     TIME_OUT    = 10 * WARN_PERIOD;               // Die after TIME_OUT seconds
   }
 
@@ -53,23 +53,23 @@ public final class Barrier implements VM_Uninterruptible {
   // Set target to appropriate value
   //
   public void setTarget (int t) {
-    VM_Magic.isync();
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(t >= 0);
+    Memory.isync();
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(t >= 0);
     target = t + 1;
-    VM_Magic.sync();
+    Memory.sync();
   }
 
   public void clearTarget () {
-    VM_Magic.isync();
+    Memory.isync();
     target = -1;
-    VM_Magic.sync();
+    Memory.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive (int where) {
-    VM_Magic.isync();
+    Memory.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
@@ -77,8 +77,7 @@ public final class Barrier implements VM_Uninterruptible {
     if (verbose >= 1) { 
       Log.write(where); Log.write(": myValue = "); Log.writeln(myValue);
     }
-    if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(myValue >= 0 && (target == -1 || myValue <= target));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { 
       // last one to show up
       int next = (cur + 1) % NUM_COUNTERS;
@@ -90,7 +89,7 @@ public final class Barrier implements VM_Uninterruptible {
         currentCounter.increment();   
       c.increment();                // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
-      VM_Magic.sync();
+      Memory.sync();
       return myValue;
     } else {
       // everyone else
@@ -98,23 +97,23 @@ public final class Barrier implements VM_Uninterruptible {
       long lastElapsed = 0;
       for (int i=0; ; i++) {
         if (target != -1 && c.peek() == target) {
-          VM_Magic.sync();
+          Memory.sync();
           return myValue;
         }
         if (((i - 1) % TIME_CHECK) == 0) {
           if (startCheck == 0) {
-            startCheck = VM_Interface.cycles();
+            startCheck = Statistics.cycles();
           } else {
-            long elapsed = VM_Interface.cycles() - startCheck;
+            long elapsed = Statistics.cycles() - startCheck;
             if (elapsed - lastElapsed > WARN_PERIOD) {
-              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM_Interface.cyclesToSecs(elapsed));
+              Log.write("GC Warning: Barrier wait has reached "); Log.write(Statistics.cyclesToSecs(elapsed));
               Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
               Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
               Log.writeln();
               lastElapsed = elapsed;
             }
             if (elapsed > TIME_OUT)
-              VM_Interface.sysFail("GC Error: Barrier Timeout");
+              Assert.fail("GC Error: Barrier Timeout");
           }
         }
       }

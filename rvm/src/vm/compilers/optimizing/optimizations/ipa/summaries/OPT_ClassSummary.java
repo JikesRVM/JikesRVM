@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
 public class OPT_ClassSummary {
 
   /**
-   * @param lw lightweith class corresponding to this OPT_Class
+   * @param v lightweith class corresponding to this OPT_Class
    */
   OPT_ClassSummary (VM_Class v) {
     vmClass = v;

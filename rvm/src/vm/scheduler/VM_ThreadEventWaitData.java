@@ -5,16 +5,18 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Base class for objects specifying an event being waited for
  * while a <code>VM_Thread</code> is on a {@link VM_ThreadEventWaitQueue}.
  * Subclasses <em>must</em> directly implement the
- * {@link VM_Uninterruptible} interface.
+ * {@link Uninterruptible} interface.
  *
  * @author David Hovemeyer
  */
 public abstract class VM_ThreadEventWaitData
-  implements VM_Uninterruptible, VM_ThreadEventConstants {
+  implements Uninterruptible, VM_ThreadEventConstants {
 
   /**
    * Timestamp at which time the thread should return from its

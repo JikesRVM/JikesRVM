@@ -32,7 +32,7 @@ class OPT_Coalesce implements OPT_Operators {
    * @param live liveness information for the IR
    * @param r1
    * @param r2
-   * @param true if the transformation succeeded, false otherwise.
+   * @return true if the transformation succeeded, false otherwise.
    */
   public static boolean attempt(OPT_IR ir, OPT_LiveAnalysis live, 
                                 OPT_Register r1, OPT_Register r2) {

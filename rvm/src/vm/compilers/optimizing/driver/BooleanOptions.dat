@@ -173,6 +173,9 @@ Print short message for each compilation phase
 PRINT_ALL_IR -1 false
 Dump the IR after each compiler phase
 
+PRINT_DETAILED_INLINE_REPORT -1 false
+Print detailed report of compile-time inlining decisions
+
 PRINT_INLINE_REPORT -1 false
 Print detailed report of compile-time inlining decisions
 

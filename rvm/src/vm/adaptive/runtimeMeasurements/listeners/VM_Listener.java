@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * A VM_Listener object is invoked when online measurement information 
@@ -18,7 +17,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  *
  * CONSTRAINTS:
  * Classes that are derived from VM_Listener 
- * must inherit directly from VM_Uninterruptible to ensure that they
+ * must inherit directly from Uninterruptible to ensure that they
  * are not interrupted by a thread switch.  
  * Since thread switching is disabled, listeners are 
  * expected to complete execution quickly, and therefore, 
@@ -27,12 +26,12 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Peter Sweeney
  * @author Dave Grove
  */
-abstract class VM_Listener implements VM_Uninterruptible {
+abstract class VM_Listener implements Uninterruptible {
 
   /**
    * Entry point to dump what has been collected.
    */
-  abstract public void report() throws VM_PragmaInterruptible;
+  abstract public void report() throws InterruptiblePragma;
 
   /**
    * Is the listener currently active (interested in getting "update" calls)

@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
 import java.io.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * A OSR_ExecStateExtractor extracts a runtime state (JVM scope descriptor) 
  * of a method activation. The implementation depends on compilers and 
@@ -27,11 +30,11 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).  
    *
-   * @param thread, a suspended RVM thread
-   * @param tsFromFPoff, the frame pointer offset of the threadSwitchFrom method
-   * @param ypTakenFPoff, the frame pointer offset of the real method where 
+   * @param thread a suspended RVM thread
+   * @param tsFromFPoff the frame pointer offset of the threadSwitchFrom method
+   * @param ypTakenFPoff the frame pointer offset of the real method where 
    *                      yield point was taken. tsFrom is the callee of ypTaken
-   * @param cmid, the compiled method id of ypTaken
+   * @param cmid the compiled method id of ypTaken
    */
   public abstract OSR_ExecutionState extractState(VM_Thread thread, 
                                            int tsFromFPoff,
@@ -42,8 +45,8 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
 
     VM.disableGC();
 
-    VM_Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
-    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
+    Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -275,7 +275,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * That is, return the set of all uses of the heap variable 
    * <em> before </em> we performed renaming for SSA.
    *
-   * @param A the heap variable in question
+   * @param type   The heap variable in question
    * @return the set of all instructions that used this heap
    * variable, prior to renaming for SSA
    */
@@ -302,7 +302,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * That is, return the set of all uses of the heap variable 
    * <em> before </em> we performed renaming for SSA.
    *
-   * @param A the heap variable in question
+   * @param type  the heap variable in question
    * @return the set of all instructions that defined this heap
    * variable, prior to renaming for SSA
    */
@@ -621,8 +621,10 @@ public final class OPT_SSADictionary implements OPT_Operators {
         arraylengthHelper(s, b);
         break;
       case CALL_opcode:case SYSCALL_opcode:
-      case MONITORENTER_opcode:case MONITOREXIT_opcode:case PREPARE_opcode:
-      case ATTEMPT_opcode:case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
+      case MONITORENTER_opcode:case MONITOREXIT_opcode:
+      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode:
+      case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
         //-#if RVM_FOR_POWERPC
       case DCBST_opcode:case ICBI_opcode:
         //-#endif
@@ -1072,7 +1074,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * field.
    *
    * @param s the instruction in question
-   * @param t the field heap variable the instruction uses
+   * @param fr the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
@@ -1101,12 +1103,12 @@ public final class OPT_SSADictionary implements OPT_Operators {
   }
 
   /**
-   * Register that instruction an instruction writes a heap variable for 
+   * Register that instruction <code>s</code> writes a heap variable for 
    * a given field.
    *
    * @param s the instruction in question
-   * @param b s's basic block
-   * @param t the field heap variable the instruction modifies
+   * @param b  <code>s</code>'s basic block
+   * @param fr the field heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
@@ -1140,7 +1142,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * field.
    *
    * @param s the instruction in question
-   * @param t the field heap variable the instruction uses
+   * @param a the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, String a) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
@@ -1159,12 +1161,12 @@ public final class OPT_SSADictionary implements OPT_Operators {
   }
 
   /**
-   * Register that instruction an instruction writes a heap variable for 
+   * Register that the instruction <code>s</code> writes a heap variable for 
    * a given field.
    *
    * @param s the instruction in question
-   * @param b s's basic block
-   * @param t the field heap variable the instruction modifies
+   * @param b <code>s</code>'s basic block
+   * @param a  XXX TODO Check this XXX The field in question.
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, String a) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);

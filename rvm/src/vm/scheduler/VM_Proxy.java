@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * To implement timed waits, a thread may need to be (logically) 
  * on two queues: a waiting queue and a (the) wakeup queue.  To
@@ -20,7 +22,7 @@ package com.ibm.JikesRVM;
  * @author Susan Flynn Hummel
  * @author Bowen Alpern
  */
-final class VM_Proxy implements VM_Uninterruptible {
+final class VM_Proxy implements Uninterruptible {
   
   VM_Thread        patron;
   VM_Proxy         waitingNext;

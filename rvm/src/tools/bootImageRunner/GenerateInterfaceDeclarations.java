@@ -149,6 +149,11 @@ class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
+    pln("#ifdef NEED_EXIT_STATUS_CODES");
+    emitExitStatusCodes();
+    pln("#endif /* NEED_EXIT_STATUS_CODES */");
+    pln();
+
     pln("#ifdef NEED_ASSEMBLER_DECLARATIONS");
     emitAssemblerDeclarations();
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
@@ -187,19 +192,23 @@ class GenerateInterfaceDeclarations {
         fields[j++] = new SortableField(allFields[i]);
     Arrays.sort(fields);
 
+    // Emit field declarations
+    //
+    p("struct " + Cname + " {\n");
+
     // Set up cursor - scalars will waste 4 bytes on 64-bit arch
     //
     boolean needsAlign = VM.BuildFor64Addr;
     int addrSize = VM.BuildFor32Addr ? 4 : 8;
-    int current = fields[0].offset;
-    if (needsAlign && ((current & 7) != 0))
-        current -= 4;
-    if (current >= 0) 
-        pln("Are scalars no longer backwards?  If so, check this code.");
 
-    // Emit field declarations
-    //
-    p("struct " + Cname + " {\n");
+    // Header Space for objects
+    int startOffset = VM_ObjectModel.objectStartOffset(cls);
+    int current = startOffset;
+    for(int i = 0; current < fields[0].f.getOffset(); i++) {
+      pln("  uint32_t    headerPadding" + i + ";\n");
+      current += 4; 
+    }
+    
     for (int i = 0; i<fields.length; i++) {
       VM_Field field = fields[i].f;
       VM_TypeReference t = field.getType();
@@ -436,15 +445,29 @@ class GenerateInterfaceDeclarations {
     }
     //-#endif
 
-    p("static const int VM_Constants_STACK_SIZE_GUARD           = "
+    p("static const int VM_Constants_STACK_SIZE_GUARD          = "
         + VM_Constants.STACK_SIZE_GUARD + ";\n");
-    p("static const int VM_Constants_INVISIBLE_METHOD_ID        = "
+
+    //-#if RVM_WITH_FLEXIBLE_STACK_SIZES
+    p("static const int VM_Constants_STACK_SIZE_MIN      = "
+        + VM_Constants.STACK_SIZE_MIN + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_NORMAL_DEFAULT  = "
+        + VM_Constants.STACK_SIZE_NORMAL_DEFAULT + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_GROW_MIN       = "
+        + VM_Constants.STACK_SIZE_GROW_MIN + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_GROW_DEFAULT   = "
+        + VM_Constants.STACK_SIZE_GROW_DEFAULT + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_MAX_DEFAULT    = "
+        + VM_Constants.STACK_SIZE_MAX_DEFAULT + ";\n");
+    //-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+
+    p("static const int VM_Constants_INVISIBLE_METHOD_ID       = "
         + VM_Constants.INVISIBLE_METHOD_ID + ";\n");
-    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT = "
+    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= "
         + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
-    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE             = "
+    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = "
         + VM_Constants.STACKFRAME_HEADER_SIZE + ";\n");
-    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET        = "
+    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = "
         + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
@@ -554,11 +577,19 @@ class GenerateInterfaceDeclarations {
     p("static const int VM_FileSystem_STAT_LENGTH                 = "
         + VM_FileSystem.STAT_LENGTH + ";\n");
 
+    // Value in org.mmtk.vm.Constants:
+    p("static const int MMTk_Constants_BYTES_IN_PAGE            = "
+        + org.mmtk.vm.Constants.BYTES_IN_PAGE + ";\n");
+
+
     // fields in VM_Processor
     //
     int offset;
-    offset = VM_Entrypoints.threadSwitchRequestedField.getOffset();
-    p("static const int VM_Processor_threadSwitchRequested_offset = "
+    offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
+    p("static const int VM_Processor_timeSliceExpired_offset = "
+        + offset + ";\n");
+    offset = VM_Entrypoints.takeYieldpointField.getOffset();
+    p("static const int VM_Processor_takeYieldpoint_offset = "
         + offset + ";\n");
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
@@ -567,9 +598,12 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.pthreadIDField.getOffset();
     p("static const int VM_Processor_pthread_id_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.epochField.getOffset();
-    p("static const int VM_Processor_epoch_offset = "
+    offset = VM_Entrypoints.timerTicksField.getOffset();
+    p("static const int VM_Processor_timerTicks_offset = "
                      + offset + ";\n");
+    offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
+    p("static const int VM_Processor_reportedTimerTicks_offset = "
+                    + offset + ";\n");
     offset = VM_Entrypoints.activeThreadField.getOffset();
     p("static const int VM_Processor_activeThread_offset = "
                      + offset + ";\n");
@@ -651,6 +685,27 @@ class GenerateInterfaceDeclarations {
                      + offset + ";\n");
   }
 
+
+  // Codes for exit(3).
+  static void emitExitStatusCodes () {
+    pln("/* Automatically generated from the exitStatus declarations in VM.java */");
+    pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = "
+        + VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
+    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = "
+        + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
+    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = "
+        + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
+    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = "
+        + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
+    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = "
+        + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
+        + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
+    pln("const int EXIT_STATUS_JNI_TROUBLE                          = "
+        + VM.EXIT_STATUS_JNI_TROUBLE + ";");
+    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = "
+        + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
+  }
 
   // Emit assembler constants.
   //

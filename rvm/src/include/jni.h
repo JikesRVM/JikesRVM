@@ -324,7 +324,7 @@ struct JNINativeInterface_ {
     void (PJNICALL ReleaseStringChars)(JNIEnv *env, jstring str, const jchar *chars);
     jstring (PJNICALL NewStringUTF)(JNIEnv *env, const char *utf);
     jsize (PJNICALL GetStringUTFLength)(JNIEnv *env, jstring str);
-    const jbyte* (PJNICALL GetStringUTFChars)(JNIEnv *env, jstring str, jboolean *isCopy);
+    const char* (PJNICALL GetStringUTFChars)(JNIEnv *env, jstring str, jboolean *isCopy);
     void (PJNICALL ReleaseStringUTFChars)(JNIEnv *env, jstring str, const char* chars);
     jsize (PJNICALL GetArrayLength)(JNIEnv *env, jarray array);
     jobjectArray (PJNICALL NewObjectArray)(JNIEnv *env, jsize len, jclass clazz, jobject init);
@@ -559,7 +559,7 @@ struct JNIEnv_ {
     void ReleaseStringChars(jstring str, const jchar *chars) { functions->ReleaseStringChars(this, str, chars); }
     jstring NewStringUTF(const char *utf) { return functions->NewStringUTF(this, utf); }
     jsize GetStringUTFLength(jstring str) { return functions->GetStringUTFLength(this, str); }
-    const jbyte* GetStringUTFChars(jstring str, jboolean *isCopy) { return functions->GetStringUTFChars(this, str, isCopy); }
+    const char* GetStringUTFChars(jstring str, jboolean *isCopy) { return functions->GetStringUTFChars(this, str, isCopy); }
     void ReleaseStringUTFChars(jstring str, const char* chars) { functions->ReleaseStringUTFChars(this, str, chars); }
     jsize GetArrayLength(jarray array) { return functions->GetArrayLength(this, array); }
     jobjectArray NewObjectArray(jsize len, jclass clazz, jobject init) { return functions->NewObjectArray(this, len, clazz, init); }
@@ -715,10 +715,10 @@ struct JNIInvokeInterface_ {
     void *reserved1;
     void *reserved2;
     jint (PJNICALL DestroyJavaVM)(JavaVM *vm);
-    jint (PJNICALL AttachCurrentThread)(JavaVM *vm, JNIEnv **penv, void *args);
+    jint (PJNICALL AttachCurrentThread)(JavaVM *vm, void **penv, void *args);
     jint (PJNICALL DetachCurrentThread)(JavaVM *vm);
     jint (PJNICALL GetEnv)(JavaVM *vm, void **penv, jint version);
-    jint (PJNICALL AttachCurrentThreadAsDaemon)(JavaVM *vm, JNIEnv **penv, void *args);
+    jint (PJNICALL AttachCurrentThreadAsDaemon)(JavaVM *vm, /* JNIEnv */ void  **penv, void *args);
 };
 struct JavaVM_ {
     const struct JNIInvokeInterface_ *functions;
@@ -730,10 +730,10 @@ struct JavaVM_ {
 
 #ifdef __cplusplus
     jint DestroyJavaVM() { return functions->DestroyJavaVM(this); }
-    jint AttachCurrentThread(JNIEnv ** p_env, void * args) { return functions->AttachCurrentThread(this, p_env, args); }
+    jint AttachCurrentThread(/* JNIEnv */ void ** p_env, void * args) { return functions->AttachCurrentThread(this, p_env, args); }
     jint DetachCurrentThread() { return functions->DetachCurrentThread(this); }
     jint GetEnv(void ** p_env, jint version) { return functions->GetEnv(this, p_env, version); }
-    jint AttachCurrentThreadAsDaemon(JNIEnv ** p_env, void * args) { return functions->AttachCurrentThreadAsDaemon(this, p_env, args); }
+    jint AttachCurrentThreadAsDaemon(/* JNIEnv */ void ** p_env, void * args) { return functions->AttachCurrentThreadAsDaemon(this, p_env, args); }
 #endif
 };
 

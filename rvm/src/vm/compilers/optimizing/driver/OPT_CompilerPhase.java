@@ -55,7 +55,7 @@ public abstract class OPT_CompilerPhase implements Cloneable {
   /**
    * This is the method that actually does the work of the phase.
    *
-   * @param OPT_IR the IR on which to apply the phase
+   * @param ir the IR on which to apply the phase
    */
   public abstract void perform (OPT_IR ir);
 

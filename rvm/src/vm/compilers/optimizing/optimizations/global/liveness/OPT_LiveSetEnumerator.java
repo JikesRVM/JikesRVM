@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -21,7 +21,7 @@ public class OPT_LiveSetEnumerator implements Enumeration {
 
   /**
    * The constructor
-   * @param   OPT_LiveSetElement list
+   * @param   list  The {@link OPT_LiveSetElement} at the head of the list.
    */
   public OPT_LiveSetEnumerator(OPT_LiveSetElement list) {
     current = list;

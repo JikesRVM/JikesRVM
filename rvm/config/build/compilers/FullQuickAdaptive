@@ -1,0 +1,2 @@
+   . $1/compilers/QuickAdaptive
+   export RVM_WITH_ALL_CLASSES=1 

@@ -5,20 +5,18 @@
 
 package org.mmtk.vm;
 
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_Entrypoints;
+
+import org.vmmagic.pragma.*;
 
 /**
  * A counter that supports atomic increment and reset.
  *
  * @author Perry Cheng
  */
-public final class SynchronizedCounter implements VM_Uninterruptible {
+public final class SynchronizedCounter implements Uninterruptible {
 
   private static int offset = -1;
 

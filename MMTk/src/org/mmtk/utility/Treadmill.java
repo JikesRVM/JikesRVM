@@ -3,19 +3,19 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.gcspy.TreadmillDriver;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
+ * FIXME The DoublyLinkedList class, upon which this depends, must be
+ * re-written as it makes the assumption that the implementation
+ * language (Java) and the language being implemented are the same.
+ * This is true in the case of Jikes RVM, but it is not true for any
+ * VM implementing a language other than Java.
+ *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
@@ -30,7 +30,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public final class Treadmill
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -58,40 +58,40 @@ public final class Treadmill
     toSpace = new DoublyLinkedList (granularity, shared, this); 
   }
 
-  static public final Treadmill getTreadmill (VM_Address node) {
+  static public final Treadmill getTreadmill (Address node) {
     return (Treadmill) DoublyLinkedList.getOwner(node);
   }
 
-  static public final int headerSize() throws VM_PragmaInline {
+  static public final int headerSize() throws InlinePragma {
     return DoublyLinkedList.headerSize();
   }
 
-  static public final VM_Address nodeToPayload(VM_Address payload) throws VM_PragmaInline {
+  static public final Address nodeToPayload(Address payload) throws InlinePragma {
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
-  static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address payloadToNode(Address payload) throws InlinePragma {
     return DoublyLinkedList.payloadToNode(payload);
   }
 
-  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 
-  public final void addToFromSpace (VM_Address node) throws VM_PragmaInline {
+  public final void addToFromSpace (Address node) throws InlinePragma {
     fromSpace.add(node);
   }
 
-  public final VM_Address popFromSpace () throws VM_PragmaInline {
+  public final Address popFromSpace () throws InlinePragma {
     return fromSpace.pop();
   }
 
-  public final void copy (VM_Address node) throws VM_PragmaInline { 
+  public final void copy (Address node) throws InlinePragma { 
     fromSpace.remove(node);
     toSpace.add(node);
   }
 
-  public final boolean toSpaceEmpty () throws VM_PragmaInline {
+  public final boolean toSpaceEmpty () throws InlinePragma {
     return toSpace.isEmpty();
   }
 
@@ -104,7 +104,7 @@ public final class Treadmill
   /**
    * Gather data for GCSpy
    * @param event the gc event
-   * @param gcspyDriver the GCSpy space driver
+   * @param tmDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {

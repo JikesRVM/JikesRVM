@@ -47,8 +47,10 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Simple.copyPropagation(ir);
       OPT_DefUse.computeDU(ir);
       GlobalCSE(ir.firstBasicBlockInCodeOrder());
-      if (VM.VerifyAssertions)
+      if (VM.VerifyAssertions) {
         VM._assert(avail.size() == 0, avail.toString());
+      }
+      ir.actualSSAOptions.setScalarValid(false);
     }
   }
   
@@ -190,10 +192,12 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case GUARD_MOVE_opcode:
     case GUARD_COMBINE_opcode:
     case TRAP_IF_opcode:
+    case REF_ADD_opcode:
     case INT_ADD_opcode:
     case LONG_ADD_opcode:
     case FLOAT_ADD_opcode:
     case DOUBLE_ADD_opcode:
+    case REF_SUB_opcode:
     case INT_SUB_opcode:
     case LONG_SUB_opcode:
     case FLOAT_SUB_opcode:
@@ -214,23 +218,37 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case LONG_NEG_opcode:
     case FLOAT_NEG_opcode:
     case DOUBLE_NEG_opcode:
+    case REF_SHL_opcode:
     case INT_SHL_opcode:
     case LONG_SHL_opcode:
+    case REF_SHR_opcode:
     case INT_SHR_opcode:
     case LONG_SHR_opcode:
+    case REF_USHR_opcode:
     case INT_USHR_opcode:
     case LONG_USHR_opcode:
+    case REF_AND_opcode:
     case INT_AND_opcode:
     case LONG_AND_opcode:
+    case REF_OR_opcode:
     case INT_OR_opcode:
     case LONG_OR_opcode:
+    case REF_XOR_opcode:
     case INT_XOR_opcode:
+    case REF_NOT_opcode:
     case INT_NOT_opcode:
     case LONG_NOT_opcode:
     case LONG_XOR_opcode:
     case INT_2LONG_opcode:
     case INT_2FLOAT_opcode:
     case INT_2DOUBLE_opcode:
+    case INT_2ADDRSigExt_opcode:
+    case INT_2ADDRZerExt_opcode:
+  //-#if RVM_FOR_64_ADDR
+    case LONG_2ADDR_opcode:
+  //-#endif
+    case ADDR_2INT_opcode:
+    case ADDR_2LONG_opcode:
     case LONG_2INT_opcode:
     case LONG_2FLOAT_opcode:
     case LONG_2DOUBLE_opcode:
@@ -255,7 +273,8 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case OBJARRAY_STORE_CHECK_opcode:
     case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
     case BOOLEAN_NOT_opcode:
-    case BOOLEAN_CMP_opcode:
+    case BOOLEAN_CMP_INT_opcode:
+    case BOOLEAN_CMP_ADDR_opcode:
     case FLOAT_AS_INT_BITS_opcode:
     case INT_BITS_AS_FLOAT_opcode:
     case DOUBLE_AS_LONG_BITS_opcode:

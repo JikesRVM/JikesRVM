@@ -2,20 +2,14 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Note this may perform poorly when being used as a FIFO structure with
@@ -30,7 +24,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */ 
 public class LocalDeque extends LocalQueue 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -74,12 +68,11 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of the values stored in this deque: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkHeadInsert(int arity) throws VM_PragmaInline {
+  protected final void checkHeadInsert(int arity) throws InlinePragma {
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
 	head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
-    else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
+    else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
   
   /**
@@ -90,51 +83,12 @@ public class LocalDeque extends LocalQueue
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedHeadInsert(VM_Address value) 
-    throws VM_PragmaInline {
-      if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
-    VM_Magic.setMemoryAddress(head, value);
+  protected final void uncheckedHeadInsert(Address value) 
+    throws InlinePragma {
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
+    head.store(value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
-  }
-
-  /**
-   * Check whether there are sufficient entries in the tail buffer for
-   * a pending pop.  If there are not sufficient entries, acquire a
-   * new buffer from the shared deque. Return true if there are
-   * enough entries for the pending pop, false if the deque has been
-   * exhausted.
-   *
-   * @param arity The arity of the values stored in this deque: there
-   * must be at least this many values available.
-   * @return True if there are enough entries for the pending pop,
-   * false if the queue has been exhausted.
-   */
-  protected final boolean checkPop(int arity) throws VM_PragmaInline {
-    if (tail.EQ(tailBufferEnd)) {
-      return popUnderflow(arity);
-    } else if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(bufferOffset(tail).sLT(bufferSentinel(queue.getArity())));
-    }
-    return true;
-  }
-
-  /**
-   * Pop an address value from the buffer.  This is <i>unchecked</i>.  The
-   * caller must first call <code>checkPop()</code> to ensure the
-   * buffer has sufficient values.
-   *
-   * @return the next address in the buffer
-   */
-  protected final VM_Address uncheckedPop() throws VM_PragmaInline {
-    VM_Address retVal;
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(tail.LT(tailBufferEnd));
-    // if (VM_Interface.VerifyAssertions) enqueued--;
-    retVal = VM_Magic.getMemoryAddress(tail);
-    tail = tail.add(BYTES_IN_ADDRESS);
-    return retVal;
   }
 
   /****************************************************************************
@@ -149,8 +103,7 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void headOverflow(int arity) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
 
@@ -159,38 +112,12 @@ public class LocalDeque extends LocalQueue
   }
 
   /**
-   * There are not sufficient entries in the head buffer for a pending
-   * pop.  Acquire a new tail buffer.  If the shared deque has no
-   * buffers available, consume the head if necessary.  Return false
-   * if entries cannot be acquired.
-   *
-   * @param arity The arity of this buffer (used for sanity test only).
-   * @return True if the buffer has been successfully
-   * replenished.
-   */
-  private final boolean popUnderflow(int arity) throws VM_PragmaNoInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
-    do {
-      if (tail.NE(Deque.TAIL_INITIAL_VALUE))
-	queue.free(head);
-      tailBufferEnd = queue.dequeue(arity, true);
-      tail = bufferStart(tailBufferEnd);
-    } while (tail.NE(Deque.TAIL_INITIAL_VALUE) && tail.EQ(tailBufferEnd));
-
-    if (tail.EQ(Deque.TAIL_INITIAL_VALUE))
-      return !tailStarved(arity);
-
-      return true;
-  }
-
-  /**
    * Close the head buffer and enqueue it at the front of the 
    * shared buffer deque.
    *
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndInsertHead(int arity) throws VM_PragmaInline {
+  private final void closeAndInsertHead(int arity) throws InlinePragma {
     queue.enqueue(head, arity, false);
   }
 
@@ -205,8 +132,7 @@ public class LocalDeque extends LocalQueue
    * @return True if the consumer has eaten all of the entries
    */
   private final boolean tailStarved(int arity) {
-      if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == queue.getArity());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

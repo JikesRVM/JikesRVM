@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.*;
 import java.io.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
@@ -92,18 +93,18 @@ class VM_TraceWriter extends VM_Thread
   private FileOutputStream trace_file = null;
   // virtual processor id
   private int pid                = 0;
-  public int getPid() throws VM_PragmaUninterruptible { return pid; }
+  public int getPid() throws UninterruptiblePragma { return pid; }
 
   /**
    * Start consuming.
    * Called (by producer) to activate the consumer thread (i.e. schedule it for execution).
    */
-  public void activate() throws VM_PragmaUninterruptible 
+  public void activate() throws UninterruptiblePragma 
   {
     if (active == true) {
       VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
 		    ((VM_TraceWriter)this).getPid(),"***");
-      VM.shutdown(VM.exitStatusMiscTrouble);
+      VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.activate()");
     active = true;
@@ -118,7 +119,7 @@ class VM_TraceWriter extends VM_Thread
   /*
    * Let the outside world know if I am active?
    */
-  public final boolean isActive() throws VM_PragmaUninterruptible
+  public final boolean isActive() throws UninterruptiblePragma
   { 
     return active; 
   }
@@ -131,7 +132,7 @@ class VM_TraceWriter extends VM_Thread
    * producer uses its own protocol to ensure that exactly 1 
    * thread will attempt to activate the consumer.
    */
-  private void passivate() throws VM_PragmaUninterruptible 
+  private void passivate() throws UninterruptiblePragma 
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.passivate()");
     active = false;
@@ -202,17 +203,17 @@ class VM_TraceWriter extends VM_Thread
 
     if (trace_file != null) {	// constraint
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream(",trace_file_name,") trace_file != null!***");      
-      new Exception().printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
+      new Exception().printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
 
     try {
       trace_file = new FileOutputStream(trace_file_name);
     } catch (FileNotFoundException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() FileNotFound exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
+      e.printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     } catch (SecurityException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() Security exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
+      e.printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     } 
     writeHeader();
     hpm.resetCurrent();
@@ -272,8 +273,8 @@ class VM_TraceWriter extends VM_Thread
     if(VM_HardwarePerformanceMonitors.verbose>=4)VM.sysWriteln("VM_TraceWriter.writeFileOutputStream(buffer, 0, ",length,")");
     if (length <= 0) return;
     if (trace_file == null) { 	// constraint
-      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.exitStatusMiscTrouble)***");
-      VM.shutdown(VM.exitStatusMiscTrouble);
+      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE)***");
+      VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
     try {
       // allow only one writer at a time to trace file.
@@ -282,7 +283,7 @@ class VM_TraceWriter extends VM_Thread
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-VM.exitStatusMiscTrouble);
+      e.printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
   }
   /*
@@ -304,7 +305,7 @@ class VM_TraceWriter extends VM_Thread
        trace_file.close();
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.closeFileOutputStream() throws IOException!***");
-      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
+      e.printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
 
     trace_file = null;
@@ -489,7 +490,7 @@ class VM_TraceWriter extends VM_Thread
   /**
    * name of thread.
    */
-  public String toString() throws VM_PragmaUninterruptible {
+  public String toString() throws UninterruptiblePragma {
     return "VM_TraceWriter";
   }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -99,8 +99,8 @@ final class OPT_ResourceReservation {
   /**
    * Compares this object against the specified object.
    *
-   * @param obj the object to compare with
-   * @return true if the objects are the same; false otherwise.
+   * @param o   The object to compare with
+   * @return <code>true</code> if the objects are the same; <code>false</code> otherwise.
    */
   public boolean equals (Object o) {
     if (!(o instanceof OPT_ResourceReservation))

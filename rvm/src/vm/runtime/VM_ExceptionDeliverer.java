@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Interface for exception delivery called by VM_Runtime.deliverException() to
  * pass control to a stackframe whose method has an appropriate "catch" block 
@@ -51,7 +53,7 @@ public abstract class VM_ExceptionDeliverer {
    * catch block
    */
   public abstract void deliverException(VM_CompiledMethod compiledMethod,
-                                 VM_Address        catchBlockInstructionAddress,
+                                 Address        catchBlockInstructionAddress,
                                  Throwable         exceptionObject,
                                  VM_Registers      registers);
 

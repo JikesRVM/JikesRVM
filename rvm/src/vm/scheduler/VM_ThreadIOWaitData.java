@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Object specifying sets of file descriptors to wait for.
  * Used as event wait data for {@link VM_ThreadEventWaitQueue#enqueue}.
@@ -15,7 +17,7 @@ package com.ibm.JikesRVM;
  */
 public class VM_ThreadIOWaitData
   extends VM_ThreadEventWaitData
-  implements VM_Uninterruptible, VM_ThreadIOConstants  {
+  implements Uninterruptible, VM_ThreadIOConstants  {
 
   public int[] readFds;
   public int[] writeFds;

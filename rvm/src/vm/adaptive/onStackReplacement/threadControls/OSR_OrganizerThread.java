@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Organizer thread collects OSR requests and inserted in controller queue
  * The producers are application threads, and the consumer thread is the
@@ -100,7 +102,7 @@ public class OSR_OrganizerThread extends VM_Thread {
    * Activates organizer thread if it is sleeping in the queue.
    * Only one thread can access queue at one time
    */
-  public void activate() throws VM_PragmaUninterruptible {
+  public void activate() throws UninterruptiblePragma {
     boolean gainedLock = VM_Synchronization.testAndSet(this,
          VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {

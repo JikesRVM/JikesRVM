@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
+import org.vmmagic.unboxed.Address;
 
 /**
  * This abstract class contains a bunch of useful static methods for
@@ -24,9 +25,23 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create an integer register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(r2), R(r1), I(4)) ...
+   *    ... Load.create(INT_LOAD, I(r2), A(r1), IC(4)) ...
    * </pre>
    *
+   * @param reg the given register
+   * @return integer register operand
+   */
+  public static final OPT_RegisterOperand A(OPT_Register reg) {
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Address);
+  }
+
+  /**
+   * Create an integer register operand for a given register.
+   * To be used in passthrough expressions like
+   * <pre>
+   *    ... Load.create(INT_LOAD, I(r2), A(r1), IC(4)) ...
+   * </pre>
+   * @deprecated : use I(OPT_Register) instead
    * @param reg the given register
    * @return integer register operand
    */
@@ -34,11 +49,15 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
+  public static final OPT_RegisterOperand I(OPT_Register reg) {
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
+  }
+
   /**
    * Create a float register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(FLOAT_LOAD, F(r2), R(r1), I(4)) ...
+   *    ... Load.create(FLOAT_LOAD, F(r2), A(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register
@@ -52,7 +71,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create a double register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(DOUBLE_LOAD, D(r2), R(r1), I(4)) ...
+   *    ... Load.create(DOUBLE_LOAD, D(r2), A(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register
@@ -66,7 +85,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create a long register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Binary.create(LONG_LOAD, L(r2), R(r1), I(4)) ...
+   *    ... Binary.create(LONG_LOAD, L(r2), A(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register
@@ -80,7 +99,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create a condition register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Binary.create(INT_CMP, CR(c2), R(r1), I(4)) ...
+   *    ... Binary.create(INT_CMP, CR(c2), I(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register
@@ -91,16 +110,30 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
   }
 
   /**
+   * Create an address constant operand with a given value.
+   * To be used in passthrough expressions like
+   * <pre>
+   *    ...<op>.create(...., AC(Address.zero()) ...
+   * </pre>
+   *
+   * @param value    The address constant
+   * @return address constant operand
+   */
+  public static final OPT_AddressConstantOperand AC(Address value) {
+    return new OPT_AddressConstantOperand(value);
+  }
+  
+  /**
    * Create an integer constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(r2), R(r1), I(4)) ...
+   *    ...<op>.create(...., IC(0) ...
    * </pre>
    *
-   * @param value, the int constant
+   * @param value   The int constant
    * @return integer constant operand
    */
-  public static final OPT_IntConstantOperand I(int value) {
+  public static final OPT_IntConstantOperand IC(int value) {
     return new OPT_IntConstantOperand(value);
   }
 
@@ -207,7 +240,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
-    if (type.isReferenceType()) return REF_MOVE;
+    if (type.isReferenceType() || type.isWordType()) return REF_MOVE;
     return INT_MOVE;
   }
 
@@ -224,7 +257,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
-    if (type.isReferenceType()) return REF_COND_MOVE;
+    if (type.isReferenceType() || type.isWordType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
 
@@ -266,7 +299,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
   /**
    * Returns the correct operator for storing to the given field.
    *
-   * @param type desired type to store
+   * @param field  The field we're asking about
    * @return the OPT_Operator to use when storing to the given field
    */
   public static final OPT_Operator getStoreOp(VM_FieldReference field) {

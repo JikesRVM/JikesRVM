@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * HPM counter values
  * A HPM_counter may be constructed only after VM_HPM is booted.
@@ -36,7 +38,7 @@ public final class HPM_counters
     if (!VM_HardwarePerformanceMonitors.booted()) {
       VM.sysWrite("***HPM_counters() called before VM_HPM.booted()!***\n");
       new Exception().printStackTrace();
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     // TEMPORARY
     counters = new long[HPM_info.getNumberOfValues()];
@@ -50,10 +52,9 @@ public final class HPM_counters
  
   /**
    * Dump out counter values.
-   * @param info    HPM information
    * @return        return true if at least one counter not zero.
    */
-  public boolean dump() throws VM_PragmaUninterruptible 
+  public boolean dump() throws UninterruptiblePragma 
   {
     boolean notZero = false;
     for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
@@ -72,7 +73,7 @@ public final class HPM_counters
   /*
    * Reset counters to zero
    */
-  public void reset() throws VM_PragmaUninterruptible {
+  public void reset() throws UninterruptiblePragma {
     for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
       counters[i]=0;
     }
@@ -84,7 +85,7 @@ public final class HPM_counters
    * @param sum        where accumulated values go
    * @param n_counters number of counters
    */
-  public void accumulate(HPM_counters sum, int n_counters) throws VM_PragmaUninterruptible
+  public void accumulate(HPM_counters sum, int n_counters) throws UninterruptiblePragma
   {
     for (int i=0; i<n_counters; i++) {
       sum.counters[i] += counters[i];
@@ -97,7 +98,7 @@ public final class HPM_counters
    * @param value  long to be formatted
    * @return char[] of long formatted with commas
    */
-  public char[] format_long(long value) throws VM_PragmaUninterruptible 
+  public char[] format_long(long value) throws UninterruptiblePragma 
   {
     if(VM_HardwarePerformanceMonitors.verbose>=10) {
       VM.sysWrite("HPM_counters.format_length(");VM.sysWriteLong(value);VM.sysWrite(")");
@@ -146,13 +147,13 @@ public final class HPM_counters
       VM.sysWrite("***HPM_counters.format_length(");
       VM.sysWriteLong(value);VM.sysWrite(") l_index ");VM.sysWrite(l_index,MAX_LONG_LENGTH);
       VM.sysWrite("< 2 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     if (f_index < 3) {
       VM.sysWrite("***HPM_counters.format_length(");
       VM.sysWriteLong(value);VM.sysWrite(") f_index ");VM.sysWrite(f_index,MAX_LONG_FORMAT_LENGTH);
       VM.sysWrite("< 3 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
-      VM.sysExit(VM.exitStatusHPMTrouble);
+      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     // copy over remainders digits
     if (length > 0) {

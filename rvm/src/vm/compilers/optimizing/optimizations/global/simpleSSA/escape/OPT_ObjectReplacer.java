@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -85,7 +85,7 @@ public class OPT_ObjectReplacer
 
   /** 
    * Returns a Vector<VM_Field>, holding the fields of the object
-   * @param _klass the type of the object
+   * @param klass the type of the object
    */
   private static Vector getFieldsAsVector (VM_Class klass) {
     VM_Field[] f = klass.getInstanceFields();
@@ -189,7 +189,7 @@ public class OPT_ObjectReplacer
         case CHECKCAST_NOTNULL_opcode:case GET_OBJ_TIB_opcode:
         case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
         case INSTANCEOF_UNRESOLVED_opcode:
-        case REF_IFCMP_opcode:case BOOLEAN_CMP_opcode:
+        case REF_IFCMP_opcode:case BOOLEAN_CMP_INT_opcode:case BOOLEAN_CMP_ADDR_opcode:
           return  true;
       }
     }

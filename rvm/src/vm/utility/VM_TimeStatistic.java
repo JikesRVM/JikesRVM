@@ -4,12 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Abstraction for a statistic that measures time spent in a phase.
  *
  * @author Perry Cheng
  */
-public class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible {
+public class VM_TimeStatistic extends VM_Statistic implements Uninterruptible {
 
   // Invariant: Time spent in timer equals accumulated + ((begin == -1) ? 0 : cycles() - begin)
   //

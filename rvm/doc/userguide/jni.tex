@@ -5,14 +5,12 @@ This section describes how Jikes RVM interfaces to native code. There
 are three major aspects of this support:
 \begin{description}
 \item[JNI Functions] This is the mechanism for transitioning from
-native code into Java code.  Jikes RVM implements all but 3 of the
-functions defined by the 1.1 JNI specification. Jikes RVM implements
-some of the additional functions added by the 1.2 JNI
-specification.
+native code into Java code.  Jikes RVM implements the 1.1 through 1.4
+JNI specifications.  
 \item[Native methods] This is the mechanism for transitioning from
 Java code to native code. In addition to the normal mechanism used to
 invoke a native method, Jikes RVM also supports a more restricted
-syscall mechanism that is used internally by low-level VM code to
+\texttt{syscall} mechanism that is used internally by low-level VM code to
 invoke native code. 
 \item[Integration with $m$-to-$n$ threading] Attempting to get Jikes RVM's
 cooperative $m$-to-$n$ threading model to work nicely (at all) with native
@@ -24,14 +22,10 @@ Each of these aspects is discussed in more detail in the following
 sections. 
 
 \subsection{JNI Functions}
-All but three of the functions defined by the 1.1 JNI specification are
-implemented by Jikes RVM.\@ The missing functions are {\tt DefineClass},
-{\tt RegisterNatives}, and {\tt UnregisterNatives}.  Almost all of the
-additional functions added by the 1.2 JNI specification are not
-implemented.  Contributions of the missing functionality (and
-associated tests) would be greatly appreciated. 
+All of the 1.1 through 1.4 \IndexTexttt{JNIEnv} interface functions
+are implemented.
 
-The functions are defined in the class {\tt VM\_JNIFunctions}. Methods
+The functions are defined in the class {\tt VM\_JNIFunctions}.  Methods
 of this class are compiled with special prologues/epilogues that
 translate from native calling conventions to Java calling conventions
 and handle other details of the transition related to $m$-to-$n$
@@ -55,7 +49,9 @@ sequence consistent with the platform's underlying calling convention.
 A {\tt syscall} is not a GC-safe point, so {\tt syscall}s may modify the
 Java heap (eg. {\tt memcpy()}). For more details on the mechanics of adding a
 new \texttt{syscall} to the system, see the header comments of 
-\xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.
+\xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.  Note again that the
+{\tt syscall} methods are NOT JNI methods, but an independent (more
+efficient) interface that is specific to Jikes RVM.   
 
 The second mechanism is JNI.\@  Naturally, the user writes JNI code
 using the JNI interface.  RVM implements a call to a native method by
@@ -85,6 +81,8 @@ code returns.  Thus, all {\tt syscall}s should be non-blocking
 operations that return fairly soon.  Note that a {\tt syscall} is 
 {\em not} a GC-safe point.
 
+\index{hijacking blocking system calls}%
+\index{blocking system calls, hijacking}%
 On Linux/x86, Jikes RVM ``hijacks'' certain blocking system calls and
 reflects them back into the VM.\@  The VM then uses nonblocking
 equivalents. This handles many of the common cases of blocking native
@@ -92,6 +90,15 @@ code without requiring the full complexity of the timer-based
 preemption mechanism that we used to use on AIX.\@  A complete
 solution would consist of implementing both mechanisms on both
 platforms.  We hope to do this in the future.
+
+We got GNU Classpath's (JNI-based) AWT support to work by adding code to
+Classpath that tells GTk (the windowing toolkit Classpath uses) to use Jikes
+RVM's Java threading primitives instead of the pthread-based ones that
+it uses by default.  Jikes RVM automatically tells Classpath to do
+this by setting the Java system property
+\IndexTexttt{gnu.classpath.awt.gtk.portable.native.sync} 
+at boot time.  If your native code uses the \texttt{glib} threading
+primitives, as GTk does, then this will work for you, too.  
 
 \subsection{Implementation Details}
 Supporting the combination of blocking native code and $m$-to-$n$
@@ -105,3 +112,47 @@ on different platforms tend to diverge.
 We have some ideas for a redesign that would enable more of the
 control logic to be embodied in shared Java code, but there are a few
 minor issues to be worked out.  Hopefully this will happen eventually.
+
+\subsection{Missing Features}
+
+\begin{description}
+
+\item[Native Libraries]
+JNI 1.2 requires that the VM specially treat native libraries that
+contain exported functions named
+\IndexTexttt{JNI\_OnLoad} and \IndexTexttt{JNI\_OnUnload}.  This is not
+implemented. 
+
+\item[\texttt{JNIEnv} functions and direct buffers] 
+  The three new JNI 1.4 functions
+\texttt{NewDirectByteBuffer}, \texttt{GetDirectBufferAddress}, and
+\texttt{GetDirectBufferCapacity}, which the specification says may not
+be available at any particular time, have only stub implementations. 
+
+\item[\texttt{VM\_JNICompiler}] The only known deficiency in \texttt{VM\_JNICompiler} is that the
+prologue and epilogues only handle passing local references to
+functions that expect a \IndexTexttt{jobject}; they will not properly
+handle a \IndexTexttt{jweak} or a regular global reference.  This would be
+fairly easy to implement.
+
+\item[\texttt{JavaVM} interface]
+The \texttt{JavaVM} interface has \texttt{GetEnv} fully
+implemented and \texttt{AttachCurrentThread} partly implemented, but
+\texttt{DestroyJavaVM}, \texttt{DetachCurrentThread}, and
+\texttt{AttachCurrentThreadAsDaemon} are just stubbed out and return
+error codes.
+
+\item[{Directly-Exported Invocation Interface Functions}] These
+functions (\texttt{GetDefaultJavaVMInitArgs},
+\texttt{JNI\_CreateJavaVM}, and \texttt{JNI\_GetCreatedJavaVMs}) are not
+implemented.  This is because we do not provide a virtual machine
+library that can be linked against, nor do we support native
+applications that launch and use an embedded Java VM.  There is no
+inherent reason why this could not be done, but we have not done so
+yet.  
+
+\end{description}
+
+Contributions of any of the missing functionality described here (and
+associated tests) would be greatly appreciated.
+

@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Machine dependent portion of Reflective method invoker.
  *
@@ -65,7 +67,7 @@ public class VM_MachineReflection implements VM_Constants {
    * call specified method.
    */
   static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs,
-                                VM_WordArray GPRs, double[] FPRs, VM_WordArray Parameters) {
+                                WordArray GPRs, double[] FPRs, WordArray Parameters) {
     int GPR             = 0;
     int FPR             = FPRs.length;
     int parameter       = 0;
@@ -74,7 +76,7 @@ public class VM_MachineReflection implements VM_Constants {
     int fp = NUM_PARAMETER_FPRS; // 0-8
 
     if (!method.isStatic()) {
-      VM_Word val = VM_Reflection.unwrapObject(thisArg).toWord();
+      Word val = VM_Reflection.unwrapObject(thisArg).toWord();
       if (gp > 0) {
         gp--;
         GPRs.set(GPR++, val);
@@ -90,14 +92,14 @@ public class VM_MachineReflection implements VM_Constants {
         long l = VM_Reflection.unwrapLong(otherArgs[i]);
         if (gp > 0) {
           gp--;
-          GPRs.set(GPR++, VM_Word.fromIntZeroExtend((int)(l>>>32)));
+          GPRs.set(GPR++, Word.fromIntZeroExtend((int)(l>>>32)));
           if (gp > 0) {
             gp--;
-            GPRs.set(GPR++, VM_Word.fromIntZeroExtend((int)(l)));
+            GPRs.set(GPR++, Word.fromIntZeroExtend((int)(l)));
           }
         }
-        Parameters.set(parameter++, VM_Word.fromIntZeroExtend((int)(l>>>32)));
-        Parameters.set(parameter++, VM_Word.fromIntZeroExtend((int)l));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int)(l>>>32)));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int)l));
         
       } else if (t.isFloatType()) {
         if (fp > 0) {
@@ -105,7 +107,7 @@ public class VM_MachineReflection implements VM_Constants {
           FPRs[--FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
         }
         float f = VM_Reflection.unwrapFloat(otherArgs[i]);
-        Parameters.set(parameter++, VM_Word.fromIntZeroExtend(Float.floatToIntBits(f)));
+        Parameters.set(parameter++, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
 
       } else if (t.isDoubleType()) {
         if (fp > 0) {
@@ -114,11 +116,11 @@ public class VM_MachineReflection implements VM_Constants {
         }
         double d = VM_Reflection.unwrapDouble(otherArgs[i]);
         long l = Double.doubleToLongBits(d);
-        Parameters.set(parameter++, VM_Word.fromIntZeroExtend((int)(l>>>32)));
-        Parameters.set(parameter++, VM_Word.fromIntZeroExtend((int)l));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int)(l>>>32)));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int)l));
 
       } else if (t.isBooleanType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
@@ -126,7 +128,7 @@ public class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
 
       } else if (t.isByteType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapByte(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapByte(otherArgs[i]));
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
@@ -134,7 +136,7 @@ public class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
 
       } else if (t.isCharType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapChar(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapChar(otherArgs[i]));
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
@@ -142,7 +144,7 @@ public class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
         
       } else if (t.isShortType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
@@ -150,7 +152,7 @@ public class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
 
       } else if (t.isIntType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapInt(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapInt(otherArgs[i]));
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
@@ -158,7 +160,7 @@ public class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
 
       } else if (!t.isPrimitiveType()) {
-        VM_Word val = VM_Reflection.unwrapObject(otherArgs[i]).toWord();
+        Word val = VM_Reflection.unwrapObject(otherArgs[i]).toWord();
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);

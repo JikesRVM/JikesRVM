@@ -1,2 +1,1 @@
 production             -test-list nightly-tests-performance
-FastAdaptiveCopyMS     -test-list nightly-tests-performance

@@ -5,7 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Multiplex execution of large number of VM_Threads on small 
@@ -19,39 +21,18 @@ public final class VM_Processor
 //-#if RVM_WITH_JMTK_INLINE_PLAN
 extends Plan 
 //-#endif
-implements VM_Uninterruptible, VM_Constants {
+implements Uninterruptible, VM_Constants {
 
   // definitions for VP status for implementation of jni
   public static final int IN_JAVA                 = 1;
   public static final int IN_NATIVE               = 2;
   public static final int BLOCKED_IN_NATIVE       = 3;
 
-  /**
-   * For builds where thread switching is deterministic rather than timer driven
-   * Initialized in constructor
-   */
-  public int deterministicThreadSwitchCount;
-
-  /**
-   * For builds using counter-based sampling.  This field holds a
-   * processor-specific counter so that it can be updated efficiently
-   * on SMP's.
-   */
-  public int processor_cbs_counter;
-
   // fields to track attached processors - processors created for user
   // pthreads that "enter" the VM via attachJVM.
   //
   public static int            numberAttachedProcessors   = 0;
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
-
-  //-#if RVM_WITH_HPM
-  // Keep HPM information for each Virtual Processor.
-  public  VM_HardwarePerformanceMonitor hpm;
-  //-#endif
-
-  // How many times timer interrupt has occurred since last thread switch
-  public int interruptQuantumCounter = 0;
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -78,10 +59,6 @@ implements VM_Uninterruptible, VM_Constants {
     this.isInSelect        = false;
     this.vpStatus = IN_JAVA;
 
-    if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
-      this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
-    }
-
     MM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
     hpm = new VM_HardwarePerformanceMonitor(id);
@@ -99,8 +76,10 @@ implements VM_Uninterruptible, VM_Constants {
     if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
       VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + id - 1);
      
-    // get pthread_id from AIX and store into vm_processor field
-    // 
+    VM_SysCall.sysPthreadSetupSignalHandling();
+
+    /* get pthread_id from the operating system and store into vm_processor
+       field  */
     pthread_id = VM_SysCall.sysPthreadSelf();
     
     //
@@ -133,7 +112,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
-  public boolean threadSwitchingEnabled() throws VM_PragmaInline {
+  public boolean threadSwitchingEnabled() throws InlinePragma {
     return threadSwitchingEnabledCount == 1;
   }
 
@@ -147,31 +126,50 @@ implements VM_Uninterruptible, VM_Constants {
       if (MM_Interface.gcInProgress()) 
           VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     }
-    if (threadSwitchingEnabled() && threadSwitchPending) { 
-      // re-enable a deferred thread switch
-      threadSwitchRequested = -1;
-      threadSwitchPending   = false;
+    if (threadSwitchingEnabled() && threadSwitchPending != 0) { 
+      takeYieldpoint = threadSwitchPending;
+      threadSwitchPending = 0;
     }
   }
 
   /**
    * Disable thread switching in this processor.
    */ 
-  public void disableThreadSwitching() throws VM_PragmaInline {
+  public void disableThreadSwitching() throws InlinePragma {
     --threadSwitchingEnabledCount;
   }
 
   /**
+   * Request the thread executing on the processor to take the next executed yieldpoint
+   * and initiate a GC
+   */
+  public void requestYieldToGC() {
+    takeYieldpoint = 1;
+    yieldToGCRequested = true;
+  }
+
+  //-#if RVM_FOR_POWERPC
+  /**
+   * Request the thread executing on the processor to take the next executed yieldpoint
+   * and issue memory synchronization instructions
+   */
+  public void requestPostCodePatchSync() {
+    takeYieldpoint = 1;
+    codePatchSyncRequested = true;
+  }
+  //-#endif
+  
+  /**
    * Get processor that's being used to run the current java thread.
    */
-  public static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
+  public static VM_Processor getCurrentProcessor() throws InlinePragma {
     return VM_ProcessorLocalState.getCurrentProcessor();
   }
 
   /**
    * Get id of processor that's being used to run the current java thread.
    */ 
-  public static int getCurrentProcessorId() throws VM_PragmaInline {
+  public static int getCurrentProcessorId() throws InlinePragma {
     return getCurrentProcessor().id;
   }
 
@@ -225,7 +223,7 @@ implements VM_Uninterruptible, VM_Constants {
    * Find a thread that can be run by this processor and remove it 
    * from its queue.
    */ 
-  private VM_Thread getRunnableThread() throws VM_PragmaInline {
+  private VM_Thread getRunnableThread() throws InlinePragma {
 
     int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
@@ -246,7 +244,7 @@ implements VM_Uninterruptible, VM_Constants {
       }
     }
 
-    if ((epoch % VM_Scheduler.numProcessors) + 1 == id) {
+    if ((reportedTimerTicks % VM_Scheduler.numProcessors) + 1 == id) {
       // it's my turn to check the io queue early to avoid starvation
       // of threads in io wait.
       // We round robin this among the virtual processors to avoid serializing
@@ -263,7 +261,7 @@ implements VM_Uninterruptible, VM_Constants {
     // intelligent way to do this; for example, handling SIGCHLD,
     // and using that to implement the wakeup.  Polling is considerably
     // simpler, however.
-    if ((epoch % NUM_TICKS_BETWEEN_WAIT_POLL) == id) {
+    if ((reportedTimerTicks % NUM_TICKS_BETWEEN_WAIT_POLL) == id) {
       VM_Thread result = null;
 
       processWaitQueueLock.lock();
@@ -444,16 +442,17 @@ implements VM_Uninterruptible, VM_Constants {
    */
 
   /**
-   * Is it time for this processor's currently running VM_Thread 
-   * to call its "threadSwitch" method?
-   * A value of: 
-   *    -1 means yes
-   *     0 means no
-   * This word is set by a timer interrupt every 10 milliseconds and
-   * interrogated by every compiled method, typically in the method's prologue.
-   */ 
-  public int threadSwitchRequested;
-
+   * Should the next executed yieldpoint be taken?
+   * Can be true for a variety of reasons. See VM_Thread.yieldpoint
+   * <p>
+   * To support efficient sampling of only prologue/epilogues
+   * we also encode some extra information into this field.
+   *   0  means that the yieldpoint should not be taken.
+   *   >0 means that the next yieldpoint of any type should be taken
+   *   <0 means that the next prologue/epilogue yieldpoint should be taken
+   */
+  int takeYieldpoint;
+  
   /**
    * thread currently running on this processor
    */
@@ -463,7 +462,7 @@ implements VM_Uninterruptible, VM_Constants {
    * cached activeThread.stackLimit;
    * removes 1 load from stackoverflow sequence.
    */
-  public VM_Address activeThreadStackLimit;
+  public Address activeThreadStackLimit;
 
   /**
    * Cache the results of activeThread.getLockingId()
@@ -482,7 +481,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * FP for current frame
    */
-  VM_Address framePointer;        
+  Address framePointer;        
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
@@ -505,7 +504,50 @@ implements VM_Uninterruptible, VM_Constants {
   public long   totalObjectsAllocated; // used for instrumentation in allocators
   public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
 
-  /*
+  /**
+   * Has the current time slice expired for this virtual processor?
+   * This is set by the C time slicing code which is driven either
+   * by a timer interrupt or by a dedicated pthread in a nanosleep loop.
+   * Is set approximately once every VM.interruptQuantum ms except when
+   * GC is in progress.
+   */ 
+  int timeSliceExpired;
+
+  /**
+   * Is the next taken yieldpoint in response to a request to
+   * schedule a GC?
+   */
+  boolean yieldToGCRequested;
+
+  /**
+   * Is the next taken yieldpoint in response to a request to perform OSR?
+   */
+  public boolean yieldToOSRRequested;
+  
+  //-#if RVM_FOR_POWERPC
+  /**
+   * flag indicating this processor needs to execute a memory synchronization sequence
+   * Used for code patching on SMP PowerPCs.
+   */
+  boolean codePatchSyncRequested;
+  //-#endif
+  
+  /**
+   * For builds using counter-based sampling.  This field holds a
+   * processor-specific counter so that it can be updated efficiently
+   * on SMP's.
+   */
+  public int processor_cbs_counter;
+
+  //-#if RVM_WITH_HPM
+  // Keep HPM information for each Virtual Processor.
+  public  VM_HardwarePerformanceMonitor hpm;
+  //-#endif
+
+  // How many times timer interrupt has occurred since last thread switch
+  public int interruptQuantumCounter = 0;
+
+  /**
    * END FREQUENTLY ACCESSED INSTANCE FIELDS
    */
 
@@ -540,7 +582,7 @@ implements VM_Uninterruptible, VM_Constants {
    * Was "threadSwitch" called while this processor had 
    * thread switching disabled?
    */ 
-  boolean threadSwitchPending;
+  int threadSwitchPending;
 
   /**
    * thread previously running on this processor
@@ -601,10 +643,19 @@ implements VM_Uninterruptible, VM_Constants {
   public VM_Processor next; 
 
 
-  // count timer interrupts to round robin early checks to ioWait queue.
-  // This is also used to activate checking of the processWaitQueue.
-  static int epoch = 0;
+  /**
+   * Number of timer ticks that have actually been forwarded to the VM from
+   * the C time slicing code
+   */
+  public static int reportedTimerTicks = 0;
 
+  /**
+   * How many times has the C time slicing code been entered due to a timer tick.
+   * Invariant: timerTicks >= reportedTimerTicks
+   * reportedTimerTicks can be lower because we supress the reporting of timer ticks during GC.
+   */
+  public static int timerTicks = 0;
+   
   /**
    * Number of timer ticks between checks of the process wait
    * queue.  Assuming a tick frequency of 10 milliseconds, we will
@@ -647,7 +698,7 @@ implements VM_Uninterruptible, VM_Constants {
   // PPC baseline compiler
   private double scratchStorage;
 
-  public void dumpProcessorState() throws VM_PragmaInterruptible {
+  public void dumpProcessorState() throws InterruptiblePragma {
     VM.sysWrite("Processor "); 
     VM.sysWriteInt(id);
     if (this == VM_Processor.getCurrentProcessor()) VM.sysWrite(" (me)");
@@ -673,16 +724,8 @@ implements VM_Uninterruptible, VM_Constants {
     if (status ==  IN_NATIVE) VM.sysWrite("IN_NATIVE\n");
     if (status ==  IN_JAVA) VM.sysWrite("IN_JAVA\n");
     if (status ==  BLOCKED_IN_NATIVE) VM.sysWrite("BLOCKED_IN_NATIVE\n");
-    VM.sysWrite(" threadSwitchRequested: ");
-    VM.sysWriteInt(threadSwitchRequested); 
+    VM.sysWrite(" timeSliceExpired: ");
+    VM.sysWriteInt(timeSliceExpired); 
     VM.sysWrite("\n");
   }
-
-
-  //-#if RVM_FOR_POWERPC
-  /**
-   * flag indicating this processor need synchronization.
-   */
-  public boolean needsSync = false;
-  //-#endif
 }

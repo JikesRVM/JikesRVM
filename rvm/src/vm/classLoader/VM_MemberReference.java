@@ -5,8 +5,10 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 /**
  * A class to represent the reference in a class file to some 
@@ -93,13 +95,43 @@ public abstract class VM_MemberReference {
     return key;
   }
 
+
+  /**
+   * Given a StringTokenizer currently pointing to the start of a MemberReference
+   * (created by doing a toString() on a MemberReference), parse it
+   * and find/create the appropriate MemberReference. Consumes all of the tokens corresponding
+   * to the member reference.
+   */
+  public static VM_MemberReference parse(StringTokenizer parser) {
+    try {
+      parser.nextToken(); // discard <
+      String clName = parser.nextToken();
+      VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      parser.nextToken(); // discard '>'
+      ClassLoader cl;
+      if (clName.equals("BootstrapCL")) {
+        cl = VM_SystemClassLoader.getVMClassLoader();
+      } else if (clName.equals("SystemAppCL")) {
+        cl = VM_ClassLoader.getApplicationClassLoader();
+      } else {
+        return null;
+      }
+      VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
+      return findOrCreate(tref, mn, md);
+    } catch (NoSuchElementException e) {
+      return null;
+    }
+  }
+
   //BEGIN HRM
   public static final int getNextId() {
     return nextId;
   }
   //END HRM
 
-  public static VM_MemberReference getMemberRef(int id) throws VM_PragmaUninterruptible {
+  public static VM_MemberReference getMemberRef(int id) throws UninterruptiblePragma {
     return members[id];
   }
 
@@ -117,56 +149,56 @@ public abstract class VM_MemberReference {
   /**
    * @return the type reference component of this member reference
    */
-  public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getType() throws UninterruptiblePragma {
     return type;
   }
 
   /**
    * @return the member name component of this member reference
    */
-  public final VM_Atom getName() throws VM_PragmaUninterruptible {
+  public final VM_Atom getName() throws UninterruptiblePragma {
     return name;
   }
 
   /**
    * @return the descriptor component of this member reference
    */
-  public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible {
+  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
     return descriptor;
   }
 
   /**
    * @return the dynamic linking id to use for this member.
    */
-  public final int getId() throws VM_PragmaUninterruptible {
+  public final int getId() throws UninterruptiblePragma {
     return id;
   }
 
   /**
    * Is this member reference to a field?
    */
-  public final boolean isFieldReference() throws VM_PragmaUninterruptible {
+  public final boolean isFieldReference() throws UninterruptiblePragma {
     return this instanceof VM_FieldReference;
   }
 
   /**
    * Is this member reference to a method?
    */
-  public final boolean isMethodReference() throws VM_PragmaUninterruptible {
+  public final boolean isMethodReference() throws UninterruptiblePragma {
     return this instanceof VM_MethodReference;
   }
 
   /**
    * @return this cast to a VM_FieldReference
    */
-  public final VM_FieldReference asFieldReference() throws VM_PragmaUninterruptible {
+  public final VM_FieldReference asFieldReference() throws UninterruptiblePragma {
     return (VM_FieldReference)this;
   }
 
   /**
    * @return this cast to a VM_MethodReference
    */
-  public final VM_MethodReference asMethodReference() throws VM_PragmaUninterruptible {
+  public final VM_MethodReference asMethodReference() throws UninterruptiblePragma {
     return (VM_MethodReference)this;
   }
 
@@ -231,6 +263,6 @@ public abstract class VM_MemberReference {
   }
 
   public final String toString() {
-    return "< " + type.getClassLoader() + ", "+ type.getName() + ", " + name + ", " + descriptor + " >";
+    return "< " + type.getClassLoader() + ", " + type.getName() + ", " + name + ", " + descriptor + " >";
   }
 }

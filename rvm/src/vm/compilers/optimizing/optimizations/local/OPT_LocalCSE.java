@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -312,7 +312,6 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    *
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
-   * @param e the controlling instruction enumerator
    */
   private final void checkHelper (OPT_IR ir, AvExCache cache, 
                                   OPT_Instruction inst) {
@@ -347,9 +346,9 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Process a type check instruction
    *
-   * @param cache the cache of available expressions
-   * @param inst the instruction begin processed
-   * @param e the controlling instruction enumerator
+   * @param ir     Unused
+   * @param cache  The cache of available expressions.
+   * @param inst   The instruction being processed
    */
   private final void typeCheckHelper(OPT_IR ir, AvExCache cache, 
                                OPT_Instruction inst) {

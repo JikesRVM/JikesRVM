@@ -5,6 +5,10 @@
 
 package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * A class helps schedule OSRed method, it is called right after thread switch
  * and highly depends on the calling convention. It should not be interrupted
@@ -12,7 +16,7 @@ import com.ibm.JikesRVM.*;
  *
  * @author Feng Qian
  */
-public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterruptible {
+public class OSR_PostThreadSwitch implements VM_BaselineConstants, Uninterruptible {
 
   /**
    * This method must not be inlined to keep the correctness 
@@ -20,7 +24,7 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
    * is threadSwitchFrom<...>
    */
   public static void postProcess(VM_Thread myThread) 
-    throws VM_PragmaNoInline {
+    throws NoInlinePragma {
 
     /* We need to generate thread specific code and install new code.
      * We have to make sure that no GC happens from here and before 
@@ -29,15 +33,14 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
     // add branch instruction from CTR.
     VM_CodeArray bridge   = myThread.bridgeInstructions;
       
-    VM_Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
+    Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("osr post processing\n");
     }
         
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(myThread.stack).add(
-                            myThread.tsFPOffset + STACKFRAME_RETURN_ADDRESS_OFFSET),
-                            bridgeaddr);
+    Offset offset = Offset.fromInt(myThread.tsFPOffset + STACKFRAME_RETURN_ADDRESS_OFFSET);
+    VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
 
     myThread.tsFPOffset = 0;
 

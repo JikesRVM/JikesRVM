@@ -4,23 +4,18 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.deque.*;
+import org.mmtk.utility.scan.*;
 import org.mmtk.vm.TraceInterface;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Collection;
+import org.mmtk.utility.options.TraceRate;
 
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Class that supports scanning Objects and Arrays for references
@@ -31,7 +26,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */
 public final class TraceGenerator 
-  implements VM_Constants, VM_Uninterruptible, TracingConstants {
+  implements Constants, Uninterruptible, TracingConstants {
 
   public final static String Id = "$Id$"; 
 
@@ -43,21 +38,28 @@ public final class TraceGenerator
   /* Type of lifetime analysis to be used */
   public  static final boolean MERLIN_ANALYSIS = true;
 
+  /* include the notion of build-time allocation to our list of allocators */
+  private static final int ALLOC_BOOT = Plan.ALLOCATORS;
+  private static final int ALLOCATORS = ALLOC_BOOT + 1;
+
   /* Fields for tracing */
   private static SortTODSharedDeque tracePool;     // Buffers to hold raw trace
   private static TraceBuffer trace;
   private static boolean       traceBusy;     // If we are building the trace
-  private static VM_Word       lastGC;        // Last time GC was performed
-  private static VM_AddressArray objectLinks; // Lists of active objs
+  private static Word       lastGC;        // Last time GC was performed
+  private static ObjectReferenceArray objectLinks; // Lists of active objs
 
   /* Fields needed for Merlin lifetime analysis */
   private static SortTODSharedDeque workListPool;  // Holds objs to process
-  private static SortTODAddressStack worklist;     // Objs to process
-  private static VM_Word    agePropagate;  // Death time propagating
+  private static SortTODObjectReferenceStack worklist;     // Objs to process
+  private static Word    agePropagate;  // Death time propagating
+
+  private static TraceRate traceRate;
 
   static {
     traceBusy = false;
-    lastGC = VM_Word.fromInt(4);
+    lastGC = Word.fromInt(4);
+    traceRate = new TraceRate();
   }
 
 
@@ -76,11 +78,11 @@ public final class TraceGenerator
    */
   public static final void init(SortTODSharedDeque worklist_, 
 				SortTODSharedDeque trace_)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
-      worklist = new SortTODAddressStack(workListPool);
+      worklist = new SortTODObjectReferenceStack(workListPool);
       workListPool.newClient();
     }
 
@@ -88,7 +90,7 @@ public final class TraceGenerator
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
     tracePool.newClient();
-    objectLinks = VM_AddressArray.create(Plan.UNUSED_SPACE);
+    objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
   }
 
   /**
@@ -111,7 +113,7 @@ public final class TraceGenerator
    * @param ref The address of the object to be added to the linked list
    * @param linkSpace The region to which the object should be added
    */
-  public static final void addTraceObject(VM_Address ref, int linkSpace) {
+  public static final void addTraceObject(ObjectReference ref, int linkSpace) {
     TraceInterface.setLink(ref, objectLinks.get(linkSpace));
     objectLinks.set(linkSpace, ref);
   }
@@ -140,14 +142,14 @@ public final class TraceGenerator
    *
    * @param bootStart The address at which the bootimage starts
    */
-  public static final void boot(VM_Address bootStart) {
-    VM_Word nextOID = TraceInterface.getOID();
-    VM_Address trav = TraceInterface.getBootImageLink().add(bootStart.toInt());
-    objectLinks.set(Plan.BOOT_SPACE, trav);
+  public static final void boot(Address bootStart) {
+    Word nextOID = TraceInterface.getOID();
+    ObjectReference trav = TraceInterface.getBootImageLink().add(bootStart.toInt()).toObjectReference();
+    objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
-    while (!trav.isZero()) {
-      VM_Address next = TraceInterface.getLink(trav);
-      VM_Word thisOID = TraceInterface.getOID(trav);
+    while (!trav.isNull()) {
+      ObjectReference next = TraceInterface.getLink(trav);
+      Word thisOID = TraceInterface.getOID(trav);
       /* Add the boot image object to the trace. */
       trace.push(TRACE_BOOT_ALLOC);
       trace.push(thisOID);
@@ -155,8 +157,8 @@ public final class TraceGenerator
       nextOID = thisOID;
       /* Move to the next object & adjust for starting address of 
 	 the bootImage */
-      if (!next.isZero()) {
-	next = next.add(bootStart.toInt());
+      if (!next.isNull()) {
+	next = next.toAddress().add(bootStart.toInt()).toObjectReference();
 	TraceInterface.setLink(trav, next);
       }
       trav = next;
@@ -174,30 +176,31 @@ public final class TraceGenerator
    * <code>tgt</code> will be stored
    * @param tgt The target of the pointer store
    */
-  public static void processPointerUpdate(boolean isScalar, VM_Address src,
-					  VM_Address slot, VM_Address tgt)
-    throws VM_PragmaNoInline {
+  public static void processPointerUpdate(boolean isScalar, 
+					  ObjectReference src,
+					  Address slot, ObjectReference tgt)
+    throws NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!traceBusy);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     /* Process the old target potentially becoming unreachable, when needed. */
     if (MERLIN_ANALYSIS) {
-      VM_Address oldTgt = VM_Magic.getMemoryAddress(slot);
-      if (!oldTgt.isZero())
+      ObjectReference oldTgt = slot.loadObjectReference();
+      if (!oldTgt.isNull())
 	TraceInterface.updateDeathTime(oldTgt);
     }
 
     traceBusy = true;
     /* Add the pointer store to the trace */
-    VM_Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, src, slot);
+    Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, src, slot);
     if (isScalar)
       trace.push(TRACE_FIELD_SET);
     else
       trace.push(TRACE_ARRAY_SET);
     trace.push(TraceInterface.getOID(src));
     trace.push(traceOffset.toWord());
-    if (tgt.isZero())
-      trace.push(VM_Word.zero());
+    if (tgt.isNull())
+      trace.push(Word.zero());
     else
       trace.push(TraceInterface.getOID(tgt));
     traceBusy = false;
@@ -209,22 +212,22 @@ public final class TraceGenerator
    * work at exact allocations, and output the data in the trace buffer.
    *
    * @param ref The address of the object just allocated.
-   * @param tib The TIB of the newly allocated object 
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the object being allocated
    */
-  public static final void traceAlloc(boolean isImmortal, VM_Address ref, 
-				      Object[] tib, int bytes)
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+  public static final void traceAlloc(boolean isImmortal, ObjectReference ref, 
+				      ObjectReference typeRef, int bytes)
+    throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!traceBusy);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     boolean gcAllowed = TraceInterface.gcEnabled() && Plan.initialized()
       && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */
-    VM_Word oid = TraceInterface.getOID(ref);
-    VM_Word allocType;
+    Word oid = TraceInterface.getOID(ref);
+    Word allocType;
     if (gcAllowed 
-	&& (oid.GE(lastGC.add(VM_Word.fromInt(Options.traceFrequencyLog)))))
+	&& (oid.GE(lastGC.add(Word.fromInt(traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else
       allocType = TRACE_ALLOC;
@@ -233,15 +236,15 @@ public final class TraceGenerator
       if (MERLIN_ANALYSIS) {
 	lastGC = TraceInterface.getOID();
 	TraceInterface.updateTime(lastGC);
-	VM_Interface.triggerCollectionNow(VM_Interface.INTERNAL_GC_TRIGGER);
+	Collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
       } else {
-	VM_Interface.triggerCollectionNow(VM_Interface.RESOURCE_GC_TRIGGER);
+	Collection.triggerCollectionNow(Collection.RESOURCE_GC_TRIGGER);
 	lastGC = TraceInterface.getOID(ref);
       }
     }
     /* Add the allocation into the trace. */
     traceBusy = true;
-    VM_Address fp = TraceInterface.skipOwnFramesAndDump(tib);
+    Address fp = TraceInterface.skipOwnFramesAndDump(typeRef);
     if (isImmortal && allocType.EQ(TRACE_EXACT_ALLOC))
       trace.push(TRACE_EXACT_IMMORTAL_ALLOC);
     else if (isImmortal)
@@ -249,12 +252,12 @@ public final class TraceGenerator
     else
       trace.push(allocType);
     trace.push(TraceInterface.getOID(ref));
-    trace.push(VM_Word.fromInt(bytes - TraceInterface.getHeaderSize()));
+    trace.push(Word.fromInt(bytes - TraceInterface.getHeaderSize()));
     trace.push(fp.toWord());
-    trace.push(VM_Word.fromInt(0 /* VM_Magic.getThreadId() */));
+    trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
     trace.push(TRACE_TIB_SET);
     trace.push(TraceInterface.getOID(ref));
-    trace.push(TraceInterface.getOID(VM_Magic.objectAsAddress(tib)));
+    trace.push(TraceInterface.getOID(typeRef));
     trace.process();
     traceBusy = false;
   }
@@ -275,14 +278,14 @@ public final class TraceGenerator
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(worklist.isEmpty());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
-      for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
-	VM_Address thisRef = objectLinks.get(region);
+      for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
+	ObjectReference thisRef = objectLinks.get(allocator);
 	/* Start at the top of each linked list */
-	while (!thisRef.isZero()) {
+	while (!thisRef.isNull()) {
 	  /* Add the unreachable objects onto the worklist. */
-	  if (!VM_Interface.getPlan().isReachable(thisRef))
+	  if (!Plan.getInstance().isReachable(thisRef))
 	    worklist.push(thisRef);
 	  thisRef = TraceInterface.getLink(thisRef);
 	}
@@ -293,21 +296,20 @@ public final class TraceGenerator
       computeTransitiveClosure();
     }
     /* Output the death times for each object */
-    for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
-      VM_Address thisRef = objectLinks.get(region);
-      VM_Address prevRef = VM_Address.zero(); // the last live object seen
-      while (!thisRef.isZero()) {
-	VM_Address nextRef = 
-	  TraceInterface.getLink(thisRef);
+    for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
+      ObjectReference thisRef = objectLinks.get(allocator);
+      ObjectReference prevRef = ObjectReference.nullReference(); // the last live object seen
+      while (!thisRef.isNull()) {
+	ObjectReference nextRef = TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
-	if (VM_Interface.getPlan().isReachable(thisRef)) {
+	if (Plan.getInstance().isReachable(thisRef)) {
 	  thisRef = Plan.followObject(thisRef);
 	  TraceInterface.setLink(thisRef, prevRef);
 	  prevRef = thisRef;
 	} else {
 	  /* For brute force lifetime analysis, objects become 
 	     unreachable "now" */
-	  VM_Word deadTime;
+	  Word deadTime;
 	  if (MERLIN_ANALYSIS)
 	    deadTime = TraceInterface.getDeathTime(thisRef);
 	  else
@@ -320,7 +322,7 @@ public final class TraceGenerator
 	thisRef = nextRef;
       }
       /* Purge the list of unreachable objects... */
-      objectLinks.set(region, prevRef);
+      objectLinks.set(allocator, prevRef);
     }
   }
   
@@ -331,7 +333,7 @@ public final class TraceGenerator
    *
    * @param obj The root-referenced object
    */
-  public static final void rootEnumerate(Object obj) {
+  public static final void rootEnumerate(ObjectReference obj) {
     TraceInterface.updateDeathTime(obj);
   }
 
@@ -342,11 +344,11 @@ public final class TraceGenerator
    *
    * @param ref The address of the object to examine
    */
-  public static final void propagateDeathTime(VM_Address ref) {
+  public static final void propagateDeathTime(ObjectReference ref) {
     /* If this death time is more accurate, set it. */
     if (TraceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */
-      if (!VM_Interface.getPlan().isReachable(ref)) {
+      if (!Plan.getInstance().isReachable(ref)) {
 	TraceInterface.setDeathTime(ref, agePropagate);
         worklist.push(ref);
       } else {
@@ -362,12 +364,12 @@ public final class TraceGenerator
    */
   private static final void computeTransitiveClosure() {
     /* The latest time an object can die. */
-    agePropagate = VM_Word.max();
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!worklist.isEmpty());
+    agePropagate = Word.max();
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!worklist.isEmpty());
     /* Process through the entire buffer. */
-    VM_Address ref = worklist.pop();
-    while (!ref.isZero()) {
-      VM_Word currentAge = TraceInterface.getDeathTime(ref);
+    ObjectReference ref = worklist.pop();
+    while (!ref.isNull()) {
+      Word currentAge = TraceInterface.getDeathTime(ref);
       /* This is a cheap and simple test to process objects only once. */
       if (currentAge.LE(agePropagate)) {
 	/* Set the "new" dead age. */

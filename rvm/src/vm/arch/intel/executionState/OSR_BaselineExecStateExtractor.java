@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_BaselineExecStateExtractor retrieves the JVM scope descriptor
  * from a suspended thread whose top method was compiled by the
@@ -86,9 +89,8 @@ public final class OSR_BaselineExecStateExtractor
     VM_CodeArray instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);
-    VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add( 
-                       osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET)); 
+    Address instr_beg = VM_Magic.objectAsAddress(instructions);
+    Address rowIP     = VM_Magic.objectAsAddress(stack).add(osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET).loadAddress(); 
     VM.enableGC();
     int ipIndex   = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
     
@@ -161,15 +163,15 @@ public final class OSR_BaselineExecStateExtractor
     
     // adjust local offset and stack offset
     // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)     
-    int localOffset = fooCM.getFirstLocalOffset();
-    localOffset += methFPoff;
+    int startLocalOffset = fooCM.getStartLocalOffset();
+    startLocalOffset += methFPoff;
 
     int stackOffset = fooCM.getEmptyStackOffset();
-    stackOffset += (methFPoff- ( 1 << LG_STACKWORD_WIDTH));
+    stackOffset += methFPoff;
 
     // for locals
     getVariableValue(stack, 
-                     localOffset, 
+                     startLocalOffset, 
                      localTypes,
                      fooCM,
                      instructions,
@@ -207,13 +209,14 @@ public final class OSR_BaselineExecStateExtractor
     int vOffset = offset;
     for (int i=0; i<size; i++) {
       if (VM.TraceOnStackReplacement) {
-        int content = VM_Magic.getIntAtOffset(stack, vOffset);
-        VM.sysWrite("0x"+Integer.toHexString(vOffset)+"    0x"+Integer.toHexString(content)+"\n");
+        Word content = VM_Magic.getWordAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
+        VM.sysWrite("0x"+Integer.toHexString(vOffset - BYTES_IN_ADDRESS)+"    0x");
+        VM.sysWriteln(content);
       }
       
       switch (types[i]) {
       case VoidTypeCode:
-        vOffset -= 4;
+        vOffset -= BYTES_IN_STACKSLOT;
         break;
 
       case BooleanTypeCode:
@@ -222,8 +225,8 @@ public final class OSR_BaselineExecStateExtractor
       case CharTypeCode:
       case IntTypeCode:
       case FloatTypeCode:{
-        int value = VM_Magic.getIntAtOffset(stack, vOffset);
-        vOffset -= 4;
+        int value = VM_Magic.getIntAtOffset(stack, vOffset - BYTES_IN_INT);
+        vOffset -= BYTES_IN_STACKSLOT;
           
         int tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
@@ -235,12 +238,11 @@ public final class OSR_BaselineExecStateExtractor
       }
       case LongTypeCode: 
       case DoubleTypeCode: {
+      //KV: this code would be nicer if VoidTypeCode would always follow a 64-bit value. Rigth now for LOCAL it follows, for STACK it proceeds
         int memoff = 
-          (kind == LOCAL) ? (vOffset-4) : vOffset;
+          (kind == LOCAL) ? (vOffset-BYTES_IN_DOUBLE) : VM.BuildFor64Addr? vOffset : (vOffset - BYTES_IN_STACKSLOT);
         long value = VM_Magic.getLongAtOffset(stack, memoff);
         
-        vOffset -= 8;
-
         int tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
         state.add(new OSR_VariableElement(kind,
@@ -248,21 +250,25 @@ public final class OSR_BaselineExecStateExtractor
                                          tcode,
                                          value));
 
-        i++;
+        if (kind == LOCAL) { //KV:VoidTypeCode is next
+          vOffset -= 2*BYTES_IN_STACKSLOT;
+          i++;
+        } else vOffset -=  BYTES_IN_STACKSLOT; //KV:VoidTypeCode was already in front
+        
         break;
       }
-      case AddressTypeCode: {
+      case ReturnAddressTypeCode: {
         VM.disableGC();
-        VM_Address rowIP = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(vOffset));
-        VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);  
+        Address rowIP = VM_Magic.objectAsAddress(stack).add(vOffset).loadAddress();
+        Address instr_beg = VM_Magic.objectAsAddress(instructions);  
         VM.enableGC();
 
-        vOffset -= 4;
+        vOffset -= BYTES_IN_STACKSLOT;
 
         int ipIndex = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
 
         if (VM.TraceOnStackReplacement) {
-          VM.sysWrite("baseline addr ip "+ipIndex+" --> ");
+          VM.sysWrite("baseline ret_addr ip "+ipIndex+" --> ");
         }
         
         int bcIndex = 
@@ -274,7 +280,7 @@ public final class OSR_BaselineExecStateExtractor
         
         state.add(new OSR_VariableElement(kind,
                                          i,
-                                         ADDR,
+                                         RET_ADDR,
                                          bcIndex));
         break;
       }
@@ -282,15 +288,25 @@ public final class OSR_BaselineExecStateExtractor
       case ClassTypeCode: 
       case ArrayTypeCode: {
         VM.disableGC();
-        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset);
+        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
         VM.enableGC();
 
-        vOffset -= 4;
+        vOffset -= BYTES_IN_STACKSLOT;
 
         state.add(new OSR_VariableElement(kind,
                                          i,
                                          REF,
                                          ref));
+        break;
+      }
+      case WordTypeCode: {
+        Word value = VM_Magic.getWordAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
+        vOffset -= BYTES_IN_STACKSLOT;
+          
+        state.add(new OSR_VariableElement(kind,
+                                         i,
+                                         WORD,
+                                         value));
         break;
       }
       default:

@@ -182,8 +182,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       // compiler.  In either case, if we've completed any recompilation
       // then the compiled method is outdated.
       outdatedBaseline = VM_ControllerMemory.planWithStatus(cmpMethod.getMethod(), 
-                                                      VM_ControllerPlan.COMPLETED)
-                        && cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE;
+                                                            VM_ControllerPlan.COMPLETED)
+        && cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE;
       if (VM.LogAOSEvents && outdatedBaseline)
         VM_AOSLogging.debug("outdated Baseline " +  cmpMethod.getMethod() + 
                             "(" + cmpMethod.getId() + ")");
@@ -199,19 +199,17 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
         if (VM.LogAOSEvents) VM_AOSLogging.debug(" Resetting method samples " + hme); 
         return true;
       } else {
-
         plan = chooseOSRRecompilation(hme);
         // insert the plan to memory, which sets up state in the system to trigger
         // the OSR promotion
         if (plan != null) {
-                  VM_ControllerMemory.insert(plan);
-                  // to work with VM_Thread, it flags the compiled method 
-                  // that it is outdated
-                  if (VM.VerifyAssertions) {
-                        VM._assert(cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE);
-                  }
-                  cmpMethod.setOutdated();
-                }
+          VM_ControllerMemory.insert(plan);
+          // to coordinate with OSRListener, it marks cmpMethod as outdated
+          if (VM.VerifyAssertions) {
+            VM._assert(cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE);
+          }
+          cmpMethod.setOutdated();
+        }
         // we don't do any more action on the controller side.
         return true;
       }
@@ -227,9 +225,15 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   private VM_ControllerPlan chooseOSRRecompilation(VM_HotMethodEvent hme) { 
     if (!VM_Controller.options.OSR_PROMOTION) return null;
 
-    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Consider OSR" + hme); 
+    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Consider OSR for " + hme); 
 
     VM_ControllerPlan prev = VM_ControllerMemory.findLatestPlan(hme.getMethod());
+
+    if (prev.getStatus() == VM_ControllerPlan.OSR_BASE_2_OPT) {
+      if (VM.LogAOSEvents) VM_AOSLogging.debug(" Already have an OSR promotion plan for this method");
+      return null;
+    }
+    
     double millis = (double)(prev.getTimeCompleted() - prev.getTimeInitiated());
     double speedup = prev.getExpectedSpeedup();
     double futureTimeForMethod = futureTimeForMethod(hme);
@@ -249,8 +253,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
                                                   prev.getExpectedSpeedup(),
                                                   millis,
                                                   prev.getPriority());
-          // set up state to trigger osr
-          p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
+      // set up state to trigger osr
+      p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
       return p;
     } else {
       return null;
@@ -322,17 +326,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   double futureTimeForMethod(VM_HotMethodEvent hme) {
     VM_AOSOptions opts = VM_Controller.options;
     double numSamples = hme.getNumSamples();
-    double timePerSample;
-    if (!VM.UseEpilogueYieldPoints) { 
+    double timePerSample = (double)VM.interruptQuantum;
+    if (!VM.UseEpilogueYieldPoints) {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
       // as it actually deserves).
-      timePerSample = ((double)VM_Scheduler.schedulingQuantum) / 2.0;
-    } else {
-      // If we use epilogue yield points, we only have 1 sample per interrupt
-      //  prologue => calling method
-      //  backedge/epilogue => current method
-      timePerSample = ((double)VM_Scheduler.schedulingQuantum);
+      timePerSample /=  2.0;
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;

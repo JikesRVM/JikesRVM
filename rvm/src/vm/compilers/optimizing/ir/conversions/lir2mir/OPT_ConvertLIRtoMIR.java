@@ -66,7 +66,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
             Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
                         GuardedUnary.getClearVal(s),
-                        I(VM_ObjectModel.getArrayLengthOffset()), 
+                        IC(VM_ObjectModel.getArrayLengthOffset()), 
                         new OPT_LocationOperand(), 
                         GuardedUnary.getClearGuard(s));
           }
@@ -82,48 +82,49 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           {
             VM_Type type = ((OPT_TypeOperand)Unary.getVal(s)).getVMType();
             int offset = type.getTibOffset();
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         ir.regpool.makeJTOCOp(ir,s), 
-                        I(offset), new OPT_LocationOperand(offset));
+                        IC(offset), new OPT_LocationOperand(offset));
           }
           break;
 
         case GET_TYPE_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
         case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
         case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
         case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_ARRAY_ELEMENT_TIB_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_ARRAY_ELEMENT_TIB_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
+        //-#if RVM_FOR_32_ADDR
         case LONG_DIV_opcode:
           {
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
@@ -161,6 +162,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             OPT_CallingConvention.expandSysCall(s, ir);
           }
           break;
+        //-#endif
 
           //-#if RVM_FOR_POWERPC
         case FLOAT_REM_opcode: case DOUBLE_REM_opcode:
@@ -216,6 +218,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           { 
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
+              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!
@@ -234,6 +237,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           { 
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
+              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!
@@ -262,7 +266,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
       }
     }
 
-    private final OPT_IntConstantOperand I (int i) {
+    private final OPT_IntConstantOperand IC (int i) {
       return new OPT_IntConstantOperand(i);
     }
   }

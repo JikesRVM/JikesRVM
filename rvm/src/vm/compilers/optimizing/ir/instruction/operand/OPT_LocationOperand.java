@@ -109,7 +109,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * Constructs a new location operand with the given method
    * 
-   * @param loc location
+   * @param m  Method operand that corresponds to this location
    */
   public OPT_LocationOperand(OPT_MethodOperand m) {
     type = METHOD_ACCESS;
@@ -119,7 +119,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * Constructs a new location operand with the given array element type.
    * 
-   * @param type array element type
+   * @param t    Array element type
    */
   public OPT_LocationOperand(VM_TypeReference t) {
     type = ARRAY_ACCESS;

@@ -142,7 +142,7 @@ public final class OPT_WeightedBranchTargets {
   }
 
   private boolean epsilon(float a, float b) {
-    return Math.abs(a - b) < 0.001;
+    return Math.abs(a - b) < 0.003;
   }
 }
 

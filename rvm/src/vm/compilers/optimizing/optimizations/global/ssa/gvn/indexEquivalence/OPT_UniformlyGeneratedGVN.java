@@ -43,6 +43,7 @@ class OPT_UniformlyGeneratedGVN implements OPT_Operators {
       // Check if s is a fixed-point add/subtract instruction with 
       // a constant second operand
       if ( s.operator == INT_ADD || s.operator == LONG_ADD ||
+           s.operator == REF_ADD || s.operator == REF_SUB || 
            s.operator == INT_SUB || s.operator == LONG_SUB ) {
         OPT_Operand val2 = Binary.getVal2(s);
         if (val2.isConstant()) {

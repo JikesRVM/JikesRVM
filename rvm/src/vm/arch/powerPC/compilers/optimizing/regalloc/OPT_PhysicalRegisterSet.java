@@ -108,7 +108,12 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     
     // 2. Set the 'integer' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
+      //-#if RVM_FOR_32_ADDR
       reg[i].setInteger();
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      reg[i].setLong();
+      //-#endif
     }
     
     // 3. Set the 'double' attribute on each FPR
@@ -460,7 +465,7 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    * @return one of INT_REG, DOUBLE_REG, or CONDITION_REG
    */
   public static final int getPhysicalRegisterType(OPT_Register r) {
-    if (r.isInteger() || r.isLong()) {
+    if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_REG;
     } else if (r.isFloatingPoint()) {
       return DOUBLE_REG;
@@ -539,9 +544,9 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
-      return 8;
+      return BYTES_IN_DOUBLE;
     } else {
-      return 4;
+      return BYTES_IN_ADDRESS;
     }
   }
   /**
@@ -554,9 +559,9 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
-      return 8;
+      return BYTES_IN_DOUBLE;
     } else {
-      return 4;
+      return BYTES_IN_ADDRESS;
     }
   }
 

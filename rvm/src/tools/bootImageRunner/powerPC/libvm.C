@@ -1,5 +1,5 @@
 /*
- * (C) Copyright © IBM Corp 2001,2002,2003
+ * (C) Copyright © IBM Corp 2001,2002,2003,2004
  *
  * $Id$
  */
@@ -343,7 +343,7 @@ FILE *SysTraceFile = stderr;
 int SysTraceFd = 2;
 
 /* Command line arguments to be passed to the VM. */
-char **JavaArgs;
+const char **JavaArgs;
 int JavaArgc;
 
 /* Emit trace information? */
@@ -687,20 +687,29 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     // We are prepared to handle these kinds of "recoverable" traps.
     // (Anything else indicates some sort of unrecoverable vm error)
     //
-    //  1. SIGSEGV - a null object dereference of the form "obj[-fieldOffset]"
-    //               that wraps around to segment 0xf0000000.
+    //  1. SIGSEGV - a null object dereference of the form "obj[+-fieldOffset]"
     //
     //  2. SIGTRAP - an array bounds trap
     //               or integer divide by zero trap
     //               or stack overflow trap
+    //               or explicit nullCheck
     //
-    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc)) 
-#ifdef RVM_FOR_32_ADDR
-        && ((faultingAddress & 0xffff0000) == 0xffff0000)
+    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc));
+    if (isNullPtrExn) {
+      // Address range filtering.  Must be in very top or very bottom of address range for
+      // us to treat this as a null pointer exception.
+      // NOTE: assumes that first access off a null pointer occurs at offset of +/- 64k.
+      //       Could be false for very large scalars; should generate an explicit null check for those.
+#if defined RVM_FOR_32_ADDR
+      uintptr_t faultMask = 0xffff0000;
 #elif defined RVM_FOR_64_ADDR
-        && ((faultingAddress & 0xffffffffffff0000) == 0xffffffffffff0000)
+      uintptr_t faultMask = 0xffffffffffff0000;
 #endif
-        ;
+      if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
+	isNullPtrExn = 0;
+      }
+    }
+      
     int isTrap = signum == SIGTRAP;
     int isRecoverable = isNullPtrExn | isTrap;
     
@@ -1100,6 +1109,48 @@ createJVM(int vmInSeparateThread)
     void    *bootRegion = 0;
    
 #if USE_MMAP
+/* Note: You probably always want to use MMAP_COPY_ON_WRITE.
+   <p>
+   On my sample
+   machine (IBM Thinkpad T23), using MMAP_COPY_ON_WRITE we can run "Hello
+   World" a lot faster.  These results are the averages after a settling-down
+   period for the disk cache to fill up.  They are even more dramatic without
+   the settling-down period:
+
+		    With MMAP_COPY_ON_WRITE		Old Way
+   BaseBaseCopyMS:      0.875 seconds			1.4 seconds
+   FastAdaptiveCopyMS:	0.237 seconds			2.0   seconds
+
+   The only disadvantage I can see here is that with copy-on-write, it means
+   that if somebody rewrites the boot image file while you're running from that
+   boot image, you will lose big.  However, we never did perform any boot
+   image locking, so that if somebody had rewritten the boot image while you
+   were loading it, you would have had the same problem.  Of course, now the
+   window of vulnerability is much wider than two seconds; it's the entire run
+   time of the program. */
+
+#define MMAP_COPY_ON_WRITE
+#ifdef MMAP_COPY_ON_WRITE
+    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
+		      PROT_READ | PROT_WRITE | PROT_EXEC,
+		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
+		      fileno(fin), 0);
+    if (bootRegion == (void *) MAP_FAILED) {
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %e\n", 
+		Me, errno, errno);
+        return 1;
+    }
+    if (bootRegion != (void *) bootImageAddress) {
+	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
+			     " got %p instead.  This should never happen.",
+		bootRegion, bootImageAddress);
+	/* Don't check the return value.  This is insane already.
+	 * If we weren't part of a larger runtime system, I'd abort at this
+	 * point.  */
+	(void) munmap(bootRegion, roundedImageSize);
+	return 1;
+    }
+#else
     bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
                       PROT_READ | PROT_WRITE | PROT_EXEC, 
                       MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
@@ -1107,6 +1158,7 @@ createJVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
         return 1;
     }
+#endif
 #else
     int id1 = shmget(IPC_PRIVATE, roundedImageSize, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
     if (id1 == -1) {
@@ -1124,6 +1176,7 @@ createJVM(int vmInSeparateThread)
     }
 #endif
 
+#ifndef MMAP_COPY_ON_WRITE
     // read image into memory segment
     //
     int cnt = fread(bootRegion, 1, actualImageSize, fin);
@@ -1142,6 +1195,7 @@ createJVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", Me, errno);
         return 1;
     }
+#endif
   
     // fetch contents of boot record which is at beginning of boot image
     //
@@ -1187,6 +1241,11 @@ createJVM(int vmInSeparateThread)
     //
     bootRecord.initialHeapSize  = initialHeapSize;
     bootRecord.maximumHeapSize  = maximumHeapSize;
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+    bootRecord.initialStackSize = initialStackSize;
+    bootRecord.stackGrowIncrement = stackGrowIncrement;
+    bootRecord.maximumStackSize = maximumStackSize;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
     bootRecord.bootImageStart   = (VM_Address) bootRegion;
     bootRecord.bootImageEnd     = (VM_Address) bootRegion + roundedImageSize;
     bootRecord.verboseBoot      = verboseBoot;
@@ -1216,6 +1275,14 @@ createJVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialHeapSize));
         assert(sizeof bootRecord.maximumHeapSize == 4);
         fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumHeapSize));
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+        assert(sizeof bootRecord.initialStackSize == 4);
+        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialStackSize));
+        assert(sizeof bootRecord.stackGrowIncrement == 4);
+        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.stackGrowIncrement));
+        assert(sizeof bootRecord.maximumStackSize == 4);
+        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumStackSize));
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
         fprintf(SysTraceFile, "   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));

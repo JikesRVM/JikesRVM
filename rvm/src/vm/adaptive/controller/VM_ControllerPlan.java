@@ -158,13 +158,12 @@ public final class VM_ControllerPlan {
 
 
   /**
-   * This method will recompile the method designated by the passed 
-   * controller plan.  It also 
+   * This method will recompile the method designated by the controller plan
+   * {@link #getCompPlan}.  It also 
    *  1) credits the samples associated with the old compiled method
    *     ID to the new method ID and clears the old value.
    *  2) clears inlining information
    *  3) updates the status of the controller plan
-   * @param plan the controller plan to use for the recompilation
    */
   public VM_CompiledMethod doRecompile() {
     OPT_CompilationPlan cp = getCompPlan();
@@ -196,7 +195,6 @@ public final class VM_ControllerPlan {
     // set the status of the plan accordingly
     if (newCMID != -1) {
       setStatus(VM_ControllerPlan.COMPLETED);
-      VM_AdaptiveInlining.clearNonInlinedEdges(prevCMID);
     } else {
       setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
     }
@@ -312,7 +310,7 @@ public final class VM_ControllerPlan {
     case ABORTED_COMPILATION_ERROR: return "ABORTED_COMPILATION_ERROR";
     case IN_PROGRESS:               return "IN_PROGRESS";
     case OUTDATED:                  return "OUTDATED";
-        case OSR_BASE_2_OPT:                    return "OSR_BASE_2_OPT";
+    case OSR_BASE_2_OPT:            return "OSR_BASE_2_OPT";
     case UNKNOWN:                   return "UNKNOWN (not error)";
     default:                        return "**** ERROR, UNKNOWN STATUS ****";
     }

@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
+import org.vmmagic.pragma.*;
 
 /**
  * A field or method of a java class.
@@ -61,21 +62,21 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   /**
    * Class that declared this field or method.
    */ 
-  public final VM_Class getDeclaringClass() throws VM_PragmaUninterruptible { 
+  public final VM_Class getDeclaringClass() throws UninterruptiblePragma { 
     return declaringClass;
   }
       
   /**
    * Canonical member reference for this member.
    */ 
-  public final VM_MemberReference getMemberRef() throws VM_PragmaUninterruptible { 
+  public final VM_MemberReference getMemberRef() throws UninterruptiblePragma { 
     return memRef;
   }
 
   /**
    * Name of this member.
    */ 
-  public final VM_Atom getName() throws VM_PragmaUninterruptible { 
+  public final VM_Atom getName() throws UninterruptiblePragma { 
     return memRef.getName();
   }
 
@@ -83,7 +84,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Descriptor for this member.
    * something like "I" for a field or "(I)V" for a method.
    */ 
-  public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible {
+  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
     return memRef.getDescriptor();
   }
 
@@ -92,7 +93,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * The id is the id of the canonical VM_MemberReference for this member
    * and thus may be used to find the member by first finding the member reference.
    */
-  public final int getId() throws VM_PragmaUninterruptible {
+  public final int getId() throws UninterruptiblePragma {
     return memRef.getId();
   }
 
@@ -151,7 +152,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
    */ 
-  public final int getOffset() throws VM_PragmaUninterruptible {
+  public final int getOffset() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     return offset;
   }

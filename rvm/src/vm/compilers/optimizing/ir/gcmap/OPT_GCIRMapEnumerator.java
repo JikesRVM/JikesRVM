@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
 public class OPT_GCIRMapEnumerator implements Enumeration {
 
   /**
-   *  The next element to return when called
+   *  The next element to return when called.
    */
   private OPT_GCIRMapElement nextElementToReturn;
 
@@ -28,16 +28,18 @@ public class OPT_GCIRMapEnumerator implements Enumeration {
   }
 
   /**
-   * Any elements left?
-   * @return if any elements left
+   * Are there any elements left?
+   * @return true if any elements left, false otherwise
    */
   public final boolean hasMoreElements() {
     return nextElementToReturn != null;
   }
 
   /**
-   * Returns the next element or throws an exception if none exist
+   * Returns the next element, and advances the read pointer past this
+   * element.
    * @return the next element
+   * @throws NoSuchElementException if there is no next element.
    */
   public final Object nextElement() {
     if (nextElementToReturn != null) {
@@ -49,13 +51,16 @@ public class OPT_GCIRMapEnumerator implements Enumeration {
   }
 
   /**
-   * Returns the next elmenent or NULL
-   * @return the next elmenent or NULL
+   * Returns the next element, and advances the read pointer to the
+   * element after that.
+   * @return the next element
+   * @throws NullPointerException if there is no next element to return.
    */
   public final OPT_GCIRMapElement next() {
     OPT_GCIRMapElement ret = nextElementToReturn;
-    nextElementToReturn = (OPT_GCIRMapElement)ret.getNext();
-    return  ret;
+    /* if ret is null, we'll automatically throw a NullPointerException. */
+    nextElementToReturn = (OPT_GCIRMapElement)ret.getNext(); 
+    return ret;
   }
 }
 

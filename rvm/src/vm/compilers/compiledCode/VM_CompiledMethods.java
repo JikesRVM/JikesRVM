@@ -9,6 +9,12 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.*;
+//-#endif
+
+import org.vmmagic.pragma.*; 
+import org.vmmagic.unboxed.*; 
 
 /**
  * Manage pool of compiled methods. <p>
@@ -35,6 +41,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       //-#if RVM_WITH_OPT_COMPILER
       cm = new VM_OptCompiledMethod(id, m);
       //-#endif
+      //-#if RVM_WITH_QUICK_COMPILER
+    } else if (compilerType == VM_CompiledMethod.QUICK) {
+      cm = new VM_QuickCompiledMethod(id, m);
+      //-#endif
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {
@@ -60,7 +70,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Fetch a previously compiled method.
   //
-  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws UninterruptiblePragma {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
@@ -75,19 +85,19 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Get number of methods compiled so far.
   //
-  public static int numCompiledMethods() throws VM_PragmaUninterruptible {
+  public static int numCompiledMethods() throws UninterruptiblePragma {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  public static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod[] getCompiledMethods() throws UninterruptiblePragma {
     return compiledMethods;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static int numCompiledMethodsLess1() throws VM_PragmaUninterruptible {
+  static int numCompiledMethodsLess1() throws UninterruptiblePragma {
     return currentCompiledMethodId;
   }
 
@@ -108,15 +118,15 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod findMethodForInstruction(Address ip) throws UninterruptiblePragma {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
         continue; // empty slot
 
       VM_CodeArray instructions = compiledMethod.getInstructions();
-      VM_Address   beg          = VM_Magic.objectAsAddress(instructions);
-      VM_Address   end          = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+      Address   beg          = VM_Magic.objectAsAddress(instructions);
+      Address   end          = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
 
       // note that "ip" points to a return site (not a call site)
       // so the range check here must be "ip <= beg || ip >  end"
@@ -194,9 +204,16 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Report on the space used by compiled code and associated mapping information
    */
   public static void spaceReport() {
+    //-#if RVM_WITH_QUICK_COMPILER
+    int[] codeCount = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    //-#else
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];
+    //-#endif
+
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
     for (int i=0; i<compiledMethods.length; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
@@ -221,6 +238,15 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.OPT]);
     }
+
+    //-#if RVM_WITH_QUICK_COMPILER
+    if (codeCount[VM_CompiledMethod.QUICK] > 0) {
+      VM.sysWriteln("  Quick Compiler");
+      VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.QUICK]);
+      VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.QUICK]);
+      VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.QUICK]);
+    }
+    //-#endif
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {
       VM.sysWriteln("  JNI Stub Compiler (Java->C stubs for native methods)");

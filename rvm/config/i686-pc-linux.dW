@@ -2,19 +2,25 @@
 #
 # (C) Copyright IBM Corp. 2001, 2004
 #
+
+## OBSOLETE
+## Do NOT use this file as a model.
+## OBSOLETE
+
 # This file defines a set of environment variables needed to build and
 # run Jikes RVM.  This file is sourced by the installation scripts; you
 # do not need to source this file into your command-prompt shell.
 #
-# This particular configuration file describes the environment on the 
-# developerWorks cvs server.  This is used when we automatically rebuild the
-# online user's guide after new checkins to the contents of 
-# rvm/doc/userguide.
+# This particular configuration file describes the environment on the
+# developerWorks cvs server.  This is currently (17 December 2004)
+# used when we automatically rebuild the online user's guide after new
+# checkins to the contents of rvm/doc/userguide.
 #
 #
 # It is not intended to be generally useful, but is included in cvs
 # to facilitate keeping it up-to-date as the set of configuration variables 
-# change.
+# change.  Do not use it as a model; for instance, it uses Classpath 0.05,
+# which won't work for a modern Jikes RVM build.
 
 # It used to be used during the automated rebuild of the Jikes RVM 
 # javadoc API; we don't do that any more, since we instead rebuild the API

@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Arch-independent portion of reflective method invoker.
  *
@@ -50,14 +53,14 @@ public class VM_Reflection implements VM_Constants {
     //
     int triple     = VM_MachineReflection.countParameters(method);
     int gprs       = triple & REFLECTION_GPRS_MASK;
-    VM_WordArray GPRs = VM_WordArray.create(gprs);
+    WordArray GPRs = WordArray.create(gprs);
     int fprs       = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
     double[] FPRs  = new double[fprs];
 
     int spills     = triple >> (REFLECTION_GPRS_BITS+REFLECTION_FPRS_BITS);
     int spillCount = spills;
      
-    VM_WordArray Spills = VM_WordArray.create(spillCount);
+    WordArray Spills = WordArray.create(spillCount);
 
     if (firstUse) { 
       // force dynamic link sites in unwrappers to get resolved, 
@@ -162,27 +165,27 @@ public class VM_Reflection implements VM_Constants {
 
   // Method parameter wrappers.
   // 
-  public static Object wrapBoolean(int b) throws VM_PragmaNoInline     { return new Boolean(b==1); }
-  public static Object wrapByte(byte b) throws VM_PragmaNoInline       { return new Byte(b);       }
-  public static Object wrapChar(char c) throws VM_PragmaNoInline       { return new Character(c);  }
-  public static Object wrapShort(short s) throws VM_PragmaNoInline     { return new Short(s);      }
-  public static Object wrapInt(int i) throws VM_PragmaNoInline         { return new Integer(i);    }
-  public static Object wrapLong(long l) throws VM_PragmaNoInline       { return new Long(l);       }
-  public static Object wrapFloat(float f) throws VM_PragmaNoInline     { return new Float(f);      }
-  public static Object wrapDouble(double d) throws VM_PragmaNoInline   { return new Double(d);     }
+  public static Object wrapBoolean(int b) throws NoInlinePragma     { return new Boolean(b==1); }
+  public static Object wrapByte(byte b) throws NoInlinePragma       { return new Byte(b);       }
+  public static Object wrapChar(char c) throws NoInlinePragma       { return new Character(c);  }
+  public static Object wrapShort(short s) throws NoInlinePragma     { return new Short(s);      }
+  public static Object wrapInt(int i) throws NoInlinePragma         { return new Integer(i);    }
+  public static Object wrapLong(long l) throws NoInlinePragma       { return new Long(l);       }
+  public static Object wrapFloat(float f) throws NoInlinePragma     { return new Float(f);      }
+  public static Object wrapDouble(double d) throws NoInlinePragma   { return new Double(d);     }
    
   // Method parameter unwrappers.
   //
-  public static int unwrapBooleanAsInt(Object o) throws VM_PragmaNoInline  { if (unwrapBoolean(o)) return 1; else return 0; }
-  public static boolean unwrapBoolean(Object o) throws VM_PragmaNoInline   { return ((Boolean)   o).booleanValue(); }
-  public static byte   unwrapByte(Object o) throws VM_PragmaNoInline       { return ((Byte)      o).byteValue();    }
-  public static char   unwrapChar(Object o) throws VM_PragmaNoInline       { return ((Character) o).charValue();    }
-  public static short  unwrapShort(Object o) throws VM_PragmaNoInline      { return ((Short)     o).shortValue();   }
-  public static int    unwrapInt(Object o) throws VM_PragmaNoInline        { return ((Integer)   o).intValue();     }
-  public static long   unwrapLong(Object o) throws VM_PragmaNoInline       { return ((Long)      o).longValue();    }
-  public static float  unwrapFloat(Object o) throws VM_PragmaNoInline      { return ((Float)     o).floatValue();   }
-  public static double unwrapDouble(Object o) throws VM_PragmaNoInline     { return ((Double)    o).doubleValue();  }
-  public static VM_Address unwrapObject(Object o) throws VM_PragmaNoInline { return VM_Magic.objectAsAddress(o);    }
+  public static int unwrapBooleanAsInt(Object o) throws NoInlinePragma  { if (unwrapBoolean(o)) return 1; else return 0; }
+  public static boolean unwrapBoolean(Object o) throws NoInlinePragma   { return ((Boolean)   o).booleanValue(); }
+  public static byte   unwrapByte(Object o) throws NoInlinePragma       { return ((Byte)      o).byteValue();    }
+  public static char   unwrapChar(Object o) throws NoInlinePragma       { return ((Character) o).charValue();    }
+  public static short  unwrapShort(Object o) throws NoInlinePragma      { return ((Short)     o).shortValue();   }
+  public static int    unwrapInt(Object o) throws NoInlinePragma        { return ((Integer)   o).intValue();     }
+  public static long   unwrapLong(Object o) throws NoInlinePragma       { return ((Long)      o).longValue();    }
+  public static float  unwrapFloat(Object o) throws NoInlinePragma      { return ((Float)     o).floatValue();   }
+  public static double unwrapDouble(Object o) throws NoInlinePragma     { return ((Double)    o).doubleValue();  }
+  public static Address unwrapObject(Object o) throws NoInlinePragma { return VM_Magic.objectAsAddress(o);    }
 
   private static boolean firstUse = true;
 }
