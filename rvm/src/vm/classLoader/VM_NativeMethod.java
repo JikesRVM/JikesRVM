@@ -35,7 +35,8 @@ public final class VM_NativeMethod extends VM_Method {
   //-#endif
   
   /**
-   * @param declaringClass the VM_Class object of the class that declared this method.
+   * @param declaringClass the VM_Class object of the class that
+   *                       declared this method.
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
@@ -48,7 +49,7 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Generate the code for this method
    */
-  protected VM_CompiledMethod genCode() {
+  protected synchronized VM_CompiledMethod genCode() {
     if (!resolveNativeMethod()) {
       // if fail to resolve native, get code to throw unsatifiedLinkError
       VM_Entrypoints.unimplementedNativeMethodMethod.compile();
@@ -141,6 +142,11 @@ public final class VM_NativeMethod extends VM_Method {
   }
 
   private boolean resolveNativeMethod() {
+    if (!nativeIP.isZero()) {
+      // method has already been resolved via registerNative.
+      return true;
+    }
+
     nativeProcedureName = getMangledName(false);
     String nativeProcedureNameWithSignature = getMangledName(true);
 
@@ -161,5 +167,33 @@ public final class VM_NativeMethod extends VM_Method {
       //-#endif
       return true;
     }
+  }
+
+
+  /**
+   * Registers a native method
+   * @param symbolAddress address of native function that implements the method
+   */
+  public synchronized void registerNativeSymbol(Address symbolAddress) {
+    //-#if RVM_WITH_POWEROPEN_ABI
+    nativeIP  = symbolAddress.loadAddress();
+    nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
+    //-#else
+    nativeIP = symbolAddress;
+    //-#endif
+    replaceCompiledMethod(null);
+  }
+
+  /**
+   * Unregisters a native method
+   */
+  public synchronized void unregisterNativeSymbol() {
+    //-#if RVM_WITH_POWEROPEN_ABI
+    nativeIP  = Address.zero();
+    nativeTOC = Address.zero();
+    //-#else
+    nativeIP  = Address.zero();
+    //-#endif
+    replaceCompiledMethod(null);
   }
 }

@@ -96,14 +96,42 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
 
   /** 
-   * DefineClass:  Not yet implemented.  
+   * DefineClass:  Loads a class from a buffer of raw class data.
+   * @param env the JNI environment object
+   * @param classNameAddress a raw address to a null-terminated string in C for the class name
+   * @param classLoader a JREF index for the class loader assigned to the defined class
+   * @param data buffer containing the <tt>.class</tt> file
+   * @param dataLen buffer length
+   * @return a JREF index for the Java Class object, or 0 if not found
+   * @exception ClassFormatError if the class data does not specify a valid class
+   * @exception ClassCircularityError (not implemented)
+   * @exception OutOfMemoryError (not implemented)
    */
-  private static int DefineClass(VM_JNIEnvironment env) {
+  private static int DefineClass(VM_JNIEnvironment env, Address classNameAddress, int classLoader, Address data, int dataLen) {
     if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
 
-    VM.sysWrite("JNI ERROR: DefineClass not implemented yet.");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return -1;
+    VM_Type vmType = null;
+    try {
+      String classString = null;
+      if (!classNameAddress.isZero())
+	VM_JNIHelpers.createStringFromC(classNameAddress);
+      ClassLoader cl;
+      if (classLoader == 0)
+	cl = VM_Class.getClassLoaderFromStackFrame(1);
+      else
+	cl = (ClassLoader) env.getJNIRef(classLoader);
+
+      byte[]  bytecode = new byte[dataLen];
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
+
+      vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
+      return env.pushJNIRef(vmType.getClassForType());
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return 0;
+    }
+
   }
 
 
@@ -5331,21 +5359,100 @@ class VM_JNIFunctions implements VM_NativeBridge,
   }
 
 
-  private static int RegisterNatives(VM_JNIEnvironment env) {
+  /**
+   * RegisterNatives: registers implementation of native methods
+   * @param env the JNI environment object
+   * @param classJREF a JREF index for the class to register native methods in
+   * @param methodAddress the address of array of native methods to be registered
+   * @param nmethods the number of native methods in the array
+   * @return 0 is successful -1 if failed
+   * @exception NoSuchMethodError if a specified method cannot be found or is not native
+   */
+  private static int RegisterNatives(VM_JNIEnvironment env, int classJREF, Address methodsAddress, int nmethods) {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
 
-    VM.sysWrite("JNI ERROR: RegisterNatives not implemented yet.");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return -1; 
+    try {
+      // get the target class 
+      Class jcls = (Class) env.getJNIRef(classJREF);
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      if (!type.isClassType()) {
+        env.recordException(new NoSuchMethodError());
+        return 0;
+      } 
+
+      VM_Class klass = type.asClass();
+      if (!klass.isInitialized()) {
+        VM_Runtime.initializeClassForDynamicLink(klass);
+      }
+
+      // Create list of methods and verify them to avoid partial success
+      VM_NativeMethod[] methods = new VM_NativeMethod[nmethods];
+      AddressArray symbols = AddressArray.create(nmethods);
+
+      Address curMethod = methodsAddress;
+      for (int i = 0; i < nmethods; i++) {
+	String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
+	VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
+	String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
+	VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
+	
+	// Find the target method
+	VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
+
+	if (meth == null || !meth.isNative()) {
+	  env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
+	  return -1;
+	} 
+	methods[i] = (VM_NativeMethod)meth;
+	symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
+	curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
+      }
+
+      // Register methods
+      for (int i = 0; i < nmethods; i++) {
+        methods[i].registerNativeSymbol(symbols.get(i));
+      }
+
+      return 0;
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return -1; 
+    }
   }
 
 
-  private static int UnregisterNatives(VM_JNIEnvironment env) {
+  /**
+   * UnregisterNatives: unregisters native methods
+   * @param env the JNI environment object
+   * @param classJREF a JREF index for the class to register native methods in
+   * @return 0 is successful -1 if failed
+   */
+  private static int UnregisterNatives(VM_JNIEnvironment env, int classJREF) {
     if (traceJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
 
-    VM.sysWrite("JNI ERROR: UnregisterNatives not implemented yet.");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-    return -1; 
+    try {
+
+      // get the target class 
+      Class jcls = (Class) env.getJNIRef(classJREF);
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      if (!type.isClassType()) {
+        env.recordException(new NoClassDefFoundError());
+        return -1;
+      } 
+
+      VM_Class klass = type.asClass();
+      if (!klass.isInitialized()) {
+	return 0;
+      }
+
+      klass.unregisterNativeMethods();
+      return 0;
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return -1;
+    }
   }
 
   /**

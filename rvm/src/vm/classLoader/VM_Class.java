@@ -1459,6 +1459,22 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
   }
 
+
+  /**
+   * Unregisters all native methods
+   */
+  public void unregisterNativeMethods() {
+    if (VM.VerifyAssertions) VM._assert (isInitialized());
+    for (int i=0; i<declaredMethods.length; i++) {
+      VM_Method m = declaredMethods[i];
+      if (m.isNative()) {
+	  VM_NativeMethod nm = (VM_NativeMethod)m;
+          nm.unregisterNativeSymbol(); 
+          m.replaceCompiledMethod(null); 
+      }
+    }
+  }
+
   /**
    * Add to list of classes that derive from this one.
    */
