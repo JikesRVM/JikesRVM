@@ -116,3 +116,8 @@ export UNZIP_CMD="/usr/bin/unzip"
 export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
 
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+
+# Used for the Emacs spell-checker
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE
