@@ -357,10 +357,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   }
 
   private void writeBarrier(VM_Address src, VM_Address tgt) 
-    //    throws VM_PragmaInline {
-    throws VM_PragmaNoInline {
+    throws VM_PragmaInline {
     if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
-      //    if (src.toInt() < NS && tgt.toInt() >= NS)
       remset.insert(src);
   }
 

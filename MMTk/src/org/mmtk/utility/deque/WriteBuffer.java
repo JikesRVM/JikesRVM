@@ -43,7 +43,8 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
    *
    * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(VM_Address addr)  {
+  public final void insert(VM_Address addr)
+    throws VM_PragmaNoInline {
     checkInsert(1);
     uncheckedInsert(addr.toInt());
   }

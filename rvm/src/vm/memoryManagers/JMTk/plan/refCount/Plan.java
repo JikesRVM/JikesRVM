@@ -326,13 +326,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     writeBarrier(src, tgt);
   }
   private void writeBarrier(VM_Address src, VM_Address tgt) 
-    throws VM_PragmaNoInline {
+    throws VM_PragmaInline {
     VM_Address old = VM_Magic.getMemoryAddress(src);
     if (old.GE(RC_START))
-      //    if (old.toInt() >= RC)
       decBuffer.push(old);
     if (tgt.GE(RC_START))
-    //    if (tgt.toInt() >= RC)
       incBuffer.push(tgt);
   }
 
