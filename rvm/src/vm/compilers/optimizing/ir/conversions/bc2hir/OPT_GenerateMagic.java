@@ -638,7 +638,7 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.wordFromLong) {
       if (VM.BuildFor64Addr) {
         OPT_RegisterOperand reg = gc.temps.makeTemp(resultType);
-        bc2ir.appendInstruction(Move.create(LONG_2ADDR, reg, bc2ir.popLong()));
+        bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
         bc2ir.push(reg.copyD2U());
       } else {
         VM._assert(false); //should not reach
