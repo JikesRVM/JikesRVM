@@ -46,13 +46,14 @@ final class VM_ImmortalHeap extends VM_Heap
     return end.diff(allocationCursor);
   }
 
+
   /**
    * Allocate a chunk of memory of a given size.
    *   @param size Number of bytes to allocate
    *   @return Address of allocated storage
    */
-  VM_Address allocateRawMemory (int size) {
-    return allocateRawMemory(size, 1, 0);
+  protected VM_Address allocateZeroedMemory (int size) {
+    return allocateZeroedMemory(size, 1, 0);
   }
 
   /**
@@ -61,8 +62,8 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param alignment Alignment specifier; must be a power of two
    *   @return Address of allocated storage
    */
-  VM_Address allocateRawMemory (int size, int alignment) {
-    return allocateRawMemory(size, alignment, 0);
+  protected VM_Address allocateZeroedMemory (int size, int alignment) {
+    return allocateZeroedMemory(size, alignment, 0);
   }
 
   /**
@@ -72,7 +73,7 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param offset Offset within the object that must be aligned
    *   @return Address of allocated storage
    */
-  VM_Address allocateRawMemory (int size, int alignment, int offset) {
+  protected VM_Address allocateZeroedMemory (int size, int alignment, int offset) {
     VM_Address region = allocateInternal(size, alignment, offset);
     VM_Memory.zeroTemp(region, size);
     return region;
@@ -94,13 +95,25 @@ final class VM_ImmortalHeap extends VM_Heap
     return result.sub(offset);
   }
 
+  /**
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
+   */
+  protected void postAllocationProcessing(Object newObj) { 
+    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+      VM_ObjectModel.initializeAvailableByte(newObj); 
+      VM_AllocatorHeader.setBarrierBit(newObj);
+    }    
+  }
+
+
   private static short[] dummyShortArray = new short[1];
 
   public short[] allocateShortArray(int numElements) {
     Object [] tib = VM_ObjectModel.getTIB(dummyShortArray);
     // XXXXX Is this the right way to compute size in object model?
     int size = ((2 * numElements + 3) & ~3) + VM_ObjectModel.computeHeaderSize(tib);
-    VM_Address region = allocateRawMemory(size);
+    VM_Address region = allocateZeroedMemory(size);
     return (short[]) VM_ObjectModel.initializeArray(region, tib,
 						    numElements, size);
   }

@@ -40,10 +40,10 @@ public class VM_Allocator
     static int verbose = 0;
 
     // MEMORY LAYOUT
-    private static VM_Heap bootHeap             = new VM_Heap("Boot Image Heap");   
-    private static VM_Heap smallHeap            = new VM_Heap("Small Object Heap");
+    private static VM_BootHeap bootHeap         = new VM_BootHeap();   
+    private static VM_Heap smallHeap            = new VM_RCHeap("Small Object Heap");
     private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
-    private static VM_Heap largeHeap            = new VM_Heap("Large Object Heap");  // should become LargeHeap(immortalHeap);
+    private static VM_Heap largeHeap            = new VM_RCHeap("Large Object Heap");  // should become LargeHeap(immortalHeap);
             static VM_MallocHeap mallocHeap     = new VM_MallocHeap();
 
     static VM_BootRecord bootrecord;		    // copy of boot record
@@ -339,10 +339,10 @@ public class VM_Allocator
 
 	//      GET STORAGE FOR BLOCKS ARRAY FROM OPERATING SYSTEM
 	int blocks_array_size = BCArrayType.getInstanceSize(num_blocks);
-        VM_Address blocks_array_storage = mallocHeap.allocate(blocks_array_size);
+        VM_Address blocks_array_storage = mallocHeap.allocateZeroedMemory(blocks_array_size);
 
 	int blocks_storage_size = (num_blocks - GC_SIZES) * VM_BlockControl.getInstanceSize();
-	VM_Address blocks_storage = mallocHeap.allocate(blocks_storage_size);
+	VM_Address blocks_storage = mallocHeap.allocateZeroedMemory(blocks_storage_size);
 
 	// Note: the TIB that we get should be of type int[]; if it is of type VM_BlockControl[] then things
 	//   get very confused, since it is declared as int[].
@@ -1056,7 +1056,7 @@ public class VM_Allocator
 
 	// get space for alloc arrays from AIX.
 	int mark_array_size = getByteArrayInstanceSize(size);
-	VM_Address location = mallocHeap.allocate(2*mark_array_size);
+	VM_Address location = mallocHeap.allocateZeroedMemory(2*mark_array_size);
 
 	// zero the array bytes used for allocation (mark is zeroed at
 	// beginning of gc)
@@ -1133,7 +1133,7 @@ public class VM_Allocator
 	int size = GC_BLOCKSIZE/GC_SIZEVALUES[ndx] ;	
 	// Get space for alloc arrays from AIX.
 	int mark_array_size = getByteArrayInstanceSize(size);
-	VM_Address location = mallocHeap.allocate(2*mark_array_size);
+	VM_Address location = mallocHeap.allocateZeroedMemory(2*mark_array_size);
 
 	// zero the array bytes used for allocation (mark is zeroed at
 	// beginning of gc)

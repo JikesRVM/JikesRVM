@@ -25,7 +25,26 @@ final class VM_AppelHeap extends VM_Heap
     super(s);
   }
 
-  public VM_Address allocate(int size) { VM.assert(false); return VM_Address.zero(); }
+  /**
+   * Allocate size bytes of raw memory.
+   * Size is a multiple of wordsize, and the returned memory must be word aligned
+   * 
+   * @param size Number of bytes to allocate
+   * @return Address of allocated storage
+   */
+  protected VM_Address allocateZeroedMemory(int size) {
+    // We're just a container for other heaps, thus not supported!
+    VM.sysFail("allocateZeroedMemory on VM_AppelHeap forbidden");
+    return VM_Address.zero();
+  }
+
+  /**
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
+   */
+  protected void postAllocationProcessing(Object newObj) { 
+    // nothing to do in this heap
+  }
 
   /**
    * Heap is reset at attachment and detachment.

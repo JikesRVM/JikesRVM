@@ -30,7 +30,7 @@ public class VM_StackBuffer
 
     static void	allocateStackBuffer(VM_Thread t)
     {
-	VM_Address bufaddr = VM_Allocator.mallocHeap.allocate(STACK_BUFFER_SIZE);
+	VM_Address bufaddr = VM_Allocator.mallocHeap.allocateZeroedMemory(STACK_BUFFER_SIZE);
 	VM_Magic.setMemoryWord(bufaddr.add(STACK_BUFFER_NEXT_OFFSET), 0);
 	int index = t.stackBufferCurrent;
 
@@ -42,7 +42,7 @@ public class VM_StackBuffer
 
     static void	growStackBuffer(VM_Thread t)
     {
-	VM_Address bufaddr = VM_Allocator.mallocHeap.allocate(STACK_BUFFER_SIZE);
+	VM_Address bufaddr = VM_Allocator.mallocHeap.allocateZeroedMemory(STACK_BUFFER_SIZE);
 	/*
 	  if ((bufaddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
 					 STACK_BUFFER_SIZE)) == 0) {

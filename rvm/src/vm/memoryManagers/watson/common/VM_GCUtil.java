@@ -17,6 +17,9 @@ public class VM_GCUtil
   static Object[] tibForClassType;
   static Object[] tibForPrimitiveType;
 
+  private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
+  private static boolean outOfMemoryReported = false;
+
   static void boot () {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
@@ -193,5 +196,25 @@ public class VM_GCUtil
     }
   }
 
-  
-}   // VM_GCUtil
+  /**
+   * Print OutOfMemoryError message and exit.
+   * TODO: make it possible to throw an exception, but this will have
+   * to be done without doing further allocations (or by using temp space)
+   */
+  public static void outOfMemory (String heapName, int heapSize, String commandLine) {
+    outOfMemoryLock.lock();
+    if (!outOfMemoryReported) {
+      outOfMemoryReported = true;
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      VM.sysWriteln("\nOutOfMemoryError");
+      VM.sysWriteln("Failing heap was ",heapName);
+      VM.sysWriteln("Current heap size = ", heapSize / 1024, " Kb");
+      VM.sysWriteln("Specify a larger heap using ", commandLine);
+      // call shutdown while holding the processor lock
+      VM.shutdown(-5);
+    } else {
+      outOfMemoryLock.release();
+      while(true);  // spin until VM shuts down
+    }
+  }
+} 

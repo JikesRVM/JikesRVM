@@ -85,7 +85,6 @@ final class VM_SegregatedListHeap extends VM_Heap
     mallocHeap = mh;
   }
 
-
   /**
    * Setup done during bootimage writing
    */
@@ -150,8 +149,8 @@ final class VM_SegregatedListHeap extends VM_Heap
     //    storage for entries in blocks array: 4 bytes/ ref
     num_blocks = size / GC_BLOCKSIZE;
     int blocks_array_size = BCArrayType.getInstanceSize(num_blocks);
-    VM_Address blocks_array_storage = immortalHeap.allocateRawMemory(blocks_array_size);
-    VM_Address blocks_storage = immortalHeap.allocateRawMemory((num_blocks-GC_SIZES) * VM_BlockControl.getInstanceSize());
+    VM_Address blocks_array_storage = immortalHeap.allocateZeroedMemory(blocks_array_size);
+    VM_Address blocks_storage = immortalHeap.allocateZeroedMemory((num_blocks-GC_SIZES) * VM_BlockControl.getInstanceSize());
 
     // available from before
     Object[] BCArrayTIB = BCArrayType.getTypeInformationBlock();
@@ -195,6 +194,30 @@ final class VM_SegregatedListHeap extends VM_Heap
       total = new int[GC_SIZES];
       accum = new int[GC_SIZES];
     }
+  }
+
+
+  /**
+   * Allocate size bytes of raw memory.
+   * Size is a multiple of wordsize, and the returned memory must be word aligned
+   * 
+   * @param size Number of bytes to allocate
+   * @return Address of allocated storage
+   */
+  protected VM_Address allocateZeroedMemory(int size) {
+    if (VM.VerifyAssertions) {
+      VM.assert(size <= GC_MAX_SMALL_SIZE);
+      VM.assert(VM_Processor.getCurrentProcessor().backingSLHeap == this);
+    }
+    return allocateFastPath(size);
+  }
+
+  /**
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
+   */
+  protected void postAllocationProcessing(Object newObj) { 
+    // nothing to do in this heap
   }
 
 
@@ -596,7 +619,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     // get space for alloc arrays 
     int mark_array_size = getByteArrayInstanceSize(size);
     byteArrayTIB = byteArrayType.getTypeInformationBlock();
-    VM_Address region = mallocHeap.allocate(mark_array_size);
+    VM_Address region = mallocHeap.allocateZeroedMemory(mark_array_size);
     alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(region, byteArrayTIB, size, mark_array_size));
 
     return theblock;
@@ -686,7 +709,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     }
 
     int mark_array_size = getByteArrayInstanceSize(size);
-    VM_Address location = mallocHeap.allocate(mark_array_size);
+    VM_Address location = mallocHeap.allocateZeroedMemory(mark_array_size);
     alloc_block.alloc_size = size;  // remember allocated size
     alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(location, byteArrayTIB, size, mark_array_size));
 
@@ -873,7 +896,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
     // Allocate objects for processor-local meta data from backing malloc heap.
     VM.disableGC();
-    VM_Address region = mallocHeap.allocate(regionSize);
+    VM_Address region = mallocHeap.allocateZeroedMemory(regionSize);
     st.sizes = 
       (VM_SizeControl[])VM_ObjectModel.initializeArray(region, 
 						       scArrayType.getTypeInformationBlock(), 
@@ -888,7 +911,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     }
 
     regionSize = scArrayType.getInstanceSize(GC_MAX_SMALL_SIZE + 1);
-    region = mallocHeap.allocate(regionSize);
+    region = mallocHeap.allocateZeroedMemory(regionSize);
     st.GC_INDEX_ARRAY = 
       (VM_SizeControl[])VM_ObjectModel.initializeArray(region, 
 						       scArrayType.getTypeInformationBlock(), 

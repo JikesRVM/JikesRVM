@@ -14,7 +14,6 @@ public class VM_MallocHeap extends VM_Heap
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
   // Internal management
-  private VM_ProcessorLock spaceLock;        // serializes access to large space
   private VM_BootRecord bootrecord;
 
   /**
@@ -22,7 +21,6 @@ public class VM_MallocHeap extends VM_Heap
    */
   VM_MallocHeap() {
     super("Malloc Heap");
-    spaceLock = new VM_ProcessorLock();      // serializes access to malloc space
   }
 
 
@@ -42,42 +40,49 @@ public class VM_MallocHeap extends VM_Heap
     return size;
   }
 
-  // Allocate space from the malloc space
-  //
-  // param   size in bytes needed for the large object
-  // return  address of first byte of the region allocated or 0 if not enough space
-  //
-  VM_Address allocate (int size) {
+  /**
+   * Allocate size bytes of zeroed memory.
+   * Size is a multiple of wordsize, and the returned memory must be word aligned
+   * 
+   * @param size Number of bytes to allocate
+   * @return Address of allocated storage
+   */
+  protected synchronized VM_Address allocateZeroedMemory(int size) {
+    VM_Address region = VM_Address.fromInt(VM.sysCall1(bootrecord.sysMallocIP, size));
+    VM_Address regionEnd = region.add(size);
+    if (region.isZero()) {
+      VM.sysFail("VM_MallocHeap failed to malloc " + size  + " bytes");
+    }
+    VM_Memory.zero(region, regionEnd);
 
-      spaceLock.lock();
+    if (start.isZero() || region.LT(start)) start = region;
+    if (regionEnd.GT(end)) end = regionEnd;
+    VM_Processor pr = VM_Processor.getCurrentProcessor();
+    pr.disableThreadSwitching();
+    setAuxiliary();
+    pr.enableThreadSwitching();
+    /*
+      VM.sysWrite("malloc.allocate:  region = "); VM.sysWrite(region);
+      VM.sysWrite("    "); show();
+      VM_Scheduler.dumpStack();
+    */
+    return region;
+  }
 
-      VM_Address region = VM_Address.fromInt(VM.sysCall1(bootrecord.sysMallocIP, size));
-      VM_Address regionEnd = region.add(size);
-      if (region.isZero()) {
-	  spaceLock.release();
-	  VM.sysWriteln("VM_MallocHeap failed to malloc ", size, " bytes");
-	  VM.assert(false);
-      }
-      VM_Memory.zero(region, regionEnd);
-
-      if (start.isZero() || region.LT(start)) start = region;
-      if (regionEnd.GT(end)) end = regionEnd;
-      VM_Processor pr = VM_Processor.getCurrentProcessor();
-      pr.disableThreadSwitching();
-      setAuxiliary();
-      pr.enableThreadSwitching();
-      spaceLock.release();
-      /*
-	VM.sysWrite("malloc.allocate:  region = "); VM.sysWrite(region);
-	VM.sysWrite("    "); show();
-	VM_Scheduler.dumpStack();
-      */
-      return region;
+  /**
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
+   */
+  protected void postAllocationProcessing(Object newObj) { 
+    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+      VM_ObjectModel.initializeAvailableByte(newObj); 
+      VM_AllocatorHeader.setBarrierBit(newObj);
+    }    
   }
 
   void free(VM_Address addr) {
-      VM.sysCall1(bootrecord.sysFreeIP, addr.toInt());
-      // Cannot correctly change start/end here
+    VM.sysCall1(bootrecord.sysFreeIP, addr.toInt());
+    // Cannot correctly change start/end here
   }
 
-} // VM_MallocHeap
+}

@@ -100,7 +100,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 				 boolean getChunk) throws OutOfMemoryError {
     st.backingHeapChunk1 = h;
     if (getChunk) {
-      VM_Address chunk = h.allocate(CHUNK_SIZE);
+      VM_Address chunk = h.allocateRawMemory(CHUNK_SIZE);
       if (!chunk.isZero()) {
 	st.startChunk1 = chunk;
 	st.currentChunk1 = chunk;
@@ -126,7 +126,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 				 boolean getChunk) throws OutOfMemoryError {
     st.backingHeapChunk2 = h;
     if (getChunk) {
-      VM_Address chunk = h.allocate(CHUNK_SIZE);
+      VM_Address chunk = h.allocateRawMemory(CHUNK_SIZE);
       if (!chunk.isZero()) {
 	st.startChunk2 = chunk;
 	st.currentChunk2 = chunk;
@@ -215,7 +215,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 	if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
 	return oldCurrent;
       }
-      VM_Address chunk = st.backingHeapChunk1.allocate(CHUNK_SIZE);
+      VM_Address chunk = st.backingHeapChunk1.allocateRawMemory(CHUNK_SIZE);
       if (!chunk.isZero()) {
 	// Normal case; we successfully got a chunk.  
 	// Update our data structures and allocate size bytes from it
@@ -251,7 +251,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 	st.currentChunk2 = newCurrent;
 	return oldCurrent;
       }
-      VM_Address chunk = st.backingHeapChunk2.allocate(CHUNK_SIZE);
+      VM_Address chunk = st.backingHeapChunk2.allocateRawMemory(CHUNK_SIZE);
       if (!chunk.isZero()) {
 	// Normal case; we successfully got a chunk.  
 	// Update our data structures and allocate size bytes from it

@@ -15,7 +15,7 @@
  * @author Derek Lieber
  */
 public class VM_Allocator implements VM_Constants, VM_GCConstants {
-  private static final VM_Heap bootHeap = new VM_Heap("Boot Image Heap");   
+  private static final VM_BootHeap bootHeap = new VM_BootHeap();   
   private static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
 
   static int verbose = 0; // control chattering during progress of GC
@@ -90,6 +90,18 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   }
   
   /**
+   *  Includes freeMemory and per-processor local storage
+   */
+  public static long allSmallFreeMemory () {
+    return freeMemory();
+  }
+
+  public static long allSmallUsableMemory () {
+    return freeMemory();
+  }
+
+
+  /**
    * Allocate a scalar object. Fills in the header for the object,
    * and set all data fields to zero.
    *
@@ -100,8 +112,7 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
    * @return the reference for the allocated object
    */
   public static Object allocateScalar (int size, Object[] tib) throws OutOfMemoryError {
-    VM_Address region = immortalHeap.allocateRawMemory(size);
-    return VM_ObjectModel.initializeScalar(region, tib, size);
+    return immortalHeap.allocateScalar(size, tib);
   }
   
   /**
@@ -116,11 +127,7 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
-    // note: array size might not be a word multiple,
-    //       must preserve alignment of future allocations
-    size = VM_Memory.align(size, WORDSIZE);
-    VM_Address region = immortalHeap.allocateRawMemory(size);
-    return VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    return immortalHeap.allocateArray(numElements, size, tib);
   }
   
   /**

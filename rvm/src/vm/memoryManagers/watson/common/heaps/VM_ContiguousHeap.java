@@ -44,6 +44,34 @@ final class VM_ContiguousHeap extends VM_Heap
 
   int sense() { return sense; }
 
+  /**
+   * Allocate size bytes of raw memory.
+   * Size is a multiple of wordsize, and the returned memory must be word aligned
+   * 
+   * @param size Number of bytes to allocate
+   * @return Address of allocated storage
+   */
+  protected VM_Address allocateZeroedMemory(int size) {
+    // The issue is that this doesn't make much sense because
+    // VM_Heap requires that this returns valid memory and if this
+    // heap instance is full what allocateRawMemory is going to do is 
+    // trigger a GC, which may reverse the sense of toSpace and fromSpace.
+    // When this happens, allocating the memory in this heap instance
+    // makes no sense, since it has logically switched to another heap.
+    // There is probably a better way to handle this, but for now we'll just fail
+    // since we don't expect anyone to every do this.
+    VM.sysFail("allocateZeroedMemory on VM_Contiguous heap forbidden");
+    return VM_Address.zero();
+  }
+
+  /**
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
+   */
+  protected void postAllocationProcessing(Object newObj) { 
+    // nothing to do in this heap
+  }
+
   /** 
    * Allocate raw memory of size bytes.
    * Important the caller of this function may be responsible 
@@ -53,7 +81,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * @param size the number of bytes to allocate
    * @return the allocate memory or VM_Address.zero() if space is exhausted.
    */
-  public VM_Address allocate(int size) {
+  public VM_Address allocateRawMemory(int size) {
     int offset = VM_Entrypoints.contiguousHeapCurrentField.getOffset();
     if (sense == FORWARD) {
 	VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);

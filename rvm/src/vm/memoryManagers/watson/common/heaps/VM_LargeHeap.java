@@ -25,7 +25,6 @@ public class VM_LargeHeap extends VM_Heap
   private short[]	largeSpaceAlloc;	// used to allocate in large space
   private short[]	largeSpaceMark;		// used to mark large objects
   private int[]	        countLargeAlloc;	//  - count sizes of large objects alloc'ed
-  private static boolean outOfMemoryReported = false;
 
   /**
    * Initialize for boot image - called from init of various collectors
@@ -52,7 +51,6 @@ public class VM_LargeHeap extends VM_Heap
     // Get the (full sized) arrays that control large object space
     largeSpaceAlloc = immortal.allocateShortArray(largeSpacePages + 1);
     largeSpaceMark  = immortal.allocateShortArray(largeSpacePages + 1);
-
   }
 
   /**
@@ -64,87 +62,77 @@ public class VM_LargeHeap extends VM_Heap
     return size;
   }
 
-  // Allocate space from the Large Object Space
-  //
-  // param   size in bytes needed for the large object
-  // return  address of first byte of the region allocated or 0 if not enough space
-  //
-  VM_Address allocate (int size) {
+  /**
+   * Allocate size bytes of zeroed memory.
+   * Size is a multiple of wordsize, and the returned memory must be word aligned
+   * 
+   * @param size Number of bytes to allocate
+   * @return Address of allocated storage
+   */
+  protected VM_Address allocateZeroedMemory (int size) {
+    int count = 0;
+    while (true) {
+      int num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
+      int last_possible = largeSpacePages - num_pages;
 
-    int i, num_pages, num_blocks, first_free, temp, result;
-    int last_possible;
-    num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
-    last_possible = largeSpacePages - num_pages;
-    spaceLock.lock();
+      spaceLock.lock();
 
-    while (largeSpaceAlloc[large_last_allocated] != 0)
-      large_last_allocated += largeSpaceAlloc[large_last_allocated];
-
-    first_free = large_last_allocated;
-
-    while (first_free <= last_possible) {
-      // Now find contiguous pages for this object
-      // first find the first available page
-      // i points to an available page: remember it
-      for (i = first_free + 1; i < first_free + num_pages ; i++) 
-	if (largeSpaceAlloc[i] != 0) break;
-      if (i == (first_free + num_pages )) {  
-	// successful: found num_pages contiguous pages
-	// mark the newly allocated pages
-	// mark the beginning of the range with num_pages
-	// mark the end of the range with -num_pages
-	// so that when marking (ref is input) will know which extreme 
-	// of the range the ref identifies, and then can find the other
-
-	largeSpaceAlloc[first_free + num_pages - 1] = (short)(-num_pages);
-	largeSpaceAlloc[first_free] = (short)(num_pages);
-	       
-	spaceLock.unlock();  //release lock *and synch changes*
-	VM_Address target = start.add(VM_Memory.getPagesize() * first_free);
-	VM_Memory.zero(target, target.add(size));  // zero space before return
-	return target;
-      }  // found space for the new object without skipping any space    
-
-      else {  // free area did not contain enough contig. pages
-	first_free = i + largeSpaceAlloc[i]; 
-	while (largeSpaceAlloc[first_free] != 0) 
-	  first_free += largeSpaceAlloc[first_free];
+      while (largeSpaceAlloc[large_last_allocated] != 0) {
+	large_last_allocated += largeSpaceAlloc[large_last_allocated];
       }
-    }    // go to top and try again
 
-    // fall through if reached the end of large space without finding 
-    // enough space
-    spaceLock.release();  //release lock: won't keep change to large_last_alloc'd
-    return VM_Address.zero();  // reached end of largeSpace w/o finding numpages
+      int first_free = large_last_allocated;
+      while (first_free <= last_possible) {
+	// Now find contiguous pages for this object
+	// first find the first available page
+	// i points to an available page: remember it
+	int i;
+	for (i = first_free + 1; i < first_free + num_pages ; i++) {
+	  if (largeSpaceAlloc[i] != 0) break;
+	}
+	if (i == (first_free + num_pages )) {  
+	  // successful: found num_pages contiguous pages
+	  // mark the newly allocated pages
+	  // mark the beginning of the range with num_pages
+	  // mark the end of the range with -num_pages
+	  // so that when marking (ref is input) will know which extreme 
+	  // of the range the ref identifies, and then can find the other
+	  
+	  largeSpaceAlloc[first_free + num_pages - 1] = (short)(-num_pages);
+	  largeSpaceAlloc[first_free] = (short)(num_pages);
+	       
+	  spaceLock.unlock();  //release lock *and synch changes*
+	  VM_Address target = start.add(VM_Memory.getPagesize() * first_free);
+	  VM_Memory.zero(target, target.add(size));  // zero space before return
+	  return target;
+	} else {  
+	  // free area did not contain enough contig. pages
+	  first_free = i + largeSpaceAlloc[i]; 
+	  while (largeSpaceAlloc[first_free] != 0) 
+	    first_free += largeSpaceAlloc[first_free];
+	}
+      }
+
+      spaceLock.release();  //release lock: won't keep change to large_last_alloc'd
+
+      // Couldn't find space; inform allocator (which will either trigger GC or 
+      // throw out of memory exception)
+      VM_Allocator.heapExhausted(this, size, count++);
+    }
   }
+
 
   /**
-   * Print OutOfMemoryError message and exit.
-   * TODO: make it possible to throw an exception, but this will have
-   * to be done without doing further allocations (or by using temp space)
+   * Hook to allow heap to perform post-allocation processing of the object.
+   * For example, setting the GC state bits in the object header.
    */
-
-   void outOfMemory ( int sz ) {
-
-    // First thread to be out of memory will write out the message,
-    // and issue the shutdown. Others just spinwait until the end.
-
-    spaceLock.lock();
-    if (!outOfMemoryReported) {
-      outOfMemoryReported = true;
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWrite("\nOutOfMemoryError - Insufficient Large Object Space\n");
-      VM.sysWriteln("Unable to allocate large object of size (Kb) = ", sz / 1024);
-      VM.sysWriteln("Current Large Space Size (Kb) = ", size / 1024);
-      VM.sysWrite("Specify a bigger large object heap using -X:lh=nnn command line argument\n");
-      // call shutdown while holding the processor lock
-      VM.shutdown(-5);
-    }
-    else {
-      spaceLock.release();
-      while( outOfMemoryReported == true );  // spin until VM shuts down
-    }
+  protected void postAllocationProcessing(Object newObj) { 
+    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+      VM_ObjectModel.initializeAvailableByte(newObj); 
+      VM_AllocatorHeader.setBarrierBit(newObj);
+    } 
   }
+
 
   void startCollect() {
       VM_Memory.zero(VM_Magic.objectAsAddress(largeSpaceMark), 

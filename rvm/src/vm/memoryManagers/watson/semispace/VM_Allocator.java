@@ -215,11 +215,13 @@ public class VM_Allocator extends VM_GCStatistics
     throws OutOfMemoryError {
     VM_Magic.pragmaInline();
     
-    VM_Address region = allocateRawMemory(size);
-
-    profileAlloc(region, size, tib); // profile/debug; usually inlined away to nothing
-
-    return VM_ObjectModel.initializeScalar(region, tib, size);
+    if (size >= SMALL_SPACE_MAX) {
+      return largeHeap.allocateScalar(size, tib);
+    } else {
+      VM_Address region = allocateRawMemory(size);
+      profileAlloc(region, size, tib); 
+      return VM_ObjectModel.initializeScalar(region, tib, size);
+    }
   }
   
 
@@ -241,101 +243,55 @@ public class VM_Allocator extends VM_GCStatistics
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);
-
-    VM_Address region = allocateRawMemory(size);  
-
-    profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
-
-    return VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    if (size >= SMALL_SPACE_MAX) {
+      return largeHeap.allocateArray(numElements, size, tib);
+    } else {
+      VM_Address region = allocateRawMemory(size);  
+      profileAlloc(region, size, tib); 
+      return VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    }
   }
 
 
   /**
-   * Get space for a new object or array. 
+   * Get space for a new object or array from small object space.
    *
-   * This code simply dispatches to one of three routines that actually
-   * does the allocation.
-   * (1) If the object is large, then the large heap
-   * (2) Otherwise, either call VM_Chunk to do processor local
-   *     allocation or
-   * (3) call the allocation routine on fromHeap.
-   * 
    * @param size number of bytes to allocate
    * @return the address of the first byte of the allocated zero-filled region
    */
   private static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
-    if (size >= SMALL_SPACE_MAX) {
-      return allocateLargeObject(size);
-    } else if (PROCESSOR_LOCAL_ALLOCATE) {
+    if (PROCESSOR_LOCAL_ALLOCATE) {
+      VM_Magic.pragmaInline();
       return VM_Chunk.allocateChunk1(size);
     } else {
-      VM_Address addr = allocateSmallObject(size);
-      if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
-      return addr;
+      for (int count = 0; true; count++) {
+	VM_Address addr = fromHeap.allocateZeroedMemory(size);
+	if (!addr.isZero()) {
+	  if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+	  return addr;
+	} 
+	heapExhausted(fromHeap, size, count);
+      }
     }
   }
 
-
-  /**
-   * Logic to handle allocations from the large heap,
-   * triggering GC's as necessary and calling out of memory
-   * when forced to.
-   * 
-   * @param size the number of bytes to allocate
-   */
-  private static VM_Address allocateLargeObject(int size) throws OutOfMemoryError {
-    VM_Magic.pragmaNoInline();
-    VM_Address addr = largeHeap.allocate(size);
-    if (addr.isZero()) {
-      for (int i=0; i<3; i++) {
-	// There's a possible race condition where other Java threads
-	// chew up all the large heap (and some of it becomes garbage)
-	// before this thread gets to run again. 
-	// So, we try a couple times before giving up.
-	// This isn't a 100% solution, but it may handle it in practice.
-	gc1("GC triggered by large object request of ", size);
-	addr = largeHeap.allocate(size);
-	if (!addr.isZero()) return addr;
-      }
-      largeHeap.outOfMemory(size);
-    }
-    return addr;
-  }
-  
-  /**
-   * Handle small space allocations when !PROCESSOR_LOCAL_ALLOCATE
-   * @param size the number of bytes to allocate
-   */
-  private static VM_Address allocateSmallObject(int size) throws OutOfMemoryError {
-    VM_Address addr = fromHeap.allocate(size);
-    if (addr.isZero()) {
-      for (int i=0; i<3; i++) {
-	// There's a possible race condition where other Java threads
-	// chew up all the small heap (and some of it becomes garbage)
-	// before this thread gets to run again. 
-	// So, we try a couple times before giving up.
-	// This isn't a 100% solution, but it may handle it in practice.
-	VM_Allocator.gc1("GC triggered by large object request of ", size);
-	addr = fromHeap.allocate(size);
-	if (!addr.isZero()) return addr;
-      }
-      outOfMemory(size);
-    }
-    return addr;
-  }
 
   /**
    * Handle heap exhaustion.
    * 
+   * @param heap the exhausted heap
    * @param size number of bytes requested in the failing allocation
+   * @param count the retry count for the failing allocation.
    */
   public static void heapExhausted(VM_Heap heap, int size, int count) {
-    if (count>3) outOfMemory(size);
     if (heap == fromHeap) {
+      if (count>3) VM_GCUtil.outOfMemory("small object space", smallHeapSize, "-X:h=nnn");
       gc1("GC triggered by object request of ", size);
+    } else if (heap == largeHeap) {
+      if (count>3) VM_GCUtil.outOfMemory("large object space", heap.getSize(), "-X:lh=nnn");
+      gc1("GC triggered by large object request of ", size);
     } else if (heap == toHeap) {
-      outOfMemory(-1);
+      VM_GCUtil.outOfMemory("toHeap during collection!!!", smallHeapSize, "-X:h=nnn");
     } else {
       VM.sysFail("unexpected heap");
     }
@@ -358,13 +314,11 @@ public class VM_Allocator extends VM_GCStatistics
    */
   private static final int     SMALL_SPACE_MAX = 2048 + 1024 + 12;
 
-  private static VM_ProcessorLock lock = new VM_ProcessorLock(); // for reporting out of memory
-  private static boolean outOfMemoryReported = false;
   private static volatile boolean initGCDone = false;
   private static volatile boolean gcDone = false;
   
   private static int smallHeapSize;  // total size of small object heaps = 2 * fromHeap.size
-  private static VM_Heap bootHeap             = new VM_Heap("Boot Image Heap");   
+  private static VM_BootHeap bootHeap         = new VM_BootHeap();
   private static VM_ContiguousHeap fromHeap   = new VM_ContiguousHeap("Small Object Heap 1");
   private static VM_ContiguousHeap toHeap     = new VM_ContiguousHeap("Small Object Heap 2");
   private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
@@ -388,35 +342,6 @@ public class VM_Allocator extends VM_GCStatistics
   static void gcSetup ( int numSysThreads ) {
     VM_GCWorkQueue.workQueue.initialSetup(numSysThreads);
   }
-
-  /**
-   * Print OutOfMemoryError message and exit.
-   * TODO: make it possible to throw an exception, but this will have
-   * to be done without doing further allocations (or by using temp space)
-   */
-  public static void outOfMemory (int size) {
-    // First thread to be out of memory will write out the message,
-    // and issue the shutdown. Others just spinwait until the end.
-    if (size > SMALL_SPACE_MAX) {
-      largeHeap.outOfMemory(size);
-      return;
-    }
-    lock.lock();
-    if (!outOfMemoryReported) {
-      outOfMemoryReported = true;
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWriteln("\nOutOfMemoryError");
-      VM.sysWriteln("Insufficient heap size for semi-space collector");
-      VM.sysWriteln("Current heap size = ", smallHeapSize);
-      VM.sysWriteln("Specify a larger heap using -X:h=nnn command line argument");
-      // call shutdown while holding the processor lock
-      VM.shutdown(-5);
-    } else {
-      lock.release();
-      while(true);  // spin until VM shuts down
-    }
-  }
-
 
   private static void  prepareNonParticipatingVPsForGC() {
     // include NativeDaemonProcessor in following loop over processors
@@ -756,8 +681,10 @@ public class VM_Allocator extends VM_GCStatistics
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
       return VM_Chunk.allocateChunk2(size);
     } else {
-      VM_Address addr = toHeap.allocate(size);
-      if (addr.isZero()) outOfMemory(-1);
+      VM_Address addr = toHeap.allocateZeroedMemory(size);
+      if (addr.isZero()) {
+	VM_GCUtil.outOfMemory("toHeap during collection!!!", smallHeapSize, "-X:h=nnn");
+      }
       return addr;
     }
   }

@@ -58,7 +58,7 @@ public class VM_Allocator extends VM_GCStatistics
 
   static boolean gc_collect_now = false; // flag to do a collection (new logic)
 
-  private static VM_Heap bootHeap                = new VM_Heap("Boot Image Heap");   
+  private static VM_BootHeap bootHeap            = new VM_BootHeap();   
   private static VM_MallocHeap mallocHeap        = new VM_MallocHeap();
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);
   private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
@@ -137,9 +137,13 @@ public class VM_Allocator extends VM_GCStatistics
   public static Object allocateScalar (int size, Object[] tib)
     throws OutOfMemoryError {
     VM_Magic.pragmaInline(); 
-    VM_Address objaddr = allocateRawMemory(size);
-    profileAlloc(objaddr, size, tib);
-    return VM_ObjectModel.initializeScalar(objaddr, tib, size);
+    if (size > SMALL_SPACE_MAX) {
+      return largeHeap.allocateScalar(size, tib);
+    } else {
+      VM_Address objaddr = VM_SegregatedListHeap.allocateFastPath(size);
+      profileAlloc(objaddr, size, tib);
+      return VM_ObjectModel.initializeScalar(objaddr, tib, size);
+    }
   }
 
 
@@ -154,58 +158,34 @@ public class VM_Allocator extends VM_GCStatistics
   public static Object allocateArray (int numElements, int size, Object[] tib)
     throws OutOfMemoryError {
     VM_Magic.pragmaInline(); 
-    VM_Address objaddr = allocateRawMemory(size);
-    profileAlloc(objaddr, size, tib);
-    return VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
-  }
-
-
-  /**
-   * Get space for a new object or array. 
-   *
-   * This code simply dispatches to one of two heaps
-   * (1) If the object is large, then the large heap 
-   * (2) Otherwise, the fast path of the segmented list heap 
-   *     that this collector uses for small objects.
-   * 
-   * @param size number of bytes to allocate
-   * @return the address of the first byte of the allocated zero-filled region
-   */
-    static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
     if (size > SMALL_SPACE_MAX) {
-      return allocateLargeObject(size);
+      return largeHeap.allocateArray(numElements, size, tib);
     } else {
-      return VM_SegregatedListHeap.allocateFastPath(size);
+      VM_Address objaddr = VM_SegregatedListHeap.allocateFastPath(size);
+      profileAlloc(objaddr, size, tib);
+      return VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
     }
   }
+
 
   /**
-   * Allocate a large object; if none available collect garbage and try again.
-   *   @param size Size in bytes to allocate
-   *   @return Address of zero-filled free storage
+   * Handle heap exhaustion.
+   * 
+   * @param heap the exhausted heap
+   * @param size number of bytes requested in the failing allocation
+   * @param count the retry count for the failing allocation.
    */
-  static VM_Address allocateLargeObject (int size) {
-    VM_Magic.pragmaNoInline(); // make sure this method is not inlined
-
-    for (int control = 0; control < GC_RETRY_COUNT; control++) {
-      VM_Address objaddr = largeHeap.allocate(size);
-      if (!objaddr.isZero())
-	return objaddr;
-      if (control > 0)
-	flag2nd = true;
-      gc1("Garbage collection triggered by large request ", size);
-    }
-    
-    outOfMemory(size, "Out of memory while trying to allocate large object");
-    return VM_Address.zero(); // never executed
-  }
-
-  
-  public static void heapExhausted(VM_SegregatedListHeap h, int size, int count) {
-    if (count > GC_RETRY_COUNT) outOfMemory(size, "Out of memory trying to allocate small object");
+  public static void heapExhausted(VM_Heap heap, int size, int count) {
     flag2nd = count > 0;
-    gc1("Garbage collection triggered by small request of size ", size);
+    if (heap == smallHeap) {
+      if (count>GC_RETRY_COUNT) VM_GCUtil.outOfMemory("small object space", heap.getSize(), "-X:h=nnn");
+      gc1("GC triggered by object request of ", size);
+    } else if (heap == largeHeap) {
+      if (count>GC_RETRY_COUNT) VM_GCUtil.outOfMemory("large object space", heap.getSize(), "-X:lh=nnn");
+      gc1("GC triggered by large object request of ", size);
+    } else {
+      VM.sysFail("unexpected heap");
+    }
   }
     
 
@@ -590,16 +570,6 @@ public class VM_Allocator extends VM_GCStatistics
     }
     return is_live;
   }
-
-
-  private static void outOfMemory (int size, String why) {
-    VM_Scheduler.trace(" Out of memory", " could not satisfy bytes = ", size);
-    VM_Scheduler.trace("              ", why);
-    VM_Scheduler.trace(" Current small object heapsize ", "=", smallHeap.size);
-    VM_Scheduler.trace(" Specify more space with", " -X:h=");
-    VM.shutdown(-5);
-  }
-
 
   /**
    * Process an object reference field during collection.

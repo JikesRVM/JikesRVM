@@ -76,7 +76,7 @@ public class VM_RCBuffers
 	//   processor at startup that are never freed, and the rest dynamically as needed: if they block, will
 	//   force a synchronous collection anyway.
 
-	p.incDecBuffer = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	p.incDecBuffer = VM_Allocator.mallocHeap.allocateZeroedMemory(INCDEC_BUFFER_SIZE);
 	VM_Magic.setMemoryWord(p.incDecBuffer.add(INCDEC_BUFFER_NEXT_OFFSET), 0);
 	p.incDecBufferTop = p.incDecBuffer.add(INCDEC_BUFFER_FIRST_OFFSET);
 	p.incDecBufferMax = p.incDecBuffer.add(INCDEC_BUFFER_LAST_OFFSET);
@@ -90,14 +90,14 @@ public class VM_RCBuffers
     {
 	VM_Address newBufAddr;
 
-	newBufAddr = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	newBufAddr = VM_Allocator.mallocHeap.allocateZeroedMemory(INCDEC_BUFFER_SIZE);
 	if (newBufAddr.isZero()) {
 	    if (!VM_Thread.getCurrentThread().isIdleThread) {
 		VM_Scheduler.gcWaitMutex.lock();
 		VM_Thread.getCurrentThread().yield(VM_Scheduler.gcWaitQueue, VM_Scheduler.gcWaitMutex);
 	    }
 
-	    newBufAddr = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	    newBufAddr = VM_Allocator.mallocHeap.allocateZeroedMemory(INCDEC_BUFFER_SIZE);
 	    if (newBufAddr.isZero()) {
 		VM_Scheduler.traceback("VM_RCBuffer::growIncDecBuffer");
 		VM.sysExit(1800);
