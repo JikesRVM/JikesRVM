@@ -19,7 +19,6 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
 import com.ibm.JikesRVM.memoryManagers.JMTk.PreCopyEnumerator;
-import com.ibm.JikesRVM.memoryManagers.JMTk.RootEnumerator;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
