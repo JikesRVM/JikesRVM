@@ -41,18 +41,15 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
     super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
           // 0. Clean up the IR
           new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2)),
-          // 1. Get into SSA
+          new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
+          // 1. Insert the split operations.
+          new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
+          // 2. Use SSA to rename
           new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
           new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
           new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
           new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-          // 2. Insert the split operations.
-          new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
-          // 3. Use SSA to rename
-          new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
-          new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
-          new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
-          new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA())
+          new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
           });
   }
 

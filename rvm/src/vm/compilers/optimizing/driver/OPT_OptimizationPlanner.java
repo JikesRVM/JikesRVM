@@ -292,8 +292,6 @@ class OPT_OptimizationPlanner {
             new OPT_DominanceFrontier(), 
             // Global Code Placement,
             new OPT_GCP(), 
-            // Live range splitting 
-            new OPT_LiveRangeSplitting(),
             // Leave SSA 
 	    new OPT_LeaveSSA()  
 	      }
@@ -302,6 +300,9 @@ class OPT_OptimizationPlanner {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
+        // Live range splitting 
+        new OPT_LiveRangeSplitting(),
+
         // Coalesce moves
         new OPT_CoalesceMoves(), 
 
