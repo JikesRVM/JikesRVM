@@ -522,7 +522,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
                     type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
                   }
                 }
-                OPT_Operand index = ALoad.getIndex(s);
+                OPT_Operand index = AStore.getIndex(s);
 
                 HashSet numbers = findOrCreateIndexSet(indices,type);
                 int v1 = valueNumbers.getValueNumber(ref);
