@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2004
+# (C) Copyright IBM Corp. 2001, 2004, 2005
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -34,7 +34,8 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/usr/java14"
+#export HOST_JAVA_HOME="/usr/java14"
+export HOST_JAVA_HOME="/usr/java14_64" # Trying the 64-bit VM.
 
 # the JDK java executable
 export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
