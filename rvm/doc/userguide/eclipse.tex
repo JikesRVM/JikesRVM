@@ -25,6 +25,11 @@ use Eclipse 1.x versions.
 \item The Eclipse debugging support for Java programs---which relies
 on talking JDWP to the vm---will certainly not work, since there is no
 debugging support in Jikes RVM.
+\item Running Eclispe requires that you build Jikes RVM with
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0. The
+select-interception mechanism (which is required to run Eclipse on
+Jikes RVM) currently does not work if this variable is set to 1 (see
+defect 3583).
 \end{itemize}
 
  Given these caveats, Eclipse has been running on Jikes RVM at
