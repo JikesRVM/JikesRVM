@@ -29,7 +29,7 @@
 # Generate SPECjvm98 profile data
 mkdir -p $RVM_ROOT/support/profileData
 PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
-GenerateSPECjvmProfile $PROFILE_FILE
+$RVM_ROOT/rvm/src/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE
 PROFILE_ARG="-X:prof:edge_counter_file=$PROFILE_FILE"
 
 # parent of build diectories is command line argument to the script
