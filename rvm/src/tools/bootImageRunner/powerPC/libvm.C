@@ -182,6 +182,12 @@ extern "C" char *sys_siglist[];
     group the digits nicely. */  
 
 
+/* Interface to virtual machine data structures. */
+#define NEED_BOOT_RECORD_DECLARATIONS
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#include <InterfaceDeclarations.h>
+extern "C" void setLinkage(VM_BootRecord *);
+
 #if (defined RVM_FOR_OSX)
 #define GET_GPR(info, r) (*getRegAddress((info), (r)))
 #define SET_GPR(info, r, value) (*getRegAddress((info), (r))=(value))
@@ -299,12 +305,6 @@ getRegAddress(ppc_thread_state_t *state, int r)
 //    return &save->gpr[r];
 //  }
 #endif  
-
-/* Interface to virtual machine data structures. */
-#define NEED_BOOT_RECORD_DECLARATIONS
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#include <InterfaceDeclarations.h>
-extern "C" void setLinkage(VM_BootRecord *);
 
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
