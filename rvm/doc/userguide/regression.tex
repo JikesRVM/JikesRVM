@@ -27,7 +27,7 @@ described in more detail.
   The top-level driver for running sanity tests is called
 {\tt{RunSanityTests}}; it is located in the {\tt
 \$RVM\_ROOT/rvm/regression} directory 
-and requires {\tt{ksh}} and {\em{GNU make}} to run.  When it
+and requires {\tt{ksh}} and {{\tt make}} to run.  When it
 is invoked, it will, by default, build a variety of boot images and
 run several test programs with each boot image.  The behavior of
 RunSanityTests is highly customizable: most of its behavior can be
@@ -396,12 +396,12 @@ line must start with the phrase ``Bottom Line:''
 
 \end{description}
 
- For complex benchmarks, you may need other rules.  One common
-situation is that badly-written programs (such as the spec benchmarks)
-often do not provide the ability to tell them where to look for input
+For complex benchmarks, you may need other rules.  One common
+situation is a program (such as the SPECjvm98 benchmarks)
+that does not provide the ability to specify where to look for input
 files; the files simply must be in the working directory.  In that
 case, you will need rules to copy any needed input files into the
-directory WORKING, where the program is actually run.  See the spec
+directory WORKING, where the program is actually run.  See the SPECjvm98
 benchmark makefiles for examples of this.  Another case we have
 encountered is needing explicit dependencies telling the test harness
 that some .class files are located in a .jar file.
