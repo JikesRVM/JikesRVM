@@ -1258,8 +1258,12 @@ xsignal_sigaction(int signum, void (*handler)(int))
     int r = sigaction(signum, &act, &oldact);
     if (r) {
  	fprintf(stderr, 
- 		"%s: Trouble trying to set up a handler for signal %d: ",
+ 		"%s: Trouble trying to set up a handler for signal %d",
  		Me, signum);
+#ifdef __GLIBC__
+	fprintf(stderr, " (%s)", strsignal(signum));
+#endif
+	fputs(": ", stderr);
 	perror((char *) NULL);
 	fprintf(stderr, "%s: ...going on as best we can\n", Me);
 	return;
@@ -1269,7 +1273,11 @@ xsignal_sigaction(int signum, void (*handler)(int))
 	   signals; reset it, instead. */
 	r = sigaction(signum, &oldact, (struct sigaction *) NULL);
 	if (r) {
-	    fprintf(stderr, "%s: Trouble resetting signal %d's handler back to SIG_IGN: ", Me, signum);
+	    fprintf(stderr, "%s: Trouble resetting signal %d", Me, signum);
+#ifdef __GLIBC__
+	    fprintf(stderr, " (%s)", strsignal(signum));
+#endif
+	    fputs("'s handler back to SIG_IGN: ", stderr);
 	    perror((char *) NULL);
 	    fprintf(stderr, "%s:  ...going on as best we can.", Me);
 	}
