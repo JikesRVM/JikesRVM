@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.opt.ir;
 
-import com.ibm.JikesRVM.classloader.OSR_ClassLoaderInterface;
+import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import java.util.Arrays;
 /*
  * An OPT_InlinedOsrTypeInfoOperand object keeps necessary information
@@ -93,7 +93,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
     StringBuffer buf = new StringBuffer("(");
 
     for (int i=0, n=methodids.length; i<n; i++) {
-      buf.append(bcindexes[i]+"@"+OSR_ClassLoaderInterface.getMethodById(methodids[i]).getName() +" : ");
+      buf.append(bcindexes[i]+"@"+VM_ClassLoader.getMethodFromId(methodids[i]).getName() +" : ");
       
       for (int j=0, m=localTypeCodes[i].length; j<m; j++) {
 	buf.append((char)localTypeCodes[i][j]);

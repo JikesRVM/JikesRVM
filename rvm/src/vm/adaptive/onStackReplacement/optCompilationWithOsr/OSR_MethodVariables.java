@@ -41,7 +41,7 @@ public final class OSR_MethodVariables extends OPT_LinkedListElement {
     StringBuffer buf = new StringBuffer("");
     
     buf.append(" pc@"+this.bcIndex 
-	       + OSR_ClassLoaderInterface.getMethodById(this.methId).getName());
+	       + VM_ClassLoader.getMethodFromId(this.methId).getName());
     buf.append("\n");
     for (int i=0, n=this.tupleList.size(); i<n; i++) {
       buf.append(this.tupleList.get(i).toString());

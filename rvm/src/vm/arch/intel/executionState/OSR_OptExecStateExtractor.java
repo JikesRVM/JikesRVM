@@ -271,7 +271,7 @@ public final class OSR_OptExecStateExtractor
 						      cmid,
 						      iterator.getBcIndex(),
 						      tsFPOffset);
-    state.setMethod(OSR_ClassLoaderInterface.getMethodById(iterator.getMethodId()));
+    state.setMethod(VM_ClassLoader.getMethodFromId(iterator.getMethodId()));
     // this is not caller, but the callee, reverse it when outside
     // of this function.
     state.callerState = null;
@@ -288,7 +288,7 @@ public final class OSR_OptExecStateExtractor
 							     cmid,
 	      					     iterator.getBcIndex(),
 							     tsFPOffset);
-	newstate.setMethod(OSR_ClassLoaderInterface.getMethodById(iterator.getMethodId()));
+	newstate.setMethod(VM_ClassLoader.getMethodFromId(iterator.getMethodId()));
 	// this is not caller, but the callee, reverse it when outside
 	// of this function.
 	newstate.callerState = state;
