@@ -37,7 +37,7 @@ $Id$
   <!-- Don't break this next entry across two lines; a sed script
 	emitted in jbuild.plugin expects it to stay on one
 	line. -Steve Augart  -->
-  <property name="package" value="com.ibm.JikesRVM_post2.2.2" />
+  <property name="package" value="com.ibm.JikesRVM.eclipse.jdt.launching_post2.2.2" />
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
