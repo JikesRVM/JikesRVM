@@ -90,9 +90,9 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner.
 
-// Because of the time-slicer thread, we use the pthread library
-// even when building for a single virtual processor.
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 #include <pthread.h>
+#endif
 
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 # include "syswrap.h"
@@ -100,20 +100,29 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
 /* #define DEBUG_SYS */
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 // #define VERBOSE_PTHREAD false
 #define VERBOSE_PTHREAD lib_verbose
+#endif
 
 #ifndef UNUSED
 /* In GNU C, __attribute__((unused)) really means "possibly unused". */
-#define POSSIBLY_UNUSED UNUSED
-#define UNUSED __attribute__((unused))
+#  define POSSIBLY_UNUSED UNUSED
+#  define UNUSED __attribute__((unused))
+#  ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#    define UNUSED_SVP UNUSED
+#  else
+#    define UNUSED_SVP
+#  endif
 #endif
 
 
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *sysVirtualProcessorStartup(void *args);
+#endif
 
 /*
  * Network addresses are sensible, that is big endian, and the intel
@@ -187,7 +196,9 @@ sysWriteLong(long long value, int hexToo)
 
 // Exit with a return code.
 //
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 static bool systemExiting = false;
 
@@ -208,7 +219,7 @@ sysExit(int value)
 
     systemExiting = true;
 
-#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     pthread_mutex_lock( &DeathLock );
 #endif
     exit(value);
@@ -712,7 +723,7 @@ sysSetFdCloseOnExec(int fd)
 #include <mon.h>
 #endif
 
-#if (! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 
 static void *timeSlicerThreadMain(void *) __attribute__((noreturn));
 
@@ -767,7 +778,7 @@ timeSlicerThreadMain(void *arg)
 static void
 setTimeSlicer(int msTimerDelay)
 {
-#if (! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     pthread_t timeSlicerThread;	// timeSlicerThread is a write-only dummy
 				// variable.
     int nsTimerDelay = msTimerDelay * 1000 * 1000;
@@ -834,7 +845,7 @@ static int timeSlice_msec;
 extern "C" void
 sysVirtualProcessorEnableTimeSlicing(int timeSlice)
 {
-    if (VERBOSE_PTHREAD)
+    if (lib_verbose)
 	fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
     // timeSlice could be less than 1!
     if (timeSlice < 1 || timeSlice > 999) {
@@ -1104,7 +1115,7 @@ sysHPMsetProgramMyThread()
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
-#  ifdef DEBUG_SYS
+#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
 #  endif
     rc = hpm_set_program_mythread();
@@ -1158,11 +1169,10 @@ sysHPMstartMyThread()
     fprintf(stderr, "%s: sysHPMstartMyThread() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
+#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
 #  endif
-    rc = hpm_start_mythread();
+    int rc = hpm_start_mythread();
     return rc;
 #else
     fprintf(SysTraceFile, 
@@ -1186,7 +1196,7 @@ sysHPMstartMyGroup()
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
-#  ifdef DEBUG_SYS
+#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
 #  endif
     rc = hpm_start_mygroup();
@@ -1407,7 +1417,7 @@ sysHPMprintMyGroup()
 // Returned: virtual processor's o/s handle
 //
 extern "C" int
-sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
+sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP ti_or_ip, int UNUSED_SVP fp)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
@@ -1456,6 +1466,7 @@ sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
 #endif
 }
 
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *
 sysVirtualProcessorStartup(void *args)
 {
@@ -1484,6 +1495,7 @@ sysVirtualProcessorStartup(void *args)
     fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: failed\n", Me);
     return 0;
 }
+#endif
 
 // Bind execution of current virtual processor to specified physical cpu.
 // Taken:    physical cpu id (0, 1, 2, ...)
@@ -1493,7 +1505,6 @@ extern "C" void
 sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    int rc = 0;
     fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
@@ -1663,7 +1674,7 @@ sysPthreadSelf()
 
 //
 extern "C" int
-sysPthreadSignal(int pthread)
+sysPthreadSignal(int UNUSED_SVP pthread)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadSignal: FATAL Unsupported operation with single virtual processor\n", Me);
@@ -1679,7 +1690,7 @@ sysPthreadSignal(int pthread)
 
 //
 extern "C" int
-sysPthreadJoin(int pthread)
+sysPthreadJoin(int UNUSED_SVP pthread)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadJoin: FATAL Unsupported operation with single virtual processor\n", Me);
@@ -1728,7 +1739,8 @@ sysVirtualProcessorYield()
 // release the lockout word by storing the in it
 // and wait for a signal.
 extern "C" int
-sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
+sysPthreadSigWait( int UNUSED_SVP * lockwordAddress, 
+		   int UNUSED_SVP  lockReleaseValue )
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
