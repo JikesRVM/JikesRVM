@@ -641,7 +641,11 @@ function emitSourceList
    #
    if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/heaps
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/barriers
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/finalization
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/heaps
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
    fi
 
    # architecture specific writebarrier support for baseline compilers
