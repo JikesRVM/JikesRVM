@@ -143,6 +143,11 @@ JDK            & IBM DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ \
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline\hline 
 \end{tabular}
+\end{center}
+\caption{System prerequisites for Jikes RVM}
+\label{prereqs}
+\end{table}
+
 \begin{itemize}
 \item {\tt automake} and {\tt autoconf} are only required to build the
 GNU classpath libaries from classpath CVS. If you instead download a
@@ -151,15 +156,12 @@ these.
 \item {\tt glibc} for Linux/IA32 must use the GS register for
 thread-local state.  See the build instructions for {\tt glibc} for details;
 if that scares you, use a recent RedHat Linux distribution.
+
 \item It is possible to use 2.2 Linux kernels with multiprocessor
 support disabled in Jikes RVM.  We do not recommend this; if you
 insist, look in {\tt jconfigure} for details.
 \item We have also used the Sun JDK 1.4.1 to build Jikes RVM.
 \end{itemize}
-\end{center}
-\caption{System prerequisites for Jikes RVM}
-\label{prereqs}
-\end{table}
 
 \AIXPPCJikesTMFooter
 
