@@ -311,6 +311,15 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   }
 
   /**
+   * Returns the maximum amount of memory VM will attempt to use.
+   *
+   * @return The maximum amount of memory VM will attempt to use.
+   */
+  public static final long maxMemory() {
+    return HeapGrowthManager.getMaxHeapSize();
+  }
+
+  /**
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {

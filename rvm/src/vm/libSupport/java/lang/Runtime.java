@@ -193,7 +193,7 @@ public class Runtime {
   }
     
   public long maxMemory() {
-    throw new VM_UnimplementedError();
+    return VM_Runtime.maxMemory();
   }
 
   public boolean removeShutdownHook(Thread hook) throws IllegalStateException,

@@ -472,6 +472,14 @@ public class VM_Runtime implements VM_Constants {
     return MM_Interface.totalMemory();
   }
 
+  /**
+   * Return maximum amount of memory the system will attempt to use.
+   * Called from /java/lang/Runtime.
+   */
+  public static long maxMemory() {
+    return MM_Interface.maxMemory();
+  }
+
 
   /**
    * Helper function to actually throw the required exception.
