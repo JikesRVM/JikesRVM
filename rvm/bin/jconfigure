@@ -1884,7 +1884,7 @@ function emitBooterLinker
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_AIX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
@@ -1893,7 +1893,7 @@ function emitBooterLinker
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR\""
@@ -1902,7 +1902,7 @@ function emitBooterLinker
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
@@ -1911,17 +1911,17 @@ function emitBooterLinker
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
 
 	 print 'CCLIBS="-lpthread -ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_IA32 $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_IA32 $SMP_STR\""
 
 	 print 'CCLIBS="-ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_CYGWIN -DRVM_FOR_IA32 $SMP_STR\""
 
 	 print 'CCLIBS=""'
          print 'IMAGE='
