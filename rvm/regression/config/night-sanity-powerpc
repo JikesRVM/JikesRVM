@@ -1,10 +1,10 @@
-SKIP JMTkBaseBaseSemispace            -test-list nightly-tests
-SKIP JMTkBaseAdaptiveSemispace        -test-list nightly-tests-short
-SKIP BaseAdaptiveSemispace            -test-list nightly-tests-short
-SKIP ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
-SKIP FastSemispace                    -test-list nightly-tests-short
-SKIP BaseBaseSemispace                -test-list nightly-tests
-SKIP BaseBaseMarkSweep                -test-list nightly-tests
+JMTkBaseBaseSemispace            -test-list nightly-tests
+JMTkBaseAdaptiveSemispace        -test-list nightly-tests-short
+BaseAdaptiveSemispace            -test-list nightly-tests-short
+ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
+FastSemispace                    -test-list nightly-tests-short
+BaseBaseSemispace                -test-list nightly-tests
+BaseBaseMarkSweep                -test-list nightly-tests
 
 JMTkFullAdaptiveSemispace        -test-list nightly-tests
 JMTkExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
