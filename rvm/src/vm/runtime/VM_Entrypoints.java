@@ -140,7 +140,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
   //-#if RVM_WITH_JMTK
-  public static final VM_Field lockField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "lock","I");
+  public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "dispenser","I");
+  public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "start","D");
   public static final VM_Field tailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalSSB;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
