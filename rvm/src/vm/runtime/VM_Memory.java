@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -213,14 +213,14 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   }    
 
   /**
-   * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption src != dst || (srcPos >= dstPos) and element size is 4 bytes.
+   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
    * 
    * @param src     the source array
-   * @param srcPos  index in the source array to begin copy
+   * @param srcIdx  index in the source array to begin copy
    * @param dst     the destination array
-   * @param dstPos  index in the destination array to being copy
+   * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
   public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws InlinePragma {
@@ -247,14 +247,14 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   }    
   
   /**
-   * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption src != dst || (srcPos >= dstPos) and element size is 8 bytes.
+   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
    * 
    * @param src     the source array
-   * @param srcPos  index in the source array to begin copy
+   * @param srcIdx  index in the source array to begin copy
    * @param dst     the destination array
-   * @param dstPos  index in the destination array to being copy
+   * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
   public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws InlinePragma {
@@ -349,11 +349,11 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   }
 
   /**
-   * Copy numbytes from src to dst.
-   * Assumption either the ranges are non overlapping, or src >= dst + BYTES_IN_ADDRESS.
-   * @param dst the destination addr
-   * @param src the source addr
-   * @param numBytes the number of bytes top copy
+   * Copy <code>numbytes</code> from <code>src</code> to <code>dst</code>.
+   * Assumption either the ranges are non overlapping, or <code>src >= dst + BYTES_IN_ADDRESS</code>.
+   * @param dst     The destination addr
+   * @param src     The source addr
+   * @param numBytes The number of bytes to copy
    */
   private static void internalAlignedWordCopy(Address dst, Address src, int numBytes) throws InlinePragma {
     Address end = src.add(numBytes);
@@ -366,9 +366,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Copy a region of memory.
-   * @param destination address
-   * @param source address
-   * @param number of bytes to copy
+   * @param dst   Destination address
+   * @param src   Source address
+   * @param cnt   Number of bytes to copy
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(Address dst, Address src, int cnt) {
@@ -377,9 +377,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Fill a region of memory.
-   * @param destination address
-   * @param pattern
-   * @param number of bytes to fill with pattern
+   * @param dst     Destination address
+   * @param pattern <code>byte</code> to fill the region with.
+   * @param cnt     Number of bytes to fill with <code>pattern</code>
    */
   public static void fill(Address dst, byte pattern, int cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
@@ -405,8 +405,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Zero a range of pages of memory.
-   * @param start address       (must be a page address)
-   * @param number of bytes     (must be multiple of page size)
+   * @param start Starting address       (must be a page address)
+   * @param len   Number of bytes     (must be multiple of page size)
    */
   public static void zeroPages(Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
@@ -420,8 +420,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   /**
    * Synchronize a region of memory: force data in dcache to be written out to main 
    * memory so that it will be seen by icache when instructions are fetched back.
-   * @param start of address range
-   * @param size of address range (bytes)
+   * @param address  Start of address range
+   * @param size     Size of address range (bytes)
    */
   public static void sync(Address address, int size) {
     VM_SysCall.sysSyncCache(address, size);
@@ -542,9 +542,10 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do mmap file memory mapping call
-   * @param start of address range (Address)
-   * @param size of address range
-   * @param fd file desciptor of file to be mapped
+   * @param address Start of address range ({@link Address})
+   * @param size    Size of address range
+   * @param fd      File desciptor of file to be mapped
+   * @param prot    Protection (int)
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static Address mmapFile(Address address, Extent size, int fd, int prot) {
@@ -556,9 +557,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do mmap non-file memory mapping call
-   * @param start of address range (Address)
-   * @param size of address range 
-   * @param protection (int)
+   * @param address  Start of address range (Address)
+   * @param size    Size of address range 
+   * @param prot    Protection (int)
    * @param flags (int)
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
@@ -570,8 +571,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do mmap demand zero fixed address memory mapping call
-   * @param start of address range
-   * @param size of address range 
+   * @param address  Start of address range
+   * @param size     Size of address range 
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static Address mmap(Address address, Extent size) {
@@ -584,7 +585,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do mmap demand zero any address memory mapping call
-   * @param size of address range (Address)
+   * @param size Size of the address range (Address)
    * @return Address (of region) if successful; errno (1 to 127) otherwise 
    */
   public static Address mmap(Extent size) {
@@ -596,8 +597,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do munmap system call
-   * @param start of address range (Address)
-   * @param size of address range 
+   * @param address Start of address range ({@link Address})
+   * @param size Size of the address range 
    * @return 0 if successfull; errno otherwise
    */
   public static int munmap(Address address, Extent size) {
@@ -608,9 +609,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do mprotect system call
-   * @param start of address range (Address)
-   * @param size of address range 
-   * @param protection (int)
+   * @param address Start of address range (Address)
+   * @param size Size of address range 
+   * @param prot Protection (int)
    * @return true iff success
    */
   public static boolean mprotect(Address address, Extent size, int prot) {
@@ -621,8 +622,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do msync system call
-   * @param of address range (Address)
-   * @param size of address range 
+   * @param address Address of address range ({@link #Address})
+   * @param size Size of address range 
    * @param flags (int)
    * @return true iff success
    */
@@ -634,8 +635,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do madvise system call (UNIMPLEMENTED IN LINUX)
-   * @param start of address range (Address)
-   * @param size of address range 
+   * @param address Start of address range (Address)
+   * @param size    The size of the address range 
    * @param advice (int)
    * @return true iff success
    */
@@ -692,9 +693,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do shmget call
-   * @param secret key or IPC_PRIVATE
-   * @param size of address range
-   * @param segment attributes
+   * @param key  key or IPC_PRIVATE
+   * @param size size of address range
+   * @param flags Segment attributes
    * @return shared memory segment id 
    */
   public static int shmget(int key, int size, int flags) {
@@ -703,9 +704,9 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do shmat call
-   * @param shmid obtained from shmget
-   * @param size of address range
-   * @param access attributes
+   * @param shmid  Obtained from {@link #shmget}
+   * @param addr   Size of address range
+   * @param flags  Access attributes.
    * @return address of attached shared memory segment 
    */
   public static Address shmat(int shmid, Address addr, int flags) {
@@ -714,7 +715,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do shmdt call
-   * @param address of mapped region
+   * @param addr address of mapped region
    * @return shared memory segment id 
    */
   public static int shmdt(Address addr) {
@@ -723,9 +724,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do shmctl call
-   * @param shmid obtained from shmget
-   * @param command
-   * @param missing buffer argument
+   * @param shmid obtained from {@link #shmget}
+   * @param command  The command to perform
    * @return shared memory segment id 
    */
   public int shmctl(int shmid, int command) {

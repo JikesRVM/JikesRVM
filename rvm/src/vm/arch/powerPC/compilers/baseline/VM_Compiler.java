@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -2478,9 +2478,9 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   /**
-   * Emit code to implement a dynamically linked invokespecial
-   * @param methodRef the referenced method
-   * @param targetRef the method to invoke
+   * Emit code to implement a dynamically linked <code>invokespecial</code>
+   * @param methodRef The referenced method
+   * @param target    The method to invoke
    */
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) { // invoke via method's jtoc slot
@@ -2715,7 +2715,6 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to allocate a multi-dimensional array
    * @param typeRef the VM_Array to instantiate
    * @param dimensions the number of dimensions
-   * @param dictionaryId, the dictionaryId of typeRef
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     asm.emitLAddrToc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
@@ -2751,8 +2750,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param typeRef the LHS type
-   * @param target the method to invoke to implement this checkcast
+   * @param typeRef   The LHS type
    */
   protected final void emit_checkcast(VM_TypeReference typeRef) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastMethod.getOffset());
@@ -2764,8 +2762,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param type the LHS type
-   * @param target the method to invoke to implement this checkcast
+   * @param type   The LHS type
    */
   protected final void emit_checkcast_resolvedClass(VM_Type type) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastResolvedClassMethod.getOffset());
@@ -2778,7 +2775,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   /**
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
-   * @param target the method to invoke to implement this checkcast
    */
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastFinalMethod.getOffset());
@@ -2791,7 +2787,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   /**
    * Emit code to implement the instanceof bytecode
    * @param typeRef the LHS type
-   * @param target the method to invoke to implement this instanceof
    */
   protected final void emit_instanceof(VM_TypeReference typeRef) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfMethod.getOffset());
@@ -2804,8 +2799,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to implement the instanceof bytecode
-   * @param typeRef the LHS type
-   * @param target the method to invoke to implement this instanceof
+   * @param type     The LHS type
    */
   protected final void emit_instanceof_resolvedClass(VM_Type type) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
@@ -2818,8 +2812,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to implement the instanceof bytecode
-   * @param typeRef the LHS type
-   * @param target the method to invoke to implement this instanceof
+   * @param type     The LHS type
    */
   protected final void emit_instanceof_final(VM_Type type) {
     asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfFinalMethod.getOffset());
@@ -4234,9 +4227,9 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   /** 
-   * Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
-   * @param methodToBeCalled:   VM_Method of the magic method being called
-   * @return true if method causes a stackframe to be created
+   * Indicate if the specified {@link VM_Magic} method causes a frame to be created on the runtime stack.
+   * @param methodToBeCalled   {@link VM_Method} of the magic method being called
+   * @return <code>true</code> if <code>methodToBeCalled</code> causes a stackframe to be created
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();

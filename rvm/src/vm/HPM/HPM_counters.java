@@ -52,7 +52,6 @@ public final class HPM_counters
  
   /**
    * Dump out counter values.
-   * @param info    HPM information
    * @return        return true if at least one counter not zero.
    */
   public boolean dump() throws UninterruptiblePragma 

@@ -2087,7 +2087,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   /**
    * Emit the trap pattern (trap LLT 1) we use for nullchecks on reg; 
-   * @param reg the register number containing the ptr to null check
+   * @param RA  The register number containing the ptr to null check
    */
   void emitNullCheck (int RA) {
     // TDLLT 1 or TWLLT 1

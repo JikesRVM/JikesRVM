@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -583,7 +583,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
 //-#endif
 
   /**
-   * Reports the state of a heavy-weight lock.
+   * Reports the state of a heavy-weight lock, via {@link VM#sysWrite}.
    */
   void dump() {
     if (!active) 
@@ -606,29 +606,29 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
 
 
   /**
-   * Does the currently executing thread own the lock on obj?
-   * @param obj the object to check
-   * @return true if the currently executing thread owns obj, false otherwise
+   * Does the currently executing thread own the lock on <code>o</code>?
+   * @param o   The object to check
+   * @return <code>true</code> if the currently executing thread owns <code>obj</code>, false otherwise
    */
   public static boolean owns(Object o) {
     return owns(o, VM_Processor.getCurrentProcessor().threadId);
   }
 
   /**
-   * Does the given VM_Thread own the lock on obj?
-   * @param obj the object to check
-   * @param thread the thread whose ownership is being checked
-   * @return true if <tt>thread</tt> owns <tt>obj</tt>, false otherwise
+   * Does the given {@link VM_Thread} own the lock on <code>o</code>?
+   * @param o      The object to check
+   * @param owner  The thread whose ownership is being checked
+   * @return true if <code>thread</tt> owns <tt>obj</tt>, false otherwise
    */
   public static boolean owns(Object o, VM_Thread owner) {
     return owns(o, owner.getLockingId());
   }
 
   /**
-   * Does the given thread own the lock on obj?
-   * @param obj the object to check
-   * @param tid thread locking id
-   * @return true if the currently executing thread owns obj, false otherwise
+   * Does the given thread own the lock on <code>o</code>?
+   * @param o    The object to check
+   * @param tid  Thread locking id
+   * @return true if the thread with id <code>tid</code> owns <code>obj</code>, false otherwise
    */
   static boolean owns(Object o, int tid) {
     com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2004
  */
 // $Id$
 package com.ibm.JikesRVM;
@@ -53,8 +53,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Connects to the remote hostname and port specified as arguments.
    *
-   * @param hostname The remote hostname to connect to
-   * @param port The remote port to connect to
+   * @param removeHost The remote hostname to connect to
+   * @param remotePort The remote port to connect to
    *
    * @exception IOException If an error occurs
    */
@@ -71,8 +71,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * @author            OTI
    * @version           initial
    *
-   * @param             address         the remote host address to connect to
-   * @param             port            the remote port to connect to
+   * @param             remoteAddr      the remote host address to connect to
+   * @param             remotePort      the remote port to connect to
    * @exception IOException     if an error occurs while connecting
    */
   protected synchronized void connect(InetAddress remoteAddr, int remotePort)
@@ -499,17 +499,17 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * This method assumes the sender has verified the host with
    * the security policy.
    *
-   * @param             host            the remote host to connect to
-   * @param             port            the remote port to connect to
-   * @param           timeout         a timeout in milliseconds
+   * @param    remoteAddr            The remote host to connect to
+   * @param    remotePort            The remote port to connect to
+   * @param    timeoutMillis               A timeout in milliseconds
    * @exception IOException     if an error occurs while connecting
    */
   private void connectInternal(InetAddress remoteAddr, int remotePort, 
-                               int timeout) throws IOException {
+                               int timeoutMillis) throws IOException {
     int rc = -1;
 
-    double totalWaitTime = (timeout > 0)
-      ? ((double) timeout) / 1000.0
+    double totalWaitTimeSeconds = (timeoutMillis > 0)
+      ? ((double) timeoutMillis) / 1000.0
       : VM_ThreadEventConstants.WAIT_INFINITE;
 
     byte[] ip = remoteAddr.getAddress();
@@ -542,7 +542,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
              
       case -2 :  // operation would have blocked
         VM_ThreadIOWaitData waitData = 
-          VM_Wait.ioWaitWrite(native_fd, totalWaitTime);
+          VM_Wait.ioWaitWrite(native_fd, totalWaitTimeSeconds);
 
         checkIoWaitWrite(waitData);
         break;

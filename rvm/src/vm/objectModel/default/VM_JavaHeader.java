@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -745,10 +745,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   /**
    * Perform any required initialization of the JAVA portion of the header.
-   * @param bootImage the bootimage being written
-   * @param ref the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
-   * @param size the number of bytes allocated by the GC system for this object.
+   * @param bootImage The bootimage being written
+   * @param ptr  The object ref to the storage to be initialized
+   * @param tib  The TIB of the instance being created
+   * @param size The number of bytes allocated by the GC system for this object.
    */
   public static int initializeScalarHeader(BootImageInterface bootImage,
                                            int ptr, Object[] tib, int size)
@@ -771,10 +771,13 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   /**
    * Perform any required initialization of the JAVA portion of the header.
+   * XXX This documentation probably needs fixing TODO
+   * 
    * @param bootImage the bootimage being written
-   * @param ref the object ref to the storage to be initialized
+   * @param ptr  the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
+   * @return Document ME TODO XXX
    */
   public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
                                           Object[] tib, int size) throws InterruptiblePragma {

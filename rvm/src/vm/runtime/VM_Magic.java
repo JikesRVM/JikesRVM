@@ -458,9 +458,9 @@ public class VM_Magic {
 
   /**
    * Cast bits.
-   * @param object reference as bits
+   * @param address  Object reference as bits
    * @return object reference as type (no checking on cast)
-   * @deprecated  Use objectAsType( addressAsObject (...))
+   * @deprecated  Use <code>{@link #objectAsType}( {@link #addressAsObject} (</code>...<code>))</code>
    */
   public static VM_Type addressAsType(Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -525,7 +525,7 @@ public class VM_Magic {
    * Cast bits.
    * Note:     for use by gc to avoid checkcast during GC
    * @param address object reference as bits
-   * @return object reference as int[] (no checking on cast)
+   * @return object reference as <code>int[]</code> (no checking on cast)
    */
   public static int[] addressAsStack(Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -534,8 +534,8 @@ public class VM_Magic {
 
   /**
    * Cast bits.
-   * @param number as float
-   * @param number as bits
+   * @param number A floating point number
+   * @return   <code>number</code> as bits
    */
   public static int floatAsIntBits(float number) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -545,7 +545,7 @@ public class VM_Magic {
   /**
    * Cast bits.
    * @param number as bits
-   * @return number as float
+   * @return <code>number</code> as a <code>float</code>
    */
   public static float intBitsAsFloat(int number) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -693,7 +693,7 @@ public class VM_Magic {
    *        - FRAME_POINTER "register"
    *        - THREAD_ID     "register"
    * 
-   * @param phantomThread thread that is currently running 
+   * @param currentThread thread that is currently running 
    * @param restoreRegs   registers from which we should restore 
    *                      the saved hardware state of another thread.
    */

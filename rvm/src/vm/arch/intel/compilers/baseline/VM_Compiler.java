@@ -2078,8 +2078,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement a dynamically linked invokespecial
-   * @param methodRef the referenced method
-   * @param targetRef the method to invoke
+   * @param methodRef The referenced method
+   * @param target    The method to invoke
    */
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -2959,7 +2959,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * Emit code to implement the invokeinterface bytecode
    * @param methodRef the referenced method
-   * @param count number of parameter words (see invokeinterface bytecode)
    */
   protected abstract void emit_invokeinterface(VM_MethodReference methodRef);
  
@@ -2971,19 +2970,20 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
   /**
    * Emit code to allocate a scalar object
-   * @param type the VM_Class to instantiate
+   *
+   * @param typeRef  The {@link VM_Class} to instantiate
    */
   protected abstract void emit_resolved_new(VM_Class typeRef);
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef   {@link VM_TypeReference} to dynamically link & instantiate
    */
   protected abstract void emit_unresolved_new(VM_TypeReference typeRef);
 
   /**
    * Emit code to allocate an array
-   * @param array the VM_Array to instantiate
+   * @param array the {@link VM_Array} to instantiate
    */
   protected abstract void emit_resolved_newarray(VM_Array array);
 

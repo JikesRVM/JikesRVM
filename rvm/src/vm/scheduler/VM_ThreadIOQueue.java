@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001,2002
+ * (C) Copyright IBM Corp. 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -121,7 +121,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * @param waitDataOffset offset of the wait data's entries
    * @param selectFds array of file descriptors returned from the select
    *     syscall
-   * @param offset offset of the particular set (read, write, exception)
+   * @param setOffset offset of the particular set (read, write, exception)
    *     within the select file descriptor array
    * @return the number of file descriptors which became ready
    *     or invalid

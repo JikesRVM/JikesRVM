@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -158,8 +158,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
 
 
   /**
-   * Create an instance of a VM_Type
-   * @param typeRef the canonical type reference for this type.
+   * Create an instance of a {@link VM_Type}
+   * @param tr   The canonical type reference for this type.
    */
   protected VM_Type(VM_TypeReference tr) {
     this.typeRef = tr;

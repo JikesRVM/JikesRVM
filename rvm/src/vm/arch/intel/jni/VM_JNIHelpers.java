@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002,2003
+ * (C) Copyright IBM Corp 2001,2002,2003, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.jni;
@@ -279,7 +279,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   /**
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic<type>MethodV
-   * @param mth the target VM_Method
+   * @param targetMethod   The target {@link VM_Method}
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
@@ -341,7 +341,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   /**
    * Repackage the arguments passed as an array of jvalue into an array of Object,
    * used by the JNI functions CallStatic<type>MethodA
-   * @param mth the target VM_Method
+   * @param targetMethod   The target {@link VM_Method}
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects

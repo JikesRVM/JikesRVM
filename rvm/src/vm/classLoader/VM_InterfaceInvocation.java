@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -134,15 +134,18 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 
 
   /**
-   * mid is the dictionary id of an interface method we are trying to invoke
-   * RHStib is the TIB of an object on which we are attempting to invoke it
+   * <code>mid</code> is the dictionary id of an interface method we are
+   * trying to invoke 
+   * <code>RHStib</code> is the TIB of an object on which we are attempting to
+   * invoke it 
    * We were unable to resolve the member reference at compile time.
    * Therefore we must resolve it now and then call invokeinterfaceImplementsTest
    * with the right LHSclass.
    * 
-   * @param mid id of the VM_MemberReference for the target interface method.
-   * @param RHStib, the TIB of the object on which we are attempting to 
-   * invoke the interface method
+   * @param mid     Dictionary id of the {@link VM_MemberReference} for the
+   *            target interface method. 
+   * @param RHStib  The TIB of the object on which we are attempting to 
+   *            invoke the interface method
    */
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib) 
     throws IncompatibleClassChangeError {

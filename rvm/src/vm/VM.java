@@ -607,7 +607,7 @@ public class VM extends VM_Properties
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
-   * @param number
+   * @param addr  The 32/64 bit number to format.
    * @return a String with the hex representation of an Address
    */
   public static String addressAsHexString(Address addr) throws InterruptiblePragma {
@@ -704,8 +704,8 @@ public class VM extends VM_Properties
   }
 
   /**
-    * Low level print to console.
-   * @param value       what is printed
+    * Low level print of a <code>char</code>to console.
+   * @param value       The character to print
    */
   public static void write(char value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
@@ -716,10 +716,10 @@ public class VM extends VM_Properties
 
 
   /**
-   * Low level print of double to console.
+   * Low level print of <code>double</code> to console.
    *
-   * @param value   double to be printed
-   * @param int     number of decimal places
+   * @param value               <code>double</code> to be printed
+   * @param postDecimalDigits   Number of decimal places
    */
   public static void write(double value, int postDecimalDigits) 
     throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
@@ -730,7 +730,7 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Low level print to console.
+   * Low level print of an <code>int</code> to console.
    * @param value       what is printed
    */
   public static void write(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
@@ -744,7 +744,7 @@ public class VM extends VM_Properties
 
   /**
    * Low level print to console.
-   * @param value       what is printed, as hex only
+   * @param value       What is printed, as hex only
    */
   public static void writeHex(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
     if (runningVM)
@@ -871,8 +871,11 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Low level print to console.
-   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
+   * Low level print of the {@link VM_Atom} <code>s</code> to the console.  
+   * Left-fill with enough spaces to print at least <code>fieldWidth</code>
+   * characters  
+   * @param fieldWidth  Minimum width to print.
+   * @param s       The {@link VM_Atom} to print.       
    */
   public static void writeField(int fieldWidth, VM_Atom s) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     int len = s.length();

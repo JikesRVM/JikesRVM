@@ -677,9 +677,9 @@ public class VM_CommandLineArgs {
   }
   
   /**
-   * Read the argno'th command line argument from the C argv
-   * @param argno number of argument sought
-   * @param buf[] buffer to fill
+   * Read the <code>argno</code>'th command line argument from the C argv
+   * @param argno Number of argument sought
+   * @param buf   Buffer to fill
    * @return number of bytes placed in buffer. -1 means buffer too small 
    *         for argument to fit)
    */

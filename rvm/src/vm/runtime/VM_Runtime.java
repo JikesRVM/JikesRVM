@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -122,10 +122,14 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * quick version for final classes, array of final class or array of primitives
-   * @param object object to be tested
-   * @param jtoc offset of TIB of target type
-   * @return true iff is object instance of target type?
+   * Quick version for final classes, array of final class or array of
+   * primitives
+   * 
+   * @param object Object to be tested
+   * @param targetTibOffset  JTOC offset of TIB of target type
+   *
+   * @return <code>true</code> iff  <code>object</code> is instance of the
+   *         target type
    */
   static boolean instanceOfFinal(Object object, int targetTibOffset) throws UninterruptiblePragma {
     if (object == null)
@@ -762,8 +766,8 @@ public class VM_Runtime implements VM_Constants {
 
   /**
    * Build a multi-dimensional array.
+   * @param methodId  Apparently unused (!)
    * @param numElements number of elements to allocate for each dimension
-   * @param dimIndex current dimension to build
    * @param arrayType type of array that will result
    * @return array object
    */ 
@@ -775,6 +779,12 @@ public class VM_Runtime implements VM_Constants {
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
 
+  /**
+   * @param method Apparently unused (!)
+   * @param numElements Number of elements to allocate for each dimension
+   * @param dimIndex Current dimension to build
+   * @param arrayType type of array that will result
+   */
   public static Object buildMDAHelper (VM_Method method,
                                        int[] numElements, 
                                        int dimIndex, 

@@ -632,10 +632,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    *   on a queue waiting a notify, and 
    *   on a wakeup queue waiting for a timeout.
    *
-   * @param ql the VM_ProxyWaitingQueue upon which to wait for notification
-   * @param l1 the VM_ProcessorLock guarding q1 (currently locked)
-   * @param q2 the VM_ProxyWakeupQueue upon which to wait for timeout
-   * @param l2 the VM_ProcessorLock guarding q2 (currently locked)
+   * @param q1 the {@link VM_ProxyWaitingQueue} upon which to wait for notification
+   * @param l1 the {@link VM_ProcessorLock} guarding <code>q1</code> (currently locked)
+   * @param q2 the {@link VM_ProxyWakeupQueue} upon which to wait for timeout
+   * @param l2 the {@link VM_ProcessorLock} guarding <code>q2</code> (currently locked)
    */ 
   static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) throws NoInlinePragma {
     //BEGIN HRM
@@ -1032,7 +1032,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * A thread's stack has been moved or resized.
    * Adjust registers to reflect new position.
    * 
-   * @param regsiters registers to be adjusted
+   * @param registers registers to be adjusted
    * @param delta     displacement to be applied
    */
   private static void adjustRegisters(VM_Registers registers, Offset delta) {

@@ -132,7 +132,7 @@ public class VM_SysCall implements Uninterruptible {
   }
   /**
    * Bind execution of current virtual processor to specified physical cpu.
-   * @param cpuId  physical cpu id (0, 1, 2, ...)
+   * @param cpuid  physical cpu id (0, 1, 2, ...)
    */
   public static void sysVirtualProcessorBind(int cpuid) {}
   public static void sysVirtualProcessorYield() {}

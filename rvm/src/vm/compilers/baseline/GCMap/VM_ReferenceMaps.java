@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -719,14 +719,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   /**
    * Setup a map  within a JSR Subroutine. This requires using up one
    * of the unusual maps. This routine is called when the caller gets a
-   *  negative mapindex value return from locateGCPoint. This routine
+   *  negative mapindex value return from {@link locateGCPoint}. This routine
    *  searches the map tables and uses its stack frameAddress input to build
    *  reference and returnAddress maps. The caller uses the getNext...
    *  routines to scan these maps for offsets in the frame of the
    *  related references.
    *
-   * @param frameAddr         address of stack frame being scanned
-   * @param mapid             index of map of instruction where map is required
+   * @param frameAddress      Address of stack frame being scanned
+   * @param mapid             Index of map of instruction where map is required
    *                          ( this value was returned by locateGCpoint)
    * steps for this routine
    *   use the mapid to get index of the Unusual Map
@@ -1515,9 +1515,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    * or a local variable is a reference.
    */
 
-  /** Query if a local variable at a bytecode index has a reference type value
-   * @param bcidx, the bytecode index
-   * @param lidx, the local index
+  /** Query if a local variable has a reference type value
+   * @param method  The method we're asking about.
+   * @param mcoff  The machine code offset of the instruction *following* the
+   *               actual instruction.
+   * @param lidx the local index
    * @return true, if it is a reference type
    *         false, otherwise
    */
