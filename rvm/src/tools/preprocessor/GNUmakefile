@@ -141,8 +141,8 @@ test10: ${TOOL}
 	{ ${TEST_TOOL} -DA=1 -DB=1 /tmp testNoSuchFile.preprocessor; (( $$? == 2 )) ; }
 
 cleantest:
-	$(RM) ${TOOL} *.o test*.actual test*.expected /tmp/test*.preprocessor
+	$(RM) test*.actual test*.expected /tmp/test*.preprocessor
 
-clean:
+clean: cleantest
 	$(RM) ${TOOL} ${TOOL}.o
 
