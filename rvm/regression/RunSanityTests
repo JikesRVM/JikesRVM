@@ -122,11 +122,11 @@ while [ $# != 0 ]; do
     ## Should we run only the specific tests?
     # 
     -test)
-	TEST_LIST=$2
+	TEST_LIST=`echo $2`
 	shift
     ;;
     -tests)
-	TEST_LIST=$2
+	TEST_LIST=`echo $2`
 	shift
     ;;
 
@@ -166,7 +166,7 @@ while [ $# != 0 ]; do
    ## Set the number of processors to use
    # 
    -numprocs)
-	NUM_PROCS_LIST=$2
+	NUM_PROCS_LIST=`echo $2`
 	shift
    ;;
 
@@ -179,18 +179,18 @@ while [ $# != 0 ]; do
    ## use multiple opt. levels for running tests?
    #
    -use-opt-levels)
-	OPT_LEVELS=$2
+	OPT_LEVELS=`echo $2`
 	shift
    ;;
 
    ## test given configurations
    #
    -configurations)
-	CONFIG_LIST=$2
+	CONFIG_LIST=`echo $2`
 	shift
    ;;
    -configuration)
-	CONFIG_LIST=$2
+	CONFIG_LIST=`echo $2`
 	shift
    ;;
 
@@ -208,14 +208,14 @@ while [ $# != 0 ]; do
 	shift
    ;;
 
-   ## print usage help
+   ## build marker file name
    #
    -wait)
 	WAIT=$2
 	shift
    ;;
 
-   ## print usage help
+   ## performance log file
    #
    -performance)
 	PERFORMANCE=$2
@@ -225,14 +225,14 @@ while [ $# != 0 ]; do
    ## RC_ARGS to supply
    #
    -rc-args)
-	EXTRA_RC_ARGS=$2
+	EXTRA_RC_ARGS=`echo $2`
 	shift
    ;;
 
    ## args to jconfigure
    #
    -config-args)
-	EXTRA_CONFIG_ARGS=$2
+	EXTRA_CONFIG_ARGS=`echo $2`
 	shift
    ;;
 
