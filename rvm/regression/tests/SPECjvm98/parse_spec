@@ -1,3 +1,7 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+
 # This script extracts the best running time from a
 # SPEC output file called "tmp"
 #

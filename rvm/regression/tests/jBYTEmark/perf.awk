@@ -1,3 +1,7 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+
 # collect index results for summary line
 /Integer Index/ { intPerf = $3; next }
 /FP Index/ { fpPerf = $3; next }
