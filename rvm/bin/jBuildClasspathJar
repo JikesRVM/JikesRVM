@@ -37,13 +37,16 @@ else
     export USE_LOCAL_CLASSPATH="no"
 fi
 
-if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
-    #export CLASSPATH_CONFIG_ARGS="--enable-portable-native-sync"
-    echo "$ME: KLUDGE DISABLING GTK SUPPORT; our function vector is out-of-date"
-    export CLASSPATH_CONFIG_ARGS="--disable-gtk-peer"
-else
-    export CLASSPATH_CONFIG_ARGS="--disable-gtk-peer"
-fi
+## What args do we give to classpath's "configure" command?
+function classpath_configure_args () {
+    if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
+	#echo "   --enable-portable-native-sync"
+	echo >&2 "$ME: KLUDGE DISABLING GTK SUPPORT; our function vector is out-of-date"
+	echo "  --disable-gtk-peer"
+    else
+	echo "  --disable-gtk-peer"
+    fi
+}
 
 
 ##
@@ -69,14 +72,14 @@ if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
 	declare -i stat=0
 	$DIFF $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null || stat=$?
 	if (( stat == 1 )); then
-	    echo "Removing out-of-date GNU Classpath checkout"
+	    echo >&2 "Removing out-of-date GNU Classpath checkout"
 	    rm -rf $DEST_DIR
 	elif (( stat != 0 )); then
 	    echo >&2 "$ME: diff failed with bad status $stat; aborting"
 	    exit $stat
 	fi
-    else
-	echo "Removing unknown GNU Classpath checkout"
+    elif [[ -e $DEST_DIR ]]; then
+	echo >&2 "Removing unknown GNU Classpath checkout"
 	rm -rf $DEST_DIR
     fi
 fi
@@ -119,7 +122,7 @@ cd classpath
 
 # set up the directory for building if needed
 if [[ ! -e $DEST_DIR/classpath/configure ]]; then
-    echo "Setting up source tree"
+    echo >&2 "Setting up source tree"
     if [[ `uname -m` = i686 ]]; then
       aclocal
     else
@@ -136,7 +139,7 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
     mkdir -p $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $CLASSPATH_CONFIG_ARGS
+    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $(classpath_configure_args)
     echo "Building the library"
     $GNU_MAKE
 fi
