@@ -69,12 +69,13 @@ import java.util.HashMap;
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @author Kris Venstermans
  */
 public class VM_Statics implements VM_Constants {
   // Kinds of statics that can appear in slots of the jtoc.
   //
-  public static final byte REFERENCE_TAG        = 0x40;
   public static final byte WIDE_TAG             = 0x20;
+  public static final byte REFERENCE_TAG        = VM.BuildFor64Bit ? 0x40 | WIDE_TAG : 0x40;
 
   public static final byte EMPTY                = 0x0;
 
@@ -104,7 +105,17 @@ public class VM_Statics implements VM_Constants {
   /**
    * next available slot number
    */
+//-#if RVM_FOR_32_ADDR
   private static int nextSlot = 1; // don't use slot 0.
+
+//-#elif RVM_FOR_64_ADDR
+  private static int nextSlot = 2; // check allocation every 2 slots
+    
+  /**
+   * available slot due to alignment
+   */
+  private static int  slotAvailableDueToAlignment = 1;  //don't use slot 1      
+//-#endif
 
   /**
    * Mapping from int literals to the jtoc slot that contains them.
@@ -203,8 +214,7 @@ public class VM_Statics implements VM_Constants {
     if (slot != null) return slot.intValue();
     int newSlot = allocateSlot(STRING_LITERAL);
     stringLiterals.put(literal, new Integer(newSlot));
-    VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
-    slots[newSlot] = slotContent.toInt();
+    setSlotContents(newSlot, literal.toUnicodeString());
     return newSlot;
   }
 
@@ -217,23 +227,35 @@ public class VM_Statics implements VM_Constants {
   public static synchronized int allocateSlot(byte description) {
     int slot = nextSlot;
 
-    if (slot > descriptions.length - 2) {
+    if (slot > slots.length - 2) {
       // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
       // point to newly enlarged slots[]
       // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
       VM.sysFail("VM_Statics.allocateSlot: jtoc is full");
     }
 
-    descriptions[slot] = description;
-    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
-
     // allocate two slots for long or double
     //
-    if ((description & WIDE_TAG) != 0)
-      nextSlot += 2;
-    else
-      nextSlot += 1;
-
+//-#if RVM_FOR_64_ADDR
+    if ((description & WIDE_TAG) == 0 && slotAvailableDueToAlignment != 0) {
+			slot = slotAvailableDueToAlignment;
+			slotAvailableDueToAlignment = 0;
+	 } else 
+//-#endif
+    if ((description & WIDE_TAG) != 0) {
+      	nextSlot += 2;
+    } else {
+//-#if RVM_FOR_64_ADDR
+			slotAvailableDueToAlignment = nextSlot + 1;
+	 		descriptions[slotAvailableDueToAlignment] = EMPTY;
+			nextSlot += 2;
+//-#else				
+     		nextSlot += 1;
+//-#endif
+    }
+	 
+	 descriptions[slot] = description;
+    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return slot;
   }
 
@@ -325,14 +347,22 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot, as an object.
    */ 
   public static Object getSlotContentsAsObject(int slot) throws VM_PragmaUninterruptible {
+    //-#if RVM_FOR_64_ADDR
+    return VM_Magic.addressAsObject(VM_Address.fromLong(getSlotContentAsLong(slot)));
+    //-#else
     return VM_Magic.addressAsObject(VM_Address.fromInt(slots[slot]));
+    //-#endif
   }
 
   /**
    * Fetch contents of a slot, as an object array.
    */ 
   public static Object[] getSlotContentsAsObjectArray(int slot) throws VM_PragmaUninterruptible {
+    //-#if RVM_FOR_64_ADDR
+    return VM_Magic.addressAsObjectArray(VM_Address.fromLong(getSlotContentAsLong(slot)));
+    //-#else
     return VM_Magic.addressAsObjectArray(VM_Address.fromInt(slots[slot]));
+    //-#endif
   }
 
   /**

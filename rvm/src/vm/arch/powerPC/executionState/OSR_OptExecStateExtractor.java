@@ -55,7 +55,7 @@ public final class OSR_OptExecStateExtractor
 				methFPoff + STACKFRAME_METHOD_ID_OFFSET);
       if (foocmid != cmid) {
 	for (int i=osrFPoff; i>=methFPoff-8; i-=4) {
-	  VM.sysWriteHex(VM_Magic.objectAsAddress(stack).toInt()+i);
+	  VM.sysWriteHex(VM_Magic.objectAsAddress(stack).add(i));
 	  VM.sysWrite(" : "); VM.sysWriteHex(stack[i<<2]); VM.sysWriteln();
 	}
 	
@@ -83,7 +83,7 @@ public final class OSR_OptExecStateExtractor
     VM_Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
     VM_Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
     VM_Address instr_beg  = VM_Magic.objectAsAddress(instructions);
-    int ipOffset   = nextIP.diff(instr_beg).toInt();    
+    VM_Offset ipOffset   = nextIP.diff(instr_beg);    
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -245,7 +245,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
 						  int[] stack,
-						  int   ipOffset,
+						  VM_Offset   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
 						  int   tsFPOffset,
@@ -528,10 +528,9 @@ public final class OSR_OptExecStateExtractor
 
   private static void dumpStackContent(int[] stack, int fpOffset) {
     VM.disableGC();
-    int upper = VM_Magic.getIntAtOffset(stack, fpOffset);
-    int stack_beg = VM_Magic.objectAsAddress(stack).toInt();
+    VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
+    int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
     VM.enableGC();
-    int upOffset = upper - stack_beg;
 
     int cmid = VM_Magic.getIntAtOffset(stack, 
 		 fpOffset + STACKFRAME_METHOD_ID_OFFSET);
@@ -553,7 +552,7 @@ public final class OSR_OptExecStateExtractor
   /* walk on stack frame, print out methods
    */
   private static void walkOnStack(int[] stack, int fpOffset) {
-    int cmid = STACKFRAME_SENTINAL_FP;
+    int cmid = STACKFRAME_SENTINAL_FP.toInt();
     do {
       cmid = VM_Magic.getIntAtOffset(stack, 
 				       fpOffset+STACKFRAME_METHOD_ID_OFFSET);
@@ -564,10 +563,10 @@ public final class OSR_OptExecStateExtractor
 	VM.sysWriteln(cm.getMethod().toString());
       }
       VM.disableGC();
-      int callerfp = VM_Magic.getIntAtOffset(stack,
-			       fpOffset+STACKFRAME_FRAME_POINTER_OFFSET);
-      fpOffset = callerfp - VM_Magic.objectAsAddress(stack).toInt();
+      VM_Address callerfp = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(
+			       fpOffset+STACKFRAME_FRAME_POINTER_OFFSET));
+      fpOffset = callerfp.diff(VM_Magic.objectAsAddress(stack)).toInt();
       VM.enableGC();
-    } while (cmid != STACKFRAME_SENTINAL_FP);
+    } while (cmid != STACKFRAME_SENTINAL_FP.toInt());
   }
 }

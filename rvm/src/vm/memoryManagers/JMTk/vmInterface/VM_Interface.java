@@ -30,6 +30,7 @@ import com.ibm.JikesRVM.VM_StackframeLayoutConstants;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
@@ -43,6 +44,7 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
+import com.ibm.JikesRVM.VM_SysCall;
 
 /*
  * @author Perry Cheng  
@@ -72,11 +74,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static VM_Address malloc(int size) throws VM_PragmaUninterruptible {
-    return VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
+    return VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size);
   }
 
   public static void free(VM_Address addr) throws VM_PragmaUninterruptible {
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
+    VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, addr);
   }
 
 
@@ -137,7 +139,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static int numProcessors() throws VM_PragmaUninterruptible {
-    return VM.sysCall0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+    return VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
   }
 
   public static int verbose() throws VM_PragmaUninterruptible {
@@ -145,7 +147,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static void lowYield() {
-    VM.sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
   }
 
   public static int smallHeapSize() throws VM_PragmaUninterruptible {
@@ -301,13 +303,13 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final boolean RC_CYCLE_DETECTION = Plan.refCountCycleDetection;
   public static boolean useMemoryController = false;
 
-  public static final int bootImageAddress = 
+  public static final VM_Address bootImageAddress = 
   //-#value BOOTIMAGE_LOAD_ADDRESS
   ;
 
-  public static VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(
+  public static VM_Address MAXIMUM_MAPPABLE = 
   //-#value MAXIMUM_MAPPABLE_ADDRESS
-  );
+  ;
 
 
   // 0xd for aix and 0xc for linux
@@ -543,7 +545,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     while (true) {
       VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
       VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) 
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINAL_FP)) 
 	VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);

@@ -27,7 +27,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public interface VM_ThinLockConstants {
+public interface VM_ThinLockConstants  extends VM_SizeConstants {
 
   static final int NUM_BITS_TID        = VM_Scheduler.LOG_MAX_THREADS;
   static final int NUM_BITS_RC         = VM_JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
@@ -38,10 +38,10 @@ public interface VM_ThinLockConstants {
 
   static final int TL_LOCK_COUNT_UNIT  = 1 << TL_LOCK_COUNT_SHIFT;
 
-  static final int TL_LOCK_COUNT_MASK  = (-1 >>> (32 - NUM_BITS_RC))  << TL_LOCK_COUNT_SHIFT;
-  static final int TL_THREAD_ID_MASK   = (-1 >>> (32 - NUM_BITS_TID)) << TL_THREAD_ID_SHIFT;
-  static final int TL_LOCK_ID_MASK     = (-1 >>> (32 - (NUM_BITS_RC + NUM_BITS_TID - 1))) << TL_LOCK_ID_SHIFT;
+  static final int TL_LOCK_COUNT_MASK  = (-1 >>> (BITS_IN_INT - NUM_BITS_RC))  << TL_LOCK_COUNT_SHIFT;
+  static final int TL_THREAD_ID_MASK   = (-1 >>> (BITS_IN_INT - NUM_BITS_TID)) << TL_THREAD_ID_SHIFT;
+  static final int TL_LOCK_ID_MASK     = (-1 >>> (BITS_IN_INT - (NUM_BITS_RC + NUM_BITS_TID - 1))) << TL_LOCK_ID_SHIFT;
   static final int TL_FAT_LOCK_MASK    = 1 << (VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID -1);
-  static final int TL_UNLOCK_MASK      = ~((-1 >>> (32 - VM_JavaHeader.NUM_THIN_LOCK_BITS)) << VM_JavaHeader.THIN_LOCK_SHIFT);
+  static final int TL_UNLOCK_MASK      = ~((-1 >>> (BITS_IN_INT - VM_JavaHeader.NUM_THIN_LOCK_BITS)) << VM_JavaHeader.THIN_LOCK_SHIFT);
 }
 

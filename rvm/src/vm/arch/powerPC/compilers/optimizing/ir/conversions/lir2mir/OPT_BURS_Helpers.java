@@ -413,20 +413,20 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    */
   protected final void SYSCALL(OPT_Instruction s) {
     burs.ir.setHasSysCall(true);
-    OPT_Operand target = CallSpecial.getClearAddress(s);
-    OPT_MethodOperand meth = (OPT_MethodOperand)CallSpecial.getClearMethod(s);
+    OPT_Operand target = Call.getClearAddress(s);
+    OPT_MethodOperand meth = Call.getClearMethod(s);
 
     // Step 1: Find out how many parameters we're going to have.
-    int numParams = CallSpecial.getNumberOfParams(s);
+    int numParams = Call.getNumberOfParams(s);
     int longParams = 0;
     for (int pNum = 0; pNum < numParams; pNum++) {
-      if (CallSpecial.getParam(s, pNum).getType().isLongType()) {
+      if (Call.getParam(s, pNum).getType().isLongType()) {
         longParams++;
       }
     }
 
     // Step 2: Figure out what the result and result2 values will be
-    OPT_RegisterOperand result = CallSpecial.getClearResult(s);
+    OPT_RegisterOperand result = Call.getClearResult(s);
     OPT_RegisterOperand result2 = null;
     if (result != null && result.type.isLongType()) {
       result2 = R(regpool.getSecondReg(result.register));

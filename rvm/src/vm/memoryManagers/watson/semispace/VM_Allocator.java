@@ -287,7 +287,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
-    size = VM_Memory.align(size, WORDSIZE);
+    size = VM_Memory.alignUp(size, WORDSIZE);
     if (size >= SMALL_SPACE_MAX) {
       return largeHeap.allocateArray(numElements, size, tib);
     } else {

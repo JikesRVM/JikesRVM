@@ -118,7 +118,7 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
       // WARNING: Because we are using magic here, we are going to miss a write barrier update in
       //          a generational GC so._assert that the collector isn't using one!!!
       if (VM.VerifyAssertions) VM._assert(!VM_Interface.NEEDS_WRITE_BARRIER);
-      VM_Magic.setObjectAtOffset(buckets, h<<2, b); // TODO for 64 bits -- use constant instead of 2!
+      VM_Magic.setObjectAtOffset(buckets, h<<LOG_BYTES_IN_ADDRESS, b); 
       myLock.unlock();
       return b.lock;
     } else {

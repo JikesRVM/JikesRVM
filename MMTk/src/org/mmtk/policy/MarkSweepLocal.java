@@ -370,9 +370,9 @@ final class MarkSweepLocal extends SegregatedFreeList
     if (VM.VerifyAssertions)
       VM._assert((MARK_BITMAP_BASE + offset) < blockHeaderSize[sizeClass]);
     do {
-      oldValue = VM_Word.fromInt(VM_Magic.prepare(tgt, 0));
+      oldValue = VM_Word.fromInt(VM_Magic.prepareInt(tgt, 0));
       newValue = oldValue.or(mask);
-    } while(!VM_Magic.attempt(tgt, 0, oldValue.toInt(), newValue.toInt()));
+    } while(!VM_Magic.attemptInt(tgt, 0, oldValue.toInt(), newValue.toInt()));
 //     VM.sysWrite(" "); VM.sysWrite(VM_Magic.getMemoryWord(VM_Address.fromInt(0x5bca0048))); VM.sysWrite("]\n");
   }
 

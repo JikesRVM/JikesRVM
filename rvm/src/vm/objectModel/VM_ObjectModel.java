@@ -112,9 +112,11 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Stephen Fink
  * @author Dave Grove
  * @author Derek Lieber
+ * @author Kris Venstermans
  */
 public final class VM_ObjectModel implements VM_Uninterruptible, 
-					     VM_JavaHeaderConstants {
+					     VM_JavaHeaderConstants,
+					     VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -145,9 +147,23 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
       VM_Field field = fields[i];
       if (!field.isStatic()) {
 	int fieldSize = field.getType().getSize();
+//-#if RVM_FOR_64_ADDR
+	if (VM.runningVM && fieldSize == BYTES_IN_INT ) { //TODO: remove VM_runningVM 
+		if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
+			field.setOffset(fieldOffset - BYTES_IN_INT);
+			fieldOffset -= /BYTES_IN_ADDRESS; 
+			klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
+		} else { //use an unused slot of 4 bytes
+			field.setOffset(klass.getAlignOffset());
+			klass.resetAlignOffset();
+		}
+	} else 
+//-#endif 		
+	{			
 	fieldOffset -= fieldSize; // lay out fields 'backwards'
 	field.setOffset(fieldOffset);
 	klass.increaseInstanceSize(fieldSize);
+	}
       }
     }
   }
@@ -200,7 +216,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    int tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 

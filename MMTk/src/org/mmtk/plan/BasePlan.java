@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -82,15 +83,14 @@ public abstract class BasePlan
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
   // Memory layout constants
-  protected static final EXTENT        SEGMENT_SIZE = 0x10000000;
-  protected static final int           SEGMENT_MASK = SEGMENT_SIZE - 1;
-  public    static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
-  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE;
+  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
+  public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
+  protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final EXTENT       IMMORTAL_SIZE = 32 * 1024 * 1024;
+  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final EXTENT     META_DATA_SIZE  = 32 * 1024 * 1024;
+  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromInt(32 * 1024 * 1024);
   protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address      PLAN_START = META_DATA_END;
 

@@ -59,7 +59,7 @@ public class VM_StackTrace implements VM_Constants {
       ip = VM_Magic.getReturnAddress(fp);
     }
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
 	VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -108,7 +108,7 @@ public class VM_StackTrace implements VM_Constants {
       if (cm == null) {
 	out.println("\tat <invisible method>");
       } else {
-	cm.printStackTrace(offsets[i], out);
+	cm.printStackTrace(VM_Offset.fromInt(offsets[i]), out);
       }
     }
   }
@@ -136,7 +136,7 @@ public class VM_StackTrace implements VM_Constants {
       if (cm == null) {
 	out.println("\tat <invisible method>");
       } else {
-	cm.printStackTrace(offsets[i], out);
+	cm.printStackTrace(VM_Offset.fromInt(offsets[i]), out);
       }
     }
   }

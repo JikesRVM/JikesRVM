@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -85,9 +86,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT            SS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 2.3));
-  private static final EXTENT           LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 2.3 * 0.3));
-  public  static final int              MAX_SIZE = 2 * SS_SIZE;
+  private static final VM_Extent         SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
+  public  static final VM_Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
 
   private static final VM_Address      LOS_START = PLAN_START;
   private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
@@ -520,15 +521,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * word is returned unmodified.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * @param forwardingWord The integer containing the GC bits, which is the GC word
    * of the original object, and typically encodes some GC state as
    * well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
-    return forwardingPtr; // a no-op for this collector
+					     int forwardingWord, int bytes) {
+    return forwardingWord; // a no-op for this collector
   }
 
   public static boolean willNotMove (VM_Address obj) {

@@ -51,7 +51,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   private VM_TypeReference declaringClass; // the outerclass, or null if this is not a inner/nested class
   private VM_Atom      sourceName;
   private VM_Method    classInitializerMethod;
-
   //
   // The following are valid only when "state >= CLASS_RESOLVED".
   //
@@ -74,6 +73,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * offsets of reference-containing instance fields
    */
   private int[]        referenceOffsets;       
+//-#if RVM_FOR_64_ADDR
+  /**
+   * offset of hole due to alignment, zero if none
+   */
+  private int alignOffset = 0;
+//-#endif
 
   //
   // --- Method-dispatching information ---    //
@@ -122,7 +127,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Stack space requirement.
-   */ 
+  */
   public final int getStackWords() throws VM_PragmaUninterruptible {
     return 1;
   }
@@ -301,7 +306,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */ 
   public final int getLiteralOffset(int constantPoolIndex) {
     // jtoc slot number --> jtoc offset
-    return constantPool[constantPoolIndex] << 2; 
+    return constantPool[constantPoolIndex] << LOG_BYTES_IN_INT; 
   }
 
   /**
@@ -484,6 +489,34 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
+
+//-#if RVM_FOR_64_ADDR
+  /**
+   * Offsets of hole, due to alignment.
+   * returns zero if none.
+   */
+  public final int getAlignOffset() {
+	  return alignOffset;
+  }
+
+  /**
+   * Reset the offset of the hole.
+   * This means that the hole is used from now on, so there ain't one left.
+   */
+  public final void resetAlignOffset() {
+	  alignOffset = 0;
+  }
+
+  /**
+   * Add a field to the object; only meant to be called from VM_ObjectModel et al.
+   * must be called when lock on class object is already held (ie from resolve).
+	* As Side-effect it sets the alignOffset field to the new objectEndOffset.
+   */
+  public final void increaseInstanceSizeAndSetAlignOffset(int numBytes) throws VM_PragmaUninterruptible {
+    instanceSize += numBytes;
+	 alignOffset = VM_JavaHeader.objectEndOffset(this);
+  }
+//-#endif
 
   /**
    * Find specified virtual method description.
@@ -891,6 +924,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       instanceSize = superClass.instanceSize;
     } else {
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
+	
+	//-#if RVM_FOR_64_ADDR
+	   int diff = VM_JavaHeader.objectEndOffset(this) - VM_Memory.alignDown(VM_JavaHeader.objectEndOffset(this), BYTES_IN_ADDRESS);
+		if (diff != 0) {	
+			if (VM.VerifyAssertions) VM._assert(diff % BYTES_IN_INT == 0); //assume bad aligned on 8 byte, but good aligned on 4 byte
+			increaseInstanceSizeAndSetAlignOffset(diff);
+		}
+	//-#endif
+		
     }
     for (int i=0; i<declaredInterfaces.length; i++) {
       declaredInterfaces[i].resolve();
@@ -1015,11 +1057,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       byte slotType;
       if (fieldType.isReferenceType())
 	slotType = VM_Statics.REFERENCE_FIELD;
-      else if (fieldType.getStackWords() == 2)
+      else if (fieldType.getStackWords() == LOG_BYTES_IN_INT)
 	slotType = VM_Statics.WIDE_NUMERIC_FIELD;
       else
 	slotType = VM_Statics.NUMERIC_FIELD;
-      field.offset = (VM_Statics.allocateSlot(slotType) << 2);
+      field.offset = (VM_Statics.allocateSlot(slotType) << LOG_BYTES_IN_INT);
 
       // (SJF): Serialization nastily accesses even final private static
       //	   fields via pseudo-reflection! So, we must shove the
@@ -1065,7 +1107,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if (method.isClassInitializer()) {
 	method.offset = 0xdeadbeef; // should never be used.
       } else {
-	method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+	method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << LOG_BYTES_IN_INT;
       }
     }
 
@@ -1083,7 +1125,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // (to be filled in by instantiate)
     for (int i = 0, n = virtualMethods.length; i < n; ++i) {
       VM_Method method = virtualMethods[i];
-      method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << 2;
+      method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_INT;
     }
 
     // RCGC: Determine if class is inherently acyclic
@@ -1154,7 +1196,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     int valueIndex = field.getConstantValueIndex();
 
     // index for field value in JTOC
-    int fieldIndex = fieldOffset >> 2;
+    int fieldIndex = fieldOffset >> LOG_BYTES_IN_INT;
 
     // if there's no value in the constant pool, bail out
     if (valueIndex <= 0) return;
@@ -1169,15 +1211,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // reference counts
     //
     if (VM.runningVM && VM_Statics.isReference(fieldIndex)) {
-      Object obj = VM_Statics.getSlotContentsAsObject(literalOffset>>2);
+      Object obj = VM_Statics.getSlotContentsAsObject(literalOffset>>LOG_BYTES_IN_INT);
       VM_Statics.setSlotContents(fieldIndex,obj);
-    } else if (field.getType().getSize() == 4) {
+    } else if (field.getType().getSize() == BYTES_IN_INT) {
       // copy one word from constant pool to JTOC
-      int value = VM_Statics.getSlotContentsAsInt(literalOffset>>2);
+      int value = VM_Statics.getSlotContentsAsInt(literalOffset>>LOG_BYTES_IN_INT);
       VM_Statics.setSlotContents(fieldIndex,value);
     } else {
       // copy two words from constant pool to JTOC
-      long value = VM_Statics.getSlotContentsAsLong(literalOffset>>2);
+      long value = VM_Statics.getSlotContentsAsLong(literalOffset>>LOG_BYTES_IN_INT);
       VM_Statics.setSlotContents(fieldIndex,value);
     }
   }
@@ -1399,7 +1441,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM._assert(isResolved());
     if (VM.VerifyAssertions) VM._assert(m.isStatic() || m.isObjectInitializer());
-    int slot = m.getOffset() >>> 2;
+    int slot = m.getOffset() >>> LOG_BYTES_IN_INT;
     VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
   }
 

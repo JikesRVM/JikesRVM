@@ -76,7 +76,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
-            VM.sysWrite(location.toInt());
+            VM.sysWrite(location);
             VM.sysWrite("\n");
           }
 	  location = location.sub(4);
@@ -96,7 +96,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
-            VM.sysWrite(location.toInt());
+            VM.sysWrite(location);
             VM.sysWrite("\n");
           }
 	  location = location.sub(4);

@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
@@ -82,9 +83,9 @@ public class Options implements VM_Uninterruptible, Constants {
     if (heapSize != 0) // if deprecated interface is used
       initialHeapSize = heapSize + largeHeapSize;
     if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
-    if (VM_Word.fromInt(maxHeapSize).GT(VM_Word.fromInt(Plan.MAX_SIZE))) {
+    if (VM_Extent.fromInt(maxHeapSize).GT(Plan.MAX_SIZE)) {
 	VM.sysWriteln("Specified heap size ", maxHeapSize >>> 20);
-	VM.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ", (int) (Plan.MAX_SIZE >>> 20), " Mb");
+	VM.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ", (int) (Plan.MAX_SIZE.toInt() >>> 20), " Mb");
 	VM.sysFail("Max heap too large");
     }
   }

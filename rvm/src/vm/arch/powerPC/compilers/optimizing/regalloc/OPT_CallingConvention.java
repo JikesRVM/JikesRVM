@@ -63,30 +63,34 @@ implements OPT_PhysicalRegisterConstants {
     }
   }
 
-
   /**
    * Calling convention to implement calls to 
    * native (C) routines using the AIX linkage conventions
    */
   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ip, toc = null;
-    if (CallSpecial.getMethod(s) instanceof OPT_SysMethodOperand) {
-      OPT_SysMethodOperand nat = (OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
-      OPT_RegisterOperand t1 = 
-	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, nat.ip);
-      toc = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyRO(), VM_Entrypoints.sysTOCField);
+    OPT_RegisterOperand ip = null;
+    OPT_RegisterOperand t1 = 
+      OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
+    OPT_RegisterOperand toc = OPT_ConvertToLowLevelIR.getField(s, ir, t1, VM_Entrypoints.sysTOCField);
+    if (Call.getMethod(s) != null) {
+      OPT_MethodOperand nat = Call.getClearMethod(s);
+      VM_Field target = null;
+      try {
+	target = nat.getMemberRef().asFieldReference().resolve();
+      } catch (ClassNotFoundException e) {
+	VM.sysFail("Cannot happen");
+      }
+      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyRO(), target);
     } else {
-      ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
-      toc = (OPT_RegisterOperand)CallSpecial.getClearMethod(s);
+      ip = (OPT_RegisterOperand)Call.getClearAddress(s);
     }
 
     /* compute the parameter space */
-    int numberParams = CallSpecial.getNumberOfParams(s);
+    int numberParams = Call.getNumberOfParams(s);
     int parameterWords = 0;
     for (int i = 0; i < numberParams; i++) {
       parameterWords++;
-      OPT_Operand op = CallSpecial.getParam(s, i);
+      OPT_Operand op = Call.getParam(s, i);
       if (op instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
         if (reg.type.isLongType() || reg.type.isDoubleType())
@@ -100,27 +104,22 @@ implements OPT_PhysicalRegisterConstants {
     // IMPORTANT WARNING: as the callee C routine may destroy the cmid field
     // (it is the saved CR field of the callee in C convention) 
     // we are restoring the methodID after a sysCall. 
-    OPT_Instruction s2;
-    if (toc != null) {
-      s2 = Store.create(INT_STORE, ir.regpool.makeJTOCOp(ir,s), 
-                        ir.regpool.makeFPOp(), 
-                        I(20), null);         // TODO: valid location?
-      s.insertBack(s2);
-      s.insertBack(Move.create(INT_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
-    }
-    Call.mutate0(s, CALL, CallSpecial.getClearResult(s), ip, null);
-    if (toc != null) {
-      s2 = Load.create(INT_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
-                       I(20), null);         // TODO: valid location?
-      s.insertFront(s2);
-      OPT_RegisterOperand temp = ir.regpool.makeTempInt();
-      s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethod.getId()));
-      OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
-                                        ir.regpool.makeFPOp(), 
-                                        I(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
-      s.insertFront(s3);
-      s.insertFront(s2);
-    }
+    OPT_Instruction s2 = Store.create(INT_STORE, ir.regpool.makeJTOCOp(ir,s), 
+				      ir.regpool.makeFPOp(), 
+				      I(20), null);         // TODO: valid location?
+    s.insertBack(s2);
+    s.insertBack(Move.create(INT_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
+    Call.mutate0(s, CALL, Call.getClearResult(s), ip, null);
+    s2 = Load.create(INT_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
+		     I(20), null);         // TODO: valid location?
+    s.insertFront(s2);
+    OPT_RegisterOperand temp = ir.regpool.makeTempInt();
+    s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethod.getId()));
+    OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
+				      ir.regpool.makeFPOp(), 
+				      I(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
+    s.insertFront(s3);
+    s.insertFront(s2);
   }
 
 

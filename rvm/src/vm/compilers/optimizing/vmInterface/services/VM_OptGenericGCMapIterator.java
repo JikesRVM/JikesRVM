@@ -98,7 +98,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // this method and instructionOffset
     compiledMethod = (VM_OptCompiledMethod)cm;
     map = compiledMethod.getMCMap();
-    mapIndex = map.findGCMapIndex(instructionOffset);
+    mapIndex = map.findGCMapIndex(VM_Offset.fromInt(instructionOffset));
     if (mapIndex == VM_OptGCMap.ERROR) {
       if (instructionOffset < 0) {
 	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
@@ -118,10 +118,10 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()).toInt());
-      int ra = VM_Magic.objectAsAddress(cm.getInstructions()).toInt() + instructionOffset;
+      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()));
+      VM_Address ra = VM_Magic.objectAsAddress(cm.getInstructions()).add(instructionOffset);
       VM.sysWriteln("Calculated actual return address is ", ra);
-      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(VM_Address.fromInt(ra));
+      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
       if (realCM == null) {
 	VM.sysWriteln("Unable to find compiled method corresponding to this return address");
       } else {

@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -178,10 +179,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  VMResource(byte space_, String vmName, VM_Address vmStart, EXTENT bytes, byte status_) {
+  VMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status_) {
     space = space_;
     start = vmStart;
-    pages = Conversions.bytesToPages(bytes);
+    pages = Conversions.bytesToPages(bytes.toInt());
     end = start.add(bytes);
     name = vmName;
     index = count++;

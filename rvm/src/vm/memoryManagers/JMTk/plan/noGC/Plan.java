@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -56,8 +57,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT       DEFAULT_SIZE = Conversions.roundDownMB((int)(0.5 * AVAILABLE));
-  public  static final int              MAX_SIZE = DEFAULT_SIZE;
+  private static final VM_Extent    DEFAULT_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(0.5 * AVAILABLE)));
+  public  static final VM_Extent        MAX_SIZE = DEFAULT_SIZE;
 
   private static final VM_Address  DEFAULT_START = PLAN_START;
   private static final VM_Address    DEFAULT_END = DEFAULT_START.add(DEFAULT_SIZE);
@@ -396,9 +397,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
 
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
+					     int forwardingWord, int bytes) {
     if (VM.VerifyAssertions) VM._assert(false);
-    return forwardingPtr;
+    return forwardingWord;
   }
 
   ////////////////////////////////////////////////////////////////////////////

@@ -62,7 +62,7 @@ public class VM_MachineReflection implements VM_Constants {
     // spills[] carries burden of aligning stack frame
     int frameSize  = (Spills << 2)           // spill area
       + STACKFRAME_HEADER_SIZE; // header
-    frameSize = (frameSize + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK;
+    frameSize = VM_Memory.alignUp(frameSize, STACKFRAME_ALIGNMENT);
     Spills = (frameSize-STACKFRAME_HEADER_SIZE) >> 2;        
 
     // hack to return triple
@@ -82,10 +82,10 @@ public class VM_MachineReflection implements VM_Constants {
     int fp = FIRST_VOLATILE_FPR;
     if (!method.isStatic()) {
       if (gp > LAST_VOLATILE_GPR)
-	Spills[--Spill] = VM_Reflection.unwrapObject(thisArg);
+	Spills[--Spill] = VM_Reflection.unwrapObject(thisArg).toInt();
       else {
 	gp++;
-	GPRs[--GPR] = VM_Reflection.unwrapObject(thisArg);
+	GPRs[--GPR] = VM_Reflection.unwrapObject(thisArg).toInt();
       }
     }
     VM_TypeReference [] types = method.getParameterTypes();
@@ -160,10 +160,10 @@ public class VM_MachineReflection implements VM_Constants {
 	}
       } else if (!t.isPrimitiveType()) {
 	if (gp > LAST_VOLATILE_GPR)
-	  Spills[--Spill] = VM_Reflection.unwrapObject(otherArgs[i]);
+	  Spills[--Spill] = VM_Reflection.unwrapObject(otherArgs[i]).toInt();
 	else {
 	  gp++;
-	  GPRs[--GPR] = VM_Reflection.unwrapObject(otherArgs[i]);
+	  GPRs[--GPR] = VM_Reflection.unwrapObject(otherArgs[i]).toInt();
 	}
       } else  {
 	if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

@@ -264,8 +264,8 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.JNI_STACK_TRAP + ";\n");
       System.out.print("static const int VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET = "
           + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET + ";\n");
-	  System.out.print("static const int VM_Constants_STACKFRAME_ALIGNMENT_MASK = "
-		  + VM_Constants.STACKFRAME_ALIGNMENT_MASK + " ;\n");
+	  System.out.print("static const int VM_Constants_STACKFRAME_ALIGNMENT = "
+		  + VM_Constants.STACKFRAME_ALIGNMENT + " ;\n");
     }
     //-#endif
 
@@ -309,7 +309,7 @@ class GenerateInterfaceDeclarations {
     System.out.print("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
     System.out.print("static const int VM_Constants_STACKFRAME_SENTINAL_FP             = "
-        + VM_Constants.STACKFRAME_SENTINAL_FP + ";\n");
+        + VM_Constants.STACKFRAME_SENTINAL_FP.toInt() + ";\n");
     System.out.print("\n");
 
     // values in VM_Scheduler

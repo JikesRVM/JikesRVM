@@ -125,7 +125,7 @@ public final class VM_ImmortalHeap extends VM_Heap
   public Object allocateAlignedArray(VM_Array type, int numElements, int alignment) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
-    size = VM_Memory.align(size, WORDSIZE);
+    size = VM_Memory.alignUp(size, WORDSIZE);
     Object[] tib = type.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(type);
     VM_Address region = allocateZeroedMemory(size, alignment, offset);
@@ -177,7 +177,7 @@ public final class VM_ImmortalHeap extends VM_Heap
     // reserve space for offset bytes
     allocationCursor = allocationCursor.add(offset);
     // align the interior portion of the requested space
-    allocationCursor = VM_Memory.align(allocationCursor, alignment);
+    allocationCursor = VM_Memory.alignUp(allocationCursor, alignment);
     VM_Address result = allocationCursor;
     // allocate remaining space 
     allocationCursor = allocationCursor.add(size - offset);

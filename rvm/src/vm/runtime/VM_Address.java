@@ -16,33 +16,61 @@ package com.ibm.JikesRVM;
  * @author Perry Cheng
  */
 
-final public class VM_Address {
+final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
 
   // Do not try to create a static field containing special address values.
   //   Suboptimal code will be generated.
 
+//-#if RVM_FOR_32_ADDR
   private int value;
 
-  public VM_Address(int address) {  
+  public VM_Address(int address) {
+      if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+      value = address;
+  }
+//-#elif RVM_FOR_64_ADDR
+  private long value;
+  
+  public VM_Address(long address) {
       if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
       value = address;
   }
 
+  static public VM_Address fromLong (long address) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(address);  //TODO: implement in magic
+  }
+//-#endif
+
   public boolean equals(Object o) {
       return (o instanceof VM_Address) && ((VM_Address) o).value == value;
   }
-
-  static public VM_Address fromInt (int address) {
+  
+  /**
+  * fromInt()
+  * @deprecated use fromIntSignExtend() or fromIntZeroExtend()
+  */
+  static public VM_Address fromInt (int address) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(address);
   }
 
-  static public VM_Address zero () {
+  static public VM_Address fromIntSignExtend (int address) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(address);
+  }
+
+  static public VM_Address fromIntZeroExtend (int address) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(address);
+  }
+
+  static public VM_Address zero () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(0);
   }
 
-  static public VM_Address max() {
+  static public VM_Address max() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(-1);
   }
@@ -52,27 +80,37 @@ final public class VM_Address {
     return value;
   }
 
-  public VM_Address add (int v) {
+  public VM_Address add (int v) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(value + v);
   }
 
-  public VM_Address add (VM_Offset offset) {
+  public VM_Address add (VM_Offset offset) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(value + offset.toInt());
   }
 
-  public VM_Address sub (VM_Offset offset) {
+  public VM_Address add (VM_Extent extent) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(value + extent.toInt());
+  }
+
+  public VM_Address sub (VM_Extent extent) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(value - extent.toInt());
+  }
+
+  public VM_Address sub (VM_Offset offset) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(value - offset.toInt());
   }
 
-  public VM_Address sub (int v) {
+  public VM_Address sub (int v) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(value - v);
   }
 
-  public VM_Offset diff (VM_Address addr2) {
+  public VM_Offset diff (VM_Address addr2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return VM_Offset.fromInt(value - addr2.value);
   }
@@ -124,5 +162,9 @@ final public class VM_Address {
     return VM_Word.fromInt(value);
   }
 
+  public int generateHashCode() {
+	 return (int) toInt() >>> LOG_BYTES_IN_ADDRESS;  
+  }
+  
 }
 

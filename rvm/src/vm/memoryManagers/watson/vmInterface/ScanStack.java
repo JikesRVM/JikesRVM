@@ -141,7 +141,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
     // with a "topJavaFrame" = 0. There may be references in the threads
     // JNIrefs side stack that need to be processed, below after the loop.
 
-    if ( fp.NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP)) ) {
+    if ( fp.NE(STACKFRAME_SENTINAL_FP) ) {
 
       if ( DUMP_STACK_REFS) {
 	VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
@@ -151,7 +151,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
       //   fp -> frame for method invocation being processed
       //   ip -> instruction pointer in the method (normally a call site)
       
-      while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
+      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP)) {
 	int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
 	
 	// reflection and jni generate "invisible" transition frames with

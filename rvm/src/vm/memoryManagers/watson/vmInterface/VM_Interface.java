@@ -28,6 +28,7 @@ import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
+import com.ibm.JikesRVM.VM_SysCall;
 
 
 /**
@@ -41,11 +42,11 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static VM_Address malloc(int size) throws VM_PragmaUninterruptible {
-    return VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
+    return VM_Address.fromInt(VM_SysCall.call1(VM_BootRecord.the_boot_record.sysMallocIP, size));
   }
 
   public static void free(VM_Address addr) throws VM_PragmaUninterruptible {
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
   }
 
 
@@ -105,7 +106,7 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static int numProcessors() throws VM_PragmaUninterruptible {
-    return VM.sysCall0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+    return VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
   }
 
   public static final void threadBoot(int numProcessors) throws VM_PragmaInterruptible {
@@ -117,7 +118,7 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static void lowYield() {
-    VM.sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
   }
 
   public static int smallHeapSize() throws VM_PragmaUninterruptible {

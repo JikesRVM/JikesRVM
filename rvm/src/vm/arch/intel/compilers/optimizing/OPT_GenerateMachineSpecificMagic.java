@@ -138,63 +138,6 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 					    fp,
 					    new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall0) {
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create0(SYSCALL, op0, ip, null));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall_L_0) {
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
-      bc2ir.appendInstruction(CallSpecial.create0(SYSCALL, op0, ip, null));
-      bc2ir.pushDual(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall_L_I) {
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
-      bc2ir.appendInstruction(CallSpecial.create1(SYSCALL, op0, ip, null, p1));
-      bc2ir.pushDual(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall1) {
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create1(SYSCALL, op0, ip, null, p1));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall2) {
-      OPT_Operand p2 = bc2ir.popInt();
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create2(SYSCALL, op0, ip, null, 
-                                                  p1, p2));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCallAD) {
-      OPT_Operand p2 = bc2ir.popDouble();
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create2(SYSCALL, op0, ip, null,
-                                                  p1, p2));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall3) {
-      OPT_Operand p3 = bc2ir.popInt();
-      OPT_Operand p2 = bc2ir.popInt();
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create3(SYSCALL, op0, ip, null,
-						  p1, p2, p3));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sysCall4) {
-      OPT_Operand p4 = bc2ir.popInt();
-      OPT_Operand p3 = bc2ir.popInt();
-      OPT_Operand p2 = bc2ir.popInt();
-      OPT_Operand p1 = bc2ir.popInt();
-      OPT_Operand ip = bc2ir.popInt();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(CallSpecial.create4(SYSCALL, op0, ip, null,
-						  p1, p2, p3, p4));
-      bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.roundToZero) {
       bc2ir.appendInstruction(Empty.create(ROUND_TO_ZERO));
     } else if (methodName == VM_MagicNames.clearFloatingPointState) {

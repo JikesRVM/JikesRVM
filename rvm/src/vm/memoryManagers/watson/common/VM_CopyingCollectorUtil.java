@@ -177,7 +177,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	// if stack moved, adjust interior stack pointers
 	if (oldstack != t.stack) {
 	  if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Adjusting mutator stack ",i);
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
+	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
 	}
 	
 	// the above scanThread(t) will have marked and copied the threads JNIEnvironment object,

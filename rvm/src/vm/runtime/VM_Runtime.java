@@ -546,15 +546,15 @@ public class VM_Runtime implements VM_Constants {
     VM_Registers exceptionRegisters = myThread.hardwareExceptionRegisters;
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
-	myThread.stack.length < (STACK_SIZE_MAX >> 2) && 
+	myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) && 
 	!myThread.hasNativeStackFrame()) { 
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
@@ -773,16 +773,16 @@ public class VM_Runtime implements VM_Constants {
     //
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     VM_Address fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
 	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
 	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress).toInt(), exceptionType);
+	  VM_Offset catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
 
-	  if (catchBlockOffset >= 0) { 
+	  if (catchBlockOffset.toInt() >= 0  ){ 
 	      // found an appropriate catch block
 	      exceptionDeliverer.deliverException(compiledMethod, 
 						  methodStartAddress.add(catchBlockOffset), 
@@ -827,7 +827,7 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( !VM_Interface.refInVM(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
+    } while ( !VM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINAL_FP)) ;
 
 	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
 	// for SVR4 convention, a Java-to-C frame has two mini frames,

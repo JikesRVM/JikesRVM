@@ -491,16 +491,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * word is returned unmodified.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * @param forwardingWord The integer containing the GCbits , which is the GC word
    * of the original object, and typically encodes some GC state as
    * well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
+					     int forwardingWord, int bytes) {
     if (VM.VerifyAssertions) VM._assert(false);  // not a copying collector!
-    return forwardingPtr;
+    return forwardingWord;
   }
 
   public static boolean willNotMove (VM_Address obj) {
@@ -564,8 +564,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
     do {
-      old = VM_Address.fromInt(VM_Magic.prepare(src, 0));
-    } while (!VM_Magic.attempt(src, 0, old.toInt(), tgt.toInt()));
+      old = VM_Address.fromInt(VM_Magic.prepareInt(src, 0));
+    } while (!VM_Magic.attemptInt(src, 0, old.toInt(), tgt.toInt()));
     if (old.GE(RC_START))
       decBuffer.pushOOL(old);
     if (tgt.GE(RC_START))

@@ -52,7 +52,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public abstract class VM_Type implements VM_ClassLoaderConstants {
+public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstants {
 
   /*
    * We hold on to a number of special types here for easy access.
@@ -79,6 +79,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public static VM_Type AddressType;             
   public static VM_Type AddressArrayType;             
   public static VM_Type OffsetType;             
+  public static VM_Type ExtentType;             
   public static VM_Type InstructionArrayType;             
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
@@ -272,7 +273,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
   public final int getTibOffset() throws VM_PragmaUninterruptible { 
-    return tibSlot << 2; 
+    return tibSlot << LOG_BYTES_IN_INT; 
   }
 
   /**
@@ -471,6 +472,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
 
   public final boolean isWordType() throws VM_PragmaUninterruptible              { return (this == WordType) ||
                                                                                           (this == AddressType) ||
+										          (this == ExtentType) || 
 										          (this == OffsetType); }
   public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() ||
 										          (this == MagicType) ||
@@ -549,6 +551,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
     AddressType = VM_TypeReference.Address.resolve();
     AddressArrayType = VM_TypeReference.AddressArray.resolve();
     OffsetType = VM_TypeReference.Offset.resolve();
+    ExtentType = VM_TypeReference.Extent.resolve();
     
     VM_Array.init();
   }

@@ -408,7 +408,7 @@ public abstract class VM_Heap
     throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */, VM_PragmaUninterruptible {
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
-    size = VM_Memory.align(size, WORDSIZE);
+    size = VM_Memory.alignUp(size, WORDSIZE);
     VM_Address region = allocateZeroedMemory(size);  
     VM_GCStatistics.profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
     Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);

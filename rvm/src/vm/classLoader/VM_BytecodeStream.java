@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.VM_SizeConstants;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
@@ -13,7 +14,7 @@ import com.ibm.JikesRVM.VM_Statics;
  * 
  * @author Igor Pechtchanski
  */
-public class VM_BytecodeStream implements VM_BytecodeConstants {
+public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants {
   private final VM_NormalMethod method;
   private final VM_Class declaringClass;
   private final int bcLength;
@@ -324,7 +325,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final void skipTableSwitchOffsets(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
-    bcIndex += (num << 2);
+    bcIndex += (num << LOG_BYTES_IN_INT);
   }
 
   /**
@@ -337,7 +338,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getTableSwitchOffset(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
-    return getSignedInt(bcIndex + (num << 2));
+    return getSignedInt(bcIndex + (num << LOG_BYTES_IN_INT));
   }
 
   /**
@@ -354,7 +355,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   public final int computeTableSwitchOffset(int value, int low, int high) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     if (value < low || value > high) return 0;
-    return getSignedInt(bcIndex + ((value - low) << 2));
+    return getSignedInt(bcIndex + ((value - low) << LOG_BYTES_IN_INT));
   }
 
   /**
@@ -391,7 +392,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getLookupSwitchOffset(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
-    return getSignedInt(bcIndex + (num << 3) + 4);
+    return getSignedInt(bcIndex + (num << 3) + BYTES_IN_INT);
   }
 
   /**
@@ -424,7 +425,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     for (int i = 0; i < num; i++)
       if (getSignedInt(bcIndex + (i << 3)) == value)
-        return getSignedInt(bcIndex + (i << 3) + 4);
+        return getSignedInt(bcIndex + (i << 3) + BYTES_IN_INT);
     return 0;
   }
 

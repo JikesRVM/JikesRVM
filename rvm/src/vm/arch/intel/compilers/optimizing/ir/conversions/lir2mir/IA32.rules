@@ -3757,7 +3757,7 @@ CALL(P(p), MO_L(PL(p), DW));
 r:	SYSCALL(r, any)
 13
 EMIT_INSTRUCTION
-SYSCALL(P(p), CallSpecial.getAddress(P(p)));
+SYSCALL(P(p), Call.getAddress(P(p)));
 
 r:	SYSCALL(INT_LOAD(riv, riv), any)
 11

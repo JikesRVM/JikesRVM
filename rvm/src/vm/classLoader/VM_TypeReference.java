@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import java.util.HashMap;
 
@@ -24,7 +25,7 @@ import java.util.HashMap;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_TypeReference {
+public class VM_TypeReference implements VM_SizeConstants{
 
   /**
    * Used to cannonicalize TypeReferences
@@ -63,6 +64,7 @@ public class VM_TypeReference {
   public static final VM_TypeReference Word    = findOrCreate("Lcom/ibm/JikesRVM/VM_Word;");
   public static final VM_TypeReference Address = findOrCreate("Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_TypeReference Offset  = findOrCreate("Lcom/ibm/JikesRVM/VM_Offset;");
+  public static final VM_TypeReference Extent  = findOrCreate("Lcom/ibm/JikesRVM/VM_Extent;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lcom/ibm/JikesRVM/VM_AddressArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
 
@@ -270,7 +272,7 @@ public class VM_TypeReference {
    * Does 'this' refer to VM_Word, VM_Address, or VM_Offset
    */
   public final boolean isWordType() throws VM_PragmaUninterruptible {
-    return this == Word || this == Offset || this == Address;
+    return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
@@ -293,7 +295,7 @@ public class VM_TypeReference {
    * How many bytes of memory words do value of this type take?
    */
   public final int getSize() {
-    return getStackWords() << 2;
+    return getStackWords() << LOG_BYTES_IN_ADDRESS;
   }
     
   /**
@@ -361,9 +363,9 @@ public class VM_TypeReference {
    * Is this the type reference for an int-like (8,16, or 32 bit integeral) primitive type?
    */
   public final boolean isIntLikeType() throws VM_PragmaUninterruptible { 
-    return isBooleanType() || isByteType() || isCharType() || isShortType() 
-      || isIntType() || isWordType(); // TODO: 64 bits: isWordType is bogus!
-  }
+    return isBooleanType() || isByteType() || isCharType() || isShortType() || isIntType()
+		 || isWordType() ; // TODO: for 64 bit : BOGUS
+  } 
 
   /**
    * Do this and that definitely refer to the different types?

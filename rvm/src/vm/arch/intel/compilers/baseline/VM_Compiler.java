@@ -2931,7 +2931,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final boolean genMagic (VM_MethodReference m) {
     VM_Atom methodName = m.getName();
 
-    if (methodName == VM_MagicNames.attempt) {
+    if (methodName == VM_MagicNames.attemptInt ||
+	methodName == VM_MagicNames.attemptObject ||
+	methodName == VM_MagicNames.attemptAddress) {
       // attempt gets called with four arguments
       //   base
       //   offset
@@ -3298,7 +3300,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.getIntAtOffset ||
 	methodName == VM_MagicNames.getObjectAtOffset ||
 	methodName == VM_MagicNames.getObjectArrayAtOffset ||
-	methodName == VM_MagicNames.prepare) {
+	methodName == VM_MagicNames.prepareInt ||
+	methodName == VM_MagicNames.prepareObject ||
+	methodName == VM_MagicNames.prepareAddress) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
@@ -3589,6 +3593,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.wordFromInt ||
+	methodName == VM_MagicNames.wordFromIntZeroExtend ||
+	methodName == VM_MagicNames.wordFromIntSignExtend ||
 	methodName == VM_MagicNames.wordToInt ||
 	methodName == VM_MagicNames.wordToAddress ||
 	methodName == VM_MagicNames.wordToWord) {

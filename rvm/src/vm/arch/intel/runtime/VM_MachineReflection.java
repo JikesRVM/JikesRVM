@@ -83,9 +83,9 @@ public class VM_MachineReflection implements VM_Constants {
     if (!method.isStatic()) {
       if (gp > 0) {
 	gp--;
-	GPRs[GPR++] = VM_Reflection.unwrapObject(thisArg);
+	GPRs[GPR++] = VM_Reflection.unwrapObject(thisArg).toInt();
       }
-      Parameters[parameter++] = VM_Reflection.unwrapObject(thisArg);
+      Parameters[parameter++] = VM_Reflection.unwrapObject(thisArg).toInt();
     }
 
     VM_TypeReference [] types = method.getParameterTypes();
@@ -162,9 +162,9 @@ public class VM_MachineReflection implements VM_Constants {
       } else if (!t.isPrimitiveType()) {
 	if (gp > 0) {
 	  gp--;
-	  GPRs[GPR++] = VM_Reflection.unwrapObject(otherArgs[i]);
+	  GPRs[GPR++] = VM_Reflection.unwrapObject(otherArgs[i]).toInt();
 	}
-	Parameters[parameter++] = VM_Reflection.unwrapObject(otherArgs[i]);
+	Parameters[parameter++] = VM_Reflection.unwrapObject(otherArgs[i]).toInt();
 
       } else  {
 	if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

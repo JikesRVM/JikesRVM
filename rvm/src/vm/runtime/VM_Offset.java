@@ -16,7 +16,7 @@ package com.ibm.JikesRVM;
  * @author Perry Cheng
  * @see VM_Address VM_Word
  */
-final public class VM_Offset {
+final public class VM_Offset implements VM_Uninterruptible {
 
   // Do not try to create a static field containing special offset values.
   //   Suboptimal code will be generated.
@@ -32,17 +32,17 @@ final public class VM_Offset {
       return (o instanceof VM_Offset) && ((VM_Offset) o).value == value;
   }
 
-  static public VM_Offset fromInt (int offset) {
+  static public VM_Offset fromInt (int offset) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(offset);
   }
 
-  static public VM_Offset zero () {
+  static public VM_Offset zero () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(0);
   }
 
-  static public VM_Offset max() {
+  static public VM_Offset max() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(-1);
   }
@@ -57,12 +57,12 @@ final public class VM_Offset {
     return 0x00000000ffffffffL & ((long) value);
   }
 
-  public VM_Offset add (int byteSize) {
+  public VM_Offset add (int byteSize) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(value + byteSize);
   }
 
-  public VM_Offset sub (int byteSize) {
+  public VM_Offset sub (int byteSize) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(value - byteSize);
   }
@@ -70,6 +70,7 @@ final public class VM_Offset {
   public VM_Word toWord() {
     return VM_Word.fromInt(value);
   }
+
 
 }
 

@@ -121,7 +121,7 @@ class VM_EdgeListener extends VM_ContextListener
     int callerCMID    = 0;
     VM_Address returnAddress = VM_Address.zero();
 
-    if (VM_Magic.getMemoryInt(sfp) == STACKFRAME_SENTINAL_FP) {
+    if (VM_Magic.getMemoryInt(sfp) == STACKFRAME_SENTINAL_FP.toInt()) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");	
       return;
     }
@@ -137,7 +137,7 @@ class VM_EdgeListener extends VM_ContextListener
 
     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if(VM_Magic.getMemoryInt(sfp) == STACKFRAME_SENTINAL_FP) {
+    if(VM_Magic.getMemoryInt(sfp) == STACKFRAME_SENTINAL_FP.toInt()) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack\n");	
       return;
     }
@@ -160,7 +160,7 @@ class VM_EdgeListener extends VM_ContextListener
       return;
     }
     VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-    int callSite = returnAddress.diff(beginningOfMachineCode).toInt();
+    VM_Offset callSite = returnAddress.diff(beginningOfMachineCode);
 
     if (DEBUG){ 
       VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
@@ -180,7 +180,7 @@ class VM_EdgeListener extends VM_ContextListener
     if (idx < buffer.length) {
       buffer[idx+0] = calleeCMID;
       buffer[idx+1] = callerCMID;
-      buffer[idx+2] = callSite;
+      buffer[idx+2] = callSite.toInt();
 
       // If we are the last sample, we need to activate the organizer.
       if (sampleNumber+1 == desiredSamples) {

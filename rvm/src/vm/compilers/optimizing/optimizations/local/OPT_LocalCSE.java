@@ -117,8 +117,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       if (options.LOCAL_SCALAR_REPLACEMENT) {
         // CALL instructions and synchronizations KILL all memory
         // locations!
-        if (Call.conforms(inst) || CallSpecial.conforms(inst) || 
-            isSynchronizing(inst)
+        if (Call.conforms(inst) || isSynchronizing(inst)
             || inst.isDynamicLinkingPoint()) {
           cache.invalidateAllLoads();
         }

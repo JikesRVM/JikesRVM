@@ -92,7 +92,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
-    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << 2);
+    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << LOG_BYTES_IN_INT);
     if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 
@@ -497,7 +497,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+    VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
@@ -554,7 +554,7 @@ implements VM_Uninterruptible, VM_Constants {
     VM.sysWrite("stashProcessorInPthread: my address = " +
       Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) + "\n");
 */
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
       this.id);
   }
   //-#endif
@@ -571,7 +571,7 @@ implements VM_Uninterruptible, VM_Constants {
     int newState, oldState;
     boolean result = true;
     do {
-      oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
         if (VM.VerifyAssertions) 
@@ -580,7 +580,7 @@ implements VM_Uninterruptible, VM_Constants {
         break;
       }
       newState = BLOCKED_IN_NATIVE;
-    } while (!(VM_Magic.attempt(VM_Magic.addressAsObject(vpStatusAddress), 
+    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
                                 0, oldState, newState)));
     return result;
   }
@@ -592,14 +592,14 @@ implements VM_Uninterruptible, VM_Constants {
     int oldState;
     boolean result = true;
     do {
-      oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_SIGWAIT) ;
       if (oldState != IN_SIGWAIT) {
         if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
         result = false;
         break;
       }
-    } while (!(VM_Magic.attempt(VM_Magic.addressAsObject(vpStatusAddress), 
+    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
                                 0, oldState, BLOCKED_IN_SIGWAIT)));
     return result;
   }
@@ -914,13 +914,13 @@ implements VM_Uninterruptible, VM_Constants {
     VM_Scheduler.writeString("\n");
     //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
     VM_Scheduler.writeString("Chunk1: "); 
-    VM_Scheduler.writeHex(startChunk1.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk1.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk1.toInt()); VM_Scheduler.writeString("\n");
+    VM_Scheduler.writeHex(startChunk1); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(currentChunk1); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(endChunk1); VM_Scheduler.writeString("\n");
     VM_Scheduler.writeString("Chunk2: "); 
-    VM_Scheduler.writeHex(startChunk2.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk2.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk2.toInt()); VM_Scheduler.writeString("\n");
+    VM_Scheduler.writeHex(startChunk2); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(currentChunk2); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(endChunk2); VM_Scheduler.writeString("\n");
     //-#endif
   }
 

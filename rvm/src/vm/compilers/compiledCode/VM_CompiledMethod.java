@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
+public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_SizeConstants {
 
   public final static int TRAP      = 0; // no code: special trap handling stackframe
   public final static int BASELINE  = 1; // baseline code
@@ -69,7 +69,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     // set jtoc
     this.osrJTOCoffset = VM_Statics.allocateSlot(VM_Statics.METHOD);
     VM_Statics.setSlotContents(this.osrJTOCoffset, this.instructions);
-    this.osrJTOCoffset <<= 2;
+    this.osrJTOCoffset <<= LOG_BYTES_IN_INT;
   }
 
   public boolean isSpecialForOSR() {
@@ -241,7 +241,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * gc disabled when called by VM_Runtime.deliverException().
    * </ul>
    */
-  public abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
+  public abstract VM_Offset findCatchBlockForInstruction(VM_Offset instructionOffset, VM_Type exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of 
@@ -270,7 +270,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * <ul>
    */
   public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                               int instructionOffset) throws VM_PragmaUninterruptible;
+                               VM_Offset instructionOffset) throws VM_PragmaUninterruptible;
 
    /**
     * Find source line number corresponding to one of this method's 
@@ -293,7 +293,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  public int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
+  public int findLineNumberForInstruction(VM_Offset instructionOffset) throws VM_PragmaUninterruptible {
     return 0;
   }
 
@@ -302,19 +302,19 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintStream to print the stack trace to.
    */
-  public abstract void printStackTrace(int instructionOffset, java.io.PrintStream out);
+  public abstract void printStackTrace(VM_Offset instructionOffset, java.io.PrintStream out);
      
   /**
    * Print this compiled method's portion of a stack trace 
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintWriter to print the stack trace to.
    */
-  public abstract void printStackTrace(int instructionOffset, java.io.PrintWriter out);
+  public abstract void printStackTrace(VM_Offset instructionOffset, java.io.PrintWriter out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public abstract void set(VM_StackBrowser browser, int instr);
+  public abstract void set(VM_StackBrowser browser, VM_Offset instr);
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible

@@ -22,6 +22,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_Registers;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Thread;
@@ -476,7 +477,7 @@ public class VM_CollectorThread extends VM_Thread {
 	// first unblock the processor
 	vp.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_SIGWAIT;
 	// then send signal
-	VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
+	VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
 	continue;
       }
 

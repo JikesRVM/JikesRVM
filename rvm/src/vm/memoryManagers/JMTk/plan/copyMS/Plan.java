@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -84,10 +85,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT       NURSERY_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 2.3));
-  private static final EXTENT            MS_SIZE = NURSERY_SIZE;
-  protected static final EXTENT         LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 2.3 * 0.3));
-  public  static final EXTENT           MAX_SIZE = MS_SIZE;
+  private static final VM_Extent    NURSERY_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
+  private static final VM_Extent         MS_SIZE = NURSERY_SIZE;
+  protected static final VM_Extent      LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
+  public  static final VM_Extent        MAX_SIZE = MS_SIZE;
   protected static final VM_Address    LOS_START = PLAN_START;
   protected static final VM_Address      LOS_END = LOS_START.add(LOS_SIZE);
   private static final VM_Address       MS_START = LOS_END;
@@ -524,15 +525,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * mark-sweep collector.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * @param forwardingWord The forwarding word, which is the GC word
    * of the original object, and typically encodes some GC state as
    * well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
-    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | msSpace.getInitialHeaderValue();
+					     int forwardingWord, int bytes) {
+    return (forwardingWord & ~HybridHeader.GC_BITS_MASK) | msSpace.getInitialHeaderValue();
   }
 
 

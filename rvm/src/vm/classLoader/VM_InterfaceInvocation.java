@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.*;
  * @author Stephen Fink
  * @author Dave Grove
  */
-public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
+public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeConstants {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.
@@ -342,7 +342,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	vm.compile();
 	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>2];
+	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -431,7 +431,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     // Convert from the internally visible IMTOffset to an index
     // into my internal data structure.
     private int getIndex(VM_InterfaceMethodSignature sig) {
-      int idx = sig.getIMTOffset() >> 2;
+      int idx = sig.getIMTOffset() >> LOG_BYTES_IN_ADDRESS;
       if (VM.BuildForEmbeddedIMT) {
 	idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
       }
@@ -486,7 +486,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	    target.compile();
 	    IMT[extSlot] = target.getCurrentInstructions();
 	  } else {
-	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>2];
+	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
 	    if (klass.noIMTConflictMap == null) {
 	      klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
 	    }

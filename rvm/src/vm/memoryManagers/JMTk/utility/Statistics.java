@@ -384,8 +384,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (VERIFY_ALIGNMENT) {
-      if ((size & ~(WORDSIZE - 1)) != size ||
-          VM_Memory.align(addr, WORDSIZE).NE(addr)) {
+      if ((size & ~(BYTES_IN_WORD - 1)) != size ||
+          VM_Memory.alignUp(addr, BYTES_IN_WORD).NE(addr)) {
         VM.sysWrite("Non word size aligned region allocated ");
         VM.sysWrite("size is ", size);
         VM.sysWriteln(" address is ", addr.toInt());

@@ -17,7 +17,7 @@ public final class VM_StackBrowser implements VM_Constants {
     private int currentBytecodeIndex;
 
     private VM_Address currentFramePointer;
-    private int currentInstructionPointer;
+	 private VM_Offset currentInstructionPointer;
     private VM_CompiledMethod currentCompiledMethod;
     
     //-#if RVM_WITH_OPT_COMPILER
@@ -38,7 +38,7 @@ public final class VM_StackBrowser implements VM_Constants {
 
 	VM_Address prevFP = fp;
 	VM_Address newFP = VM_Magic.getCallerFramePointer(fp);
-	if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
+	if (newFP.EQ(STACKFRAME_SENTINAL_FP) )
 	    return false;
 	// getReturnAddress has to be put here, consider the case
 	// on ppc, when fp is the frame above SENTINAL FP
@@ -50,7 +50,7 @@ public final class VM_StackBrowser implements VM_Constants {
 
 	    prevFP = newFP;
 	    newFP = VM_Magic.getCallerFramePointer( newFP );
-	    if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
+	    if (newFP.EQ(STACKFRAME_SENTINAL_FP) )
 		return false;
 		newIP = VM_Magic.getReturnAddress(prevFP);
 		
@@ -61,7 +61,7 @@ public final class VM_StackBrowser implements VM_Constants {
 	    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	    
 	    currentFramePointer = newFP;
-	    currentInstructionPointer = newIP.diff( VM_Magic.objectAsAddress(cm.getInstructions()) ).toInt();
+	    currentInstructionPointer = newIP.diff( VM_Magic.objectAsAddress(cm.getInstructions()));
 	    
 	    cm.set( this, currentInstructionPointer );
 	}

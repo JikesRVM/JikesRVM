@@ -86,11 +86,11 @@ public final class OSR_BaselineExecStateExtractor
     INSTRUCTION[] instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    int instr_beg = VM_Magic.objectAsAddress(instructions).toInt();
-    int rowIP     = VM_Magic.getIntAtOffset(stack, 
-		       osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET);
-    int ipIndex   = (rowIP - instr_beg) >> LG_INSTRUCTION_WIDTH;
+    VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);
+    VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add( 
+		       osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET)); 
     VM.enableGC();
+    int ipIndex   = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
     
     // CAUTION: IP Offset should point to next instruction
     int bcIndex = fooCM.findBytecodeIndexForInstruction(ipIndex + 1);
@@ -146,7 +146,7 @@ public final class OSR_BaselineExecStateExtractor
       // if typer reports a local is reference type, but the GC map says no
       // then set the localType to uninitialized, see VM spec, bytecode verifier
       if (localTypes[i] == ClassTypeCode) {
-	if (!fooCM.referenceMaps.isLocalRefType(fooM, ipIndex + 1, i)) {
+	if (!fooCM.referenceMaps.isLocalRefType(fooM, ipIndex+ 1, i)) {
 	  localTypes[i] = VoidTypeCode;
 	  if (VM.TraceOnStackReplacement) {
 	    VM.sysWriteln("GC maps disagrees with type matcher at "+i+"th local\n");
@@ -253,13 +253,13 @@ public final class OSR_BaselineExecStateExtractor
       }
       case AddressTypeCode: {
 	VM.disableGC();
-	int rowIP = VM_Magic.getIntAtOffset(stack, vOffset);
-	int instr_beg = VM_Magic.objectAsAddress(instructions).toInt();	
+	VM_Address rowIP = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(vOffset));
+	VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);	
 	VM.enableGC();
 
 	vOffset -= 4;
 
-	int ipIndex = (rowIP - instr_beg) >> LG_INSTRUCTION_WIDTH;
+	int ipIndex = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
 
         if (VM.TraceOnStackReplacement) {
 	  VM.sysWrite("baseline addr ip "+ipIndex+" --> ");

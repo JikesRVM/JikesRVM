@@ -115,9 +115,8 @@ public interface VM_RegisterConstants {
   // 1 for AIX
   // 0 for LINUX
   static final int JNI_GLUE_FRAME_PADDING = 
-	(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE
-	 + VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT_MASK) 
-	& ~VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT_MASK;
+	VM_Memory.alignUp(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
+	  VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
 
   // offset to previous to java frame
   static final int JNI_GLUE_FRAME_OTHERS  = 1;
@@ -176,10 +175,9 @@ public interface VM_RegisterConstants {
 //-#if RVM_FOR_LINUX
   // LINUX saves prologue address in lr slot of glue frame (1), see picture blow
   static final int JNI_GC_FLAG_OFFSET                = JNI_AFFINITY_OFFSET + 4;
-  static final int JNI_MINI_FRAME_POINTER_OFFSET     = 
-	( JNI_GC_FLAG_OFFSET + VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE
-	  + VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT_MASK) 
-	& ~VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT_MASK;
+  static final int JNI_MINI_FRAME_POINTER_OFFSET     = VM_Memory.alignUp(
+	 JNI_GC_FLAG_OFFSET + VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
+	 VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
 
   static final int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
   // Linux uses different transition scheme, in Java-to-Native transition

@@ -133,14 +133,14 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * A prepare on the word containing the available bits
    */
   public static int prepareAvailableBits(Object o) {
-    return VM_Magic.prepare(o, TIB_OFFSET);
+    return VM_Magic.prepareInt(o, TIB_OFFSET);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
   public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
-    return VM_Magic.attempt(o, TIB_OFFSET, oldVal, newVal);
+    return VM_Magic.attemptInt(o, TIB_OFFSET, oldVal, newVal);
   }
   
   /**
@@ -261,8 +261,8 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
       } else {
 	int tmp;
 	do {
-	  tmp = VM_Magic.prepare(o, TIB_OFFSET);
-	} while (!VM_Magic.attempt(o, TIB_OFFSET, tmp, tmp | HASH_STATE_HASHED));
+	  tmp = VM_Magic.prepareInt(o, TIB_OFFSET);
+	} while (!VM_Magic.attemptInt(o, TIB_OFFSET, tmp, tmp | HASH_STATE_HASHED));
 	if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
 	return getObjectHashCode(o);
       }
@@ -287,7 +287,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-    int size = VM_Memory.align(type.getInstanceSize(numElements), 4);
+    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), 4);
     int hashState = VM_Magic.getIntAtOffset(fromObj, TIB_OFFSET) & HASH_STATE_MASK;
     if (hashState != HASH_STATE_UNHASHED) {
       size += HASHCODE_BYTES;

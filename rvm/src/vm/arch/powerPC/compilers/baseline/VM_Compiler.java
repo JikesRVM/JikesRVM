@@ -83,7 +83,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8;
       size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4;
     }
-    size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
+    size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
     return size;
   }
 
@@ -100,7 +100,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       argSpace = 32;
     int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
 
-    size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
+    size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
     return size;
   }
 
@@ -2461,8 +2461,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
       //-#if RVM_WITH_OSR
       // round up first, save scratch FPRs
-      offset = (offset - STACKFRAME_ALIGNMENT_MASK) & 
-	       ~STACKFRAME_ALIGNMENT_MASK;
+      offset = VM_Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
 
       for (int i = LAST_SCRATCH_FPR; i >= FIRST_SCRATCH_FPR; --i)
 	asm.emitSTFD(i, offset -= 8, FP);

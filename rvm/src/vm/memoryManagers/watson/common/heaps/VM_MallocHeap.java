@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_SysCall;
 
 /**
  * An area representing space manipulated by malloc-free.
@@ -120,7 +121,7 @@ public class VM_MallocHeap extends VM_Heap
    * @param addr the pointer to free
    */
   public void free(VM_Address addr) throws VM_PragmaUninterruptible {
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
     // Cannot correctly change start/end here
   }
 
@@ -137,7 +138,7 @@ public class VM_MallocHeap extends VM_Heap
     //       This method is sometimes called when the GC system is in a delicate state.
     spaceLock.lock();
 
-    VM_Address region = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
+    VM_Address region = VM_Address.fromInt(VM_SysCall.call1(VM_BootRecord.the_boot_record.sysMallocIP, size));
     VM_Address regionEnd = region.add(size);
     if (region.isZero()) {
       VM.sysWriteln("VM_MallocHeap failed to malloc ", size, " bytes");

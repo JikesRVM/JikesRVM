@@ -211,6 +211,59 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   memAddr, 
 					   new OPT_IntConstantOperand(0), 
 					   null));
+    } else if (methodName == VM_MagicNames.sysCall0) {
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create0(SYSCALL, op0, ip, null));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall_L_0) {
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
+      bc2ir.appendInstruction(Call.create0(SYSCALL, op0, ip, null));
+      bc2ir.pushDual(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall_L_I) {
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
+      bc2ir.appendInstruction(Call.create1(SYSCALL, op0, ip, null, p1));
+      bc2ir.pushDual(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall1) {
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create1(SYSCALL, op0, ip, null, p1));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall2) {
+      OPT_Operand p2 = bc2ir.popInt();
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create2(SYSCALL, op0, ip, null, p1, p2));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCallAD) {
+      OPT_Operand p2 = bc2ir.popDouble();
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create2(SYSCALL, op0, ip, null, p1, p2));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall3) {
+      OPT_Operand p3 = bc2ir.popInt();
+      OPT_Operand p2 = bc2ir.popInt();
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create3(SYSCALL, op0, ip, null, p1, p2, p3));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sysCall4) {
+      OPT_Operand p4 = bc2ir.popInt();
+      OPT_Operand p3 = bc2ir.popInt();
+      OPT_Operand p2 = bc2ir.popInt();
+      OPT_Operand p1 = bc2ir.popInt();
+      OPT_Operand ip = bc2ir.popInt();
+      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Call.create4(SYSCALL, op0, ip, null, p1, p2, p3, p4));
+      bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
@@ -412,15 +465,45 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       VM_Field target = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, null, new OPT_IntConstantOperand(target.getOffset()), mo, bc2ir.popRef()));
-    } else if (methodName == VM_MagicNames.prepare) {
+    } else if (methodName == VM_MagicNames.prepareInt) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand base = bc2ir.popRef();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Prepare.create(PREPARE, val, base, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.attempt) {
+    } else if (methodName == VM_MagicNames.prepareObject) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      bc2ir.appendInstruction(Prepare.create(PREPARE, val, base, offset, null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.prepareAddress) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
+      bc2ir.appendInstruction(Prepare.create(PREPARE, val, base, offset, null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.attemptInt) {
       OPT_Operand newVal = bc2ir.popInt();
       OPT_Operand oldVal = bc2ir.popInt();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand test = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Attempt.create(ATTEMPT, test, base, offset, oldVal, 
+					     newVal, null));
+      bc2ir.push(test.copyD2U());
+    } else if (methodName == VM_MagicNames.attemptObject) {
+      OPT_Operand newVal = bc2ir.popRef();
+      OPT_Operand oldVal = bc2ir.popRef();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand test = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Attempt.create(ATTEMPT, test, base, offset, oldVal, 
+					     newVal, null));
+      bc2ir.push(test.copyD2U());
+    } else if (methodName == VM_MagicNames.attemptAddress) {
+      OPT_Operand newVal = bc2ir.popAddress();
+      OPT_Operand oldVal = bc2ir.popAddress();
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand base = bc2ir.popRef();
       OPT_RegisterOperand test = gc.temps.makeTempInt();
@@ -449,7 +532,9 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					  VM_MethodReference meth, VM_Atom methodName) {
     VM_TypeReference [] paramTypes = meth.getParameterTypes();
     VM_TypeReference resultType = meth.getReturnType();
-    if (methodName == VM_MagicNames.wordFromInt) { 
+    if (methodName == VM_MagicNames.wordFromInt ||
+	methodName == VM_MagicNames.wordFromIntZeroExtend ||
+	methodName == VM_MagicNames.wordFromIntSignExtend) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());

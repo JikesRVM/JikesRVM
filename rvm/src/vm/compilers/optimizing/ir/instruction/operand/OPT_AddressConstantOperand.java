@@ -56,7 +56,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   }
 
   public int hashCode() {
-    return value.toInt();
+    return value.generateHashCode();
   }
 
   /**
@@ -65,6 +65,10 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
+    //-#if RVM_FOR_64_ADDR
+    return "Addr " + value.toLong();
+    //-#else
     return "Addr " + value.toInt();
+    //-#endif
   }
 }

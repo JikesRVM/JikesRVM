@@ -89,7 +89,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	ScanObject.rootScan(t.contextRegisters);
 	ScanObject.rootScan(t.hardwareExceptionRegisters);
 	if (oldstack != t.stack) 
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
+	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
 	
 	if (VM.VerifyAssertions) {
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
@@ -142,7 +142,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   }
 
 
-  static private VM_Address sentinelFP = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
+  static private VM_Address sentinelFP = STACKFRAME_SENTINAL_FP;
 
   /**
    * Scans a threads stack during collection to find object references.

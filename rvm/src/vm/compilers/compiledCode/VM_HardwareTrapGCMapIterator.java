@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
-public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible {
+public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible, VM_SizeConstants {
 
   public VM_HardwareTrapGCMapIterator(int[] registerLocations) {
     this.registerLocations = registerLocations;
@@ -32,7 +32,7 @@ public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator impleme
     VM_Address registerLocation = VM_Magic.objectAsAddress(thread.hardwareExceptionRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations[i] = registerLocation.toInt();
-      registerLocation = registerLocation.add(4);
+      registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
     }
     return VM_Address.zero();
   }

@@ -37,14 +37,14 @@ public class VM_Time implements VM_Uninterruptible {
   public static double now() {
     //-#if RVM_FOR_POWERPC
     //-#if RVM_FOR_LINUX
-    long currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    long currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     double time = (double) currentTime / 1000000D;
     //-#else
     double time = VM_Magic.getTime(VM_Processor.getCurrentProcessor());
     //-#endif
     //-#endif
     //-#if RVM_FOR_IA32
-    long currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    long currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     double time = (double) currentTime / 1000000D;
     //-#endif
     return time;
@@ -55,7 +55,7 @@ public class VM_Time implements VM_Uninterruptible {
    */ 
   public static long currentTimeMillis() {
     long currentTime;
-    currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     currentTime /= 1000;
     return currentTime;
   }

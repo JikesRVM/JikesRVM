@@ -401,7 +401,7 @@ implements OPT_Operators, OPT_Constants {
            e.hasMoreElements();) {
         OPT_Instruction s = e.next();
         boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR);
-        if (isSynch || Call.conforms(s) || CallSpecial.conforms(s) || 
+        if (isSynch || Call.conforms(s) || 
             MonitorOp.conforms(s) || Prepare.conforms(s) || Attempt.conforms(s)
             || CacheOp.conforms(s) 
             || s.isDynamicLinkingPoint()) {

@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.opt.*;
  * @author Derek Lieber
  * @author Arvin Shepherd
  */
-public class VM_CompiledMethods {
+public class VM_CompiledMethods implements VM_SizeConstants {
 
   /**
    * Create a VM_CompiledMethod appropriate for the given compilerType
@@ -205,7 +205,7 @@ public class VM_CompiledMethods {
       INSTRUCTION[] code = cm.getInstructions();
       codeCount[ct]++;
       int size = codeArray.getInstanceSize(code.length);
-      codeBytes[ct] += VM_Memory.align(size, 4);
+      codeBytes[ct] += VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
     VM.sysWriteln("Compiled code space report\n");

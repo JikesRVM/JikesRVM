@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
+public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_SizeConstants
 //-#if RVM_WITH_OSR
   , OSR_Constants
 //-#endif
@@ -1924,7 +1924,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int "+value);
 	  
 	  int slot = VM_Statics.findOrCreateIntLiteral(value);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc(offset);
 	    
@@ -1936,7 +1936,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long "+value);
 	  
 	  int slot = VM_Statics.findOrCreateLongLiteral(value);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc2(offset);
 
@@ -1948,7 +1948,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float "+ibits);
 	  
 	  int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc(offset);
 
@@ -1960,7 +1960,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double "+lbits);
 	  
 	  int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc2(offset);
 

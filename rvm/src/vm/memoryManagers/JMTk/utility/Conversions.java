@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM;
 
@@ -18,8 +19,8 @@ import com.ibm.JikesRVM.VM;
  */
 public class Conversions implements Constants, VM_Uninterruptible {
 
-  public static int roundDownMB (EXTENT bytes) {
-    return (bytes >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE;
+  public static VM_Extent roundDownMB (VM_Extent bytes) {
+    return VM_Extent.fromInt((bytes.toInt() >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE);
   }
 
   // Round up (if necessary)

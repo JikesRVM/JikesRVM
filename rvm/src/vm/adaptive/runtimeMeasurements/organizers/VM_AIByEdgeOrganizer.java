@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
@@ -123,7 +124,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       if (compiledMethod == null) continue;
       VM_Method stackFrameCaller = compiledMethod.getMethod();
        
-      int MCOffset = buffer[i+2];
+      VM_Offset MCOffset = VM_Offset.fromInt(buffer[i+2]);
       int bytecodeIndex = -1;
       VM_Method caller = null;
 
@@ -138,7 +139,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	    (VM_BaselineCompiledMethod)compiledMethod;
 	  // note: the following call expects the offset in INSTRUCTIONS!
 	  bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
-	    (MCOffset>>VM.LG_INSTRUCTION_WIDTH);
+	    (MCOffset.toInt()>>VM.LG_INSTRUCTION_WIDTH);
 	  caller = stackFrameCaller;
 	}
 	break;
@@ -153,41 +154,41 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	      // to a runtimeSerivce routine. 
 	      // We aren't setup to inline such methods anyways, 
 	      // so skip the sample.
-	      if (DEBUG) VM.sysWrite("  *** SKIP SAMPLE "+
-				     stackFrameCaller+"@"+compiledMethod+
-				     " at MC offset "+MCOffset+
-				     " calling "+callee+
-				     " due to invalid bytecodeIndex\n");
+	      if (DEBUG) {VM.sysWrite("  *** SKIP SAMPLE "+
+				     		stackFrameCaller+"@"+compiledMethod+
+	 				      " at MC offset ", MCOffset.toInt());
+				     VM.sysWrite(" calling "+callee+" due to invalid bytecodeIndex\n");}
 	      continue; // skip sample.
 	    }
 	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	    VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset("+MCOffset
-			+") ArrayIndexOutOfBounds!\n");
+	    VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset.toInt());
+		 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
 	    e.printStackTrace(); caller = stackFrameCaller;
 	    continue;  // skip sample
 	  } catch (OPT_OptimizingCompilerException e) {
 	    VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset "+MCOffset+"!\n");
+			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset.toInt());
+		 VM.sysWrite("!\n");
 	    continue;  // skip sample
 	  }
 	  
 	  try {
 	    caller = mc_map.getMethodForMCOffset(MCOffset);
 	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset("
-			+MCOffset+") ArrayIndexOutOfBounds!\n");
+	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset.toInt());
+		 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
 	    e.printStackTrace(); caller = stackFrameCaller;
 	    continue;
 	  } catch (OPT_OptimizingCompilerException e) {
 	    VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset "
-			+MCOffset+"!\n");
+			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset.toInt());
+		 VM.sysWrite("!\n");
 	    continue;  // skip sample
 	  }
 
 	  if (caller == null) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset("+
-			MCOffset+") returned null!\n");
+	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset.toInt());
+		 VM.sysWrite(") returned null!\n");
 	    caller = stackFrameCaller;
 	    continue;  // skip sample
 	  }

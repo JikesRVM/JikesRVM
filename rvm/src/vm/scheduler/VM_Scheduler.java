@@ -194,7 +194,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
     // so reset here...maybe change everything to just use index
-    primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(primordialProcessor.vpStatusIndex<<2);
+    primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(primordialProcessor.vpStatusIndex<<LOG_BYTES_IN_INT);
     // Create NativeDaemonProcessor as N+1st processor in the processors array.
     // It is NOT included in "numProcessors" which is the index of the last RVM processor.
     //
@@ -315,7 +315,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
 
-      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
@@ -436,12 +436,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // each join with the expected pthread 
     if (VPtoWaitFor!=null) {
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadJoinIP,
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadJoinIP,
                   VPtoWaitFor.pthread_id);
     }
 
     // then exit myself with pthread_exit
-    VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadExitIP);	
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadExitIP);	
 
     // does not return
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -498,7 +498,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * Print out message in format "p[j] (cez#td) who: what howmany", where:
    *    p  = processor id
    *    j  = java thread id
-   *    c* = ava thread id of the owner of threadCreationMutex (if any)
+   *    c* = java thread id of the owner of threadCreationMutex (if any)
    *    e* = java thread id of the owner of threadExecutionMutex (if any)
    *    z* = VM_Processor.getCurrentProcessor().threadSwitchingEnabledCount
    *         (0 means thread switching is enabled outside of the call to debug)
@@ -520,7 +520,27 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   }
 
   public static void trace(String who, String what, VM_Address addr) {
-    _trace( who, what, addr.toInt(), true );
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    lockOutput();
+    writeDecimal(VM_Processor.getCurrentProcessorId());
+    writeString("[");
+    VM_Thread.getCurrentThread().dump();
+    writeString("] ");
+    if (traceDetails) {
+      writeString("(");
+      writeDecimal(numDaemons);
+      writeString("/");
+      writeDecimal(numActiveThreads);
+      writeString(") ");
+    }
+    writeString(who);
+    writeString(": ");
+    writeString(what);
+    writeString(" ");
+    writeHex(addr);
+    writeString("\n");
+    unlockOutput();
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
   private static void _trace(String who, String what, int howmany, boolean hex) {
@@ -606,7 +626,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    */
   public static void dumpStack (VM_Address ip, VM_Address fp) {
     writeString("\n-- Stack --\n");
-    while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
@@ -627,8 +647,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	  writeString("   <hardware trap>\n");
 	} else {
 	  VM_Method         method            = compiledMethod.getMethod();
-	  int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
-	  int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
+	  VM_Offset         instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
+	  //int               lineNumber        = compiledMethod.findLineNumberForInstruction(VM_Offset.fromInt(instructionOffset.toInt()>>>LG_INSTRUCTION_WIDTH));//TODO: write cleaner
+	  int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
 	  
 	  //-#if RVM_WITH_OPT_COMPILER
 	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
@@ -700,7 +721,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     } else {
       // Another failure occured while attempting to exit cleanly.  
       // Get out quick and dirty to avoid hanging.
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysExitIP, 9999);
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, 9999);
     }
   }
 
@@ -773,8 +794,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForSingleVirtualProcessor) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
-      int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
-      if (processorId == 0 && VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), 0, VM_Processor.getCurrentProcessorId())) {
+      int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
+      if (processorId == 0 && VM_Magic.attemptInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), 0, VM_Processor.getCurrentProcessorId())) {
         break; 
       }
     } while (true);
@@ -787,9 +808,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?
     else {
       do {
-        int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
+        int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
         if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) VM.sysExit(664);
-        if (VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), processorId, 0)) {
+        if (VM_Magic.attemptInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), processorId, 0)) {
           break; 
         }
       } while (true);
@@ -819,6 +840,24 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       }
       n <<= 4;
     }
+  }
+
+  public static void writeHex (long n) {
+    int    index = 18;
+    while (--index > 1) {
+      int digit = (int) (n & 0x000000000000000f);
+      if (digit <= 9) VM.sysWrite((char)('0' + digit)); 
+      else VM.sysWrite((char)('a' + digit - 10));
+      n >>= 4;
+    }
+  }
+
+  public static void writeHex (VM_Address n) {
+    //-#if RVM_FOR_64_ADDR
+    writeHex(n.toLong());
+    //-#else
+    writeHex(n.toInt());
+    //-#endif 
   }
 
   static void writeDecimal (int n) {

@@ -29,10 +29,9 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
       
     VM_Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 	
-    int fooFPOffset = myThread.fooFPOffset;
-    VM_Magic.setIntAtOffset(myThread.stack, 
-			    fooFPOffset + STACKFRAME_NEXT_INSTRUCTION_OFFSET, 
-			    bridgeaddr.toInt());
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(myThread.stack).add( 
+			    myThread.fooFPOffset + STACKFRAME_NEXT_INSTRUCTION_OFFSET), 
+			    bridgeaddr);
     myThread.fooFPOffset = 0;
 
     myThread.isWaitingForOsr = false;

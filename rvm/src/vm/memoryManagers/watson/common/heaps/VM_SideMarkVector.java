@@ -117,9 +117,9 @@ final class VM_SideMarkVector implements VM_Constants {
     int oldValue;
     int newValue;
     do {
-      oldValue = VM_Magic.prepare(marks, offset);
+      oldValue = VM_Magic.prepareInt(marks, offset);
       newValue = (oldValue & mask) | newval;
-    } while (! VM_Magic.attempt(marks, offset, oldValue, newValue));
+    } while (! VM_Magic.attemptInt(marks, offset, oldValue, newValue));
   }
 
 
@@ -137,14 +137,14 @@ final class VM_SideMarkVector implements VM_Constants {
     int oldValue;
     int newValue;
     do {
-      oldValue = VM_Magic.prepare(marks, offset);
+      oldValue = VM_Magic.prepareInt(marks, offset);
       int markBit = getBit(oldValue, bitnum);
       if (markBit == value) {
 	if (DEBUG) VM.sysWriteln(" [false]");
 	return false;
       }
       newValue = oldValue ^ bitval;
-    } while (! VM_Magic.attempt(marks, offset, oldValue, newValue));
+    } while (! VM_Magic.attemptInt(marks, offset, oldValue, newValue));
 
     if (DEBUG) VM.sysWriteln(" [true]");
     return true;

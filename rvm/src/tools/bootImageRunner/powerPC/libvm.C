@@ -1032,8 +1032,8 @@ int createJVM(int vmInSeparateThread) {
    int  fp   = (int)sp;
         fp  -= VM_Constants_STACKFRAME_HEADER_SIZE;
 
-	    // align fp
-		fp   = fp & ~VM_Constants_STACKFRAME_ALIGNMENT_MASK;
+	// align fp
+	fp   = fp & ~(VM_Constants_STACKFRAME_ALIGNMENT -1);
 	
    *(int *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
    *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;

@@ -440,25 +440,30 @@ final class OPT_CallingConvention extends OPT_IRTools
     
     // Determine the address of the method to call.
     OPT_RegisterOperand ip = null;
-    if (CallSpecial.getMethod(s) != null) {
-      OPT_SysMethodOperand sysM = 
-	(OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
+    if (Call.getMethod(s) != null) {
+      OPT_MethodOperand sysM = Call.getClearMethod(s);
       OPT_RegisterOperand t1 = 
 	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, sysM.ip);
+      VM_Field target = null;
+      try {
+	target = sysM.getMemberRef().asFieldReference().resolve();
+      } catch (ClassNotFoundException e) {
+	VM.sysFail("Cannot happen");
+      }
+      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, target);
     } else {
-      ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
+      ip = (OPT_RegisterOperand)Call.getClearAddress(s);
     }
 
     // Allocate space to save non-volatiles.
     allocateSpaceForSysCall(ir);
     
     // Make sure we allocate enough space for the parameters to this call.
-    int numberParams = CallSpecial.getNumberOfParams(s);
+    int numberParams = Call.getNumberOfParams(s);
     int parameterWords = 0;
     for (int i = 0; i < numberParams; i++) {
       parameterWords++;
-      OPT_Operand op = CallSpecial.getParam(s, i);
+      OPT_Operand op = Call.getParam(s, i);
       parameterWords += op.getType().getStackWords();
     }
     // allocate space for each parameter, plus one word on the stack to
@@ -466,7 +471,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     ir.stackManager.allocateParameterSpace((1 + parameterWords)*4);
                                                    
     // Convert to a SYSCALL instruction with a null method operand.
-    CallSpecial.mutate0(s, SYSCALL, CallSpecial.getClearResult(s), ip, null);
+    Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
   }
 
   /**

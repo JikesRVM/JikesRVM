@@ -1057,6 +1057,12 @@ implements BootImageWriterConstants {
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(null);
               VM_Statics.setSlotContents(rvmFieldSlot, w.toInt());
+            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
+              VM_Offset o = (VM_Offset) jdkFieldAcc.get(null);
+              VM_Statics.setSlotContents(rvmFieldSlot, o.toInt());
+            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
+              VM_Extent ex = (VM_Extent) jdkFieldAcc.get(null);
+              VM_Statics.setSlotContents(rvmFieldSlot, ex.toInt());
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
 	    }
@@ -1232,6 +1238,16 @@ implements BootImageWriterConstants {
             for (int i = 0; i < arrayCount; i++)
               bootImage.setFullWord(arrayImageOffset + (i << 2), values[i].toInt());
           }
+          else if (rvmElementType.equals(VM_Type.OffsetType)) {
+            VM_Offset values[] = (VM_Offset[]) jdkObject;
+            for (int i = 0; i < arrayCount; i++)
+              bootImage.setFullWord(arrayImageOffset + (i << 2), values[i].toInt());
+          }
+          else if (rvmElementType.equals(VM_Type.ExtentType)) {
+            VM_Extent values[] = (VM_Extent[]) jdkObject;
+            for (int i = 0; i < arrayCount; i++)
+              bootImage.setFullWord(arrayImageOffset + (i << 2), values[i].toInt());
+          }
           else
             fail("unexpected primitive array type: " + rvmArrayType);
         } else {
@@ -1365,6 +1381,12 @@ implements BootImageWriterConstants {
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
               VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());
+            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
+              VM_Offset o = (VM_Offset) jdkFieldAcc.get(jdkObject);
+              VM_Statics.setSlotContents(rvmFieldOffset, o.toInt());
+            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
+              VM_Extent e = (VM_Extent) jdkFieldAcc.get(jdkObject);
+              VM_Statics.setSlotContents(rvmFieldOffset, e.toInt());
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
 	    }
@@ -1402,7 +1424,7 @@ implements BootImageWriterConstants {
         if (tibImageOffset == OBJECT_NOT_ALLOCATED)
           fail("can't copy tib for " + jdkObject);
         int tibAddress = bootImageAddress + tibImageOffset;
-        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, tibAddress, rvmType);
+        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromInt(tibAddress), rvmType);
       }
 
       if (verbose >= 2) depth--;

@@ -25,6 +25,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_SysCall;
 
 /**
  * Class that manages work buffers of references to objects that need to
@@ -128,7 +129,7 @@ public class VM_GCWorkQueue {
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
       // spinABit() to spin when running with fewer proecssors than real processors
-      numRealProcessors = VM.sysCall0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+      numRealProcessors = VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
       if(trace)
 	VM_Scheduler.trace("VM_GCWorkQueue.initialSetup:","numRealProcessors =",numRealProcessors);
     }
@@ -511,7 +512,7 @@ public class VM_GCWorkQueue {
       myThread.extraBuffer2 = VM_Address.zero();
     }
     else {
-      bufferAddress = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, WORK_BUFFER_SIZE));
+      bufferAddress = VM_Address.fromInt(VM_SysCall.call1(VM_BootRecord.the_boot_record.sysMallocIP, WORK_BUFFER_SIZE));
       if (bufferAddress.isZero()) {
 	VM.sysWrite(" In VM_GCWorkQueue: call to sysMalloc for work buffer returned 0\n");
 	VM.shutdown(1901);
@@ -535,7 +536,7 @@ public class VM_GCWorkQueue {
     else if (myThread.extraBuffer2.isZero())
       myThread.extraBuffer2 = myThread.getBufferStart;
     else 
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, myThread.getBufferStart.toInt());
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, myThread.getBufferStart.toInt());
 
   }  // freeGetBuffer
 
@@ -561,7 +562,7 @@ public class VM_GCWorkQueue {
     }
     else {
       // yield executing operating system thread back to the operating system
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
       return 0;
     }
   }

@@ -44,8 +44,8 @@ class Queue implements Constants, VM_Uninterruptible {
     return bufferLast(buf, 1);
   }
   protected final int bufferLastOffset(int arity) throws VM_PragmaInline {
-    return USABLE_BUFFER_BYTES - WORDSIZE 
-      - (USABLE_BUFFER_BYTES % (arity<<LG_WORDSIZE));
+    return USABLE_BUFFER_BYTES - BYTES_IN_WORD 
+      - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_WORD));
   }
   protected final int bufferLastOffset(VM_Address buf) throws VM_PragmaInline {
     return bufferLastOffset(1);
@@ -59,8 +59,8 @@ class Queue implements Constants, VM_Uninterruptible {
   protected static final int PAGES_PER_BUFFER = 1<<LOG_PAGES_PER_BUFFER;
   private static final int LOG_BUFFER_SIZE = (LOG_PAGE_SIZE + LOG_PAGES_PER_BUFFER);
   protected static final int BUFFER_SIZE = 1<<LOG_BUFFER_SIZE;
-  protected static final int NEXT_FIELD_OFFSET = WORDSIZE;
-  protected static final int META_DATA_SIZE = WORDSIZE;
+  protected static final int NEXT_FIELD_OFFSET = BYTES_IN_WORD;
+  protected static final int META_DATA_SIZE = BYTES_IN_WORD;
   private static final int USABLE_BUFFER_BYTES = BUFFER_SIZE-META_DATA_SIZE;
   protected static final VM_Address TAIL_INITIAL_VALUE = VM_Address.fromInt(0);
 }

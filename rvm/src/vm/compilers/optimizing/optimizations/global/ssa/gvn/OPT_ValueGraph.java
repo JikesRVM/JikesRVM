@@ -169,8 +169,6 @@ class OPT_ValueGraph implements OPT_Operators {
       processIfCmp(s);
     else if (Call.conforms(s))
       processCall(s); 
-    else if (CallSpecial.conforms(s))
-      processCall(s); 
     else if (MonitorOp.conforms(s))
       processCall(s); 
     else if (Prepare.conforms(s))

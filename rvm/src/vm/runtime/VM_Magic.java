@@ -334,9 +334,25 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  public static int prepare(Object object, int offset) {
+  public static int prepareInt(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
+  }
+
+  /**
+   * Get contents of (object + offset) and begin conditional critical section.
+   */ 
+  public static Object prepareObject(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /**
+   * Get contents of (object + offset) and begin conditional critical section.
+   */ 
+  public static VM_Address prepareAddress(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Address.max();
   }
 
   /**
@@ -345,7 +361,29 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  public static boolean attempt(Object object, int offset, int oldValue, int newValue) {
+  public static boolean attemptInt(Object object, int offset, int oldValue, int newValue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return false;
+  }
+
+  /**
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Must be paired with a preceding prepare (which returned the oldValue)
+   * Returns true if successful.
+   * Ends conditional critical section.
+   */ 
+  public static boolean attemptObject(Object object, int offset, Object oldValue, Object newValue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return false;
+  }
+
+  /**
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Must be paired with a preceding prepare (which returned the oldValue)
+   * Returns true if successful.
+   * Ends conditional critical section.
+   */ 
+  public static boolean attemptAddress(Object object, int offset, VM_Address oldValue, VM_Address newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -778,27 +816,10 @@ public class VM_Magic {
   /*
    * Call a system function with 0..4 parameters.
    * Taken:    entrypoint address of function to be called
-   *           value to place in TOC register before calling function
    *           parameters to pass to function
    * Returned: value returned by function
    *
-   * Note: These are PowerPC or Intel specific.
-   *       Do not call them directly - use architecture independent VM.sysCall() instead.
-   *
    */
-//-#if RVM_FOR_POWERPC
-   public static int  sysCall0(VM_Address ip, VM_Address toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall1(VM_Address ip, VM_Address toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall2(VM_Address ip, VM_Address toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall3(VM_Address ip, VM_Address toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall4(VM_Address ip, VM_Address toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-
-   public static long sysCall_L_0(VM_Address ip, VM_Address toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_I(VM_Address ip, VM_Address toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCallAD(VM_Address ip, VM_Address toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-//-#endif
-
-//-#if RVM_FOR_IA32
    public static int  sysCall0(VM_Address ip) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
@@ -823,13 +844,13 @@ public class VM_Magic {
    public static int  sysCallAD(VM_Address ip, int p0, double p1) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-//-#endif
+
    public static int sysCallSigWait(VM_Address ip, VM_Address toc, int p0, 
-                                     int p1, VM_Registers r){ 
+                                     int p1, VM_Registers r){ //TODO: type of p1 to VM_Address 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 
-//-#if RVM_FOR_IA32
+  //-#if RVM_FOR_IA32
    /**
     * Set the floating-point rounding mode to round-towards-zero
     */
@@ -843,8 +864,7 @@ public class VM_Magic {
    public static void clearFloatingPointState() {
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
    }
-
-//-#endif
+  //-#endif
   
   //---------------------------------------//
   //            Cache Management.          //

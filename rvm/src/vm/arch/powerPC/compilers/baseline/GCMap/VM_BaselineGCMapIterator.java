@@ -107,7 +107,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       VM_Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
+      VM_Offset               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
       bridgeTarget                = dynamicLink.methodRef().getResolvedMember();

@@ -17,8 +17,9 @@ import java.lang.reflect.Field;
  *
  * @author Steve Fink
  * @author Dave Grove
+ * @modified Perry Cheng
  */
-public abstract class OPT_StaticFieldReader {
+public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 
   /**
    * Returns a constant operand with the current value of a static field.
@@ -31,7 +32,7 @@ public abstract class OPT_StaticFieldReader {
     if (VM.VerifyAssertions) VM._assert(field.isStatic());
 
     VM_TypeReference fieldType = field.getType();
-    int slot = field.getOffset() >>> 2;
+    int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
     if (fieldType == VM_TypeReference.Address) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
@@ -39,7 +40,15 @@ public abstract class OPT_StaticFieldReader {
     } else if (fieldType == VM_TypeReference.Word) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
-      return new OPT_AddressConstantOperand(VM_Address.fromInt(val.toInt()));
+      return new OPT_AddressConstantOperand(val.toAddress());
+    } else if (fieldType == VM_TypeReference.Offset) {
+      Object obj = getObjectStaticFieldValue(field);
+      int v = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toInt() : ((VM_Offset) obj).toInt();
+      return new OPT_AddressConstantOperand(VM_Address.fromInt(v));
+    } else if (fieldType == VM_TypeReference.Extent) {
+      Object obj = getObjectStaticFieldValue(field);
+      int v = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toInt() : ((VM_Extent) obj).toInt();
+      return new OPT_AddressConstantOperand(VM_Address.fromInt(v));
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);
@@ -70,7 +79,7 @@ public abstract class OPT_StaticFieldReader {
   public static int getIntStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
+      int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
       return VM_Statics.getSlotContentsAsInt(slot);
     } else {
       try {
@@ -107,7 +116,7 @@ public abstract class OPT_StaticFieldReader {
   public static float getFloatStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
+      int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
       int bits = VM_Statics.getSlotContentsAsInt(slot);
       return VM_Magic.intBitsAsFloat(bits);
     } else {
@@ -130,7 +139,7 @@ public abstract class OPT_StaticFieldReader {
   public static final long getLongStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
+      int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
       return VM_Statics.getSlotContentsAsLong(slot);
     } else {
       try {
@@ -152,7 +161,7 @@ public abstract class OPT_StaticFieldReader {
   public static final double getDoubleStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
+      int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
       long bits = VM_Statics.getSlotContentsAsLong(slot);
       return VM_Magic.longBitsAsDouble(bits);
     } else {
@@ -175,7 +184,7 @@ public abstract class OPT_StaticFieldReader {
   public static final Object getObjectStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
+      int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
       return VM_Statics.getSlotContentsAsObject(slot);
     } else {
       try {

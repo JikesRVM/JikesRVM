@@ -64,7 +64,7 @@ public final class VM_Field extends VM_Member {
    * How many bytes of memory words do value of this type take?
    */
   public final int getSize() {
-    return getType().getStackWords() << 2;
+    return getType().getStackWords() << LOG_BYTES_IN_ADDRESS;
   }
     
   /**
@@ -140,7 +140,7 @@ public final class VM_Field extends VM_Member {
     VM_TypeReference type = getType();
     if (!type.isReferenceType()) throw new IllegalArgumentException("field type mismatch");
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsObject(offset>>>2);
+      return VM_Statics.getSlotContentsAsObject(offset>>>LOG_BYTES_IN_INT);
     } else {
       if (obj == null)
 	throw new NullPointerException();
@@ -202,7 +202,7 @@ public final class VM_Field extends VM_Member {
 
   private int get32Bits(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsInt(offset >>> 2);  // divide by 4 to get words from bytes
+      return VM_Statics.getSlotContentsAsInt(offset >>> LOG_BYTES_IN_INT);
     } else {
       if (obj==null)
 	throw new NullPointerException();
@@ -212,7 +212,7 @@ public final class VM_Field extends VM_Member {
 
   private long get64Bits(Object obj) {
     if (isStatic()) {
-      long result = VM_Statics.getSlotContentsAsLong(offset >>> 2); // divide by 4 to get words from bytes
+      long result = VM_Statics.getSlotContentsAsLong(offset >>> LOG_BYTES_IN_INT); 
       return result;
     } else {
       if (obj==null)
@@ -253,7 +253,7 @@ public final class VM_Field extends VM_Member {
       if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	VM_Interface.putstaticWriteBarrier(offset, ref);
       }
-      VM_Statics.setSlotContents(offset>>>2, ref);
+      VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
     } else {
       if (obj == null)
 	throw new NullPointerException();
@@ -375,7 +375,7 @@ public final class VM_Field extends VM_Member {
 
   private void put32(Object obj, int value) {
     if (isStatic()) {
-      VM_Statics.setSlotContents( offset >>> 2, value );
+      VM_Statics.setSlotContents( offset >>> LOG_BYTES_IN_INT, value );
     } else {
       if (obj == null) throw new NullPointerException();
       VM_Magic.setIntAtOffset(obj, offset, value);
@@ -384,7 +384,7 @@ public final class VM_Field extends VM_Member {
 
   private void put64(Object obj, long value) {
     if (isStatic()) {
-      VM_Statics.setSlotContents( offset >>> 2, value );
+      VM_Statics.setSlotContents( offset >>> LOG_BYTES_IN_INT, value );
     } else {
       if (obj == null) throw new NullPointerException();
       VM_Magic.setLongAtOffset(obj, offset, value);

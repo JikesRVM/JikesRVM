@@ -21,11 +21,11 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
  * @author Steve Fink
  * @author Dave Grove
  */
-public interface VM_JavaHeaderConstants {
+public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
-  static final int JAVA_HEADER_END = -12;
+  static final int JAVA_HEADER_END = -BYTES_IN_ADDRESS - 2*BYTES_IN_INT;
 
-  static final int ARRAY_LENGTH_OFFSET = -4;
+  static final int ARRAY_LENGTH_OFFSET = -BYTES_IN_INT;
 
   /**
    * This object model supports two schemes for hashcodes:
@@ -54,8 +54,8 @@ public interface VM_JavaHeaderConstants {
   static final int HASH_STATE_HASHED           = 0x00000100;
   static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
   static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
-  static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
-  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
-  static final int HASHCODE_BYTES              = 4;
+  static final int HASHCODE_SCALAR_OFFSET      = -BYTES_IN_INT; // in "phantom word"
+  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - BYTES_IN_INT; // to left of header
+  static final int HASHCODE_BYTES              = BYTES_IN_INT;
   
 }

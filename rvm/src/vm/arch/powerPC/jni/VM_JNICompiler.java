@@ -112,8 +112,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     VM_Address gCFlagAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record).add(VM_Entrypoints.globalGCInProgressFlagField.getOffset());
 
-    int nativeIP  = method.getNativeIP();
-    int nativeTOC = method.getNativeTOC();
+    VM_Address nativeIP  = method.getNativeIP();
+    VM_Address nativeTOC = method.getNativeTOC();
 
     // NOTE:  this must be done before the condition VM_Thread.hasNativeStackFrame() become true
     // so that the first Java to C transition will be allowed to resize the stack
@@ -194,8 +194,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitMTLR(SP);
 
     // set the TOC and IP for branch to out_of_line code
-    asm.emitLVAL (JTOC,  nativeTOC);         // load TOC for native function into TOC reg
-    asm.emitLVAL (TI,    nativeIP);	      // load TI with address of native code
+    asm.emitLVAL (JTOC,  nativeTOC.toInt());         // load TOC for native function into TOC reg
+    asm.emitLVAL (TI,    nativeIP.toInt());	      // load TI with address of native code
 
     // go to part of prologue that is in the boot image. It will change the Processor
     // status to "in_native" and transfer to the native code.  On return it will
@@ -1198,7 +1198,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     VM_ForwardReference fr6 = asm.emitForwardBC(EQ);
 
     // check to see if this frame address is the sentinal since there may be no further Java frame below
-    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP);
+    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP.toInt());
     VM_ForwardReference fr5 = asm.emitForwardBC(NE);
     
     // save result GPRS 3-4  and FPRS 1
@@ -1236,7 +1236,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     fr5.resolve(asm);
     
     // check to see if this frame address is the sentinal since there may be no further Java frame below
-    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP);
+    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitL  (S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     asm.emitST (PROCESSOR_REGISTER, -JNI_PR_OFFSET, S0);  // store PR back into transition frame

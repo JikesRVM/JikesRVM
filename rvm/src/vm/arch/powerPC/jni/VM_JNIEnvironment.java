@@ -803,9 +803,9 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-    VM_Address fp = VM_Address.fromInt(VM_Magic.getMemoryInt(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    fp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    VM_Address gluefp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
+    VM_Address gluefp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
 
     // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
     // skipping the args which are not part of the arguments for the target method

@@ -24,7 +24,7 @@ package com.ibm.JikesRVM;
  * @date 10/2/00
  */
 // public class VM_JNIStartUp extends VM_Thread {
-public class VM_JNIStartUp implements Runnable {
+public class VM_JNIStartUp implements VM_SizeConstants, Runnable {
 
   static boolean trace = false;
 
@@ -43,12 +43,12 @@ public class VM_JNIStartUp implements Runnable {
 
     // obtain the JNIEnv pointer and the pthread ID
     // based on the struct parms defined in libjni.C
-    externalJNIEnvAddress = VM_Magic.getMemoryAddress(argAddress.add(4));
-    pthreadID             = VM_Magic.getMemoryInt(argAddress.add(8));
+    externalJNIEnvAddress = VM_Magic.getMemoryAddress(argAddress.add(BYTES_IN_ADDRESS));
+    pthreadID             = VM_Magic.getMemoryInt(argAddress.add(2*BYTES_IN_ADDRESS));
 
     if (trace) 
-      System.out.println("VM_JNIStartUp: " + VM.intAsHexString(argAddress.toInt()) +
-			 ", JNIEnvAddr=" + VM.intAsHexString(externalJNIEnvAddress.toInt()) +
+      System.out.println("VM_JNIStartUp: " + VM.addressAsHexString(argAddress) +
+			 ", JNIEnvAddr=" + VM.addressAsHexString(externalJNIEnvAddress) +
 			 ", pid=" + pthreadID);
     
   }
@@ -73,9 +73,9 @@ public class VM_JNIStartUp implements Runnable {
 
     if (trace) {
       System.out.println("VM_JNIStartUp: Java thread " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()) +
+			 VM.addressAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())) +
 			 " attaching external pthread " + pthreadID + "\n");
-      System.out.println("JNIEnv to be placed at " + VM.intAsHexString(externalJNIEnvAddress.toInt()));
+      System.out.println("JNIEnv to be placed at " + VM.addressAsHexString(externalJNIEnvAddress));
       
     }
 
@@ -124,7 +124,7 @@ public class VM_JNIStartUp implements Runnable {
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
     myEnv.setFromNative(
-      VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP),
+      VM_Constants.STACKFRAME_SENTINAL_FP,
       nativeVP,
       VM_Magic.getThreadId());
 
@@ -151,7 +151,7 @@ public class VM_JNIStartUp implements Runnable {
     if (trace) {
       System.out.println("VM_JNIStartUp: attached thread terminated, " +
 			 Thread.currentThread().getName() + ", " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
+			 VM.addressAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
     }
 
     // remove the VP data structure from the list maintained for GC
@@ -178,7 +178,7 @@ public class VM_JNIStartUp implements Runnable {
    * @param arg[1] a string "-pid xxxx" where xxxx is the decimal pthread ID
    */
   public static void main(String[] args) {
-    int externalJNIEnv = 0;
+    VM_Address externalJNIEnv = VM_Address.zero();
     int pthread_id = 0;
 
     if (trace) {
@@ -194,13 +194,18 @@ public class VM_JNIStartUp implements Runnable {
     VM_JNIEnvironment.boot();
 
     for (int i=0; i<args.length; i++) {
-      if (args[i].startsWith("-jni ")) 
-	externalJNIEnv = Integer.valueOf(args[i].substring(5)).intValue();
+      if (args[i].startsWith("-jni ")){ 
+	//-#if RVM_FOR_64_ADDR
+	externalJNIEnv = VM_Address.fromLong(Long.valueOf(args[i].substring(5)).longValue());
+	//-#else
+	externalJNIEnv = VM_Address.fromIntZeroExtend(Integer.valueOf(args[i].substring(5)).intValue());
+	//-#endif
+      }
       if (args[i].startsWith("-pid ")) 
 	pthread_id = Integer.valueOf(args[i].substring(5)).intValue();
     }
     
-    if (externalJNIEnv==0) {
+    if (externalJNIEnv.isZero()) {
       System.out.println("VM_JNIStartUp:  ERROR, external JNIEnv required for JNI_CreateJavaVM");
       System.exit(-1);
     } else if (pthread_id==0) {
@@ -211,11 +216,10 @@ public class VM_JNIStartUp implements Runnable {
 
     if (trace) {
       System.out.println("Main VM_Thread is " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
-      System.out.println("env for external pthread is " + VM.intAsHexString(externalJNIEnv));
-      System.out.println("AttachRequest at " + 
-			 VM.intAsHexString(VM_BootRecord.the_boot_record.attachThreadRequestedOffset + 
-					   VM_Magic.getTocPointer().toInt()));
+			 VM.addressAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
+      System.out.println("env for external pthread is " + VM.addressAsHexString(externalJNIEnv));
+      System.out.println("AttachRequest at " + VM.addressAsHexString(VM_Magic.getTocPointer().add(
+			 VM_BootRecord.the_boot_record.attachThreadRequestedOffset)));
     }
 
     // before executing the following code, bind ourselves to the current processor
@@ -241,7 +245,7 @@ public class VM_JNIStartUp implements Runnable {
     // it will also be bound to the same processor
     VM_JNICreateVMFinishThread cleanupThread = 
       new VM_JNICreateVMFinishThread(VM_Thread.getCurrentThread(),
-				     VM_Address.fromInt(externalJNIEnv),
+				     externalJNIEnv,
 				     currentVP);
     // get it going
     cleanupThread.start(currentVP.readyQueue);
@@ -280,7 +284,7 @@ public class VM_JNIStartUp implements Runnable {
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
 
     myEnv.setFromNative(
-      VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP),
+      VM_Constants.STACKFRAME_SENTINAL_FP,
       nativeVP,
       VM_Magic.getThreadId());
     
@@ -312,7 +316,7 @@ public class VM_JNIStartUp implements Runnable {
     if (trace) {
       System.out.println("VM_JNIStartUp: main Java thread terminated, " +
 			 Thread.currentThread().getName() + ", " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
+			 VM.addressAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
     }
 
     //  System.out.println("VM_JNIStartUp: " + VM_Scheduler.numActiveThreads + " active threads, " +

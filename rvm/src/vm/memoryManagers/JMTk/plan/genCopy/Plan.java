@@ -285,15 +285,15 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * is returned unmodified.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * @param forwardingWord The integer containing the GC bits, which is the GC word
    * of the original object, and typically encodes some GC state as
    * well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
-    return forwardingPtr; // a no-op for this collector
+					     int forwardingWord, int bytes) {
+    return forwardingWord; // a no-op for this collector
   }
 
   ////////////////////////////////////////////////////////////////////////////

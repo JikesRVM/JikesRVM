@@ -30,8 +30,7 @@ import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
  *      and physical registers.
  * <li> The subclasses of {@link OPT_ConstantOperand} 
  *      represent various kinds of constant operands.
- * <li> {@link OPT_MethodOperand} and {@link OPT_SysMethodOperand}
- *      represent the targets of CALL instructions.
+ * <li> {@link OPT_MethodOperand} represents the targets of CALL instructions.
  * <li> {@link OPT_BranchOperand}, {@link OPT_BasicBlockOperand},
  *      and {@link OPT_BranchOperand} are used to encode CFG
  *      information in LABEL, BBEND, and branch instructions.
@@ -56,7 +55,6 @@ import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
  * @see OPT_LocationOperand
  * @see OPT_LongConstantOperand
  * @see OPT_MethodOperand
- * @see OPT_SysMethodOperand
  * @see OPT_NullConstantOperand
  * @see OPT_RegisterOperand
  * @see OPT_StringConstantOperand

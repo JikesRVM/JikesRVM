@@ -240,7 +240,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     //       inlined allocation sequence isn't hurt! --dave
     // NOTE: we exploit the fact that all allocations are word aligned to
     //       reduce the size of the index array by 4x....
-    size = VM_Memory.align(size, 4);
+    size = VM_Memory.alignUp(size, 4);
     VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size);
     VM_Address rs = VM_Magic.getMemoryAddress(loc);
     VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
@@ -276,12 +276,12 @@ public final class VM_SegregatedListHeap extends VM_Heap
       int  temp, temp1;
       do  {
 	// get word with proper byte from map
-	temp1 = VM_Magic.prepare(this_block.mark, ((slotndx>>2)<<2));
+	temp1 = VM_Magic.prepareInt(this_block.mark, ((slotndx>>2)<<2));
 	if (this_block.mark[slotndx] != 0) return false;
 	int index = VM.LittleEndian ? slotndx%4 : 3 - (slotndx%4); 
 	int mask = tbyte << (index * 8); // convert to bit in word
 	temp  = temp1 | mask;            // merge into existing word
-      }  while (!VM_Magic.attempt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
+      }  while (!VM_Magic.attemptInt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
     }
 
     this_block.live  = true;

@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -93,14 +94,14 @@ public abstract class Generational extends StopTheWorldGC
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final EXTENT    MATURE_SS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3));
-  protected static final EXTENT      NURSERY_SIZE = MATURE_SS_SIZE;
-  protected static final EXTENT          LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3 * 0.3));
-  public    static final int             MAX_SIZE = 2 * MATURE_SS_SIZE;
+  protected static final VM_Extent MATURE_SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3)));
+  protected static final VM_Extent   NURSERY_SIZE = MATURE_SS_SIZE;
+  protected static final VM_Extent       LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3 * 0.3)));
+  public    static final VM_Extent       MAX_SIZE = MATURE_SS_SIZE.add(MATURE_SS_SIZE);
   protected static final VM_Address     LOS_START = PLAN_START;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
   protected static final VM_Address  MATURE_START = LOS_END;
-  protected static final EXTENT       MATURE_SIZE = MATURE_SS_SIZE<<1;
+  protected static final VM_Extent    MATURE_SIZE = MATURE_SS_SIZE.add(MATURE_SS_SIZE);
   protected static final VM_Address    MATURE_END = MATURE_START.add(MATURE_SIZE);
   protected static final VM_Address NURSERY_START = MATURE_END;
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);

@@ -20,6 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_SysCall;
 
 /**
  * Write buffers used by the initial set of RVM generational collectors.
@@ -77,7 +78,7 @@ public class VM_WriteBuffer implements VM_Constants,
 
     if (VM.VerifyAssertions) VM._assert(vp.modifiedOldObjectsTop==vp.modifiedOldObjectsMax);
 
-    VM_Address newBufAddr = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
+    VM_Address newBufAddr = VM_Address.fromInt(VM_SysCall.call1(VM_BootRecord.the_boot_record.sysMallocIP,
 							   WRITE_BUFFER_SIZE));
     if (newBufAddr.isZero()) {
       VM.sysWrite(" In growWriteBuffer, call to sysMalloc returned 0 \n");
@@ -374,7 +375,7 @@ public class VM_WriteBuffer implements VM_Constants,
 
     while( !buf.isZero() ) {
       VM_Address nextbuf = VM_Magic.getMemoryAddress( buf.add(WRITE_BUFFER_SIZE - 4) );
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, buf.toInt());
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, buf.toInt());
       buf = nextbuf;
     }
     // reset next pointer in first buffer to null

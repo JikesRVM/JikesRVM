@@ -108,8 +108,8 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
     // pointer to the JNI function table
     VM_Address envAddress = startUpThread.getJNIEnv().getJNIenvAddress();
     if (trace)
-      System.out.println("JNICreateVMFinishThread: env " + VM.intAsHexString(envAddress.toInt()) +
-			 " to external address " + VM.intAsHexString(externalEnvAddress.toInt()));
+      System.out.println("JNICreateVMFinishThread: env " + VM.addressAsHexString(envAddress) +
+			 " to external address " + VM.addressAsHexString(externalEnvAddress));
 
     VM_Magic.setMemoryAddress(externalEnvAddress, envAddress);
 

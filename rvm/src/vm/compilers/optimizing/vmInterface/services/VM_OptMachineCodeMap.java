@@ -81,7 +81,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getBytecodeIndexForMCOffset(int MCOffset) {
+  public final int getBytecodeIndexForMCOffset(VM_Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -95,7 +95,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public final VM_NormalMethod getMethodForMCOffset(int MCOffset) {
+  public final VM_NormalMethod getMethodForMCOffset(VM_Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  null;
@@ -112,7 +112,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getInlineEncodingForMCOffset(int MCOffset) {
+  public final int getInlineEncodingForMCOffset(VM_Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -128,7 +128,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  @param MCOFfset the machine code offset to look for
    *  @return         the GC map index or VM_OptGCMap.ERROR
    */
-  public int findGCMapIndex(int MCOffset) {
+  public int findGCMapIndex(VM_Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) return VM_OptGCMap.ERROR;
     return getGCMapIndex(entry);
@@ -198,7 +198,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *
    * @param MCOffset the machine code offset of interest
    */
-  private int findMCEntry(int MCOffset) {
+  private int findMCEntry(VM_Offset MCOffset) {
     // Given a machine code instruction MCOffset, find the corresponding entry
     if (MCInformation == null) return -1;
     int left = 0;
@@ -210,9 +210,9 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 	middle--;
       }
       int offset = getMCOffset(middle);
-      if (MCOffset == offset) {
+      if (MCOffset.toInt() == offset) {
         return middle;
-      } else if (MCOffset > offset) {
+      } else if (MCOffset.toInt() > offset) {
         // middle is too small, shift interval to the right
 	left = middle + 1; 
 	if (left >= MCInformation.length) return -1;

@@ -135,10 +135,10 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      val1 = ensureRegister(val1, s, ir);
 	      val2 = ensureRegister(val2, s, ir);
 	    }
-	    CallSpecial.mutate2(s, SYSCALL, 
-				GuardedBinary.getClearResult(s), null, 
-				new OPT_SysMethodOperand(VM_Entrypoints.sysLongDivideIPField), 
-				val1, val2);
+	    Call.mutate2(s, SYSCALL, 
+			 GuardedBinary.getClearResult(s), null, 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongDivideIPField), 
+			 val1, val2);
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
@@ -154,10 +154,10 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      val1 = ensureRegister(val1, s, ir);
 	      val2 = ensureRegister(val2, s, ir);
 	    }
-	    CallSpecial.mutate2(s, SYSCALL, 
-				GuardedBinary.getClearResult(s), null, 
-				new OPT_SysMethodOperand(VM_Entrypoints.sysLongRemainderIPField), 
-				val1, val2);
+	    Call.mutate2(s, SYSCALL, 
+			 GuardedBinary.getClearResult(s), null, 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongRemainderIPField), 
+			 val1, val2);
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
@@ -170,10 +170,10 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    //       we try to load the constant from the JTOC!
 	    OPT_Operand val1 = ensureRegister(Binary.getClearVal1(s), s, ir);
 	    OPT_Operand val2 = ensureRegister(Binary.getClearVal2(s), s, ir);
-	    CallSpecial.mutate2(s, SYSCALL, 
-				Binary.getClearResult(s), null, 
-				new OPT_SysMethodOperand(VM_Entrypoints.sysDoubleRemainderIPField), 
-				val1, val2);
+	    Call.mutate2(s, SYSCALL, 
+			 Binary.getClearResult(s), null, 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField), 
+			 val1, val2);
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
@@ -186,10 +186,10 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      //       otherwise we'll have the wrong value in the JTOC register when
 	      //       we try to load the constant from the JTOC!
 	      OPT_Operand val = ensureRegister(Unary.getClearVal(s), s, ir);
-	      CallSpecial.mutate1(s, SYSCALL,
-				  Unary.getClearResult(s), null,
-				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToFloatIPField),
-				  val);
+	      Call.mutate1(s, SYSCALL,
+			   Unary.getClearResult(s), null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongToFloatIPField),
+			   val);
 	      OPT_CallingConvention.expandSysCall(s, ir);
 	    }
 	  }
@@ -202,11 +202,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      //       otherwise we'll have the wrong value in the JTOC register when
 	      //       we try to load the constant from the JTOC!
 	      OPT_Operand val = ensureRegister(Unary.getClearVal(s), s, ir);
-	      CallSpecial.mutate1(s, SYSCALL,
-				  Unary.getClearResult(s),
-				  null,
-				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToDoubleIPField),
-				  val);
+	      Call.mutate1(s, SYSCALL,
+			   Unary.getClearResult(s),
+			   null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongToDoubleIPField),
+			   val);
 	      OPT_CallingConvention.expandSysCall(s, ir);
 	    }
 	  }
@@ -221,11 +221,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      //       we try to load the constant from the JTOC!
 	      val = ensureRegister(val, s, ir);
 	    }
-	    CallSpecial.mutate1(s, SYSCALL,
-				Unary.getClearResult(s),
-				null,
-				new OPT_SysMethodOperand(VM_Entrypoints.sysFloatToLongIPField),
-				val);
+	    Call.mutate1(s, SYSCALL,
+			 Unary.getClearResult(s),
+			 null,
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.sysFloatToLongIPField),
+			 val);
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
@@ -239,11 +239,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	      //       we try to load the constant from the JTOC!
 	      val = ensureRegister(val, s, ir);
 	    }
-	    CallSpecial.mutate1(s, SYSCALL,
-				Unary.getClearResult(s),
-				null,
-				new OPT_SysMethodOperand(VM_Entrypoints.sysDoubleToLongIPField),
-				val);
+	    Call.mutate1(s, SYSCALL,
+			 Unary.getClearResult(s),
+			 null,
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleToLongIPField),
+			 val);
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;

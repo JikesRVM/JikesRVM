@@ -591,7 +591,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   void dump() {
     if (!active) return;
     VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");
-    VM_Scheduler.writeString(" lockedObject: 0x"); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject).toInt()); 
+    VM_Scheduler.writeString(" lockedObject: 0x"); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject)); 
     VM_Scheduler.writeString("   thin lock = "); 
     VM_Scheduler.writeHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
     VM_Scheduler.writeString("\n");

@@ -91,7 +91,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     if (bufferOffset(tail) == 0)
       insertOverflow(arity);
     else if (VM.VerifyAssertions)
-      VM._assert(bufferOffset(tail) >= (arity<<LG_WORDSIZE));
+      VM._assert(bufferOffset(tail) >= (arity<<LOG_BYTES_IN_WORD));
   }
 
   /**
@@ -102,8 +102,8 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * @param value the value to be inserted.
    */
   protected final void uncheckedInsert(int value) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= WORDSIZE);
-    tail = tail.sub(WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= BYTES_IN_WORD);
+    tail = tail.sub(BYTES_IN_WORD);
     VM_Magic.setMemoryInt(tail, value);
     //    if (VM.VerifyAssertions) enqueued++;
   }
@@ -126,8 +126,8 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     VM_Address last = tgt.add(bufferLastOffset(arity) - bufferOffset(tail));
     while(tgt.LE(last)) {
       VM_Magic.setMemoryInt(tgt, VM_Magic.getMemoryInt(src));
-      src = src.add(WORDSIZE);
-      tgt = tgt.add(WORDSIZE);
+      src = src.add(BYTES_IN_WORD);
+      tgt = tgt.add(BYTES_IN_WORD);
     }
     return last;
   }
@@ -150,7 +150,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferLastOffset(arity) + WORDSIZE);
+    tail = queue.alloc().add(bufferLastOffset(arity) + BYTES_IN_WORD);
   }
 
   /**
@@ -168,7 +168,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
       // a full tail buffer
       last = tail.add(bufferLastOffset(arity));
     }
-    queue.enqueue(last.add(WORDSIZE), arity, true);
+    queue.enqueue(last.add(BYTES_IN_WORD), arity, true);
   }
 
 }

@@ -143,7 +143,7 @@ public interface VM_StackframeLayoutConstants  {
    static final int FPU_STATE_SIZE       	       = 108;
 
   /** fp value indicating end of stack walkback */
-  static final int STACKFRAME_SENTINAL_FP = -2;
+  static final VM_Address STACKFRAME_SENTINAL_FP = VM_Address.fromIntSignExtend(-2);
   /** marker for "assembler" frames that have no associated VM_Method */
   static final int INVISIBLE_METHOD_ID    = -1;
 
@@ -151,8 +151,6 @@ public interface VM_StackframeLayoutConstants  {
    // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
    //
    static final int STACKFRAME_ALIGNMENT = 8;
-  /** roundedUpSize = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK */
-  static final int STACKFRAME_ALIGNMENT_MASK = STACKFRAME_ALIGNMENT - 1;
    
    // Sizes for stacks and subregions thereof.
    // Values are in bytes and must be a multiple of 4 (size of a stack slot).

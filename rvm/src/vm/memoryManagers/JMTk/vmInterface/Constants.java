@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_SizeConstants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
@@ -16,25 +17,23 @@ import com.ibm.JikesRVM.VM_JavaHeader;
 public interface Constants {
   static final int MAX_INT = 0x7fffffff;
 
-  //-#if RVM_FOR_32_ADDR
-  static final int LOG_ADDRESS_SPACE = 32;
-  static final int LOG_WORD_SIZE = 2;
-  //-#elif RVM_FOR_64_ADDR
-  static final int LOG_ADDRESS_SPACE = 64;
-  static final int LOG_WORD_SIZE = 3;
-  //-#endif
-  static final int LOG_BYTE_BITS = 3;
+  // Note: that Address and Word are identical in size
+
+  static final int LOG_ADDRESS_SPACE = VM_SizeConstants.BITS_IN_ADDRESS;
+  static final int LOG_WORD_SIZE = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  static final int LOG_BYTE_BITS = VM_SizeConstants.LOG_BITS_IN_BYTE;
+  static final int LOG_WORD_BITS = LOG_BYTE_BITS + LOG_WORD_SIZE;
+  static final int LOG_MBYTE_SIZE = 20;
+  static final int LOG_PAGE_SIZE = 12;
+
+  static final int LOG_BYTES_IN_WORD = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  static final int BYTES_IN_WORD = VM_SizeConstants.BYTES_IN_ADDRESS;
+
   static final int BYTE_BITS = 1<<LOG_BYTE_BITS;
   static final int WORD_SIZE = 1<<LOG_WORD_SIZE;
-  static final int LOG_WORD_BITS = LOG_BYTE_BITS + LOG_WORD_SIZE;
   static final int WORD_BITS = 1<<LOG_WORD_BITS;
-  static final int LOG_MBYTE_SIZE = 20;
   static final int MBYTE_SIZE = 1<<LOG_MBYTE_SIZE;
-  static final int LOG_PAGE_SIZE = 12;
   static final int PAGE_SIZE = 1<<LOG_PAGE_SIZE;
-
-  static final int LG_WORDSIZE = LOG_WORD_SIZE;  // for external compatability
-  static final int WORDSIZE = WORD_SIZE;
 
   /*
    * Data Fields that control the allocation of memory

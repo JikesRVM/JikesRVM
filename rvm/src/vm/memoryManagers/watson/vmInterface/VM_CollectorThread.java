@@ -32,6 +32,7 @@ import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_SysCall;
 
 /**
  * System thread used to preform garbage collections.
@@ -470,7 +471,7 @@ public class VM_CollectorThread extends VM_Thread
 	// first unblock the processor
 	vp.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_SIGWAIT;
 	// then send signal
-	VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
+	VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
 	continue;
       }
 

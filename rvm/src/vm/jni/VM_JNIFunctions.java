@@ -11,7 +11,7 @@ import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
 
 /**
- * This class implements the 211 JNI functions
+ * This class implements the 229 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
  * perform the transition from native code (Linux/AIX convention) to RVM.
  * For this reason, no Java methods (including the JNI methods here) can call 
@@ -55,7 +55,9 @@ import java.lang.reflect.*;
  * @author Steve Smith  
  * @date 2/1/00
  */
-public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
+public class VM_JNIFunctions implements VM_NativeBridge, 
+					VM_JNIConstants, 
+					VM_SizeConstants {
   // one message for each JNI function called from native
   final static boolean traceJNI = false;
 
@@ -3510,7 +3512,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots() && VM_Statics.isReference(slot)) {
         // place this reference in the stack of the JNI environment
         // and obtain its JREF index to return
@@ -3538,7 +3540,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return VM_Statics.getSlotContentsAsInt(slot);
       } else {
@@ -3565,7 +3567,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return VM_Statics.getSlotContentsAsInt(slot);
       } else {
@@ -3592,7 +3594,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return VM_Statics.getSlotContentsAsInt(slot);
       } else {
@@ -3619,7 +3621,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return VM_Statics.getSlotContentsAsInt(slot);
       } else {
@@ -3646,7 +3648,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return VM_Statics.getSlotContentsAsInt(slot);
       } else {
@@ -3674,7 +3676,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
 
     try {
-      int slot = fieldOffset>>2;      
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;      
       if ((slot+1)<VM_Statics.getNumberOfSlots()) {
         long val = VM_Statics.getSlotContentsAsLong(slot);
         return val;
@@ -3703,7 +3705,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return Float.intBitsToFloat(VM_Statics.getSlotContentsAsInt(slot));
       } else {
@@ -3731,7 +3733,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         return Double.longBitsToDouble(VM_Statics.getSlotContentsAsLong(slot));
       } else {
@@ -3760,7 +3762,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object ref = env.getJNIRef(objectJREF);      
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,ref);
       } else {
@@ -3783,7 +3785,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         if (fieldValue == true) {
           VM_Statics.setSlotContents(slot,1);
@@ -3812,7 +3814,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,(int)fieldValue);
       } else {
@@ -3837,7 +3839,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,(int)fieldValue);
       } else {
@@ -3862,7 +3864,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,(int)fieldValue);
       } else {
@@ -3887,7 +3889,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,fieldValue);
       } else {
@@ -3912,7 +3914,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents(slot,fieldValue);
       } else {
@@ -3937,7 +3939,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents( slot, Float.floatToIntBits(fieldValue) );
       } else {
@@ -3962,7 +3964,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
 
     try {
-      int slot = fieldOffset>>2;
+      int slot = fieldOffset>>LOG_BYTES_IN_INT;
       if (slot<VM_Statics.getNumberOfSlots()) {
         VM_Statics.setSlotContents( slot, Double.doubleToLongBits(fieldValue) );
       } else {
@@ -4046,8 +4048,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       char[] contents = str.toCharArray();
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             len*2));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, len*2);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4083,7 +4084,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
 
     try {
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress.toInt());
+      VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -4166,11 +4167,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       byte[] utfcontents = VM_UTF8Convert.toUTF8(str);
 
       int len = utfcontents.length;
-      int copyBufferLen = (len + 4) & ~3; // need extra at end for storing terminator and end at word boundary 
+      int copyBufferLen = VM_Memory.alignDown(len + BYTES_IN_ADDRESS, BYTES_IN_ADDRESS ); // need extra at end for storing terminator and end at word boundary 
 
       // alloc non moving buffer in C heap for string contents as utf8 array
       // alloc extra byte for C null terminator
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, copyBufferLen));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, copyBufferLen);
 
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
@@ -4178,7 +4179,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       // store word of 0 at end, before the copy, to set C null terminator
-      VM_Magic.setMemoryInt( copyBuffer.add(copyBufferLen - 4), 0 );
+      VM_Magic.setMemoryWord(copyBuffer.add(copyBufferLen - BYTES_IN_ADDRESS), VM_Word.zero());
       VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(utfcontents), len);
 
       // set callers isCopy boolean to true, if it's a valid address
@@ -4210,7 +4211,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
 
     try {
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -4530,8 +4531,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = 
-	VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4575,8 +4575,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4621,8 +4620,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size*2));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP,  size*2);
       if (copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4666,8 +4664,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size*2));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP,  size*2);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4710,14 +4707,13 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size * 4));
+      // alloc non moving buffer in C heap for a copy of array contents
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size * BYTES_IN_INT);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
       }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*4);
+      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_INT);
 
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
@@ -4755,13 +4751,12 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size * 8));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size * 8);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
       }
-      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8 );
+      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8);
 
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
@@ -4799,8 +4794,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size * 4));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size * 4);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4844,8 +4838,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-                                                             size * 8));
+      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size * 8);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4921,7 +4914,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4959,7 +4952,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4997,7 +4990,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5035,7 +5028,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5068,12 +5061,12 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 1:  copy back the buffer
 	if (releaseMode== 0 || releaseMode== 1) {
-	  VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4);
+	  VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*BYTES_IN_INT);
 	} 
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5112,7 +5105,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5145,12 +5138,12 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 1:  copy back the buffer
 	if (releaseMode== 0 || releaseMode== 1) {
-	  VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4 );
+	  VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size* 4);
 	} 
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5188,7 +5181,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());
+	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5334,7 +5327,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex*4), length*4); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex*BYTES_IN_INT), length*BYTES_IN_INT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5568,7 +5561,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex*4), bufAddress, length*4); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex*BYTES_IN_INT), bufAddress, length*BYTES_IN_INT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5733,8 +5726,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       JavaVM = VM_Address.fromInt(addr);
     }
     
-    if (traceJNI) VM.sysWriteln(StarStarJavaVM.toInt());
-    VM_Magic.setMemoryInt(StarStarJavaVM, JavaVM.toInt());
+    if (traceJNI) VM.sysWriteln(StarStarJavaVM);
+    VM_Magic.setMemoryAddress(StarStarJavaVM, JavaVM);
 
     return 0;
   }

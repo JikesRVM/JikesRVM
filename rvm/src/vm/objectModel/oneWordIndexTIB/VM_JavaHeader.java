@@ -89,7 +89,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    * Note: Beware; this function clears the additional bits.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, VM_Address tibAddr, VM_Type type) {
     int idx = type.getTibSlot() << TIB_SHIFT;
     if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);

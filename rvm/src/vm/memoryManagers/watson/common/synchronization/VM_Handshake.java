@@ -123,10 +123,10 @@ public class VM_Handshake {
     // Acquire global lockout field (at fixed address in the boot record).
     // This field will be released when gc completes
     while (true) {
-      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
       if ( lockoutVal == 0) {
-	if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
+	if(VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
 			    VM_Entrypoints.lockoutProcessorField.offset,
 			    0, LOCKOUT_GC_WORD))
 	  break;
@@ -240,10 +240,10 @@ public class VM_Handshake {
   public static void acquireLockoutLock(int value, boolean spinwait) throws VM_PragmaUninterruptible {
     if (spinwait) {
       while (true) {
-	int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+	int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
 					  VM_Entrypoints.lockoutProcessorField.offset);
 	if (lockoutVal == 0) {
-	  if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
+	  if (VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
 			       VM_Entrypoints.lockoutProcessorField.offset,
 			       0, value))
 	    break;
@@ -256,7 +256,7 @@ public class VM_Handshake {
     // yield until lockout word is available (0), then attempt to set
 
     while (true) {
-      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
       if (lockoutVal != 0) {
 	if (debug_native) VM_Scheduler.trace("Handshake:acquireLockOutLock",
@@ -264,7 +264,7 @@ public class VM_Handshake {
 	VM_Thread.yield();
 	continue;
       } else {
-	if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
+	if (VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
 			    VM_Entrypoints.lockoutProcessorField.offset,
 			    0, value))
 	  break;
@@ -282,12 +282,12 @@ public class VM_Handshake {
    */
   public static void releaseLockoutLock(int value) throws VM_PragmaUninterruptible {
     while (true) {
-      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
       // check that current value is as expected
       if (VM.VerifyAssertions && (value!=0)) VM._assert( lockoutVal == value );
       // OK, reset to zero
-      if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
+      if(VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
 			  VM_Entrypoints.lockoutProcessorField.offset,
 			  lockoutVal, 0))
 	break;
@@ -302,9 +302,9 @@ public class VM_Handshake {
    */
   public static int queryLockoutLock() throws VM_PragmaUninterruptible {
     while (true) {
-      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
 				    VM_Entrypoints.lockoutProcessorField.offset);
-      if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
+      if (VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
 			   VM_Entrypoints.lockoutProcessorField.offset,
 			   lockoutVal, lockoutVal))
 	  return lockoutVal;

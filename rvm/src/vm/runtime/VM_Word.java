@@ -17,7 +17,7 @@ package com.ibm.JikesRVM;
  * @see VM_Address
  */
 
-final public class VM_Word {
+final public class VM_Word implements VM_Uninterruptible {
 
   // Do not try to create a static field containing special values.
   //   Suboptimal code will be generated.
@@ -32,32 +32,44 @@ final public class VM_Word {
     value = val;
   }
 
-  static public VM_Word fromInt (int val) {
+  /**
+  * fromInt()
+  * @deprecated use fromIntSignExtend() or fromIntZeroExtend()
+  */
+  static public VM_Word fromInt (int val) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(val);
   }
 
-  static public VM_Word zero () {
+  static public VM_Word fromIntSignExtend (int val) throws VM_PragmaLogicallyUninterruptible {
+    return VM_Address.fromIntSignExtend(val).toWord(); // TODO
+  }
+  
+  static public VM_Word fromIntZeroExtend (int val) throws VM_PragmaLogicallyUninterruptible {
+    return VM_Address.fromIntZeroExtend(val).toWord(); // TODO
+  }
+     
+  static public VM_Word zero () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(0);
   }
 
-  static public VM_Word max() {
+  static public VM_Word max() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(-1);
   }
 
-  public int toInt () {
+  public int toInt () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return value;
   }
 
-  public VM_Word add (VM_Word w2) {
+  public VM_Word add (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value + w2.value);
   }
 
-  public VM_Word sub (VM_Word w2) {
+  public VM_Word sub (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value - w2.value);
   }
@@ -105,26 +117,26 @@ final public class VM_Word {
     return !EQ(w2);
   }
 
-  public VM_Address toAddress() {
+  public VM_Address toAddress() throws VM_PragmaLogicallyUninterruptible {
     return new VM_Address(value);
   }
 
-  public VM_Word and(VM_Word w2) {
+  public VM_Word and(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value & w2.value);
   }
 
-  public VM_Word or(VM_Word w2) {
+  public VM_Word or(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value | w2.value);
   }
 
-  public VM_Word not() {
+  public VM_Word not() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(~value);
   }
 
-  public VM_Word xor(VM_Word w2) {
+  public VM_Word xor(VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value ^ w2.value);
   }
