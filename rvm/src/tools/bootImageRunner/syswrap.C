@@ -37,6 +37,10 @@ extern jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
 
+#ifndef UNUSED
+#define UNUSED __attribute__((unused))
+#endif
+
 //////////////////////////////////////////////////////////////
 // Private functions and data
 //////////////////////////////////////////////////////////////
@@ -374,28 +378,28 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 //////////////////////////////////////////////////////////////
 
 jint 
-DestroyJavaVM(JavaVM *vm) 
+DestroyJavaVM(JavaVM __attribute__((unused)) * vm) 
 {
     fprintf(stderr, "unimplemented DestroyJavaVM");
     return 0;
 }
 
 jint 
-AttachCurrentThread(JavaVM *vm, JNIEnv **penv, void *args) 
+AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, void UNUSED *args) 
 {
     fprintf(stderr, "unimplemented AttachCurrentThread");
     return 0;
 }
 
 jint 
-DetachCurrentThread(JavaVM *vm) 
+DetachCurrentThread(JavaVM UNUSED *vm) 
 {
     fprintf(stderr, "unimplemented DetachCurrentThread");
     return 0;
 }
  
 jint 
-GetEnv(JavaVM *vm, void **penv, jint version) 
+GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
 { 
 
     // Java 1.2 is not supported yet

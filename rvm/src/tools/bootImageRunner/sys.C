@@ -100,6 +100,13 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 /* #define DEBUG_SYS */
 #define VERBOSE_PTHREAD 0
 
+#ifndef UNUSED
+/* In GNU C, __attribute__((unused)) really means "possibly unused". */
+#define POSSIBLY_UNUSED UNUSED
+#define UNUSED __attribute__((unused))
+#endif
+
+
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
@@ -1438,7 +1445,7 @@ sysVirtualProcessorStartup(void *args)
 // Returned: nothing
 //
 extern "C" void
-sysVirtualProcessorBind(int cpuId)
+sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     int rc = 0;
@@ -1984,7 +1991,7 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 extern "C" void
-sysSyncCache(caddr_t address, int size)
+sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 {
 #ifdef DEBUG_SYS
     fprintf(SysTraceFile, "sys: sync 0x%08x %d\n", (int)address, size);
@@ -2068,9 +2075,9 @@ extern "C" void *
 // sysMMap(char *start __attribute__((unused)), size_t length __attribute__((unused)), 
 // 	int protection __attribute__((unused)), int flags __attribute__((unused)), 
 // 	int fd __attribute__((unused)), long long offset __attribute__((unused)))
-sysMMap(char *start , size_t length , 
-	int protection , int flags , 
-	int fd , long long offset )
+sysMMap(char UNUSED *start , size_t UNUSED length , 
+	int UNUSED protection , int UNUSED flags , 
+	int UNUSED fd , long long UNUSED offset )
 {
     fprintf(SysErrorFile, "vm: sysMMap called, but it's unimplemented\n");
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
@@ -2176,7 +2183,9 @@ sysMSync(char *start, size_t length, int flags)
 //        advice (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMAdvise(char *start, size_t length, int advice)
+sysMAdvise(char POSSIBLY_UNUSED *start, 
+	   size_t POSSIBLY_UNUSED length, 
+	   int POSSIBLY_UNUSED advice)
 {
 #ifdef RVM_FOR_LINUX
     return -1; // unimplemented in Linux
