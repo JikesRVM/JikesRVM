@@ -18,7 +18,7 @@
 
 ME="${0##*/}"
 function usage() {
-    echo >&2 "Usage: $ME <build-configuration>"
+    echo >&2 "Usage: $ME [-no-javadoc] <build-configuration>"
     [ "$*" ] && echo >&2 "$ME: $*"
     exit 1
 }
@@ -30,6 +30,25 @@ function croak() {
     echo "$ME: Aborting Execution; goodbye!"
     exit 2
 }
+
+do_javadoc=0
+while (( $# > 0 )); do
+    case "$1" in
+	-no-javadoc )
+	    do_javadoc=0;
+	    shift;
+	    ;;
+	-* )
+	    echo "$ME: Got unknown flag \"$1\"; can't go on." \
+		tee -a $RUN_LOG $MSG >&2
+	    trouble=1
+	    shift
+	    ;;
+	* )
+	    break 
+	    ;;
+    esac
+done
 
 (( $# == 1 )) || usage "You gave $# arguments; I expected exactly 1 argument."
 configuration="$1"
@@ -69,21 +88,23 @@ echo "Using the configuration $configuration, in $config_fullpath"
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
 
-echo "OK, now we will try to build the Javadoc for the development image"
-fass_dir="$RVM_ROOT/images/development"
-if [[ ! -d $fass_dir ]]; then
-    echo "$ME: It looks as if you didn't make a development build.  We'll skip jdoc.sh."
-else
-    je="$fass_dir/environment.host"
-    . $je || croak "Unable to load $je"
-    "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
-    if [[ -d $RVM_ROOT/pushAPI ]]; then
-      echo "Publishing Javadoc to dW webspace via cvs commit"
-      cd $RVM_ROOT/doc/api || croak "$RVM_ROOT/doc/api directory missing!?  jdoc.sh should have reported this problem already, but it didn't."
-      tar czf $RVM_ROOT/pushAPI/api.tar.gz * || croak "Tarring up the API failed."
-      cd $RVM_ROOT/pushAPI || croak "The filesystem is changing under our feet!?"
-      cvs add -kb api.tar.gz || croak "cvs add -kb api.tar.gz failed"
-      cvs commit -m "push it" || croak "Unable to commit the Javadoc to dW space"
+if (( do_javadoc == 1 )); then
+    echo "OK, now we will try to build the Javadoc for the development image"
+    fass_dir="$RVM_ROOT/images/development"
+    if [[ ! -d $fass_dir ]]; then
+	echo "$ME: It looks as if you didn't make a development build.  We'll skip jdoc.sh."
+    else
+	je="$fass_dir/environment.host"
+	. $je || croak "Unable to load $je"
+	"$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
+	if [[ -d $RVM_ROOT/pushAPI ]]; then
+	    echo "Publishing Javadoc to dW webspace via cvs commit"
+	    cd $RVM_ROOT/doc/api || croak "$RVM_ROOT/doc/api directory missing!?  jdoc.sh should have reported this problem already, but it didn't."
+	    tar czf $RVM_ROOT/pushAPI/api.tar.gz * || croak "Tarring up the API failed."
+	    cd $RVM_ROOT/pushAPI || croak "The filesystem is changing under our feet!?"
+	    cvs add -kb api.tar.gz || croak "cvs add -kb api.tar.gz failed"
+	    cvs commit -m "push it" || croak "Unable to commit the Javadoc to dW space"
+	fi
     fi
 fi
 
