@@ -1012,12 +1012,6 @@ class GenerateAssembler {
     static {
 	excludedOpcodes = new HashSet();
 	excludedOpcodes.add("FSAVE");
-	excludedOpcodes.add("FADDP");
-	excludedOpcodes.add("FDIVP");
-	excludedOpcodes.add("FDIVRP");
-	excludedOpcodes.add("FSUBP");
-	excludedOpcodes.add("FSUBRP");
-	excludedOpcodes.add("FMULP");
 	excludedOpcodes.add("FNSTSW");
 	excludedOpcodes.add("FUCOMPP");
 	excludedOpcodes.add("SAHF");
@@ -1137,6 +1131,7 @@ class GenerateAssembler {
 	emit(" * @see GenerateAssembler\n");
 	emit(" *\n");
 	emit(" * @author Julian Dolby\n");
+	emit(" * @author {@link GenerateAssembler}\n");
 	emit(" */\n");
 	emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
 

@@ -54,7 +54,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     // method id of the caller of the lazily compiled method
     int callingCompiledMethodId = VM_Magic.getCompiledMethodID(callingFrame);
     VM_CompiledMethod callingCompiledMethod;
-    callingCompiledMethod = VM_ClassLoader.getCompiledMethod(callingCompiledMethodId);
+    callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
     VM_CompilerInfo callingCompilerInfo = callingCompiledMethod.getCompilerInfo();    
     int callingInstructionOffset = returnAddress - VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()); 
 

@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class testSwitch {
 
 static int argwords(String sig)

@@ -1,10 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *
+ * $Id$
  */
-/* Native code for ArgumentPassing.java
- * 
+/**
+ * Native code for ArgumentPassing.java
+ *
+ * @author unascribed
  */
-
 
 #include <stdio.h>
 #include "ArgumentPassing.h"

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestThrow
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 import java.io.*;
 
 class MyErrorBase extends Throwable

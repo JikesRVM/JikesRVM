@@ -2,9 +2,14 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# @author Julian Dolby
 
 DEST_DIR=$1
 shift
+
+SUN_LINK=http://java.sun.com/j2se/1.4/docs/api
 
 # make sure we have a repository to use
 if [ x$RVM_ROOT = x ]; then
@@ -82,7 +87,7 @@ for _d in `find . -type d`; do
 done
 
 rm -f ../javadoc.out
-find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> ../javadoc.out 2>&1
+find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> ../javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 

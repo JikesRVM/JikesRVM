@@ -2,6 +2,11 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
+
 # A script illustrating how the benchmarks can be run from the command
 # line without the GUI. This is not the way they can be run for reportable
 # results when the suite is released. And this script is quite contrary

@@ -28,19 +28,21 @@ class VM_Triplet {
   private VM_Atom b;
   private VM_Atom c;
    
-  // Hash VM_Dictionary keys.
-  //
+  /**
+   * Hash VM_Dictionary keys.
+   */ 
   static int dictionaryHash(VM_Triplet key) {
     return VM_Atom.dictionaryHash(key.a) +
       VM_Atom.dictionaryHash(key.b) +
       VM_Atom.dictionaryHash(key.c) ;
   }
 
-  // Compare VM_Dictionary keys.
-  // Returned: 0 iff "leftKey" is null
-  //           1 iff "leftKey" is to be considered a duplicate of "rightKey"
-  //          -1 otherwise
-  //
+  /**
+   * Compare VM_Dictionary keys.
+   * @return 0 iff "leftKey" is null
+   *         1 iff "leftKey" is to be considered a duplicate of "rightKey"
+   *         -1 otherwise
+   */
   static int dictionaryCompare(VM_Triplet leftKey, VM_Triplet rightKey) {
     if (leftKey == null)
       return 0;

@@ -114,7 +114,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *      first spill location
    */
   int getLastSpillLoc() {
-    if (debug) {
+    if (DEBUG) {
       VM.sysWrite("\n unsigendNVOffset: ");
       VM.sysWrite(compilerInfo.getUnsignedNonVolatileOffset());
       VM.sysWrite("\t isSaveVolatile: ");

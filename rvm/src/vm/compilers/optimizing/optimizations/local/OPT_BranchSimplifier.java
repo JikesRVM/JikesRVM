@@ -17,6 +17,7 @@ import instructionFormats.*;
  * @author Steve Fink
  * @author Dave Grove
  * @author Mauricio Serrano
+ * @author Martin Trapp
  */
 abstract class OPT_BranchSimplifier implements OPT_Operators {
 
@@ -40,6 +41,7 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
       if (Goto.conforms(s)) {
 	// nothing to do, but a common case so test first
       } else if (IfCmp.conforms(s)) {
+	OPT_RegisterOperand guard = IfCmp.getGuardResult (s);
 	OPT_Operand val1 = IfCmp.getVal1(s);
 	if (val1.isConstant()) {
 	  OPT_Operand val2 = IfCmp.getVal2(s);
@@ -47,10 +49,12 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	    // constant fold
 	    if (IfCmp.getCond(s).evaluate(val1, val2)) {
 	      // branch taken
+	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp.getTarget(s));
 	      removeBranchesAfterGotos(bb);
 	    } else {
 	      // branch not taken
+	      insertTrueGuard (s, guard);
 	      s.remove();
 	    }
 	    // hack. Just start over since Enumeration has changed.
@@ -91,6 +95,7 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	  }
 	}
       } else if (IfCmp2.conforms(s)) {
+	OPT_RegisterOperand guard = IfCmp2.getGuardResult (s);
 	OPT_Operand val1 = IfCmp2.getVal1(s);
 	if (val1.isConstant()) {
 	  OPT_Operand val2 = IfCmp2.getVal2(s);
@@ -98,14 +103,17 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	    // constant fold
 	    if (IfCmp2.getCond1(s).evaluate(val1, val2)) {
 	      // target 1 taken
+	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp2.getTarget1(s));
 	      removeBranchesAfterGotos(bb);
 	    } else if (IfCmp2.getCond2(s).evaluate(val1, val2)) {
 	      // target 2 taken
+	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp2.getTarget2(s));
 	      removeBranchesAfterGotos(bb);
 	    } else {
 	      // not taken
+	      insertTrueGuard (s, guard);
 	      s.remove();
 	    }
 	    // hack. Just start over since Enumeration has changed.
@@ -220,8 +228,21 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
       ie.next();
       for (; ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
+	if (GuardResultCarrier.conforms (s))
+	  insertTrueGuard (s, GuardResultCarrier.getGuardResult (s));
         s.remove();
       }
     }
+  }
+
+  
+  private static void insertTrueGuard (OPT_Instruction inst,
+				       OPT_RegisterOperand guard) {
+    OPT_Instruction trueGuard = Move.create(GUARD_MOVE, guard.copyD2D(), 
+					    new OPT_TrueGuardOperand());
+    trueGuard.position = inst.position;
+    trueGuard.bcIndex  = inst.bcIndex;
+    inst.insertBefore (trueGuard);
+    OPT_DefUse.updateDUForNewInstruction(trueGuard);
   }
 }

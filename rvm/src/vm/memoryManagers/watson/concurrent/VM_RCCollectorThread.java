@@ -14,7 +14,7 @@
 class VM_RCCollectorThread extends VM_CollectorThread
   implements VM_Uninterruptible, VM_GCConstants {
 
-  private final static boolean trace = true; // emit trace messages?
+  private final static boolean trace = false; // emit trace messages?
 
   final static boolean GC_ALL_TOGETHER = true;    // For RefcountGC, do all processing on last thread?
   final static boolean TIME_PAUSES  = true;       // For RefcountGC, collect data on pause times

@@ -1,15 +1,19 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test notification.
-//
-// monitorenter
-// monitorexit
-//
-// wait
-// notify
-// notifyAll
-//
+//$Id$
+/**
+ * Test notification.
+ *
+ *  monitorenter
+ *  monitorexit
+ *
+ *  wait
+ *  notify
+ *  notifyAll
+ *
+ * @author unascribed
+ */
 
 class Task extends Thread
    {

@@ -38,6 +38,7 @@ export JIKES=jikes
 
 # what C/C++ compilers should be used?
 export CC="/usr/local/bin/gcc -w -O"
+export CPLUS="/usr/local/bin/gcc -w -O"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/local/bin/g++ -shared"

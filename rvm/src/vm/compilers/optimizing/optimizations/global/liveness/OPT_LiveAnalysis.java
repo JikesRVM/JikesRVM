@@ -6,17 +6,21 @@
 import  java.util.Stack;
 import  java.util.Enumeration;
 import instructionFormats.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
  * The result of this analysis is live ranges for each basic block.
- * (See OPT_BasicBlock.java)
+ * (@see OPT_BasicBlock.java)
  * This class can also optionally construct GC maps. These GC maps
  * are later used to create the final gc map (see VM_OptReferenceMap.java). 
  *
  * The bottom of the file contains comments regarding imprecise exceptions.
  *
  * @author Michael Hind
+ * @author Martin Trapp
+ * @author Stephen Fink
  */
 final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators {
 
@@ -30,6 +34,11 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    *  Should we store liveness information at the top of each handler block?
    */
   private boolean storeLiveAtHandlers;
+
+  /**
+   *  Should we skip guard registers?
+   */
+  private boolean skipGuards;
 
   /**
    *  Should we skip the (final) local propagation phase?
@@ -51,6 +60,12 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   private OPT_GCIRMap map;
 
+  /**
+   * For each register, the set of live interval elements describing the
+   * register.
+   */
+  private ArrayList[] registerMap;
+  
   // Debugging information
   // Live Intervals, GC Maps, and fixed-point results
   private static final boolean dumpFinalLiveIntervals = false;
@@ -88,6 +103,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = false;
+    this.skipGuards = true;
   }
 
   /**
@@ -96,7 +112,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * 
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
-   * @param storeLiveAtHandlers should we store liveness info at the top of each handler block?
+   * @param storeLiveAtHandlers should we store liveness info at the 
+   * top of each handler block?
    */
   OPT_LiveAnalysis(boolean createGCMaps, 
 		   boolean skipLocal, 
@@ -104,14 +121,36 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
+    this.skipGuards = true;
   }
 
+  /**
+   * The constructor is used to specify whether GC maps should be computed
+   * along with live analysis.
+   * 
+   * @param createGCMaps should we create GC maps?
+   * @param skipLocal should we skip the (final) local propagation phase?
+   * @param storeLiveAtHandlers should we store liveness info at the 
+   * top of each handler block?
+   * @param skipGuards should we ignore validation registers?
+   */
+  OPT_LiveAnalysis(boolean createGCMaps, 
+                 boolean skipLocal, 
+                 boolean storeLiveAtHandlers,
+                 boolean skipGuards) {
+    this.createGCMaps = createGCMaps;
+    this.skipLocal = skipLocal;
+    this.storeLiveAtHandlers = storeLiveAtHandlers;
+    this.skipGuards = skipGuards;
+  }
+  
   /**
    *  By default we don't create GC maps and do perform the local prop phase
    */
   OPT_LiveAnalysis() {
     this.createGCMaps = false;
     this.skipLocal = false;
+    this.skipGuards = true;
   }
 
   /** 
@@ -189,6 +228,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       // When we don't perform the local propagation, such as translating
       // out of SSA, then we need to keep bbLiveInfo around
       bbLiveInfo = null;
+   
+      // compute the mapping from registers to live interval elements
+      computeRegisterMap(ir);
     }
 
     // No longer need currentSet, which is simply a cache of a LiveSet).
@@ -202,6 +244,87 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // inform the IR that handler liveness is now available
     if (storeLiveAtHandlers) {
       ir.setHandlerLivenessComputed();
+    }
+
+  }
+
+  /**
+   * Return an iterator over all the live interval elements for a given
+   * register.
+   */
+  public Iterator iterateLiveIntervals(OPT_Register r) {
+    ArrayList set = registerMap[r.getNumber()];
+    if (set == null) {
+      return new OPT_EmptyIterator();
+    } else {
+      return set.iterator();
+    }
+  }
+
+  /**
+   * Update the data structures to reflect that all live intervals for r2
+   * are now intervals for r1.
+   */
+  public void merge(OPT_Register r1, OPT_Register r2) {
+    ArrayList toRemove = new ArrayList(5);
+
+    for (Iterator i = iterateLiveIntervals(r2); i.hasNext(); ) {
+      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+      interval.setRegister(r1);
+      addToRegisterMap(r1,interval);
+      // defer removing the interval to avoid concurrent modification of
+      // the iterator's backing set.
+      toRemove.add(interval);
+    }
+    // perform deferred removals
+    for (Iterator i = toRemove.iterator(); i.hasNext(); ) {
+      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+      removeFromRegisterMap(r2,interval);
+    }
+  }
+
+  /**
+   * Set up a mapping from each register to the set of live intervals for
+   * the register.
+   * <p>
+   * Side effect: map each live interval element to its basic block.
+   */
+  private void computeRegisterMap(OPT_IR ir) {
+    registerMap = new ArrayList[ir.regpool.getNumberOfSymbolicRegisters()];
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      for (Enumeration i = bb.enumerateLiveIntervals(); i.hasMoreElements(); ) {
+        OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)i.nextElement();
+        lie.setBasicBlock(bb);
+        if (lie.getRegister().isSymbolic()) {
+          addToRegisterMap(lie.getRegister(),lie);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add the live interval element i to the map for register r.
+   */
+  private void addToRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
+    ArrayList set = registerMap[r.getNumber()];
+    if (set == null) {
+      set = new ArrayList(3);
+      registerMap[r.getNumber()] = set;
+    }
+    set.add(i);
+  }
+
+  /**
+   * Remove the live interval element i from the map for register r.
+   */
+  private void removeFromRegisterMap(OPT_Register r, 
+                                     OPT_LiveIntervalElement i) {
+    ArrayList set = registerMap[r.getNumber()];
+    if (set == null) {
+      return;
+    } else {
+      set.remove(i);
     }
   }
 
@@ -737,15 +860,14 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * @return whether the register should be skipped, i.e., not be
    *          present in the liveness solution
    */
-  private static boolean isSkippableReg(OPT_RegisterOperand regOp,
-                                        OPT_IR ir) {
+  private boolean isSkippableReg(OPT_RegisterOperand regOp, OPT_IR ir) {
     // The old test would exclude all physical registers.  However,
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
     // during call expansion.
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (regOp.register.isValidation() || 
-        phys.excludeFromLiveness(regOp.register)) {
+    if (phys.excludeFromLiveness(regOp.register)
+	|| (regOp.register.isValidation() && skipGuards)) {
       return  true;
     }
     return  false;
@@ -851,6 +973,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     System.out.println("  *+*+*+*+*+ End Final Live Intervals\n");
   }
 
+
   /**
    * REturns the live information for a particular block
    * @param bb the basic block of interest
@@ -932,14 +1055,14 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
 
     /**
-     * DEPRICIATED: Don't Use
+     * DEPRECIATED: Don't Use
      */
     public final OPT_LiveSet gen() {
       return  gen;
     }
 
     /**
-     * DEPRICIATED: Don't Use
+     * DEPRECIATED: Don't Use
      */
     public final OPT_LiveSet in() {
       return  in;

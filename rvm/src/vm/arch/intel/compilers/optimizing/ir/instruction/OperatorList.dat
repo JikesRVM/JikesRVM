@@ -251,13 +251,6 @@ none
 ########################################
 # Next comes the machine specific HIR/LIR instructions.
 ########################################
-# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
-LOWTABLESWITCH
-LowTableSwitch
-branch
-
-
-
 # Acquire the JTOC from the processor object.  Make unary operator to simplify CSE.
 GET_JTOC
 Unary
@@ -269,6 +262,63 @@ none
 ROUND_TO_ZERO
 Empty
 none
+
+
+
+# float/double addition
+FP_ADD
+Binary
+none
+
+
+
+# float/double subtraction
+FP_SUB
+Binary
+none
+
+
+
+# float/double multiplication
+FP_MUL
+Binary
+none
+
+
+
+# float/double division
+FP_DIV
+Binary
+none
+
+
+
+# float/double negation (sign change)
+FP_NEG
+Unary
+none
+
+
+
+# float/double remainder
+FP_REM
+Binary
+none
+
+
+
+# convert an int to a FP value
+INT_2FP
+Unary
+none
+
+
+
+# Move a value from one of two (register/constant) operands 
+# to a register operand.  Values are unchanged.
+CMOV
+CondMove
+compare
 
 
 
@@ -305,12 +355,38 @@ none
 
 
 ########################################
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+########################################
+IA32_LOWTABLESWITCH
+MIR_LowTableSwitch
+branch
+
+
+
+########################################
 # IA32 specific pseudo-ops (expanded just before final assembly)
 ########################################
 ####################
 # Clear the floating point stack
 ####################
 IA32_FCLEAR
+MIR_UnaryNoRes
+none
+
+
+
+####################
+# Special instructions to introduce live ranges to constrain register
+# allocation.
+####################
+DUMMY_DEF
+MIR_Nullary
+none
+
+
+
+####################
+DUMMY_USE
 MIR_UnaryNoRes
 none
 
@@ -468,6 +544,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FADDP
+MIR_BinaryAcc
+fpPop
+C0_C1_C2_C3
+
+
+####################
 IA32_FCHS
 MIR_UnaryAcc
 none
@@ -503,9 +586,23 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FDIVP
+MIR_BinaryAcc
+fpPop
+C0_C1_C2_C3
+
+
+####################
 IA32_FDIVR
 MIR_BinaryAcc
 none
+C0_C1_C2_C3
+
+
+####################
+IA32_FDIVRP
+MIR_BinaryAcc
+fpPop
 C0_C1_C2_C3
 
 
@@ -554,7 +651,7 @@ C0_C1_C2_C3
 ####################
 IA32_FILD
 MIR_Move
-none
+fpPush
 C0_C1_C2_C3
 
 
@@ -603,7 +700,7 @@ C0_C1_C2_C3
 ####################
 IA32_FLD
 MIR_Move
-none
+fpPush
 C0_C1_C2_C3
 
 
@@ -617,49 +714,49 @@ C0_C1_C2_C3
 ####################
 IA32_FLD1
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDL2T
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDL2E
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDPI
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDLG2
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDLN2
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDZ
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
@@ -667,6 +764,13 @@ C0_C1_C2_C3
 IA32_FMUL
 MIR_BinaryAcc
 none
+C0_C1_C2_C3
+
+
+####################
+IA32_FMULP
+MIR_BinaryAcc
+fpPop
 C0_C1_C2_C3
 
 
@@ -734,9 +838,23 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FSUBP
+MIR_BinaryAcc
+fpPop
+C0_C1_C2_C3
+
+
+####################
 IA32_FSUBR
 MIR_BinaryAcc
 none
+C0_C1_C2_C3
+
+
+####################
+IA32_FSUBRP
+MIR_BinaryAcc
+fpPop
 C0_C1_C2_C3
 
 

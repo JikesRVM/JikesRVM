@@ -97,12 +97,15 @@ abstract class VM_MethodListener extends VM_Listener
       // for every yieldpoint.  On a prologue, we count the caller.
       // On backedges and epilogues, we count the current method.
       if (whereFrom == VM_Thread.PROLOGUE) {
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize && callerCmid != -1) {
- 	  samples[idx] = callerCmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
-        }
+	// Before getting an index, make sure we have something to insert
+	if (callerCmid != -1) {
+	  idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	  if (idx < sampleSize) {
+	    samples[idx] = callerCmid;
+	    sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							  numSamplesOffset, 1);
+	  } // was there room?
+        } // nothing to insert
       } else { 
         // loop backedge or epilogue.  
  	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
@@ -124,11 +127,13 @@ abstract class VM_MethodListener extends VM_Listener
  	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
 							numSamplesOffset, 1);
 	}
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize && callerCmid != -1) {
- 	  samples[idx] = callerCmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
+	if (callerCmid != -1) {
+	  idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	  if (idx < sampleSize) {
+	    samples[idx] = callerCmid;
+	    sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							  numSamplesOffset, 1);
+	  }
         }
       } else { 
         // loop backedge.  We're only called once, so need to take

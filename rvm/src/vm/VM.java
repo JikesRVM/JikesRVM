@@ -67,11 +67,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
-    // 0. Set floating-point rounding mode to round-to-zero
-    //-#if RVM_FOR_IA32
-    VM_Magic.roundToZero(); 
-    //-#endif
-    
     // 1. Finish thread initialization that couldn't be done in boot image.
     //    The "stackLimit" must be set before any method calls, because it's accessed
     //    by compiler-generated stack overflow checks.
@@ -119,11 +114,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     VM_CommandLineArgs.fetchCommandLineArguments();
 
-    // 6. Allow Collector to respond to command line arguments
-    //
-    VM_Collector.postBoot();
-
-    // 7. Initialize class loader.
+    // 6. Initialize class loader.
     //
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
@@ -182,13 +173,17 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_RuntimeCompiler.boot();
  
     
-    // Process virtual machine directives.
+    // 7. Process virtual machine directives.
     //
     String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
     if (applicationArguments.length == 0) {  
       VM.sysWrite("vm: please specify a class to execute\n");
       VM.sysExit(1);
     }
+
+    // 8. Allow Collector to respond to command line arguments
+    //
+    VM_Collector.postBoot();
 
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
@@ -364,6 +359,32 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   /**
+   * Low level print to console.
+   * @param value   what is printed
+   */
+  public static void
+  sysWrite(long value) {
+    sysWrite(value, true);
+  }
+
+  /**
+   * Low level print to console.
+   * @param value   what is printed
+   * @param hexToo  how to print: true  - print as decimal followed by hex
+   *                              false - print as decimal only
+   */
+  public static void
+  sysWrite(long value, boolean hexToo) {
+    if (runningVM) {
+      int val1, val2;
+      val1 = (int)(value>>32);
+      val2 = (int)(value & 0xFFFFFFFF);
+      sysCall3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
+    } else
+      System.err.print(value);
+  }
+
+  /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
@@ -427,7 +448,11 @@ public class VM extends VM_Properties implements VM_Constants,
    * Yield execution of current virtual processor back to o/s.
    */
   static void sysVirtualProcessorYield() {
-    sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+      return;
+      //-#else
+      sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+      //-#endif
   }
 
   /**
@@ -439,6 +464,21 @@ public class VM extends VM_Properties implements VM_Constants,
     sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP);
   }
    
+  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  //-#else
+  static void sysWaitForVirtualProcessorInitialization() {
+      sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
+  }
+
+  static void sysWaitForMultithreadingStart() {
+      sysCall0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
+  }
+
+  static void sysInitializeStartupLocks(int howMany) {
+      sysCall1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
+  }
+  //-#endif
+
   //-#if RVM_FOR_POWERPC
   /**
    * Make calls to host operating system services.

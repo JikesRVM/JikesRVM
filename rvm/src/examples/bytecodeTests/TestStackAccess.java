@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestStackAccess
+//$Id$
+/*
+ * @author unascribed
+ */
 
 class TestStackAccess
    {

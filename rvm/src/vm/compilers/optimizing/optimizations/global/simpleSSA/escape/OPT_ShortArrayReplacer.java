@@ -43,7 +43,7 @@ public class OPT_ShortArrayReplacer
     OPT_Register r = NewArray.getResult(inst).register;
     VM_Array a = NewArray.getType(inst).type.asArray();
     // TODO :handle these cases
-    if (containsUnsupportedUse(ir, r))
+    if (containsUnsupportedUse(ir, r, s))
       return  null;
     return  new OPT_ShortArrayReplacer(r, a, s, ir);
   }
@@ -152,8 +152,13 @@ public class OPT_ShortArrayReplacer
 
   /**
    * Some cases we don't handle yet. TODO: handle them.
+   *
+   * @param ir the governing IR
+   * @param reg the register in question
+   * @param size the size of the array to scalar replace.
    */
-  private static boolean containsUnsupportedUse (OPT_IR ir, OPT_Register reg) {
+  private static boolean containsUnsupportedUse (OPT_IR ir, OPT_Register reg,
+                                                 int size) {
     for (OPT_RegisterOperand use = reg.useList; use != null; 
          use = (OPT_RegisterOperand)use.getNext()) {
       switch (use.instruction.getOpcode()) {
@@ -164,16 +169,28 @@ public class OPT_ShortArrayReplacer
         case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
         case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
         case BYTE_ASTORE_opcode:case SHORT_ASTORE_opcode:case REF_ASTORE_opcode:
+          {
           if (!AStore.getIndex(use.instruction).isIntConstant())
             return  true;
+          int index = AStore.getIndex(use.instruction).asIntConstant().value;
+          // In the following case, we could instead unconditionally throw
+          // an array index out-of-bounds exception.
+          if (index >= size) return true;
           break;
+          }
         case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
         case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
         case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:
         case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
+          {
           if (!ALoad.getIndex(use.instruction).isIntConstant())
             return  true;
+          int index = ALoad.getIndex(use.instruction).asIntConstant().value;
+          // In the following case, we could instead unconditionally throw
+          // an array index out-of-bounds exception.
+          if (index >= size) return true;
           break;
+          }
       }
     }
     return  false;

@@ -54,7 +54,13 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.IntType);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
       OPT_RegisterOperand pr = OPT_IRTools.R(gc.temps.getPhysicalRegisterSet().getPR());
-      bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr));
+      if (VM.BuildForIA32 && gc.options.FIXED_JTOC) {
+        int jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+        OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc);
+        bc2ir.appendInstruction(Move.create(REF_MOVE, val, I));
+      } else {
+        bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr));
+      }
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       // nothing required on Intel

@@ -108,6 +108,7 @@ class VM_BootImageCompiler {
    */
   public static VM_CompiledMethod compile(VM_Method method) {
 
+    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
     if (!compilerEnabled) return VM_Compiler.compile(method); // Other half of kludge for java.lang.Object (see above)
     try {
       OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);

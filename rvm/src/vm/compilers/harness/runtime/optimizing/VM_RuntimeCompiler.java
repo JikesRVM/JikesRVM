@@ -58,6 +58,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   // tries to compile the passed method with the OPT_Compiler.
   // if this fails we use the fallback compiler (baseline for now)
   static VM_CompiledMethod compile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
     if (!compilerEnabled                          // opt compiler isn't initialized yet
 	|| !VM_Scheduler.allProcessorsInitialized // gc system isn't fully up: reduce memory load
 	|| method.isClassInitializer()            // will only run once: don't bother optimizing

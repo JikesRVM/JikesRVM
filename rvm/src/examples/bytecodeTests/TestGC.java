@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestGC
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 
 class Buf
    {

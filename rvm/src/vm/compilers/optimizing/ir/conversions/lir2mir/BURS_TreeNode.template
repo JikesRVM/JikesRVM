@@ -90,5 +90,8 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
     return (getNonTerminal() > 0 );
   }
 
+  public boolean isREGISTERNode() {
+    return getOpcode() == OPT_Operators.REGISTER_opcode;
+  }
 
 /**** remainder will be inserted by the BURS generator *********/

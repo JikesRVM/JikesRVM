@@ -1,5 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *
+ * $Id$:
+ *
+ * @author Ton Ngo
  */
 /* Test method invocation from native code 
  * Implement native methods from Allocation.java 

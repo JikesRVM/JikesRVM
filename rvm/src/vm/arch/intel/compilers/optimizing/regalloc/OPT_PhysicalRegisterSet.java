@@ -12,7 +12,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  */
 class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
-    implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
+implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers
@@ -54,14 +54,14 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    * Return the total number of GPRs that may hold parameters.
    */
   static final int getNumberOfGPRParams() {
-      return NUM_PARAMETER_GPRS;
+    return NUM_PARAMETER_GPRS;
   }
 
   /**
    * Return the total number of FPRs that may hold parameters.
    */
   static final int getNumberOfFPRParams() {
-      return NUM_PARAMETER_FPRS;
+    return NUM_PARAMETER_FPRS;
   }
 
 
@@ -69,42 +69,50 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    * Return the (zero-based indexed) nth GPR that may hold a parameter.
    */
   final OPT_Register getGPRParam(int n) {
-      if (VM.VerifyAssertions) VM.assert(n < NUM_PARAMETER_GPRS);
-      return getGPR(VOLATILE_GPRS[n]);
+    if (VM.VerifyAssertions) VM.assert(n < 2);
+    if (n==0) {
+      return getEAX();
+    } else {
+      return getEDX();
+    }
   }
 
   /**
    * Return the (zero-based indexed) nth FPR that may hold a parameter.
    */
   final OPT_Register getFPRParam(int n) {
-      return getFPR(VOLATILE_FPRS[n]);
+    return getFPR(VOLATILE_FPRS[n]);
   }
 
   /**
-   * @return the first GPR return
+   * Return the (zero-based indexed) nth GPR that may hold a return value.
    */
   OPT_Register getReturnGPR(int n) {
-      if (VM.VerifyAssertions) VM.assert(n < NUM_RETURN_GPRS);
-      return getGPR(VOLATILE_GPRS[n]);
+    if (VM.VerifyAssertions) VM.assert(n < 2);
+    if (n==0) {
+      return getEAX();
+    } else {
+      return getEDX();
+    }
   }
 
   /**
    * Constructor: set up a pool of physical registers.
    */
   OPT_PhysicalRegisterSet() {
-    
+
     // 1. Create all the physical registers in the pool.
     for (int i = 0; i < reg.length ; i++) {
       OPT_Register r = new OPT_Register(i);
       r.setPhysical();
       reg[i] = r;
     }
-    
+
     // 2. Set the 'integer' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
       reg[i].setInteger();
     }
-    
+
     // 3. Set the 'double' attribute on each FPR
     for (int i = FIRST_DOUBLE; i < FIRST_SPECIAL; i++) {
       reg[i].setDouble();
@@ -115,7 +123,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
       OPT_Register r = (OPT_Register)e.nextElement();
       r.setVolatile();
     }
-    
+
     // 5. set up the non-volatile GPRs
     for (Enumeration e = enumerateNonvolatileGPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
@@ -134,7 +142,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
-    reg[FRAME_POINTER].setSpansBasicBlock();
+    reg[VM_BaselineConstants.FP].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
     for (Enumeration e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
@@ -162,7 +170,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
       fpSet.add(r);
     }
   }
-    
+
   /**
    * Is a particular register subject to allocation?
    */
@@ -182,63 +190,63 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    * @return the frame pointer register
    */
   OPT_Register getFP() {
-      return getGPR(FRAME_POINTER);
+    return getGPR(VM_BaselineConstants.FP);
   }
 
   /**
    * @return the EAX register
    */
   OPT_Register getEAX() {
-      return getGPR(EAX);
+    return getGPR(EAX);
   }
 
   /**
    * @return the ECX register
    */
   OPT_Register getECX() {
-      return getGPR(ECX);
+    return getGPR(ECX);
   }
 
   /**
    * @return the EDX register
    */
   OPT_Register getEDX() {
-      return getGPR(EDX);
+    return getGPR(EDX);
   }
 
   /**
    * @return the EBX register
    */
   OPT_Register getEBX() {
-      return getGPR(EBX);
+    return getGPR(EBX);
   }
 
   /**
    * @return the ESP register
    */
   OPT_Register getESP() {
-      return getGPR(ESP);
+    return getGPR(ESP);
   }
 
   /**
    * @return the EBP register
    */
   OPT_Register getEBP() {
-      return getGPR(EBP);
+    return getGPR(EBP);
   }
 
   /**
    * @return the ESI register
    */
   OPT_Register getESI() {
-      return getGPR(ESI);
+    return getGPR(ESI);
   }
 
   /**
    * @return the EDI register
    */
   OPT_Register getEDI() {
-      return getGPR(EDI);
+    return getGPR(EDI);
   }
 
 
@@ -333,7 +341,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    */
   OPT_Register getFirstReturnGPR() {
     if (VM.VerifyAssertions) VM.assert(NUM_RETURN_GPRS > 0);
-    return getGPR(VOLATILE_GPRS[0]);
+    return getEAX();
   }
 
   /**
@@ -341,7 +349,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    */
   OPT_Register getSecondReturnGPR() {
     if (VM.VerifyAssertions) VM.assert(NUM_RETURN_GPRS > 1);
-    return getGPR(VOLATILE_GPRS[1]);
+    return getEDX();
   }
 
   /**
@@ -402,7 +410,6 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
       regName[i + FIRST_INT] = GPR_NAMES[i];
     for (int i = 0; i < NUM_FPRS; i++)
       regName[i + FIRST_DOUBLE] = FPR_NAMES[i];
-//    regName[FRAME_POINTER] = "FP";
     regName[PROCESSOR_REGISTER] = "PR";
     regName[AF] = "AF";
     regName[CF] = "CF";
@@ -477,7 +484,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
   Enumeration enumerateVolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_GPRS ];
     for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
-	r[i] = getGPR(VOLATILE_GPRS[i]);
+      r[i] = getGPR(VOLATILE_GPRS[i]);
     return new PhysicalRegisterEnumeration(r);
   }
 
@@ -487,7 +494,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
   Enumeration enumerateNonvolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
-	r[i] = getGPR(NONVOLATILE_GPRS[i]);
+      r[i] = getGPR(NONVOLATILE_GPRS[i]);
     return new PhysicalRegisterEnumeration(r);
   }
   /**
@@ -496,7 +503,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
   Enumeration enumerateVolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_FPRS ];
     for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
-	r[i] = getFPR(VOLATILE_FPRS[i]);
+      r[i] = getFPR(VOLATILE_FPRS[i]);
     return new PhysicalRegisterEnumeration(r);
   }
 
@@ -506,7 +513,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
   Enumeration enumerateNonvolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
-	r[i] = getFPR(NONVOLATILE_FPRS[i]);
+      r[i] = getFPR(NONVOLATILE_FPRS[i]);
     return new PhysicalRegisterEnumeration(r);
   }
 

@@ -11,81 +11,74 @@
  */
 class VM_IdleThread extends VM_Thread {
 
-  // time in seconds to spin 
-  //-#if RVM_WITH_LOUSY_LOAD_BALANCING
-  static final double SPIN_TIME = (VM.BuildforConcurentGC ? 0.001 : 0);
-  //-#else
-  static final double SPIN_TIME = 0.001;
-  //-#endif
+  /**
+   * Attempt rudimentary load balancing.  If a virtual processor
+   * has no work it asks for some then spins for time waiting for
+   * an runnable thread to arrive.  If none does, or if this variable
+   * is false, the remaining time-slice is returned to the operating
+   * system.
+   *
+   * @see "preprocessor directive RVM_WITHOUT_LOAD_BALANCING"
+   */
+//-#if RVM_WITHOUT_LOAD_BALANCING
+  static final boolean loadBalancing = false;
+//-#else
+  static final boolean loadBalancing = !VM.BuildForSingleVirtualProcessor;
+//-#endif
 
+  /**
+   * Time to wait for work if loadBalancing is set.
+   */
+  static final double SPIN_TIME = (loadBalancing? 0.001 : 0.0);
+
+  /**
+   * A thread to run if there is no other work for a virtual processor.
+   */
   VM_IdleThread(VM_Processor processorAffinity) {
     makeDaemon(true);
     super.isIdleThread = true;
     super.processorAffinity = processorAffinity;
   }
 
-  public String
-  toString() // overrides VM_Thread
-     {
-     return "VM_IdleThread";
-     }
+  public String toString() { // overrides VM_Thread
+    return "VM_IdleThread";
+  }
 
   public void run() { // overrides VM_Thread
-    while (true) {
-      
+    VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
+    if (VM.VerifyAssertions) VM.assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
+   main: while (true) {
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
-
       if (VM_Scheduler.terminated) VM_Thread.terminate();
-      
-      // flag -  the main will will either yield to the idle queue, and most
-      //         likely loop back, or
-      //	 yield the time slice to other processors.
-      //  idleQueueYield means yield to the idle queue
-
-      VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
-
-      if (!VM.BuildForDedicatedNativeProcessors && myProcessor.processorMode != VM_Processor.NATIVEDAEMON) {
-        // Awaken threads whose sleep time has expired.
-        //
-        if ( VM_Processor.idleProcessor == null      // nobody else has asked for work
-	     && !availableWork(myProcessor)
-             && VM_Scheduler.numProcessors > 1
-             && ( !VM.BuildForConcurrentGC
-	 	  ||  (VM_Processor.getCurrentProcessor().id != VM_Scheduler.numProcessors) ) ) { 
-            // Tell load balancer that this processor needs work.
-	    // VM_Scheduler.trace("VM_IdleThread", "asking for work");
-	    VM_Processor.idleProcessor = VM_Processor.getCurrentProcessor();
-	  }
+      for (double t=VM_Time.now()+SPIN_TIME; VM_Time.now()<t;) {
+	if (!VM.BuildForConcurrentGC) VM_Processor.idleProcessor = myProcessor;
+	if (availableWork(myProcessor)) {
+	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
+	  continue main;
+	}
       }
-
-      for (double t = VM_Time.now() + SPIN_TIME; VM_Time.now() < t; ) 
-        if (availableWork(myProcessor)) break;
-      
-      if (availableWork(myProcessor))	VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
-      else				VM.sysVirtualProcessorYield();
+      VM.sysVirtualProcessorYield();
     }
   }
 
   /*
-   * @returns true, if the processor has a runnable thread
+   * @returns true, if their appears to be a runnable thread for the processor to execute
    */
   private static boolean availableWork ( VM_Processor p ) {
-
     if (!p.readyQueue.isEmpty())	return true;
     VM_Magic.isync();
     if (!p.transferQueue.isEmpty())	return true;
     if (p.ioQueue.isReady())		return true;
-
     if (VM_Scheduler.wakeupQueue.isReady()) {
-            VM_Scheduler.wakeupMutex.lock();
-            VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
-            VM_Scheduler.wakeupMutex.unlock();
-            if (t != null) {
-        	t.schedule();
-		return true;
-            }
+      VM_Scheduler.wakeupMutex.lock();
+      VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
+      VM_Scheduler.wakeupMutex.unlock();
+      if (t != null) {
+	t.schedule();
+	return true;
+      }
     }
-
     return false;
   }
+
 }

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestConstants
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 class TestConstants
 {
   public static void main(String args[])

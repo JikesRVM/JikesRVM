@@ -30,7 +30,7 @@ public final class VM_CycleBuffer
     private static VM_CycleChildVisitor cycleChildVisitor = new VM_CycleChildVisitor();
     private static VM_VisualizeCycleChildVisitor visualizeCycleChildVisitor = new VM_VisualizeCycleChildVisitor();
 
-    private static final boolean TRACE       = true;
+    private static final boolean TRACE       = false;
     private static final boolean TRACEDETAIL = false;
     private static final boolean TRACEADDS   = false;
     private static final boolean STATS       = false;
@@ -183,7 +183,7 @@ public final class VM_CycleBuffer
 	cp.index  = last.entries;
 
 	while (cp.buffer != null) { // loop over all cycles backwards
-	    if (cp.index < 0) println("Index < 0: ", cp.index);
+	    if (TRACE && cp.index < 0) println("Index < 0: ", cp.index);
 
 	    boolean garbageCycle = SigmaDeltaTest(cp.buffer, cp.index);
 

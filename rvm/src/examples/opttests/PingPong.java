@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class PingPong extends Thread {
     String  word;
     int     delaytime;

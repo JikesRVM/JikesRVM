@@ -9,8 +9,7 @@ import instructionFormats.*;
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules
  *
- * @author Dave Grove
- * @author Mauricio J. Serrano
+ * @author Dave Grove, Mauricio J. Serrano, Martin Trapp
  */
 abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
   /**
@@ -50,6 +49,9 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
       OPT_Simplifier.simplify(s);
+
+      exterminateLongConstants (s, ir);
+
       switch (s.getOpcode()) {
 	//////////
 	// LOAD/STORE
@@ -217,4 +219,31 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
     // Operand was OK as is.
     return addr;
   }
+
+  
+  /**
+   * Replace LongConstant uses by materializeConstants
+   * @param inst
+   * @param ir
+   * @return 
+   */
+  static void exterminateLongConstants (OPT_Instruction s, OPT_IR ir) {
+    
+    int numUses = s.getNumberOfUses();
+    if (numUses > 0) {
+      int numDefs = s.getNumberOfDefs();
+      for (int idx = numDefs; idx < numUses + numDefs; idx++) {
+	OPT_Operand use = s.getOperand(idx);
+	if (use != null) {
+	  if (use instanceof OPT_LongConstantOperand) {
+	    OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.LongType);
+	    use.clear();
+	    s.insertBack(Move.create(LONG_MOVE, rop, use));
+	    s.putOperand(idx, rop.copyD2U());
+	  }
+	}
+      }
+    }
+  }
 }
+

@@ -68,10 +68,9 @@ class OPT_HashedValueNumbers implements OPT_Operators {
       } 
 
       if (!defs.hasMoreElements()) {
-	  if (DEBUG || ((OPT_RegisterOperand)op).type != OPT_ClassLoaderProxy.VALIDATION_TYPE)
-	      VM.sysWrite ("Use without def for " + op + " in "
-			   + op.instruction + "\n");
-	  return actNum++;
+	VM.sysWrite ("Use without def for " + op + " in "
+		     + op.instruction + "\n");
+	return actNum++;
       } 
       //if (VM.VerifyAssertions) VM.assert (defs.hasMoreElements());
       OPT_Instruction def = defs.next().instruction;

@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestClone
+//$Id$
+/*
+ * @author unascribed
+ */
 
 class TestClone implements Cloneable
    {

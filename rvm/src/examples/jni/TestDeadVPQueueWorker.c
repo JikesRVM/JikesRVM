@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* test native code for jni
+ *
+ * @author unascribed
  */
 
 #include <stdio.h>

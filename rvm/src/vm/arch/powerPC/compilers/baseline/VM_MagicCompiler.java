@@ -450,7 +450,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          asm.emitL     (T2,  0, SP);  // pop newValue (ignore oldValue)
 	 if (VM.BuildForSingleVirtualProcessor) 
             {
-	    asm.emitST    (T2,  T1, T0); // store new value (on one VP this succeeds by definition)
+	    asm.emitSTX   (T2,  T1, T0); // store new value (on one VP this succeeds by definition)
 	    } else {
 	    asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
             asm.emitCAL   (T0,  0, 0);  // T0 := false

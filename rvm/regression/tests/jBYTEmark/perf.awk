@@ -1,6 +1,11 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#
+# $Id$
+#
+# @author Julian Dolby
+#
 
 # collect index results for summary line
 /Integer Index/ { intPerf = $3; next }

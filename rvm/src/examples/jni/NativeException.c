@@ -1,10 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Test JNI Functions related to Exception
  * Implement native methods from NativeException.java 
  * 
- * Ton Ngo, Steve Smith 3/24/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/24/00
  */
 #include <stdio.h>
 #include "NativeException.h"

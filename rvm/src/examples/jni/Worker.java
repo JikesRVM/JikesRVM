@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class Worker extends Thread  {
   private String name;
   boolean readyFlag = false;

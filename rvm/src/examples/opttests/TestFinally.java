@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestFinally
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 class TestFinally
    {
    static int

@@ -1,10 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  *  Test exception handling through JNI and native code
  *
- * Ton Ngo, Steve Smith 3/24/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/24/00
  */
 
 

@@ -4,6 +4,8 @@
 //$Id$
 // Layout of an AIX function linkage area.
 //
+// @author unascribed
+//
 struct AixLinkageLayout
    {
    int ip;         // value to put in IP register

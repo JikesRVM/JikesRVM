@@ -112,6 +112,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       sm.insertSpillCode();
     }
 
+    rewriteFPStack(ir);
+
     // update GC maps again, to account for changes induced by spill code.
     updateGCMaps2(ir);
   }
@@ -119,42 +121,82 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    *  Iterate over the IR and replace each symbolic register with its
    *  allocated physical register.
-   * 
-   *  Side effect: update the fpStackHeight in MIRInfo
    */
   private void replaceSymbolicRegisters(OPT_IR ir) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      for (Enumeration e2 = s.getOperands(); e2.hasMoreElements(); ) {
-        OPT_Operand op = (OPT_Operand)e2.nextElement();
-        if (op.isRegister()) {
-          OPT_RegisterOperand rop = op.asRegister();
-          OPT_Register r = rop.register;
-
-          // if we see a physical FPR, update the MIR state.
-          if (r.isPhysical() && r.isFloatingPoint()) {
-            int n = phys.getFPRIndex(r);
-            ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
-                                                n+1);
-          }
-
-          if (r.isSymbolic() && !r.isSpilled()) {
-            OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
-            if (VM.VerifyAssertions) VM.assert(p!=null);
-            rop.register = p;
-            // update MIR state if needed
-            if (p.isFloatingPoint()) {
-              int n = phys.getFPRIndex(p);
-              ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
-                                                  n+1);
-            }
-          }
-        }
+    for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
+	 inst.hasMoreElements();) {
+      OPT_Instruction s = inst.next();
+      for (OPT_OperandEnumeration ops = s.getOperands(); 
+	   ops.hasMoreElements(); ) {
+	OPT_Operand op = ops.next();
+	if (op.isRegister()) {
+	  OPT_RegisterOperand rop = op.asRegister();
+	  OPT_Register r = rop.register;
+	  if (r.isSymbolic() && !r.isSpilled()) {
+	    OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
+	    if (VM.VerifyAssertions) VM.assert(p!=null);
+	    rop.register = p;
+	  }
+	}
       }
     }
   } 
+
+  /**
+   *  Rewrite floating point registers to reflect changes in stack
+   *  height induced by BURS. 
+   * 
+   *  Side effect: update the fpStackHeight in MIRInfo
+   */
+  private void rewriteFPStack(OPT_IR ir) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+      
+      // The following holds the floating point stack offset from its
+      // 'normal' position.
+      int fpStackOffset = 0;
+
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
+           inst.hasMoreElements();) {
+        OPT_Instruction s = inst.next();
+        for (OPT_OperandEnumeration ops = s.getOperands(); 
+	     ops.hasMoreElements(); ) {
+          OPT_Operand op = ops.next();
+          if (op.isRegister()) {
+            OPT_RegisterOperand rop = op.asRegister();
+            OPT_Register r = rop.register;
+
+            // Update MIR state for every phyiscal FPR we see
+            if (r.isPhysical() && r.isFloatingPoint() &&
+		s.operator() != DUMMY_DEF && 
+		s.operator() != DUMMY_USE) {
+              int n = phys.getFPRIndex(r);
+	      if (fpStackOffset != 0) {
+		n += fpStackOffset;
+		rop.register = phys.getFPR(n);
+	      }
+	      ir.MIRInfo.fpStackHeight = 
+		Math.max(ir.MIRInfo.fpStackHeight, n+1);
+            }
+          } else if (op instanceof OPT_BURSManagedFPROperand) {
+	    int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
+	    s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
+							 VM_Type.DoubleType));
+	  }
+	}
+        // account for any effect s has on the floating point stack
+        // position.
+        if (s.operator().isFpPop()) {
+          fpStackOffset--;
+        } else if (s.operator().isFpPush()) {
+          fpStackOffset++;
+        }
+        if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
+      }
+    }
+  }
+
   /**
    *  Iterate over the IR-based GC map collection and for each entry
    *  replace the symbolic reg with the real reg or spill it was allocated
@@ -962,7 +1004,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       this.spillManager = sm;
 
       if (ir.options.getOptLevel() >= 2) {
-        spillCost = new OPT_LoopDepthSpillCost(ir);
+        if (ir.hasReachableExceptionHandlers()) {
+          spillCost = new OPT_SimpleSpillCost(ir);
+        } else {
+          spillCost = new OPT_LoopDepthSpillCost(ir);
+        }
       } else {
         switch (ir.options.SPILL_COST_ESTIMATE) {
           case OPT_Options.SIMPLE_SPILL_COST:
@@ -972,7 +1018,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             spillCost = new OPT_BrainDeadSpillCost(ir);
             break;
           case OPT_Options.LOOPDEPTH_SPILL_COST:
-            spillCost = new OPT_LoopDepthSpillCost(ir);
+            if (ir.hasReachableExceptionHandlers()) {
+              spillCost = new OPT_SimpleSpillCost(ir);
+            } else {
+              spillCost = new OPT_LoopDepthSpillCost(ir);
+            }
             break;
           default:
             OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
@@ -1524,7 +1574,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
           CompoundInterval resultingInterval = processLiveInterval(live, 
                                                                    bb);
-          if (live.getEnd() == null) { 
+          if (live.getEnd() == null && resultingInterval != null) { 
             // the live interval is still alive at the end of this basic
             // block. insert at the end of the active list
             activeOut.add(resultingInterval);
@@ -1629,7 +1679,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      *
      * @param live the liveintervalelement for a basic block/reg pair
      * @param bb the basic block
-     * @return the resulting CompoundInterval
+     * @return the resulting CompoundInterval. null if the live interval
+     * is not relevant to register allocation.
      */
     private CompoundInterval processLiveInterval(OPT_LiveIntervalElement live, 
                                                  OPT_BasicBlock bb) {
@@ -1646,13 +1697,19 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           if (end != null && end.operator == IA32_FMOV) {
             if (dfnend == dfnbegin) {
               // if end, an FMOV, both begins and ends the live range,
-              // then end is dead.  Change it to a NOP. 
+              // then end is dead.  Change it to a NOP and return null. 
               Empty.mutate(end,NOP);
+              return null;
             } else {
-              if (VM.VerifyAssertions) {
-                VM.assert(MIR_Move.getValue(end).asRegister().register == reg);
+              if (!end.isPEI()) {
+                if (VM.VerifyAssertions) {		      
+                  OPT_Operand value = MIR_Move.getValue(end);
+                  VM.assert(value.isRegister());
+                  VM.assert(MIR_Move.getValue(end).asRegister().register 
+                            == reg);
+                }
+                end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
               }
-              end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
             }
           }
         }

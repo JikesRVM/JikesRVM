@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
 include         $(RVM_BUILD)/Make.rules
 
 BENCH_NAME=SPECjvm98
@@ -38,7 +42,8 @@ ifneq ($(WORKING),.)
 endif
 
 check:
-	@$(FGREP) -v "**NOT" $(OUT) > /dev/null
+	@$(FGREP) "Finished" $(OUT) > /dev/null
+	@$(FGREP) "Finished" $(OUT) | $(FGREP) -v "**NOT" $(OUT) > /dev/null
 	@$(AWK) '/start\./{cnt++};/^-- Stack --/{cnt++};/Finished/{cnt--};END{exit cnt}' $(OUT)
 
 ifeq ($(MODE),PERFORMANCE)

@@ -230,6 +230,10 @@ $$$$ END LOOP
 
   // Print a short description of every option
   public static void printHelp(String prefix) {
+    // The following is an attempt to avoid occasional OutOfMemory errors when
+    // boot image writing.
+    VM_Magic.pragmaNoOptCompile();
+
     instancePrintHelpHeader(prefix);
 
     //Begin generated help messages

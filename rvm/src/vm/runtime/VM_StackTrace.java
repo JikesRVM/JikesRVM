@@ -39,7 +39,7 @@ public class VM_StackTrace implements VM_Constants {
        stackFrameCount++;
        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
-	 VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	   // skip native frames, stopping at last native frame preceeding the
 	   // Java To C transition frame
@@ -67,7 +67,7 @@ public class VM_StackTrace implements VM_Constants {
      for (int i = 0; i < stackFrameCount; ++i) {
        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
-	 VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	 stackTrace[i].compiledMethod = compiledMethod;
 	 stackTrace[i].instructionOffset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {

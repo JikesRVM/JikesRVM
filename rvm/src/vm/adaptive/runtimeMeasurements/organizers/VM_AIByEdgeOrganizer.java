@@ -114,7 +114,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
        VM_CompiledMethod compiledMethod = null;
 
        int calleeCMID = buffer[i+0];
-       compiledMethod   = VM_ClassLoader.getCompiledMethod(calleeCMID);
+       compiledMethod   = VM_CompiledMethods.getCompiledMethod(calleeCMID);
        if (compiledMethod == null) continue;
        VM_Method callee = compiledMethod.getMethod();
        if (OPT_InliningUtilities.methodShouldNotBeInlined(callee)) {
@@ -123,7 +123,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
        }
 
        int callerCMID = buffer[i+1];
-       compiledMethod   = VM_ClassLoader.getCompiledMethod(callerCMID);
+       compiledMethod   = VM_CompiledMethods.getCompiledMethod(callerCMID);
        if (compiledMethod == null) continue;
        VM_Method stackFrameCaller = compiledMethod.getMethod();
        
@@ -259,7 +259,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
      // Consider each hot O2 method
      for (int i=0; i<hotMethodSet.cmids.length; i++) {
        int cmid	                   = hotMethodSet.cmids[i];
-       VM_CompiledMethod hotMethod = VM_ClassLoader.getCompiledMethod(cmid);
+       VM_CompiledMethod hotMethod = VM_CompiledMethods.getCompiledMethod(cmid);
        double numSamples           = hotMethodSet.counters[i];
        VM_OptMachineCodeMap mcMap  = 
 	 ((VM_OptCompilerInfo)hotMethod.getCompilerInfo()).getMCMap();
@@ -312,7 +312,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	   if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	 } else {
 	   if (VM.LogAOSEvents) {
-	     VM_CompiledMethod cm = VM_ClassLoader.getCompiledMethod(cmid);
+	     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	     VM_AOSLogging.controllerNotifiedForInlining(cm, 
 							 numSamples, 
 							 boost);

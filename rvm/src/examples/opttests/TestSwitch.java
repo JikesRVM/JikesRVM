@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestSwitch
+//$Id$
+/**
+ * @author unascribed
+ */
 
 class TestSwitch
 {

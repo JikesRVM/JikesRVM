@@ -8,8 +8,7 @@
  *  
  * @author Derek Lieber
  */
-public class VM_Thread implements VM_Constants, VM_BaselineConstants, 
-VM_Uninterruptible {
+public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * constant for RCGC reference counting per thread stack increment/decrement 
@@ -185,6 +184,7 @@ VM_Uninterruptible {
   public static void threadSwitchFromPrologue() {
     threadSwitch(PROLOGUE);
   }
+
   /**
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
@@ -192,6 +192,7 @@ VM_Uninterruptible {
   public static void threadSwitchFromBackedge() {
     threadSwitch(BACKEDGE);
   }
+
   /**
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
@@ -199,6 +200,7 @@ VM_Uninterruptible {
   public static void threadSwitchFromEpilogue() {
     threadSwitch(EPILOGUE);
   }
+
   /**
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
@@ -290,7 +292,7 @@ VM_Uninterruptible {
       // Java stackframe.
       boolean ypTakenInCallerCMIDValid = true;
       VM_CompiledMethod ypTakenInCM = 
-        VM_ClassLoader.getCompiledMethod(ypTakenInCMID);
+        VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
 
       // Check for one of the following:
       //    Caller is top-of-stack psuedo-frame
@@ -333,12 +335,23 @@ VM_Uninterruptible {
     //-#endif
 
     // VM_Scheduler.trace("VM_Thread", "threadSwitch");
-    yield();
+    timerTickYield();
   }
 
   /**
    * Suspend execution of current thread, in favor of some other thread.
-   *!!TODO: verify that this method gets inlined by opt compiler
+   * Move this thread to a random virtual processor (for minimal load balancing)
+   * if this processor has other runnable work.
+   */ 
+  public static void timerTickYield () {
+    VM_Thread myThread = getCurrentThread();
+    myThread.beingDispatched = true;
+    VM_Processor.getCurrentProcessor().scheduleThread(myThread);
+    morph();
+  }
+
+  /**
+   * Suspend execution of current thread, in favor of some other thread.
    */ 
   public static void yield () {
     VM_Thread myThread = getCurrentThread();
@@ -364,13 +377,33 @@ VM_Uninterruptible {
    * Suspend execution of current thread in favor of some other thread.
    * @param q queue to put thread onto
    * @param l lock guarding that queue (currently locked)
-   *!!TODO: verify that this method gets inlined by opt compiler
    */ 
   static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
     l.unlock();
+    morph();
+  }
+
+  /**
+   * For timed wait, suspend execution of current thread in favor of some other thread.
+   * Put a proxy for the current thread 
+   *   on a queue waiting a notify, and 
+   *   on a wakeup queue waiting for a timeout.
+   *
+   * @param ql the VM_ProxyWaitingQueue upon which to wait for notification
+   * @param l1 the VM_ProcessorLock guarding q1 (currently locked)
+   * @param q2 the VM_ProxyWakeupQueue upon which to wait for timeout
+   * @param l2 the VM_ProcessorLock guarding q2 (currently locked)
+   */ 
+  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) {
+    VM_Thread myThread = getCurrentThread();
+    myThread.beingDispatched = true;
+    q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
+    q2.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
+    l1.unlock();
+    l2.unlock();
     morph();
   }
 
@@ -410,19 +443,6 @@ VM_Uninterruptible {
     morph();
   }
 //-#endif
-
-  /**
-   * For timed wait
-   */ 
-  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.beingDispatched = true;
-    q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
-    q2.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
-    l1.unlock();
-    l2.unlock();
-    morph();
-  }
 
   /**
    * Current thread has been placed onto some queue. Become another thread.
@@ -576,7 +596,6 @@ VM_Uninterruptible {
    * !!TODO: consider having an argument to schedule() that tells what priority
    *         to give the thread. Then eliminate scheduleHighPriority().
    */ 
-
   public final void schedule () {
     //VM_Scheduler.trace("VM_Thread", "schedule", getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(this);
@@ -614,24 +633,33 @@ VM_Uninterruptible {
     boolean terminateSystem = false;
 
     //VM_Scheduler.trace("VM_Thread", "terminate");
+
     VM_Thread myThread = getCurrentThread();
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit(); 
-    synchronized (myThread) { // release anybody waiting on this thread - 
-                              // in particular, see java.lang.Thread.join()
-      myThread.isAlive = false;
-      myThread.notifyAll();
-    }
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
-    //-#endif
+//-#endif
 
-    // begin critical section
+    synchronized (myThread) { // release anybody waiting on this thread - 
+
+	// begin critical section
+	//
+	VM_Scheduler.threadCreationMutex.lock();
+	VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	
+	// in particular, see java.lang.Thread.join()
+	myThread.isAlive = false;
+	myThread.notifyAll();
+    }
+	
     //
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-
+    // if the thread terminated because of an exception, remove
+    // the mark from the exception register object, or else the
+    // garbage collector will attempt to relocate its ip field.
+    myThread.hardwareExceptionRegisters.inuse = false;
+    
     VM_Scheduler.numActiveThreads -= 1;
     if (myThread.isDaemon)
       VM_Scheduler.numDaemons -= 1;
@@ -660,9 +688,9 @@ VM_Uninterruptible {
       VM_Scheduler.deadVPQueue.enqueue(p);                  
       myThread.nativeAffinity    = null;          // clear native processor
       myThread.processorAffinity = null;          // clear processor affinity
-      //-#if RVM_WITH_PURPLE_VPS
+//-#if RVM_WITH_PURPLE_VPS
       VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.RVM_VP_GOING_TO_WAIT;
-      //-#endif
+//-#endif
     }   
 
 
@@ -707,7 +735,7 @@ VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (VM_Collector.gcInProgress())
+    if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
     int[] newStack = new int[newSize];
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -780,12 +808,12 @@ VM_Uninterruptible {
     // return to caller, resuming execution on new stack 
     // (original stack now abandoned)
     //
-    //-#if RVM_FOR_POWERPC
+//-#if RVM_FOR_POWERPC
     VM_Magic.returnToNewStack(VM_Magic.getCallerFramePointer(newFP));
-    //-#endif
-    //-#if RVM_FOR_IA32
+//-#endif
+//-#if RVM_FOR_IA32
     VM_Magic.returnToNewStack(newFP);
-    //-#endif
+//-#endif
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
 
@@ -797,13 +825,16 @@ VM_Uninterruptible {
   final void fixupMovedStack(int delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
 
-    if (contextRegisters.gprs[FP] != VM_NULL)
+    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
       adjustRegisters(contextRegisters, delta);
-    if ( (hardwareExceptionRegisters.inuse) &&
-         (hardwareExceptionRegisters.gprs[FP] != VM_NULL) )
+    }
+    if ((hardwareExceptionRegisters.inuse) &&
+	(hardwareExceptionRegisters.getInnermostFramePointer() != VM_NULL)) {
       adjustRegisters(hardwareExceptionRegisters, delta);
-    if (contextRegisters.gprs[FRAME_POINTER] != VM_NULL)
-      adjustStack(stack, contextRegisters.gprs[FRAME_POINTER], delta);
+    }
+    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
+      adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
+    }
     stackLimit += delta;
   }
 
@@ -819,42 +850,56 @@ VM_Uninterruptible {
 
     // adjust FP
     //
-    registers.gprs[FP] += delta;
-    //-#if RVM_FOR_IA32
-    registers.fp += delta;     // separate fp field only exists for IA32
-    //-#endif
+    int newFP = registers.getInnermostFramePointer() + delta;
+    int ip = registers.getInnermostInstructionAddress();
+    registers.setInnermost(ip, newFP);
     if (traceAdjustments) {
       VM.sysWrite(" fp=");
-      VM.sysWrite(registers.gprs[FP]);
+      VM.sysWrite(registers.getInnermostFramePointer());
     }
 
-    // adjust SP (baseline frames only on PPC)
-    //
-    int compiledMethodId = VM_Magic.getCompiledMethodID(registers.gprs[FP]);
-    if (compiledMethodId != INVISIBLE_METHOD_ID)
-    {
+    // additional architecture specific adjustments
+    //  (1) on PPC baseline frame keeps a pointer to the 
+    //      expression stack in SP.
+    //  (2) on IA32 baseline frame shadows VM_Processor.framePointer
+    //      (ie registers.getInnermostFramePointer()) in EBP
+    //  (3) frames from all compilers on IA32 need to update ESP
+    int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
+    if (compiledMethodId != INVISIBLE_METHOD_ID) {
       VM_CompiledMethod compiledMethod = 
-        VM_ClassLoader.getCompiledMethod(compiledMethodId);
-      //-#if RVM_FOR_IA32
-      {
-        //-#endif
+        VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      if (compiledMethod.getCompilerInfo().getCompilerType() == VM_CompilerInfo.BASELINE) {
         //-#if RVM_FOR_POWERPC
-        if (compiledMethod.getCompilerInfo().getCompilerType() == 
-            VM_CompilerInfo.BASELINE) {
-          //-#endif
-          registers.gprs[SP] += delta;
-          if (traceAdjustments) {
-            VM.sysWrite(" sp=");
-            VM.sysWrite(registers.gprs[SP]);
-          }
-        }
-        if (traceAdjustments) {
-          VM.sysWrite(" method=");
-          VM.sysWrite(compiledMethod.getMethod());
-          VM.sysWrite("\n");
-        }
+	registers.gprs[VM_BaselineConstants.SP] += delta;
+	if (traceAdjustments) {
+	  VM.sysWrite(" sp=");
+	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
+	}
+	//-#endif
+	//-#if RVM_FOR_IA32
+	/* TODO: put this in when VM_Regsters.setInnermost no longer does it!
+	registers.gprs[VM_BaselineConstants.FP] += delta;
+	if (traceAdjustments) {
+	  VM.sysWrite(" fp (ebp) =");
+	  VM.sysWrite(registers.gprs[VM_BaselineConstants.FP]);
+	}
+	*/
+	//-#endif
+      }
+      //-#if RVM_FOR_IA32
+      registers.gprs[ESP] += delta;
+      if (traceAdjustments) {
+	VM.sysWrite(" esp =");
+	VM.sysWrite(registers.gprs[ESP]);
+      }
+      //-#endif
+      if (traceAdjustments) {
+	VM.sysWrite(" method=");
+	VM.sysWrite(compiledMethod.getMethod());
+	VM.sysWrite("\n");
       }
     }
+  }
 
   /**
    * A thread's stack has been moved or resized.
@@ -885,7 +930,7 @@ VM_Uninterruptible {
         int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
         if (compiledMethodId != INVISIBLE_METHOD_ID) {
           VM_CompiledMethod compiledMethod = 
-            VM_ClassLoader.getCompiledMethod(compiledMethodId);
+            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           if (compiledMethod.getCompilerInfo().getCompilerType() == 
               VM_CompilerInfo.BASELINE) {
             int spOffset = VM_Compiler.getSPSaveAreaOffset
@@ -991,6 +1036,7 @@ VM_Uninterruptible {
   VM_Thread (int[] stack) {
     this.stack = stack;
 
+    chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
     suspendLock = new VM_ProcessorLock();
 
     contextRegisters           = new VM_Registers();
@@ -1083,17 +1129,17 @@ VM_Uninterruptible {
 //-#if RVM_FOR_IA32 // TEMP!!
 
     // initialize thread stack as if "startoff" method had been called
-    // by an empty "sentinal" frame with one local variable
+    // by an empty baseline-compiled "sentinal" frame with one local variable
     //
     sp -= STACKFRAME_HEADER_SIZE;                   // last word of header
-    fp  = sp - WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
+    fp  = sp - VM_BaselineConstants.WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
     VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp -= WORDSIZE;                                 // allow for one local
-    contextRegisters.gprs[FRAME_POINTER] = fp;
-    contextRegisters.gprs[STACK_POINTER] = sp;
-    contextRegisters.gprs[JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+    sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
+    contextRegisters.gprs[VM_BaselineConstants.FP] = fp;
+    contextRegisters.gprs[ESP] = sp;
+    contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 
@@ -1338,8 +1384,13 @@ VM_Uninterruptible {
    * The virtual machine terminates when the last non-daemon (user) 
    * thread terminates.
    */ 
-  protected boolean isDaemon;
-  
+ protected boolean isDaemon;
+       
+  /**
+   * id of processor to run this thread (cycles for load balance)
+   */
+  int chosenProcessorId; 
+
   VM_JNIEnvironment  jniEnv;
   
   // fields needed for RCGC reference counting collector

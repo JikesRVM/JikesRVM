@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
 /**
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
@@ -15,6 +14,52 @@
 
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
   implements VM_OptGCMapIteratorConstants {
+
+  /**
+   * The compiler info for this method
+   */
+  protected VM_OptCompilerInfo compilerInfo;
+
+  /**
+   *  The GC map for this method
+   */
+  private VM_OptMachineCodeMap map;
+
+  /**
+   *  Used to index into the GC map
+   */
+  private int mapIndex;
+
+  /**
+   * This shows which register to inspect and report on.
+   * If it is bigger than LAST_GCMAP_REG than we should look at the spills
+   */
+  private int currentRegister;
+
+  /**
+   * This caches the spill location, so that we can check for missed refs
+   * hiding in spills
+   */
+  private int spillLoc;
+
+  /**
+   * just used for debugging, all output statements use VM.syswrite
+   */
+  static final boolean DEBUG = false;
+
+  /**
+   * just used for verbose debugging, all output statements use VM.syswrite
+   */
+  static final boolean VERBOSE = false;
+
+  /**
+   * when set to true, all registers and spills will be inspected for
+   * values that look like references.
+   * 
+   * THIS CAN BE COSTLY.  USE WITH CARE
+   */
+  static final boolean lookForMissedReferencesInRegs = false;
+  static final boolean lookForMissedReferencesInSpills = false;
 
   // Constructor 
   VM_OptGenericGCMapIterator(int[] registerLocations) {
@@ -30,7 +75,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   public void setupIterator(VM_CompiledMethod compiledMethod, 
 			    int instructionOffset, int framePtr) {
-    if (debug) {
+    if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
       VM.sysWrite(" for machine code offset: ");
@@ -61,7 +106,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // save the frame pointer
     this.framePtr = framePtr;
 
-    if (debug) {
+    if (DEBUG) {
       VM.sysWrite("\tMethod: ");
       VM.sysWrite(compiledMethod.getMethod());
       VM.sysWrite("\n ");
@@ -89,11 +134,11 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @return the value of the next reference
    */
   public int getNextReferenceAddress() {
-    if (debug) {   VM.sysWrite("  next => ");    }
+    if (DEBUG) {   VM.sysWrite("  next => ");    }
 
     // make sure we have a map entry to look at 
     if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
-      if (debug) {
+      if (DEBUG) {
         VM.sysWrite("  No Map, returning 0\n");
       }
       if (lookForMissedReferencesInRegs) {
@@ -122,7 +167,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
         int regLocation;
         // currentRegister contains a reference, return that location
         regLocation = registerLocations[getCurrentRegister()];
-	if (debug) {
+	if (DEBUG) {
           VM.sysWrite(" *** Ref found in reg#");
           VM.sysWrite(getCurrentRegister());
           VM.sysWrite(", location ==>");
@@ -144,7 +189,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // If it returns a non-sentinel value we have a reference is a spill.
     mapIndex = map.nextLocation(mapIndex);
     if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
-      if (debug) {
+      if (DEBUG) {
         VM.sysWrite("  No more to return, returning 0\n");
       }
 
@@ -170,7 +215,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       int newSpillLoc = getStackLocation(framePtr, 
 					 map.gcMapInformation(mapIndex));
 
-      if (debug) {
+      if (DEBUG) {
         VM.sysWrite(" *** Ref found in Spill Loc: ");
         VM.sysWrite(newSpillLoc);
         VM.sysWrite(", offset: ");
@@ -199,7 +244,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   public int getNextReturnAddressAddress() {
     // Since the Opt compiler inlines JSRs, this method will always return 0
     //  signaling the end of the list of such pointers.
-    if (debug) {
+    if (DEBUG) {
       VM.sysWrite("\t\t getNextReturnAddressOffset returning 0\n");
     }
     return 0;
@@ -293,7 +338,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   void checkCurrentRegisterForMissedReferences() {
     int currentReg = getCurrentRegister();
-    if (verbose) {
+    if (VERBOSE) {
       VM.sysWrite(" Inspecting Regs: ");
       VM.sysWrite(currentReg);
       VM.sysWrite("\n");
@@ -305,7 +350,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * This method inspects all the registers for values that look like refs.
    */
   void checkAllRegistersForMissedReferences() {
-    if (verbose) {
+    if (VERBOSE) {
       VM.sysWrite(" Inspecting Regs: ");
       VM.sysWrite(FIRST_GCMAP_REG);
       VM.sysWrite(" ... ");
@@ -346,7 +391,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     if (ref1 == 0) {
       // Search from start of spill area
       ref1 = getFirstSpillLoc();
-      if (debug) {
+      if (DEBUG) {
 	VM.sysWrite("Updated, ref1: ");
 	VM.sysWrite(ref1);
 	VM.sysWrite("\n");
@@ -356,7 +401,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     if (ref2 == 0) {
       // Search up to end of spill area
       ref2 = getLastSpillLoc();
-      if (debug) {
+      if (DEBUG) {
 	VM.sysWrite("Updated, ref2: ");
 	VM.sysWrite(ref2);
 	VM.sysWrite("\n");
@@ -373,7 +418,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     for (int i = ref1 + 4; i < ref2; i = i + 4) {
       int ptr = VM_Magic.getMemoryWord(i);
-      if (debug) {
+      if (DEBUG) {
 	VM.sysWrite(" Inspecting Spill: ");
 	VM.sysWrite(i);
 	VM.sysWrite(" with value ==>");
@@ -397,50 +442,5 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
     }
   }
-
-  /**
-   * The compiler info for this method
-   */
-  protected VM_OptCompilerInfo compilerInfo;
-
-  /**
-   *  The GC map for this method
-   */
-  private VM_OptMachineCodeMap map;
-
-  /**
-   *  Used to index into the GC map
-   */
-  private int mapIndex;
-
-  /**
-   * This shows which register to inspect and report on.
-   * If it is bigger than LAST_GCMAP_REG than we should look at the spills
-   */
-  private int currentRegister;
-
-  /**
-   * This caches the spill location, so that we can check for missed refs
-   * hiding in spills
-   */
-  private int spillLoc;
-
-  /**
-   * just used for debugging, all output statements use VM.syswrite
-   */
-  static final boolean debug = false;
-
-  /**
-   * just used for verbose debugging, all output statements use VM.syswrite
-   */
-  static final boolean verbose = false;
-
-  /**
-   * when set to true, all registers and spills will be inspected for
-   * values that look like references.
-   * 
-   * THIS CAN BE COSTLY.  USE WITH CARE
-   */
-  static final boolean lookForMissedReferencesInRegs = false;
-  static final boolean lookForMissedReferencesInSpills = false;
 }
+

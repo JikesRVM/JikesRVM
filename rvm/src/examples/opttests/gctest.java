@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class T {
   T(int x) {
     this.x = x;

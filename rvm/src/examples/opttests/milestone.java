@@ -1,10 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Use the following command to compile the program with full debug output:
-//
-//     jsh java optCompilerDriver +depgraph +ir +low +burs +regalloc milestone 
-//
+//$Id$
+/**
+ * Use the following command to compile the program with full debug output:
+ *
+ *  jsh java optCompilerDriver +depgraph +ir +low +burs +regalloc milestone 
+ *
+ * @author unascribed
+ */
 
 final class milestone
 {

@@ -35,22 +35,4 @@ interface VM_BaselineConstants extends VM_Constants {
   static final int VOLATILE_GPRS = LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1;
   static final int VOLATILE_FPRS = LAST_VOLATILE_FPR - FIRST_VOLATILE_FPR + 1;
   static final int MIN_PARAM_REGISTERS = (VOLATILE_GPRS < VOLATILE_FPRS ? VOLATILE_GPRS : VOLATILE_FPRS);
-
-  // Register mnemonics (for use by debugger).
-  //
-  static final String [] GPR_NAMES =
-     {
-     "00", "FP", "JT", "T0", "T1", "T2", "T3", "V4",
-     "V5", "V6", "V7", "V8", "V9", "S0", "SP", "TI",
-     "PR", "NE", "ND", "NC", "NB", "NA", "N9", "N8",
-     "N7", "N6", "N5", "N4", "N3", "N2", "N1", "N0"
-     };
-
-  static final String [] FPR_NAMES =
-     {
-     "F00",  "FV0",  "FV1",  "FV2",  "FV3",  "FV4",  "FN19", "FN18",
-     "FN17", "FN16", "FN15", "FN14", "FN13", "FN12", "FN11", "FN10",
-     "FNF",  "FNE",  "FND",  "FNC",  "FNB",  "FNA",  "FN9",  "FN8",
-     "FN7",  "FN6",  "FN5",  "FN4",  "FN3",  "FN2",  "FN1",  "FN0"
-     };
-}                         
+}

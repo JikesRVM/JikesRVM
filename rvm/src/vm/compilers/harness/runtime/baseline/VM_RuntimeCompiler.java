@@ -25,6 +25,7 @@ class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   }
 
   static VM_CompiledMethod compile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
     return baselineCompile(method);
   }
   

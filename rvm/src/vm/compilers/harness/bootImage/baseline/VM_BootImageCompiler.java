@@ -27,6 +27,7 @@ class VM_BootImageCompiler {
    * @return the compiled method
    */
   static VM_CompiledMethod compile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
     return VM_Compiler.compile(method);
   }
   

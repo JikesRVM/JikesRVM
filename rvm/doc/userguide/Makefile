@@ -117,7 +117,7 @@ opt_options.tex:	${GENERATOR_FILES} options.template ${OPT_DAT_FILES}
 			  opt_options.tex \
 			  BOOLEAN_DAT_FILES="$(OPT_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(OPT_VALUE_DAT_FILES)" \
-			  OPTPREFIX="-X:rc" \
+			  OPTPREFIX="-X:irc" \
 			  USE_OPT_LEVELS="YES"
 
 

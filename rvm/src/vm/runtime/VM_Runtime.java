@@ -643,7 +643,7 @@ public class VM_Runtime implements VM_Constants {
       // determine whether the method causing the overflow is native
       VM.disableGC();   // because we're holding raw addresses (ip)
       int ip                 = exceptionRegisters.getInnermostInstructionAddress();
-      VM_CompiledMethod	compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
+      VM_CompiledMethod	compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       VM.enableGC();
       VM_CompilerInfo	compilerInfo	= compiledMethod.getCompilerInfo();
       VM_Method 	myMethod	= compiledMethod.getMethod();
@@ -653,7 +653,7 @@ public class VM_Runtime implements VM_Constants {
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
-	VM.sysWrite("Growing native stack before entry\n");
+	// VM.sysWrite("Growing native stack before entry\n");
       } else {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters); // grow
       }
@@ -821,7 +821,7 @@ public class VM_Runtime implements VM_Constants {
     while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
-	VM_CompiledMethod     compiledMethod     = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	VM_CompiledMethod     compiledMethod     = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM_CompilerInfo       compilerInfo       = compiledMethod.getCompilerInfo();
 	VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.getExceptionDeliverer();
 	int ip                 = exceptionRegisters.getInnermostInstructionAddress();

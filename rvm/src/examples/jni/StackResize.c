@@ -1,10 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Test stack resize with native methods
  * Implement native methods from StackResize.java 
  * 
- * Ton Ngo 9/6/01
+ * @author Ton Ngo 9/6/01
  */
 
 #include <stdio.h>

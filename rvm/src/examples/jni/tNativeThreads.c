@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ * $Id$
  */
-/*      */
-
+/*
+ * @author unascribed
+ */
 
 #include <stdio.h>
 #include "tNativeThreads.h"

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestInterfaceCall
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 interface InterfaceFoo
    {
    int one = 1;

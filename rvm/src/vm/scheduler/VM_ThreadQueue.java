@@ -9,11 +9,11 @@
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-final class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
-  private int       id;     // id of this queue, for event logging
-  private VM_Thread head;   // first thread on list
-  private VM_Thread tail;   // last thread on list
+  protected int       id;     // id of this queue, for event logging
+  protected VM_Thread head;   // first thread on list
+  protected VM_Thread tail;   // last thread on list
   
   VM_ThreadQueue(int id) {
     this.id = id;
@@ -116,7 +116,7 @@ final class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterr
   // if qlock != null protect by lock
   // if no thread found, return null
   //
-  VM_Thread dequeueGCThread(VM_ProcessorLock qlock) {
+  VM_Thread dequeueGCThread (VM_ProcessorLock qlock) {
     
     if (qlock != null) qlock.lock();
     VM_Thread currentThread = head;

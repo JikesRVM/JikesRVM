@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 import java.io.Serializable;
 
+/**
+ * @author unascribed
+ */
 class TestSerialization implements Serializable
 {
   private static final class Obj implements Serializable { public Obj() { } }

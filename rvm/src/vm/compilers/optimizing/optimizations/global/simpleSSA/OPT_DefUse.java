@@ -7,6 +7,9 @@ import instructionFormats.*;
 
 /**
  * This class computes du-lists and associated information.
+ *  
+ * <P> Note: DU operands are stored on the USE lists, but not the DEF 
+ * lists.
  *
  * @author Vivek Sarkar
  * @author Stephen Fink
@@ -47,7 +50,7 @@ final class OPT_DefUse implements OPT_Operators {
     // Create register defList and useList
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
         != null; instr = instr.nextInstructionInCodeOrder()) {
-      for (OPT_OperandEnumeration defs = instr.getDefs(); 
+      for (OPT_OperandEnumeration defs = instr.getPureDefs(); 
           defs.hasMoreElements();) {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
@@ -94,6 +97,18 @@ final class OPT_DefUse implements OPT_Operators {
   }
 
   /**
+   * Record a def/use of a register
+   * TODO: For now we just pretend this is a use!!!!
+   *
+   * @param regOp the operand that uses the register
+   */
+  static void recordDefUse(OPT_RegisterOperand regOp) {
+    OPT_Register reg = regOp.register;
+    regOp.append(reg.useList);
+    reg.useList = regOp;
+  }
+
+  /**
    * Record a def of a register
    * @param regOp the operand that uses the register
    */
@@ -132,6 +147,7 @@ final class OPT_DefUse implements OPT_Operators {
    * @param regOp the operand that uses the register
    */
   static void removeDef(OPT_RegisterOperand regOp) {
+    
     OPT_Register reg = regOp.register;
     if (regOp == reg.defList) {
       reg.defList = reg.defList.getNext();
@@ -190,7 +206,7 @@ final class OPT_DefUse implements OPT_Operators {
    * Remove an instruction and update register lists.
    */
   static void removeInstructionAndUpdateDU(OPT_Instruction s) {
-    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
+    for (OPT_OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
       if (op != null && op.isRegister() && 
           !op.asRegister().register.isPhysical()) {
@@ -212,7 +228,7 @@ final class OPT_DefUse implements OPT_Operators {
    * instruction s
    */
   static void updateDUForNewInstruction(OPT_Instruction s) {
-    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
+    for (OPT_OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
       if (op != null && op.isRegister() && 
           !op.asRegister().register.isPhysical()) {
@@ -227,6 +243,18 @@ final class OPT_DefUse implements OPT_Operators {
       }
     }
   }
+
+
+  /**
+   * Replace an instruction and update register lists.
+   */
+  static void replaceInstructionAndUpdateDU(OPT_Instruction oldI,
+					    OPT_Instruction newI) {
+    oldI.insertBefore(newI);
+    removeInstructionAndUpdateDU(oldI);
+    updateDUForNewInstruction(newI);
+  }
+
 
   /**
    * Enumerate all operands that use a given register.

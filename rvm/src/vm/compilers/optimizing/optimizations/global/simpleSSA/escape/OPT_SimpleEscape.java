@@ -324,6 +324,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
+      case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode:
 //-#endif
@@ -438,6 +439,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
+      case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode:
 //-#endif

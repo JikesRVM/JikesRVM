@@ -4,12 +4,14 @@
 //$Id$
 
 import instructionFormats.*;
+import java.util.*;
 
 /**
  * Defines the context in which BC2IR will abstractly interpret
  * a method's bytecodes and populate targetIR with instructions.
  *
  * @author Dave Grove
+ * @author Martin Trapp
  **/
 final class OPT_GenerationContext implements OPT_Constants, 
 					     OPT_Operators {
@@ -216,7 +218,12 @@ final class OPT_GenerationContext implements OPT_Constants,
       VM_Type thisType = meth.getDeclaringClass();
       OPT_RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
-      OPT_BC2IR.markGuardlessNonNull(thisOp); 
+      OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.register);
+      OPT_BC2IR.setGuard(thisOp, guard);
+      appendInstruction(prologue,
+			Move.create(GUARD_MOVE, guard.copyRO(), 
+				    new OPT_TrueGuardOperand()),
+			PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
       arguments[0] = thisOp;
@@ -337,11 +344,14 @@ final class OPT_GenerationContext implements OPT_Constants,
       } else if (receiver.isStringConstant()) {
 	local = child.makeLocal(localNum++, VM_Type.JavaLangStringType);
 	local.setPreciseType();
-	OPT_BC2IR.markGuardlessNonNull(local); // String constants trivially 
-	// non-null
+	// String constants trivially non-null
+	OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
+	OPT_BC2IR.setGuard(local, guard);
+	child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
+						     guard.copyRO(), 
+						     new OPT_TrueGuardOperand()));
       } else {
-	OPT_OptimizingCompilerException.UNREACHABLE
-	  ("Unexpected receiver operand");
+	OPT_OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }
       OPT_Instruction s = Move.create(REF_MOVE, local, receiver);
       s.bcIndex = PROLOGUE_BCI;
@@ -709,5 +719,45 @@ final class OPT_GenerationContext implements OPT_Constants,
 
     return true;
   }
+
+    
+  /**
+   * Make sure, the gc is still in sync with the IR, even if we applied some
+   * optimizations. This method should be called before hir2lir conversions
+   * which might trigger inlining.
+   */
+  void resync () {
+    //make sure the _ncGuards contain no dangling mappings
+    resync_ncGuards();
+  }
+  
+
+  /**
+   * This method makes sure that _ncGuard only maps to registers that
+   * are actually in the IRs register pool.
+   */
+  private void resync_ncGuards ()
+  {
+    HashSet regPool = new HashSet();
+    
+    for (OPT_Register r = temps.getFirstRegister();
+	 r != null;  r = r.next) regPool.add (r);
+    
+    Iterator i = _ncGuards.entrySet().iterator();
+    while (i.hasNext()) {
+      Map.Entry entry = (Map.Entry) i.next();
+      if (!(regPool.contains (entry.getValue()))) i.remove();
+    }
+  }
+
+  
+  /**
+   * Kill ncGuards, so we do not use outdated mappings unintendedly later on
+   */
+  void close () {
+    _ncGuards = null;
+  }
+  
+
 }
  

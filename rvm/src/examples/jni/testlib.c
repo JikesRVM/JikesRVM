@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ * $Id$
  */
 /****
  * Test loading a library and looking up a symbol 
+ *
+ * @author unascribed
  */
 
 #include <stdio.h>

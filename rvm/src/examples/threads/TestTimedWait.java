@@ -1,16 +1,20 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test Timed Wait.
-//
-// monitorenter
-// monitorexit
-//
-// wait
-// wait(millis)
-// notify
-// notifyAll
-//
+//$Id$
+/**
+ * Test Timed Wait.
+ *
+ *  monitorenter
+ *  monitorexit
+ *
+ *  wait
+ *  wait(millis)
+ *  notify
+ *  notifyAll
+ *
+ * @author unascribed
+ */
 
 class Task extends Thread
    {

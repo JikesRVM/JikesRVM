@@ -29,18 +29,25 @@ abstract class VM_ExceptionDeliverer {
    * Stackframe's method has a "catch" block for exception being
    * thrown and control is to be passed to that catch block.
    *
-   * Note: 
-   *   Implementers must issue the following two lines just before transferring control 
-   *   to the catch block:
+   * <p> Note: 
+   *   Implementers must issue the following two lines just before 
+   *   transferring control to the catch block:
+   *
+   * <pre>
    *           VM.enableGC();
    *           registers.inuse = false;
+   * </pre>
    * 
-   * Note: this method does not return (execution resumes at catchBlockInstructionAddress)
+   * <p> Note: this method does not return 
+   * (execution resumes at catchBlockInstructionAddress)
    * 
    * @param compiledMethod method whose catch block is to receive control
-   * @param catchBlockInstructionAddress instruction address at which to begin execution of catch block
-   * @param exceptionObject exception object to be passed as argument to catch block
-   * @param registers registers to be loaded before passing control to catch block
+   * @param catchBlockInstructionAddress instruction address at which 
+   * to begin execution of catch block
+   * @param exceptionObject exception object to be passed as argument to 
+   * catch block
+   * @param registers registers to be loaded before passing control to 
+   * catch block
    */
   abstract void deliverException(VM_CompiledMethod compiledMethod,
 				 int               catchBlockInstructionAddress,
@@ -51,14 +58,17 @@ abstract class VM_ExceptionDeliverer {
    * Stackframe's method has no "catch" block for exception being thrown
    * and stackframe is to be "unwound" as follows:
    *
-   *  1. for a synchronized method, call VM_Lock.unlock(),
+   * <ul>
+   * <li> 1. for a synchronized method, call VM_Lock.unlock(),
    *     passing it the appropriate "lock" object
-   *       - for non-static methods, the lock is the method's first argument ("this")
+   *       - for non-static methods, the lock is the method's 
+   *         first argument ("this")
    *       - for static methods, the lock is the method's java.lang.Class
    *
-   *  2. restore the non-volatile registers (including fp) that were saved in the
-   *     method's prologue, by copying them from the method's stackframe
+   * <li> 2. restore the non-volatile registers (including fp) that were saved 
+   *     in the method's prologue, by copying them from the method's stackframe
    *     save area into the provided "registers" object
+   * </ul>
    *
    * @param compiledMethod method whose stackframe is to be unwound
    * @param registers thread state to be updated by restoring non-volatiles

@@ -37,7 +37,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     VM_Atom methodName = meth.getName();
     if (methodName == VM_MagicNames.getProcessorRegister) {
       OPT_RegisterOperand rop = gc.temps.makePROp();
-      OPT_BC2IR.markGuardlessNonNull(rop);
+      bc2ir.markGuardlessNonNull(rop);
       bc2ir.push(rop);
     } else if (methodName == VM_MagicNames.setProcessorRegister) {
       OPT_Operand val = bc2ir.popRef();

@@ -1,10 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Test field access from native code 
  * Implement native methods from FieldAccess.java 
  * 
- * Ton Ngo, Steve Smith 1/4/01
+ * @author Ton Ngo, Steve Smith 
+ * @date   1/4/01
  */
 
 #include <stdio.h>

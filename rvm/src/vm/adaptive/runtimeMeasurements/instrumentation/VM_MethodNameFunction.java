@@ -19,6 +19,6 @@ class VM_MethodNameFunction implements VM_CounterNameFunction {
     * @param key the compiled method id of a method
     */
    public String getName(int key) {
-      return VM_ClassLoader.getCompiledMethod(key).getMethod().toString();
+      return VM_CompiledMethods.getCompiledMethod(key).getMethod().toString();
    }
 }

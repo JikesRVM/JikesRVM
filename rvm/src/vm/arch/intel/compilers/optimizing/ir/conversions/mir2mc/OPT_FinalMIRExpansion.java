@@ -11,9 +11,18 @@ import instructionFormats.*;
  * should only be those sequences that cannot be expanded earlier
  * due to difficulty in keeping optimizations from interfering with them.
  *
+ * One job of this phase is to handle the expansion of the remains of
+ * table switch.  The code looks like a mess (which it is), but there
+ * is little choice for relocatable IA32 code that does this.  And the
+ * details of this code are shared with the baseline compiler and
+ * dependent in detail on the VM_Assembler (see {@link
+ * VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
+ * it, you will probably need to mess with them as well.
+ *
  * @author Dave Grove
  * @author Stephen Fink
- * @modified Peter Sweeney
+ * @author Julian Dolby
+ * @modified Peter Sweeney 
  */
 class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 
@@ -33,25 +42,25 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
       p.scratchObject = null; 
 
       switch (p.getOpcode()) {
-        case LOWTABLESWITCH_opcode:
+        case IA32_LOWTABLESWITCH_opcode:
           {
-            // split the basic block after the LOWTABLESWITCH
+            // split the basic block after the MIR_LOWTABLESWITCH
             OPT_BasicBlock thisBlock = p.getBasicBlock();
             OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
             nextBlock.firstInstruction().setmcOffset(-1); 
 
             // place offset data table after call so that call pushes
             // the base address of this table onto the stack
-            int NumTargets = LowTableSwitch.getNumberOfTargets(p);
+            int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
             for (int i = 0; i < NumTargets; i++) 
               thisBlock.appendInstruction(MIR_CaseLabel.create
                                           (IA32_OFFSET, I(i), 
-                                           LowTableSwitch.getClearTarget(p, 
+                                           MIR_LowTableSwitch.getClearTarget(p, 
                                                                          i)));
 
             // calculate address to which to jump, and store it
             // on the top of the stack
-            OPT_Register regS = LowTableSwitch.getIndex(p).register;
+            OPT_Register regS = MIR_LowTableSwitch.getIndex(p).register;
             nextBlock.appendInstruction(MIR_BinaryAcc.create
                                         (IA32_SHL, R(regS), I(2)));
             nextBlock.appendInstruction(MIR_BinaryAcc.create
@@ -176,6 +185,10 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
           } else {
             expandFmov(p,phys);
           }
+          break;
+        case DUMMY_DEF_opcode:
+        case DUMMY_USE_opcode:
+          p.remove();
           break;
         case IA32_FMOV_opcode:
           expandFmov(p,phys);

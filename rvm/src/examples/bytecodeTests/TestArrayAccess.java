@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestArrayAccess
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestArrayAccess
    {
    public static void main(String args[])

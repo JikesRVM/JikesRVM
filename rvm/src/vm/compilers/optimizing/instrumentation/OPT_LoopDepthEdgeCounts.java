@@ -122,7 +122,7 @@ implements OPT_Constants, OPT_Operators
     
   void internalUpdateCFGFrequencies(OPT_IR ir) {
     // Create an up to date loop structure tree
-    OPT_DominatorsPhase dom = new OPT_DominatorsPhase();
+    OPT_DominatorsPhase dom = new OPT_DominatorsPhase(false);
     dom.perform(ir);
 
     OPT_LSTGraph lst = ir.HIRInfo.LoopStructureTree;

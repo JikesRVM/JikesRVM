@@ -1,10 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *
+ * $Id$
  */
 /* Test miscellaneous query JNI Functions 
  * Implement native methods from ClassQuery.java 
  * 
- * Ton Ngo, Steve Smith 3/21/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/21/00
  */
 
 #include <stdio.h>

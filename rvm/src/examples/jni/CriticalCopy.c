@@ -1,10 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Test JNI Functions that access Java internal data directly
  * Implement native methods from CriticalCopy.java 
  * 
- * Ton Ngo, Steve Smith 6/19/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   6/19/00
  */
 
 #include <CriticalCopy.h>

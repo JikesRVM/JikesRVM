@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
 BEGIN { 
     yes = "yes"
     no = "no"
@@ -28,6 +32,7 @@ BEGIN {
 #
 /^method causing resize/ { next }
 /^Growing native stack before entry/ { next }
+/Number of threads found stuck in native code/ { next }
 
 #
 # GC system messages
@@ -47,11 +52,6 @@ kill_next==yes { kill_next = no; next }
 /[0-9]* Collections: avgTime [0-9]*/ && gc_mess==yes { next }
 
 gc_mess==yes { gc_mess = no }
-
-#
-# compiler junk
-#
-/^Use without def for [a-z0-9]*\(GUARD\) in/ { next }
 
 #
 # non-fatal compiler errors

@@ -320,7 +320,7 @@ class OPT_SpecializationManager {
 	    VM_RuntimeOptCompilerInfrastructure.
 	        optCompileWithFallBack(genericMethod, context);
 
-	VM_ClassLoader.setCompiledMethod(code.getId(), code);
+	VM_CompiledMethods.setCompiledMethod(code.getId(), code);
 
 	setCompiledCode(context, code);
 

@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 import java.lang.reflect.Method;
+/**
+ * @author unascribed
+ */
 public class tInstance
    {
    public int ifield;

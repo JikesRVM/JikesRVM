@@ -102,7 +102,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
     this.filterOptLevel   = filterOptLevel;
     this.adjustmentBounds = adjustmentBounds;
     this.numEpochs        = numEpochs;
-    this.historyMap       = new int[(int)(VM_ClassLoader.numCompiledMethods() * 1.25)];
+    this.historyMap       = new int[(int)(VM_CompiledMethods.numCompiledMethods() * 1.25)];
     if (VM.VerifyAssertions) VM.assert(NOT_MAPPED == 0);
     if (VM.VerifyAssertions) VM.assert(NOT_MAPPED != FIRST_ENTRY);
     this.history          = new int[128][];
@@ -192,7 +192,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	//     cold but randomly sampled once or twice methods.
 	if (totalSamples > 3.0) {
 	  VM_CompilerInfo info = 
-	    VM_ClassLoader.getCompiledMethod(cmid).getCompilerInfo();
+	    VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
 	  int compilerType = info.getCompilerType();
 	  if (!(compilerType == VM_CompilerInfo.TRAP ||
 		(compilerType == VM_CompilerInfo.OPT && 
@@ -209,7 +209,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	    if (prediction > 0.00001) {
 	      double slope = samplesThisTimeDouble/prediction;
 	      if (DEBUG) {
-		VM_Method meth = VM_ClassLoader.getCompiledMethod(cmid).getMethod();
+		VM_Method meth = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
 		VM.sysWrite("For method "+meth+"("+cmid+") with thisTime="+samplesThisTime+
 			    " and total="+totalSamples+ " and prediction ="+prediction+
 			    " and history ");
@@ -236,7 +236,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	    } else {
 	      adjFactor = 1.0 + (adjustmentBounds / 2.0);
 	      if (DEBUG) {
-		VM_Method meth = VM_ClassLoader.getCompiledMethod(cmid).getMethod();
+		VM_Method meth = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
 		VM.sysWrite("No sample history for method "+meth+"("+cmid+")");
 	      }
 	    }
@@ -252,7 +252,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	      new VM_HotMethodRecompilationEvent(cmid, totalSamples);
 	    if (VM_Controller.controllerInputQueue.prioritizedInsert(totalSamples, event)){
 	      if (VM.LogAOSEvents) {
-		VM_CompiledMethod m = VM_ClassLoader.getCompiledMethod(cmid);
+		VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
 		VM_AOSLogging.controllerNotifiedForHotness(m, totalSamples);
 	      }
 	    } else {
@@ -298,7 +298,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
   // growing the backing store as needed.
   private int[] getEntry(int cmid) {
     if (cmid >= historyMap.length) {       // grow historyMap
-      int[] tmp = new int[(int)(VM_ClassLoader.numCompiledMethods() * 1.25)];
+      int[] tmp = new int[(int)(VM_CompiledMethods.numCompiledMethods() * 1.25)];
       for (int i=0; i< historyMap.length; i++) {
 	tmp[i] = historyMap[i];
       }

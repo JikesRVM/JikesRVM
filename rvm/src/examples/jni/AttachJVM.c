@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /****************************************************************
  * This program tests the JNI functions provided in the library:
  *    CreateJavaVM
@@ -12,7 +13,7 @@
  * This is adapted from the example in the JNI book by Sheng Liang
  * (page 90-91)
  *
- * Ton Ngo, Steve Smith 4/10/00
+ * @author Ton Ngo, Steve Smith 4/10/00
  */
 
 #include <pthread.h> 

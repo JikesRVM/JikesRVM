@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestReturn
+//$Id$
+/*
+ * @author unascribed
+ */
 
 class TestReturn
    {

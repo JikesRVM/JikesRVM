@@ -35,12 +35,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /** Maximum number of VM_Thread's that we can support. */
   static final int MAX_THREADS = OBJECT_THREAD_ID_MASK >>> OBJECT_THREAD_ID_SHIFT;
 
-  /**
-   * flag to allow SMP builds WITHOUT a native daemon thread/processor.
-   * set to false to avoid creating the native daemeon
-   **/
-  static final boolean BuildWithNativeDaemon = true;
- 
   // Flag for controlling virtual-to-physical processor binding.
   //
   static final int NO_CPU_AFFINITY = -1;
@@ -163,7 +157,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // allocate initial processor list
     //
     processors = new VM_Processor[1 + PRIMORDIAL_PROCESSOR_ID];
-    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID);
+    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID, VM_Processor.RVM);
       
     // allocate lock structures
     //
@@ -196,7 +190,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; )
-      processors[i] = new VM_Processor(i);
+      processors[i] = new VM_Processor(i, VM_Processor.RVM);
 
     if (!VM.BuildForDedicatedNativeProcessors) {
       // setting of vpStatusAddress during JDK building of bootimage is not valid
@@ -207,7 +201,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       // It is NOT included in "numProcessors" which is the index of the last RVM processor.
       //
       nativeDPndx = numProcessors + 1;		// the last entry in processors[]                                          
-      if (!VM.BuildForSingleVirtualProcessor && BuildWithNativeDaemon) {
+      if (VM.BuildWithNativeDaemonProcessor) {
 	processors[nativeDPndx] = new VM_Processor(numProcessors + 1, VM_Processor.NATIVEDAEMON);
 	if (VM.TraceThreads)
 	  trace("VM_Scheduler.boot","created nativeDaemonProcessor with id",nativeDPndx);
@@ -263,7 +257,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     VM_Thread t;
 
-    if (!VM.BuildForDedicatedNativeProcessors && !VM.BuildForSingleVirtualProcessor && (processors[nativeDPndx] != null)) {
+    if (VM.BuildWithNativeDaemonProcessor) {
       // Create one collector thread and one idle thread for the NATIVEDAEMON processor
       t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[numProcessors], processors[nativeDPndx]);
       t.isAlive = true;
@@ -297,86 +291,82 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     tt.makeDaemon(true);
     VM_Processor.getCurrentProcessor().scheduleThread(tt);
 
+    // the one we're running on
+    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; 
+
     // Create virtual cpu's.
     //
-    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; // the one we're running on
-    if (cpuAffinity != NO_CPU_AFFINITY)
-      VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
-      // create VM_Thread for virtual cpu to execute
-      //
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[i-1]);
-
-      // create virtual cpu and wait for execution to enter target's code/stack.
-      // this is done with gc disabled to ensure that garbage collector doesn't move
-      // code or stack before the C startoff function has a chance
-      // to transfer control into vm image.
-      //
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "starting processor id", i);
-
-      VM.disableGC();
-      processors[i].activeThread = target;
-      //-#if RVM_FOR_POWERPC
-      VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				   VM_Magic.objectAsAddress(processors[i]),
-				   target.contextRegisters.gprs[THREAD_ID_REGISTER],
-				   target.contextRegisters.gprs[FRAME_POINTER]);
-      //-#endif
-      //-#if RVM_FOR_IA32
-      VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				   VM_Magic.objectAsAddress(processors[i]),
-				   target.contextRegisters.ip,
-				   target.contextRegisters.gprs[FRAME_POINTER]);
-      //-#endif
-      int loop_count = 1;
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "starting to wait for processor id", i);
-      while (!processors[i].isInitialized) {
-	++loop_count;
-	if ( VM.TraceThreads && loop_count%100 == 0 )
-	  trace("VM_Scheduler.boot","waiting for processor - loop_count =",loop_count);
-	if ( loop_count%10000 == 0 ) 
-	  VM.sysFail("VM_Scheduler.boot: hanging after sysVirtualProcessorCreate()");
-	VM.sysVirtualProcessorYield();
+    if (!VM.BuildForSingleVirtualProcessor) {
+      if (VM.BuildWithNativeDaemonProcessor)
+	VM.sysInitializeStartupLocks( numProcessors + 1 );
+      else
+	VM.sysInitializeStartupLocks( numProcessors );
+      
+      if (cpuAffinity != NO_CPU_AFFINITY)
+	VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+      
+      // VM.disableGC();
+      
+      for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
+	// create VM_Thread for virtual cpu to execute
+	//
+	VM_Thread target = new VM_StartupThread(startupThreadStacks[i-1]);
+	
+	// create virtual cpu and wait for execution to enter target's code/stack.
+	// this is done with gc disabled to ensure that garbage collector doesn't move
+	// code or stack before the C startoff function has a chance
+	// to transfer control into vm image.
+	//
+	if (VM.TraceThreads)
+	  trace("VM_Scheduler.boot", "starting processor id", i);
+	
+	processors[i].activeThread = target;
+	if (VM.BuildForPowerPC) {
+//-#if RVM_FOR_POWERPC
+	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+				       VM_Magic.objectAsAddress(processors[i]),
+				       target.contextRegisters.gprs[THREAD_ID_REGISTER],
+				       target.contextRegisters.gprs[FRAME_POINTER]);
+//-#endif
+	} else if (VM.BuildForIA32) {
+	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+				       VM_Magic.objectAsAddress(processors[i]),
+				       target.contextRegisters.ip,
+				       target.contextRegisters.getInnermostFramePointer());
+	}
+	
       }
-      VM.enableGC();
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "started processor id", i);
+      
+      if (VM.BuildWithNativeDaemonProcessor) {
+	VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
+	
+	processors[nativeDPndx].activeThread = target;
+	if (VM.TraceThreads)
+	  trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
+	if (VM.BuildForPowerPC) {
+//-#if RVM_FOR_POWERPC
+	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+				       VM_Magic.objectAsAddress(processors[nativeDPndx]),
+				       target.contextRegisters.gprs[THREAD_ID_REGISTER],
+				       target.contextRegisters.gprs[FRAME_POINTER]);
+//-#endif
+	} else if (VM.BuildForIA32) {
+	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+				       VM_Magic.objectAsAddress(processors[nativeDPndx]),
+				       0,
+				       target.contextRegisters.getInnermostFramePointer());
+	}
+	if (VM.TraceThreads)
+	  trace("VM_Scheduler.boot", "started native daemon processor id", nativeDPndx);
+      }
+      
+      // wait for everybody to start up
+      //
+      VM.sysWaitForVirtualProcessorInitialization();
     }
-
-    if (!VM.BuildForDedicatedNativeProcessors &&!VM.BuildForSingleVirtualProcessor && (processors[nativeDPndx] != null)) {
-
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
-
-      VM.disableGC();
-      processors[nativeDPndx].activeThread = target;
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
-      //-#if RVM_FOR_POWERPC
-	VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-				     target.contextRegisters.gprs[THREAD_ID_REGISTER],
-				     target.contextRegisters.gprs[FRAME_POINTER]);
-      //-#endif
-      //-#if RVM_FOR_IA32
-	VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-				     0,
-				     target.contextRegisters.gprs[FRAME_POINTER]);
-      //-#endif
-      while (!processors[nativeDPndx].isInitialized)
-	VM.sysVirtualProcessorYield();
-      VM.enableGC();
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "started native daemon processor id", nativeDPndx);
-    }
-
-    // Allow virtual cpus to commence feeding off the work queues.
-    //
 
     allProcessorsInitialized = true;
+
     //    for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i)
     //      processors[i].enableThreadSwitching();
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -391,6 +381,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForEventLogging)
       VM_EventLogger.boot();
 
+    // Allow virtual cpus to commence feeding off the work queues.
+    //
+    if (!VM.BuildForSingleVirtualProcessor)
+      VM.sysWaitForMultithreadingStart();
+    
     // End of boot thread. Relinquish control to next job on work queue.
     //
     if (VM.TraceThreads)
@@ -628,7 +623,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	writeString("   <invisible method>\n");
       } else {
 	// normal java frame(s)
-	VM_CompiledMethod compiledMethod    = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM_Method         method            = compiledMethod.getMethod();
 	int               instructionOffset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 	int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset);
@@ -719,11 +714,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       processor.dumpProcessorState();
     }
 
-    if (!VM.BuildForDedicatedNativeProcessors) {
+    if (VM.BuildWithNativeDaemonProcessor) {
       writeString("\n-- NativeDaemonProcessor --\n");
-      processor = processors[nativeDPndx];
-      if (processor!=null)
-	processor.dumpProcessorState();
+      processors[nativeDPndx].dumpProcessorState();
     }
 
     writeString("\n-- Native Processors --\n");

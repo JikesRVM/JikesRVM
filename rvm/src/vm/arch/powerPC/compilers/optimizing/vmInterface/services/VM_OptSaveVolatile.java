@@ -66,7 +66,7 @@ class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
     // compiled method that called resolve
     int fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
-    VM_CompiledMethod cm = VM_ClassLoader.getCompiledMethod(cmid);
+    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
     VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
     // (2) Get the instruction offset.  
     int ip = VM_Magic.getNextInstructionAddress(fp);

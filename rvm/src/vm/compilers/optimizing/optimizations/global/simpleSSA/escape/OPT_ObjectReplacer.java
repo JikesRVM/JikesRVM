@@ -185,7 +185,7 @@ public class OPT_ObjectReplacer
         case CHECKCAST_INTERFACE_NOTNULL_opcode:
         case CHECKCAST_NOTNULL_opcode:case GET_OBJ_TIB_opcode:
         case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
-        case REF_IFCMP_opcode:
+        case REF_IFCMP_opcode:case BOOLEAN_CMP_opcode:
           return  true;
       }
     }

@@ -2,17 +2,20 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
 # Build and test various configurations of RVM virtual machine.
 #
 # Invocation: RunSanityTests [-help|...]
 #
+# @author Derek Lieber
+# @date 09 Mar 2000 
 #
-# 09 Mar 2000 Derek Lieber
-# modified by Steve Fink
-# modified by Mike Hind, June 2, 2000
-# modified by Peter F. Sweeney
+# @modified by Steve Fink
+# @modified by Mike Hind, June 2, 2000
+# @modified by Peter F. Sweeney
 #     Passes the correct runtime arguments to adaptive and nonadaptive systems.
-# modified by Julian Dolby (9/27/01)
+# @modified by Julian Dolby (9/27/01)
 #     heavily rewritten
 
 # sigh
@@ -55,14 +58,9 @@ CLEAN="Yes"
 #
 RUN="Yes"
 
-# Run on 2 nodes for ppc, one for linux by default
+# Run on 2 nodes by default
 #
-if [[ X`uname` = X"Linux" ]]; then
-   echo "Restricting all Linux runs to 1 virtual processor." 
-   NUM_PROCS=1
-else
-   NUM_PROCS=2
-fi
+NUM_PROCS_LIST=2
 
 ## Quiet by default
 #
@@ -87,7 +85,7 @@ function showHelp {
   echo '-nobuild                    do not build boot images'
   echo '-noclean                    do not clean when running tests'
   echo '-norun                      do not run any tests'
-  echo '-numprocs <n>               use n virtual processors'
+  echo '-numprocs "<n1> <n2> ..."   use listed numbers of virtual processors'
   echo '-use-opt-levels <levels>    run tests with all opt levels in list'
   echo '-configuration[s] "<configs>" test all boot images in list'
   echo '-configuration-list <file>  file listing boot images to test'
@@ -96,6 +94,7 @@ function showHelp {
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemispace image'
+  echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
 
@@ -167,11 +166,7 @@ while [ $# != 0 ]; do
    ## Set the number of processors to use
    # 
    -numprocs)
-	if [[ X`uname` = X"Linux" ]]; then
-	    echo "WARNING: ignoring -numprocs on Linux"
-	else 
-	    NUM_PROCS=$2
-	fi
+	NUM_PROCS_LIST=$2
 	shift
    ;;
 
@@ -357,9 +352,6 @@ function doRun
        RESULT="$RVM_BUILD/sanity" 
      fi
      TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
-     if [ x$OPT_LEVEL != x ]; then
-         TEST_RESULT_DIR="$TEST_RESULT_DIR/$OPT_LEVEL"
-     fi
      RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
      echo Results to $RESULT/$TEST_RESULT_DIR
 
@@ -375,26 +367,50 @@ function doRun
 
     # pass on opt. level information, if given
     if [ x$OPT_LEVEL != x ]; then
-	OPT_STR="OPT_LEVEL=$OPT_LEVEL"
+	OPT_STR=".OPT_LEVEL=$OPT_LEVEL"
     else
 	OPT_STR=
     fi
 
+    # suffix output files to distinguish multiple options
+    if [ x$OPT_LEVEL != x ]; then
+	if [ x$NUM_PROCS != x ]; then
+	    SUFFIX=".${OPT_LEVEL}.${NUM_PROCS}proc"
+	else
+	    SUFFIX=".${OPT_LEVEL}"
+	fi
+    else
+	if [ x$NUM_PROCS != x ]; then
+	    SUFFIX=".${NUM_PROCS}proc"
+	else
+	    SUFFIX=
+	fi
+    fi
+
+    if [ x$VERBOSE = xYES ]; then
+	FLAGS="-k"
+    else
+	FLAGS="-ks"
+    fi
+
     . $RVM_BUILD/environment
-    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE -ks \
+    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/rvm/bin/rvm\
+	   SUFFIX=$SUFFIX \
            PROCESSORS="$NUM_PROCS"\
            RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes\
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
-           clean sanity || say "$NAME: You are NOT sane in `pwd`"
+           clean sanity 
 
     # record status
     test_status=$?
     total_tests=`expr $total_tests + 1`
     if [ test_status -eq 0 ]; then 
        passed_tests=`expr $passed_tests + 1`
+    else
+       say "$NAME: You are NOT sane in `pwd`"
     fi
 
     # done
@@ -410,9 +426,20 @@ function doRun
 # Build and test: more detailed.
 #
 function doTests {
-   for test in $TEST_LIST; do
-     cd $RVM_ROOT/rvm/regression/tests/$test && doRun
-   done
+   if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR $RVM_BUILD/RVM.configuration)
+   then
+     echo "Ignoring -numprocs for single processor image"
+     NUM_PROCS=1
+     for test in $TEST_LIST; do
+       cd $RVM_ROOT/rvm/regression/tests/$test && doRun
+     done
+   else
+     for NUM_PROCS in $NUM_PROCS_LIST; do
+       for test in $TEST_LIST; do
+         cd $RVM_ROOT/rvm/regression/tests/$test && doRun
+       done
+     done
+   fi
 }
    
 function doOptLevelTests {

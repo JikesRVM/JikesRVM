@@ -138,7 +138,20 @@ $$$$ END IF
   }
 
   /**
-   * Returns the number of operands that are pue defs
+   * Returns the number of operands that are pure defs
+   * and are not in the variable-length part of the operand list.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return how many non-variable operands are pure defs
+   */
+  public int getNumberOfFixedPureDefs() {
+    return numberDefs;
+  }
+
+  /**
+   * Returns the number of operands that are pure uses
    * and are not in the variable-length part of the operand list.
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
@@ -146,8 +159,8 @@ $$$$ END IF
    *
    * @return how many non-variable operands are pure uses
    */
-  public int getNumberOfFixedPureDefs() {
-    return numberDefs;
+  public int getNumberOfFixedPureUses() {
+    return numberUses;
   }
 
   /**
@@ -302,6 +315,8 @@ $$$$ END IF
   static final private int yieldPoint   = 0x00100000; 
   // operator pops floating-point stack after performing defs
   static final private int fpPop        = 0x00200000; 
+  // operator pushs floating-point stack before performing defs
+  static final private int fpPush       = 0x00400000; 
 
   /**
    * Does the operator represent a simple move (the value is unchanged) 
@@ -603,6 +618,28 @@ $$$$ END IF
    */
   public final boolean isYieldPoint() {
     return (traits & yieldPoint) != 0;
+  }
+
+  /**
+   * Does the operator pop the floating-point stack?
+   * 
+   * @return <code>true</code> if the operator pops the floating-point
+   * stack.
+   *         or <code>false</code> if not.
+   */
+  public final boolean isFpPop() {
+    return (traits & fpPop) != 0;
+  }
+
+  /**
+   * Does the operator push on the floating-point stack?
+   * 
+   * @return <code>true</code> if the operator pushes on the floating-point
+   * stack.
+   *         or <code>false</code> if not.
+   */
+  public final boolean isFpPush() {
+    return (traits & fpPush) != 0;
   }
 
 

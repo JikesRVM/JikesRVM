@@ -1371,8 +1371,8 @@ public class BootImageWriter2 extends BootImageWriterMessages
           INSTRUCTION[] instructions =
             (INSTRUCTION[]) BootImageMap.getObject(rawslot);
           VM_CompiledMethod[] compiledMethods =
-            VM_ClassLoader.getCompiledMethods();
-          for (int i = 0; i < VM_ClassLoader.numCompiledMethods(); ++i) {
+            VM_CompiledMethods.getCompiledMethods();
+          for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
             VM_CompiledMethod compiledMethod = compiledMethods[i];
             if (compiledMethod != null &&
                 compiledMethod.getInstructions() == instructions)

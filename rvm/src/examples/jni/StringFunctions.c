@@ -1,10 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Test JNI Functions related to Strings
  * Implement native methods from StringFunctions.java 
  * 
- * Ton Ngo, Steve Smith 2/29/00
+ * @author Ton Ngo, Steve Smith 2/29/00
  */
 
 #include <stdio.h>

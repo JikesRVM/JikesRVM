@@ -118,10 +118,12 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_FCOMI_opcode:
+      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
 	{
-	  OPT_RegisterOperand op = MIR_Compare.getVal2(s).asRegister();
-	  noteMustNotSpill(op.register);
+	  OPT_Operand op = MIR_Compare.getVal2(s);
+	  if (!(op instanceof OPT_BURSManagedFPROperand)) {
+	    noteMustNotSpill(op.asRegister().register);
+	  }
 	}
 	break;
       case IA32_IMUL2_opcode:
@@ -130,19 +132,19 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case LOWTABLESWITCH_opcode:
+      case IA32_LOWTABLESWITCH_opcode:
 	{
-	  OPT_RegisterOperand op = LowTableSwitch.getIndex(s);
+	  OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_CMOV_opcode: case  IA32_FCMOV_opcode:
+      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
 	{
 	  OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_MOVZX$B_opcode: case  IA32_MOVSX$B_opcode:
+      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
 	{
 	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
 	  noteMustNotSpill(op.register);

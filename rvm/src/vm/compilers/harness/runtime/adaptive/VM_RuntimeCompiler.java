@@ -51,6 +51,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     VM_CompiledMethod cm;
 
     if (!VM_Controller.enabled) {
+      VM_Callbacks.notifyMethodCompile(method, VM_CompilerInfo.BASELINE);
       // System still early in boot process; compile with baseline compiler
       cm = baselineCompile(method);
       VM_ControllerMemory.incrementNumBase();
@@ -65,10 +66,12 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	    // opt compiler doesn't support compiling the JNI 
             // stub needed to invoke native methods
 	    method.isNative()) {
+          VM_Callbacks.notifyMethodCompile(method, VM_CompilerInfo.BASELINE);
 	  // compile with baseline compiler
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
 	} else { // compile with opt compiler
+          VM_Callbacks.notifyMethodCompile(method, VM_CompilerInfo.OPT);
 	  // Initialize an instrumentation plan.
 	  VM_AOSInstrumentationPlan instrumentationPlan = 
 	    new VM_AOSInstrumentationPlan(VM_Controller.options,
@@ -87,6 +90,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  cm = optCompileWithFallBack(method, compPlan);
 	}
       } else {
+          VM_Callbacks.notifyMethodCompile(method, VM_CompilerInfo.BASELINE);
 	  // compile with baseline compiler
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();

@@ -228,7 +228,7 @@ class OPT_OptimizationPlanner {
         // Insert PI Nodes
         new OPT_PiNodes(true), 
         // Compute dominators
-        new OPT_DominatorsPhase(), 
+        new OPT_DominatorsPhase(true), 
         // compute dominance frontier
         new OPT_DominanceFrontier(), 
         // load elimination
@@ -251,6 +251,8 @@ class OPT_OptimizationPlanner {
             return options.getOptLevel() >= 2;
           }
         },
+        // Coalesce moves
+        new OPT_CoalesceMoves(), 
 
         // SSA reveals new opportunites for the following
         new OPT_OptimizationPlanCompositeElement
@@ -281,7 +283,7 @@ class OPT_OptimizationPlanner {
 	 ("LIR SSA transformations", 
 	  new Object[] {
 	    // Compute dominators
-	    new OPT_DominatorsPhase(), 
+	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier
 	    new OPT_DominanceFrontier(), 
 	    // Global Code Placement,
@@ -294,6 +296,8 @@ class OPT_OptimizationPlanner {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
+            // Coalesce moves
+            new OPT_CoalesceMoves(), 
 
       // SSA reveals new opportunites for the following
       new OPT_OptimizationPlanCompositeElement
@@ -423,6 +427,8 @@ class OPT_OptimizationPlanner {
       new OPT_SplitLiveRanges(),
       // MANDATORY: Expand calling convention
       new OPT_ExpandCallingConvention(),
+      // MANDATORY: Insert defs/uses due to floating-point stack
+      new OPT_ExpandFPRStackConvention(),
       // MANDATORY: Perform Live analysis and create GC maps
       new OPT_LiveAnalysis(true, false),
       // MANDATORY: Perform register allocation

@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * This object that is invoked when online measurement information must 
  * be collected.
  *

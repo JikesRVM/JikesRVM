@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test name mangling from java to C
-// Ton Ngo 7/12/01
-
+//$Id$
+/**
+ * Test name mangling from java to C
+ *
+ * @author Ton Ngo 
+ * @date   7/12/01
+ */
 
 class Mangled_Name_s_ {
   static boolean verbose = true;         // set to true to get messages for each test

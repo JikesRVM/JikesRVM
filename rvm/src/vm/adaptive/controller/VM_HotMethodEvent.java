@@ -18,7 +18,7 @@ abstract class VM_HotMethodEvent {
   private int cmid;
   public final int getCMID() { return cmid; }
   public final VM_CompiledMethod getCompiledMethod() {
-    return VM_ClassLoader.getCompiledMethod(cmid);
+    return VM_CompiledMethods.getCompiledMethod(cmid);
   }
   public final VM_Method getMethod() {
     return getCompiledMethod().getMethod();

@@ -59,8 +59,8 @@ public final class VM_RootBuffer
     private static final
 	VM_PrintChildVisitor childPrinter      = new VM_PrintChildVisitor();
 
-    private static final boolean TRACE_ROOTBUFFER = true;
-    private static final boolean STATS = true;
+    private static final boolean TRACE_ROOTBUFFER = false;
+    private static final boolean STATS = false;
 
     static final boolean TRACE_ASYNC = false;
     static final boolean TRACE_ASYNC_DETAIL = false;
@@ -709,7 +709,7 @@ public final class VM_RootBuffer
 
     public static void boot () {
 
-	printInfo();
+        if (TRACE_ROOTBUFFER) printInfo();
 
 	// Mark certain VM classes acyclic so that the cycle collector doesn't search the whole VM each time
 

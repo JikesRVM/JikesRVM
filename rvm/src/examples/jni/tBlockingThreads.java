@@ -1,8 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test native methods that block in native code
-// 
+//$Id$
+/**
+ * Test native methods that block in native code
+ *
+ * @author unascribed
+ */
 
 class tBlockingThreads
 {

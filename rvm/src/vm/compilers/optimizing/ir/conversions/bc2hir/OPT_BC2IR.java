@@ -2577,9 +2577,18 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         }
       }
     }
-    OPT_RegisterOperand op0 = (op1 instanceof OPT_RegisterOperand) ? 
-                              gc.makeLocal(index, (OPT_RegisterOperand)op1) : 
-                              gc.makeLocal(index, type);
+    OPT_RegisterOperand op0;
+    if (op1 instanceof OPT_RegisterOperand) {
+      OPT_RegisterOperand rop1 = (OPT_RegisterOperand)op1;
+      op0 = gc.makeLocal(index, rop1);
+      if (hasGuard(rop1)) {
+	OPT_RegisterOperand g0 = gc.makeNullCheckGuard(op0.register);
+	appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(),getGuard(rop1)));
+	setGuard(op0, g0);
+      }
+    } else {
+      op0 = gc.makeLocal(index, type);
+    }
     if (CP_IN_LOCALS)
       setLocal(index, doConstantProp ? op1 : op0); 
     else 
@@ -2861,14 +2870,6 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
   //// GENERATE CHECK INSTRUCTIONS.
   private OPT_Operand currentGuard;
 
-  public static void markGuardlessNonNull(OPT_RegisterOperand rop) {
-    rop.scratchObject = new OPT_TrueGuardOperand();
-  }
-
-  public static void markNonNull(OPT_RegisterOperand rop, OPT_Operand guard) {
-    rop.scratchObject = guard;
-  }
-
   public static boolean isNonNull(OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
@@ -2909,6 +2910,12 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       // rop1 is bottom, therefore is most conservative guard possible
       return false; 
     }
+  }
+  
+  public void markGuardlessNonNull(OPT_RegisterOperand rop) {
+    OPT_RegisterOperand g = gc.makeNullCheckGuard(rop.register);
+    appendInstruction(Move.create(GUARD_MOVE, g, new OPT_TrueGuardOperand()));
+    rop.scratchObject = g.copy();
   }
 
   public static OPT_Operand getGuard(OPT_Operand op) {

@@ -101,13 +101,16 @@ implements OPT_Operators {
               rOp.register = temp.register;
             }
             break;
-          case IA32_FCOMI_opcode:
+          case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
             {
-              OPT_RegisterOperand rOp = MIR_Compare.getVal2(s).asRegister();
-              OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-              // move r into 'temp' before s
-              insertMoveBefore(temp, rOp.copyRO(), s);
-              rOp.register = temp.register;
+	      OPT_Operand op = MIR_Compare.getVal2(s);
+	      if (!(op instanceof OPT_BURSManagedFPROperand)) {
+		OPT_RegisterOperand rOp = op.asRegister();
+		OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
+		// move r into 'temp' before s
+		insertMoveBefore(temp, rOp.copyRO(), s);
+		rOp.register = temp.register;
+	      }
             }
             break;
           case IA32_IMUL2_opcode:
@@ -121,9 +124,9 @@ implements OPT_Operators {
               rOp.register = temp.register;
             }
             break;
-          case LOWTABLESWITCH_opcode:
+          case IA32_LOWTABLESWITCH_opcode:
             {
-              OPT_RegisterOperand rOp = LowTableSwitch.getIndex(s);
+              OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
               OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
               // NOTE: Index as marked as a DU because LowTableSwitch is 
               //       going to destroy the value in the register.

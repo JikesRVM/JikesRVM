@@ -9,7 +9,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_Registers implements VM_Constants {
+class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //

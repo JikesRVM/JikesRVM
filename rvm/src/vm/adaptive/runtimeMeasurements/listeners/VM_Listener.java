@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * A VM_Listener object is invoked when online measurement information 
  * needs to be collected.
  *

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestFieldAccess
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestFieldAccess
    {
    static boolean s0 = true;

@@ -33,16 +33,9 @@ final class OPT_LiveIntervalElement {
   private OPT_Instruction end;
 
   /**
-   * used to compute the features max & min number of overlapping 
-   * live intervals. JC (8/15) 
+   * The basic block holding this live interval element
    */
-  private int maxOverlap;
-
-  /**
-   * used to compute the features max & min number of overlapping 
-   * live intervals. JC (8/15) 
-   */
-  private int minOverlap;
+  private OPT_BasicBlock bb;
 
   /**
    * LiveIntervalElements are linked in a singly-linked list; this is the
@@ -81,44 +74,25 @@ final class OPT_LiveIntervalElement {
     return "Reg: "+ register +"\n     Begin: "+ begin +"\n     End:   "+ end;
   }
 
+  public int hashCode() {
+    return register.hashCode();
+  }
+
   /*
    * Getters and setters for instance fields
    */
 
-  public void setBegin(OPT_Instruction begin) {
-    this.begin = begin;
-  }
+  public OPT_Instruction getBegin()           { return begin; }
+  public void setBegin(OPT_Instruction begin) { this.begin = begin; }
 
-  public OPT_Register getRegister() {
-    return register;
-  }
+  public OPT_Instruction getEnd()             { return end; }
 
-  public OPT_Instruction getBegin() {
-    return begin;
-  }
+  public OPT_Register getRegister()           { return register; }
+  public void setRegister(OPT_Register r)     { register = r; }
 
-  public OPT_Instruction getEnd() {
-    return end;
-  }
+  OPT_LiveIntervalElement getNext()           { return next; }
+  void setNext(OPT_LiveIntervalElement Next)  { next = Next; }
 
-  public int getMaxOverlap() {
-    return maxOverlap;
-  }
-    
-  public void setRegister(OPT_Register r) {
-    register = r;
-  }
-
-  public void setMaxOverlap(int i) {
-    maxOverlap = i;
-  }
-    
-  OPT_LiveIntervalElement getNext() {
-    return next;
-  }
-
-  void setNext(OPT_LiveIntervalElement Next) {
-    next = Next;
-  }
-
+  OPT_BasicBlock getBasicBlock()              { return bb; }
+  void setBasicBlock(OPT_BasicBlock bb)       { this.bb = bb; }
 }

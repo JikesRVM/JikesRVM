@@ -1935,6 +1935,8 @@ public class VM_Allocator
   //
   static void 
   gc_initProcessor ()  {
+    VM_Magic.pragmaNoOptCompile();
+
     VM_Processor   st;
     VM_Thread      activeThread;
     

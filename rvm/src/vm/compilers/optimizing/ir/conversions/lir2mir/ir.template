@@ -42,22 +42,27 @@ $$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
 $$$$ END FOREACH
 };
 
-OPT_Operand code(OPT_BURS_TreeNode p, int  n, int ruleno) {
+$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
+  $$$$ LET CASE RULE.INDEX+1
+void codeCASE(OPT_BURS_TreeNode p) {
+    RULE.TEMPLATE
+}
+  $$$$ END LET
+$$$$ END IF
+$$$$ END FOREACH
+
+void code(OPT_BURS_TreeNode p, int  n, int ruleno) {
   switch(ruleno) {
 $$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
-  case CASE:
-    {
-    RULE.TEMPLATE
-    }
-    break;
+  case CASE: codeCASE(p); break;
   $$$$ END LET
 $$$$ END IF
 $$$$ END FOREACH
   default:
     throw new OPT_OptimizingCompilerException("BURS","rule without emit code:",OPT_BURS_Debug.string[ruleno]);
   }
-  return null;
 }
 }

@@ -284,7 +284,7 @@ public class VM_StackBuffer
     protected static int
     scanStackFrame(int fp, int ip, int compiledMethodId, VM_GCMapIteratorGroup iteratorGroup, VM_Thread t) {
 
-	VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM_Method         method         = compiledMethod.getMethod();
 
 	if (GC_TRACESCANSTACK || CHECK_REF_MAPS ) {

@@ -77,7 +77,8 @@ class VM_Entrypoints implements VM_Constants
    //-#if RVM_FOR_IA32  
    static int fieldOffsetsOffset;     
    static int methodOffsetsOffset;    
-   static int loadClassOnDemandOffset;
+   static int resolveFieldOffset;
+   static int resolveMethodOffset;
    static int jtocOffset;              
    static int threadIdOffset;
    static int framePointerOffset;      
@@ -149,6 +150,7 @@ class VM_Entrypoints implements VM_Constants
    static VM_Field oneFloat;
    static int oneOffset;         //  1.0F
    static VM_Field zeroDouble;   //  0.0
+   static int zeroDoubleOffset;  //  0.0
    static VM_Field oneDouble;    //  1.0
    static int oneDoubleOffset;   
    static VM_Field twoFloat;
@@ -404,7 +406,8 @@ class VM_Entrypoints implements VM_Constants
       findItableOffset        = findItableMethod.getOffset();
 //-#elif RVM_FOR_IA32
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[B").getOffset();
-      loadClassOnDemandOffset = VM.getMember("LVM_Linker;", "loadClassOnDemand", "(I)V").getOffset();
+      resolveFieldOffset      = VM.getMember("LVM_Linker;", "resolveField", "(I)V").getOffset();
+      resolveMethodOffset     = VM.getMember("LVM_Linker;", "resolveMethod", "(I)V").getOffset();
       fieldOffsetsOffset      = VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I").getOffset();    
       methodOffsetsOffset     = VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I").getOffset();   
       jtocOffset              = VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;").getOffset(); 
@@ -450,6 +453,7 @@ class VM_Entrypoints implements VM_Constants
       two32Offset                 = VM.getMember("LVM_Math;", "two32", "F").getOffset();
       half32Offset                = VM.getMember("LVM_Math;", "half32", "F").getOffset();
       zeroDouble                  = (VM_Field)VM.getMember("LVM_Math;", "zeroD", "D");
+      zeroDoubleOffset            = zeroDouble.getOffset();
       oneDouble                   = (VM_Field)VM.getMember("LVM_Math;", "oneD", "D");
       oneDoubleOffset             = oneDouble.getOffset();
       billionthOffset             = VM.getMember("LVM_Math;", "billionth", "D").getOffset();
@@ -479,7 +483,16 @@ class VM_Entrypoints implements VM_Constants
       deterministicThreadSwitchCountOffset            = VM.getMember("LVM_Processor;", "deterministicThreadSwitchCount", "I").getOffset();
 
 //-#if RVM_WITH_GCTk
-      GCTk_WriteBufferBase = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+      ADDRESS top = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+      ADDRESS bot = VM.getMember("LVM_Processor;", "writeBuffer1", "I").getOffset();
+      GCTk_WriteBufferBase = (top > bot) ? bot : top;
+      if (VM.VerifyAssertions) {
+	boolean discontigious = (((top > bot) && ((top - bot) != 4))
+				 || ((top < bot) && ((bot - top) != 4)));
+	  if (discontigious)
+	    VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_WriteBufferBase+"<----\n");
+	  VM.assert(!discontigious);
+      }
       GCTk_TraceBufferBase        = VM.getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
 //-#endif
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
@@ -558,7 +571,6 @@ class VM_Entrypoints implements VM_Constants
         //-#endif RVM_FOR_IA32
         
         //-#if RVM_WITH_GCTk
-	ADDRESS top, bot;
 	top = VM.getMember("LVM_Processor;", "allocBump0", "I").getOffset();
 	bot = VM.getMember("LVM_Processor;", "allocBump7", "I").getOffset();
 	GCTk_BumpPointerBase = (top > bot) ? bot : top;

@@ -14,93 +14,105 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   // Interface //
   //-----------//
 
-   //--------------------------------------------------------------------------------------------------//
-   //                                       Section 0.                                                 //
-   //                          The following are always available.                                     //
-   //--------------------------------------------------------------------------------------------------//
+  //------------------------------------------------------------------//
+  //                       Section 0.                                 //
+  //       The following are always available.                        //
+  //------------------------------------------------------------------//
 
-   // Get type of this field's value.
-   //
+  /**
+   * Get type of this field's value.
+   */ 
   public final VM_Type getType() {
     return type;
   }
 
-  // Get size of this field's value, in bytes.
-  //
+  /**
+   * Get size of this field's value, in bytes.
+   */ 
   final int getSize() {
     return type.getStackWords() << 2;
   }
 
-  //--------------------------------------------------------------------------------------------------//
-  //                                       Section 1.                                                 //
-  //               The following are available after the declaring class has been "loaded".           //
-  //--------------------------------------------------------------------------------------------------//
+  //------------------------------------------------------------------//
+  //                       Section 1.                                 //
+  //  The following are available after the declaring class has been  //
+  //  "loaded".                                                       //
+  //------------------------------------------------------------------//
 
   //
   // Attributes.
   //
 
-   // Shared among all instances of this class?
-   //
+  /**
+   * Shared among all instances of this class?
+   */ 
   public final boolean isStatic() {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
   }
 
-  // May only be assigned once?
-  //
+  /**
+   * May only be assigned once?
+   */ 
   final boolean isFinal() {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
   }
 
-  // Value not to be cached in a register?
-  //
+  /**
+   * Value not to be cached in a register?
+   */ 
   final boolean isVolatile() {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_VOLATILE) != 0;
   }
 
-  // Value not to be written/read by persistent object manager?
-  //
+  /**
+   * Value not to be written/read by persistent object manager?
+   */ 
   final boolean isTransient() {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_TRANSIENT) != 0;
   }
 
-  // Get index of constant pool entry containing this "static final constant" field's value.
-  // Returned: constant pool index (0 --> field is not a "static final constant")
-  //
+  /**
+   * Get index of constant pool entry containing this 
+   * "static final constant" field's value.
+   * @return constant pool index (0 --> field is not a "static final constant")
+   */ 
   final int getConstantValueIndex() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return constantValueIndex;
   }
 
-  //--------------------------------------------------------------------------------------------------//
-  //                                       Section 2.                                                 //
-  //               The following are available after the declaring class has been "resolved".         //
-  //--------------------------------------------------------------------------------------------------//
+  //--------------------------------------------------------------------//
+  //                         Section 2.                                 //
+  // The following are available after the declaring class has been     //
+  // "resolved".                                                        //
+  //----------------------------------------------- --------------------//
 
-  // The actual field that this object represents
-  //
+  /**
+   * The actual field that this object represents
+   */
   public final VM_Field resolve() {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isResolved());
     if (!isLoaded()) return VM_ClassLoader.repairField(this);
     return this;
   }
  
-  // Get offset of this field's value, in bytes.
-  //
-  // For static field, offset is with respect to
-  // virtual machine's "table of contents" (jtoc).
-  //
-  // For non-static field, offset is with respect to
-  // object pointer.
-  //
+  /**
+   * Get offset of this field's value, in bytes.
+   * 
+   * <p> For static field, offset is with respect to
+   * virtual machine's "table of contents" (jtoc).
+   * 
+   * <p> For non-static field, offset is with respect to
+   * object pointer.
+   */ 
   public final int getOffset() {
     if (VM.VerifyAssertions) VM.assert(getDeclaringClass().isResolved());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
@@ -108,10 +120,11 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   }
 
 
-  //--------------------------------------------------------------------------------------------------//
-  //               The following are available for an object instance that owns this field.           //
-  //                Obtain the value of an object described by this VM_Field                          //
-  //--------------------------------------------------------------------------------------------------//
+  //-------------------------------------------------------------------//
+  // The following are available for an object instance that owns      //
+  // this field.                                                       //
+  // Obtain the value of an object described by this VM_Field          //
+  //-------------------------------------------------------------------//
 
 
   /**
@@ -138,7 +151,8 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
 
   /**
     * Read one object ref from heap using RVM object model, GC safe.
-    * @param obj the object whose field is to be read, or null if the field is static.
+    * @param obj the object whose field is to be read, 
+    * or null if the field is static.
     * @return the reference described by this VM_Field from the given object.
     */
   public final Object getObjectValue(Object obj) throws IllegalArgumentException {

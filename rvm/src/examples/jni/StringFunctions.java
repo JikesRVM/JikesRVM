@@ -1,14 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test JNI Functions dealing with Strings
-// The following JNI calls are tested:
-//      NewString                  GetStringLength
-//      NewStringUTF               GetStringUTFLength
-
-//
-// Ton Ngo, Steve Smith 2/29/00
-
+//$Id$
+/**
+ * Test JNI Functions dealing with Strings
+ * The following JNI calls are tested:
+ *      NewString                  GetStringLength
+ *      NewStringUTF               GetStringUTFLength
+ *
+ * @author Ton Ngo, Steve Smith 
+ * @date   2/29/00
+ */
 class StringFunctions {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;

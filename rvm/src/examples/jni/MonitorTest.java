@@ -1,12 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test monitor operation from native
-// The following JNI calls are tested:
-//	MonitorEnter         MonitorExit
-
-//
-// Ton Ngo, Steve Smith 1/3/01
+//$Id$
+/**
+ * Test monitor operation from native
+ * The following JNI calls are tested:
+ *	MonitorEnter         MonitorExit
+ *
+ * @author Ton Ngo, Steve Smith 
+ * @date 1/3/01
+ */
 
 class MonitorTest {
   static boolean verbose = true;         // set to true to get messages for each test

@@ -70,7 +70,7 @@ class VM_LazySpecializationTrampoline
 
 	// compiled method info of method that called us
 	VM_CompiledMethod callingCompiledMethod = 
-	    VM_ClassLoader.getCompiledMethod(callingCompiledMethodId);
+	    VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
 	VM_CompilerInfo callingCompilerInfo =
 	    callingCompiledMethod.getCompilerInfo();
 
@@ -144,7 +144,7 @@ class VM_LazySpecializationTrampoline
 		VM_RuntimeOptCompilerInfrastructure.
 	            optCompileWithFallBack(invokedMethod);
 
-	    VM_ClassLoader.setCompiledMethod(code.getId(), code);
+	    VM_CompiledMethods.setCompiledMethod(code.getId(), code);
 	    
 	    int tableIndex = 
 		OPT_SpecializationManager.getJTOCoffset(

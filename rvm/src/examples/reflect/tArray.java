@@ -1,8 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 import java.lang.reflect.*;
 
+/**
+ * @author unascribed
+ */
 public class tArray
    {
    private int i;

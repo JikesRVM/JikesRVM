@@ -336,6 +336,15 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 		    Move.getClearVal(s));
 	break;
 
+      case REF_COND_MOVE_opcode:
+	CondMove.mutate(s, INT_COND_MOVE, CondMove.getClearResult(s),
+			CondMove.getClearVal1(s), 
+			CondMove.getClearVal2(s),
+			CondMove.getClearCond(s),
+			CondMove.getClearTrueValue(s),
+			CondMove.getClearFalseValue(s));
+	break;
+
       case INT_ZERO_CHECK_opcode:
 	{
 	  TrapIf.mutate(s, TRAP_IF, 

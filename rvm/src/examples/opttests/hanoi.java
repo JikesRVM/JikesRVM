@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// simple version of hanoi
+//$Id$
+/**
+ * @author unascribed
+ */
 
 public class hanoi {
   static int[] num = new int[4];

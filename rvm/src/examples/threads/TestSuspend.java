@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class TestSuspend extends Thread {
   
   static Thread sleeper;

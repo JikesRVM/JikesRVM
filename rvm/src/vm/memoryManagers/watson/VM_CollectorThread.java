@@ -177,7 +177,7 @@ class VM_CollectorThread extends VM_Thread
    * performing those collections, and then waiting again.
    * Calls VM_Allocator.collect to perform the collection, which
    * will be different for the different allocators/collectors
-   * that Jalaepno can be configured to use.
+   * that the RVM can be configured to use.
    */
   public void run() {
     int mypid;   // id of processor thread is running on - constant for the duration

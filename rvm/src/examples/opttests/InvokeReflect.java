@@ -1,8 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// This method invokes run() methods in the classes specified,
-// in order to generate the "expected" output by running under JDK
+//$Id$
+/**
+ * This method invokes run() methods in the classes specified,
+ * in order to generate the "expected" output by running under JDK
+ *
+ * @author unascribed
+ */
 
 import java.lang.reflect.Method;
 

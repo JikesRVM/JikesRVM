@@ -85,6 +85,10 @@ public abstract class OPT_BranchOptimizationDriver
 
   public final void perform(OPT_IR ir, boolean renumber) {
     maximizeBasicBlocks(ir);
+    if (VM.BuildForIA32) {
+      // spans-bb information is used for CMOV insertion
+      OPT_DefUse.recomputeSpansBasicBlock(ir);
+    }
     boolean didSomething = false;
     boolean didSomethingThisTime = true;
     while (didSomethingThisTime) {

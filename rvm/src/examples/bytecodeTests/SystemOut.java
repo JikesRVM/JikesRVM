@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/*
+ * @author unascribed
+ */
 // Temporary class until "System.out" is available.
 //
 class SystemOut

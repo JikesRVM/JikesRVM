@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * A VM_NullListener is an object that is invoked when
  * online measurement information must be collected.
  *

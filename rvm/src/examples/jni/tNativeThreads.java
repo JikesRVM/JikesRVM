@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test native method with threads
-// 
-
+//$Id$
+/**
+ * Test native method with threads
+ *
+ * @author unascribed
+ */
 
 class tNativeThreads
 {

@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 import java.lang.reflect.*;
 import java.util.*;
 
+/**
+ * @author unascribed
+ */
 public class tField
    {
    public static boolean sboolean = true;

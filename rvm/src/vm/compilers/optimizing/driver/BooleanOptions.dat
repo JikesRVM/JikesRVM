@@ -67,9 +67,6 @@ Pre-existence based inlining
 SSA 2 false
 Should SSA form be constructed on the HIR?
 
-UNFACTOR_FOR_SSA -1 true 
-Should we explode the factored CFG to enable SSA on methods with exceptions?
-
 PRUNED_SSA -1 true
 Use liveness information to reduce insert phi nodes?
 
@@ -78,6 +75,12 @@ Use local approximation of liveness information to reduce insert phi nodes?
 
 LOAD_ELIMINATION 2 false
 Should we perform redundant load elimination during SSA pass?
+
+COALESCE_AFTER_SSA 2 false
+Should we coalesce move instructions after leaving SSA?
+
+EXPRESSION_FOLDING 2 false
+Should we try to fold expressions with constants in SSA form?
 
 ## (SJF): The following optimization is not on by default because
 ## it is usually expensive and ineffective.
@@ -149,6 +152,9 @@ Should we dump out compile-time statistics for basic blocks?
 
 LOOP_DEPTH_EDGE_COUNTS -1 false
 Use loop depth to approximate edge counts
+
+FIXED_JTOC -1 false 
+Exploit knowledge that the value of JTOC is a constant? (IA32 only)
 
 ##########
 # Next, declare all the printing options

@@ -559,6 +559,30 @@ public final class OPT_Instruction
       return operator.getNumberOfFixedPureDefs();
     }
   }
+  /**
+   * Returns the number of operands that are pure uses.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of operands that are defs
+   */
+  public int getNumberOfPureUses() {
+    if (operator.hasVarDefs()) {
+      if (VM.VerifyAssertions) {
+	VM.assert(operator.getNumberOfDefUses() == 0);
+      }
+      int numOps = operator.getNumberOfFixedPureUses();
+      int i = getNumberOfDefs() + numOps;
+      for (; i < ops.length; i++) {
+	if (ops[i] == null) break;
+        numOps++;
+      }
+      return numOps;
+    } else {
+      return operator.getNumberOfFixedPureUses();
+    }
+  }
 
   
   /**
@@ -677,10 +701,19 @@ public final class OPT_Instruction
   /**
    * Enumerate all the pure defs (ie not including def/uses) of an instruction.
    * 
-   * @return an enumeration of the instruction's defs.
+   * @return an enumeration of the instruction's pure defs.
    */
   public final OPT_OperandEnumeration getPureDefs() {
     return new OEDefsOnly(this, 0, getNumberOfPureDefs()-1);
+  }
+
+  /**
+   * Enumerate all the pure uses (ie not including def/uses) of an instruction.
+   * 
+   * @return an enumeration of the instruction's pure defs.
+   */
+  public final OPT_OperandEnumeration getPureUses() {
+    return new OEDefsOnly(this, getNumberOfDefs(), getNumberOfOperands()-1);
   }
 
   /**

@@ -147,7 +147,7 @@ final class OPT_CompilationPlan {
    */
   public OPT_IR execute () {
     OPT_IR ir = new OPT_IR(method, this);
-    ir.compiledMethodId = VM_ClassLoader.createCompiledMethodId();
+    ir.compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     // If there is instrumentation to perform, do some initialization
     if (instrumentationPlan != null) {
       instrumentationPlan.initInstrumentation(method);

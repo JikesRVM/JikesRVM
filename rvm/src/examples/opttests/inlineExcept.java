@@ -1,7 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// simple test of inlining & exception handling
+//$Id$
+/**
+ * simple test of inlining & exception handling
+ *
+ * @author unascribed
+ */
 
 final class inlineExcept {
   public static void main(String[] args) {

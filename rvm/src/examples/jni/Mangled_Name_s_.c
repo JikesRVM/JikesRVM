@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *$Id$
  */
 /* Native code for Mangled_Name_s_.java
+ *
+ * @author unascribed
  */
 
 #include <stdio.h>

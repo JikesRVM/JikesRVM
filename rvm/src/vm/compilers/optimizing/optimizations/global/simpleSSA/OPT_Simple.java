@@ -15,6 +15,7 @@ import instructionFormats.*;
  * @author Vivek Sarkar
  * @author Stephen Fink
  * @author Dave Grove
+ * @author Martin Trapp
  *
  * @modified Julian Dolby
  */
@@ -160,21 +161,9 @@ final class OPT_Simple extends OPT_CompilerPhase
         if (defInstr.isMove()) {
           rhs = Move.getVal(defInstr);
         } else if (defInstr.operator() == PHI) {
-          // search for the first input that is different from result
-          OPT_Operand result = Phi.getResult(defInstr), x = result;
-          int i = 0;
-          while (i < Phi.getNumberOfValues(defInstr)) {
-            x = Phi.getValue(defInstr, i++);
-            if (!x.similar(result))
-              break;
-          }
-          // continue if result and x aren't the only distinct inputs
-          while (i < Phi.getNumberOfValues(defInstr)) {
-            OPT_Operand opi = Phi.getValue(defInstr, i++);
-            if (!opi.similar(x) && !opi.similar(result))
-              continue  instructions;
-          }
-          rhs = x;
+	  OPT_Operand phiVal = equivalentValforPHI (defInstr);
+	  if (phiVal == null)  continue  instructions;
+          rhs = phiVal;
         } else {
           continue  instructions;
 	}
@@ -212,6 +201,32 @@ final class OPT_Simple extends OPT_CompilerPhase
       }
     }
   }
+
+  /**
+   * Try to find an operand that is equivalent to the result of a
+   * given phi instruction.
+   *
+   * @param phi the instruction to be simplified
+   * @return one of the phi's operands that is equivalent to the phi's result,
+   * or null if the phi can not be simplified.
+   */
+  static OPT_Operand equivalentValforPHI (OPT_Instruction phi) {
+    if (!Phi.conforms (phi)) return null;
+    // search for the first input that is different from the result
+    OPT_Operand result = Phi.getResult(phi), equiv = result;
+    int i = 0, n = Phi.getNumberOfValues(phi);
+    while (i < n) {
+      equiv = Phi.getValue(phi, i++);
+      if (!equiv.similar(result)) break;
+    }
+    // no luck if result and equiv aren't the only distinct inputs
+    while (i < n) {
+      OPT_Operand opi = Phi.getValue(phi, i++);
+      if (!opi.similar(equiv) && !opi.similar(result)) return null;
+    }
+    return equiv;
+  }
+  
 
   /**
    * Perform flow-insensitive type propagation using register list

@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+/**
+ * @author Julian Dolby
+ */
 
 package TestClient;
 
@@ -26,7 +29,7 @@ class Worker extends Thread {
     private void dump(byte[] data) {
 	System.err.println("Differing output:");
 	System.err.println("------------------------------");
-	for(int i = 0; i < data.length; i++) System.err.print(data[i]);
+	for(int i = 0; i < data.length; i++) System.err.print((char)data[i]);
 	System.err.println("------------------------------");
     }
 	
@@ -39,8 +42,10 @@ class Worker extends Thread {
 		long start = System.currentTimeMillis();
 
 		try {
-		    if (con == null || !reuseConnection)
+		    if (con == null || !reuseConnection) {
 			con = new HTTPConnection( req.getUrl() );
+			con.setContext( this );
+		    }
 		} catch (Throwable e) {
 		    throw new BadResult( req, "connection failed" );
 		}
@@ -79,8 +84,7 @@ class Worker extends Thread {
 		}
 	    }
 	} catch (BadResult e) {
-	    System.err.println("Received bad result: " + e.getMessage());
-	    System.exit( -1 );
+	    throw new java.lang.Error("Got bad result: " + e.getMessage());
 	} catch (WorkerTimeUp e) {
 	    if (con != null) con.stop();
 	}

@@ -102,7 +102,7 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
                
             int fp = thread == VM_Thread.getCurrentThread()
                    ? VM_Magic.getFramePointer()
-                   : thread.contextRegisters.gprs[FRAME_POINTER];
+	      : thread.contextRegisters.getInnermostFramePointer();
                
             VM_Processor.getCurrentProcessor().disableThreadSwitching();
             VM_Scheduler.dumpStack(fp);
@@ -163,7 +163,7 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
                VM_Scheduler.writeString("\n Thread: ");
                t.dump();
                VM_Processor.getCurrentProcessor().disableThreadSwitching();
-               VM_Scheduler.dumpStack(t.contextRegisters.gprs[FP]);
+               VM_Scheduler.dumpStack(t.contextRegisters.getInnermostFramePointer());
                VM_Processor.getCurrentProcessor().enableThreadSwitching();
             }
          }

@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/*
+ * @author Ton Ngo
+ */
 class BlockingThreadsWorker extends Thread {
 
   static final boolean trace = false;

@@ -16,7 +16,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   //-----------//
   
   static VM_CompiledMethod compile (VM_Method method) {
-    int compiledMethodId = VM_ClassLoader.createCompiledMethodId();
+    int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     if (method.isNative()) {
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(compiledMethodId, method);
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
@@ -703,6 +703,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
 	genParameterRegisterLoad(2);                     // pass 2 parameter
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreOffset); // checkstore(array ref, value)
+        if (VM_Collector.NEEDS_WRITE_BARRIER) 
+          VM_Barriers.compileArrayStoreBarrier(asm);
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -941,11 +943,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       case 0x6c: /* idiv */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "idiv");
-	asm.emitPOP_Reg (ECX); // NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitPOP_Reg (EAX);
-	asm.emitCDQ ();    // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX); // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitPUSH_Reg(EAX);
+	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+	asm.emitCDQ ();                      // sign extend EAX into EDX
+	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+	asm.emitPUSH_Reg(EAX);               // push result
 	break;
       }
       case 0x6d: /* ldiv */ {
@@ -975,11 +978,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       case 0x70: /* irem */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "irem");
-	asm.emitPOP_Reg (ECX); // NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitPOP_Reg (EAX);
-	asm.emitCDQ ();    // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX); // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitPUSH_Reg(EDX);
+	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+	asm.emitCDQ ();                      // sign extend EAX into EDX
+	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+	asm.emitPUSH_Reg(EDX);               // push remainder
 	break;
       }
       case 0x71: /* lrem */ {
@@ -1811,10 +1815,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
@@ -1856,6 +1859,13 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putstatic " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (VM_Collector.NEEDS_WRITE_BARRIER && 
+	    !fieldRef.getType().isPrimitiveType()) {
+	  if (fieldRef.needsDynamicLink(method))
+	    VM_Barriers.compileUnresolvedPutstaticBarrier(asm, fieldId);
+	  else
+	    VM_Barriers.compilePutstaticBarrier(asm, fieldRef.getOffset());
+	}
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -1886,10 +1896,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
@@ -1950,28 +1959,30 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());          // pass field's dictId
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);           // load field's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (S0);
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
+	    asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    // TODO!! use 8-byte move if possible 
-	    asm.emitPOP_Reg (S0);
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, WORDSIZE);                // get high part
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);          // get low part
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
+	    asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
+	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);               // push the low part of field value
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
 	  int fieldOffset = fieldRef.getOffset();
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (T0);
-	    asm.emitPUSH_RegDisp(T0, fieldOffset);
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
+	    asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
@@ -1981,9 +1992,10 @@ public class VM_Compiler implements VM_BaselineConstants {
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockOffset);
 	    }
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (T0);
-	    asm.emitPUSH_RegDisp(T0, fieldOffset+WORDSIZE); // get high part
-	    asm.emitPUSH_RegDisp(T0, fieldOffset);          // get low part
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
+	    asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
+	    asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
             if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexOffset);
 	      asm.emitPUSH_Reg        (T0);
@@ -1999,6 +2011,13 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putfield " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (VM_Collector.NEEDS_WRITE_BARRIER 
+	    &&  !fieldRef.getType().isPrimitiveType()) {
+	  if (fieldRef.needsDynamicLink(method))
+	    VM_Barriers.compileUnresolvedPutfieldBarrier(asm, fieldId);
+	  else
+	    VM_Barriers.compilePutfieldBarrier(asm, fieldRef.getOffset());
+	}
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2019,33 +2038,35 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                              // T0 is offset in JTOC of static field, or 0 if field's class isn't loaded
 	  asm.emitCMP_Reg_Imm (T0, 0);                                           // T0 ?= 0, is field's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                       // if so, skip 3 instructions
-	  int classId = fieldRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                             // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(fieldRef.getDictionaryId());                          // pass field's dict id
 	  genParameterRegisterLoad(1);                                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);                   // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveFieldOffset);         // load field's class
 	  asm.emitJMP_Imm (retryLabel);                                          // reload T0
 	  fr.resolve(asm);                                                       // comefrom
 	  if (fieldRef.getSize() == 4) {// field is one word
-	    asm.emitPOP_Reg (T1);                                                // value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1);                    // [S0+T0] <- T1
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (JTOC);                                              // low part of value- use JTOC as scratch register
-	    asm.emitPOP_Reg (T1);                                                // high part of value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);                  // store low part
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);             // store high part
-	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset);                      // restore JTOC register
+	    asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
+	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
 	  int fieldOffset = fieldRef.getOffset();
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (T0);                                                // value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);                       // [S0+fieldOffset] <- T0
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
@@ -2055,17 +2076,18 @@ public class VM_Compiler implements VM_BaselineConstants {
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockOffset);
 	    }
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (T0);                                                // low part of value
-	    asm.emitPOP_Reg (T1);                                                // high part of value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);                       // store low part
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset+WORDSIZE, T1);              // store high part
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
             if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexOffset);
 	      asm.emitPUSH_Reg        (T0);
 	      asm.emitMOV_Reg_RegDisp (S0, T0, OBJECT_TIB_OFFSET);
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockOffset);
 	    }
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
 	  }
 	}
 	break;
@@ -2092,10 +2114,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (T0, T0, offset);                          // T0 is offset in TIB of virtual method, or 0
 	  asm.emitCMP_Reg_Imm (T0, 0);                                   // T0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                 // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());         // pass method's dict id
 	  genParameterRegisterLoad(1);                           // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);           // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);   // load method's class
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
@@ -2156,10 +2177,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
 	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                              // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
 	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);                    // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load field's class
 	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
 	  fr.resolve(asm);                                                        // comefrom
 	  genParameterRegisterLoad(methodRef, true);
@@ -2204,10 +2224,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitMOV_Reg_RegDisp (S0, S0, offset);                               // S0 is offset in JTOC of static method, or 0
 	  asm.emitCMP_Reg_Imm (S0, 0);                                            // S0 ?= 0, is method's class loaded?
 	  VM_ForwardReference fr = asm.forwardJcc(asm.NE);                        // if so, skip
-	  int classId = methodRef.getDeclaringClass().getDictionaryId();
-	  asm.emitPUSH_Imm(classId);                                              // pass an indirect pointer to field's class
+	  asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // pass method's dictId
 	  genParameterRegisterLoad(1);                                            // pass 1 parameter word
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.loadClassOnDemandOffset);     // load field's class
+	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolveMethodOffset);         // load method's class
 	  asm.emitJMP_Imm (retryLabel);                                           // reload S0
 	  fr.resolve(asm);                                                        // comefrom
 	  genParameterRegisterLoad(methodRef, false);          
@@ -2280,15 +2299,39 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  genParameterRegisterLoad(methodRef, true);
 	  asm.emitCALL_RegDisp(S0, I.getITableIndex(methodRef) << 2);                       // the interface call
 	} else {
-	  // call "invokeInterface" to resolve object + method id into method address
-	  int methodRefId = klass.getMethodRefId(constantPoolIndex);
-	  asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
-	  asm.emitPUSH_Imm(methodRefId);                 // id of method to call
-	  genParameterRegisterLoad(2);               // pass 2 parameter words
-	  asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceOffset); // invokeinterface(obj, id) returns address to call
-	  asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+	  VM_Class I = methodRef.getDeclaringClass();
+	  int itableIndex = -1;
+	  if (false && VM.BuildForITableInterfaceInvocation) {
+	    // get the index of the method in the Itable
+	    if (I.isLoaded()) {
+	      itableIndex = I.getITableIndex(methodRef);
+	    }
+	  }
+	  if (itableIndex == -1) {
+	    // itable index is not known at compile-time.
+	    // call "invokeInterface" to resolve object + method id into 
+	    // method address
+	    int methodRefId = klass.getMethodRefId(constantPoolIndex);
+	    asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
+	    asm.emitPUSH_Imm(methodRefId);                 // id of method to call
+	    genParameterRegisterLoad(2);               // pass 2 parameter words
+	    asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceOffset); // invokeinterface(obj, id) returns address to call
+	    asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
+	    genParameterRegisterLoad(methodRef, true);
+	    asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+	  } else {
+	    // itable index is known at compile-time.
+	    // call "findITable" to resolve object + interface id into 
+	    // itable address
+	    asm.emitMOV_Reg_RegDisp (S0, SP, (count-1) << 2);             // "this" object
+	    asm.emitPUSH_RegDisp    (S0, OBJECT_TIB_OFFSET);              // tib of "this" object
+	    asm.emitPUSH_Imm        (I.getDictionaryId());                // interface id
+	    genParameterRegisterLoad(2);                                  // pass 2 parameter words
+	    asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableOffset); // findItableOffset(tib, id) returns iTable
+	    asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
+	    genParameterRegisterLoad(methodRef, true);
+	    asm.emitCALL_RegDisp    (S0, itableIndex << 2);               // the interface call
+	  }
 	}
 	genResultRegisterUnload(methodRef);
 	break;
@@ -2368,8 +2411,9 @@ public class VM_Compiler implements VM_BaselineConstants {
       case 0xbe: /* arraylength */ { 
 	// unit test by PArray
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "arraylength");
-	asm.emitPOP_Reg (T0);                        // array reference
-	asm.emitPUSH_RegDisp(T0, ARRAY_LENGTH_OFFSET);
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
+	asm.emitMOV_Reg_RegDisp(T0, T0, ARRAY_LENGTH_OFFSET); // T0 is array length
+	asm.emitMOV_RegDisp_Reg(SP, 0, T0);                   // replace reference with length on stack
 	break;
       }
       case 0xbf: /* athrow */ {
@@ -2516,7 +2560,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	// NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
 	genParameterRegisterLoad(3);                   // pass 3 parameter words
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayOffset); 
-	for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions
+	for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
 	asm.emitPUSH_Reg(T0);                              // push array ref on stack
 	break;
       }
@@ -3551,9 +3595,10 @@ public class VM_Compiler implements VM_BaselineConstants {
       // Store the FPU Control Word to a JTOC slot
       asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordOffset);
       // Set the bits in the status word that control round to zero.
-      // Note that we use a 32-bit and, even though we only care about the
-      // high-order 16 bits
-      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset, 0x0c00);
+      // Note that we use a 32-bit OR, even though we only care about the
+      // low-order 16 bits
+      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset,
+                             0x00000c00);
       // Now store the result back into the FPU Control Word
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
       return;

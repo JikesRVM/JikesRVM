@@ -522,6 +522,54 @@ move
 
 
 
+# Conditionally move an integer value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+INT_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a long value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+LONG_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a float value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+FLOAT_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a double value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+DOUBLE_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a reference value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+REF_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a guard value from one (register) operand 
+# to a register operand.  Value is unchanged.
+GUARD_COND_MOVE
+CondMove
+compare
+
+
+
 # Combine two guard values into a third guard.
 GUARD_COMBINE
 Binary
@@ -1237,21 +1285,21 @@ callUses
 # An explicit thread switch point from a prologue.
 YIELDPOINT_PROLOGUE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
 # An explicit thread switch point from an epilogue.
 YIELDPOINT_EPILOGUE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
 # An explicit thread switch point from a backedge.
 YIELDPOINT_BACKEDGE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
@@ -1382,6 +1430,13 @@ none
 GET_ARRAY_ELEMENT_TIB_FROM_TIB
 Unary
 none
+
+
+
+# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+LOWTABLESWITCH
+LowTableSwitch
+branch
 
 
 

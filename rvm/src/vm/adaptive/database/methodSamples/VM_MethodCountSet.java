@@ -40,7 +40,7 @@ public final class VM_MethodCountSet {
   public String toString() {
     String ans = "";
     for (int i=0; i< cmids.length; i++) {
-      ans += VM_ClassLoader.getCompiledMethod(cmids[i]).getMethod() + 
+      ans += VM_CompiledMethods.getCompiledMethod(cmids[i]).getMethod() + 
 	" = " + counters[i] + "\n";
     }
     return ans;

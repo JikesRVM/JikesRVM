@@ -2,6 +2,9 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# @author Stephen Fink
 #
 # Run this script from a directory in your CVS shadow.  This script
 # emits a file, 'doit', holding the skeleton of a bunch of cvs commit

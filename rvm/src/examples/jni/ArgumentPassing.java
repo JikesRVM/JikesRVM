@@ -1,23 +1,26 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test argument passing by the Java to C native interface
-// Register used for arguments
-//      Jalepeno	AIX
-// GPR 	3-12		3-10
-// FPR 	1-15		1-13
-// In AIX, the first 2 registers will be used for JNIEnv and class/object pointer
-//
-// The tests cover these dimensions:
-//  -static or virtual methods
-//  -integer, float, double, long, reference types
-//  -mix of these types
-//  -fit in register or spilled
-//  -for double and long (2 words), whether the words are straddle between register/spill
-//
-// 12/22/99  Ton Ngo
-//
-
+//$Id$:
+/**
+ * Test argument passing by the Java to C native interface
+ * Register used for arguments
+ *      Jalepeno	AIX
+ * GPR 	3-12		3-10
+ * FPR 	1-15		1-13
+ * In AIX, the first 2 registers will be used for JNIEnv and class/object pointer
+ *
+ * The tests cover these dimensions:
+ *  -static or virtual methods
+ *  -integer, float, double, long, reference types
+ *  -mix of these types
+ *  -fit in register or spilled
+ *  -for double and long (2 words), whether the words are straddle between 
+ *       register/spill
+ *
+ * @author Ton Ngo
+ * @date   12/22/99
+ */
 class ArgumentPassing
 {
   

@@ -1,10 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 
+/**
+ * @author unascribed
+ */
 class TestRead
 {
   public static void main(String args[]) {

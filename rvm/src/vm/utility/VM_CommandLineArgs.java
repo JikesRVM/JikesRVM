@@ -4,15 +4,11 @@
 //$Id$
 
 /**
- * 15 Jan 2001 Peter Sweeney 
- *	Command line option processing:
- *	  Follow JDK 1.3 specification, and
- *	  Eliminate necessity of VM option order.
- * 22 May 2001 Igor Pechtchanski
- *      Arbitrary prefix support
+ * Command line option processing.
  *
  * @author Peter Sweeney
  * @modified Igor Pechtchanski
+ *      Arbitrary prefix support
  */
 class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;
@@ -66,6 +62,8 @@ class VM_CommandLineArgs {
   public static final int AOS_HELP_ARG         = 17;
   public static final int AOS_ARG              = 18;
   public static final int MEASURE_COMP_ARG     = 19;
+  public static final int GCTK_HELP_ARG        = 20;
+  public static final int GCTK_ARG             = 21;
 
   /**
    * A catch-all prefix to find application name.
@@ -112,6 +110,9 @@ class VM_CommandLineArgs {
     new Prefix("-X:aos:help$",          AOS_HELP_ARG),
     new Prefix("-X:aos$",               AOS_HELP_ARG),
     new Prefix("-X:aos:",               AOS_ARG),
+    new Prefix("-X:gc:help$",           GCTK_HELP_ARG),
+    new Prefix("-X:gc$",                GCTK_HELP_ARG),
+    new Prefix("-X:gc:",                GCTK_ARG),
     new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     app_prefix
   };
@@ -498,6 +499,27 @@ class VM_CommandLineArgs {
 	VM_Controller.processCommandLineArg(arg);
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");
+	VM.sysExit(1);
+	//-#endif
+	break;
+
+        // -------------------------------------------------------------------
+        // Access GCTk optios
+        // -------------------------------------------------------------------
+      case GCTK_HELP_ARG:  // -X:gc passed 'help' as an option
+	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	//-#if RVM_WITH_GCTk
+	GCTk_Collector.processCommandLineArg("help");
+	//-#else
+	VM.sysWrite("vm: non-GCTk configuration; ignoring command line argument 'help' with prefix '"+p.value+"'\n");
+	VM.sysExit(1);
+	//-#endif
+	break;
+      case GCTK_ARG: // "-X:gc:arg" pass 'arg' as an option
+	//-#if RVM_WITH_GCTk
+	GCTk_Collector.processCommandLineArg(arg);
+	//-#else
+	VM.sysWrite("vm: non-GCTk configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");
 	VM.sysExit(1);
 	//-#endif
 	break;
