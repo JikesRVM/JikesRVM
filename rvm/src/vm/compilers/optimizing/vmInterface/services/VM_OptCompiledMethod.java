@@ -222,20 +222,30 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  /**
-   * Get the offset for the end of the prologue
-   * 
-   */
-  final int getEndPrologueOffset() {
-    return endPrologueOffset;
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  final int size() {
+    int size = TYPE.getInstanceSize();
+    size += _mcMap.size();
+    if (_eMap != null) size += _eMap.size();
+    //-#if RVM_FOR_IA32
+    if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
+    //-#endif
+    return size;
   }
 
   /**
    * Get the offset for the end of the prologue
-   * *param  int endPrologue
+   */
+  final int getEndPrologueOffset() {
+    return bitField1 & AVAIL_BITS;
+  }
+
+  /**
+   * Get the offset for the end of the prologue
+   * @param endPrologue
    */
   final void setEndPrologueOffset(int endPrologue) {
-    this.endPrologueOffset = endPrologue;
+    bitField1 |= endPrologue & AVAIL_BITS;
   }
 
   //----------------//
@@ -255,9 +265,6 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   //-#if RVM_FOR_IA32
   private int[] patchMap;
   //-#endif
-  // Used with jdp to locate instruction after prologue
-  private int endPrologueOffset;  
-
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN

@@ -425,20 +425,14 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     return bytesPerMap;
   }
 
-  int getIntDataSize() {
-      VM_Array intArray = VM_Array.arrayOfIntType;
-      int size = 0;
-      if (MCSites != null) size += intArray.getInstanceSize(MCSites.length);
-      if (byte2machine != null) size += intArray.getInstanceSize(byte2machine.length);
-      return size;
-  }
-
-  int getByteDataSize() {
-      VM_Array intArray = VM_Array.arrayOfIntType;
-      int size = 0;
-      if (referenceMaps != null) size += intArray.getInstanceSize(referenceMaps.length);
-      if (unusualReferenceMaps != null) size += intArray.getInstanceSize(unusualReferenceMaps.length);
-      return size;
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  int size() {
+    int size = TYPE.getInstanceSize();
+    if (MCSites != null) size += VM_Array.arrayOfIntType.getInstanceSize(MCSites.length);
+    if (byte2machine != null) size += VM_Array.arrayOfIntType.getInstanceSize(byte2machine.length);
+    if (referenceMaps != null) size += VM_Array.arrayOfByteType.getInstanceSize(referenceMaps.length);
+    if (unusualReferenceMaps != null) size += VM_Type.JavaLangObjectArrayType.getInstanceSize(unusualReferenceMaps.length);
+    return size;
   }
 
   private byte[]        referenceMaps;

@@ -11,66 +11,63 @@
  */
 final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_BaselineConstants {
 
+  // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
+  // This is wasting a lot of space!
+  private static final boolean saveBytecodeMap = true;
+
   /**
    * Baseline exception deliverer object
    */
   private static VM_ExceptionDeliverer exceptionDeliverer = new VM_BaselineExceptionDeliverer();
 
+  /**
+   * Stack-slot reference maps for the compiled method.
+   */
+  VM_ReferenceMaps referenceMaps;
+
+  // the bytecode map; currently needed to support dynamic bridge magic; 
+  private int[] _bytecodeMap;
+
+  /**
+   * Exception table, null if not present.
+   */
+  private VM_BaselineExceptionTable eTable;
+
+  /**
+   * Line tables for use by "findLineNumberForInstruction()".
+   * Note that line mappings for a method appear in order of increasing instruction offset.
+   * The same line number can appear more than once (each with a different instruction offset).
+   * Null tables mean "method has no line information".
+   * The instruction offset at which each instruction sequence begins.
+   */
+  private int[] lineInstructionOffsets;    
+  
+  // Local variable tables for use by "findLocalVariablesForInstruction()"
+  // Null tables mean "method has no local variable information".
+  private int[] localStartInstructionOffsets;           // range of instructions for which...
+  private int[] localEndInstructionOffsets;             // ...i-th table entry is in scope (inclusive)
+
+
   VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
   }
 
-
-  // Get compiler that generated this method's machine code.
-  //
   final int getCompilerType () throws VM_PragmaUninterruptible {
     return BASELINE;
   }
 
-  // Get handler to deal with stack unwinding and exception delivery for this method's stackframes.
-  //
   final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
     return exceptionDeliverer;
   }
 
-  // Find "catch" block for a machine instruction of this method.
-  //
   final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
-    if (tryStartInstructionOffsets == null)
-      return -1;               // method has no catch blocks
-    for (int i = 0, n = tryStartInstructionOffsets.length; i < n; ++i) {
-      // note that "instructionOffset" points to a return site (not a call site)
-      // so the range check here must be "instructionOffset <= beg || instructionOffset >  end"
-      // and not                         "instructionOffset <  beg || instructionOffset >= end"
-      //
-      if (instructionOffset <= tryStartInstructionOffsets[i] || instructionOffset > tryEndInstructionOffsets[i])
-        continue;
-      VM_Type lhs = exceptionTypes[i];
-      if (lhs.isInitialized()) {
-        if (VM.BuildForFastDynamicTypeCheck) {
-          if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), exceptionType.getTypeInformationBlock())) {
-            return catchInstructionOffsets[i];
-          }
-        } else {
-	  try {
-	    if (VM_Runtime.isAssignableWith(lhs, exceptionType)) {
-	      return catchInstructionOffsets[i];
-	    }
-	  } catch (VM_ResolutionException e) {
-	    // cannot be thrown since lhs and rhs are initialized 
-	    // thus no classloading will be performed
-	  }
-        }
-      }
+    if (eTable == null) {
+      return -1;
+    } else {
+      return eTable.findCatchBlockForInstruction(instructionOffset, exceptionType);
     }
-    return -1;
   }
 
-  // Fetch symbolic reference to a method that's called by one of this method's instructions.
-  // Taken:    place to put return information
-  //           offset of machine instruction that issued the call
-  // Returned: nothing
-  //
   final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     int bytecodeIndex = -1;
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
@@ -83,14 +80,10 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
     byte[] bytecodes = method.getBytecodes();
     int bytecode = bytecodes[bytecodeIndex] & 0xFF;
-    int constantPoolIndex = ((bytecodes[bytecodeIndex + 1] & 0xFF) << 8) | (bytecodes[
-        bytecodeIndex + 2] & 0xFF);
-    dynamicLink.set(method.getDeclaringClass().getMethodRef(constantPoolIndex), 
-        bytecode);
+    int constantPoolIndex = ((bytecodes[bytecodeIndex + 1] & 0xFF) << 8) | (bytecodes[bytecodeIndex + 2] & 0xFF);
+    dynamicLink.set(method.getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
-  // Find source line number corresponding to one of this method's machine instructions.
-  //
   final int findLineNumberForInstruction (int instructionOffset) {
     if (lineInstructionOffsets == null)
       return 0;                // method has no line information
@@ -107,7 +100,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
     if (candidateIndex == -1)
       return 0;                // not found
-    return lineNumbers[candidateIndex];
+    return method.getLineNumberMap().lineNumbers[candidateIndex];
   }
 
   /** Find bytecode index corresponding to one of this method's 
@@ -162,6 +155,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   final int findInstructionForLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
       return -1;               // method has no line information
+    int[] lineNumbers = method.getLineNumberMap().lineNumbers;
     for (int i = 0, n = lineNumbers.length; i < n; ++i) {
       if (lineNumbers[i] == lineNumber)
         return lineInstructionOffsets[i];
@@ -175,6 +169,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   final int findInstructionForNextLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
       return -1;               // method has no line information
+    int[] lineNumbers = method.getLineNumberMap().lineNumbers;
     for (int i = 0, n = lineNumbers.length; i < n; ++i) {
       if (lineNumbers[i] == lineNumber)
         if (i == n - 1)         // last valid source code line, no next line
@@ -188,11 +183,11 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // Find local variables that are in scope of specified machine instruction.
   //
   public final VM_LocalVariable[] findLocalVariablesForInstruction (int instructionOffset) {
+    VM_LocalVariable[] localVariables = method.getLocalVariables();
     if (localVariables == null)
       return null;
-    int count;
     // pass 1
-    count = 0;
+    int count = 0;
     for (int i = 0, n = localVariables.length; i < n; ++i)
       if (instructionOffset >= localStartInstructionOffsets[i] && instructionOffset <= localEndInstructionOffsets[i])
         count++;
@@ -257,51 +252,18 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
           + ":" + lineNumber + ")");
     }
   }
+
   //----------------//
   // implementation //
   //----------------//
-  // Stack-slot reference maps for that method.
-  //
-  VM_ReferenceMaps referenceMaps;
-  // cache the bytecode map
-  private static final boolean saveBytecodeMap = true;                 // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map
-  private int[] _bytecodeMap;
-  // Exception tables for use by "findCatchBlockForInstruction()".
-  // Null tables mean "method has no try/catch/finally blocks".
-  //
-  private int[] tryStartInstructionOffsets;                     // instruction offset at which i-th try block begins
-  // 0-indexed from start of method's instructions[]
-  private int[] tryEndInstructionOffsets;       // instruction offset at which i-th try block ends (exclusive)
-  // 0-indexed from end of method's instructions[]
-  private int[] catchInstructionOffsets;        // instruction offset at which  exception handler for i-th try block begins
-  // 0-indexed from handler of method's instructions[]
-  private VM_Type[] exceptionTypes;             // exception type for which i-th handler is to be invoked
-  // - something like "java/lang/IOException".
-  // a null entry indicates a "finally block" (handler accepts all exceptions).
-  // Line tables for use by "findLineNumberForInstruction()".
-  // Note that line mappings for a method appear in order of increasing instruction offset.
-  // The same line number can appear more than once (each with a different instruction offset).
-  // Null tables mean "method has no line information".
-  //
-  int[] lineNumbers;            // line number at which each instruction sequence begins
-  // 1-indexed from start of method's source file
-  int[] lineInstructionOffsets;                 // instruction offset at which each instruction sequence begins
-  // 0-indexed from start of method's instructions[]
-  // Local variable tables for use by "findLocalVariablesForInstruction()"
-  // Null tables mean "method has no local variable information".
-  //
-  VM_LocalVariable[] localVariables;            // local variables table provided by javac compiler
-  int[] localStartInstructionOffsets;           // range of instructions for which...
-  int[] localEndInstructionOffsets;             // ...i-th table entry is in scope (inclusive)
+
+  // We use the available bits in bitField1 to encode the lock acquistion offset
+  // for synchronized methods
   // For synchronized methods, the offset (in the method prologue) after which
   // the monitor has been obtained.  At, or before, this point, the method does
   // not own the lock.  Used by deliverException to determine whether the lock
   // needs to be released.  Note: for this scheme to work, VM_Lock must not
   // allow a yield after it has been obtained.
-  //
-
-  // We use the available bits in bitField1 to encode the lock acquistion offset
-  // for synchronized methods
   void setLockAcquisitionOffset(int off) {
     bitField1 |= (off & AVAIL_BITS);
   }
@@ -322,23 +284,15 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     //
     referenceMaps.translateByte2Machine(bytecodeMap);
     this.referenceMaps = referenceMaps;
+    
+
     // create exception tables
     //
     VM_ExceptionHandlerMap emap = method.getExceptionHandlerMap();
     if (emap != null) {
-      int[] startPCs = emap.startPCs;
-      int[] endPCs = emap.endPCs;
-      int[] handlerPCs = emap.handlerPCs;
-      tryStartInstructionOffsets = new int[startPCs.length];
-      tryEndInstructionOffsets = new int[endPCs.length];
-      catchInstructionOffsets = new int[handlerPCs.length];
-      for (int i = 0, n = startPCs.length; i < n; ++i) {
-        tryStartInstructionOffsets[i] = (bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
-        tryEndInstructionOffsets[i] = (bytecodeMap[endPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
-        catchInstructionOffsets[i] = (bytecodeMap[handlerPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
-      }
-      exceptionTypes = emap.exceptionTypes;
+      eTable = new VM_BaselineExceptionTable(emap, bytecodeMap);
     }
+
     // create line tables
     //
     VM_LineNumberMap lmap = method.getLineNumberMap();
@@ -347,40 +301,36 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
       lineInstructionOffsets = new int[startPCs.length];
       for (int i = 0, n = startPCs.length; i < n; ++i)
         lineInstructionOffsets[i] = (bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
-      lineNumbers = lmap.lineNumbers;
     }
+
     // create local variable tables
     //
-    VM_LocalVariable vmap[] = method.getLocalVariables();
+    VM_LocalVariable[] vmap = method.getLocalVariables();
     if (vmap != null) {
-      localVariables = vmap;
       localStartInstructionOffsets = new int[vmap.length];
       localEndInstructionOffsets = new int[vmap.length];
       for (int i = 0, n = vmap.length; i < n; ++i) {
         VM_LocalVariable v = vmap[i];
-        localStartInstructionOffsets[i] = (bytecodeMap[v.startPC] << VM.LG_INSTRUCTION_WIDTH);
-        localEndInstructionOffsets[i] = v.endPC < bytecodeMap.length ?
-            (bytecodeMap[v.endPC] << VM.LG_INSTRUCTION_WIDTH) 
-	  : (numInstructions << VM.LG_INSTRUCTION_WIDTH);
+        localStartInstructionOffsets[i] = bytecodeMap[v.startPC] << VM.LG_INSTRUCTION_WIDTH;
+	if (v.endPC < bytecodeMap.length) {
+	  localEndInstructionOffsets[i] = bytecodeMap[v.endPC] << VM.LG_INSTRUCTION_WIDTH;
+	} else { 
+	  localEndInstructionOffsets[i] = numInstructions << VM.LG_INSTRUCTION_WIDTH;
+	}
       }
     }
   }
 
-  // Returns total size (including header) of all int array fields
-  //
-  public int dataSize() {
-      VM_Array intArray = VM_Array.arrayOfIntType;
-      int size = 0;
-      if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
-      if (tryStartInstructionOffsets != null) size += intArray.getInstanceSize(tryStartInstructionOffsets.length);
-      if (tryEndInstructionOffsets != null) size += intArray.getInstanceSize(tryEndInstructionOffsets.length);
-      if (catchInstructionOffsets != null) size += intArray.getInstanceSize(catchInstructionOffsets.length);
-      if (lineNumbers != null) size += intArray.getInstanceSize(lineNumbers.length);
-      if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
-      if (referenceMaps != null) {
-	  size += referenceMaps.getByteDataSize();
-	  size += referenceMaps.getIntDataSize();
-      }
-      return size;
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  public int size() {
+    VM_Array intArray = VM_Array.arrayOfIntType;
+    int size = TYPE.getInstanceSize();
+    if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
+    if (eTable != null) size += eTable.size();
+    if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
+    if (referenceMaps != null) size += referenceMaps.size();
+    if (localStartInstructionOffsets != null) size += intArray.getInstanceSize(localStartInstructionOffsets.length);
+    if (localEndInstructionOffsets != null) size += intArray.getInstanceSize(localEndInstructionOffsets.length);
+    return size;
   }
 }

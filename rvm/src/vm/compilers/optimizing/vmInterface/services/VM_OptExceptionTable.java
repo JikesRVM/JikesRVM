@@ -9,72 +9,19 @@
  *
  * @author Dave Grove
  * @author Mauricio Serrano
+ * @author Janice Shepherd
  */
-final class VM_OptExceptionTable implements VM_Constants {
-
-  /**
-   * The eTable array encodes the exception tables using 4 ints for each
-   * The constants are used by the classwriter too.
-   */
-  private int[] eTable;
-  public  static final int TRY_START = 0;
-  public  static final int TRY_END = 1;
-  public  static final int CATCH_START = 2;
-  public  static final int EX_TYPE = 3;
-
-  private static final boolean DEBUG = false;
-  /**
-   * Return the machine code offset for the catch block that will handle
-   * the argument exceptionType,or -1 if no such catch block exists.
-   * 
-   * @param instructionOffset the offset of the instruction after the PEI.
-   * @param exceptionType the type of exception that was raised
-   * @return the machine code offset of the catch block.
-   */
-  public int findCatchBlockForInstruction(int instructionOffset, 
-					  VM_Type exceptionType) {
-    for (int i = 0, n = eTable.length; i < n; i += 4) {
-      // note that instructionOffset points to the instruction after the PEI
-      // so the range check here must be "offset >  beg && offset <= end"
-      // and not                         "offset >= beg && offset <  end"
-      //
-      // offset starts are sorted by starting point
-      if (instructionOffset > eTable[i + TRY_START] &&
-	  instructionOffset <= eTable[i + TRY_END]) {
-	VM_Type lhs = VM_TypeDictionary.getValue(eTable[i + EX_TYPE]);
-	if (lhs == exceptionType) {
-	  return eTable[i + CATCH_START];
-	} else if (lhs.isInitialized()) {
-	  if (VM.BuildForFastDynamicTypeCheck) {
-	    Object[] rhsTIB = exceptionType.getTypeInformationBlock();
-	    if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
-	      return eTable[i + CATCH_START];
-	    }
-	  } else {
-	    try {
-	      if (VM_Runtime.isAssignableWith(lhs, exceptionType)) {
-		return eTable[i + CATCH_START];
-	      }
-	    } catch (VM_ResolutionException e) {
-	      // cannot be thrown since lhs and rhs are initialized 
-	      // thus no classloading will be performed
-	    }
-	  }
-	}
-      }
-    }
-    return  -1;
-  }
+final class VM_OptExceptionTable extends VM_ExceptionTable {
 
   /**
    * Construct the exception table for an IR.
    */
   VM_OptExceptionTable(OPT_IR ir) {
+    super();
     int index = 0;
     int currStartOff, currEndOff;
     int tableSize = countExceptionTableSize(ir);
     eTable = new int[tableSize*4];
-      
 
     // For each basic block
     //   See if it has code associated with it and if it has
@@ -172,35 +119,12 @@ final class VM_OptExceptionTable implements VM_Constants {
         newETable[i] = eTable[i];
       eTable = newETable;
     }
-    if (DEBUG) {
-      VM.sysWrite("eTable length: " + eTable.length + "\n");
-      printExceptionTable();
-    }
-  }
-
-
-  /**
-   * Print the exception table.
-   */
-  void printExceptionTable () {
-    int length = eTable.length;
-    System.out.println("Exception Table:");
-    System.out.println("    trystart   tryend    catch    type");
-    for (int i = 0; i<length; i+=4) {
-      System.out.print("    " + 
-		       VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
-		       VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
-		       VM_Services.getHexString(eTable[i + CATCH_START], true) + " " +
-		       VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
-      System.out.println();
-    }
   }
 
   /**
    * Return an upper bounds on the size of the exception table for an IR.
-   * Used by Classwriter code too.
    */
-  public static int countExceptionTableSize(OPT_IR ir) {
+  private static int countExceptionTableSize(OPT_IR ir) {
     int tSize = 0;
     for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); 
 	 bblock != null; 

@@ -58,13 +58,7 @@ public final class VM_OptMachineCodeMap
     generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      VM_Array longArrayType = VM_Array.getPrimitiveArrayType(11);
-      int ie = (inlineEncoding == null) ? 0 : intArrayType.getInstanceSize(inlineEncoding.length);
-      int gc = (gcMaps == null) ? 0 : intArrayType.getInstanceSize(gcMaps.length);
-      int mySize = this.getClass().getVMType().asClass().getInstanceSize();
-      int totalMapBytes = ie + gc + mySize + longArrayType.getInstanceSize(MCInformation.length);
-      recordStats(ir.method, totalMapBytes, machineCodeSize << LG_INSTRUCTION_WIDTH);
+      recordStats(ir.method, size(), machineCodeSize << LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {
@@ -547,6 +541,17 @@ public final class VM_OptMachineCodeMap
     }
   }
 
+  /**
+   * Total bytes used by arrays of primitives to encode the machine code map
+   */
+  int size() {
+    int size = TYPE.getInstanceSize();
+    size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
+    if (inlineEncoding != null) size += VM_Array.arrayOfIntType.getInstanceSize(inlineEncoding.length);
+    if (gcMaps != null) size += VM_Array.arrayOfIntType.getInstanceSize(gcMaps.length);
+    return size;
+  }
+
   ////////////////////////////////////////////
   //
   //  Encoding constants and backing data.
@@ -643,4 +648,6 @@ public final class VM_OptMachineCodeMap
    */
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
+
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 }
