@@ -107,6 +107,8 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
     MM_Interface.boot(VM_BootRecord.the_boot_record);
 
+    VM_Time.boot();
+
     // Reset the options for the baseline compiler to avoid carrying them over from
     // bootimage writing time.
     // 
