@@ -60,6 +60,13 @@ public abstract class VM_Configuration {
           true;
         //-#endif
 
+  public static final boolean ExtremeAssertions = 
+        //-#if RVM_WITH_EXTREME_ASSERTIONS
+          true;
+        //-#else
+          false;
+        //-#endif
+
   // Verify that Uninterruptible methods actually cannot be interrupted.
   // Disable until we can fix the last couple problem cases.
   public static final boolean VerifyUnint = true && VerifyAssertions;
