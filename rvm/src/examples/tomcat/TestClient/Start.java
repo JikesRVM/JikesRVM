@@ -118,13 +118,16 @@ class Start {
 	long totalBytes = 0;
 	long totalLatency = 0;
 	int numRequests = 0;
+	int numVerifiedRequests = 0;
 	for (int i = 0; i < clients; i++) {
 	    totalBytes += workers[i].totalBytes;
 	    totalLatency += workers[i].totalLatency;
 	    numRequests += workers[i].numRequests;
+	    numVerifiedRequests += workers[i].numVerifiedRequests;
 	}
 
 	System.out.println("Downloaded " + totalBytes + " bytes in " + numRequests + " requests");
+	System.out.println("Verified " + numVerifiedRequests + " requests");
 	System.out.println("Average latency of " + (double)totalLatency/(double)numRequests + " ms");
     }
 

@@ -16,6 +16,7 @@ class Worker extends Thread {
     long totalBytes;
     long totalLatency;
     int numRequests;
+    int numVerifiedRequests;
 
     Worker(Enumeration requests, boolean reuseConnection) {
 	this.requests = requests;
@@ -64,6 +65,8 @@ class Worker extends Thread {
 				dump(result);
 				throw new BadResult( req, "output differs" );
 			    }
+	
+			numVerifiedRequests++;
 		    }
 		    
 		    // 3. record statistics
