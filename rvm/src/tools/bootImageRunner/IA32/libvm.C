@@ -36,7 +36,15 @@
 #endif
 #include <assert.h>
 
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+/* OK, here's the scoop with pthreads.  The GNU C library will provide us with
+ * the pthread_mutex_lock and pthread_mutex_unlock implementations, WITHOUT
+ * linking with -lpthread.    But the C library (libc) does not contain an
+ * implementation of pthread_kill().  That's why we can get away with using
+ * some of the pthread functions in a single-processor config, but not get
+ * away with all of them. */
 #include <pthread.h>
+#endif
 
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -252,11 +260,13 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
 void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
+    unsigned int localInstructionAddress;
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
     pthread_mutex_lock( &exceptionLock );
+#endif // RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 
-    unsigned int localInstructionAddress;
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
     unsigned int localJTOC = VmToc;
@@ -314,7 +324,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 		 isRecoverable? "" : " UNRECOVERABLE", 
 		 signo, strsignal(signo));
 
- 	writeErr("handler stack 0x%x\n", (unsigned) &exceptionLock);
+ 	writeErr("handler stack 0x%x\n", (unsigned) &localInstructionAddress);
 	if (signo == SIGSEGV)
 	    writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
 	writeErr("gs            0x%08x\n", gregs[REG_GS]);
@@ -470,7 +480,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	gregs[REG_EIP] = dumpStack;
 	*vmr_inuse = false;
 
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 	pthread_mutex_unlock( &exceptionLock );
+#endif
 
 	return;
     }
@@ -587,8 +599,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
 
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     pthread_mutex_unlock( &exceptionLock );
-
+#endif
 }
 
 
@@ -624,7 +637,9 @@ processTimerTick(void)
     /* As of 8/2003, we haven't yet gotten around to creating
        the native daemon processor) on Linux :(  So processors[ndp_index] is
        always zero. */
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     unsigned ndp_index = cnt;
+#endif
     
     // check for gc in progress: if so, return
     //
@@ -648,6 +663,7 @@ processTimerTick(void)
 	}
     }
     if (sendit != 0) {
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 	// Some processor is "stuck in native"
 	if (processors[ndp_index]) {  
 	    // We have a NativeDaemon Processor (the last one),
@@ -655,7 +671,9 @@ processTimerTick(void)
 	    int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
 	    pthread_t thread = (pthread_t)pthread_id;
 	    pthread_kill(thread, SIGCONT);
-	} else {
+	} else
+#endif
+	{
 	    /* After 500 timer intervals (often == 5 seconds), print a message
 	       every 50 timer intervals (often == 1/2 second), so we don't
 	       just appear to be hung. */
@@ -674,7 +692,7 @@ softwareSignalHandler(int signo,
 		      siginfo_t __attribute__((unused)) *si, 
 		      void *context) 
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
 	processTimerTick();
 	return;
@@ -764,12 +782,14 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     setbuf (SysErrorFile, 0);
     setbuf (SysTraceFile, 0);
 
-    if (lib_verbose) {
-	fprintf(SysTraceFile, "IA32 Linux build"
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-		" for SMP"
+    if (lib_verbose)
+    {
+	fprintf(SysTraceFile, "IA32 linux build");
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+	fprintf(SysTraceFile, " for single virtual processor\n");
+#else
+	fprintf(SysTraceFile, " for SMP\n");
 #endif
-		"\n");
     }
 
     /* open and mmap the image file. 
