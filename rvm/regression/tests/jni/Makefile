@@ -30,7 +30,7 @@ include 	$(JAL_ROOT)/rvm/regression/Make.rules
 # Tests for JNI 1.1
 TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
-	StringFunctions TestGC t3GT3
+	NullIdentity StringFunctions TestGC t3GT3
 
 # Tests for JNI 1.2
 TESTS_12 := JNI12 StringRegion
