@@ -3,7 +3,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
@@ -5653,7 +5654,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @see OPT_BC2IR#DUMMY
    */
   private static final class DummyStackSlot extends OPT_Operand {
-    OPT_Operand copy() { return this; }
+    public OPT_Operand copy() { return this; }
     boolean similar(OPT_Operand op) { return (op instanceof DummyStackSlot); }
     public String toString() { return "<DUMMY>"; }
   }
@@ -5665,7 +5666,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   public static final class ReturnAddressOperand extends OPT_Operand {
     int retIndex;
     ReturnAddressOperand(int ri) { retIndex = ri; }
-    OPT_Operand copy() { return this; }
+    public OPT_Operand copy() { return this; }
     boolean similar(OPT_Operand op) {
       return (op instanceof ReturnAddressOperand) && 
 	(retIndex == ((ReturnAddressOperand)op).retIndex);

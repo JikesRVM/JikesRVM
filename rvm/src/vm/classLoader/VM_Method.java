@@ -6,6 +6,10 @@ package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
+
 
 /**
  * A method of a java class.
@@ -103,7 +107,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // successful lookup is kept. We first check it to catch repeated quries
   // for the same bytecode. Failing this, we perform a binary search where the
   // first probe is either the next sequential entry or 0 (typical cases).
-  final boolean queryAnnotationForBytecode( int pc, byte mask ) {
+  public final boolean queryAnnotationForBytecode( int pc, byte mask ) {
 
     if ( annotationNum == 0 ) return false;		// none
 
@@ -159,7 +163,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Declared as non-overridable by subclasses?
    */
-  final boolean isFinal() throws VM_PragmaUninterruptible {
+  public final boolean isFinal() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
@@ -168,7 +172,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Guarded by monitorenter/monitorexit?
    */
-  final boolean isSynchronized() throws VM_PragmaUninterruptible {
+  public final boolean isSynchronized() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_SYNCHRONIZED) != 0;
@@ -212,7 +216,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Space required by this method for its operand stack, in words.
    */
-  final int getOperandWords() throws VM_PragmaUninterruptible {
+  public final int getOperandWords() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return operandWords;
@@ -257,7 +261,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Exceptions caught by this method.
    * @return info (null --> method doesn't catch any exceptions)
    */
-  final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
+  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return exceptionHandlerMap;
@@ -285,7 +289,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Line numbers for this method.
    * @return info (null --> native or abstract: no code, no exception map)
    */
-  final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
+  public final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return lineNumberMap;
@@ -314,7 +318,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    *      exception.
    * </ul>
    */
-  final boolean isInterruptible() {
+  public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (VM_PragmaInterruptible.declaredBy(this)) return true;
     if (VM_PragmaUninterruptible.declaredBy(this)) return false;
@@ -329,7 +333,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Has this method been marked as mandatory to inline?
    * ie., it throws the <CODE>VM_PragmaInline</CODE> exception?
    */
-  final boolean hasInlinePragma() {
+  public final boolean hasInlinePragma() {
     return VM_PragmaInline.declaredBy(this);
   }
     
@@ -337,7 +341,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Has this method been marked as forbidden to inline?
    * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
    */
-  final boolean hasNoInlinePragma() {
+  public final boolean hasNoInlinePragma() {
     return VM_PragmaNoInline.declaredBy(this);
   }
     
@@ -622,8 +626,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // Byte Code Annotations
   private short[]	annotationPC;
   private byte[]	annotationValue;
-  static final byte	annotationNullCheck = 4;
-  static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
+  public static final byte	annotationNullCheck = 4;
+  public static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
   private int		annotationNum;
   private int		annotationPrior;
 

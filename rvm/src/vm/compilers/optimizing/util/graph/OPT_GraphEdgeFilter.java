@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * @author Julian Dolby

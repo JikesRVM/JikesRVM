@@ -3,6 +3,7 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 /**
  * Use optimizing compiler to build virtual machine boot image.
  * 

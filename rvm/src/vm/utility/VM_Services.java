@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
  * @author Janice Shepherd
  * @date 28 Nov 2001
  */
-class VM_Services {
+public class VM_Services {
 
   /**
    * Utility printing function.

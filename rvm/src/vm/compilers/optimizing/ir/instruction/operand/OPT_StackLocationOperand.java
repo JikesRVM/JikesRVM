@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Represents a symbolic name for a stack location.
@@ -104,7 +104,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
     }
   }
 
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_StackLocationOperand(isFromTop(), getOffset(), getSize());
   }
 }

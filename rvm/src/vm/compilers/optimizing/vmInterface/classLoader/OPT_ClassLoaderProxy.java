@@ -2,13 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * @author Doug Lorch (retired)
  * @author Dave Grove
  * @author Julian Dolby
  **/
+import com.ibm.JikesRVM.*;
+
 public final class OPT_ClassLoaderProxy 
 implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
 {
@@ -356,7 +358,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
 
   private static VM_Class uninterruptibleClass;
   private static VM_Class VM_BootRecordType;
-  static VM_Type VM_ProcessorType;
+  public static VM_Type VM_ProcessorType;
   static VM_Type AddressType;
   private static VM_Type MagicType;             
   private static VM_Type UninterruptibleType;   
@@ -410,8 +412,8 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
     JavaLangErrorType = findOrCreateType("Ljava/lang/Error;", vmcl).asClass();
 
 
-    NULL_TYPE = findOrCreateType("Lcom/ibm/JikesRVM/OPT_ClassLoaderProxy$OPT_DUMMYNullPointerType;", vmcl);
-    VALIDATION_TYPE = findOrCreateType("Lcom/ibm/JikesRVM/OPT_ClassLoaderProxy$OPT_DUMMYValidationType;", vmcl);
+    NULL_TYPE = findOrCreateType("Lcom/ibm/JikesRVM/opt/OPT_ClassLoaderProxy$OPT_DUMMYNullPointerType;", vmcl);
+    VALIDATION_TYPE = findOrCreateType("Lcom/ibm/JikesRVM/opt/OPT_ClassLoaderProxy$OPT_DUMMYValidationType;", vmcl);
 
     // VM Types
     VM_Type_type = findOrCreateType("Lcom/ibm/JikesRVM/VM_Type;", vmcl).asClass();

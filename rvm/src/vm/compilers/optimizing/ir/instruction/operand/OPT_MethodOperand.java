@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Refers to a method. Used for method call instructions.
@@ -245,7 +246,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     if (method == null) {
       return new OPT_MethodOperand(internal, type, offset);
     } else {

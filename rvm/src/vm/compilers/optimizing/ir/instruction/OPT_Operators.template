@@ -11,7 +11,7 @@
  *  ARCH_IR_DIROperatorList.dat
  */
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Interface with all operator names and opcodes.
@@ -21,7 +21,7 @@ package com.ibm.JikesRVM;
  * @author Igor Pechtchanski
  * @author John Whaley
  */
-interface OPT_Operators {
+public interface OPT_Operators {
 
 $$$$ FOREACH OPERATOR OperatorList.dat
   public static final char OPERATOR.SYMBOL_opcode = (char)OPERATOR.INDEX;

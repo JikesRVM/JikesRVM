@@ -3,7 +3,7 @@
  */
 //OPT_DotNode.java
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_DotNode provides the minimum set of routines for printing a graph

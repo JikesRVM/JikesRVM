@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Encodes the T0 field for trap operations 
@@ -30,35 +30,35 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   static final int NOT_SAME = 3;
   static final int SAME = 4;
 
-  private OPT_PowerPCTrapOperand (int Code) {
+  private OPT_PowerPCTrapOperand(int Code) {
     value = Code;
   }
 
-  static OPT_PowerPCTrapOperand LESS () {
+  static OPT_PowerPCTrapOperand LESS() {
     return  new OPT_PowerPCTrapOperand(LESS);
   }
 
-  static OPT_PowerPCTrapOperand LOWER () {
+  static OPT_PowerPCTrapOperand LOWER() {
     return  new OPT_PowerPCTrapOperand(LOWER);
   }
 
-  static OPT_PowerPCTrapOperand ALWAYS () {
+  static OPT_PowerPCTrapOperand ALWAYS() {
     return  new OPT_PowerPCTrapOperand(ALWAYS);
   }
 
-  OPT_Operand copy () {
+  public OPT_Operand copy() {
     return  new OPT_PowerPCTrapOperand(value);
   }
 
-  boolean similar (OPT_Operand op) {
-    return  (op instanceof OPT_PowerPCTrapOperand) && 
+  boolean similar(OPT_Operand op) {
+    return (op instanceof OPT_PowerPCTrapOperand) && 
         (((OPT_ConditionOperand)op).value == value);
   }
 
   /**
    * flips the direction of the condition
    */
-  OPT_PowerPCTrapOperand flipCode () {
+  OPT_PowerPCTrapOperand flipCode() {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -101,7 +101,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
    * this could be used if you want to flip the order of the operands
    * you will notice that there are some differences
    */
-  OPT_PowerPCTrapOperand flipOperands () {
+  OPT_PowerPCTrapOperand flipOperands() {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -140,14 +140,14 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     return  this;
   }
 
-  OPT_PowerPCTrapOperand (OPT_ConditionOperand c) {
+  OPT_PowerPCTrapOperand(OPT_ConditionOperand c) {
     translate(c);
   }
 
   /**
    * translate from OPT_ConditionOperand: used by BURS
    */
-  void translate (OPT_ConditionOperand c) {
+  void translate(OPT_ConditionOperand c) {
     switch (c.value) {
       case OPT_ConditionOperand.EQUAL:
         value = EQUAL;
@@ -191,7 +191,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   /**
    * Returns the string representation of this operand.
    */
-  public String toString () {
+  public String toString() {
     String result = "ppc trap ";
     switch (value) {
       case EQUAL:

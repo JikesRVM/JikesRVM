@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Represents a constant int operand.
@@ -15,7 +15,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  int value;
+  public int value;
 
   /**
    * Constructs a new int constant operand with the specified value.
@@ -31,7 +31,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_IntConstantOperand(value);
   }
 

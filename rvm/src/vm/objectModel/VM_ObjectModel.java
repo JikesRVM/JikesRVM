@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 
 /**
  * The interface to the object model definition accessible to the 

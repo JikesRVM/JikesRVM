@@ -1711,30 +1711,30 @@ function emitImageLinker
          print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/LinkageError;'        >> $PRIMORDIAL_CLASSES_STR"
 
-         print "   print 'Lcom/ibm/JikesRVM/OPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
 
-         print "   print 'Lcom/ibm/JikesRVM/OPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Lcom/ibm/JikesRVM/OPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ALL_CLASSES )); then
-          print "   print '[Lcom/ibm/JikesRVM/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[Lcom/ibm/JikesRVM/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[Lcom/ibm/JikesRVM/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[Lcom/ibm/JikesRVM/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
@@ -1744,7 +1744,7 @@ function emitImageLinker
           print "   print '[Lcom/ibm/JikesRVM/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[Lcom/ibm/JikesRVM/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[Lcom/ibm/JikesRVM/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          print "   print 'Lcom/ibm/JikesRVM/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
+          print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
    fi
   if (( RVM_WITH_GCTk )); then

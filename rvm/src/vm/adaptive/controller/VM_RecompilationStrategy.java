@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * VM_Recompilation Strategy

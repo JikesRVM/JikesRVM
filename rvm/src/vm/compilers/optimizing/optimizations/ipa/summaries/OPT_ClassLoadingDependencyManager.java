@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 import  java.util.*;
 import  java.io.*;
 
@@ -17,7 +18,7 @@ import  java.io.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-final class OPT_ClassLoadingDependencyManager {
+public final class OPT_ClassLoadingDependencyManager {
 
   ////////////////////////
   // Entrypoints from VM_Class

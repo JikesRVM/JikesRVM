@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * An FPR register that BURS is managing.
@@ -21,7 +21,7 @@ public final class OPT_BURSManagedFPROperand extends OPT_Operand {
   /**
    * Returns a copy of the current operand.
    */
-  OPT_Operand copy() { 
+  public OPT_Operand copy() { 
     return new OPT_BURSManagedFPROperand(regNum);
   }
 

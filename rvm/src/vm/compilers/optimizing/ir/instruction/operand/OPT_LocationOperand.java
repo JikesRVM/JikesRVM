@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Represents a location in memory. Used to keep track of memory aliasing.
@@ -186,7 +187,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     OPT_LocationOperand o = null;
     switch (type) {
     case FIELD_ACCESS:   

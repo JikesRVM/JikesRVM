@@ -61,7 +61,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   /**
    * May only be assigned once?
    */ 
-  final boolean isFinal() throws VM_PragmaUninterruptible {
+  public final boolean isFinal() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
@@ -70,7 +70,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   /**
    * Value not to be cached in a register?
    */ 
-  final boolean isVolatile() throws VM_PragmaUninterruptible {
+  public final boolean isVolatile() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_VOLATILE) != 0;

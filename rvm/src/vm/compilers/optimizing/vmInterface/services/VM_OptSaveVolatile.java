@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
@@ -18,6 +18,8 @@ package com.ibm.JikesRVM;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
+import com.ibm.JikesRVM.*;
+
 public class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**

@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Stack;
 import  java.util.Enumeration;
@@ -223,7 +224,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       performLocalPropagation(ir, createGCMaps);
 
       if (createGCMaps && dumpFinalMaps) {
-        System.out.println("**** START OF IR for method: " + ir.method.name
+        System.out.println("**** START OF IR for method: " + ir.method.getName()
           + " in class: " + ir.method.getDeclaringClass().getName());
         ir.printInstructions();
         System.out.println("**** END   OF IR INSTRUCTION DUMP ****");

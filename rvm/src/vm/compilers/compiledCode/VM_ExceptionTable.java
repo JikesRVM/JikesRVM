@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-abstract class VM_ExceptionTable {
+public abstract class VM_ExceptionTable {
 
   /**
    * An eTable array encodes the exception tables using 4 ints for each

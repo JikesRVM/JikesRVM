@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 /**
  * This module tracks heap variables needed for Array SSA form.
  *
@@ -11,6 +11,7 @@ package com.ibm.JikesRVM;
 
 
 import  java.util.*;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 

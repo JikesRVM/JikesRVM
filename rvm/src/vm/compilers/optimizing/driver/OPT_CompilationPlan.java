@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /*
  * OPT_CompilationPlan.java
@@ -21,7 +22,7 @@ public final class OPT_CompilationPlan {
    */
   public VM_Method method;
 
-  VM_Method getMethod () {
+  public VM_Method getMethod () {
     return method;
   }
   /**

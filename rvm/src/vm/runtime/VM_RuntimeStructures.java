@@ -20,7 +20,7 @@ public class VM_RuntimeStructures implements VM_Constants {
    * @param n The number of instructions to allocate
    * @return The instruction array
    */ 
-  static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline {
+  public static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline {
 
     if (VM.BuildForRealtimeGC) {
       //-#if RVM_WITH_REALTIME_GC

@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * A compiler phase to construct the loop structure tree (LST).

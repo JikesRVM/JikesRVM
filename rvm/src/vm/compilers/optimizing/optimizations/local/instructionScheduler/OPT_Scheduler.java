@@ -3,7 +3,7 @@
  */
 //OPT_Scheduler.java
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 //import java.io.*;
 import java.util.Enumeration;

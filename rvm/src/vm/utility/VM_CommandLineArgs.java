@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 

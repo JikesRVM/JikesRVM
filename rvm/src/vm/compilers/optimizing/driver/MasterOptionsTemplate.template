@@ -20,7 +20,7 @@ $$$$ FOREACH OPTION VDATFILE
        $$$$ END LET PRETTY_NAME
        $$$$ ELSE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
-   TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+   public TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
      $$$$ END LET PRETTY_NAME
        $$$$ END IF 
      $$$$ END SPLIT  
@@ -36,8 +36,8 @@ $$$$ FOREACH OPTION VDATFILE
    // FULL_NAME
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-   static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
-   final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP
 
@@ -53,8 +53,8 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
    // FULL_NAME
-   final boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
-   final boolean fuzzyMatchFULL_NAME(TYPE q) { 
+   public final boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
+   public final boolean fuzzyMatchFULL_NAME(TYPE q) { 
      if (FULL_NAME == null) return false;
      java.util.Iterator i = FULL_NAME.iterator();
      while (i.hasNext()) {
@@ -63,8 +63,8 @@ $$$$ FOREACH OPTION VDATFILE
      }
      return false;
    }	
-   final boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
-   final java.util.Iterator getFULL_NAMEs() { 
+   public final boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
+   public final java.util.Iterator getFULL_NAMEs() { 
      if (FULL_NAME == null) {
        return new java.util.Iterator() {
          public boolean hasNext() { return false; }

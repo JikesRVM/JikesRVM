@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Handle exception delivery and stack unwinding for methods 
@@ -18,7 +19,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /** 
    * Pass control to a catch block.
    */
-  void deliverException(VM_CompiledMethod compiledMethod,
+  public void deliverException(VM_CompiledMethod compiledMethod,
 			VM_Address catchBlockInstructionAddress,
 			Throwable exceptionObject,
 			VM_Registers registers)  {
@@ -101,7 +102,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Unwind a stackframe.
    */
-  void unwindStackFrame(VM_CompiledMethod compiledMethod, 
+  public void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 			VM_Registers registers) {
     VM_Address fp = registers.getInnermostFramePointer();
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;

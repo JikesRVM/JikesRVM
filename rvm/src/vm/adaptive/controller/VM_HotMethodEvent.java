@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Abstract parent class for events from organizers to the controller 

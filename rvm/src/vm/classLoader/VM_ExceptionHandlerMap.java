@@ -13,15 +13,15 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_ExceptionHandlerMap {
+public class VM_ExceptionHandlerMap {
   //-----------//
   // Interface //
   //-----------//
 
-  final int[] getStartPC()   { return startPCs;   }
-  final int[] getEndPC()     { return endPCs;     }
-  final int[] getHandlerPC() { return handlerPCs; }
-  final VM_Type getExceptionType(int i) { return exceptionTypes[i]; }
+  public final int[] getStartPC()   { return startPCs;   }
+  public final int[] getEndPC()     { return endPCs;     }
+  public final int[] getHandlerPC() { return handlerPCs; }
+  public final VM_Type getExceptionType(int i) { return exceptionTypes[i]; }
    
   //----------------//
   // Implementation //

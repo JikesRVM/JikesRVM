@@ -1128,7 +1128,8 @@ public class GenerateAssembler {
 	    System.exit( -1 );
 	}
 
-	emit("package com.ibm.JikesRVM;\n\n");
+	emit("package com.ibm.JikesRVM.opt;\n\n");
+	emit("import com.ibm.JikesRVM.*;\n\n");
 	emit("import com.ibm.JikesRVM.opt.ir.instructionFormats.*;\n\n");
 	emit("\n\n");
 

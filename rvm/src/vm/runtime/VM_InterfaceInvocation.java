@@ -24,7 +24,7 @@ package com.ibm.JikesRVM;
  * @author Stephen Fink
  * @author Dave Grove
  */
-class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
+public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.

@@ -69,21 +69,21 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
+public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
   /**
    * Minimum length of the superclassIds array in TIB.
    * Note: this array is padded to save a index out of
    * bounds test for classes with shallow class depth.
    */
-  static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short[], so multiple of 2.
+  public static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short[], so multiple of 2.
 
   /**
    * Minimum length of the doesImplements array in TIB.
    * Note: this array is padded to save a index out of
    * bounds test for the first 32 * MIN_DOES_IMPLEMENT_SIZE interfaces loaded.
    */
-  static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
+  public static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
 
   /**
    * Create the superclass Id vector for a VM_Type.

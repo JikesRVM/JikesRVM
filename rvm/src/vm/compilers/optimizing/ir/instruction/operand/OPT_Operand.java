@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * An <code>OPT_Operand</code> identifies an operand for an 
@@ -491,7 +492,7 @@ public abstract class OPT_Operand {
    * 
    * @return a copy of <code>this</code>
    */
-  abstract OPT_Operand copy();
+  public abstract OPT_Operand copy();
 
 
   /**

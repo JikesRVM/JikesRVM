@@ -49,7 +49,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
 
   // update the machine state to unwind the deepest stackframe.
   // 
-  final void unwindStackFrame() {
+  public final void unwindStackFrame() {
     ip = invalidIP; // if there was a valid value in ip, it ain't valid anymore
     gprs[FRAME_POINTER] = VM_Magic.getCallerFramePointer(getInnermostFramePointer()).toInt();
   }

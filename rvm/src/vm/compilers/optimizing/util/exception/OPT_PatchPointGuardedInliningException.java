@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_Assembler throws this exception when the branch target of 
@@ -15,7 +15,7 @@ package com.ibm.JikesRVM;
  *
  * @author Feng Qian
  */
-class OPT_PatchPointGuardedInliningException extends 
+public class OPT_PatchPointGuardedInliningException extends 
     OPT_OptimizingCompilerException {
   int outOfRangeOffset;
   

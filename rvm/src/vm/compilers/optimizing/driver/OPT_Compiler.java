@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Enumeration;
 
@@ -73,7 +74,7 @@ public class OPT_Compiler {
         // compiled (to get special prologues/epilogues)
         // TODO: This could be phased out as the new DynamicBridge 
         // magic comes on line.
-        loadSpecialClass("Lcom/ibm/JikesRVM/VM_OptSaveVolatile;", options);
+        loadSpecialClass("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", options);
       }
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {

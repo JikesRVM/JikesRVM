@@ -46,7 +46,7 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
   /**
    * Return the line number information for the argument bytecode index.
    */
-  final int getLineNumberForBCIndex(int bci) {
+  public final int getLineNumberForBCIndex(int bci) {
     int idx;
     for (idx = 0; idx < startPCs.length; idx++) {
       if (bci < startPCs[idx]) {

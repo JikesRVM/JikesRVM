@@ -4,7 +4,8 @@
 //OPT_OperatorClass.java
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Generated from a template.

@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_BytecodeConstants  {
+public interface VM_BytecodeConstants  {
   // The following mnemonics are defined in Chapter 10 of The Java Virtual Machine Specification.
   //
   public static final int JBC_nop = 0;

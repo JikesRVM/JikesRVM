@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * A place to put code common to all runtime compilers that use the OPT
@@ -240,7 +241,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     // If/when the baseline compiler gets these, invoke them here.
     
     // Get the opt's report
-    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
+    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
     if (theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
     } else {

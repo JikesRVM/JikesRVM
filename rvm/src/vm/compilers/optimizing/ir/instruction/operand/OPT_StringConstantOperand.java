@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Represents a constant string operand.
@@ -38,7 +38,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_StringConstantOperand(value, index);
   }
 

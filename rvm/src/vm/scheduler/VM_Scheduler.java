@@ -6,6 +6,9 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 
 /**
  * Global variables used to implement virtual machine thread scheduler.
@@ -825,9 +828,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /* how may processors to be synchronized for code patching, the last
    * one (0) will notify the blocked thread.
    */
-  static int toSyncProcessors;
+  public static int toSyncProcessors;
   /* synchronize object 
    */
-  static Object syncObj = null;
+  public static Object syncObj = null;
   //-#endif
 }

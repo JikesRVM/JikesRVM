@@ -18,10 +18,10 @@ public final class VM_AOSDatabase
    * Static links to data objects that are "whole-program" (as opposed
    * to per-method)
     */
-  static VM_MethodInvocationCounterData methodInvocationCounterData;
-  static VM_YieldpointCounterData yieldpointCounterData;
-  static VM_StringEventCounterData instructionCounterData;
-  static VM_StringEventCounterData debuggingCounterData;
+  public static VM_MethodInvocationCounterData methodInvocationCounterData;
+  public static VM_YieldpointCounterData yieldpointCounterData;
+  public static VM_StringEventCounterData instructionCounterData;
+  public static VM_StringEventCounterData debuggingCounterData;
  
   /**
    * Called at startup

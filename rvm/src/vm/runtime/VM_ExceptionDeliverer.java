@@ -25,7 +25,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_ExceptionDeliverer {
+public abstract class VM_ExceptionDeliverer {
   /**
    * Stackframe's method has a "catch" block for exception being
    * thrown and control is to be passed to that catch block.
@@ -50,7 +50,7 @@ abstract class VM_ExceptionDeliverer {
    * @param registers registers to be loaded before passing control to 
    * catch block
    */
-  abstract void deliverException(VM_CompiledMethod compiledMethod,
+  public abstract void deliverException(VM_CompiledMethod compiledMethod,
 				 VM_Address        catchBlockInstructionAddress,
 				 Throwable         exceptionObject,
 				 VM_Registers      registers);
@@ -75,6 +75,6 @@ abstract class VM_ExceptionDeliverer {
    * @param registers thread state to be updated by restoring non-volatiles
    *                  and unwinding the stackframe
    */
-  abstract void unwindStackFrame(VM_CompiledMethod compiledMethod, 
+  public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 				 VM_Registers      registers);
 }

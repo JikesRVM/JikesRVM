@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /** 
@@ -306,7 +307,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     int t = (int)((_bits & FLOAT_MASK) >>> FLOAT_SHIFT);
     return (t == NO_FLOAT_ENTRY) ? -1 : t;
   }
-  final int getOptLevel() {
+  public final int getOptLevel() {
     return (int)((_bits & OPT_LEVEL_MASK) >>> OPT_LEVEL_SHIFT);
   }
   final boolean isSaveVolatile() {

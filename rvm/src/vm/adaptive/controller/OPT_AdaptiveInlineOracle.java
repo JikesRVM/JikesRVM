@@ -2,7 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Extend the generic OPT_ProfileDirectedInlineOracle
@@ -12,9 +15,9 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  */
 
-final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
+public final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
 
-  OPT_AdaptiveInlineOracle(OPT_InlinePlan plan) {
+  public OPT_AdaptiveInlineOracle(OPT_InlinePlan plan) {
     super(plan);
   }
 
@@ -26,7 +29,4 @@ final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
   protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
     VM_AdaptiveInlining.recordRefusalToInlineHotEdge(cm.getId(), caller, bcX, callee);
   }
-  
 }
-
-

@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Oracle interface: the compiler queries this oracle to decide whether
@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  *
  * @author Stephen Fink
  */
-interface OPT_InlineOracle {
+public interface OPT_InlineOracle {
 
   /**
    * Should we inline a particular call site?

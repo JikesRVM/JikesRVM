@@ -52,7 +52,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Set the cmid and method fields
    */
-  VM_CompiledMethod(int id, VM_Method m) {
+  public VM_CompiledMethod(int id, VM_Method m) {
     cmid   = id;
     method = m;
   }

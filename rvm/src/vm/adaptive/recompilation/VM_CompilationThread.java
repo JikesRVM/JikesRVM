@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)

@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 /**
  * An IA32 condition operand
  *
@@ -20,7 +21,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   /**
    * Returns a copy of the current operand.
    */
-  OPT_Operand copy() { 
+  public OPT_Operand copy() { 
     return new OPT_IA32ConditionOperand(value);
   }
 

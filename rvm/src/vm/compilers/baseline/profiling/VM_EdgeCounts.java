@@ -12,7 +12,7 @@ import java.io.*;
  * 
  * @author Dave Grove
  */
-final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
+public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 
   static final int TAKEN     = 0;
   static final int NOT_TAKEN = 1;

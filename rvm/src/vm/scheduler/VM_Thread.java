@@ -31,9 +31,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Enumerate different types of yield points for sampling
    */
-  final static int PROLOGUE = 0;
-  final static int BACKEDGE = 1;
-  final static int EPILOGUE = 2;
+  public final static int PROLOGUE = 0;
+  public final static int BACKEDGE = 1;
+  public final static int EPILOGUE = 2;
   
   /**
    * Create a thread with default stack.

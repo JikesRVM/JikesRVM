@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 import java.util.LinkedList;
 import java.util.ListIterator;

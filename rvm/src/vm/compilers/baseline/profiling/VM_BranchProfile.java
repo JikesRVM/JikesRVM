@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * 
  * @author Dave Grove
  */
-abstract class VM_BranchProfile {
+public abstract class VM_BranchProfile {
   /**
    * The bytecode index of the branch instruction
    */

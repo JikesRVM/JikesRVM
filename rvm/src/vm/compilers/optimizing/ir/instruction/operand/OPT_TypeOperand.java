@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * A OPT_TypeOperand represents a data type. Used in checkcast, instanceof,
@@ -32,7 +33,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_TypeOperand(type);
   }
   

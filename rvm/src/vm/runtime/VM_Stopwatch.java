@@ -15,9 +15,9 @@ import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
  *
  * @author Dave Grove
  */
-class VM_Stopwatch {
-  int count;
-  double elapsedTime;
+public class VM_Stopwatch {
+  public int count;
+  public double elapsedTime;
   private double startTime;
   private int gcEpoch;
 

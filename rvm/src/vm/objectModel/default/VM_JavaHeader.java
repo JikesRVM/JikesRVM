@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 //-#endif
 

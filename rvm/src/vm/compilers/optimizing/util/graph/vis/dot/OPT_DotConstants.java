@@ -3,7 +3,7 @@
  */
 //OPT_DotConstants.java
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * A set of constants for use in Dot routines.

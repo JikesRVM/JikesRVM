@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt; 
+import com.ibm.JikesRVM.*;
 
 /**
  * Encoding of try ranges in the final machinecode and the

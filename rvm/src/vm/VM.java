@@ -267,7 +267,7 @@ public class VM extends VM_Properties
    * Called by the compilers when compiling a static synchronized method
    * during bootimage writing.
    */
-  static void deferClassObjectCreation(VM_Class c) throws VM_PragmaInterruptible {
+  public static void deferClassObjectCreation(VM_Class c) throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       if (classObjects[i] == c) return; // already recorded
     }
@@ -325,7 +325,7 @@ public class VM extends VM_Properties
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  static void _assert(boolean b, String message) {
+  public static void _assert(boolean b, String message) {
     if (!VM.VerifyAssertions) {
       // somebody forgot to conditionalize their call to assert with
       // "if (VM.VerifyAssertions)"

@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Use optimizing compiler to compile code at run time.

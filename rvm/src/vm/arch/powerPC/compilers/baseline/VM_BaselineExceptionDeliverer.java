@@ -17,7 +17,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Pass control to a catch block.
    */
-  void deliverException(VM_CompiledMethod compiledMethod,
+  public void deliverException(VM_CompiledMethod compiledMethod,
 			VM_Address        catchBlockInstructionAddress,
 			Throwable         exceptionObject,
 			VM_Registers      registers) {
@@ -51,7 +51,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Unwind a stackframe.
    */
-  void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
+  public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     VM_Method method = compiledMethod.getMethod();
     if (method.isSynchronized()) { 
       VM_Address ip = registers.getInnermostInstructionAddress();

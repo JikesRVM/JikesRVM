@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Pool of symbolic registers.
@@ -17,14 +18,14 @@ package com.ibm.JikesRVM;
  * @modified Vivek Sarkar
  * @author Peter Sweeney
  */
-class OPT_RegisterPool extends OPT_GenericRegisterPool {
+public class OPT_RegisterPool extends OPT_GenericRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.
    * 
    * @param meth the VM_Method of the outermost method
    */
-  OPT_RegisterPool(VM_Method meth) {
+  public OPT_RegisterPool(VM_Method meth) {
     super(meth);
   }
 

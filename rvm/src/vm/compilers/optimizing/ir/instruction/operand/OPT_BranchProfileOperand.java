@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
@@ -48,7 +48,7 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
    * 
    * @return a copy of this operand
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_BranchProfileOperand(takenProbability);
   }
 

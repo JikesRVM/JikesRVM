@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * @date May 20, 2002
  */
 
-class VM_StackBrowser implements VM_Constants {
+public class VM_StackBrowser implements VM_Constants {
 
   private VM_Method currentMethod;
   private int currentBytecodeIndex;
@@ -62,23 +62,23 @@ class VM_StackBrowser implements VM_Constants {
     if (!currentCompiledMethod.up(this)) upOneFrame();
   }
 
-  void setBytecodeIndex(int bytecodeIndex) {
+  public void setBytecodeIndex(int bytecodeIndex) {
     currentBytecodeIndex = bytecodeIndex;
   }
 
-  int getBytecodeIndex() {
+  public int getBytecodeIndex() {
     return currentBytecodeIndex;
   }
 
-  void setMethod(VM_Method method) {
+  public void setMethod(VM_Method method) {
     currentMethod = method;
   }
 
-  VM_Method getMethod() {
+  public VM_Method getMethod() {
     return currentMethod;
   }
 
-  void setCompiledMethod(VM_CompiledMethod cm) {
+  public void setCompiledMethod(VM_CompiledMethod cm) {
     currentCompiledMethod = cm;
   }
 
@@ -91,11 +91,11 @@ class VM_StackBrowser implements VM_Constants {
   }
 
   //-#if RVM_WITH_OPT_COMPILER
-  void setInlineEncodingIndex(int index) {
+  public void setInlineEncodingIndex(int index) {
     currentInlineEncodingIndex = index;
   }
 
-  int getInlineEncodingIndex() {
+  public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;
   }
   //-#endif

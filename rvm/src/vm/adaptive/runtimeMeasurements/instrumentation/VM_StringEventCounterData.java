@@ -3,6 +3,7 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * VM_StringEventCounterData.java
@@ -19,7 +20,7 @@ package com.ibm.JikesRVM;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-class VM_StringEventCounterData extends VM_ManagedCounterData
+public class VM_StringEventCounterData extends VM_ManagedCounterData
   implements VM_Reportable 
 {
 
@@ -47,7 +48,7 @@ class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param event The name of the event
    * @return An instruction to increment the count associated with the event.
    */
-  OPT_Instruction getCounterInstructionForEvent(String event) {
+  public OPT_Instruction getCounterInstructionForEvent(String event) {
     return getCounterInstructionForEvent(event,1.0);
   }
 
@@ -60,7 +61,7 @@ class VM_StringEventCounterData extends VM_ManagedCounterData
    * @return An instruction that will update the count associated with the event.
    *
    */
-  OPT_Instruction getCounterInstructionForEvent(String event, 
+  public OPT_Instruction getCounterInstructionForEvent(String event, 
 						double incrementValue) {
 
     // Get (or create) the counter for this string and return it.

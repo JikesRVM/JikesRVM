@@ -130,7 +130,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param descriptor descriptor for desired type - something like "V"
    * @return type description
    */
-  static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
+  public static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
     int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
     VM_Type type   = VM_TypeDictionary.getValue(typeId);
     if (type == null)
@@ -197,7 +197,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * something like "(I)I"
    * @return interface signature id
    */ 
-  static int findOrCreateInterfaceMethodSignatureId(VM_Atom interfaceMethodName, 
+  public static int findOrCreateInterfaceMethodSignatureId(VM_Atom interfaceMethodName, 
                                                     VM_Atom interfaceMethodDescriptor) {
     VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(interfaceMethodName, interfaceMethodDescriptor);
     int id = VM_InterfaceMethodSignatureDictionary.findOrCreateId(key, UNRESOLVED_INTERFACE_METHOD_OFFSET);
@@ -213,7 +213,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param methodDescriptor  method descriptor - something like "(I)C"
    * @return method description
    */
-  static VM_Method findOrCreateMethod(VM_Atom classDescriptor, 
+  public static VM_Method findOrCreateMethod(VM_Atom classDescriptor, 
                                       VM_Atom methodName, 
                                       VM_Atom methodDescriptor,
                                       ClassLoader classloader) {

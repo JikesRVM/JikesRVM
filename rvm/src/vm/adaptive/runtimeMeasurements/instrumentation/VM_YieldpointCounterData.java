@@ -3,6 +3,7 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * VM_YieldpointCounterData.java
@@ -20,7 +21,7 @@ package com.ibm.JikesRVM;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-final class VM_YieldpointCounterData extends VM_StringEventCounterData
+public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   implements VM_Reportable 
 {
 

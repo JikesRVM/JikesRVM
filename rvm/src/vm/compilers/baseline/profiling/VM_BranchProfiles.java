@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  *
  * @author Dave Grove
  */
-final class VM_BranchProfiles implements VM_BytecodeConstants {
+public final class VM_BranchProfiles implements VM_BytecodeConstants {
   private VM_Method method;
   private int counterId;
   private VM_BranchProfile[] data;

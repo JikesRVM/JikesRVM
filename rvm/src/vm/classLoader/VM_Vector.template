@@ -15,12 +15,12 @@ package com.ibm.JikesRVM;
  * 
  * @author Derek Lieber
  */
-final class CCC {
+public final class CCC {
   //-----------//
   // interface //
   //-----------//
    
-  CCC() {
+  public CCC() {
     array = new EEE[10];
   }
       
@@ -34,7 +34,7 @@ final class CCC {
 
   // Add item if it is not already in the Vector.
   // 
-  final void addUniqueElement(EEE item) {
+  public final void addUniqueElement(EEE item) {
     for (int i=0; i<cnt; i++) {
       if (array[i] == item) return;
     }
@@ -55,13 +55,13 @@ final class CCC {
 
   // Get number of items added so far.
   //
-  final int size() {
+  public final int size() {
     return cnt;
   }
 
   // Get array, trimmed to size.
   //
-  final EEE[] finish() {
+  public final EEE[] finish() {
     adjustLength(cnt);
     return array;
   }

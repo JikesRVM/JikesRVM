@@ -3,7 +3,7 @@
  */
 //OPT_SpaceEffGraphEdge.java
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_SpaceEffGraphEdge is a generic graph edge.  Extend this to implement

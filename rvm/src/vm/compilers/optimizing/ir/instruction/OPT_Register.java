@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Represents a symbolic or physical register. 
@@ -18,7 +18,7 @@ package com.ibm.JikesRVM;
  * @modified Dave Grove
  * @modified Vivek Sarkar
  */
-final class OPT_Register {
+public final class OPT_Register {
 
   /**
    * Index number relative to register pool.

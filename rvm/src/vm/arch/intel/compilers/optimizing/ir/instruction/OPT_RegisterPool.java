@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
@@ -16,7 +17,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Peter Sweeney
  * @author Stephen Fink
  */
-class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
+public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
 
   /**
    * Initializes a new register pool for the method meth.

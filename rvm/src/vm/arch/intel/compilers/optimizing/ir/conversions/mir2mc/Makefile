@@ -21,7 +21,7 @@ OPCODE_JAVA=$(SCRATCH_DIR)/OPT_OperatorFormatTables.java
 OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 
 VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.java
-VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/JikesRVMVM_Assembler.class
+VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.class
 
 FAKES =	VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_PragmaNoInline.fake
 FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES))

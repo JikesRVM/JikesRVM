@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -14,7 +15,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-class VM_Controller implements VM_Callbacks.ExitMonitor,
+public class VM_Controller implements VM_Callbacks.ExitMonitor,
 			       VM_Callbacks.AppRunCompleteMonitor {
 
   /**

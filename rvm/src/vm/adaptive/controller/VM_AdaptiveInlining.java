@@ -3,6 +3,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.opt.*;
 
 import java.util.*;
 import java.io.*;
@@ -18,7 +19,7 @@ import java.io.*;
  *  @modified Matthew Arnold
  *  @modified Dave Grove
  */
-class VM_AdaptiveInlining {
+public class VM_AdaptiveInlining {
   final private static boolean DEBUG = false;
 
   /** Interface */
@@ -118,7 +119,7 @@ class VM_AdaptiveInlining {
    * Hook to allow the AdaptiveInliningOracle to record that the opt compiler
    * was aware that a call edge was hot, but still refused to inline it.
    */
-  static void recordRefusalToInlineHotEdge(int cmid, 
+  public static void recordRefusalToInlineHotEdge(int cmid, 
 					   VM_Method caller, 
 					   int bcX, 
 					   VM_Method callee) {

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 import java.util.Enumeration;
 
@@ -16,7 +17,7 @@ import java.util.Enumeration;
  * @author Mauricio Serrano
  * @author John Whaley
  */
-abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
+public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
 
   /**
    * Create an integer register operand for a given register.
@@ -28,7 +29,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param reg the given register
    * @return integer register operand
    */
-  static final OPT_RegisterOperand R(OPT_Register reg) {
+  public static final OPT_RegisterOperand R(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
   }
 
@@ -98,7 +99,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param value, the int constant
    * @return integer constant operand
    */
-  static final OPT_IntConstantOperand I(int value) {
+  public static final OPT_IntConstantOperand I(int value) {
     return new OPT_IntConstantOperand(value);
   }
 

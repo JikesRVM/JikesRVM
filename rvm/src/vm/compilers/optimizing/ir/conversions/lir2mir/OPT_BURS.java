@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.io.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
@@ -16,7 +17,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Vivek Sarkar
  * @author Mauricio Serrano
  */
-abstract class OPT_BURS implements OPT_Operators {
+public abstract class OPT_BURS implements OPT_Operators {
 
   protected static final boolean DEBUG = false;
 
@@ -56,7 +57,7 @@ abstract class OPT_BURS implements OPT_Operators {
     BranchTarget.setNumRegisters(0);
   }
 
-  OPT_IR ir;
+  public OPT_IR ir;
   protected OPT_Instruction lastInstr;
 
   /**
@@ -87,7 +88,7 @@ abstract class OPT_BURS implements OPT_Operators {
   /**
    * append an instruction (in other words emit an MIR instruction)
    */
-  final void append (OPT_Instruction instruction) {
+  public final void append (OPT_Instruction instruction) {
     lastInstr.linkWithNext(instruction);
     lastInstr = instruction;
   }

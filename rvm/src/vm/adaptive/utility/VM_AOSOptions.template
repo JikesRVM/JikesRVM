@@ -16,7 +16,7 @@ package com.ibm.JikesRVM;
  *
  * @author Dave Grove
  **/
-class VM_AOSOptions implements Cloneable {
+public class VM_AOSOptions implements Cloneable {
 
   private String printToStringHeader() {
     return "Current value of options:\n";

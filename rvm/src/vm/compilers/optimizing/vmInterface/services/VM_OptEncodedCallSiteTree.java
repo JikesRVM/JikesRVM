@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
 
@@ -24,9 +25,9 @@ import  java.util.*;
  * @author Julian Dolby
  * @modified Dave Grove
  */
-abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
+public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
 
-  static int getMethodID(int entryOffset, int[] encoding) {
+  public static int getMethodID(int entryOffset, int[] encoding) {
     return  encoding[entryOffset + 1];
   }
 
@@ -34,7 +35,7 @@ abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
     encoding[entryOffset + 1] = methodID;
   }
 
-  static int getByteCodeOffset(int entryOffset, int[] encoding) {
+  public static int getByteCodeOffset(int entryOffset, int[] encoding) {
     return  encoding[entryOffset];
   }
 
@@ -83,7 +84,7 @@ abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
     return  j;
   }
 
-  static int getParent(int index, int[] encodedTree) {
+  public static int getParent(int index, int[] encodedTree) {
     while (index >= 0 && encodedTree[index] >= -1)
       index--;
     if (index < 0)

@@ -3,7 +3,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
@@ -19,7 +20,7 @@ import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
  * @author Igor Pechtchanski
  * @modified Peter F. Sweeney
  */
-abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
+public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   implements OPT_Operators, VM_Constants, OPT_Constants {
   // We have slightly different ideas of what the LIR should look like
   // for IA32 and PowerPC.  The main difference is that for IA32 
@@ -593,7 +594,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param op the load operator to use
    * @param logwidth the log base 2 of the element type's size 
    */
-  static void doArrayLoad (OPT_Instruction s, OPT_IR ir, 
+  public static void doArrayLoad (OPT_Instruction s, OPT_IR ir, 
 			   OPT_Operator op, 
 			   int logwidth) {
     if (LOWER_ARRAY_ACCESS) {
@@ -619,7 +620,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param op the store operator to use
    * @param logwidth the log base 2 of the element type's size 
    */
-  static void doArrayStore (OPT_Instruction s, OPT_IR ir, 
+  public static void doArrayStore (OPT_Instruction s, OPT_IR ir, 
 			    OPT_Operator op, 
 			    int logwidth) {
     if (LOWER_ARRAY_ACCESS) {
@@ -1035,7 +1036,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param o2 the second operand
    * @return the result operand of the inserted instruction
    */
-  static OPT_RegisterOperand InsertBinary (OPT_Instruction s, OPT_IR ir, 
+  public static OPT_RegisterOperand InsertBinary (OPT_Instruction s, OPT_IR ir, 
 					   OPT_Operator operator, 
 					   VM_Type type, 
 					   OPT_Operand o1, 
@@ -1299,7 +1300,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param ir
    * @param field
    */
-  static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
+  public static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
 					VM_Field field) {
     return InsertLoadOffsetJTOC(s, ir, 
 				OPT_IRTools.getLoadOp(field), 

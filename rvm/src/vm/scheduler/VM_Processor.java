@@ -581,7 +581,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
    * cached activeThread.stackLimit;
    * removes 1 load from stackoverflow sequence.
    */
-  VM_Address activeThreadStackLimit;
+  public VM_Address activeThreadStackLimit;
 
   //-#if RVM_FOR_IA32
   // On powerpc, these values are in dedicated registers,
@@ -874,6 +874,6 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   //-#if RVM_FOR_POWERPC
   /* flag indicating this processor need synchronization.
    */
-  boolean needsSync = false;
+  public boolean needsSync = false;
   //-#endif
 }

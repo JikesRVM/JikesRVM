@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Encodes the BO & BI condition fields for PowerPC
@@ -56,64 +56,64 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   static final int CTRNZ_NOT_OVERFLOW = (0 << 5) | 3;
 
   // TODO: add the things with the CTR register also.
-  OPT_PowerPCConditionOperand (int Code) {
+  OPT_PowerPCConditionOperand(int Code) {
     value = Code;
   }
 
-  static OPT_PowerPCConditionOperand EQUAL () {
+  static OPT_PowerPCConditionOperand EQUAL() {
     return  new OPT_PowerPCConditionOperand(EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand NOT_EQUAL () {
+  static OPT_PowerPCConditionOperand NOT_EQUAL() {
     return  new OPT_PowerPCConditionOperand(NOT_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand LESS () {
+  static OPT_PowerPCConditionOperand LESS() {
     return  new OPT_PowerPCConditionOperand(LESS);
   }
 
-  static OPT_PowerPCConditionOperand LESS_EQUAL () {
+  static OPT_PowerPCConditionOperand LESS_EQUAL() {
     return  new OPT_PowerPCConditionOperand(LESS_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand GREATER () {
+  static OPT_PowerPCConditionOperand GREATER() {
     return  new OPT_PowerPCConditionOperand(GREATER);
   }
 
-  static OPT_PowerPCConditionOperand GREATER_EQUAL () {
+  static OPT_PowerPCConditionOperand GREATER_EQUAL() {
     return  new OPT_PowerPCConditionOperand(GREATER_EQUAL);
   }
 
-  static OPT_PowerPCConditionOperand UNORDERED () {
+  static OPT_PowerPCConditionOperand UNORDERED() {
     return  new OPT_PowerPCConditionOperand(UNORDERED);
   }
 
-  static OPT_PowerPCConditionOperand NO_THREAD_SWITCH () {
+  static OPT_PowerPCConditionOperand NO_THREAD_SWITCH() {
     return  new OPT_PowerPCConditionOperand(NO_THREAD_SWITCH);
   }
 
-  static OPT_PowerPCConditionOperand THREAD_SWITCH () {
+  static OPT_PowerPCConditionOperand THREAD_SWITCH() {
     return  new OPT_PowerPCConditionOperand(THREAD_SWITCH);
   }
 
-  static OPT_PowerPCConditionOperand get (OPT_ConditionOperand cond) {
+  static OPT_PowerPCConditionOperand get(OPT_ConditionOperand cond) {
     return  new OPT_PowerPCConditionOperand(cond);
   }
 
-  OPT_Operand copy () {
+  public OPT_Operand copy() {
     return  new OPT_PowerPCConditionOperand(value);
   }
 
-  boolean similar (OPT_Operand op) {
-    return  (op instanceof OPT_PowerPCConditionOperand) 
-        && (((OPT_PowerPCConditionOperand)op).value == value);
+  boolean similar(OPT_Operand op) {
+    return (op instanceof OPT_PowerPCConditionOperand) 
+        &&(((OPT_PowerPCConditionOperand)op).value == value);
   }
 
   /**
    * flips the direction of the condition
    */
-  OPT_PowerPCConditionOperand flipCode () {
-    switch (value) {
+  OPT_PowerPCConditionOperand flipCode() {
+    switch(value) {
       case EQUAL:
         value = NOT_EQUAL;
         break;
@@ -154,7 +154,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
    * this could be used if you want to flip the order of the operands
    * you will notice that there are some differences
    */
-  OPT_PowerPCConditionOperand flipOperands () {
+  OPT_PowerPCConditionOperand flipOperands() {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -185,14 +185,14 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
     return  this;
   }
 
-  OPT_PowerPCConditionOperand (OPT_ConditionOperand c) {
+  OPT_PowerPCConditionOperand(OPT_ConditionOperand c) {
     translate(c);
   }
 
   /**
    * translate from OPT_ConditionOperand: used by BURS
    */
-  void translate (OPT_ConditionOperand c) {
+  void translate(OPT_ConditionOperand c) {
     switch (c.value) {
       case OPT_ConditionOperand.EQUAL:
         value = EQUAL;
@@ -254,7 +254,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   /**
    * Returns the string representation of this operand.
    */
-  public String toString () {
+  public String toString() {
     String result = "ppc ";
     if ((value & 0x1C0) == 0)
       result = result + "--ctr!=0 && ";

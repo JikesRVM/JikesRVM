@@ -3,6 +3,9 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 /**
  * External implementation for BootMap.
  * Load the method map for the JVM boot image from disk

@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.VM_OptGCMapIterator;
+import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
 import com.ibm.JikesRVM.VM_JNIGCMapIterator;
 import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;

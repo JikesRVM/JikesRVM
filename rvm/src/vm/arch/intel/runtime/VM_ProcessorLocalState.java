@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 //-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 //-#endif 
 

@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Use this exception when the opt compiler attempts to 
@@ -11,14 +11,14 @@ package com.ibm.JikesRVM;
  *
  * @author Dave Grove
  */
-class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
+public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
 
   /**
    * A very few magics, we have no intention of ever implementing 
    * in the opt compiler.  Supress warning messages for them
    * to avoid confusing users with "expected" error messages
    */
-  boolean isExpected = false;
+  public boolean isExpected = false;
 
   private OPT_MagicNotImplementedException (String s, boolean isExpected) {
     super(s);

@@ -13,4 +13,4 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_SaveVolatile  { }
+public interface VM_SaveVolatile  { }

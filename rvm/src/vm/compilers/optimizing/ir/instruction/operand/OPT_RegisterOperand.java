@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * A symbolic or physical register.
@@ -203,7 +204,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Returns a copy of this register operand as an operand
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return copyRO();
   }
 
@@ -213,7 +214,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * Preserving scratch & (FLAGS_MASK|RANGE_MASK) is required in all cases
    * Several phases also depend on scratch and/or scratchObject being copied
    */
-  OPT_RegisterOperand copyRO() {
+  public OPT_RegisterOperand copyRO() {
     OPT_RegisterOperand temp = new OPT_RegisterOperand(register, type);
     temp.scratch = scratch; 
     temp.scratch2 = scratch2; 
@@ -224,28 +225,28 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Returns a copy of this use register operand as another use reg operand.
    */
-  OPT_RegisterOperand copyU2U() {
+  public OPT_RegisterOperand copyU2U() {
     return copyRO();
   }
 
   /**
    * Returns a copy of this def register operand as a use.
    */
-  OPT_RegisterOperand copyD2U() {
+  public OPT_RegisterOperand copyD2U() {
     return copyRO();
   }
 
   /**
    * Returns a copy of this use register operand as a def.
    */
-  OPT_RegisterOperand copyU2D() {
+  public OPT_RegisterOperand copyU2D() {
     return copyRO();
   }
 
   /**
    * Returns a copy of this def register operand as a def.
    */
-  OPT_RegisterOperand copyD2D() {
+  public OPT_RegisterOperand copyD2D() {
     return copyRO();
   }
 

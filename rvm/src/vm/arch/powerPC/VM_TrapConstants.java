@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_TrapConstants {
+public interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Trap Conventions.                                             //
   //--------------------------------------------------------------------------------------------//

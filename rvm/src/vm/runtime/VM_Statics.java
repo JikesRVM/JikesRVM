@@ -97,7 +97,7 @@ package com.ibm.JikesRVM;
      * @return    slot number that was allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateIntLiteral(int literal) {
+    public static int findOrCreateIntLiteral(int literal) {
       int id   = VM_IntLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_IntLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -114,7 +114,7 @@ package com.ibm.JikesRVM;
      * @return    slot number that was allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateFloatLiteral(int literal) {
+    public static int findOrCreateFloatLiteral(int literal) {
       int id   = VM_FloatLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_FloatLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -131,7 +131,7 @@ package com.ibm.JikesRVM;
      * @return    slot number of first of two slots that were allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateLongLiteral(long literal) {
+    public static int findOrCreateLongLiteral(long literal) {
       int id   = VM_LongLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_LongLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -148,7 +148,7 @@ package com.ibm.JikesRVM;
      * @return    slot number of first of two slots that were allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateDoubleLiteral(long literal) {
+    public static int findOrCreateDoubleLiteral(long literal) {
       int id   = VM_DoubleLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_DoubleLiteralDictionary.getValue(id);
       if (slot == nextSlot)

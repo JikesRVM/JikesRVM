@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * This operand represents, in a phi function, a control-flow path that is
@@ -18,7 +18,7 @@ public final class OPT_UnreachableOperand extends OPT_ConstantOperand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_UnreachableOperand();
   }
 

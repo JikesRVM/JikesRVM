@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
@@ -15,6 +15,7 @@ package com.ibm.JikesRVM;
  * @author Jong-Deok Choi
  * @author Dave Grove
  */
+import com.ibm.JikesRVM.*;
 public final class VM_OptLinker implements VM_BytecodeConstants {
 
   /**

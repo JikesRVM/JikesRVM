@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * A class that encapsulates various static program characteristics.
@@ -41,7 +42,7 @@ public final class VM_OptStaticProgramStats {
   /**
    * Print a report.
    */
-  static void report() {
+  public static void report() {
     VM.sysWrite("Number of classes loaded: ");
     VM.sysWrite(nClasses);
     VM.sysWrite("\n");

@@ -3,7 +3,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Vector;
 

@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.
@@ -22,7 +22,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Return  the heap variable corresponding to this operand.
    * @return the heap variable corresponding to this operand.
    */
-  public OPT_HeapVariable getHeapVariable () {
+  public OPT_HeapVariable getHeapVariable() {
     return  value;
   }
 
@@ -32,7 +32,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * @return the number of the heap variable corresponding to this
    * operand. 
    */
-  public int getNumber () {
+  public int getNumber() {
     return  value.number;
   }
 
@@ -42,7 +42,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * @return the type corresponding to the heap variable associated with
    * this operand.
    */
-  public Object getHeapType () {
+  public Object getHeapType() {
     return  value.type;
   }
 
@@ -50,7 +50,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Construct an operand corresponding to a heap variable.
    * @param   heap the heap variable corresponding to this operand.
    */
-  OPT_HeapOperand (OPT_HeapVariable heap) {
+  OPT_HeapOperand(OPT_HeapVariable heap) {
     value = heap;
   }
 
@@ -61,7 +61,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * @return a new heap operand associated with the same heap variable as
    * this operand
    */
-  OPT_Operand copy () {
+  public OPT_Operand copy() {
     return  new OPT_HeapOperand(value);
   }
 
@@ -72,7 +72,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * @param op the second operand to compare with
    * @return true or false
    */
-  boolean similar (OPT_Operand op) {
+  boolean similar(OPT_Operand op) {
     if (!(op instanceof OPT_HeapOperand))
       return  false;
     OPT_HeapOperand h = (OPT_HeapOperand)op;
@@ -83,7 +83,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Return a string representation of this operand.
    * @return a string representation of this operand.
    */
-  public String toString () {
+  public String toString() {
     return  value.toString();
   }
 
@@ -91,7 +91,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Associate this operand with a given instruction.
    * @param s the associated instruction
    */
-  public void setInstruction (OPT_Instruction s) {
+  public void setInstruction(OPT_Instruction s) {
     this.instruction = s;
   }
 
@@ -99,7 +99,7 @@ final class OPT_HeapOperand extends OPT_Operand {
    * Return the instruction associated with this operand.
    * @return the instruction associated with this operand.
    */
-  public OPT_Instruction getInstruction () {
+  public OPT_Instruction getInstruction() {
     return  instruction;
   }
 }

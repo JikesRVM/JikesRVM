@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
 import com.ibm.JikesRVM.opt.ir.instructionFormats.*;

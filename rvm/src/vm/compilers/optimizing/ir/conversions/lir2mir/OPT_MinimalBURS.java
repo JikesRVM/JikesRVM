@@ -3,7 +3,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * This class contains code for quick and dirty instruction selection

@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Represents a constant double operand.
@@ -45,7 +46,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    * @param v value
    * @param i index in the jtoc
    */
-  OPT_DoubleConstantOperand(double v, int i) {
+  public OPT_DoubleConstantOperand(double v, int i) {
     value = v;
     index = i;
   }
@@ -55,7 +56,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_DoubleConstantOperand(value, index);
   }
 

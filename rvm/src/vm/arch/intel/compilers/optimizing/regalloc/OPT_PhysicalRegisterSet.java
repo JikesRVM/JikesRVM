@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import java.util.Enumeration;
 
@@ -12,7 +13,7 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
+public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
 implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
   /**
@@ -241,7 +242,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * @return the ESI register
    */
-  OPT_Register getESI() {
+  public OPT_Register getESI() {
     return getGPR(ESI);
   }
 

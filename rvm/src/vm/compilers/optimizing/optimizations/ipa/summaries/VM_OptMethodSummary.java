@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Compute a simple, fast, intraprocedural summary of a method
@@ -26,7 +27,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class VM_OptMethodSummary implements VM_BytecodeConstants {
+public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   // Estimates of the size costs of various classes of bytecodes.
   // NOTE: This estimates are meant to reflect relative average costs, 
   // of the generated machince code, taking into account the 

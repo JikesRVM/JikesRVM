@@ -3,6 +3,7 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Dummy class containing enough references to force java compiler

@@ -6,7 +6,7 @@
 
 
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 /**
  * Resource usage map representation
  * Used by the scheduler to accomodate resource patterns

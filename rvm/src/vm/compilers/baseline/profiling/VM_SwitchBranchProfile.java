@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * 
  * @author Dave Grove
  */
-final class VM_SwitchBranchProfile extends VM_BranchProfile {
+public final class VM_SwitchBranchProfile extends VM_BranchProfile {
 
   /**
    * The number of times that the different arms of a switch were

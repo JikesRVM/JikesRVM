@@ -6,6 +6,9 @@ package com.ibm.JikesRVM;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 // Following for beginning of classloader support
 import java.lang.ClassLoader;
 import java.io.InputStream;
@@ -74,7 +77,7 @@ public final class VM_Class extends VM_Type
   /**
    * Non-subclassable?
    */ 
-  final boolean isFinal() throws VM_PragmaUninterruptible { 
+  public final boolean isFinal() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0; 
   }
@@ -121,7 +124,7 @@ public final class VM_Class extends VM_Type
   /**
    * Currently loaded classes that "extend" this class.
    */ 
-  final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
+  public final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return subClasses;
   }
@@ -183,7 +186,7 @@ public final class VM_Class extends VM_Type
    * @param methodDescriptor method descriptor - something like "()I"
    * @return description (null --> not found)
    */ 
-  final VM_Method findDeclaredMethod(VM_Atom methodName, 
+  public final VM_Method findDeclaredMethod(VM_Atom methodName, 
                                      VM_Atom methodDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     for (int i = 0, n = declaredMethods.length; i < n; ++i) {
@@ -265,7 +268,7 @@ public final class VM_Class extends VM_Type
    * @return id of field that was referenced, for use by 
    * "VM_FieldDictionary.getValue()"
    */
-  final int getFieldRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final int getFieldRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -273,7 +276,7 @@ public final class VM_Class extends VM_Type
    * Get contents of a "fieldRef" constant pool entry.
    * @return field that was referenced
    */
-  final VM_Field getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_Field getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_FieldDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
@@ -317,7 +320,7 @@ public final class VM_Class extends VM_Type
    * register save/restore logic?
    * @see VM_DynamicBridge
    */
-  final boolean isDynamicBridge () throws VM_PragmaUninterruptible {
+  public final boolean isDynamicBridge () throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isDynamicBridgeType()) return true;
@@ -346,7 +349,7 @@ public final class VM_Class extends VM_Type
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */
-  final boolean isSaveVolatile() throws VM_PragmaUninterruptible {
+  public final boolean isSaveVolatile() throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;
@@ -1524,7 +1527,7 @@ public final class VM_Class extends VM_Type
   // invalidate compiled code when new classes are loaded.
   //------------------------------------------------------------//
   //-#if RVM_WITH_OPT_COMPILER
-  static OPT_ClassLoadingDependencyManager OptCLDepManager;
+  public static OPT_ClassLoadingDependencyManager OptCLDepManager;
   //-#endif
 
   /**
@@ -1614,18 +1617,18 @@ public final class VM_Class extends VM_Type
    *   If the class is not an interface, attempting to use this
    *   id will cause an IncompatibleClassChangeError to be thrown
    */ 
-  int getInterfaceId () {
+  public int getInterfaceId () {
     if (interfaceId == -1) {
       assignInterfaceId();
     }
     return interfaceId;
   }
 
-  int getDoesImplementIndex() {
+  public int getDoesImplementIndex() {
     return getInterfaceId() >>> 5;
   }
 
-  int getDoesImplementBitMask() {
+  public int getDoesImplementBitMask() {
     return 1 << (getInterfaceId() & 31);
   }
 

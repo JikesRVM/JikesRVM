@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * 
  * @author Dave Grove
  */
-final class VM_ConditionalBranchProfile extends VM_BranchProfile {
+public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
 
   protected final float taken;
   protected final boolean backwards;

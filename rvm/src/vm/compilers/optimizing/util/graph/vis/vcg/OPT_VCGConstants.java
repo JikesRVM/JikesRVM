@@ -3,7 +3,7 @@
  */
 //OPT_VCGConstants.java
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
 
 /**
  * A set of constants for use in VCG routines.

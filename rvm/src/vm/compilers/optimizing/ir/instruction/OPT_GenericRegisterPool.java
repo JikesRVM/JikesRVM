@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Pool of symbolic registers.
@@ -16,11 +17,11 @@ package com.ibm.JikesRVM;
  * @modified Vivek Sarkar
  * @modified Peter Sweeney
  */
-class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
+public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
   protected OPT_PhysicalRegisterSet physical = new OPT_PhysicalRegisterSet(); 
 
-  OPT_PhysicalRegisterSet getPhysicalRegisterSet() {
+  public OPT_PhysicalRegisterSet getPhysicalRegisterSet() {
     return physical;
   }
 

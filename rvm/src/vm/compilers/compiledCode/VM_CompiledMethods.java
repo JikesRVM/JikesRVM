@@ -12,6 +12,10 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @author Arvin Shepherd
  */
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
+
 public class VM_CompiledMethods {
 
   /**
