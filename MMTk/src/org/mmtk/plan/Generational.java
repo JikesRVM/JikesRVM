@@ -85,7 +85,6 @@ public abstract class Generational extends StopTheWorldGC
 
   // Miscellaneous constants
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  protected static final int DEFAULT_MIN_NURSERY = (512*1024)>>LOG_PAGE_SIZE;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
   protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
@@ -339,7 +338,7 @@ public abstract class Generational extends StopTheWorldGC
     if (gcInProgress || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurseryMR.reservedPages() > Options.nurseryPages;
+    boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
     if (mustCollect || heapFull || nurseryFull) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
@@ -477,8 +476,7 @@ public abstract class Generational extends StopTheWorldGC
       globalMatureRelease();
       ImmortalSpace.release(immortalVM, null);
     }
-    int minNursery = (Options.nurseryPages < MAX_INT) ? Options.nurseryPages : DEFAULT_MIN_NURSERY;
-    fullHeapGC = (getPagesAvail() < minNursery);
+    fullHeapGC = (getPagesAvail() < Options.minNurseryPages);
     if (getPagesReserved() + required >= getTotalPages()) {
       progress = false;
     } else

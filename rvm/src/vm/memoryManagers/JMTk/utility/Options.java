@@ -23,7 +23,8 @@ public class Options implements VM_Uninterruptible, Constants {
   public static int initialHeapSize; // set by MM_Interface.boot
   public static int maxHeapSize;     // set by MM_Interface.boot
 
-  static int nurseryPages     = MAX_INT;  // default to variable nursery
+  static int minNurseryPages  = Plan.DEFAULT_MIN_NURSERY;
+  static int maxNurseryPages  = Plan.DEFAULT_MAX_NURSERY;
   static int metaDataPages    = 128;  // perform GC if metadata >= 512K
   static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
   static int cycleDetectionPages = 256;   // do c/d if < 1MB remaining
@@ -78,10 +79,17 @@ public class Options implements VM_Uninterruptible, Constants {
       if (level < 0) VM_Interface.sysFail("Unreasonable verbosity level " + tmp);
       Plan.verbose = level;
     }
-    else if (arg.startsWith("nursery_size=")) {
+    else if(arg.startsWith("fixedNursery=") ||
+	    arg.startsWith("nursery_size=")) {
       String tmp = arg.substring(13);
-      nurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      if (nurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      minNurseryPages = maxNurseryPages;
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+    }
+    else if (arg.startsWith("boundedNursery=")) {
+      String tmp = arg.substring(15);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
     }
     else if (arg.startsWith("metadata_limit=")) {
       String tmp = arg.substring(15);

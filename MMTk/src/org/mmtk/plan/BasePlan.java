@@ -91,6 +91,9 @@ public abstract class BasePlan
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
+  protected static final int DEFAULT_MIN_NURSERY = (1024*1024)>>LOG_PAGE_SIZE;
+  protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
+
   // Memory layout constants
   protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
   public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
