@@ -15,6 +15,7 @@ import java.io.*;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.Thread;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
@@ -44,6 +45,8 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
+
+  public static final boolean PARALLEL_COMPILE = false;
 
   public static void setVerbose(int value) {
     verbose = value;
@@ -752,12 +755,27 @@ public class BootImageWriter extends BootImageWriterMessages
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
       //
       if (verbose >= 1) say("instantiating");
-      int count = 0;
-      for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-        VM_Type type = (VM_Type) e.nextElement();
-        count++;
-        if (verbose >= 1) say(count + " instantiating " + type);
-        type.instantiate();
+      if (PARALLEL_COMPILE) {
+	BootImageWorker w1 = new BootImageWorker(1, bootImageTypes.elements());
+	BootImageWorker w2 = new BootImageWorker(2, bootImageTypes.elements());
+	w1.start();
+	w2.start();
+	try {
+	  w1.join();
+	  w2.join();
+	}
+	catch (InterruptedException ie) {
+	    say("InterruptedException while instantiating");
+	}
+      }
+      else {
+	  int count = 0;
+	  for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
+	      VM_Type type = (VM_Type) e.nextElement();
+	      count++;
+	      if (verbose >= 1) say(count + " instantiating " + type);
+	      type.instantiate();
+	  }
       }
 
       //
