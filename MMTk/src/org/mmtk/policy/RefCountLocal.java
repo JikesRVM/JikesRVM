@@ -50,6 +50,8 @@ final class RefCountLocal extends SegregatedFreeList
   private AddressQueue rootSet;
   private AddressQueue tracingBuffer;
 
+  private boolean decrementPhase = false;
+
   private CycleDetector cycleDetector;
 
   // counters
@@ -153,7 +155,9 @@ final class RefCountLocal extends SegregatedFreeList
     if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
     if (sanityTracing) VM.sysWrite("--------- Decrement --------\n");
     VM_CollectorThread.gcBarrier.rendezvous();
+    decrementPhase = true;
     if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
+    decrementPhase = false;
     if (Plan.refCountCycleDetection)
       cycleDetector.collectCycles();
     restoreFreeLists();
@@ -208,6 +212,23 @@ final class RefCountLocal extends SegregatedFreeList
   // Object processing and tracing
   //
 
+  /**
+   * A pointer location has been enumerated by ScanObject.  This is
+   * the callback method, allowing the plan to perform an action with
+   * respect to that location.
+   *
+   * @param object
+   */
+  public final void enumeratePointer(VM_Address object)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(!object.isZero());
+
+    if (!Plan.refCountCycleDetection || decrementPhase)
+      decBuffer.push(object);
+    else if (Plan.refCountCycleDetection)
+      cycleDetector.enumeratePointer(object);
+  }
+  
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
     if (RCBaseHeader.decRC(object))

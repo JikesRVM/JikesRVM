@@ -42,6 +42,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
   public static final boolean sanityTracing = false;
+  private static final boolean inlineWriteBarrier = true;
 
   // virtual memory resources
   private static FreeListVMResource losVM;
@@ -71,13 +72,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final VM_Extent LOS_SIZE_THRESHOLD = VM_Extent.fromInt(8 * 1024); // largest size supported by MS
+  private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent         RC_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.7)));
   private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.3)));
-  public  static final int              MAX_SIZE = RC_SIZE;
+  public  static final VM_Extent        MAX_SIZE = RC_SIZE;
 
   public  static final VM_Address       RC_START = PLAN_START;
   private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
@@ -173,16 +174,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = LOS_SPACE;
-    VM_Address result = VM_Address.zero();
-    switch (allocator) {
-      case       RC_SPACE: result = rc.alloc(isScalar, bytes); break;
-      case IMMORTAL_SPACE: result = immortal.alloc(isScalar, bytes); break;
-      case      LOS_SPACE: result = los.alloc(isScalar, bytes); break;
-      default:  if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      return los.alloc(isScalar, bytes);
+    } else {
+      switch (allocator) {
+      case       RC_SPACE: return rc.alloc(isScalar, bytes);
+      case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
+      case      LOS_SPACE: return los.alloc(isScalar, bytes);
+      default:
+	if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	return VM_Address.zero();
+      }
     }
-    return result;
   }
 
   /**
@@ -504,6 +507,23 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     return forwardingWord;
   }
 
+  /**
+   * A pointer location has been enumerated by ScanObject.  This is
+   * the callback method, allowing the plan to perform an action with
+   * respect to that location.
+   *
+   * @param location An address known to contain a pointer.  The
+   * location is within the object being scanned by ScanObject.
+   */
+  public final void enumeratePointerLocation(VM_Address location) {
+    VM_Address object = VM_Magic.getMemoryAddress(location);
+    if (!object.isZero()) {
+      byte space = VMResource.getSpace(object);
+      if (space == RC_SPACE || space == LOS_SPACE)
+	rc.enumeratePointer(object);
+    }
+  }
+
   public static boolean willNotMove (VM_Address obj) {
     return true;
   }
@@ -527,7 +547,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void putFieldWriteBarrier(VM_Address src, int offset,
 					 VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt);
+    if (inlineWriteBarrier)
+      writeBarrier(src.add(offset), tgt);
+    else
+      writeBarrierOOL(src.add(offset), tgt);
   }
 
   /**
@@ -544,7 +567,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
 					   VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+    if (inlineWriteBarrier)
+      writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+    else
+      writeBarrierOOL(src.add(index<<LOG_WORD_SIZE), tgt);
   }
 
   /**
@@ -565,12 +591,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
     do {
-      old = VM_Address.fromInt(VM_Magic.prepareInt(src, 0));
-    } while (!VM_Magic.attemptInt(src, 0, old.toInt(), tgt.toInt()));
+      old = VM_Magic.prepareAddress(src, 0);
+    } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
     if (old.GE(RC_START))
       decBuffer.pushOOL(old);
     if (tgt.GE(RC_START))
       incBuffer.pushOOL(tgt);
+  }
+  private final void writeBarrierOOL(VM_Address src, VM_Address tgt) 
+    throws VM_PragmaNoInline {
+    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
+    VM_Address old;
+    do {
+      old = VM_Magic.prepareAddress(src, 0);
+    } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+    if (old.GE(RC_START))
+      decBuffer.push(old);
+    if (tgt.GE(RC_START))
+      incBuffer.push(tgt);
   }
 
   ////////////////////////////////////////////////////////////////////////////

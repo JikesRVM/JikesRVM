@@ -123,9 +123,9 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
-      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue + delta;
-    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
     return newValue;
   }
 
@@ -165,9 +165,9 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
-      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = (set) ? oldValue | mask : oldValue & ~mask;
-    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
 
   public static boolean isBlack(Object object) 
@@ -221,14 +221,11 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
     int oldValue, newValue;
     boolean rtn;
     do {
-      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = (oldValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
-      if ((oldValue & BUFFERED_MASK) == 0)
-	rtn = true; // need to add to buffer
-      else
-	rtn = false; // already buffered
-    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    return rtn;
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+
+    return ((oldValue & BUFFERED_MASK) == 0);
   }
   public static void makeGrey(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -240,9 +237,9 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
     int oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(color != GREEN);
     do {
-      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = (oldValue & ~COLOR_MASK) | color;
-    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
 
   // See Bacon & Rajan ECOOP 2001 for notion of colors (purple, grey,

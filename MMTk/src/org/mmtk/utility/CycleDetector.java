@@ -17,5 +17,5 @@ interface CycleDetector {
 
   public void collectCycles();
   public void possibleCycleRoot(VM_Address object);
-  public void traceObject(VM_Address object);
+  public void enumeratePointer(VM_Address object);
 }
