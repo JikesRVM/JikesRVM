@@ -3,6 +3,8 @@
  **
  ** (C) Copyright Richard Jones,
  ** Computing Laboratory, University of Kent at Canterbury, 2003
+ ** 
+ ** @author Richard Jones
  **/
 
 package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;

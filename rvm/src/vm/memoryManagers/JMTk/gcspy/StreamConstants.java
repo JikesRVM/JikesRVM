@@ -4,6 +4,8 @@
  ** (C) Copyright Richard Jones, 2003
  ** Computing Laboratory, University of Kent at Canterbury
  ** All rights reserved.
+ **
+ ** @author Richard Jones
  **/
 
 //$Id$

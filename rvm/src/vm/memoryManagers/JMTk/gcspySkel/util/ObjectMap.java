@@ -3,6 +3,8 @@
  *
  * (C) Copyright Richard Jones, University of Kent at Canterbury 2001-3.
  * All rights reserved.
+ *
+ * @author Richard Jones
  */
 
 //$Id$

@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
+ * $Id$
  */
 public class Stats implements VM_Uninterruptible {
 

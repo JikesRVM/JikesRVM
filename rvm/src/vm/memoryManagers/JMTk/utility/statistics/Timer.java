@@ -17,6 +17,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
+ * $Id$
  */
 public class Timer extends LongCounter
   implements VM_Uninterruptible {

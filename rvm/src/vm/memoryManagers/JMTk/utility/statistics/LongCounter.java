@@ -17,6 +17,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
+ * $Id$
  */
 public abstract class LongCounter extends Counter
   implements VM_Uninterruptible {

@@ -1,3 +1,11 @@
+#
+# (C) Copyright Department of Computer Science,
+# Australian National University. 2002
+#
+# $Id$
+#
+# @author Steve Blackburn
+
 diff -r -C2 gcspy0.9/src/c/GNUmakefile gcspy0.9-fixed/src/c/GNUmakefile
 *** gcspy0.9/src/c/GNUmakefile	Sat Oct 26 04:01:05 2002
 --- gcspy0.9-fixed/src/c/GNUmakefile	Tue Dec 16 12:11:31 2003
