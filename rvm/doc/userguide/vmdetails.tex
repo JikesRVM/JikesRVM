@@ -270,14 +270,14 @@ categorized into four types:
         the {\tt VM\_Thread} being executed.
 \end{description}
 
-\item[Volatile ("caller save", or "parameter")]
+\item[Volatile (``caller save'', or ``parameter'')]
      Like scratch registers, these can be used by the compiler as
      temporaries, but they are not preserved across calls.  Volatile
      registers differ from scratch registers in that volatiles
      can be used to pass parameters and result(s) to and from
      methods.
 
-\item[Nonvolatile ("callee save", or "preserved")]
+\item[Nonvolatile (``callee save'', or ``preserved'')]
      These can be used (and are preserved across calls), but they must be
      saved on method entry and restored at method exit.  Highest numbered
      registers are to be used first.  (At least initially, nonvolatile
