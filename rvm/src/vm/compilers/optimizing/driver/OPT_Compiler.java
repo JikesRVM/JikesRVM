@@ -112,14 +112,6 @@ public class OPT_Compiler {
     options.PREEX_INLINE = false;
     options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
 
-    // Setting this to true causes OptOptSemispace image to die
-    // most of the way through booting. We've gone through the 
-    // JTOC thousands of times before we get to the failure point, so
-    // I suspect it is another opt compiler bug.  Looking into it 
-    // further now.... --dave
-    // NOTE: other than that bug, fixed_jtoc is ready to go for bootimage.
-    options.FIXED_JTOC = false;
-    
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until
     // we can get a chance to either implement them on IA32 or fix the 
