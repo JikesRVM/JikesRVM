@@ -26,50 +26,58 @@ public final class HPM_counters
       counters[i]=0;
     }
   }
-  
+ 
+  /**
+   * Dump out counter values.
+   * @param info    HPM information
+   * @return        return true if at least one counter not zero.
+   */
   public boolean dump_counters(HPM_info info) {
     // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
     boolean notZero = false;
     for (int i=0; i<info.numberOfCounters; i++) {
       if (counters[i] > 0) {
 	notZero = true;
-	System.out.println(i+": "+info.short_name(i)+":"+format_number(counters[i]));
+	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
       }
     }
     return notZero;
   }
-  public void dump_counter(HPM_info info, int i) {
-    if (i>info.numberOfCounters) {
-      System.err.println("***HPM_counters.dump_counter("+i+") "+i+" > number of counters "+
-			 info.numberOfCounters+"!***");
-      System.exit(-1);
-    }
-    System.out.println(info.short_name(i)+": "+counters[i]);
-  }
+  /*
+   * Reset counters to zero
+   */
   public void reset_counters() {
     for (int i=0; i<HPM_info.MAX_VALUES; i++) {
       counters[i]=0;
     }
   }
+  /*
+   * Accumulate this object's counters with sum's and store in sum.
+   * @param sum   where accumulated values go
+   * @param info  HPM information; e.g. number of counters
+   */
   public void accumulate(HPM_counters sum, HPM_info info) {
     // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
     for (int i=0; i<=info.numberOfCounters; i++) {
       sum.counters[i] += counters[i];
     }
   }
-
-  public String format_number(long counter) {
-    String value = new Long(counter).toString();
-    int length = value.length();
+  /*
+   * Pretty print a long with commas.
+   * @param value  long to be formatted
+   */
+  public String format_long(long value) {
+    String value_ = new Long(value).toString();
+    int length = value_.length();
     int segments  = length/3;
     int remainder = length - (segments*3);
     String constructed = "";
     if (remainder > 0) {
-      constructed += value.substring(0,remainder)+",";
+      constructed += value_.substring(0,remainder)+",";
     }
     int start = remainder;
     for (int i=0; i<segments; i++) {
-      constructed += value.substring(start, start+3);
+      constructed += value_.substring(start, start+3);
       start += 3;
       if (i<(segments-1)) {
 	constructed += ",";

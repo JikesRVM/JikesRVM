@@ -585,14 +585,7 @@ hpm_get_counter(int counter)
   }
   /* eliminate caching for time experiment */
   if (get_data_enabled == 0) { 
-    if ( (rc = pm_get_data_mythread(&mydata)) != OK_CODE) {
-      pm_error("hpm.hpm_get_counter: pm_get_data_mythread()", rc);
-      exit(ERROR_CODE);
-    }
-    /*
-      hpm_start_counting();  
-    */
-    get_data_enabled = 1;
+    hpm_get_counters();
   }
   value = mydata.accu[counter-1];
   return value;

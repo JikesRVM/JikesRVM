@@ -189,25 +189,25 @@ public class VM_HardwarePerformanceMonitors {
       // When only the main thread Java thread is created, allocate HPM_counters.
       VM_Callbacks.addExitMonitor(new VM_Callbacks.ExitMonitor() {
 	public void notifyExit(int value) { 
-	  VM.sysWriteln("VM_HPM.notifyExit(",value,")");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyExit(",value,")");
 	  stopUpdateResetAndReport(); 
-	  VM.sysWriteln("VM_HPM.notifyExit(",value,") finished");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyExit(",value,") finished");
 	}
       });
       VM_Callbacks.addAppRunStartMonitor(new VM_Callbacks.AppRunStartMonitor() {
 	public void notifyAppRunStart(String app, int run) { 
-	  VM.sysWriteln("VM_HPM.notifyAppRunStart(",app,",", run,")");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyAppRunStart(",app,",", run,")");
 	  stopResetAndStart();
 	  System.gc();	// call GC
 	  stopUpdateResetReportAndStart(); 
-	  VM.sysWriteln("VM_HPM.notifyAppRunStart(",app,",", run,") finished");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyAppRunStart(",app,",", run,") finished");
 	}
       });
       VM_Callbacks.addAppRunCompleteMonitor(new VM_Callbacks.AppRunCompleteMonitor() {
 	public void notifyAppRunComplete(String app, int run) { 
-	  VM.sysWriteln("VM_HPM.notifyAppRunComplete(",app,",", run,")");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyAppRunComplete(",app,",", run,")");
 	  stopUpdateResetReportAndStart(); 
-	  VM.sysWriteln("VM_HPM.notifyAppRunComplete(",app,",", run,") finished");
+	  if(debug>=1)VM.sysWriteln("VM_HPM.notifyAppRunComplete(",app,",", run,") finished");
 	}
       });
 
@@ -326,22 +326,23 @@ public class VM_HardwarePerformanceMonitors {
   public static void report() {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
+      if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.report()\n");
       HPM_counters sum = new HPM_counters();
-      System.out.println("\nDump HPM counter values for virtual processors");
+      VM.sysWriteln("\nDump HPM counter values for virtual processors");
       for (int i = 1; i<= VM_Scheduler.numProcessors; i++) {
 	VM_Processor processor = VM_Scheduler.processors[i];
-	System.out.println(" Virtual Processor: "+i);
+	VM.sysWriteln(" Virtual Processor: ",i);
 	processor.hpm_counters.dump_counters(hpm_info);
 	processor.hpm_counters.accumulate(sum, hpm_info);
 	processor.hpm_counters.reset_counters();
 	
       }
       if (VM_Scheduler.numProcessors>1) {
-	System.out.println("Dump aggregate HPM counter values for VirtualProcessors");
+	VM.sysWriteln("Dump aggregate HPM counter values for VirtualProcessors");
 	sum.dump_counters(hpm_info);
       }
 
-      System.out.println("\nDump HPM counter values for threads");
+      VM.sysWriteln("\nDump HPM counter values for threads");
       sum.reset_counters();
       HPM_counters aos = new HPM_counters();
       aos.reset_counters();
@@ -352,9 +353,9 @@ public class VM_HardwarePerformanceMonitors {
 	if (t != null) {
 	  String thread_name = t.getClass().getName();
 	  // dump HPM counter values
-	  synchronized (System.out) {
-	    System.out.println(" ThreadIndex: " + t.getIndex() + " "
-			       + thread_name + " ");
+	  synchronized (hpm_info) {
+	    VM.sysWrite(" ThreadIndex: ",t.getIndex()," ");
+	    VM.sysWriteln(thread_name," ");
 	    if (t.hpm_counters != null) {
 	      if (t.hpm_counters.dump_counters(hpm_info)) n_nonZeroThreads++;
 	      t.hpm_counters.accumulate(sum, hpm_info);
@@ -365,17 +366,17 @@ public class VM_HardwarePerformanceMonitors {
 	      }
 	      t.hpm_counters.reset_counters();
 	    } else {
-	      System.out.println(" hpm_counters == null!***");
+	      VM.sysWriteln(" hpm_counters == null!***");
 	    }
 	  }
 	}
       }
       if (n_aosThreads > 1) {
-	System.out.println("\nDump aggregate HPM counter values for AOS threads");
+	VM.sysWriteln("\nDump aggregate HPM counter values for AOS threads");
 	aos.dump_counters(hpm_info);
       }
       if (n_nonZeroThreads > 1) {
-	System.out.println("\nDump aggregate HPM counter values for threads");
+	VM.sysWriteln("\nDump aggregate HPM counter values for threads");
 	sum.dump_counters(hpm_info);
       }
       //-#endif
@@ -390,7 +391,7 @@ public class VM_HardwarePerformanceMonitors {
   public static void stopUpdateResetReportAndStart() {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      if(debug>=1)VM.sysWrite("VM_HardwarePerformanceMonitors.stopUpdateResetReportAndStart()\n");
+      if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopUpdateResetReportAndStart()\n");
       stop_update_reset_report();
 
       start();
@@ -404,7 +405,7 @@ public class VM_HardwarePerformanceMonitors {
   public static void stopUpdateResetAndReport() {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      if(debug>=1)VM.sysWrite("VM_HardwarePerformanceMonitors.stopUpdateResetReportAndStart()\n");
+      if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopUpdateResetReport()\n");
       stop_update_reset_report();
       //-#endif
     }
@@ -417,7 +418,7 @@ public class VM_HardwarePerformanceMonitors {
   public static void stopResetAndStart() {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      if(debug>=1)VM.sysWrite("VM_HardwarePerformanceMonitors.stopAndReset()\n");
+      if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopAndReset()\n");
       stop(); 
       Reset(); 
       start();
@@ -431,7 +432,7 @@ public class VM_HardwarePerformanceMonitors {
   private static void Reset() {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      if(debug>=1)VM.sysWrite("VM_HardwarePerformanceMonitors.reset()\n");
+      if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.reset()\n");
       for (int i = 1; i<= VM_Scheduler.numProcessors; i++) {
 	VM_Processor processor = VM_Scheduler.processors[i];
 	if (processor.hpm_counters != null) {
@@ -462,7 +463,10 @@ public class VM_HardwarePerformanceMonitors {
    * Private interface to stop, reset and report counting of hardware events.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  private static void stop_update_reset_report() {
+  private static void stop_update_reset_report() 
+  {
+    if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stop_update_reset_report()\n");
+
     stop();
 
     // update hpm counters of current processor and thread.
@@ -480,6 +484,7 @@ public class VM_HardwarePerformanceMonitors {
   private static void start() 
   {
     //-#if RVM_WITH_HPM
+    if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.start()\n");
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
     //-#endif
   }
@@ -491,6 +496,7 @@ public class VM_HardwarePerformanceMonitors {
   private static void stop() 
   {
     //-#if RVM_WITH_HPM
+    if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stop()\n");
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstopCountingIP);
     //-#endif
   }
@@ -502,6 +508,7 @@ public class VM_HardwarePerformanceMonitors {
   private static void reset() 
   {
     //-#if RVM_WITH_HPM
+    if(debug>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.reset()\n");
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
     //-#endif
   }
