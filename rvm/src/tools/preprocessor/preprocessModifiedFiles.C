@@ -126,6 +126,7 @@ static const char license[] =
 #include <stdarg.h>		// va_list, for snprintf()
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>		// for sigaction() and signal().
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
@@ -194,7 +195,7 @@ char *PutIntoPackage = NULL;	// points to memory that's part of argv.
 // settings. 
 int  preprocess(const char *srcFile, const char *destinationFile);
 void reviseState(void);
-#ifdef DEBUG
+#if DEBUG
 void printState(FILE *fout, char *directive, char *line);
 #endif
 bool eval(char *p);
@@ -1058,24 +1059,60 @@ inputErr(const char msg[], ...)
     exit(2);
 }
 
-static sighandler_t 
-xsignal(int signum, sighandler_t handler)
+
+static void
+xsignal_oldsignal(int signum, void (*handler)(int))
 {
-    sighandler_t ret = signal(signum, handler);
+   void (*ret)(int) = signal(signum, handler);
     if (ret == SIG_ERR) {
 	fprintf(stderr, 
 		"%s: Trouble trying to set up a handler for signal %d: ",
 		Me, signum);
-	exit(3);
+	perror(NULL);
+	fprintf(stderr, "%s: ...going on as best we can\n");
     } else if (ret == SIG_IGN) {
 	/* Some shells may turn off handling of certain signals.  We shan't
 	   interfere. */
 	// ignore return value; nothing much to do anyway.
 	signal(signum, SIG_IGN);
     }
-    return ret;
 }
 
+
+
+
+
+static void
+xsignal_sigaction(int signum, void (*handler)(int))
+{
+    struct sigaction act;
+    struct sigaction oldact;
+    
+    memset(&act, '\0', sizeof act);
+    act.sa_handler = handler;
+    act.sa_flags |= SA_RESTART;
+    int r = sigaction(signum, &act, &oldact);
+    if (r) {
+ 	fprintf(stderr, 
+ 		"%s: Trouble trying to set up a handler for signal %d: ",
+ 		Me, signum);
+	perror((char *) NULL);
+	fprintf(stderr, "%s: ...going on as best we can\n");
+    } else if ( ! (oldact.sa_flags | SA_SIGINFO) && (oldact.sa_handler == SIG_IGN)) {
+	/* Don't interfere with shells that turn off the handling of certain
+	   signals; reset it, instead. */
+	r = sigaction(signum, &oldact, (struct sigaction *) NULL);
+	if (r) {
+	    fprintf(stderr, "%s: Trouble resetting signal %d's handler back to SIG_IGN: ");
+	    perror((char *) NULL);
+	    fprintf(stderr, "%s:  ...going on as best we can.");
+	}
+    }
+    /* Ok; all is done!   We're either set up or we aren't. */
+}
+
+
+static void (*xsignal)(int signum, void (*handler)(int)) = xsignal_sigaction;
 
 static void 
 set_up_trouble_handlers(void)
