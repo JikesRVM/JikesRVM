@@ -184,10 +184,10 @@ $$$$ FOREACH OPTION VDATFILE
        FULL_NAME = Byte.parseByte(value);
               $$$$ ELSE
                 $$$$ IF TYPE == double
-          FULL_NAME = Double.valueOf(value).doubleValue();
+          FULL_NAME = VM_CommandLineArgs.primitiveParseFloat(value);
                 $$$$ ELSE
                   $$$$ IF TYPE == float
-            FULL_NAME = Float.valueOf(value).floatValue();
+            FULL_NAME = VM_CommandLineArgs.primitiveParseFloat(value);
                   $$$$ ELSE
        Hey! You tried to declare a value option of unrecoginized type...fix it!
                   $$$$ END IF

@@ -301,6 +301,7 @@ public class VM_BootRecord {
   //-#if RVM_FOR_POWERPC
   public VM_Address sysDoubleRemainderIP;
   //-#endif
+  public VM_Address sysPrimitiveParseFloatIP;
 
   // time
   VM_Address sysGetTimeOfDayIP;

@@ -1803,6 +1803,18 @@ extern "C" double sysDoubleRemainder(double a, double b) {
 }
 #endif
 
+// Used to parse command line arguments that are
+// doubles and floats early in booting before it 
+// is safe to call Float.valueOf or Double.valueOf
+extern "C" float sysPrimitiveParseFloat(char * buf) {
+  float a;
+  if (sscanf(buf, "%f", &a) != 1) {
+    fprintf(SysErrorFile, "%s: invalid float/double value %s\n", me, buf);
+    exit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  return a;
+}
+
 //-------------------//
 // Memory operations //
 //-------------------//

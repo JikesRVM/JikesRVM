@@ -164,6 +164,18 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static double sysDoubleRemainder(double x, double y) { return 0; }
   //-#endif
 
+  /**
+   * Used to parse command line arguments that are
+   * doubles and floats early in booting before it 
+   * is safe to call Float.valueOf or Double.valueOf.
+   * NOTE: this does not support the full Java spec of parsing a string
+   *       into a float.
+   * @param buf a null terminated byte[] that can be parsed
+   *            by sscanf("%f")
+   * @return the double value produced by the call to sscanf on buf.
+   */
+  public static float sysPrimitiveParseFloat(byte[] buf) { return 0; }
+
   // time
   public static long sysGetTimeOfDay() { return 0; }
 

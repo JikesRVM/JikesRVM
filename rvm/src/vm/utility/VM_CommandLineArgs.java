@@ -567,4 +567,18 @@ public class VM_CommandLineArgs {
   private static int sysArg(int argno, byte buf[]) {
     return VM_SysCall.sysArg(argno, buf, buf.length);
   }
+
+  /**
+   * Primitive parsing of float/double values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able to do the JNI call
+   * that using Double.valueOf would require.
+   * Does not support the full Java spec.
+   */
+  public static float primitiveParseFloat(String arg) {
+    byte[] b = arg.getBytes();
+    byte[] c = new byte[b.length + 1];
+    System.arraycopy(b, 0, c, 0, b.length);
+    return VM_SysCall.sysPrimitiveParseFloat(c);
+  }
 }

@@ -136,7 +136,15 @@ $$$$ FOREACH OPTION VDATFILE
            $$$$ IF TYPE == String
        FULL_NAME = value;
            $$$$ ELSE
+             $$$$ IF TYPE == double
+       FULL_NAME = VM_CommandLineArgs.primitiveParseFloat(value);
+             $$$$ ELSE
+               $$$$ IF TYPE == float
+       FULL_NAME = VM_CommandLineArgs.primitiveParseFloat(value);
+               $$$$ ELSE
        Hey! You tried to declare a value option of unsupported type...fix it!
+               $$$$ END IF
+             $$$$ END IF
            $$$$ END IF
          $$$$ END IF
        $$$$ END IF

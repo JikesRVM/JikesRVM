@@ -4,7 +4,7 @@
 DECL 
 # Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
 # TAG: E = Enumeration, V = Value
-# TYPE: byte, int
+# TYPE: byte, int, String, float, double
 DESCRIP  
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
