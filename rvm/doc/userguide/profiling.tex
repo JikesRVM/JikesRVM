@@ -25,7 +25,7 @@ an example.
 After a valid configuration is built, the HPM are accessed through 
 command line options. 
 The command line options that are available are enumerated with the 
-{\tt help} option prefixed with {\tt -X:hpm:} and 
+{\tt help} option prefixed with {\tt -X:hpm:}.  This option
 generates the following output:
 %
 \begin{verbatim}
@@ -49,9 +49,8 @@ At least one HPM event command line option must be set for HPM counter values to
 When HPM counter values are gathered, aggregate values for each event 
 are generated for each virtual processor, and each Java thread that executes.
 For example, the aggregate HPM counter values for virtual processor 1
-when a particular configuration of SPECjbb2000 is run on the
-PowerPC POWER4 architecture with group 23 specified generated the following
-output:
+when Jikes RVM is run on the PowerPC POWER4 architecture with group 23 
+specified generated the following output:
 
 \begin{verbatim}
 Dump HPM counter values for virtual processors
@@ -74,8 +73,8 @@ corresponding virtual processor.
 The record contains the HPM counter values at the thread switch in addition to 
 the identification of the Java thread.
 
-The Jikes RVM callback mechanism allows a Java thread to specify points in the 
-source file that when executed will place a marker record in the trace file.
+The Jikes RVM callback mechanism allows the application's soure code 
+to make callbacks that when executed will place a marker record in the trace file.
 When the trace file is processed, the marker records allow the
 programmer to focus on portions of the execution.
 Jikes RVM uses this mechanism to open the trace files
