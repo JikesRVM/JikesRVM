@@ -498,7 +498,7 @@ implements OPT_Operators {
       saveFloatingPointState(inst);
     }
     saveNonVolatiles(inst);
-    inst.insertBefore(MIR_Empty.create(IR_ENDPROLOGUE));
+    inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
   }
 
   /**
@@ -508,7 +508,7 @@ implements OPT_Operators {
   private void insertEndPrologue() {
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
     if (VM.VerifyAssertions) VM.assert(inst.getOpcode() == IR_PROLOGUE_opcode);
-    inst.insertAfter(MIR_Empty.create(IR_ENDPROLOGUE));
+    inst.insertAfter(Empty.create(IR_ENDPROLOGUE));
   }
 
   /**
