@@ -103,7 +103,7 @@ store
 
 ####################
 PPC_STAddrUX
-MIR_Store
+MIR_StoreUpdate
 store
 
 
