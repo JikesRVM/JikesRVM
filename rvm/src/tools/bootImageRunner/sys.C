@@ -2270,11 +2270,7 @@ sysMAdvise(char POSSIBLY_UNUSED      *start,
            size_t POSSIBLY_UNUSED   length,
            int POSSIBLY_UNUSED      advice)
 {
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-    return -1; // unimplemented in Linux
-#else
-    return madvise(start, length, advice);
-#endif
+  return madvise(start, length, advice);
 }
 
 // getpagesize
