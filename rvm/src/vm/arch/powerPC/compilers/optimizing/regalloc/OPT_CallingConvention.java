@@ -167,7 +167,7 @@ implements OPT_PhysicalRegisterConstants {
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFS, F(symParam), 
                                              A(FP), 
-                                             IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS-BYTES_IN_FLOAT)));
+                                             IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_FLOAT)));
             spilledArgumentCounter--;
           }
         }
@@ -203,7 +203,7 @@ implements OPT_PhysicalRegisterConstants {
             //-#if RVM_FOR_64_ADDR
             if (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())
               start.insertBack(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
-                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS - BYTES_IN_INT )));
+                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_INT )));
             else //a reference or numeric long
             //-#endif
               start.insertBack(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
@@ -303,11 +303,6 @@ implements OPT_PhysicalRegisterConstants {
           //-#if RVM_FOR_64_ADDR
           if (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
               Reg.type.isCharType() || Reg.type.isBooleanType()){
-				//KV: 64_BIT AIX HACK, to be removed, once we find out where somebody is reading the wrong 4 bytes.
-                  p.insertBack(MIR_Store.create(PPC_STW,
-                                                new OPT_RegisterOperand(reg, Reg.type),
-                                                A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
-				//KV: end of HACK
                   p.insertBack(MIR_Store.create(PPC_STW,
                                                 new OPT_RegisterOperand(reg, Reg.type),
                                                 A(FP), IC(callSpillLoc - BYTES_IN_INT)));

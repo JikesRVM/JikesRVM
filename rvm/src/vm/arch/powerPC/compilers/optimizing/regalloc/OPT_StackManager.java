@@ -78,7 +78,10 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           if (frameIsRequired()) 
             insertEpilogue(inst);
           break;
+        case PPC_LFS_opcode:
         case PPC_LFD_opcode:
+        case PPC_LInt_opcode:
+        case PPC_LWZ_opcode:
         case PPC_LAddr_opcode:
           // the following to handle spilled parameters
           // SJF: this is ugly.  clean it up someday.
@@ -89,21 +92,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
               int offset = ((OPT_IntConstantOperand) one).value;
               if (offset <= -256) {
                 MIR_Load.setOffset(inst, IC(frameSize - offset - 256));
-              }
-            }
-          }
-        case PPC_LFS_opcode:
-        case PPC_LInt_opcode:
-        case PPC_LWZ_opcode:
-          // the following to handle spilled parameters
-          // SJF: this is ugly.  clean it up someday.
-          if (MIR_Load.getAddress(inst).register ==
-              ir.regpool.getPhysicalRegisterSet().getFP()) {
-            OPT_Operand one = MIR_Load.getOffset(inst);
-            if (one instanceof OPT_IntConstantOperand) {
-              int offset = ((OPT_IntConstantOperand) one).value;
-              if (offset <= -256) {
-                MIR_Load.setOffset(inst, IC(frameSize - offset - 256 + BYTES_IN_ADDRESS - BYTES_IN_INT));
               }
             }
           }
