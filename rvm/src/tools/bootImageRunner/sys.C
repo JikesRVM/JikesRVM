@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002,2004
+ * (C) Copyright IBM Corp 2001,2002,2004, 2005
  */
 //$Id$
 
@@ -44,7 +44,6 @@ extern "C" int sched_yield(void);
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
-#include <linux/net.h>
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <asm/ioctls.h>
@@ -2628,157 +2627,6 @@ int selectInterrupts = 0;
 int acceptInterrupts = 0;
 int connectInterrupts = 0;
 
-#if RVM_WITH_UNUSED_SYSCALLS
-// Get network name of machine we're running on.
-// Taken:    buffer in which to place results
-//           buffer size
-// Returned: number of bytes written to buffer
-//           -1: name didn't fit, buffer too small
-//
-extern "C" int
-sysNetLocalHostName(char *buf, int limit)
-{
-    int rc;
-
-    rc = gethostname(buf, limit);
-    if (rc != 0)
-    {
-        fprintf(SysErrorFile, "%s: gethostname failed (rc=%d)\n", Me, rc);
-        return 0;
-    }
-
-    for (int i = 0; i < limit; ++i)
-        if (buf[i] == 0) {
-#ifdef DEBUG_NET
-            fprintf(SysErrorFile, "got hostname %s\n", buf);
-#endif
-            return i;
-        }
-
-    return -1;
-}
-
-// Get network name of machine at specified internet address.
-// Taken:    internet address
-//           buffer in which to place results
-//           buffer size
-// Returned: number of bytes written to buffer
-//           -1: name didn't fit, buffer too small
-//           0: system call returned an error.
-//
-extern "C" int
-sysNetRemoteHostName(int internetAddress, char *buf, int limit)
-{
-#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
-    hostent * resultAddress;
-
-    fprintf(SysTraceFile, "untested system call sysNetRemoteHostName()\n");
-    resultAddress = gethostbyaddr((char *)&internetAddress,
-                                  sizeof internetAddress,
-                                  AF_INET);
-
-    if ( ! resultAddress )
-        return 0;
-
-    char *name = resultAddress->h_name;
-    for (int i = 0; i < limit; ++i) {
-        if (name[i] == 0)
-            return i;
-        buf[i] = name[i];
-    }
-    return -1;
-#else
-    hostent      results; memset(&results, 0, sizeof results);
-    hostent_data data;    memset(&data, 0, sizeof data);
-
-    int rc = gethostbyaddr_r((char *)&internetAddress,
-                             sizeof internetAddress, AF_INET,
-                             &results, &data);
-    if (rc != 0) {
-        // fprintf(SysErrorFile, "%s: gethostbyaddr_r failed (errno=%d)\n", Me, h_errno);
-        return 0;
-    }
-
-    char *name = results.h_name;
-    for (int i = 0; i < limit; ++i) {
-        if (name[i] == 0)
-            return i;
-        buf[i] = name[i];
-    }
-    return -1;
-#endif
-}
-
-// Get list of internet addresses at which specified host can be contacted.
-// Taken:    hostname
-//           buffer in which to place results (assumption: 4-byte-addresses)
-//           buffer size
-// Returned: number of addresses written to buffer
-//           -1: addresses didn't fit, buffer too small
-//           -2: network error
-//
-#ifdef _AIX
-extern "C" int
-sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
-{
-    int i;
-    hostent      results; memset(&results, 0, sizeof results);
-    hostent_data data;    memset(&data, 0, sizeof data);
-
-    int rc = gethostbyname_r(hostname, &results, &data);
-    if (rc != 0) {
-#ifdef __GLIBC__
-        fprintf(SysErrorFile, "%s: gethostbyname_r failed: %s (h_errno=%d)\n",
-                Me, hstrerror(h_errno), h_errno);
-#else
-        fprintf(SysErrorFile, "%s: gethostbyname_r failed (h_errno=%d)\n",
-                Me, h_errno);
-#endif
-        return -2;
-    }
-
-    // verify 4-byte-address assumption
-    //
-    if (results.h_addrtype != AF_INET || results.h_length != 4 
-        || sizeof (in_addr_t) != 4) {
-        fprintf(SysErrorFile, "%s: gethostbyname_r failed (unexpected address type or length)\n", Me);
-        return -2;
-    }
-
-    in_addr **addresses = (in_addr **)results.h_addr_list;
-    for (i = 0; addresses[i] != 0; ++i) {
-        if (i == limit)
-            return -1;
-
-        printf("host address %x\n", addresses[i]->s_addr);
-
-        *buf[i] = addresses[i]->s_addr;
-    }
-    return i;
-}
-#endif
-
-#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
-extern "C" int
-sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
-{
-    int i;
-
-    hostent * result = gethostbyname(hostname);
-
-    if ( !result || result->h_addrtype != AF_INET || result->h_length != 4 )
-        return -2;
-
-    uint32_t **address = (uint32_t ** )result->h_addr_list;
-    for (i=0; address[i]; i++ ) {
-        if (i == limit)
-            return -1;
-        *buf[i] = *(address[i]);
-    }
-    return i;
-}
-#endif
-#endif // RVM_WITH_UNUSED_SYSCALLS
 
 // Create a socket, unassociated with any particular address + port.
 // Taken:    kind of socket to create (0: datagram, 1: stream)
