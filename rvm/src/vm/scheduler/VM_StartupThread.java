@@ -32,7 +32,7 @@ class VM_StartupThread extends VM_Thread
       // bind our execution to a physical cpu
       //
       if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
-         VM.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + VM_Processor.getCurrentProcessorId() - 1);
+	VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + VM_Processor.getCurrentProcessorId() - 1);
      
       // get pthread_id from AIX and store into vm_processor field
       // 
@@ -48,7 +48,7 @@ class VM_StartupThread extends VM_Thread
       //
       VM_Processor.getCurrentProcessor().isInitialized = true;
       //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      VM.sysWaitForVirtualProcessorInitialization();
+      VM_SysCall.sysWaitForVirtualProcessorInitialization();
       //-#endif
 
       // enable multiprocessing
@@ -58,7 +58,7 @@ class VM_StartupThread extends VM_Thread
       // wait for all other processors to do likewise
       //
       //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      VM.sysWaitForMultithreadingStart();
+      VM_SysCall.sysWaitForMultithreadingStart();
       //-#endif
 
       //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS

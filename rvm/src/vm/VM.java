@@ -980,27 +980,6 @@ public class VM extends VM_Properties implements VM_Constants,
 
 
   /**
-   * Create a virtual processor (aka "unix kernel thread", "pthread").
-   * @param jtoc  register values to use for thread startup
-   * @param pr
-   * @param ti
-   * @param fp
-   * @return virtual processor's o/s handle
-   */
-  static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-                                       VM_Address ti, VM_Address fp) {
-    return VM_SysCall.sysVirtualProcessorCreate(jtoc, pr, ti, fp);
-  }
-
-  /**
-   * Bind execution of current virtual processor to specified physical cpu.
-   * @param cpuId  physical cpu id (0, 1, 2, ...)
-   */
-  static void sysVirtualProcessorBind(int cpuId) {
-    VM_SysCall.sysVirtualProcessorBind(cpuId);
-  }
-
-  /**
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
@@ -1008,35 +987,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_SysCall.sysVirtualProcessorYield();
     //-#endif
   }
-
-  /**
-   * Start interrupt generator for thread timeslicing.
-   * The interrupt will be delivered to whatever virtual processor happens 
-   * to be running when the timer expires.
-   */
-  static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
-    VM_SysCall.sysVirtualProcessorEnableTimeSlicing(timeSlice);
-  }
-
-  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  static void sysCreateThreadSpecificDataKeys() {
-    VM_SysCall.sysCreateThreadSpecificDataKeys();
-  }
-  //-#endif
-
-  static void sysWaitForVirtualProcessorInitialization() {
-    VM_SysCall.sysWaitForVirtualProcessorInitialization();
-  }
-
-  static void sysWaitForMultithreadingStart() {
-    VM_SysCall.sysWaitForMultithreadingStart();
-  }
-
-  static void sysInitializeStartupLocks(int howMany) {
-    VM_SysCall.sysInitializeStartupLocks(howMany);
-  }
-  //-#endif
 
   //----------------//
   // implementation //

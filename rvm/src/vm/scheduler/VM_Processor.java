@@ -507,15 +507,15 @@ implements VM_Uninterruptible, VM_Constants {
 
     //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // Need to set startuplock here
-    VM.sysInitializeStartupLocks(1);
+    VM_SysCall.sysInitializeStartupLocks(1);
     //-#endif
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
     target.registerThread(); // let scheduler know that thread is active.
-    VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                 VM_Magic.objectAsAddress(newProcessor),
-                                 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toAddress(),
-                                 target.contextRegisters.getInnermostFramePointer());
+    VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+					 VM_Magic.objectAsAddress(newProcessor),
+					 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toAddress(),
+					 target.contextRegisters.getInnermostFramePointer());
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
     VM.enableGC();

@@ -252,19 +252,19 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //-#else
     // Create thread-specific data key which will allow us to find
     // the correct VM_Processor from an arbitrary pthread.
-    VM.sysCreateThreadSpecificDataKeys();
+    VM_SysCall.sysCreateThreadSpecificDataKeys();
 
     // enable spoofing of blocking native select calls
     System.loadLibrary("syswrap");
     //-#endif
 
     if (VM.BuildWithNativeDaemonProcessor)
-      VM.sysInitializeStartupLocks( numProcessors + 1 );
+      VM_SysCall.sysInitializeStartupLocks( numProcessors + 1 );
     else
-      VM.sysInitializeStartupLocks( numProcessors );
+      VM_SysCall.sysInitializeStartupLocks( numProcessors );
 
     if (cpuAffinity != NO_CPU_AFFINITY)
-      VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+      VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
@@ -284,16 +284,16 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-        VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                     VM_Magic.objectAsAddress(processors[i]),
-                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
-                                     target.contextRegisters.getInnermostFramePointer());
+        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+					     VM_Magic.objectAsAddress(processors[i]),
+					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
+					     target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {
-        VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                     VM_Magic.objectAsAddress(processors[i]),
-                                     target.contextRegisters.ip, 
-                                     target.contextRegisters.getInnermostFramePointer());
+        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+					     VM_Magic.objectAsAddress(processors[i]),
+					     target.contextRegisters.ip, 
+					     target.contextRegisters.getInnermostFramePointer());
       }
 
     }
@@ -309,16 +309,16 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-        VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
-                                     target.contextRegisters.getInnermostFramePointer());
+        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+					     VM_Magic.objectAsAddress(processors[nativeDPndx]),
+					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
+					     target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {
-        VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     target.contextRegisters.ip,
-                                     target.contextRegisters.getInnermostFramePointer());
+        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+					     VM_Magic.objectAsAddress(processors[nativeDPndx]),
+					     target.contextRegisters.ip,
+					     target.contextRegisters.getInnermostFramePointer());
       }
       if (VM.TraceThreads)
         trace("VM_Scheduler.boot", "started native daemon processor id", nativeDPndx);
@@ -326,7 +326,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // wait for everybody to start up
     //
-    VM.sysWaitForVirtualProcessorInitialization();
+    VM_SysCall.sysWaitForVirtualProcessorInitialization();
     //-#endif
 
     allProcessorsInitialized = true;
@@ -338,7 +338,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // Start interrupt driven timeslicer to improve threading fairness and responsiveness.
     //
     if (!VM.BuildForDeterministicThreadSwitching) 
-      VM.sysVirtualProcessorEnableTimeSlicing(VM.schedulingQuantum);
+      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.schedulingQuantum);
 
     // Start event logger.
     //
@@ -349,7 +349,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     //-#else
-    VM.sysWaitForMultithreadingStart();
+    VM_SysCall.sysWaitForMultithreadingStart();
     //-#endif
 
     //-#if RVM_WITH_OSR

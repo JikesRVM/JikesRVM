@@ -113,14 +113,31 @@ public class VM_SysCall implements VM_Uninterruptible {
 
   // threads
   public static int sysNumProcessors() { return 0; }
+  /**
+   * Create a virtual processor (aka "unix kernel thread", "pthread").
+   * @param jtoc  register values to use for thread startup
+   * @param pr
+   * @param ti
+   * @param fp
+   * @return virtual processor's o/s handle
+   */
   public static int sysVirtualProcessorCreate(VM_Address jtoc, 
 					      VM_Address pr, 
 					      VM_Address ti_or_ip,
 					      VM_Address fp) { 
     return 0;
   }
+  /**
+   * Bind execution of current virtual processor to specified physical cpu.
+   * @param cpuId  physical cpu id (0, 1, 2, ...)
+   */
   public static void sysVirtualProcessorBind(int cpuid) {}
   public static void sysVirtualProcessorYield() {}
+  /**
+   * Start interrupt generator for thread timeslicing.
+   * The interrupt will be delivered to whatever virtual processor happens 
+   * to be running when the timer expires.
+   */
   public static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {}
   public static int sysPthreadSelf() { return 0; }
   public static int sysPthreadSigWait(VM_Address lockwordAddress,
