@@ -1274,11 +1274,16 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   /**
    * Primitive parsing facilities for strings
    */
-  public static int primitiveParseInt(String value) throws VM_PragmaInterruptible {
+  public static int primitiveParseInt(String value) 
+    throws VM_PragmaInterruptible
+  {
     return VM_CommandLineArgs.primitiveParseInt(value);
   }
-  public static float primitiveParseFloat(String value) throws VM_PragmaInterruptible {
-    return VM_CommandLineArgs.primitiveParseInt(value);
+
+  public static float primitiveParseFloat(String value) 
+      throws VM_PragmaInterruptible 
+  {
+      return VM_CommandLineArgs.primitiveParseFloat(value);
   }
 
   /**
