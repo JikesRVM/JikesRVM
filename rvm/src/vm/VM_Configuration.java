@@ -32,6 +32,20 @@ public abstract class VM_Configuration {
 
   public static final boolean LittleEndian = BuildForIA32;
 
+  public static final boolean BuildFor32Addr = 
+    //-#if RVM_FOR_32_ADDR
+    true;
+    //-#else
+    false;
+    //-#endif
+
+  public static final boolean BuildFor64Addr = 
+    //-#if RVM_FOR_64_ADDR
+    true;
+    //-#else
+    false;
+    //-#endif
+
   public static final boolean BuildForAix =
 	//-#if RVM_FOR_AIX
 	  true;
