@@ -857,15 +857,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
+    if (VM_Scheduler.allProcessorsInitialized) {
+	VM.sysWrite("Explicitly calling GC before allocating stack for stack resize");
+	System.gc();
+    }
     int[] newStack = MM_Interface.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     if (traceAdjustments) {
-      VM.sysWrite("VM_Thread: resized stack ");
-      VM.sysWrite(getCurrentThread().getIndex());
-      VM.sysWrite(" to ");
-      VM.sysWrite(((getCurrentThread().stack.length << LOG_BYTES_IN_ADDRESS)/1024));
+      VM_Thread t = getCurrentThread();
+      VM.sysWrite("VM_Thread: resized stack ", t.getIndex());
+      VM.sysWrite(" to ", (t.stack.length << LOG_BYTES_IN_ADDRESS)/1024);
       VM.sysWrite("k\n");
     }
   }
@@ -1268,14 +1271,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
   }
   
-
-  /**
-   * Needed for support of suspend/resume     CRA:
-   */
-  public boolean is_suspended() {
-    return isSuspended;
-  }
-
   //-----------------//
   // Instance fields //
   //-----------------//

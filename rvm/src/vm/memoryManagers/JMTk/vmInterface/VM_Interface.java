@@ -17,6 +17,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -233,8 +234,18 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 					(int) (System.currentTimeMillis() - start));
 
     if (Plan.isLastGCFull()) {
-      double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
-      if (usage > OUT_OF_MEMORY_THRESHOLD) {
+      int before = Options.getCurrentHeapSize(); 
+      boolean heapGrew = Options.updateCurrentHeapSize((int) Plan.reservedMemory()); 
+      if (heapGrew) { 
+	if (Plan.verbose >= 2) { 
+	  VM.sysWrite("Heap grew from ", (int) (before / 1024)); 
+	  VM.sysWrite("KB to ", (int) (Options.getCurrentHeapSize() / 1024)); 
+	  VM.sysWriteln("KB"); 
+	} 
+      } 
+      else { 
+        double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+	if (usage > OUT_OF_MEMORY_THRESHOLD) {
 	if (why == INTERNALLY_TRIGGERED) {
 	  if (Plan.verbose >= 2) {
 	    VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
@@ -245,8 +256,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	}
 	ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
 	triggerCollection(INTERNALLY_TRIGGERED);
+	}
       }
-    }
+    } // isLastGCFull
   }
 
   public static final void triggerAsyncCollection()

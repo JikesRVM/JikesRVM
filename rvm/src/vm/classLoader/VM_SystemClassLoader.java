@@ -90,6 +90,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     VM_Type loadedType = (VM_Type)loaded.get(className);
     Class loadedClass;
     if (loadedType == null) {
+      // VM.sysWriteln("loadClass: ", className);
       loadedClass = findClass(className);
     } else {
       loadedClass = loadedType.getClassForType();
@@ -139,6 +140,8 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	throw e;
       } catch (Throwable e) {
 	// We didn't find the class, or it wasn't valid, etc.
+	  VM.sysWriteln("some Throwable during class loading of class ", className);
+	  if (e instanceof OutOfMemoryError) VM.sysWriteln("was OutOfMemory");
 	throw new ClassNotFoundException(className);
       }
     }
