@@ -1069,7 +1069,7 @@ function emitCopier
    print 'if [[ $1 = -clean ]]; then'
    print '   print -n "$ME: "'
    print '   cd' $CLASSES_DIRECTORY_STR
-   print '   echo *.java | xargs rm -f'
+   print '   find . -name "*.java" -exec rm {} \;'
    print '   touch' $CLASSES_INVALID_STR
    print '   print "(sources cleaned)"'
    print '   exit 0'
