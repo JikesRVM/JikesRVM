@@ -22,7 +22,7 @@ fi
 
 # make build directory
 export RVM_BUILD=$DEST_DIR/tmp_build
-$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" FullAdaptiveSemispace < /dev/null
+$RVM_ROOT/rvm/bin/jconfigure FullAdaptiveSemispace < /dev/null
 cd $RVM_BUILD
 ./jbuild -nolink -nobooter
 
