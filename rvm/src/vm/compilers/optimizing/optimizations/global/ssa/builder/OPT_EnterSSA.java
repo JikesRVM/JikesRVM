@@ -103,6 +103,7 @@ implements OPT_Operators, OPT_Constants {
   final public void perform(OPT_IR ir) {
 
     // Exit if we don't have to recompute SSA.
+    if (ir.desiredSSAOptions.getAbort()) return;
     if (ir.actualSSAOptions != null)
       if (ir.actualSSAOptions.satisfies(ir.desiredSSAOptions))
         return;

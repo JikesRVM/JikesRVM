@@ -65,6 +65,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param ir the IR to optimize 
    */
   public void perform (OPT_IR ir) {
+    if (ir.desiredSSAOptions.getAbort()) return;
     OPT_IndexPropagationSystem system = new OPT_IndexPropagationSystem(ir);
     if (DEBUG)
       System.out.print("Solving...");

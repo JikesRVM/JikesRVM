@@ -232,7 +232,15 @@ class OPT_OptimizationPlanner {
         // compute dominance frontier
         new OPT_DominanceFrontier(), 
         // load elimination
-        new OPT_LoadElimination(), 
+        new OPT_LoadElimination(1), 
+        // load elimination
+        new OPT_LoadElimination(2), 
+        // load elimination
+        new OPT_LoadElimination(3), 
+        // load elimination
+        new OPT_LoadElimination(4), 
+        // load elimination
+        new OPT_LoadElimination(5), 
 	// eliminate redundant conditional branches
 	new OPT_RedundantBranchElimination(),
         // store elimination
