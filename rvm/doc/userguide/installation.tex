@@ -726,15 +726,27 @@ collector,
 use the name \Mlitch{BaseBaseSemiSpace}.
 
 Some files augment the standard configurations as follows:
+
 \begin{itemize}
+
 \item The word 
 \Mlitch{Full} at the beginning of the configuration name identifies a
 configuration such that all the Jikes RVM classes are included in the
-boot image and are compiled by the optimizing compiler.  (By default
+boot image.  (By default 
 only a small subset of these classes are included in the boot image.)
-\item The word \Mlitch{Fast} at the beginning of the configuration name identifies a
-\Mlitch{Full} configuration where all assertion checking has been turned off.
+
+\Mlitch{FulAdaptive} images 
+have all of the included classes already compiled by the optimizing
+compiler.  \Mlitch{FullBaseAdaptive} images have the classes compiled
+by the baseline compiler; the adaptive system will later recompile any
+hot methods.
+
+\item The word \Mlitch{Fast} at the beginning of 
+the configuration name identifies a \Mlitch{Full} configuration where
+all assertion checking has been turned off.
+
 \end{itemize}
+
 \Mlitch{Full} and \Mlitch{Fast} boot images run faster but take
 longer to build.
 
