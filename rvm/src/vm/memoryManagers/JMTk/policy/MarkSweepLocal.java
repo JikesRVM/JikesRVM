@@ -148,14 +148,22 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Word mask = VM_Word.fromInt(1<<bitnumber);
     int offset = (index>>LOG_WORD_BITS)<<(LOG_WORD_SIZE + 1);
 
-    VM_Address bitmapWord;
-    VM_Word word;
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
+	if (false && !((INUSE_BITMAP_BASE + offset) < blockHeaderSize[sizeClass])) {
+	  VM.sysWriteln("cell                       = ", cell);
+	  VM.sysWriteln("block.add(...)             = ", block.add(blockHeaderSize[sizeClass]));
+	  VM.sysWriteln("cellSize[sizeClass]        = ", cellSize[sizeClass]);
+	  VM.sysWriteln("index                      = ", index);
+	  VM.sysWriteln("offset                     = ", offset);
+	  VM.sysWriteln("sizeClass                  = ", sizeClass);
+	  VM.sysWriteln("blockHeaderSize[sizeClass] = ", blockHeaderSize[sizeClass]);
+      }
       VM._assert((INUSE_BITMAP_BASE + offset) < blockHeaderSize[sizeClass]);
+    }
 
     // set the inuse bit
-    bitmapWord = block.add(INUSE_BITMAP_BASE + offset);
-    word = VM_Magic.getMemoryWord(bitmapWord);
+    VM_Address bitmapWord = block.add(INUSE_BITMAP_BASE + offset);
+    VM_Word word = VM_Magic.getMemoryWord(bitmapWord);
     word = word.or(mask);
     VM_Magic.setMemoryWord(bitmapWord, word);
 
@@ -397,38 +405,33 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final int checkFreeList(VM_Address block, int sizeClass) {
-    VM_Address cell;
-    if (currentBlock.get(sizeClass).EQ(block))
-      cell = freeList.get(sizeClass);
-    else
-      cell = getFreeList(block);
 
+    boolean debug = block.EQ(DEBUG_BLOCK);
+    boolean isCurrent = currentBlock.get(sizeClass).EQ(block);
+    VM_Address cell = isCurrent ? freeList.get(sizeClass) : getFreeList(block);
     int freeCells = 0;
-    if (block.EQ(DEBUG_BLOCK)) {
-      VM.sysWrite(sizeClass); VM.sysWrite(" (");
-    }
+
+    if (debug)
+      VM.sysWrite(sizeClass, " (");
     while (!cell.isZero()) {
-      if (block.EQ(DEBUG_BLOCK)) {
-	VM.sysWrite(cell); VM.sysWrite(" ");
-      }
+      if (debug)
+	VM.sysWrite(" ", cell); 
       freeCells++;
       if (!isFree(block, cell, sizeClass)) {
-	VM.sysWrite("Extraneous free list entry: ");
-	VM.sysWrite(cell); VM.sysWrite(" ");
-	VM.sysWrite(block); VM.sysWrite("\n");
+	VM.sysWrite("  Extraneous free list entry: ", cell);
+	VM.sysWriteln(" ", block); 
 	if (VM.VerifyAssertions) VM._assert(false);
       }
       if (freeCells > MAX_CELLS) {
-	VM.sysWrite("Runaway freelist: ");
-	VM.sysWrite(cell); VM.sysWrite(" ");
-	VM.sysWrite(block); VM.sysWrite("\n");
+	VM.sysWrite("  Runaway freelist: ", cell);
+	VM.sysWriteln(" ", block); 
 	if (VM.VerifyAssertions) VM._assert(false);
       }
       cell = getNextCell(cell);
     }
-    if (block.EQ(DEBUG_BLOCK)) {
+    if (debug)
       VM.sysWrite(") ");
-    }
+
     return freeCells;
   }
   
