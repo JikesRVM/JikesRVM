@@ -104,15 +104,9 @@ isLongWait(struct timeval *timeout)
     return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
 }
 
-// Pointer to JTOC.
-static void *Jtoc;
-
-// Offset of the static VM_Scheduler.processors array in the JTOC.
-static int ProcessorsOffset;
-
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-// ID of the single VM_Processor object.
-static int VmProcessorId;
+// Address of the single VM_Processor object.
+static int VmProcessor;
 #endif
 
 // Return the number of file descriptors which are set in given
@@ -185,32 +179,6 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
     }
     return readyCount;
 }
-
-//////////////////////////////////////////////////////////////
-// Initialization functions
-//////////////////////////////////////////////////////////////
-
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-// Initialization function for single virtual processor
-extern "C" void 
-initSyscallWrapperLibrary(void *jtoc, int processorsOffset, int vmProcessorId)
-{
-    Jtoc = jtoc;
-    ProcessorsOffset = processorsOffset;
-    VmProcessorId = vmProcessorId;
-}
-#else
-// Initialization function for configurations with
-// multiple VM_Processors.
-// Called by the VM to tell us the thread-specific data key
-// storing the id of each pthread's VM_Processor object.
-extern "C" void 
-initSyscallWrapperLibrary(void *jtoc, int processorsOffset) 
-{
-    Jtoc = jtoc;
-    ProcessorsOffset = processorsOffset;
-}
-#endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 
 //////////////////////////////////////////////////////////////
 // Accessors for C library functions
@@ -411,19 +379,15 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 #endif
 
     // Get VM_Processor id.
-    int vmProcessorId =
+    void* vmProcessor =
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-	VmProcessorId;
+      VmProcessor;
 #else
-    (int) pthread_getspecific(VmProcessorIdKey);
+      pthread_getspecific(VmProcessorKey);
 #endif
 
-    // Find the VM_Processor object.
-    unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
-    void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
-
     // Get the JNIEnv from the VM_Processor object
-    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
+    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
  
     *penv = env;
 
@@ -455,17 +419,8 @@ createJavaVM(void)
  * Signature: ()I
  */
 extern "C" JNIEXPORT jint JNICALL 
-Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJavaVM(JNIEnv *, jclass)
+Java_com_ibm_JikesRVM_jni_VM_1JNIFunctions_createJavaVM(JNIEnv *, jclass)
 {
     return createJavaVM();
 }
 
-extern "C" void 
-_init(void) 
-{
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 1);
-#else
-    initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
-#endif
-}
