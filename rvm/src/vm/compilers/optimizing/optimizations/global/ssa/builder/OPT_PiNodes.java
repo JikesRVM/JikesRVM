@@ -100,6 +100,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
 	  insertPiNullCheckNodes(ir);
       } else
 	  insertPiCheckCastNodes(ir);
+      // invalidate SSA state
+      ir.actualSSAOptions = null;
     } 
     else {
       cleanUp(ir);
