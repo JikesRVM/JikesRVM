@@ -141,6 +141,30 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithRedirectSlot =
+      //-#if RVM_WITH_REDIRECT_SLOT
+        true;
+      //-#else
+        false;
+      //-#endif
+
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithLazyRedirect =
+      //-#if RVM_WITH_LAZY_REDIRECT
+        true;
+      //-#else
+        false;
+      //-#endif
+
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithEagerRedirect =
+      //-#if RVM_WITH_EAGER_REDIRECT
+        true;
+      //-#else
+        false;
+      //-#endif
+
   // Epilogue yieldpoints increase sampling accuracy for adaptive recompilation.
   // In particular, they are key for large, leaf, loop-free methods.
   public static final boolean UseEpilogueYieldPoints =
