@@ -7,36 +7,69 @@ import instructionFormats.*;
 import java.util.*;
 
 /**
- * Estimate basic block frequencies based on the branch probabilities.
+ * Derive relative basic block execution frequencies from branch probabilities.<p>
  * 
+ * This code assumes that the loop structure tree can be constructed for
+ * the CFG in question.  This implies that the CFG is reducible. <p>
+ * 
+ * The basic algorithm is as follows:
+ * <ul>
+ * <li> Construct the loop structure tree for the CFG. </li>
+ * <li> In a postorder traversal, compute the loop multiplier for each loop.
+ *      The loop multiplier is a number such that the execution frequency of 
+ *      the loop pre-header times the loop multiplier is equal to the 
+ *      execution frequency of the loop head.  This can be derived by computing
+ *      the loop exit weight (the probability of exiting the loop) and applying
+ *      Kirchoff's law that flow in is equal to flow out.  Loop exit weight
+ *      can be computed in a single topological (ignoring backedges) traversal
+ *      of the nodes in the loop. </li>
+ * <li> Assign the entry node weight 1.  In a topological traversal of the CFG
+ *      (ignoring backedges), propagate the weights.  When processing a loop head,
+ *      multiply the incoming weight by the loop multiplier.</li>
+ * </ul>
+ *
  * @author Steve Fink
  * @author Dave Grove
  */
 class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
+  /**
+   * The optimization level at which this phase should run
+   */
   int optLevel;
-  OPT_IR ir;
-  OPT_LSTGraph lst;
-  OPT_BasicBlock[] topOrder;
+
+  /**
+   * The IR on which to operate.
+   */
+  private OPT_IR ir;
+
+  /**
+   * The loop structure tree of said IR
+   */
+  private OPT_LSTGraph lst;
+
+  /**
+   * Topological ordering (ignoring backedges) of CFG
+   */
+  private OPT_BasicBlock[] topOrder;
 
   OPT_EstimateBlockFrequencies(int ol) {
     optLevel = ol;
   }
 
-  String getName () { return  "Estimate Block Frequencies"; }
+  public String getName () { return  "Estimate Block Frequencies"; }
 
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.getOptLevel() >= optLevel;
   }
 
   /**
-   * Do simplistic static splitting to create hot traces
-   * with that do not have incoming edges from 
-   * blocks that are statically predicted to be cold.
+   * Compute relative basic block frequencies for the argument IR based on the
+   * branch probability information on each conditional and multiway branch.
    * 
    * @param _ir the IR on which to apply the phase
    */
-  void perform (OPT_IR _ir) {
+  public void perform (OPT_IR _ir) {
     // Prepare 
     ir = _ir;
     ir.cfg.compactNodeNumbering();
@@ -73,8 +106,12 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     computeBlockFrequencies();
   }
 
+
+  /**
+   * Postorder traversal of LST computing loop multiplier and loop exits 
+   * for each loop.
+   */
   private void computeLoopMultipliers(OPT_LSTNode n) {
-    // Compute multipliers and loop exit
     for (Enumeration e = n.getChildren(); e.hasMoreElements();) {
       computeLoopMultipliers((OPT_LSTNode)e.nextElement());
     }
@@ -83,7 +120,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       n.header.clearScratchFlag(); // so we won't ignore when processing enclosing loop
     }
   }
-
+  
 
   /**
    * Compute the loop multiplier for this loop nest
@@ -99,6 +136,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     n.loopMultiplier = 1.0f / loopExitWeight;
   }
   
+
   /**
    * Propagate execution frequencies through the loop.
    * Also records loop exit edges in loopExits.
@@ -129,6 +167,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     }
   }
 
+
   private void processEdge(OPT_LSTNode n, 
 			   OPT_BasicBlock source, 
 			   OPT_BasicBlock target, 
@@ -157,6 +196,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     }
   }
 
+
   private float computeLoopExitWeight(OPT_LSTNode n) {
     float exitWeight = 0f;
     for (Iterator i = n.loopExits.iterator(); i.hasNext();) {
@@ -181,19 +221,13 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       float weight = cur.getExecutionFrequency();
       cur.setScratchFlag();
 
-
       for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur);
 	   wbt.hasMoreElements(); wbt.advance()) {
-	processEdge2(cur, wbt.curBlock(), wbt.curWeight(), weight);
+	OPT_BasicBlock target = wbt.curBlock();
+	if (!target.getScratchFlag()) {
+	  target.augmentExecutionFrequency(wbt.curWeight() * weight);
+	}
       }
     }
-  }
-
-  private void processEdge2(OPT_BasicBlock source, 
-			    OPT_BasicBlock target, 
-			    float prob, 
-			    float weight) {
-    if (target.getScratchFlag()) return; // ignore backedge
-    target.augmentExecutionFrequency(prob * weight);
   }
 }
