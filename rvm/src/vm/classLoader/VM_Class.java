@@ -739,7 +739,11 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from its .class file.
    */ 
-  public final void load() throws VM_ResolutionException {
+  public final synchronized void load() throws VM_ResolutionException {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
+    }
+
     if (isLoaded())
       return;
 
@@ -769,7 +773,11 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from specified data stream.
    */ 
-  final void load(VM_BinaryData input) throws ClassFormatError {
+  final synchronized void load(VM_BinaryData input) throws ClassFormatError {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
+    }
+
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_VACANT);
@@ -1016,7 +1024,11 @@ public class VM_Class extends VM_Type
    * method table. 
    * Side effects: superclasses and superinterfaces are resolved.
    */ 
-  public final void resolve() throws VM_ResolutionException {
+  public final synchronized void resolve() throws VM_ResolutionException {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.resolve called without holding VM_ClassLoader.lock");
+    }
+
     if (isResolved())
       return;
 
@@ -1306,7 +1318,11 @@ public class VM_Class extends VM_Type
    * Compile this class's methods, build type information block, populate jtoc.
    * Side effects: superclasses are instantiated.
    */
-  public final void instantiate() {
+  public final synchronized void instantiate() {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.instantiate called without holding VM_ClassLoader.lock");
+    }
+
     if (isInstantiated())
       return;
 
@@ -1399,6 +1415,12 @@ public class VM_Class extends VM_Type
    * initial values.
    */ 
   public final synchronized void initialize() {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      // TODO: The following condition should hold, but we violate it all over the place
+      // VM.assert(!VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.initialize called while holding VM_ClassLoader.lock");
+      // if (VM_Lock.owns(VM_ClassLoader.lock)) VM.sysWriteln("WARNING: VM_Class.initialize called while holding VM_ClassLoader.lock");
+    }
+
     if (isInitialized())
       return;
 
