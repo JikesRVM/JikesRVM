@@ -7,6 +7,7 @@ import instructionFormats.*;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * Perform simple peephole optimizations for branches.
@@ -585,18 +586,51 @@ public final class OPT_BranchOptimizations
    * basic block with conditional moves?
    */
   private boolean hasCMTaboo(OPT_BasicBlock bb) {
+
+    // Note: it is taboo to assign more than once to any register in the
+    // block.
+    HashSet defined = new HashSet();
+
     for (Enumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       if (s.isBranch()) continue;
-      if (s.isPEI()) return true;
-      if (s.isStore()) return true;
-      if (s.getNumberOfDefs() != 1) return true;
-      if (s.isThrow()) return true;
-      if (s.isDynamicLinkingPoint()) return true;
-      // the following excludes divides
-      if (GuardedBinary.conforms(s)) return true;
+      // for now, only the following opcodes are legal.
+      switch (s.operator.opcode) {
+        case INT_MOVE_opcode:
+        case REF_MOVE_opcode:
+        case MATERIALIZE_CONSTANT_opcode:
+        case INT_ADD_opcode:
+        case INT_SUB_opcode:
+        case INT_MUL_opcode:
+        case INT_NEG_opcode:
+        case INT_SHL_opcode:
+        case INT_SHR_opcode:
+        case INT_USHR_opcode:
+        case INT_AND_opcode:
+        case INT_OR_opcode:
+        case INT_XOR_opcode:
+        case INT_NOT_opcode:
+        case INT_2BYTE_opcode:
+        case INT_2USHORT_opcode:
+        case INT_2SHORT_opcode:
+          // these are OK.
+          break;
+        default:
+          return true;
+      }
+      
+      
+      // make sure no register is defined more than once in this block.
+      for (Enumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
+        OPT_Operand def = (OPT_Operand)defs.nextElement();
+        if (VM.VerifyAssertions) VM.assert(def.isRegister());
+        OPT_Register r = def.asRegister().register;
+        if (defined.contains(r)) return true;
+        defined.add(r);
+      }
     }
+
     return false;
   }
   /**
@@ -744,19 +778,23 @@ public final class OPT_BranchOptimizations
         OPT_Instruction s = (OPT_Instruction)e.nextElement(); 
         if (s.isBranch()) continue;
         OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
-        OPT_Instruction tempS = (OPT_Instruction)takenInstructions.get(s);
-        OPT_RegisterOperand temp = (OPT_RegisterOperand)
-          tempS.getDefs().nextElement();
-        op = OPT_IRTools.getCondMoveOp(def.asRegister().type,
-                                                    false);
-        OPT_Instruction cmov = CondMove.create(op,def.asRegister() ,
-                                               tempVal1.copy(),
-                                               tempVal2.copy(),
-                                               cond.copy().asCondition(),
-                                               temp.copy(),
-                                               def.copy());
-        takenMap.put(def.asRegister().register,cmov);
-        cb.insertBefore(cmov);
+        // if the register does not span a basic block, it is a temporary
+        // that will now be dead
+        if (def.asRegister().register.spansBasicBlock()) {
+          OPT_Instruction tempS = (OPT_Instruction)takenInstructions.get(s);
+          OPT_RegisterOperand temp = (OPT_RegisterOperand)
+            tempS.getDefs().nextElement();
+          op = OPT_IRTools.getCondMoveOp(def.asRegister().type,
+                                         false);
+          OPT_Instruction cmov = CondMove.create(op,def.asRegister() ,
+                                                 tempVal1.copy(),
+                                                 tempVal2.copy(),
+                                                 cond.copy().asCondition(),
+                                                 temp.copy(),
+                                                 def.copy());
+          takenMap.put(def.asRegister().register,cmov);
+          cb.insertBefore(cmov);
+        }
         s.remove();
       }
     }
@@ -770,30 +808,34 @@ public final class OPT_BranchOptimizations
         OPT_Instruction s = (OPT_Instruction)e.nextElement(); 
         if (s.isBranch()) continue;
         OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
-        OPT_Instruction tempS = (OPT_Instruction)notTakenInstructions.get(s);
-        OPT_RegisterOperand temp = (OPT_RegisterOperand)
-          tempS.getDefs().nextElement();
+        // if the register does not span a basic block, it is a temporary
+        // that will now be dead
+        if (def.asRegister().register.spansBasicBlock()) {
+          OPT_Instruction tempS = (OPT_Instruction)notTakenInstructions.get(s);
+          OPT_RegisterOperand temp = (OPT_RegisterOperand)
+            tempS.getDefs().nextElement();
 
-        OPT_Instruction prevCmov = (OPT_Instruction)takenMap.get(def.asRegister
-                                                                 ().register);
-        if (prevCmov != null) {
-          // if this register was also defined in the taken branch, change
-          // the previous cmov with a different 'False' Value
-          CondMove.setFalseValue(prevCmov, temp.copy());
-          notTakenMap.put(def.asRegister().register,prevCmov);
-        } else {
-          // create a new cmov instruction
-          op = OPT_IRTools.getCondMoveOp(def.asRegister().type, false);
-          OPT_Instruction cmov = CondMove.create(op,def.asRegister(),
-                                                 tempVal1.copy(),
-                                                 tempVal2.copy(),
-                                                 cond.copy().asCondition(),
-                                                 def.copy(),
-                                                 temp.copy());
-          cb.insertBefore(cmov);
-          notTakenMap.put(def.asRegister().register,cmov);
-          s.remove();
+          OPT_Instruction prevCmov = (OPT_Instruction)takenMap.get(def.asRegister
+                                                                   ().register);
+          if (prevCmov != null) {
+            // if this register was also defined in the taken branch, change
+            // the previous cmov with a different 'False' Value
+            CondMove.setFalseValue(prevCmov, temp.copy());
+            notTakenMap.put(def.asRegister().register,prevCmov);
+          } else {
+            // create a new cmov instruction
+            op = OPT_IRTools.getCondMoveOp(def.asRegister().type, false);
+            OPT_Instruction cmov = CondMove.create(op,def.asRegister(),
+                                                   tempVal1.copy(),
+                                                   tempVal2.copy(),
+                                                   cond.copy().asCondition(),
+                                                   def.copy(),
+                                                   temp.copy());
+            cb.insertBefore(cmov);
+            notTakenMap.put(def.asRegister().register,cmov);
+          }
         }
+        s.remove();
       }
     }
 
