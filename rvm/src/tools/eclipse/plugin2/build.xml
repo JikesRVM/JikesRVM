@@ -36,7 +36,7 @@ $Id$
   <property name="package"     value="com.ibm.jikesrvm.launching_2.3.0.1"/>
   <!-- property name="package"
   value="com.ibm.JikesRVM.eclipse.jdt.launching_${jikesrvm.numericversion}"
-  / --->
+  / -->
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
