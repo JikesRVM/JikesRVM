@@ -161,6 +161,9 @@ public class Throwable implements java.io.Serializable {
   public void printStackTrace (int depth) {
     boolean useSysWrite = VM_Options.stackTraceVMSysWrite;
 
+    if (!VM.fullyBooted)
+      useSysWrite = true;
+
     if (!useSysWrite) {
       if (this instanceof OutOfMemoryError) {
         tallyOutOfMemoryError();
