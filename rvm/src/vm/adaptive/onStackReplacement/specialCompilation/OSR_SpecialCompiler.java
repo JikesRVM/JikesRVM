@@ -185,25 +185,7 @@ public class OSR_SpecialCompiler{
       }
     }
 
-    int[] oldLNStartPCs = null;
-
-    /* adjust line number table. */
-    {
-      VM_LineNumberMap lineNumberMap =
-          method.getLineNumberMap();
- 
-      if (lineNumberMap != null) {
-        oldLNStartPCs = lineNumberMap.startPCs;
-        int n = oldLNStartPCs.length;
-        int[] newLNStartPCs = new int[n];
-        lineNumberMap.startPCs = newLNStartPCs;
-        System.arraycopy(oldLNStartPCs, 0, newLNStartPCs, 0, n);
- 
-        for (int i=0; i<n; i++) {
-          newLNStartPCs[i] += prosize;
-        }
-      }
-    }
+    
 
  
     VM_CompiledMethod newCompiledMethod =
@@ -219,14 +201,6 @@ public class OSR_SpecialCompiler{
         exceptionHandlerMap.setStartPC(oldStartPCs);
         exceptionHandlerMap.setEndPC(oldEndPCs);
         exceptionHandlerMap.setHandlerPC(oldHandlerPCs);
-      }
-    }
-
-    {
-      VM_LineNumberMap lineNumberMap = method.getLineNumberMap();
- 
-      if (lineNumberMap != null) {
-        lineNumberMap.startPCs = oldLNStartPCs;
       }
     }
 

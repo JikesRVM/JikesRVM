@@ -15,10 +15,6 @@ import com.ibm.JikesRVM.classloader.*;
 public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
   implements VM_BaselineConstants {
 
-  // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
-  // This is wasting a lot of space!
-  private static final boolean saveBytecodeMap = true;
-  
   private static final int HAS_COUNTERS = 0x08000000;
   private static final int LOCK_OFFSET  = 0x00000fff;
 
@@ -33,6 +29,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public VM_ReferenceMaps referenceMaps;
 
   // the bytecode map; currently needed to support dynamic bridge magic; 
+  // TODO: encode this densely like the opt compiler does.
+  // Think about sharing some piece of the encoding code with opt???
   private int[] _bytecodeMap;
 
   /**
@@ -40,15 +38,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    */
   private int[] eTable;
 
-  /**
-   * Line tables for use by "findLineNumberForInstruction()".
-   * Note that line mappings for a method appear in order of increasing instruction offset.
-   * The same line number can appear more than once (each with a different instruction offset).
-   * Null tables mean "method has no line information".
-   * The instruction offset at which each instruction sequence begins.
-   */
-  private int[] lineInstructionOffsets;    
-  
   //-#if RVM_WITH_OSR
   /* To make a compiled method's local/stack offset independ of
    * original method, we move 'getFirstLocalOffset' and 'getEmptyStackOffset'
@@ -106,99 +95,49 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   public final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
-    if (lineInstructionOffsets == null)
-      return 0;                // method has no line information
-    // since "instructionOffset" points just beyond the desired instruction,
-    // we scan for the line whose "instructionOffset" most-closely-preceeds 
-    // the desired instruction
-    //
-    int[] instructionOffsets = lineInstructionOffsets;
-    int candidateIndex = -1;
-    for (int i = 0, n = instructionOffsets.length; i < n; ++i) {
-      if (instructionOffsets[i] >= instructionOffset)
-        break;
-      candidateIndex = i;
-    }
-    if (candidateIndex == -1)
-      return 0;                // not found
-    return method.getLineNumberMap().lineNumbers[candidateIndex];
+    int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
+    int bci = findBytecodeIndexForInstruction(instructionIndex);
+    if (bci == -1) return 0;
+    return method.getLineNumberMap().getLineNumberForBCIndex(bci);
   }
 
-  /** Find bytecode index corresponding to one of this method's 
+  /** 
+   * Find bytecode index corresponding to one of this method's 
    * machine instructions.
    *
-   * Note: compile with saveBytecodeMap = true !
    * Note: This method expects the instructionIndex to refer to the machine
    * 	     instruction immediately FOLLOWING the bytecode in question.
-   *	     just like getLineNumberForInstruction. See VM_CompiledMethod
+   *	     just like findLineNumberForInstruction. See VM_CompiledMethod
    * 	     for rationale
-   * NOTE: instructionIndex is in units of words, not bytes (different from
+   * NOTE: instructionIndex is in units of instructions, not bytes (different from
    *       all the other methods in this interface!!)
    *
-   * @returns the bytecode index for the machine instruction, -1 if
+   * @return the bytecode index for the machine instruction, -1 if
    *		not available or not found.
    */
-  public final int findBytecodeIndexForInstruction (int instructionIndex) {
-    if (_bytecodeMap == null)
-      return -1;               // method has no bytecode information
+  public final int findBytecodeIndexForInstruction (int instructionIndex) throws VM_PragmaUninterruptible {
     // since "instructionIndex" points just beyond the desired instruction,
     // we scan for the line whose "instructionIndex" most-closely-preceeds
     // the desired instruction
     //
     int candidateIndex = -1;
-    for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {
+    for (int i = 0, n = _bytecodeMap.length; i < n; i++) {
       if (_bytecodeMap[i] >= instructionIndex)
         break;
       // remember index at which each bytecode starts
       if (_bytecodeMap[i] != 0)
         candidateIndex = i;
     }
-    if (candidateIndex == -1)
-      return -1;               // not found
     return candidateIndex;
   }
 
-  /** Find machine code offset in this method's machine instructions
+  /** 
+   * Find machine code offset in this method's machine instructions
    * given the bytecode index. 
-   * Note: compile with saveBytecodeMap = true.
-   * @returns machine code offset for the bytecode index, -1 if not
-   * available or not found.
+   * @return machine code offset for the bytecode index, -1 if not available or not found.
    */
   public int findInstructionForBytecodeIndex (int bcIndex) {
-    if (saveBytecodeMap == false)
-      return -1; 
-    else 
-      return _bytecodeMap[bcIndex];
-  }
-
-  // Find (earliest) machine instruction corresponding one of this method's source line numbers.
-  //
-  public final int findInstructionForLineNumber (int lineNumber) {
-    if (lineInstructionOffsets == null)
-      return -1;               // method has no line information
-    int[] lineNumbers = method.getLineNumberMap().lineNumbers;
-    for (int i = 0, n = lineNumbers.length; i < n; ++i) {
-      if (lineNumbers[i] == lineNumber)
-        return lineInstructionOffsets[i];
-    }
-    return -1;
-  }
-
-  // Find (earliest) machine instruction corresponding to the next valid source code line
-  // following this method's source line numbers.
-  // Return -1 if there is no more valid source code in this method
-  public final int findInstructionForNextLineNumber (int lineNumber) {
-    if (lineInstructionOffsets == null)
-      return -1;               // method has no line information
-    int[] lineNumbers = method.getLineNumberMap().lineNumbers;
-    for (int i = 0, n = lineNumbers.length; i < n; ++i) {
-      if (lineNumbers[i] == lineNumber)
-        if (i == n - 1)         // last valid source code line, no next line
-          return -1; 
-        else 
-          return lineInstructionOffsets[i + 1];
-    }
-    return -1;
+    return _bytecodeMap[bcIndex];
   }
 
   /**
@@ -221,7 +160,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
   public final boolean up(VM_StackBrowser browser) {
-      return false;
+    return false;
   }
 
   // Print this compiled method's portion of a stack trace 
@@ -231,11 +170,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset)
-          + ")");
+		  + ")");
     } else {      // print class name + method name + file name + line number
       out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-          + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
-          + ":" + lineNumber + ")");
+		  + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
+		  + ":" + lineNumber + ")");
     }
   }
 
@@ -246,11 +185,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset)
-          + ")");
+		  + ")");
     } else {      // print class name + method name + file name + line number
       out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-          + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
-          + ":" + lineNumber + ")");
+		  + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
+		  + ":" + lineNumber + ")");
     }
   }
 
@@ -290,32 +229,14 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //        number of instructions for method
   //
   public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
-			 int[] bytecodeMap, int numInstructions) {
-    if (saveBytecodeMap)
-      _bytecodeMap = bytecodeMap;
-    // create stack-slot reference map
-    //
+				int[] bytecodeMap, int numInstructions) {
+    _bytecodeMap = bytecodeMap;
     referenceMaps.translateByte2Machine(bytecodeMap);
     this.referenceMaps = referenceMaps;
-    
-
-    // create exception tables
-    //
     VM_ExceptionHandlerMap emap = method.getExceptionHandlerMap();
     if (emap != null) {
       eTable = VM_BaselineExceptionTable.encode(emap, bytecodeMap);
     }
-
-    // create line tables
-    //
-    VM_LineNumberMap lmap = method.getLineNumberMap();
-    if (lmap != null) {
-      int[] startPCs = lmap.startPCs;
-      lineInstructionOffsets = new int[startPCs.length];
-      for (int i = 0, n = startPCs.length; i < n; ++i)
-        lineInstructionOffsets[i] = (bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
-    }
-
   }
 
   private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
@@ -324,7 +245,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     int size = TYPE.getInstanceSize();
     if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
     if (eTable != null) size += intArray.getInstanceSize(eTable.length);
-    if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
     if (referenceMaps != null) size += referenceMaps.size();
     return size;
   }

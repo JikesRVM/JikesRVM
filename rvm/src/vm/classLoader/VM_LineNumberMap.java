@@ -23,24 +23,20 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
    * bytecode offset at which each instruction sequence begins
    * 0-indexed from start of method's bytecodes[]     
    */
-  public int[] startPCs;    
+  private final short[] startPCs;    
 
   /** 
    * line number at which each instruction sequence begins
    * 1-indexed from start of method's source file
    */
-  public final int[] lineNumbers;
-
-  VM_LineNumberMap(int n) {
-    startPCs    = new int[n];
-    lineNumbers = new int[n];
-  }
+  private final short[] lineNumbers;
 
   VM_LineNumberMap(DataInputStream input, int n) throws IOException {
-    this(n);
-    for (int i = 0; i < n; ++i) {
-      startPCs[i]    = input.readUnsignedShort();
-      lineNumbers[i] = input.readUnsignedShort();
+    startPCs    = new short[n];
+    lineNumbers = new short[n];
+    for (int i = 0; i<n; i++) {
+      startPCs[i]    = input.readShort();
+      lineNumbers[i] = input.readShort();
     }
   }
 
@@ -50,11 +46,12 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
   public final int getLineNumberForBCIndex(int bci) {
     int idx;
     for (idx = 0; idx < startPCs.length; idx++) {
-      if (bci < startPCs[idx]) {
+      int pc = 0xffff & (int)startPCs[idx];
+      if (bci < pc) {
 	if (idx == 0) idx++; // add 1, so we can subtract 1 below.
 	break;
       }
     }
-    return lineNumbers[--idx];
+    return 0xffff & (int)lineNumbers[--idx];
   }
 }

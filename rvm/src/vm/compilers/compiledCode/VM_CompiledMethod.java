@@ -293,28 +293,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   }
 
   /**
-   * Find (earliest) machine instruction corresponding one of this method's 
-   * source line numbers.
-   * @param lineNumber source line number (1 == first line of source file)
-   * @return instruction offset from start of this method, 
-   * in bytes (-1 --> not found)
-   */
-  public int findInstructionForLineNumber(int lineNumber) {
-    return -1;
-  }
-
-  /**
-   * Find (earliest) machine instruction corresponding to the next 
-   * valid source code line following this method's source line numbers.
-   * @param lineNumber source line number (1 == first line of source file)
-   * @return instruction offset from start of this method, in bytes 
-   * (-1 --> no more valid code line)
-   */
-  public int findInstructionForNextLineNumber(int lineNumber) {
-    return -1;
-  }
-
-  /**
    * Print this compiled method's portion of a stack trace 
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintStream to print the stack trace to.
