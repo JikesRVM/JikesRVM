@@ -525,6 +525,20 @@ magic methods, control is transferred to the list of instructions which will
 generate the HIR for that method. The HIR for the magic method is always 
 inlined into the caller method.
 
+As an RVM implementor, you must be {\em extremely careful} when writing
+code that uses {\tt VM\_Magic} to circumvent the Java type
+system. The use of {\tt VM\_Magic.objectAsAddress} to perform various
+forms of pointer arithmetic is especially hazardous, since it can
+result in pointers being ``lost'' during garbage collection. 
+All such uses of magic must either occur in uninterruptible
+code (ie in a method of a class that {\em directly} implements 
+{\tt VM\_Uninterruptible}) or be guarded by calls to 
+{\tt VM.disableGC} and {\tt VM.enableGC}.  The optimizing compiler
+performs aggressive inlining and code motion and not explictly marking
+such dangerous regions in one of these two manners will lead to
+disaster.
+
+
 \subsection{Adaptive Optimization System}\label{aos}
 
 For a comprehensive discussion of the design and implementation of the
@@ -533,6 +547,11 @@ adaptive optimization system, see our
 
 For details on individual classes, see the source files under 
 {\tt \$RVM\_ROOT/rvm/src/vm/adaptive}.
+
+In summary, version 2.0 of the JikesRVM includes basic AOS
+functionality to identify and recompile program hot spots,
+context-insensitive online profile-directed inlining, and basic
+support for dynamic instrumentation. 
 
 \subsection{OptTestHarness}
 
