@@ -34,7 +34,8 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
   /* offset from object ref to .link field, in bytes */
   static final int OBJECT_LINK_OFFSET      = (VM.CompileForGCTracing ? OBJECT_DEATH_OFFSET + BYTES_IN_ADDRESS : 0);
   /* amount by which tracing causes headers to grow */
-  static final int GC_TRACING_HEADER_BYTES = (VM.CompileForGCTracing ? (BYTES_IN_ADDRESS*3) : 0);
+  static final int GC_TRACING_HEADER_WORDS = (VM.CompileForGCTracing ? 3 : 0);
+  static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS<<LOG_BYTES_IN_ADDRESS;
 
   /////////////////////////
   // Support for YYY (an example of how to add a word to all objects)
