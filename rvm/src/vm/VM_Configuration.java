@@ -7,8 +7,8 @@ package com.ibm.JikesRVM;
 /**
  * Flags that specify the configuration of our virtual machine.
  *
- * Note: Final controls require the whole vm to be recompiled and 
- *       rebuilt after their values are changed.
+ * Note: Changing any <code>final</code> flags requires that the whole vm
+ *       be recompiled and rebuilt after their values are changed.
  *
  * @author Bowen Alpern
  * @author Stephen Fink
@@ -60,13 +60,19 @@ public abstract class VM_Configuration {
 	  false;
 	//-#endif
 
-  // Assertion checking.
-  //  false --> no assertion checking at runtime
-  //  true  --> execute assertion checks at runtime
-  //
-  // Note: code your assertion checks as 
-  // "if (VM.VerifyAssertions) VM._assert(xxx);"
-  //
+  /** Assertion checking.
+      <dl>
+      <dt>false</dt>  <dd> no assertion checking at runtime</dd>
+      <dt>true  </dt> <dd> execute assertion checks at runtime</dd>
+      <dl>
+
+      Note: code your assertion checks as 
+      <pre>
+        if (VM.VerifyAssertions) 
+	  VM._assert(xxx);
+      </pre> 
+  */
+
   public static final boolean VerifyAssertions = 
         //-#if RVM_WITHOUT_ASSERTIONS
           false;
@@ -81,18 +87,19 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  // Verify that Uninterruptible methods actually cannot be interrupted.
-  // Disable until we can fix the last couple problem cases.
+  /**  If set, verify that Uninterruptible methods actually cannot be
+       interrupted.   We have disabled this until we can fix the last couple
+       problem cases. */ 
   public static final boolean VerifyUnint = true && VerifyAssertions;
 
-  // Ignore supression pragma and print all warning messages.
+  // If set, ignore the supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;
 
-  // Multiprocessor operation.
-  //  false --> vm will use multiple processors (requires operatying system that
-  //            supports posix pthread, e.g., AIX)
-  //  true  --> vm will use just one processor and no
-  //            synchronization instructions
+  // Multiprocessor operation?
+  //  false --> VM will use multiple processors (requires an operating system
+  //		that supports Posix pthreads)
+  //  true  --> VM will use just one processor and no 
+  //		synchronization instructions
   //
   public static final boolean BuildForSingleVirtualProcessor =
 	//-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -101,10 +108,10 @@ public abstract class VM_Configuration {
 	  false;
 	//-#endif
 
-  // Use count of method prologues executed rather than timer interrupts to drive
-  // preemptive thread switching.  Non preemptive thread switching is achieved by
-  // setting the number of prologues between thread switches to infinity (-1).
-  //
+  /** Use count of method prologues executed rather than timer interrupts to
+      drive preemptive thread switching.  Non preemptive thread switching is
+      achieved by setting the number of prologues between thread switches to
+      infinity (-1).  */
   public static final boolean BuildForDeterministicThreadSwitching =
 	//-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
 	  true;
@@ -116,7 +123,7 @@ public abstract class VM_Configuration {
 	//-#endif
 	//-#endif
 
-  // Does this build include support for Hardware Performance Monitors
+  /** Does this build include support for Hardware Performance Monitors? */
   public static final boolean BuildForHPM = 
     //-#if RVM_WITH_HPM
       true;
@@ -150,8 +157,9 @@ public abstract class VM_Configuration {
                                               !BuildForIMTInterfaceInvocation;
   public static final boolean DirectlyIndexedITables = false;
 
-  // Epilogue yieldpoints increase sampling accuracy for adaptive recompilation.
-  // In particular, they are key for large, leaf, loop-free methods.
+  /** Epilogue yieldpoints increase sampling accuracy for adaptive
+      recompilation.  In particular, they are key for large, leaf, loop-free
+      methods.  */
   public static final boolean UseEpilogueYieldPoints =
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
         true;
@@ -159,8 +167,7 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  // Adaptive compilation.
-  //
+  /** Adaptive compilation. */
   public static final boolean LogAOSEvents =
       //-#if RVM_WITHOUT_AOS_LOG 
         false;
@@ -168,10 +175,10 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  // Capture threads that have gone Native (JNI) and not come back.  Issolate them
-  // in Native.  Create a new (Native) virtual processor for them.  And create (or revive)
-  // new pThreads to run the old virtual processors.
-  //
+  /** Capture threads that have gone Native (JNI) and not come back.  Issolate
+      them in Native.  Create a new (Native) virtual processor for them.  And
+      create (or revive) new pThreads to run the old virtual processors.
+  */
   public static final boolean BuildWithNativeDaemonProcessor = 
     //-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
     !BuildForSingleVirtualProcessor;
@@ -179,8 +186,8 @@ public abstract class VM_Configuration {
     false;
     //-#endif
 
-  // The following configuration objects are final when disabled, but
-  // non-final when enabled.
+  /** The following configuration objects are final when disabled, but
+      non-final when enabled. */
   
   //-#if RVM_FOR_STRESSGC
   public static boolean ParanoidGCCheck       = true;
