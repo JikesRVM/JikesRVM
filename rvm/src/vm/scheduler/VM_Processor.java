@@ -560,6 +560,21 @@ implements VM_Uninterruptible, VM_Constants {
   // Garbage Collection  //
   //---------------------//
 
+  public boolean unblockIfBlockedInC () {
+    int newState, oldState;
+    boolean result = true;
+    do {
+      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      if (oldState != BLOCKED_IN_NATIVE) {
+        result = false;
+        break;
+      }
+      newState = IN_NATIVE;
+    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
+                                0, oldState, newState)));
+    return result;
+  }
+
   /**
    * sets the VP status to BLOCKED_IN_NATIVE if it is currently IN_NATIVE (ie C)
    * returns true if BLOCKED_IN_NATIVE
