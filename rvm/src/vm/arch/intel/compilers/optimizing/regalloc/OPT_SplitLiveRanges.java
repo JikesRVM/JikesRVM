@@ -86,38 +86,6 @@ implements OPT_Operators {
         //      This happens in a few special cases (MOVZX/MOZSX/SET)
         //      and in any other operator that has an 8 bit memory operand.
         switch (s.getOpcode()) {
-          case IA32_SHRD_opcode: case IA32_SHLD_opcode:
-            {
-              OPT_RegisterOperand rOp = MIR_DoubleShift.getSource(s);
-              OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-              // move r into 'temp' before s
-              insertMoveBefore(temp, rOp.copyRO(), s);
-              rOp.register = temp.register;
-            }
-            break;
-          case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
-            {
-	      OPT_Operand op = MIR_Compare.getVal2(s);
-	      if (!(op instanceof OPT_BURSManagedFPROperand)) {
-		OPT_RegisterOperand rOp = op.asRegister();
-		OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-		// move r into 'temp' before s
-		insertMoveBefore(temp, rOp.copyRO(), s);
-		rOp.register = temp.register;
-	      }
-            }
-            break;
-          case IA32_IMUL2_opcode:
-            {
-              OPT_RegisterOperand rOp = MIR_BinaryAcc.getResult(s).asRegister();
-              OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-              // move r into 'temp' before s
-              insertMoveBefore(temp, rOp.copyRO(), s);
-              // move 'temp' into r after s
-              insertMoveAfter(rOp.copyRO(), temp.copyRO(), s);
-              rOp.register = temp.register;
-            }
-            break;
           case IA32_LOWTABLESWITCH_opcode:
             {
               OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
@@ -159,15 +127,6 @@ implements OPT_Operators {
               OPT_RegisterOperand temp = findOrCreateTemp(op, newMap, ir);
               // move r into 'temp' before s
               insertMoveBefore(temp.copyRO(), op.copyRO(), s);
-              // move 'temp' into r after s
-              insertMoveAfter(op.copyRO(), temp.copyRO(), s);
-              op.register = temp.register;
-            }
-            break;
-          case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
-            {
-              OPT_RegisterOperand op = (OPT_RegisterOperand)MIR_Unary.getResult(s);
-              OPT_RegisterOperand temp = findOrCreateTemp(op, newMap, ir);
               // move 'temp' into r after s
               insertMoveAfter(op.copyRO(), temp.copyRO(), s);
               op.register = temp.register;

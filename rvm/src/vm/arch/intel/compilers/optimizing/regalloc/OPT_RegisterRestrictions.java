@@ -83,7 +83,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
   protected void processBlock(OPT_BasicBlock bb) {
     // first process the default register restrictions
     super.processBlock(bb);
-    
+
     // If there are any registers used in catch blocks, we want to ensure
     // that these registers are not used or evicted from scratch registers
     // at a relevant PEI, so that the assumptions of register homes in the
@@ -112,79 +112,37 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
       //      This happens in a few special cases (MOVZX/MOZSX/SET)
       //      and in any other operator that has an 8 bit memory operand.
       switch (s.getOpcode()) {
-      case IA32_SHRD_opcode: case IA32_SHLD_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
-	{
-	  OPT_Operand op = MIR_Compare.getVal2(s);
-	  if (!(op instanceof OPT_BURSManagedFPROperand)) {
-	    noteMustNotSpill(op.asRegister().register);
-	  }
-	}
-	break;
-      case IA32_IMUL2_opcode:
-	{ 
-	  OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_LOWTABLESWITCH_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	  if (MIR_Unary.getVal(s).isRegister()) {
-	    OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
-	    restrictTo8Bits(val.register);
-	  }
-	}
-	break;
-      case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
-	{ 
-	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_SET$B_opcode:
-	{ 
-	  if (MIR_Set.getResult(s).isRegister()) {
-	    OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-	    restrictTo8Bits(op.register);
-	  }
-	}
-	break;
-      case IA32_TEST_opcode:
-	{
-	  // at least 1 of the two operands must be in a register
-	  if (!MIR_Test.getVal2(s).isConstant()) {
-	    if (MIR_Test.getVal1(s).isRegister()) {
-	      noteMustNotSpill(MIR_Test.getVal1(s).asRegister().register);
-	    } else if (MIR_Test.getVal2(s).isRegister()) {
-	      noteMustNotSpill(MIR_Test.getVal2(s).asRegister().register);
-	    }
-	  }
-	}
-	handle8BitRestrictions(s);
-	break;
+        case IA32_LOWTABLESWITCH_opcode:
+          {
+            OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+            noteMustNotSpill(op.register);
+          }
+          break;
+        case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+          {
+            OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+            if (MIR_Unary.getVal(s).isRegister()) {
+              OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
+              restrictTo8Bits(val.register);
+            }
+          }
+          break;
+        case IA32_SET$B_opcode:
+          { 
+            if (MIR_Set.getResult(s).isRegister()) {
+              OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+              noteMustNotSpill(op.register);
+              restrictTo8Bits(op.register);
+            }
+          }
+          break;
+        case IA32_TEST_opcode:
+          handle8BitRestrictions(s);
+          break;
 
-      default:
-	  handle8BitRestrictions(s);
-	break;
+        default:
+          handle8BitRestrictions(s);
+          break;
       }
     }
   }
@@ -197,16 +155,16 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
    */
   final void handle8BitRestrictions(OPT_Instruction s) {
     for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
-	 me.hasMoreElements(); ) {
+         me.hasMoreElements(); ) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
       if (mop.size == 1) {
-	for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
-	     e2.hasMoreElements(); ) {
-	  OPT_Operand rootOp = e2.next();
-	  if (rootOp.isRegister()) {
-	    restrictTo8Bits(rootOp.asRegister().register);
-	  }
-	}
+        for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
+             e2.hasMoreElements(); ) {
+          OPT_Operand rootOp = e2.next();
+          if (rootOp.isRegister()) {
+            restrictTo8Bits(rootOp.asRegister().register);
+          }
+        }
       }
     }
   }
@@ -237,5 +195,97 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
       return true;
     }
     return super.isForbidden(symb,physical);
+  }
+
+  /**
+   * Given symbolic register r that appears in instruction s, does the
+   * architecture demand that r be assigned to a physical register in s?
+   */
+  static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
+    switch (s.getOpcode()) {
+      case IA32_SHRD_opcode: case IA32_SHLD_opcode:
+        {
+          OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
+        {
+          OPT_Operand op = MIR_Compare.getVal2(s);
+          if (!(op instanceof OPT_BURSManagedFPROperand)) {
+            if (op.asRegister().register == r) return true;
+          }
+        }
+        break;
+      case IA32_IMUL2_opcode:
+        { 
+          OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_LOWTABLESWITCH_opcode:
+        {
+          OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
+        {
+          OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+        {
+          OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+          /*
+          if (MIR_Unary.getVal(s).isRegister()) {
+            OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
+            restrictTo8Bits(val.register);
+          }
+          */
+        }
+        break;
+      case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
+        { 
+          OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_SET$B_opcode:
+        { 
+          if (MIR_Set.getResult(s).isRegister()) {
+            OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+            if (op.asRegister().register == r) return true;
+            /*
+            restrictTo8Bits(op.register);
+            */
+          }
+        }
+        break;
+      case IA32_TEST_opcode:
+        {
+          // at least 1 of the two operands must be in a register
+          if (!MIR_Test.getVal2(s).isConstant()) {
+            if (MIR_Test.getVal1(s).isRegister()) {
+              if (MIR_Test.getVal1(s).asRegister().register == r) return true;
+            } else if (MIR_Test.getVal2(s).isRegister()) {
+              if (MIR_Test.getVal2(s).asRegister().register == r) return true;
+            }
+          }
+        }
+        /*
+        handle8BitRestrictions(s);
+        */
+        break;
+
+      default:
+        /*
+        handle8BitRestrictions(s);
+        */
+        break;
+    }
+    return false;
   }
 }

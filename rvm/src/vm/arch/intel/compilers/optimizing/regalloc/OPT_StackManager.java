@@ -501,7 +501,8 @@ implements OPT_Operators {
     // III. Store the frame pointer in the processor object.
     int fpOffset = VM_Entrypoints.framePointerOffset;
     OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
-                                                    fpOffset, (byte)WORDSIZE, null, null);
+                                                    fpOffset, (byte)WORDSIZE, 
+                                                    null, null);
     inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome, R(FP)));
   }
 
@@ -743,6 +744,30 @@ implements OPT_Operators {
     // If we get here, all is kosher.
     return true;
   }
+
+  /**
+   * Given symbolic register r in instruction s, do we need to ensure that
+   * r is in a scratch register is s (as opposed to a memory operand)
+   */
+  private boolean needScratch(OPT_Register r, OPT_Instruction s) {
+    // We never need a scratch register for a floating point value in an
+    // FMOV instruction.
+    if (r.isFloatingPoint() && s.operator==IA32_FMOV) return false;
+
+    // Some MOVEs never need scratch registers
+    if (isScratchFreeMove(s)) return false;
+
+    // If s already has a memory operand, it is illegal to introduce
+    // another.
+    if (s.hasMemoryOperand()) return true;
+
+    // Check the architecture restrictions.
+    if (OPT_RegisterRestrictions.mustBeInRegister(r,s)) return true;
+    
+    // Otherwise, everything is OK.
+    return false;
+  }
+
   /**
    * After register allocation, go back through the IR and insert
    * compensating code to deal with spills.
@@ -807,10 +832,7 @@ implements OPT_Operators {
               // Note that we never need scratch floating point register
               // for FMOVs, since we already have a scratch stack location
               // reserved.
-              boolean maybeNeedsScratch = !(r.isFloatingPoint() && 
-                                            s.operator==IA32_FMOV);
-              if (maybeNeedsScratch && 
-                  (!isScratchFreeMove(s) && (s.hasMemoryOperand()))) {
+              if (needScratch(r,s)) {
                 // We must create a new scratch register.
                 boolean used = usedIn(r,s) || usesSpillLocation(r,s);
                 boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
