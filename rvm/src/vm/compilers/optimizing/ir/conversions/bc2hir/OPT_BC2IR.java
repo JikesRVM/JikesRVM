@@ -1346,8 +1346,22 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_getstatic:
 	{
+	  // field resolution
 	  VM_Field field = bcodes.getFieldReference();
-	  // use results of field analysis to refine type.
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, bcodes.declaringClass());
+	  if (!unresolved) field = field.resolve();
+	  OPT_LocationOperand fieldOp = makeStaticFieldRef(field);
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+	  
+	  // use results of field analysis to refine type of result
 	  VM_Type fieldType = field.getType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  if (field.getType().isClassType() && 
@@ -1363,10 +1377,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      }
 	    }
 	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
-	  if (!unresolved) field = field.resolve();
-	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
 
 	  // optimization: 
 	  // if the field is final and either initialized or
@@ -1380,17 +1390,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 		  (VM.writingBootImage && declaringClass.isInBootImage())) {
 		try {
 		  if (fieldType.isPrimitiveType()) {
-		    operator = OPT_IRTools.getMoveOp(field.getType());
 		    OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
 		    // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
 		    push (rhs, fieldType);
-		    s = null;
 		    break;
 		  } else {
 		    if (OPT_StaticFieldReader.isStaticFieldNull(field)) {
 		      // VM.sysWrite("Replaced getstatic of "+field+" with <null>\n");
 		      push(new OPT_NullConstantOperand(), fieldType);
-		      s = null;
 		      break;
 		    } else {
 		      VM_Type rtType = OPT_StaticFieldReader.getTypeFromStaticField(field);
@@ -1398,7 +1405,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 			OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
 			// VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
 			push (rhs, fieldType);
-			s = null;
 			break;
 		      } else {
 			t.type = rtType;
@@ -1416,36 +1422,60 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      }
 	    }
 	  }
+
+	  s = GetStatic.create(GETSTATIC, t, offsetOp, fieldOp);
 	  push(t.copyD2U(), fieldType);
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
 	}
 	break;
 
       case JBC_putstatic:
 	{
+	  // field resolution
 	  VM_Field field = bcodes.getFieldReference();
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, bcodes.declaringClass());
+	  if (!unresolved) field = field.resolve();
+	  OPT_LocationOperand fieldOp = makeStaticFieldRef(field);
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+
 	  VM_Type fieldType = field.getType();
 	  OPT_Operand r = pop(fieldType);
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?PUTSTATIC_UNRESOLVED:PUTSTATIC;
-	  if (!unresolved) field = field.resolve();
-	  s = PutStatic.create(operator, r, makeStaticFieldRef(field));
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
+	  s = PutStatic.create(PUTSTATIC, r, offsetOp, fieldOp);
 	}
 	break;
 
       case JBC_getfield:
 	{
+	  // field resolution
+	  VM_Field field = bcodes.getFieldReference();
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, bcodes.declaringClass());
+	  if (!unresolved) field = field.resolve();
+	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(field);
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+	  
+	  VM_Type fieldType = field.getType();
 	  OPT_Operand op1 = pop();
 	  clearCurrentGuard();
 	  if (do_NullCheck(op1))
 	    break;
-	  VM_Field field = bcodes.getFieldReference();
-	  VM_Type fieldType = field.getType();
-          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
+
 	  // use results of field analysis to refine type.
+          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  if (field.getType().isClassType() && 
 	      field.getType().asClass().isLoaded()) {
 	    VM_Type concreteType = OPT_FieldAnalysis.getConcreteType(field);
@@ -1459,223 +1489,196 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      }
 	    }
 	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
-	  if (!unresolved) field = field.resolve();
-	  s = GetField.create(operator, t, op1, makeInstanceFieldRef(field), 
-			      getCurrentGuard());
+
+	  s = GetField.create(GETFIELD, t, op1, offsetOp, fieldOp, getCurrentGuard());
 	  push(t.copyD2U(), fieldType);
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
 	}
 	break;
 
       case JBC_putfield:
 	{
+	  // field resolution
 	  VM_Field field = bcodes.getFieldReference();
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, bcodes.declaringClass());
+	  if (!unresolved) field = field.resolve();
+	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(field);
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+	  
 	  VM_Type fieldType = field.getType();
 	  OPT_Operand val = pop(fieldType);
 	  OPT_Operand obj = popRef();
 	  clearCurrentGuard();
 	  if (do_NullCheck(obj))
 	    break;
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
-	  if (!unresolved) field = field.resolve();
-	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
-			      getCurrentGuard());
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
+
+	  s = PutField.create(PUTFIELD, val, obj, offsetOp, fieldOp, getCurrentGuard());
 	}
 	break;
 
       case JBC_invokevirtual:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_VIRTUAL);
-	  }
 	  VM_Method meth = bcodes.getMethodReference();
+
+	  // See if this is a magic method (VM_Address, VM_Word, etc.)
+	  // If it is, generate the inline code and we are done.
 	  if (meth.getDeclaringClass().isWordType()) {
-	    try {
-	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (generated) {
-		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
-		  OPT_InlineReport.isMagic(meth);
-		break;
-	      }
-	    } catch (OPT_MagicNotImplementedException e) {
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
-	      }
-	      throw e;
-	    }
-	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
-	  if (!unresolved) meth = meth.resolve();
-	  OPT_MethodOperand methOp = 
-	    OPT_MethodOperand.VIRTUAL(meth, unresolved);
-	  s = _callHelper(methOp);
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
+	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
+	    if (generated) break; // all done.
 	  }
 
-	  // try to reduce the number of targets.
-	  // If we succeed, we'll update meth, unresolved, 
-	  // and s's method operand.
-	  OPT_Operand ref = Call.getParam(s, 0);
-	  boolean receiverClassResolved = false;
+	  // A non-magical invokevirtual.  Create call instruction.
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, bcodes.declaringClass());
+	  if (!unresolved) meth = meth.resolve();
+	  OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(meth, unresolved);
+	  s = _callHelper(methOp);
+
+	  // Handle possibility of dynamic linking. Must be done before null_check!
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
+	  }
+
+	  // null check receiver
+	  OPT_Operand receiver = Call.getParam(s, 0);
+	  clearCurrentGuard();
+	  if (do_NullCheck(receiver)) break; // call will always raise null pointer exception
+	  Call.setGuard(s, getCurrentGuard());
+
+	  // Use compile time type of receiver to try reduce the number of targets.
+	  // If we succeed, we'll update meth and s's method operand.
 	  boolean isExtant = false;
+	  boolean isPreciseType = false;
 	  VM_Type type = null;
-	  if (ref.isRegister()) {
-	    isExtant = ref.asRegister().isExtant();
-	    type = ref.asRegister().type;
-	  } else if (ref.isStringConstant()) {
+	  if (receiver.isRegister()) {
+	    OPT_RegisterOperand rop = receiver.asRegister();
+	    isExtant = rop.isExtant();
+	    isPreciseType = rop.isPreciseType();
+	    type = rop.type;
+	  } else if (receiver.isStringConstant()) {
 	    isExtant = true;
+	    isPreciseType = true;
 	    type = OPT_ClassLoaderProxy.JavaLangStringType;
-	  } else if (VM.VerifyAssertions)
+	  } else if (VM.VerifyAssertions) {
 	    VM._assert(false, "unexpected receiver");
-	  receiverClassResolved = type.isResolved();
-	  if ((meth.getDeclaringClass() != type) && type.isClassType()) {
-	    VM_Method vmeth = 
-		OPT_ClassLoaderProxy.lookupMethod(type.asClass(), meth);
+	  }
+	  VM_Method computedTarget = null;
+	  if (type.isResolved() && type.isClassType() && type != meth.getDeclaringClass()) {
+	    VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), meth);
 	    if (vmeth != null && vmeth != meth) {
-	      // Update meth to be the refined vmeth
 	      meth = vmeth;
-	      unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
 	      Call.setMethod(s, OPT_MethodOperand.VIRTUAL(meth, unresolved, true));
 	    }
+	    // We know FOR CERTAIN that we will always invoke meth at this call site.
+	    // We only do this if type.isResolved() to ensure that lookupMethod was actually
+	    // able to examine the class hierarchy successfully.
+	    if (isPreciseType) computedTarget = meth;
 	  }
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    // if the type is precise and receiverClassResolved is true
-	    // then we know FOR CERTAIN that this call will resolve to meth.
-	    // By ensuring that recieverClassResolved, we make sure that 
-	    // lookupMethod was able to actually search the class hierarchy 
-	    // and set meth appropriately.
-	    VM_Method computedTarget = null;
-	    if (receiverClassResolved && 
-		((ref.isStringConstant()) || 
-		 ref.asRegister().isPreciseType())) {
-	      computedTarget = meth;
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-		OPT_InlineReport.isPreciseType();
-	    }
-            OPT_InlineDecision id = shouldInline(s, computedTarget, isExtant);
-            if (maybeInlineMethod(id, s)) {
-              return;
-            }
-          }
 
-	  // CALL must be treated as potential throw of anything
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, computedTarget, isExtant), s)) {
+	    return;
+          } 
+
+	  // noninlined CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokespecial:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_SPECIAL);
-	  }
 	  VM_Method meth = bcodes.getMethodReference();
-	  // Note: this is not the usual needsDynamicLink 
-	  // due to semantics of invokespecial
-	  // See comments in VM_OptLinker, OPT_Convert2Low, VM_Linker.  
-	  boolean unresolved = 
-	    !meth.getDeclaringClass().isResolved() ||
-	    (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
+	  // Note: this is not the usual needsDynamicLink due to semantics of invokespecial
+	  // See comments in VM_OptLinker and VM_TableBasedDynamicLinker
+	  boolean unresolved = !meth.getDeclaringClass().isResolved() || (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
 	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.SPECIAL(meth, unresolved));
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
-	  }
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
-	      return;
-	    }
+
+	  // Handle possibility of dynamic linking. Must be done before null_check!
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
 	  }
 
-	  // CALL must be treated as potential throw of anything
+	  // null check receiver
+	  OPT_Operand receiver = Call.getParam(s, 0);
+	  clearCurrentGuard();
+	  if (do_NullCheck(receiver)) break; // call will always raise null pointer exception
+	  Call.setGuard(s, getCurrentGuard());
+
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
+	    return;
+	  }
+	  
+	  // noninlined CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokestatic:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_STATIC);
-	  }
 	  VM_Method meth = bcodes.getMethodReference();
+
+	  // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
+	  // If it is, generate the inline code and we are done.
 	  if (meth.getDeclaringClass().isMagicType() ||
 	      meth.getDeclaringClass().isWordType()) {
-	    try {
-	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (generated) {
-		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
-		  OPT_InlineReport.isMagic(meth);
-		break;
-	      }
-	    } catch (OPT_MagicNotImplementedException e) {
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
-	      }
-	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
-		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
-		// CALL must be treated as potential throw of anything
-		rectifyStateWithExceptionHandlers();
-		break;
-	      } else {
-		throw  (e);
-	      }
-	    }
+	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
+	    if (generated) break;
 	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
+
+	  // A non-magical invokestatic.  Create call instruction.
+	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, bcodes.declaringClass());
 	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.STATIC(meth, unresolved));
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
-
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
-	      return;
-	    }
+	  
+	  // Handle possibility of dynamic linking.
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
 	  }
 
-	  // CALL must be treated as potential throw of anything
-	  rectifyStateWithExceptionHandlers();
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
+	    return;
+	  }
+	  
+	  // noninlined CALL must be treated as potential throw of anything
+	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokeinterface:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_INTERFACE);
-	  }
 	  VM_Method meth = bcodes.getMethodReference();
 	  bcodes.alignInvokeInterface();
 	  OPT_MethodOperand methOp = OPT_MethodOperand.INTERFACE(meth, false);
 	  s = _callHelper(methOp);
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
-	  }
+
+	  // null check on this parameter of call
+	  // TODO: Strictly speaking we need to do dynamic linking of the interface
+	  //       type BEFORE we do the null check. FIXME.
+	  clearCurrentGuard();
+	  if (do_NullCheck(Call.getParam(s, 0))) break; // will raise null pointer exception
+	  Call.setGuard(s, getCurrentGuard());
 
 	  OPT_RegisterOperand ref = Call.getParam(s, 0).asRegister();
 	  VM_Class refType = ref.type.asClass();
@@ -1687,9 +1690,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Step 1: handle the possibility of ghost references
 	  try {
 	    VM_Method resolvedMethodRef = meth.resolveInterfaceMethod(false);
-	    if (resolvedMethodRef == null
-		// Include this here in case it is needed later
-		) {
+	    if (resolvedMethodRef == null) {
 	      if (requiresImplementsTest) {
 		// might be a ghost reference. 
 		// Must do the more involved typechecking sequence
@@ -1702,12 +1703,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 		appendInstruction(getTib);
 		getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
-		OPT_MethodOperand dtcRoutine = 
-		  OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod);
+		VM_Method target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
 		OPT_Instruction callCheck =
-		    Call.create2(CALL, null, null, dtcRoutine, 
-		      new OPT_IntConstantOperand(meth.getDictionaryId()),
-		      tibPtr.copyD2U());
+		  Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			       OPT_MethodOperand.STATIC(target),
+			       new OPT_IntConstantOperand(meth.getDictionaryId()),
+			       tibPtr.copyD2U());
                 if (gc.options.NO_CALLEE_EXCEPTIONS) {
                   callCheck.markAsNonPEI();
                 }
@@ -1721,9 +1722,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      meth = resolvedMethodRef;
 	      Call.setMethod(s, OPT_MethodOperand.INTERFACE(meth, false));
 	    }
-	  } catch (Exception e) {
-	      // bogus catch of VM_ResolutionException to keep java happy
-	      // actually can't be thrown when we pass false for canLoad.
+	  } catch (VM_ResolutionException e) {
+	    // bogus catch of VM_ResolutionException to keep java happy
+	    // actually can't be thrown when we pass false for canLoad.
 	  }
 
 	  // Step 2: Invokeinterface requires a dynamic type check
@@ -1757,7 +1758,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  //         to do 2 implies 3 or that doing 3 implies 2.  
 	  VM_Method vmeth;
 	  if (refType.isResolved() && !refType.isInterface() &&
-	      (vmeth=OPT_ClassLoaderProxy.lookupMethod(refType, meth))!=null) {
+	      (vmeth = OPT_ClassLoaderProxy.lookupMethod(refType, meth)) != null) {
 	    // We're going to virtualize it. Must deal with the DTC here.
 	    if (requiresImplementsTest) {
 	      appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
@@ -1765,29 +1766,27 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 						 makeTypeOperand(interfaceType),
 						 getCurrentGuard()));
 	    }
-	    boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(vmeth, gc.method.getDeclaringClass());
+	    boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(vmeth, bcodes.declaringClass());
 	    Call.setMethod(s, OPT_MethodOperand.VIRTUAL(vmeth, unresolved, true));
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	      OPT_InlineReport.classUnresolved(unresolved, meth);
-	    // Think about trying to inline it
-	    if (!unresolved) {
-	      // if the type is precise, then we know FOR CERTAIN that
-	      // this call will resolve to meth
-	      VM_Method computedTarget = ref.isPreciseType() ? vmeth : null;
-	      if (computedTarget != null && 
-		  gc.options.PRINT_DETAILED_INLINE_REPORT)
-		OPT_InlineReport.isPreciseType();
-		
-	      OPT_InlineDecision id = 
-		shouldInline(s, computedTarget, ref.isExtant());
-              if (maybeInlineMethod(id, s)) {
-                return;
-              }
+	    if (unresolved) {
+	      OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	      appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	      Call.setAddress(s, offsetrop);
+	      rectifyStateWithErrorHandler();
+	    } else {
+	      Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
+	    }
+
+	    // Attempt to inline virtualized call.
+	    // If the type is precise, then we know FOR CERTAIN that
+	    // this call will resolve to meth
+	    VM_Method computedTarget = ref.isPreciseType() ? vmeth : null;
+	    if (maybeInlineMethod(shouldInline(s, computedTarget, ref.isExtant()), s)) {
+	      return;
 	    }
 	  } else {
 	    // try to inline a predicted target for the interface invocation
-            OPT_InlineDecision id = shouldInline(s, null, false);
-            if (maybeInlineMethod(id, s)) {
+            if (maybeInlineMethod(shouldInline(s, null, false), s)) {
               return;
             } else {
 	      if (requiresImplementsTest) {
@@ -1798,6 +1797,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      }
 	    }
 	  }
+
 	  // CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
@@ -2356,15 +2356,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (gc.options.NO_CALLEE_EXCEPTIONS) {
       s.markAsNonPEI();
     }
-    for (int i = params.length - 1; i >= 0; i--)
+    for (int i = params.length - 1; i >= 0; i--) {
       Call.setParam(s, i + numHiddenParams, pop(params[i]));
+    }
     if (numHiddenParams != 0) {
       OPT_Operand ref = pop();
       Call.setParam(s, 0, ref);
-      clearCurrentGuard();
-      if (do_NullCheck(ref))
-        return null;
-      Call.setGuard(s, getCurrentGuard());
     }
     VM_Type rtype = methOp.method.getReturnType();
     if (!rtype.isVoidType()) {
@@ -2970,7 +2967,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + gc.method.getDeclaringClass().getName() + "."
+    VM.sysWrite("IRGEN " + bcodes.declaringClass().getName() + "."
 		+ gc.method.getName() + ":" + val + "\n");
   }
   /**
@@ -3977,10 +3974,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 			       computedTarget, isExtant, gc.options, 
 			       gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
-    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-      OPT_InlineReport.setValues(state);
-      OPT_InlineReport.setDecision(d);
-    }
     return d;
   }
 
@@ -4744,7 +4737,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param val string to print
      */
     private final void db(String val) {
-      VM.sysWrite("IRGEN " + gc.method.getDeclaringClass().getName() + "."
+      VM.sysWrite("IRGEN " + bcodes.declaringClass().getName() + "."
 		  + gc.method.getName() + ":" + val + "\n");
     }
 
