@@ -37,6 +37,10 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean runningVM;        
   /**
+   * are we in the boot-image-writing portion of boot-image-creation
+   */
+  public static boolean writingImage = false;
+  /**
    * if true, don't exit from the process
    */
   public static boolean runningAsSubsystem;  
