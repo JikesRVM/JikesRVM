@@ -14,9 +14,15 @@
 # $Author$
 #
 
+#
+plugin.version=2.3.0.1
+#
 # Point this to your eclipse installation
-eclipse.dir=/home/palm/MyEclipse/eclipse
+eclipse.dir=/home/augart/eclipse
 # 
+# Show extra info when building?
 build.trace=true
 #
-jikesrvm.numericversion=2.3.0.1
+# Taken from the RVM_BUILD envar
+build.dir=/home/augart/JikesRVM/Images/BaseBaseCopyMS/plugin.eclipse
+
