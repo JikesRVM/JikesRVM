@@ -6,7 +6,6 @@ package com.ibm.JikesRVM;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
 //-#endif
 
 /**

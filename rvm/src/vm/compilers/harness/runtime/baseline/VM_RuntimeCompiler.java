@@ -4,14 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+
 /**
  * Use baseline compiler to compile methods at runtime. 
  *
  * @author Stephen Fink
  * @author David Grove
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
-
 public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   static void boot() {
     if (VM.MeasureCompilation) {

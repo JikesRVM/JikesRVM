@@ -23,7 +23,7 @@ import java.io.PrintStream;
  *  @author Michael Hind
  *  @author Stephen Fink
  */
-final class VM_ControllerMemory implements VM_Constants {
+public final class VM_ControllerMemory implements VM_Constants {
 
   /**
    *  This is a hashtable of controller plans indexed on the method ID.  
@@ -68,7 +68,7 @@ final class VM_ControllerMemory implements VM_Constants {
   static void incrementNumMethodsConsidered()   { numMethodsConsidered++; }
   static void incrementNumMethodsScheduledForRecomp()  
     { numMethodsScheduledForRecomp++; }
-  static void incrementNumBase()                { numBase++; }
+  public static void incrementNumBase()                { numBase++; }
   static void incrementNumOpt0()                { numOpt0++; }
   static void incrementNumOpt1()                { numOpt1++; }
   static void incrementNumOpt2()                { numOpt2++; }

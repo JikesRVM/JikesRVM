@@ -11,10 +11,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
-//-#endif
-
 /**
  * Global variables used to implement virtual machine thread scheduler.
  *    - virtual cpus

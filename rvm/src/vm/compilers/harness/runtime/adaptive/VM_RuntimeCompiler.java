@@ -2,48 +2,32 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.adaptive;
-
-import java.util.*;
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.opt.*;
-
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_BaselineCompiler;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_Method;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
-import com.ibm.JikesRVM.VM_CommandLineArgs;
-import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.adaptive.*;
 
 /**
- *
  * The adaptive version of the runtime compiler.
  * 
+ * @author Matthew Arnold
+ * @author Dave Grove
  * @author Michael Hind
- * @modified by Matthew Arnold
  */
 public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
-  static OPT_InlineOracle offlineInlineOracle;
+  public static OPT_InlineOracle offlineInlineOracle;
+  private static String[] earlyArgs = new String[0];
 
   public static void boot() { 
     VM.sysWrite("VM_RuntimeCompiler: boot (adaptive compilation)\n");
 
-    // initialize the OPT compiler, if any operation throws
-    // an exception, we'll let it propagate to our caller because we
-    // need both the baseline and OPT compilers to work
-    // to perform adaptive compilation.
-    // Currently, the baseline compiler does not have a boot method
     VM_RuntimeOptCompilerInfrastructure.boot(); 
-
-    // boot() has set compilerEnabled to true
-    Iterator i = earlyArgs.iterator();
-    while (i.hasNext()) processCommandLineArg( (String) i.next() );
+    // NOTE: VM_RuntimeOptCompilerInfrastructure.boot() has set compilerEnabled to true
+    for (int i=0; i<earlyArgs.length; i++) {
+      processCommandLineArg(earlyArgs[i]);
+    }
   }
   
-  private static final HashSet earlyArgs = new HashSet(5);
-
   public static void processCommandLineArg(String arg) {
     if (VM_Controller.options !=null  && VM_Controller.options.optOnly()) {
       if (compilerEnabled) {
@@ -56,7 +40,12 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  VM.sysExit(-1);
 	}
       } else {
-	  earlyArgs.add( arg );
+	String[] tmp = new String[earlyArgs.length+1];
+	for (int i=0; i<earlyArgs.length; i++) {
+	  tmp[i] = earlyArgs[i];
+	}
+	earlyArgs = tmp;
+	earlyArgs[earlyArgs.length-1] = arg;
       }
     } else {
       VM_BaselineCompiler.processCommandLineArg("-X:aos:irc", arg);
@@ -107,21 +96,14 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
 	} else { // compile with opt compiler
-	  // Initialize an instrumentation plan.
 	  VM_AOSInstrumentationPlan instrumentationPlan = 
-	    new VM_AOSInstrumentationPlan(VM_Controller.options,
-					  method);
-
-	  // create a compilation plan
+	    new VM_AOSInstrumentationPlan(VM_Controller.options, method);
 	  OPT_CompilationPlan compPlan = 
 	    new OPT_CompilationPlan(method, optimizationPlan, 
 				    instrumentationPlan, options);
-
-	  // If we have an inline oracle, use it!
 	  if (offlineInlineOracle != null) {
 	    compPlan.setInlineOracle(offlineInlineOracle);
 	  }
-
 	  cm = optCompileWithFallBack(method, compPlan);
 	}
       } else {

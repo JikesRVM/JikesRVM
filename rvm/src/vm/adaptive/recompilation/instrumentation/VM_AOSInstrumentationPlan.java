@@ -26,22 +26,20 @@ import java.util.Enumeration;
  *
  **/
 
-class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan
-{
+public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
 
   
   /**
    * Construct empty plan, must setup manually
    **/ 
-  VM_AOSInstrumentationPlan(VM_Method method) {
+  public VM_AOSInstrumentationPlan(VM_Method method) {
     this.method = method;
   }
 
   /**
    * Construct based on options
    **/ 
-  VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_Method method)
-  {
+  public VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_Method method) {
     // If we want to collect method invocation counts.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
     }

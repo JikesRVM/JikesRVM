@@ -10,7 +10,6 @@ import com.ibm.JikesRVM.opt.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
 //-#endif
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;

@@ -11,11 +11,7 @@ import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
-//-#else
 import com.ibm.JikesRVM.VM_RuntimeCompiler;
-//-#endif
 import com.ibm.JikesRVM.VM_JNIGCMapIterator;
 import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
 import com.ibm.JikesRVM.VM_Thread;

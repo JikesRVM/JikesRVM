@@ -11,11 +11,6 @@ import java.io.IOException;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
-//-#endif
-
-
 /**
  * A method of a java class.
  *

@@ -4,13 +4,6 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
-//-#endif
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
-
-
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
