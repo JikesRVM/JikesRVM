@@ -297,6 +297,7 @@ public class VM extends VM_Properties
                                               that Math's native trig functions
                                               work.  Still can't use them
                                               until JNI is set up. */ 
+    runClassInitializer("java.util.SimpleTimeZone");
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");

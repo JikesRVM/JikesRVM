@@ -30,7 +30,6 @@ public class VM_ClassLoader implements VM_Constants,
   /** The GNU Classloaded failed for us, as of Classpath 0.13 + CVS head.   I
    * have not attempted to debug it. */
   final public static boolean USE_OLD_APP_CLASSLOADER = false;
-  final public static boolean USE_GNU_APP_CLASSLOADER = false;
   
   private static ClassLoader appCL;
 
@@ -127,9 +126,7 @@ public class VM_ClassLoader implements VM_Constants,
                       "Initializing Application ClassLoader, with" +
                       " repositories: `", r, "'...");
 
-      if (USE_GNU_APP_CLASSLOADER)
-        appCL = new gnu.java.lang.SystemClassLoader(null);
-      else if (USE_OLD_APP_CLASSLOADER) {
+      if (USE_OLD_APP_CLASSLOADER) {
         appCL = new ApplicationClassLoader(r);
       } else {
         VM_ApplicationClassLoader2.setApplicationRepositories(r);
