@@ -948,7 +948,9 @@ class BootMapExternal extends BootMap {
     }
 
     // not found in dictionary, the address must not be an instruction address
-    System.out.println("scanCompiledMethodIDTable:  not found");
+    System.out.print("Could not find code address: " + Integer.toHexString(address));
+    System.out.println(" in address ranges of any compiled method ");
+    System.out.println("scanCompiledMethodIDTable:  address not found");
     return 0;
   }
 
