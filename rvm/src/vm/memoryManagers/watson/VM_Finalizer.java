@@ -246,11 +246,6 @@ public class VM_Finalizer
       while (le != null) 
       {
         count++;
-        if (COUNT_BY_TYPES) {
-          VM_Type type = VM_Magic.getObjectType
-            (VM_Magic.addressAsObject(le.value));
-          type.liveCount++;
-        }
         le = le.next;
       }
       return count;
@@ -264,10 +259,6 @@ public class VM_Finalizer
       while (le != null) 
       {
         count++;
-        if (COUNT_BY_TYPES) {
-          VM_Type type = VM_Magic.getObjectType(le.pointer);
-          type.liveCount++;
-        }
         le = le.next;
       }
       return count;
