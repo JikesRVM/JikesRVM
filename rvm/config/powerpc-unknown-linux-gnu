@@ -78,6 +78,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 export AWK="/usr/bin/awk"
 export BASH="/bin/bash"
+export CVS="/usr/bin/cvs"
 export DIFF=/usr/bin/diff
 export FGREP="/usr/bin/fgrep"
 export FIND="/usr/bin/find"

@@ -76,6 +76,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
 export AWK="/usr/gnu/bin/gawk"
 export BASH="/usr/gnu/bin/bash"
+export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
 export DIFF="/usr/gnu/bin/diff"
 export FGREP="/usr/gnu/bin/fgrep"
 export FIND="/usr/gnu/bin/find"
@@ -87,6 +88,3 @@ export SED="/usr/gnu/bin/sed"
 export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 export UNZIP="/usr/contrib/bin/unzip"
-
-# The following is optional; only needed for fancy CVS scripts
-export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
