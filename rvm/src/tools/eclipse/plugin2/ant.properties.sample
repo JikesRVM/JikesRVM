@@ -16,3 +16,7 @@
 
 # Point this to your eclipse installation
 eclipse.dir=/home/palm/MyEclipse/eclipse
+# 
+build.trace=true
+#
+jikesrvm.version=post_2.3.0
