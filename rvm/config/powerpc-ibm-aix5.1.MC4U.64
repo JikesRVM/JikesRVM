@@ -56,7 +56,12 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # sources for current stable version of classpath
-export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
+# export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
+export CLASSPATH_SOURCE_DIR=/home/augart/classpath-0.11/classpath
+
+export CLASSPATH_BUILD_DIR=/home/augart/classpath-0.11/powerpc-ibm-aix5.1.MC4U.64/
+export RVM_WITH_CLASSPATH_0_11_OR_LATER=1
+
 
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
