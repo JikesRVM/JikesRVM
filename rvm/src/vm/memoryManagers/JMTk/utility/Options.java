@@ -31,6 +31,8 @@ public class Options implements VM_Uninterruptible, Constants {
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
   public static boolean genCycleDetection = false;
+  public static boolean fragmentationStats = false;
+  public static boolean verboseFragmentationStats = false;
 
   static boolean noFinalizer = false;
 
@@ -41,6 +43,13 @@ public class Options implements VM_Uninterruptible, Constants {
     }
     else if (arg.equals("ignoreSystemGC")) {
       ignoreSystemGC = true;
+    }
+    else if (arg.equals("fragmentationStats")) {
+      fragmentationStats = true;
+    }
+    else if (arg.equals("verboseFragmentationStats")) {
+      fragmentationStats = true;
+      verboseFragmentationStats = true;
     }
     else if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);

@@ -240,25 +240,25 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   private final void sanity() {
-    for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address block = freeList.get(fl);
-      VM_Address prev = VM_Address.zero();
-      while (!block.isZero()) {
-	if (VM_Interface.VerifyAssertions) {
-	  VM_Interface._assert(isFree(block));
-	  VM_Interface._assert(fl == getFreeListID(block));
-	  VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
-	  VM_Interface._assert(freeListEntries(block) == 1);
-	}
-	prev = block;
-	block = getNextFLBlock(block);
-      }
-    }
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+       VM_Address block = freeList.get(fl);
+       VM_Address prev = VM_Address.zero();
+       while (!block.isZero()) {
+	 if (VM_Interface.VerifyAssertions) {
+	   VM_Interface._assert(isFree(block));
+	   VM_Interface._assert(fl == getFreeListID(block));
+	   VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
+	   VM_Interface._assert(freeListEntries(block) == 1);
+	 }
+	 prev = block;
+	 block = getNextFLBlock(block);
+       }
+     }
   }
 
   private final int freeListEntries(VM_Address block) {
     int entries = 0;
-    for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
       VM_Address blk = freeList.get(fl);
       while (!blk.isZero()) {
 	if (blk.EQ(block))
@@ -267,6 +267,28 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       }
     }
     return entries;
+  }
+
+  /**
+   * Return the number of bytes consumed by unused blocks.
+   *
+   * @return The number of bytes consumed by unused blocks.
+   */
+  public final int unusedBytes() {
+    int minipgs = 0;
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+      VM_Address block = freeList.get(fl);
+      while (!block.isZero()) {
+	int sc;
+	if ((fl & ((1<<FREE_LIST_BITS)-1)) != 0)
+	  sc = fl & ((1<<FREE_LIST_BITS)-1);
+	else 
+	  sc = fl>>>FREE_LIST_BITS;
+	minipgs += 1<<sc;
+	block = getNextFLBlock(block);
+      }
+    }
+    return (minipgs<<MIN_BLOCK_LOG);
   }
 
   private final void merge(VM_Address child, byte childSC, byte originalSC) {
