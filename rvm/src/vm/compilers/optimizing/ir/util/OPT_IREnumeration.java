@@ -186,8 +186,7 @@ public abstract class OPT_IREnumeration {
     };
   }
   
-  private static final void fail(String msg) throws java.util.NoSuchElementException {
-    VM_Magic.pragmaNoInline();
+  private static final void fail(String msg) throws java.util.NoSuchElementException, VM_PragmaNoInline {
     throw new java.util.NoSuchElementException(msg);
   }
 }

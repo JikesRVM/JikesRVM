@@ -181,8 +181,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
-				  int numBytes, VM_Class type, int availBitsWord) {
-    VM_Magic.pragmaInline();
+				  int numBytes, VM_Class type, int availBitsWord) throws VM_PragmaInline {
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {
@@ -222,8 +221,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, int availBitsWord) {
-    VM_Magic.pragmaInline();
+				  VM_Array type, int availBitsWord) throws VM_PragmaInline {
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {
@@ -303,8 +301,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
   
   /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
-  private static int installHashCode(Object o) {
-    VM_Magic.pragmaNoInline();
+  private static int installHashCode(Object o) throws VM_PragmaNoInline {
     int hashCode;
     do {
       hashCodeGenerator += (1 << HASH_CODE_SHIFT);

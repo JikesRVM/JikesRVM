@@ -30,8 +30,7 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param oldval The old value to be decremented.
    * @param newval The new value to be incremented.
    */
-    static final void emitBufferStores(VM_Address oldval, VM_Address newval) {
-	VM_Magic.pragmaInline();
+    static final void emitBufferStores(VM_Address oldval, VM_Address newval) throws VM_PragmaInline {
 
 	VM_Processor p = VM_Processor.getCurrentProcessor();
 	VM_Address bufferPointer = p.incDecBufferTop;

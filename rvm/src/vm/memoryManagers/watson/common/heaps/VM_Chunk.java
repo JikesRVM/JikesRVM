@@ -47,8 +47,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    *       If you change it you must verify that the efficient 
    *       inlined allocation sequence isn't hurt!
    */
-  public static VM_Address allocateChunk1(int size) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+  public static VM_Address allocateChunk1(int size) throws OutOfMemoryError, VM_PragmaInline {
     VM_Address oldCurrent = VM_Processor.getCurrentProcessor().currentChunk1;
     VM_Address newCurrent = oldCurrent.add(size);
     if (newCurrent.LE(VM_Processor.getCurrentProcessor().endChunk1)) {
@@ -76,8 +75,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    *       If you change it you must verify that the efficient 
    *       inlined allocation sequence isn't hurt!
    */
-  public static VM_Address allocateChunk2(int size) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+  public static VM_Address allocateChunk2(int size) throws OutOfMemoryError, VM_PragmaInline {
     VM_Address oldCurrent = VM_Processor.getCurrentProcessor().currentChunk2;
     VM_Address newCurrent = oldCurrent.add(size);
     if (newCurrent.LE(VM_Processor.getCurrentProcessor().endChunk2)) {
@@ -192,10 +190,9 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    * 
    * @param size the number of bytes to allocate
    */
-  private static VM_Address slowPath1(int size) throws OutOfMemoryError {
+  private static VM_Address slowPath1(int size) throws OutOfMemoryError, VM_PragmaInline  {
     // Detect Java-level allocations during GC or while GC disabled 
     // and trap as a fatal error.
-    VM_Magic.pragmaNoInline();
     if (VM.VerifyAssertions) {
       VM_Thread t = VM_Thread.getCurrentThread();
       VM.assert(!VM_Allocator.gcInProgress);

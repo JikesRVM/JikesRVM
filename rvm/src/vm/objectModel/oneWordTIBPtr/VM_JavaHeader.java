@@ -43,8 +43,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Object o) { 
-    VM_Magic.pragmaInline();
+  public static Object[] getTIB(Object o) throws VM_PragmaInline { 
     int tibWord = VM_Magic.getIntAtOffset(o,TIB_OFFSET);
     return VM_Magic.addressAsObjectArray(VM_Address.fromInt(tibWord));
   }
@@ -52,8 +51,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) {
-    VM_Magic.pragmaInline();
+  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     VM_Address tibPtr = VM_Magic.objectAsAddress(tib);
     VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibPtr.toInt());
   }

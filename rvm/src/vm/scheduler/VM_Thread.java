@@ -205,8 +205,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
    */ 
-  public static void threadSwitch(int whereFrom) {
-    VM_Magic.pragmaNoInline();
+  public static void threadSwitch(int whereFrom) throws VM_PragmaNoInline {
     if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
@@ -724,10 +723,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   private static void transferExecutionToNewStack(int[] newStack, 
                                                   VM_Registers 
-                                                  exceptionRegisters) {
+                                                  exceptionRegisters) throws VM_PragmaNoInline {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
-    VM_Magic.pragmaNoInline(); 
 
     VM_Thread myThread = getCurrentThread();
     int[]     myStack  = myThread.stack;

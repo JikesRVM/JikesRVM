@@ -439,8 +439,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeScalar(VM_Address ptr, Object[] tib, int size) {
-    VM_Magic.pragmaInline();
+  public static Object initializeScalar(VM_Address ptr, Object[] tib, int size) throws VM_PragmaInline {
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
     VM_AllocatorHeader.initializeHeader(ref, tib, size, true);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
@@ -478,8 +477,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param numElems number of elements in the array
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeArray(VM_Address ptr, Object[] tib, int numElems, int size) {
-    VM_Magic.pragmaInline();
+  public static Object initializeArray(VM_Address ptr, Object[] tib, int numElems, int size) throws VM_PragmaInline {
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
     VM_AllocatorHeader.initializeHeader(ref, tib, size, false);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);

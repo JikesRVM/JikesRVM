@@ -73,8 +73,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) {
-    VM_Magic.pragmaInline();
+  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     int idx = VM_Magic.objectAsType(tib[0]).getTibSlot() << TIB_SHIFT;
     if (VM.VerifyAssertions) VM.assert((idx & TIB_MASK) == idx);
     int tibWord = (VM_Magic.getIntAtOffset(ref, TIB_OFFSET) & ~TIB_MASK) | idx;

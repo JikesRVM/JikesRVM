@@ -18,8 +18,7 @@ class VM_DynamicLinkerHelper implements VM_Constants, VM_Uninterruptible {
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */
-  static Object getReceiverObject() {
-    VM_Magic.pragmaNoInline();
+  static Object getReceiverObject() throws VM_PragmaNoInline {
 
     VM_Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);

@@ -488,19 +488,13 @@ public final class VM_Array extends VM_Type
     }
   }
 
-  private static void failWithIndexOutOfBoundsException() {
-    VM_Magic.pragmaNoInline();
+  private static void failWithIndexOutOfBoundsException() throws VM_PragmaNoInline {
     throw new ArrayIndexOutOfBoundsException();
   }
 
-  private static void failWithNoClassDefFoundError(VM_ResolutionException e) {
-    VM_Magic.pragmaNoInline();
+  private static void failWithNoClassDefFoundError(VM_ResolutionException e) throws VM_PragmaNoInline {
     throw new NoClassDefFoundError(e.getException().toString());
   }
-   
-  //----------------//
-  // implementation //
-  //----------------//
    
   private static Object[] javaLangObjectTIB;
   static VM_Array arrayOfBooleanType;

@@ -253,9 +253,8 @@ public class VM_Allocator
    *
    * @return the reference for the allocated object
    */
-  public static Object allocateScalar (int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+  public static Object allocateScalar(int size, Object[] tib)
+    throws OutOfMemoryError, VM_PragmaInline  {
 
     if (size >= SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
@@ -280,9 +279,8 @@ public class VM_Allocator
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
+    throws OutOfMemoryError, VM_PragmaInline {
     
-    VM_Magic.pragmaInline();
     
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations

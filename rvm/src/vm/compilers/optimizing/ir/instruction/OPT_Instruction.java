@@ -746,8 +746,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's uses.
    */
-  public final OPT_OperandEnumeration getUses() {
-    VM_Magic.pragmaInline(); // force inlining to get precise type
+  public final OPT_OperandEnumeration getUses() throws VM_PragmaInline {
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = 
       operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs()-1;
@@ -1632,8 +1631,7 @@ public final class OPT_Instruction
       return temp;
     }
     protected abstract void advance();
-    private static void fail() {
-      VM_Magic.pragmaNoInline();
+    private static void fail() throws VM_PragmaNoInline {
       throw new java.util.NoSuchElementException("OperandEnumerator");
     }
   }

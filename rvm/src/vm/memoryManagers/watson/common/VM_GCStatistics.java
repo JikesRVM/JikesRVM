@@ -338,14 +338,13 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   }
 
 
-  public  static void printclass (VM_Address ref) {
+  public static void printclass(VM_Address ref) {
     VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
     VM.sysWrite(type.getDescriptor());
   }
 
 
-  static void profileCopy (Object obj, int size, Object[] tib) {
-    VM_Magic.pragmaInline();
+  static void profileCopy(Object obj, int size, Object[] tib) throws VM_PragmaInline {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.copyCount++;
@@ -353,8 +352,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     }
   }
 
-  static void profileScan (Object obj, int size, Object[] tib) {
-    VM_Magic.pragmaInline();
+  static void profileScan(Object obj, int size, Object[] tib) throws VM_PragmaInline {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.scanCount++;

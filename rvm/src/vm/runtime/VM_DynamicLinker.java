@@ -53,9 +53,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       nothing (call stack is examined to find invocation site)
      * Returned:    VM_DynamicLink that describes call site.
      */
-    static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException {
-      VM_Magic.pragmaNoInline(); // required since we are doing stackframe inspection
-
+    static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException, VM_PragmaNoInline {
       // find call site 
       //
       VM.disableGC();
@@ -81,8 +79,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       VM_DynamicLink that describes call site.
      * Returned:    VM_Method that should be invoked.
      */
-    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) throws VM_ResolutionException {
-      VM_Magic.pragmaNoInline(); // required since we are doing stackframe inspection
+    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) throws VM_ResolutionException, VM_PragmaNoInline {
 
       // resolve symbolic method reference into actual method
       //
@@ -112,8 +109,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
      * @param targetMethod the VM_Method to compile (if not already compiled)
      */
-    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_ResolutionException {
-      VM_Magic.pragmaNoInline(); // required since we are doing stackframe inspection
+    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_ResolutionException, VM_PragmaNoInline {
 
       VM_Class targetClass = targetMethod.getDeclaringClass();
 

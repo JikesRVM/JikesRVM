@@ -50,10 +50,9 @@ public class VM_Finalizer {
 
   // Add item.
   //
-  static final void addElement (Object item) {
+  static final void addElement(Object item) throws VM_PragmaNoInline {
     // (SJF: This method must NOT be inlined into an inlined allocation
     // sequence, since it contains a lock!)
-    VM_Magic.pragmaNoInline();
     synchronized (locker) {
       live_count++;
       if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ",

@@ -170,8 +170,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
 
-  private void start(OPT_GenerationContext context) {
-    VM_Magic.pragmaNoInline();
+  private void start(OPT_GenerationContext context) throws VM_PragmaNoInline {
     gc = context;
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java

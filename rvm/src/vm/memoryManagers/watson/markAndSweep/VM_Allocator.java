@@ -121,8 +121,7 @@ public class VM_Allocator extends VM_GCStatistics
    *   @return Initialized object reference
    */
   public static Object allocateScalar (int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline(); 
+    throws OutOfMemoryError, VM_PragmaInline {
     if (size > SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
     } else {
@@ -142,8 +141,7 @@ public class VM_Allocator extends VM_GCStatistics
    *   @return Initialized array reference
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline(); 
+    throws OutOfMemoryError, VM_PragmaInline {
     if (size > SMALL_SPACE_MAX) {
       return largeHeap.allocateArray(numElements, size, tib);
     } else {

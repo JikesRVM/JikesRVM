@@ -995,8 +995,7 @@ public final class OPT_IR implements OPT_Operators {
     }
   }
 
-  private void verror(String where, String msg) {
-    VM_Magic.pragmaNoInline();
+  private void verror(String where, String msg) throws VM_PragmaNoInline {
     throw new OPT_OptimizingCompilerException("VERIFY: "+where, msg);
   }
 }

@@ -210,8 +210,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  public static VM_Address allocateFastPath (int size) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+  public static VM_Address allocateFastPath (int size) throws OutOfMemoryError, VM_PragmaInline {
 
     if (COUNT_FAST_ALLOC) allocCount++;
     
@@ -292,8 +291,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * @return Address of free, zero-filled storage
    */
   protected static VM_Address allocateSlotFast(VM_SizeControl the_size, 
-					       VM_Address next_slot) throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+					       VM_Address next_slot) throws OutOfMemoryError, VM_PragmaInline {
 
     if (COUNT_FAST_ALLOC) fastAllocCount++;
 
@@ -332,8 +330,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    *   @param size Size in bytes to allocate
    *   @return Address of free, zero-filled storage
    */
-  protected VM_Address allocateSlot (VM_SizeControl the_size, int size) throws OutOfMemoryError {
-    VM_Magic.pragmaNoInline(); // make sure this method is not inlined
+  protected VM_Address allocateSlot(VM_SizeControl the_size, int size) throws OutOfMemoryError, VM_PragmaNoInline {
 
     int count = 0;
     while(true) {

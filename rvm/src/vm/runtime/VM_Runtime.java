@@ -490,8 +490,7 @@ public class VM_Runtime implements VM_Constants {
    * Keep out of line to mitigate code space when quickNewArray is inlined.
    */
   private static void raiseNegativeArraySizeException()
-    throws NegativeArraySizeException {
-    VM_Magic.pragmaNoInline();
+    throws NegativeArraySizeException, VM_PragmaNoInline {
     throw new NegativeArraySizeException();
   }
 
@@ -573,8 +572,7 @@ public class VM_Runtime implements VM_Constants {
    * does not return 
    * (stack is unwound and execution resumes in a catch block)
    */
-  static void athrow(Throwable exceptionObject) {
-    VM_Magic.pragmaNoInline();
+  static void athrow(Throwable exceptionObject) throws VM_PragmaNoInline {
     VM_Registers registers = new VM_Registers();
     registers.inuse = true;
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
@@ -678,8 +676,7 @@ public class VM_Runtime implements VM_Constants {
    * (null --> deliver NullPointerException).
    * does not return (stack is unwound and execution resumes in a catch block)
    */ 
-  static void unlockAndThrow (Object objToUnlock, Throwable objToThrow) {
-    VM_Magic.pragmaNoInline();
+  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) throws VM_PragmaNoInline {
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
@@ -689,8 +686,7 @@ public class VM_Runtime implements VM_Constants {
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
    */
-  static void raiseArrayIndexOutOfBoundsException(int index) {
-    VM_Magic.pragmaNoInline();
+  static void raiseArrayIndexOutOfBoundsException(int index) throws VM_PragmaNoInline {
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
 
@@ -700,8 +696,7 @@ public class VM_Runtime implements VM_Constants {
    * an array access will unconditionally raise an array bounds check
    * error, but it has lost track of exactly what the index is going to be.
    */
-  static void raiseArrayIndexOutOfBoundsException() {
-    VM_Magic.pragmaNoInline();
+  static void raiseArrayIndexOutOfBoundsException() throws VM_PragmaNoInline {
     throw new java.lang.ArrayIndexOutOfBoundsException();
   }
 
@@ -714,8 +709,7 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise a null pointer exception.
    */
-  public static void raiseNullPointerException() {
-    VM_Magic.pragmaNoInline();
+  public static void raiseNullPointerException() throws VM_PragmaNoInline {
     throw new java.lang.NullPointerException();
   }
 
@@ -726,8 +720,7 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise an arithmetic exception.
    */
-  static void raiseArithmeticException() {
-    VM_Magic.pragmaNoInline();
+  static void raiseArithmeticException() throws VM_PragmaNoInline {
     throw new java.lang.ArithmeticException();
   }
 
@@ -735,8 +728,7 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.AbstractMethodError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseAbstractMethodError() {
-    VM_Magic.pragmaNoInline();
+  static void raiseAbstractMethodError() throws VM_PragmaNoInline {
     throw new java.lang.AbstractMethodError();
   }
 
@@ -744,8 +736,7 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.IllegalAccessError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseIllegalAccessError() {
-    VM_Magic.pragmaNoInline();
+  static void raiseIllegalAccessError() throws VM_PragmaNoInline {
     throw new java.lang.IllegalAccessError();
   }
 

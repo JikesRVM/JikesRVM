@@ -323,6 +323,22 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     }
     return true;
   }
+
+  /**
+   * Has this method been marked as mandatory to inline?
+   * ie., it throws the <CODE>VM_PragmaInline</CODE> exception?
+   */
+  final boolean hasInlinePragma() {
+    return VM_PragmaInline.declaredBy(this) ?  true : false;
+  }
+    
+  /**
+   * Has this method been marked as forbidden to inline?
+   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
+   */
+  final boolean hasNoInlinePragma() {
+    return VM_PragmaNoInline.declaredBy(this) ?  true : false;
+  }
     
   //------------------------------------------------------------------//
   //                        Section 2.                                //
