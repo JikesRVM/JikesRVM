@@ -645,6 +645,21 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     }
 
     /**
+     * Copy the ranges into a new interval associated with a register r.
+     * Copy only the basic intervals up to and including stop.
+     */
+    CompoundInterval copy(OPT_Register r, BasicInterval stop) {
+      CompoundInterval result = new CompoundInterval(r);
+      BasicInterval i = (BasicInterval)basicIntervals.first();
+      while (i != null) {
+        result.basicIntervals.append(i.copy(result));
+        if (i.sameRange(stop)) return result;
+        i = (BasicInterval)i.getNext();
+      }
+      return result;
+    }
+
+    /**
      * Add a new basic interval to this compound interval.  Do not
      * concatentate or add to the master list of intervals.
      */
@@ -787,6 +802,40 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           // we've reached the end of this interval.  append all remaining
           // intervals to the end.
           basicIntervals.append(currentI.copy(this));
+          currentI = (BasicInterval)currentI.getNext();
+        }
+      }
+    }
+
+    /**
+     * Merge this interval with another, non-intersecting interval.
+     * Precondition: BasicInterval stop is an interval in i.  This version
+     * will only merge basic intervals up to and including stop into this.
+     */
+    void addNonIntersectingInterval(CompoundInterval i, BasicInterval stop) {
+      // Walk over the basic intervals of this interval and i.  Copy each
+      // interval from i into this interval at the appropriate start point.
+      BasicInterval current = (BasicInterval)basicIntervals.first();
+      BasicInterval currentI = (BasicInterval)i.basicIntervals.first();
+
+      while (currentI != null) {
+        if (current != null) {
+          if (currentI.getBegin() < current.getBegin()) {
+            if (current == basicIntervals.first()) {
+              basicIntervals.insert(currentI.copy(this));
+            } else {
+              current.insertBefore(currentI.copy(this));
+            }
+            if (currentI.sameRange(stop)) return;
+            currentI = (BasicInterval)currentI.getNext();
+          } else {
+            current = (BasicInterval)current.getNext();
+          }
+        } else {
+          // we've reached the end of this interval.  append all remaining
+          // intervals to the end.
+          basicIntervals.append(currentI.copy(this));
+          if (currentI.sameRange(stop)) return;
           currentI = (BasicInterval)currentI.getNext();
         }
       }
@@ -1163,18 +1212,59 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             return;
           } else {
             // The previous assignment is not OK, since the physical
-            // register is now in use elsewhere.  We must undo the previous
-            // decision and spill the compound interval.
-            if (debug) System.out.println("Previously assigned, now spill " 
-                                          + phys + " " + container);
-            if (VM.VerifyAssertions) {
-              OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
-              VM.assert(!restrict.mustNotSpill(r));
+            // register is now in use elsewhere.  
+            if (debug) System.out.println(
+                         "Previously assigned, " + phys + " " + container);
+            // first look and see if there's another free register for
+            // container. 
+            if (debug) System.out.println( "Looking for free register");
+            OPT_Register freeR = findAvailableRegister(container);
+            if (debug) System.out.println( "Free register? " + freeR);
+
+            if (freeR == null) {
+              // Did not find a free register to assign.  So, spill one of
+              // the two intervals concurrently allocated to phys.
+
+              CompoundInterval currentAssignment = getCurrentInterval(phys); 
+              // choose which of the two intervals to spill
+              double costA = spillCost.getCost(container.getRegister());
+              double costB = spillCost.getCost(currentAssignment.getRegister());
+              if (debug) System.out.println( "Current assignment " +
+                                             currentAssignment + " cost "
+                                             + costB);
+              if (debug) System.out.println( "Cost of spilling" +
+                                             container + " cost "
+                                             + costA);
+              CompoundInterval toSpill = (costA < costB) ? container : 
+                currentAssignment;
+              // spill it.
+              OPT_Register p = toSpill.getAssignment();
+              toSpill.spill();
+              spilled=true;
+              if (debug) System.out.println("Spilled " + toSpill+
+                                            " from " + p);
+              CompoundInterval physInterval = getInterval(p);
+              physInterval.removeIntervals(toSpill);
+              if (debug) System.out.println("  after spill phys" + getInterval(p));
+              if (toSpill != container) updatePhysicalInterval(p,newInterval);       
+              if (debug) System.out.println(" now phys interval " + 
+                                            getInterval(p));
+            } else {
+              // found a free register for container! use it!
+              if (debug) System.out.println("Switch container " 
+                                          + container + " to " + freeR); 
+              CompoundInterval physInterval = getInterval(phys);
+              physInterval.removeIntervals(container);
+              if (debug) System.out.println("Intervals of " 
+                                          + phys + " now " +
+                                          physInterval); 
+
+              container.assign(freeR);
+              updatePhysicalInterval(freeR,container,newInterval);
+              if (debug) System.out.println("Intervals of " 
+                                          + freeR + " now " +
+                                          getInterval(freeR)); 
             }
-            container.spill();
-            CompoundInterval physInterval = getInterval(phys);
-            physInterval.removeIntervals(container);
-            spilled=true;
           }
         } else {
           // This is the first attempt to allocate the compound interval.
@@ -1245,6 +1335,27 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         physInterval.addNonIntersectingInterval(ci);
       }
     }
+
+    /**
+     * Update the interval representing the allocations of a physical
+     * register p to include a new compound interval c.  Include only
+     * those basic intervals in c up to and including basic interval stop. 
+     */
+    private void updatePhysicalInterval(OPT_Register p, 
+                                        CompoundInterval c, 
+                                        BasicInterval stop) { 
+      // Get a representation of the intervals already assigned to p.
+      CompoundInterval physInterval = getInterval(p);
+      if (physInterval == null) {
+        // no interval yet.  create one.
+        setInterval(p,c.copy(p,stop));
+      } else {
+        // incorporate c into the set of intervals assigned to p
+        if (VM.VerifyAssertions) VM.assert(!c.intersects(physInterval));
+        physInterval.addNonIntersectingInterval(c,stop);
+      }
+    }
+
     /**
      * Is a particular physical register currently allocated to an
      * interval in the active set?
@@ -1257,6 +1368,23 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         }
       }
       return false;
+    }
+
+    /**
+     * Given that a physical register r is currently allocated to an
+     * interval in the active set, return the interval.
+     */
+    final CompoundInterval getCurrentInterval(OPT_Register r) {
+      for (java.util.Iterator e = getIntervals(); e.hasNext(); ) {
+        BasicInterval i = (BasicInterval)e.next();
+        if (OPT_RegisterAllocatorState.getMapping(i.getRegister()) == r) {
+          return i.getContainer();
+        }
+      }
+      OPT_OptimizingCompilerException.UNREACHABLE("getCurrentInterval",
+                                                  "Not Currently Active ",
+                                                   r.toString());
+      return null;
     }
 
     /**
