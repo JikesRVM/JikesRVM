@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.opt.OPT_MagicNotImplementedException;
  *
  * @author Dave Grove
  * @author Mauricio Serrano
+ * @author Perry Cheng
  */
 class OPT_GenerateMagic implements OPT_Operators, 
 				   VM_RegisterConstants, 
@@ -541,6 +542,14 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToOffset) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Offset);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToExtent) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordAdd) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
@@ -584,33 +593,37 @@ class OPT_GenerateMagic implements OPT_Operators,
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.zero())));
+      bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.wordOne) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromIntZeroExtend(1))));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.max())));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordIsZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.zero())));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
     } else if (methodName == VM_MagicNames.wordIsMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.max())));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
-    } else if (methodName == VM_MagicNames.wordLT) {
-      OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER();
-      cmpHelper(bc2ir,gc,cond,null);
-    } else if (methodName == VM_MagicNames.wordLE) {
-      OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER_EQUAL();
-      cmpHelper(bc2ir,gc,cond,null);
     } else if (methodName == VM_MagicNames.wordEQ) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond,null);
     } else if (methodName == VM_MagicNames.wordNE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.NOT_EQUAL();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordLT) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordLE) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER_EQUAL();
       cmpHelper(bc2ir,gc,cond,null);
     } else if (methodName == VM_MagicNames.wordGT) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.HIGHER();
@@ -618,6 +631,36 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.wordGE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.HIGHER_EQUAL();
       cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordsLT) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.LESS();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordsLE) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.LESS_EQUAL();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordsGT) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.GREATER();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordsGE) {
+      OPT_ConditionOperand cond = OPT_ConditionOperand.GREATER_EQUAL();
+      cmpHelper(bc2ir,gc,cond,null);
+    } else if (methodName == VM_MagicNames.wordLsh) {
+      OPT_Operand op2 = bc2ir.popInt();
+      OPT_Operand op1 = bc2ir.popAddress();
+      OPT_RegisterOperand res = gc.temps.makeTemp(resultType); // VM_TypeReference.Int);
+      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SHL : LONG_SHL, res, op1, op2));
+      bc2ir.push(res.copyD2U());
+    } else if (methodName == VM_MagicNames.wordRshl) {
+      OPT_Operand op2 = bc2ir.popInt();
+      OPT_Operand op1 = bc2ir.popAddress();
+      OPT_RegisterOperand res = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_USHR : LONG_USHR, res, op1, op2));
+      bc2ir.push(res.copyD2U());
+    } else if (methodName == VM_MagicNames.wordRsha) {
+      OPT_Operand op2 = bc2ir.popInt();
+      OPT_Operand op1 = bc2ir.popAddress();
+      OPT_RegisterOperand res = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SHR : LONG_SHR, res, op1, op2));
+      bc2ir.push(res.copyD2U());
     } else {
       return false;
     }

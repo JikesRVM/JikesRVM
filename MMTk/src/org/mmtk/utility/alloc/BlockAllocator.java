@@ -55,7 +55,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   private static final int FL_MARKER_OFFSET = -(2 * BYTES_IN_ADDRESS);
   private static final int FL_NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
   private static final int FL_PREV_FIELD_OFFSET = 0;
-  private static final VM_Address BASE_FL_MARKER = VM_Address.fromInt(-1);
+  private static final VM_Address BASE_FL_MARKER = VM_Address.max(); // -1
   private static final VM_Address MIN_FL_MARKER = BASE_FL_MARKER.sub(FREE_LIST_ENTRIES);
   private static final VM_Address USED_MARKER = VM_Address.zero();
   private static int[] blockMask;
@@ -128,8 +128,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 	return VM_Address.zero(); // need to GC & retry...
     }
     
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(rtn.EQ(VM_Address.fromInt(rtn.toInt() & blockMask[blockSizeClass]).add(BLOCK_HEADER_SIZE)));
+    if (VM_Interface.VerifyAssertions) {
+      VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
+      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(BLOCK_HEADER_SIZE).toAddress));
+    }
 
     if (PARANOID)
       sanity();
@@ -296,7 +298,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (childSC == MAX_BLOCK_SIZE_CLASS)
       release(child, originalSC);
     else {
-      VM_Address buddy = VM_Address.fromInt(child.toInt() ^ buddyMask[childSC]);
+      VM_Address buddy = child.toAddress().xor(buddyMask[childSC]).toAddress();
       byte flid = getFreeListID(childSC, originalSC);
       if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
 	removeFromFreeList(buddy, flid);
@@ -429,12 +431,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
    */
   public static final VM_Address getBlockStart(VM_Address cell,
 					       byte blockSizeClass) {
-//     VM_Word addr = cell.toWord();
-//     VM_Address sb = addr.and(SUPER_BLOCK_MASK).toAddress();
-//     VM_Word mask = VM_Word.fromInt(VM_Magic.getMemoryWord(sb));
-//     return (addr.and(mask).toAddress()).add(BLOCK_HEADER_SIZE);
-    //    return VM_Address.fromInt((cell.toInt() & ~((1<<MAX_BLOCK_LOG)-1)) | BLOCK_HEADER_SIZE);
-    return VM_Address.fromInt((cell.toInt() & blockMask[blockSizeClass]) | BLOCK_HEADER_SIZE);
+    VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
+    return cell.toWord().and(mask).or(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
   }
 
   public static final int blockSize(int blockSizeClass) {

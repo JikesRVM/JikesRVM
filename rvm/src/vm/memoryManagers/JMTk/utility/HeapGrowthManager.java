@@ -168,11 +168,12 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       liveRatio = 1;
     }
     if (gcLoad > 1) {
-      // Appears that this can actually happen....I can't explain why --dave
-      Log.write("GCWarning: GC load was greater than 1!! ");
-      Log.writeln(gcLoad);
-      Log.write("GCWarning:\ttotal time "); Log.writeln(totalTime);
-      Log.write("GCWarnin:\tgc time "); Log.writeln(accumulatedGCTime);
+      if (gcLoad > 1.0001) {
+	Log.write("GC Error: GC load was greater than 1!! ");
+	Log.writeln(gcLoad);
+	Log.write("GC Error:\ttotal time "); Log.writeln(totalTime);
+	Log.write("GC Error:\tgc time "); Log.writeln(accumulatedGCTime);
+      }
       gcLoad = 1;
     }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);

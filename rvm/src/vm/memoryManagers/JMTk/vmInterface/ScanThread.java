@@ -136,8 +136,8 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
 					 VM_Address code, VM_Address ipLoc, 
 					 int where, VM_Thread t) {
     VM_Address ip = VM_Magic.getMemoryAddress(ipLoc);
-    int offset = ip.diff(code).toInt();
-    if (offset< 0 || offset > (1<<24)) {  // There is probably no object this large
+    VM_Offset offset = ip.diff(code);
+    if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
 	VM.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
 	VM.sysWriteln("       object base = ", code);
 	VM.sysWriteln("       interior reference = ", ip);

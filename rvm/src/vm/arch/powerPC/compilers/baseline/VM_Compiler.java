@@ -14,6 +14,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  * @author Derek Lieber
  * @author Kris Venstermans
+ * @author Perry Cheng
  */
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
@@ -1708,7 +1709,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   /*
-   * comparision ops
+   * comparison ops
    */
 
 
@@ -3777,6 +3778,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitICBI(0, T0);
     } else if (methodName == VM_MagicNames.wordToInt ||
 	       methodName == VM_MagicNames.wordToAddress ||
+	       methodName == VM_MagicNames.wordToOffset ||
+	       methodName == VM_MagicNames.wordToExtent ||
 	       methodName == VM_MagicNames.wordToWord) {
       // no-op   
     } else if (methodName == VM_MagicNames.wordToLong) {
@@ -3814,41 +3817,44 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1);
       asm.emitSUBFC (T2, T0, T1);
       pushAddr(T2);
-    } else if (methodName == VM_MagicNames.wordLT) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(LT);
-    } else if (methodName == VM_MagicNames.wordLE) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(LE);
     } else if (methodName == VM_MagicNames.wordEQ) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(EQ);
+       generateAddrComparison(false, EQ);
     } else if (methodName == VM_MagicNames.wordNE) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(NE);
-    } else if (methodName == VM_MagicNames.wordGT) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(GT);
+       generateAddrComparison(false, NE);
+    } else if (methodName == VM_MagicNames.wordLT) {
+      generateAddrComparison(false, LT);
+    } else if (methodName == VM_MagicNames.wordLE) {
+      generateAddrComparison(false, LE);
+     } else if (methodName == VM_MagicNames.wordGT) {
+      generateAddrComparison(false, GT);
     } else if (methodName == VM_MagicNames.wordGE) {
-      // unsigned comparison generating a boolean
-      generateAddrComparison(GE);
+      generateAddrComparison(false, GE);
+    } else if (methodName == VM_MagicNames.wordsLT) {
+      generateAddrComparison(true, LT);
+    } else if (methodName == VM_MagicNames.wordsLE) {
+      generateAddrComparison(true, LE);
+     } else if (methodName == VM_MagicNames.wordsGT) {
+      generateAddrComparison(true, GT);
+    } else if (methodName == VM_MagicNames.wordsGE) {
+      generateAddrComparison(true, GE);
     } else if (methodName == VM_MagicNames.wordIsZero) {
       // unsigned comparison generating a boolean
       asm.emitLVAL(T0,  0);
       pushAddr(T0);
-      generateAddrComparison(EQ);
+      generateAddrComparison(false, EQ);
     } else if (methodName == VM_MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
       asm.emitLVAL(T0, -1);
       pushAddr(T0);
-      generateAddrComparison(EQ);
+      generateAddrComparison(false, EQ);
     } else if (methodName == VM_MagicNames.wordZero) {
-      // unsigned comparison generating a boolean
-      asm.emitLVAL(T0,  0);
+      asm.emitLVAL (T0,  0);
+      pushAddr(T0);
+    } else if (methodName == VM_MagicNames.wordOne) {
+      asm.emitLVAL (T0,  1);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordMax) {
-      // unsigned comparison generating a boolean
-      asm.emitLVAL(T0, -1);
+      asm.emitLVAL (T0, -1);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordAnd) {
       popAddr(T0);
@@ -3870,6 +3876,30 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1);
       asm.emitXOR(T2, T1, T0);
       pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordLsh) {
+      popAddr(T0);
+      popInt(T1);
+      if (VM.BuildFor32Addr)
+	asm.emitSLW (T2, T1, T0);
+      else
+	asm.emitSLD (T2, T0, T1);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordRshl) {
+      popAddr(T0);
+      popInt(T1);
+      if (VM.BuildFor32Addr)
+	asm.emitSRW (T2, T1, T0);
+      else
+	asm.emitSRD (T2, T1, T0);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordRsha) {
+      popAddr(T0);
+      popInt(T1);
+      if (VM.BuildFor32Addr)
+	asm.emitSRAW (T2, T1, T0);
+      else
+	asm.emitSRAD (T2, T1, T0);
+      pushAddr(T2);
     } else {
       return false;
     }
@@ -3879,14 +3909,20 @@ public class VM_Compiler extends VM_BaselineCompiler
   /** Emit code to perform an unsigned comparison on 2 address values
     * @param cc: condition to test
     */ 
-  private void generateAddrComparison(int cc) {
+  private void generateAddrComparison(boolean signed, int cc) {
     popAddr(T1);
     popAddr(T0);
     asm.emitLVAL(T2,  1);
     if (VM.BuildFor32Addr) {
-      asm.emitCMPL(T0, T1);    // unsigned comparison
+      if (signed)
+	asm.emitCMP(T0, T1);
+      else
+	asm.emitCMPL(T0, T1);
     } else {
-      asm.emitCMPLD(T0, T1);   // unsigned comparison
+      if (signed)
+	asm.emitCMPD(T0, T1);
+      else
+	asm.emitCMPLD(T0, T1);
     } 
     VM_ForwardReference fr = asm.emitForwardBC(cc);
     asm.emitLVAL(T2,  0);

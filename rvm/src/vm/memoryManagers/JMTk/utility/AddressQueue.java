@@ -83,7 +83,7 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
    */
   public final VM_Address pop() throws VM_PragmaInline {
     if (checkPop(1)) {
-      return VM_Address.fromInt(uncheckedPop());
+      return uncheckedPop();
     }
     else {
       return VM_Address.zero();

@@ -6,8 +6,9 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -29,11 +30,13 @@ class Queue implements Constants, VM_Uninterruptible {
    *  protected int enqueued;
    */
 
-  protected final int bufferOffset(VM_Address buf) throws VM_PragmaInline {
-    return ((buf.toInt()) & (BUFFER_SIZE - 1));
+  protected final VM_Offset bufferOffset(VM_Address buf) throws VM_PragmaInline {
+    VM_Word mask = VM_Word.fromIntZeroExtend(BUFFER_SIZE - 1);
+    return buf.toWord().and(mask).toOffset();
   }
   protected final VM_Address bufferStart(VM_Address buf) throws VM_PragmaInline {
-    return VM_Address.fromInt((buf.toInt()) & ~(BUFFER_SIZE - 1));
+    VM_Word mask = VM_Word.fromIntZeroExtend(BUFFER_SIZE - 1).not();
+    return buf.toWord().and(mask).toAddress();
   }
 
   protected final VM_Address bufferFirst(VM_Address buf) throws VM_PragmaInline {
@@ -45,9 +48,9 @@ class Queue implements Constants, VM_Uninterruptible {
   protected final VM_Address bufferLast(VM_Address buf) throws VM_PragmaInline {
     return bufferLast(buf, 1);
   }
-  protected final int bufferLastOffset(int arity) throws VM_PragmaInline {
-    return USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
-      - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS));
+  protected final VM_Offset bufferLastOffset(int arity) throws VM_PragmaInline {
+    return VM_Offset.fromInt(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
+			     - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
   }
 
   /****************************************************************************
@@ -61,5 +64,5 @@ class Queue implements Constants, VM_Uninterruptible {
   protected static final int NEXT_FIELD_OFFSET = BYTES_IN_ADDRESS;
   protected static final int META_DATA_SIZE = BYTES_IN_ADDRESS;
   private static final int USABLE_BUFFER_BYTES = BUFFER_SIZE-META_DATA_SIZE;
-  protected static final VM_Address TAIL_INITIAL_VALUE = VM_Address.fromInt(0);
+  protected static final VM_Address TAIL_INITIAL_VALUE = VM_Address.zero();
 }

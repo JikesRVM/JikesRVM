@@ -26,7 +26,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   public VM_Address lr;     // link register
   public boolean inuse; // do exception registers currently contain live values?
 
-  static VM_Address invalidIP = VM_Address.fromInt(-1);
+  static VM_Address invalidIP = VM_Address.max();
   
   VM_Registers() {
     gprs = VM_WordArray.create(NUM_GPRS);

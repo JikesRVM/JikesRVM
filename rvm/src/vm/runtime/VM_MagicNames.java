@@ -128,16 +128,23 @@ public class VM_MagicNames {
   public static final VM_Atom wordToLong                    = VM_Atom.findOrCreateAsciiAtom("toLong");
   public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");
   public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
+  public static final VM_Atom wordToOffset                  = VM_Atom.findOrCreateAsciiAtom("toOffset");
+  public static final VM_Atom wordToExtent                  = VM_Atom.findOrCreateAsciiAtom("toExtent");
   public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");
   public static final VM_Atom wordSub                       = VM_Atom.findOrCreateAsciiAtom("sub");
   public static final VM_Atom wordDiff                      = VM_Atom.findOrCreateAsciiAtom("diff");
-  public static final VM_Atom wordLT                        = VM_Atom.findOrCreateAsciiAtom("LT");
-  public static final VM_Atom wordLE                        = VM_Atom.findOrCreateAsciiAtom("LE");
   public static final VM_Atom wordEQ                        = VM_Atom.findOrCreateAsciiAtom("EQ");
   public static final VM_Atom wordNE                        = VM_Atom.findOrCreateAsciiAtom("NE");
+  public static final VM_Atom wordLT                        = VM_Atom.findOrCreateAsciiAtom("LT");
+  public static final VM_Atom wordLE                        = VM_Atom.findOrCreateAsciiAtom("LE");
   public static final VM_Atom wordGT                        = VM_Atom.findOrCreateAsciiAtom("GT");
   public static final VM_Atom wordGE                        = VM_Atom.findOrCreateAsciiAtom("GE");
+  public static final VM_Atom wordsLT                       = VM_Atom.findOrCreateAsciiAtom("sLT");
+  public static final VM_Atom wordsLE                       = VM_Atom.findOrCreateAsciiAtom("sLE");
+  public static final VM_Atom wordsGT                       = VM_Atom.findOrCreateAsciiAtom("sGT");
+  public static final VM_Atom wordsGE                       = VM_Atom.findOrCreateAsciiAtom("sGE");
   public static final VM_Atom wordZero                      = VM_Atom.findOrCreateAsciiAtom("zero");
+  public static final VM_Atom wordOne                       = VM_Atom.findOrCreateAsciiAtom("one");
   public static final VM_Atom wordMax                       = VM_Atom.findOrCreateAsciiAtom("max");
   public static final VM_Atom wordIsZero                    = VM_Atom.findOrCreateAsciiAtom("isZero");
   public static final VM_Atom wordIsMax                     = VM_Atom.findOrCreateAsciiAtom("isMax");
@@ -145,6 +152,9 @@ public class VM_MagicNames {
   public static final VM_Atom wordOr                        = VM_Atom.findOrCreateAsciiAtom("or");
   public static final VM_Atom wordNot                       = VM_Atom.findOrCreateAsciiAtom("not");
   public static final VM_Atom wordXor                       = VM_Atom.findOrCreateAsciiAtom("xor");
+  public static final VM_Atom wordLsh                       = VM_Atom.findOrCreateAsciiAtom("lsh");
+  public static final VM_Atom wordRshl                      = VM_Atom.findOrCreateAsciiAtom("rshl");
+  public static final VM_Atom wordRsha                      = VM_Atom.findOrCreateAsciiAtom("rsha");
 
   // atoms related to VM_WordArray, VM_AddressArray, VM_OffsetArray, VM_ExtentArray, VM_CodeArray
   public static final VM_Atom addressArrayCreate            = VM_Atom.findOrCreateAsciiAtom("create");

@@ -28,8 +28,8 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     // make sure we have enough stack to load the library.  
     // This operation has been known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
-    int stackNeededInBytes =  VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN -
-      (VM_Magic.getFramePointer().diff(myThread.stackLimit)).toInt();
+    VM_Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
+    int stackNeededInBytes = VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
     if (stackNeededInBytes > 0 ) {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");

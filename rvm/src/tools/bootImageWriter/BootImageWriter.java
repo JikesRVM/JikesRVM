@@ -554,17 +554,17 @@ public class BootImageWriter extends BootImageWriterMessages
     VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
-    bootRecord.spRegister  = VM_Address.fromInt(bootImageAddress +
-						BootImageMap.getImageOffset(startupStack) +
-						(startupStack.length << LOG_BYTES_IN_INT));
-    bootRecord.ipRegister  = VM_Address.fromInt(bootImageAddress +
-						BootImageMap.getImageOffset(startupCode.getBacking()));
+    bootRecord.spRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
+							  BootImageMap.getImageOffset(startupStack) +
+							  (startupStack.length << LOG_BYTES_IN_INT));
+    bootRecord.ipRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
+							  BootImageMap.getImageOffset(startupCode.getBacking()));
 
     bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
     bootRecord.threadsOffset = VM_Entrypoints.threadsField.getOffset();
 
-    bootRecord.bootImageStart = VM_Address.fromInt(bootImageAddress);
-    bootRecord.bootImageEnd   = VM_Address.fromInt(bootImageAddress + bootImage.getSize());
+    bootRecord.bootImageStart = VM_Address.fromIntZeroExtend(bootImageAddress);
+    bootRecord.bootImageEnd   = VM_Address.fromIntZeroExtend(bootImageAddress + bootImage.getSize());
 
     // Update field of boot record now by re-copying
     //
@@ -812,7 +812,7 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      bootRecord.tocRegister = VM_Address.fromInt(bootImageAddress + rvmBRType.getInstanceSize() + intArrayType.getInstanceSize(0));
+      bootRecord.tocRegister = VM_Address.fromIntZeroExtend(bootImageAddress + rvmBRType.getInstanceSize() + intArrayType.getInstanceSize(0));
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
@@ -1538,7 +1538,7 @@ public class BootImageWriter extends BootImageWriterMessages
         if (tibImageOffset == OBJECT_NOT_ALLOCATED)
           fail("can't copy tib for " + jdkObject);
         int tibAddress = bootImageAddress + tibImageOffset;
-        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromInt(tibAddress), rvmType);
+        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromIntZeroExtend(tibAddress), rvmType);
       }
 
       if (verbose >= 2) depth--;
@@ -1638,7 +1638,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (tibImageOffset == OBJECT_NOT_ALLOCATED)
 	fail("can't copy tib for " + jdkObject);
       int tibAddress = bootImageAddress + tibImageOffset;
-      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromInt(tibAddress), rvmArrayType);
+      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromIntZeroExtend(tibAddress), rvmArrayType);
     }
 
     if (verbose >= 2) depth--;

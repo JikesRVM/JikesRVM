@@ -7,9 +7,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -44,7 +45,7 @@ public class LocalQueue extends LocalSSB
    */
   LocalQueue(SharedQueue queue) {
     super(queue);
-    head = headSentinel(queue.getArity());
+    reset();
   }
 
   /**
@@ -54,12 +55,16 @@ public class LocalQueue extends LocalSSB
    */
   public final void flushLocal() {
     super.flushLocal();
-    if (head.NE(headSentinel(queue.getArity())))
+    if (!isReset()) 
       closeAndEnqueueHead(queue.getArity());
   }
 
   public final void reset() {
-    head = headSentinel(queue.getArity());
+    head = VM_Address.zero().add(headSentinel(queue.getArity()));
+  }
+
+  public final boolean isReset() throws VM_PragmaInline {
+    return head.EQ(VM_Address.zero().add(headSentinel(queue.getArity())));
   }
 
   /****************************************************************************
@@ -76,10 +81,10 @@ public class LocalQueue extends LocalSSB
    * buffer must contain enough space for this many words.
    */
   protected final void checkPush(int arity) throws VM_PragmaInline {
-    if (VM_Address.fromInt(bufferOffset(head)).EQ(headSentinel(arity)))
+    if (bufferOffset(head).EQ(headSentinel(arity)))
       pushOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(arity));
+      VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
   
   /**
@@ -95,11 +100,11 @@ public class LocalQueue extends LocalSSB
    * false if the queue has been exhausted.
    */
   protected final boolean checkPop(int arity) throws VM_PragmaInline {
-    if ((bufferOffset(head) == 0) || (head.EQ(headSentinel(arity)))) {
+    if ((bufferOffset(head).isZero()) || isReset()) {
       return popOverflow(arity);
     } else {
       if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(bufferOffset(head) >= (arity<<LOG_BYTES_IN_ADDRESS));
+	VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
       return true;
     }
   }
@@ -113,37 +118,22 @@ public class LocalQueue extends LocalSSB
    */
   protected final void uncheckedPush(VM_Address value) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
+      VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(queue.getArity())));
     VM_Magic.setMemoryAddress(head, value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /**
-   * Pop a value from the buffer.  This is <i>unchecked</i>.  The
+   * Pop an address value from the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkPop()</code> to ensure the
    * buffer has sufficient values.
    *
    * @return the next int in the buffer
    */
-  protected final int uncheckedPop() throws VM_PragmaInline {
+  protected final VM_Address uncheckedPop() throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head) >= BYTES_IN_ADDRESS);
-    head = head.sub(BYTES_IN_ADDRESS);
-    // if (VM_Interface.VerifyAssertions) enqueued--;
-    return VM_Magic.getMemoryInt(head);
-  }
-
-  /**
-   * Pop a value from the buffer.  This is <i>unchecked</i>.  The
-   * caller must first call <code>checkPop()</code> to ensure the
-   * buffer has sufficient values.
-   *
-   * @return the next address in the buffer
-   */
-  protected final VM_Address uncheckedPopAddress() throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head) >= BYTES_IN_ADDRESS);
+      VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(BYTES_IN_ADDRESS)));
     head = head.sub(BYTES_IN_ADDRESS);
     // if (VM_Interface.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryAddress(head);
@@ -162,7 +152,7 @@ public class LocalQueue extends LocalSSB
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void pushOverflow(int arity) throws VM_PragmaNoInline {
-    if (head.NE(headSentinel(arity)))
+    if (!isReset())
       closeAndEnqueueHead(arity);
     head = queue.alloc();
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
@@ -179,14 +169,16 @@ public class LocalQueue extends LocalSSB
    * replenished.
    */
   private final boolean popOverflow(int arity) throws VM_PragmaNoInline {
+    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity));
     do {
-      if (head.NE(headSentinel(arity)))
+      if (!isReset())
 	queue.free(bufferStart(head));
       VM_Address tmp = queue.dequeue(arity);
-      head = (tmp.isZero() ? headSentinel(arity) : tmp);
-    } while (bufferOffset(head) == 0);
+      head = tmp.isZero() ? sentinelAsAddress : tmp;
+    } while (bufferOffset(head).isZero());
 
-    if (head.EQ(headSentinel(arity)))
+    if (head.EQ(sentinelAsAddress))
       return consumerStarved(arity);
     else 
       return true;
@@ -199,7 +191,7 @@ public class LocalQueue extends LocalSSB
    */
   private final void closeAndEnqueueHead(int arity) throws VM_PragmaNoInline {
     queue.enqueue(head, arity, false);
-    head = headSentinel(queue.getArity());
+    reset();
   }
 
   /**
@@ -213,9 +205,11 @@ public class LocalQueue extends LocalSSB
    * @return True if more entires were aquired.
    */
   private final boolean consumerStarved(int arity) {
-    if (bufferOffset(tail) >= (arity<<LOG_BYTES_IN_ADDRESS)) {
+    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity)); 
+    if (bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS))) {
       // entries in tail, so consume tail
-      if (head.EQ(headSentinel(arity))) {
+      if (isReset()) {
 	head = queue.alloc(); // no head, so alloc a new one
 	Plan.checkForAsyncCollection(); // possible side-effect of alloc()
       }
@@ -223,12 +217,12 @@ public class LocalQueue extends LocalSSB
       head = normalizeTail(arity).add(BYTES_IN_ADDRESS);// account for pre-decrement
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
-      tail = tmp.add(bufferLastOffset(arity) + BYTES_IN_ADDRESS);
+      tail = tmp.add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);
     } else {
       VM_Address tmp = queue.dequeueAndWait(arity);
-      head = (tmp.isZero() ? headSentinel(arity) : tmp);
+      head = (tmp.isZero() ? sentinelAsAddress : tmp);
     }
-    return head.NE(headSentinel(arity));
+    return !isReset();
   }
 
   /**
@@ -239,7 +233,7 @@ public class LocalQueue extends LocalSSB
    * @return The sentinel offset value for head buffers, used to test
    * whether a head buffer is full.
    */
-  private final VM_Address headSentinel(int arity) throws VM_PragmaInline {
-    return VM_Address.fromInt(bufferLastOffset(arity) + BYTES_IN_ADDRESS);
+  private final VM_Offset headSentinel(int arity) throws VM_PragmaInline {
+    return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
   }
 }

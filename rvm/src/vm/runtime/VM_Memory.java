@@ -243,6 +243,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
     }
   }
 
+  public static void aligned32Copy(VM_Address dst, VM_Address src, VM_Offset numBytes) throws VM_PragmaInline {
+    aligned32Copy(dst, src, numBytes.toInt());
+  }
+
   /**
    * Copy numbytes from src to dst.
    * Assumption either the ranges are non overlapping, or src >= dst + 4.

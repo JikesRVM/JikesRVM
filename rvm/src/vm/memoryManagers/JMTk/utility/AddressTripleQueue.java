@@ -82,7 +82,7 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
    */
   public final VM_Address pop1() {
      if (checkPop(3))
-      return VM_Address.fromInt(uncheckedPop());
+      return uncheckedPop();
     else
       return VM_Address.zero();
   }
@@ -93,7 +93,7 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
    * @return The next address in the address queue
    */
   public final VM_Address pop2() {
-    return VM_Address.fromInt(uncheckedPop());
+    return uncheckedPop();
   }
 
   
@@ -103,6 +103,6 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
    * @return The next address in the address queue
    */
   public final VM_Address pop3() {
-    return VM_Address.fromInt(uncheckedPop());
+    return uncheckedPop();
   }
 }

@@ -113,5 +113,50 @@ public final class VM_Offset implements VM_Uninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new VM_Offset(value - byteSize);
   }
+
+  public VM_Offset sub (VM_Offset off2) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new VM_Offset(value - off2.value);
+  }
+
+  public boolean EQ (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value == off2.value;
+  }
+
+  public boolean NE (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value != off2.value;
+  }
+
+  public boolean sLT (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value < off2.value;
+  }
+
+  public boolean sLE (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value <= off2.value;
+  }
+
+  public boolean sGT (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value > off2.value;
+  }
+
+  public boolean sGE (VM_Offset off2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return value >= off2.value;
+  }
+
+  public boolean isZero() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return EQ(zero());
+  }
+
+  public boolean isMax() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return EQ(max());
+  }
 }
 

@@ -3808,13 +3808,13 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    *         or 0 if an OutOfMemoryError Exception has been thrown
    * @exception OutOfMemoryError
    */
-  private static int NewString(int envJREF, int uchars, int len) {
+  private static int NewString(int envJREF, VM_Address uchars, int len) {
     if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       char[] contents = new char[len];
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), VM_Address.fromInt(uchars), len*2);
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
       String s = new String(contents);
 
       if (s!=null) {
@@ -5534,14 +5534,13 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   // this is the address of the malloc'ed JavaVM struct (one per VM)
   private static VM_Address JavaVM; 
 
-  private static native int createJavaVM();
+  private static native VM_Address createJavaVM();
 
   private static int GetJavaVM(int envJREF, VM_Address StarStarJavaVM) {
     if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
 
     if (JavaVM == null) {
-      int addr = createJavaVM();
-      JavaVM = VM_Address.fromInt(addr);
+      JavaVM = createJavaVM();
     }
     
     if (traceJNI) VM.sysWriteln(StarStarJavaVM);

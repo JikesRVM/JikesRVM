@@ -271,7 +271,7 @@ public abstract class BasePlan
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
     if (VM_Interface.VerifyAssertions) {
-      if (offset.toInt() < 0 || offset.toInt() > (1<<24)) {  // There is probably no object this large
+      if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
 	Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
 	Log.write("       object base = "); Log.writeln(obj);
 	Log.write("       interior reference = "); Log.writeln(interiorRef);

@@ -337,7 +337,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (mustCollect || heapFull || nurseryFull) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR) required = required<<1;  // account for copy reserve
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

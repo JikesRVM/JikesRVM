@@ -171,7 +171,7 @@ final class MarkSweepLocal extends SegregatedFreeList
       // establish bitmask & offset for this cell in the block
       int index = (cell.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
       int bitnumber = index & (BITS_IN_ADDRESS - 1);
-      VM_Word mask = VM_Word.fromInt(1<<bitnumber);
+      VM_Word mask = VM_Word.fromIntZeroExtend(1<<bitnumber);
       int offset = (index>>LOG_BITS_IN_ADDRESS)<<LOG_BYTES_IN_ADDRESS;
       
       

@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -81,7 +82,8 @@ final class DoublyLinkedList
   }
 
   public final boolean isNode (VM_Address node) {
-    return (node.toInt() / granularity * granularity) == node.toInt();
+    VM_Word n = node.toWord();
+    return (n.toInt() / granularity * granularity) == n.toInt();
   } 
 
   static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {

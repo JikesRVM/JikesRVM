@@ -14,8 +14,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * @author Maria Butrico
  * @author Anthony Cocchi
  * @author Dave Grove
+ * @author Perry Cheng
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants , VM_SizeConstants{
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -2963,11 +2964,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.attemptInt ||
 	methodName == VM_MagicNames.attemptObject ||
 	methodName == VM_MagicNames.attemptAddress) {
-      // attempt gets called with four arguments
-      //   base
-      //   offset
-      //   oldVal
-      //   newVal
+      // attempt gets called with four arguments: base, offset, oldVal, newVal
       // returns ([base+offset] == oldVal)
       // if ([base+offset] == oldVal) [base+offset] := newVal
       // (operation on memory is atomic)
@@ -3536,6 +3533,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.wordFromIntSignExtend ||
 	methodName == VM_MagicNames.wordToInt ||
 	methodName == VM_MagicNames.wordToAddress ||
+	methodName == VM_MagicNames.wordToOffset ||
+	methodName == VM_MagicNames.wordToExtent ||
 	methodName == VM_MagicNames.wordToWord) {
 	if (VM.BuildFor32Addr) return true; 	// no-op for 32-bit
 	if (VM.VerifyAssertions) VM._assert(false);
@@ -3592,6 +3591,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	return true;
     }
 
+    if (methodName == VM_MagicNames.wordOne) {
+	asm.emitPUSH_Imm(1);
+	return true;
+    }
+
     if (methodName == VM_MagicNames.wordMax) {
 	asm.emitPUSH_Imm(-1);
 	return true;
@@ -3613,6 +3617,22 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	generateAddrComparison(asm.LGE);
 	return true;
     }
+    if (methodName == VM_MagicNames.wordsLT) {
+	generateAddrComparison(asm.LT);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsLE) {
+	generateAddrComparison(asm.LE);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsGT) {
+	generateAddrComparison(asm.GT);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsGE) {
+	generateAddrComparison(asm.GE);
+	return true;
+    }
     if (methodName == VM_MagicNames.wordEQ) {
 	generateAddrComparison(asm.EQ);
 	return true;
@@ -3631,7 +3651,33 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	generateAddrComparison(asm.EQ);
 	return true;
     }
-						     
+    if (methodName == VM_MagicNames.wordLsh) {
+	if (VM.BuildFor32Addr) {
+	  asm.emitPOP_Reg(ECX);
+	  asm.emitSHL_RegInd_Reg(SP, ECX);   
+	}
+	else
+	  VM._assert(false);  
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordRshl) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg (ECX);
+	asm.emitSHR_RegInd_Reg (SP, ECX);  
+      }
+      else
+	VM._assert(false);  
+      return true;
+    }
+    if (methodName == VM_MagicNames.wordRsha) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg (ECX);
+	asm.emitSAR_RegInd_Reg (SP, ECX);  
+      }
+      else
+	VM._assert(false);  
+      return true;
+    }
     return false;
     
   }

@@ -79,6 +79,11 @@ public final class VM_Extent implements VM_Uninterruptible {
     return new VM_Extent(0);
   }
 
+  public static VM_Extent one () throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new VM_Extent(1);
+  }
+
   public static VM_Extent max() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);

@@ -548,10 +548,6 @@ implements VM_Uninterruptible, VM_Constants {
   void stashProcessorInPthread() {
     // Store ID of the VM_Processor in thread-specific storage,
     // so we can access it later on from aribitrary native code.
-/*
-    VM.sysWrite("stashProcessorInPthread: my address = " +
-      Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) + "\n");
-*/
     VM_SysCall.sysStashVmProcessorIdInPthread(this.id);
   }
   //-#endif

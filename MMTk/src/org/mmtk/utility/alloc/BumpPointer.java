@@ -82,7 +82,7 @@ final class BumpPointer extends Allocator
 	return allocSlow(isScalar, bytes);
     } else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
-      if (tmp.GT(VM_Word.fromInt(TRIGGER)))
+      if (tmp.GT(VM_Word.fromIntZeroExtend(TRIGGER)))
 	return allocSlow(isScalar, bytes);
     }
     cursor = newCursor;
@@ -124,7 +124,7 @@ final class BumpPointer extends Allocator
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
   private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
   private static final int TRIGGER = CHUNK_SIZE - 1;
-  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromInt(TRIGGER);
-  private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
+  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromIntZeroExtend(TRIGGER);
+  private static final VM_Address INITIAL_LIMIT_VALUE = INITIAL_CURSOR_VALUE;
   private static final boolean useLimit = true;
 }

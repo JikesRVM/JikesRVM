@@ -52,7 +52,7 @@ abstract class SegregatedFreeList extends Allocator
    * Class variables
    */
   private static final boolean COMPACT_SIZE_CLASSES = false;
-  protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);  // 0x5b098008
+  protected static final VM_Address DEBUG_BLOCK = VM_Address.max();  // 0x5b098008
   protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
   protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
   private static final int FREE_LIST_OFFSET = 0;
