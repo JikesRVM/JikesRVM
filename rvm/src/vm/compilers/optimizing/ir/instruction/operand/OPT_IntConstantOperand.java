@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
+import com.ibm.JikesRVM.VM_Type;
 
 /**
  * Represents a constant int operand.
@@ -18,14 +19,34 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * Value of this operand.
    */
   public int value;
+  public VM_Type type;
 
   /**
    * Constructs a new int constant operand with the specified value.
+   * Type will be determined by value.
    *
    * @param v value
    */
   public OPT_IntConstantOperand(int v) {
     value = v;
+    if ((value == 0) || (value == 1))
+      type = VM_Type.BooleanType;
+    else if (-128 <= value && value <= 127)
+      type = VM_Type.ByteType;
+    else if (-32768 <= value && value <= 32767)
+      type = VM_Type.ShortType;
+    else
+      type = VM_Type.IntType;
+  }
+
+  /**
+   * Constructs a new int constant operand with the specified value and type.
+   *
+   * @param v value
+   */
+  public OPT_IntConstantOperand(int v, VM_Type t) {
+    value = v;
+    type = t;
   }
 
   /**
