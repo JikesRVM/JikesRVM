@@ -1314,9 +1314,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
           break;
         }
       }
-
-      pref.initialize(ir);
     }
+    pref.initialize(ir);
 
     // (2) 
     // In non-adaptive configurations we can omit the yieldpoint if 
