@@ -20,6 +20,8 @@ import instructionFormats.Unary;
  * name for r.  The SPLIT operator is later turned into a MOVE during
  * BURS.
  *
+ * <p>This pass also splits live ranges on edges to and from infrequent code.
+ *
  * <p> This composite phase should be performed at the end of SSA in LIR.
  *
  * @author Stephen Fink
@@ -159,8 +161,43 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           }
         }
       }
+      
+      addEntriesForInfrequentBlocks(ir, live, result);
+
       return result;
     }
+
+    /**
+     * Split live ranges on entry and exit to infrequent regions.
+     * Add this information to 'result', a mapping from BasicBlockPair to a set of 
+     * registers to split.
+     *
+     * @param ir the governing IR
+     * @param live valid liveness information
+     * @param result mapping from BasicBlockPair to a set of registers
+     */
+    private static void addEntriesForInfrequentBlocks(OPT_IR ir, OPT_LiveAnalysis live,
+                                                      HashMap result) {
+      for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+        OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+        boolean bbInfrequent = bb.getInfrequent();
+        for (Enumeration out = bb.getNormalOut(); out.hasMoreElements(); ) {
+          OPT_BasicBlock dest = (OPT_BasicBlock)out.nextElement();
+          boolean destInfrequent = dest.getInfrequent();
+          if (bbInfrequent ^ destInfrequent) {
+            HashSet liveRegisters = live.getLiveRegistersOnEdge(bb,dest);
+            for (Iterator it = liveRegisters.iterator(); it.hasNext();) {
+              OPT_Register r = (OPT_Register)it.next();
+              if (r.isSymbolic()) {
+                HashSet s = findOrCreateSplitSet(result,bb,dest);
+                s.add(r);
+              }
+            }
+          }
+        }
+      }
+    }
+
 
     /**
      * Given a mapping from BasicBlockPair -> HashSet, find or create the hash
