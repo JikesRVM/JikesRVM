@@ -1477,7 +1477,7 @@ MIR_Empty
 memAsLoad | memAsStore
 
 
-(31<<26 | 1<<21 | 598<<1)
+(31<<26 | 598<<1)
 
 ####################
 PPC_ISYNC
