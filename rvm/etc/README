@@ -12,13 +12,29 @@ skel/:
 
 jikes-rvm.el
 
-    GNU Emacs source code for editing Jikes RVM source code.  This
-    customizes java mode, C++ mode, and C mode.  Since this file will
-    probably improve with time, I recommend you load it in rather
-    than cutting and pasting its contents into your ~/.emacs file.
+    GNU Emacs customizations for editing Jikes RVM source code.  This
+    customizes Java mode, C++ mode, and C mode.  Since this file will
+    probably improve with time, I recommend you use (load) or
+    (load-library) to bring it in indirectly from the Jikes RVM
+    source tree, rather than cutting and pasting its contents into
+    your ~/.emacs file.  See dot-emacs.el below.
 
 dot-emacs.el
 
     If you're going to edit Jikes RVM C, C++, or Emacs code, I recommend 
     adding the contents of dot-emacs.el, or something similar, to a file in
-    your home directory named ~/.emacs.
+    your home directory named "~/.emacs".
+
+jikes-rvm.vim
+
+    Vim (Vi IMproved) customizations for editing Jikes RVM source
+    code.  This customizes Java mode, C++ mode, and C mode.  Since
+    this file will probably improve with time, I recommend you load it
+    in indirectly from the source tree rather than cutting and pasting
+    its contents into your ~/.vimrc file.  See dot-vimrc.vim below.
+
+dot-vimrc.vim
+
+    If you're going to use the Jikes RVM Vim customizations, we recommend
+    adding the contents of dot-vimrc.vim to a file in your home
+    directory named "~/.vimrc".
