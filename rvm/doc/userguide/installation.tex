@@ -35,6 +35,20 @@ Use the pre-built rpm file for jikes-1.18 or higher.
 \item Download Jikes RVM from developerWorks and unpack it.  We shall
 hereinafter call the location of the RVM distribution RVM\_ROOT/rvm.
 
+\item Download version \classpathversion\ of the GNU Classpath
+libraries from \classpathftp. Unpack the tar file and rename the
+directory to classpath (instead of classpath-\classpathversion). Don't
+configure or install the package; the Jikes RVM build process will
+handle this automatically.  Note, you can skip this step and have the
+Jikes RVM build process download classpath for you automatically,
+however this requires that you have a number of RPMs installed
+on your machine that aren't part of the default Red Hat install.
+Unless you regularly build the GNU classpath libraries from their CVS
+tree, we recommend that you download a classpath release tar ball
+instead. When editing the configuration file (next step), you will set
+the {\tt CLASSPATH\_SRC} variable to be the directory that contains the
+classpath directory you just created.  
+
 \item Edit a configuration file so that it fits your machine.  One of
 the i686-pc-linux files in RVM\_ROOT/rvm/config will probably be
 more-or-less right to begin with.  On Linux, most standard commands
@@ -105,13 +119,15 @@ kernel         & 2.4+ ({\em See below}) & \xlink{\tt \linuxKernelURL}{\linuxKern
 JDK            & Blackdown 1.3.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ ({\em See below}) & \xlink{\tt \glibcURL}{\glibcURL} \\ \hline
 \multicolumn{3}{|c|}{\em AIX/PowerPC}                     \\ \hline
-AIX            & 4.3+     & yeah, right :)                         \\
+AIX            & 4.3+     &                          \\
 JDK            & IBM DK 1.3.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ \hline
 \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline\hline 
 \end{tabular}
 \begin{itemize}
+\item {\tt automake} and {\tt autoconf} are only required to build the
+GNU classpath libaries from classpath CVS. 
 \item {\tt glibc} for Linux/IA32 must use the GS register for
 thread-local state.  See the build instructions for glibc for details;
 if that scares you, use a recent RedHat Linux distribution.
@@ -149,10 +165,12 @@ GNU Classpath license is available at \xlink{{\tt
 The first item is available  from the Jikes RVM
 \xlink{download}{\RVMDownloadURL} page. The second item is available at
 \xlink{{\tt \classpathURL}}{\classpathURL}.
-You do not usually need to explicitly download the GNU Classpath
-libraries; the Jikes RVM build process will automatically check that
-the right version is present. If not, the build process will
-automatically download it.
+You can either explicitly download the appropriate version of the GNU
+Classpath libraries and set {\tt CLASSPATH\_SRC} in your config file or let
+the Jikes RVM build process download the right version for you
+automatically. If you do not regularly build the classpath libraries
+from their CVS tree, then you probably should download the appropriate
+classpath release manually and set {\tt CLASSPATH\_SRC}. 
 
 Once these files have been downloaded, you will set up 
 a working directory holding the Jikes RVM source files, standard
@@ -292,6 +310,9 @@ find tools that Jikes RVM needs. You must set the following variables:
 \item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM. If you
 have a nonstandard JDK, you may have to define a number of variables
 that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
+\item {\tt CLASSPATH\_SRC} the parent directory of the classpath src
+release, if you have decided to manually download the classpath
+libraries. 
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
 \item {\tt JIKES} the Jikes\trademark compiler executable ({\tt jikes}).
 \item {\tt CC} how to invoke the C compiler.
@@ -299,8 +320,6 @@ that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
 \item {\tt LDSHARED} how to link a shared C++ library.
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
-The remaining variables in the config file are not required for basic
-Jikes RVM builds.
 
 Someday we should consider setting up an autoconf to automate this
 step.  Contributions are welcome!
