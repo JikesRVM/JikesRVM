@@ -971,6 +971,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 	break;
       case CHECKCAST_opcode:
       case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
 	addTargets(e, OPT_ClassLoaderProxy.JavaLangClassCastExceptionType);
 	break;
       case NULL_CHECK_opcode:
