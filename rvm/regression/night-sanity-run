@@ -149,30 +149,59 @@ $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/i
 
 # Archive result files and performance results
 
-declare -i archived=0
-if [[ ! -d $ARCHIVE ]]; then
-    echo "$ME: No archive directory named $ARCHIVE exists; skipping archiving." \
-	| tee -a $RUN_LOG $MSG 
-else
-    echo -e "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-    tarfile=$ARCHIVE/archive.`date +"%A"`.${ARCH}.tar.gz
-    ($RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results; find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>&1
 
+function archiveResults() {
+    if [[ ! -d $ARCHIVE ]]; then
+	echo "$ME: No archive directory named $ARCHIVE exists;" \
+	    " skipping archiving." | tee -a $VERBOSE_LOG $RUN_LOG $MSG
+	return 1;
+    fi
+
+    echo -e "Archiving results into $ARCHIVE\n" | tee -a $RUN_LOG >> $VERBOSE_LOG
+    local tarfile=$ARCHIVE/archive.`date +"%A"`.${ARCH}.tar.gz
+    if :; then
+	$RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results
+	local -i status=$?
+	if (( status != 0 )); then
+	    echo "$ME: copyBuildTraceFiles failed; aborting the archiving."
+	    return $status
+	fi
+	## Change:, let's save the 'cp' directories, since they might
+	## be useful for tracing problems.  We'll exclude them explicitly from
+	## the tar archive instead.  So we keep them online for 
+	## almost 24 hours. --Steve Augart, July 28 2003 
+	# find $RVM_ROOT/results -name cp -exec rm -rf {} \;
+	$GNU_TAR -C$RVM_ROOT --exclude 'cp' -czv -f $tarfile results
+	status=$?
+	if (( status )); then
+	    echo "$ME: GNU_TAR of $RVM_ROOT/results into $tarfile failed.  Could not archive."
+	    return $status;
+	fi
+    fi >> $VERBOSE_LOG 2>&1
+    
     echo "sending tar to dW" >> $VERBOSE_LOG 2>&1
     if ! cd $RVM_ROOT/sanityResults; then
-	echo >> $RUN_LOG "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW.";
-    else
-	TRANSFER_FILE_NAME=`date +"%A"`.${ARCH}.tar.gz
-	cp $tarfile $TRANSFER_FILE_NAME
-	$CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1
-	$CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1
-	rm -f $TRANSFER_FILE_NAME
-	mv CVS/Entries CVS/tmp
-	grep -v $TRANSFER_FILE_NAME < CVS/tmp > CVS/Entries
-	rm -f CVS/tmp
-	cd $RVM_ROOT
+	echo  "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW." | tee -a $RUN_LOG $VERBOSE_LOG >> $MSG;
+	return
     fi
-fi
+    local -i trouble=0
+    TRANSFER_FILE_NAME=$(date +"%A").${ARCH}.tar.gz || trouble=1
+    cp $tarfile $TRANSFER_FILE_NAME || trouble=1
+    $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+    $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+    rm -f $TRANSFER_FILE_NAME || trouble=1
+    grep -v $TRANSFER_FILE_NAME < CVS/Entries > CVS/Entries.tmp || trouble=1
+    mv -f CVS/Entries.tmp CVS/Entries || trouble=1
+    if (( trouble )); then
+	echo "$ME: Sending the tar to DeveloperWorks failed; trouble!" \
+	    | tee -a $RUN_LOG $VERBOSE_LOG $MSG >&2
+    fi
+    cd $RVM_ROOT
+    return $trouble;
+}
+
+declare -i archived=0
+archiveResults && archived=1
 
 # determine how many ran, failed, and passed, then build a summary line
 declare -i numran=`grep "sane" $RUN_LOG | wc -l`
@@ -194,11 +223,11 @@ fi  >> $MSG
 javadoc_out="$RVM_ROOT/doc/api/javadoc.out"
 if [[ ! -f $javadoc_out ]]; then
     echo "No javadoc results are available; the file \"$javadoc_out\" was never made." 
-    numjavadocErrors=0
+    declare -i numjavadocErrors=0
 else
     # Also report the number of javadoc errors
     numjavadocErrors=$(grep warning $javadoc_out | sort | uniq | wc -l)
-    if [[ $numjavadocErrors -eq 0 ]]; then 
+    if (( numjavadocErrors == 0 )); then 
 	echo "There were no javadoc errors."
     else 
 	echo "There were $numjavadocErrors javadoc errors."
@@ -226,11 +255,13 @@ if (( numjavadocErrors > 0 )) && (( numjavadocErrors < 50 )); then
 fi >> $MSG
 
 if (( archived )); then
-    # Describe where the information can be found
+    # Describe where the archive information can be found
     echo -e "\nOutput of this run is normally available (for 24 hours) at:" 
     echo "http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME"
 fi >> $MSG
 echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
+
+## Report on performance results.
 
 declare -i have_perf_log=0
 declare -i have_useful_perf_log	# Do we have a PERF_LOG that we can make good use of?
