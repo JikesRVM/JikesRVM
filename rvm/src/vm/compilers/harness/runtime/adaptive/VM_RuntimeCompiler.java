@@ -30,18 +30,22 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   }
   
   static void processCommandLineArg(String arg) {
-    if (compilerEnabled) {
-      if (options.processAsOption("-X:aos:irc", arg)) {
-	// update the optimization plan to reflect the new command line argument
-	setNoCacheFlush(options);
-	optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
+    if (VM_Controller.options !=null  && VM_Controller.options.optOnly()) {
+      if (compilerEnabled) {
+	if (options.processAsOption("-X:aos:irc", arg)) {
+	  // update the optimization plan to reflect the new command line argument
+	  setNoCacheFlush(options);
+	  optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
+	} else {
+	  VM.sysWrite("VM_RuntimeCompiler (optOnly): Unrecognized argument \""+arg+"\" with prefix -X:aos:irc:\n");
+	  VM.sysExit(-1);
+	}
       } else {
-	VM.sysWrite("VM_RuntimeCompiler: Unrecognized argument \""+arg+"\" with prefix -X:aos:irc:\n");
+	VM.sysWrite("VM_RuntimeCompiler: Compiler not enabled; unable to process command line argument: "+arg+"\n");
 	VM.sysExit(-1);
       }
     } else {
-      VM.sysWrite("VM_RuntimeCompiler: Compiler not enabled; unable to process command line argument: "+arg+"\n");
-      VM.sysExit(-1);
+      VM_BaselineCompiler.processCommandLineArg("-X:aos:irc", arg);
     }
   }
   
@@ -59,9 +63,19 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
       if ( !preloadChecked ) {
 	preloadChecked = true;			// prevent subsequent calls
 	// N.B. This will use irc options
-	if ( options.PRELOAD_CLASS != null ) {
+	if ( VM_BaselineCompiler.options.PRELOAD_CLASS != null ) {
 	  compilationInProgress = true;		// use baseline during preload
-          OPT_Compiler.preloadSpecialClass( options );
+	  // Other than when boot options are requested (processed during preloadSpecialClass
+	  // It is hard to communicate options for these special compilations. Use the 
+	  // default options and at least pick up the verbose if requested for base/irc
+	  OPT_Options tmpoptions = (OPT_Options)options.clone();
+	  tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
+	  tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
+	  if (VM_BaselineCompiler.options.PRINT_METHOD) {
+	    tmpoptions.PRINT_METHOD = true;
+	  } else 
+	    tmpoptions = options;
+          OPT_Compiler.preloadSpecialClass( tmpoptions );
 	  compilationInProgress = false;
 	}
       }
