@@ -34,4 +34,4 @@ endif
 	$(MAKE) START_ARGS=$< sanity-check-rule
 
 check:
-@diff $(START_ARGS).java qb1.lex.ref.classpath
+	@diff $(START_ARGS).java qb1.lex.ref.classpath
