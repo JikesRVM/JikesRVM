@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -46,7 +46,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
    * runtime service methods. This method should be called as one of the
    * first steps in lowering HIR into LIR.
    * 
-   * @param OPT_IR HIR to expand
+   * @param ir  The HIR to expand
    */
   public void perform (OPT_IR ir) {
     ir.gc.resync(); // resync generation context -- yuck...
