@@ -398,7 +398,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_SHORT)) {
-        VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
+        VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -437,7 +437,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_CHAR)) {
-        VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
+        VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -476,9 +476,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       if (src != dst || srcIdx >= dstIdx) {
-        VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<< LOG_BYTES_IN_INT),
-                                VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_INT),
-                                len<< LOG_BYTES_IN_INT);
+        VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -517,9 +515,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx << LOG_BYTES_IN_FLOAT),
-                                VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_FLOAT),
-                                len << LOG_BYTES_IN_FLOAT);
+        VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -671,12 +667,11 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     int dstOffset = dstIdx << LOG_BYTES_IN_ADDRESS;
     int bytes = len << LOG_BYTES_IN_ADDRESS;
     
-    if (!MM_Interface.NEEDS_WRITE_BARRIER 
-        && ((src != dst) || loToHi)) {
+    if (!MM_Interface.NEEDS_WRITE_BARRIER && ((src != dst) || loToHi)) {
       if (VM.VerifyAssertions) VM._assert(!MM_Interface.NEEDS_WRITE_BARRIER);
-      VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstOffset),
-                              VM_Magic.objectAsAddress(src).add(srcOffset),
-                              bytes);
+      VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).add(dstOffset),
+                                VM_Magic.objectAsAddress(src).add(srcOffset),
+                                bytes);
     } else {
       // set up things according to the direction of the copy
       int increment;
