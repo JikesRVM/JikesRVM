@@ -4,11 +4,22 @@
 #
 # $Id$
 #
-# @author Julian Dolby
+# @author Stephen Fink
 #
 
-# collect the last reported elapesed time
-/ELAPSED TIME/ { eTime = $3; next }
+# collect the total time, throwing out the first iteration
+BEGIN {
+  iter = 0
+  eTime = 0
+}
+
+/ELAPSED TIME/ { 
+   if (iter > 0)  {
+     eTime = eTime + $3; 
+   }
+   iter = iter + 1
+   next 
+}
 
 # ignore everything else
 /.*/ { next }

@@ -20,8 +20,14 @@ BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSa
 
 INPUT_FILES=$(wildcard $(XML_DATA)/shakespeare.1.10.xml/*.xml)
 
+ifeq ($(MODE),PERFORMANCE)
+  ITERATIONS=11
+else
+  ITERATIONS=1
+endif
+
 START_NAME=Driver
-START_ARGS=2 dom.Counter main $(INPUT_FILES)
+START_ARGS=$(ITERATIONS) dom.Counter main $(INPUT_FILES)
 
 sanity:		sanity-check-rule
 
