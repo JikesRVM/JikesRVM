@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001, 2002, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -15,6 +15,10 @@ import java.lang.ref.Reference;
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
+ *
+ * @modified Steven Augart (to catch recursive shutdowns, 
+ *			    such as when out of memory)
+ * @date 10 July 2003
  */
 public class VM extends VM_Properties 
     implements VM_Constants, VM_Uninterruptible { 
@@ -841,7 +845,20 @@ public class VM extends VM_Properties
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
+  private static void die(int value) {
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
+  }
+
+  private static int inSysExit = 0;
+
   public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+    ++inSysExit;
+    /* If it's only our first time through, then print a message.  After the
+       first time through, we even will give up on message printing! */
+    if (inSysExit == 2)
+      sysWriteln("VM.sysExit(): We're in a recursive call to VM.sysExit(); aborting abruptly");
+    if (inSysExit > 1)
+      die(128);
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -851,18 +868,27 @@ public class VM extends VM_Properties
     }
   }
 
+  private static int inShutdown = 0;
+
   /**
    * Shut down the virtual machine.
    * Should only be called if the VM is running.
    * @param value  exit value
    */
   public static void shutdown(int value) {
+    ++inShutdown;
+    /* If it's only our first time through, then print a message.  After the
+       first time through, we even will give up on message printing! */
+    if (inShutdown == 2)
+      sysWriteln("VM.shutdown(): We're in a recursive call to VM.shutdown(); aborting abruptly");
+    if (inShutdown > 1)
+      die(128);
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
     } else {
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
+      die(value);
     }
   }
 
