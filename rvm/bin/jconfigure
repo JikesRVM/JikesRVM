@@ -1680,6 +1680,7 @@ function emitImageLinker
    if (( RVM_WITH_HPM )) ; then
      print "   print 'com/ibm/JikesRVM/HPM_counters'       >> $PRIMORDIAL_CLASSES_STR.1"
      print "   print 'com/ibm/JikesRVM/HPM_info'           >> $PRIMORDIAL_CLASSES_STR.1"
+     print "   print 'Lcom/ibm/JikesRVM/Java2HPM;'         >> $PRIMORDIAL_CLASSES_STR.1"
    fi
 
    #
