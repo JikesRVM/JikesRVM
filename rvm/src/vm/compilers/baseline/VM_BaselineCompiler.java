@@ -114,7 +114,7 @@ public abstract class VM_BaselineCompiler {
 
     klass = method.getDeclaringClass();
     bytecodes = method.getBytecodes();
-    bytecodeMap = new int [bytecodes.length];
+    bytecodeMap = new int [bytecodes.length+1];
     asm = new VM_Assembler(bytecodes.length, shouldPrint);
     isInterruptible = method.isInterruptible();
   }
@@ -1840,6 +1840,7 @@ public abstract class VM_BaselineCompiler {
 	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
+    bytecodeMap[bytecodes.length] = asm.getMachineCodeIndex();
     return asm.finalizeMachineCode(bytecodeMap);
   }
 

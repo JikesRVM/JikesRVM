@@ -24,7 +24,7 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
     int[] startPCs = emap.startPCs;
     int[] endPCs = emap.endPCs;
     int[] handlerPCs = emap.handlerPCs;
-      VM_Type[] exceptionTypes = emap.exceptionTypes;
+    VM_Type[] exceptionTypes = emap.exceptionTypes;
     int tableSize = startPCs.length;
     int[] eTable = new int[tableSize*4];
     
