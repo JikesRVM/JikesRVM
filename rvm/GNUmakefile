@@ -54,7 +54,7 @@ all:
 ## If RVM_BUILD is in the environment, then we have a real Jikes RVM build that
 ## we can search for the generated sources (the ones that don't appear here).
 ifdef RVM_BUILD
-   GENSRC:=$(RVM_BUILD)/RVM.generatedSources
+   GENSRC:="$(RVM_BUILD)/RVM.generatedSources"
 else
    GENSRC:=
 endif
@@ -86,7 +86,7 @@ TAGS: FORCE
 	$(RM) $@
 	$(FIND) -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 ifdef RVM_BUILD
-	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
+	find  "$(RVM_BUILD)/RVM.scratch" \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 endif
 	${append_java_templates}
 
@@ -94,7 +94,7 @@ TAGS.ALL: FORCE
 	$(RM) $@
 	$(FINDALL) ! -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 ifdef RVM_BUILD
-	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
+	find  "$(RVM_BUILD)/RVM.scratch" \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 endif
 	${append_java_templates}
 
