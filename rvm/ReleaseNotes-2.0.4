@@ -1,0 +1,55 @@
+XXXXXXX WORK IN PROGRESS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXX RESTRICT TEXT TO 60 COLUMNS!    XXXXXXXXXXXXXXXXXXXX
+This is release 2.0.4 of the Jikes RVM. This release 
+provides some significant refactoring and new functionality,
+as well as bug fixes.
+
+IMPORTANT: new prerequisite!  The Jikes RVM now requires 
+JazzLib.  (TODO: update this with appropriate text).
+
+IMPORTANT NOTE: We are aware of a bug in the IBM DK for 
+  Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
+  version v1.3.0 until this bug can be resolved.
+
+Highlights of this release include:
+ - Introduction of a plug-in parameterized object model, as
+   described in the ECOOP 2002 paper by Bacon, Fink & Grove. 
+   The MarkSweep configurations now have a one-word header
+   for most objects.  All configurations now use 32-bit 
+   address-based hashing.
+ - Introduction of a "magic" VM_Address type, representing 
+   a raw address manipulated by the VM.  Currently both 
+   platforms implement VM_Address as an unsigned 
+   32-bit integer.
+ - Significant refactoring of the memory management system,
+   to reduce replicated code and support more functionality.
+ - Signficant refactoring of the VM interface to the 
+   standard libraries, introducing the 
+   com.ibm.JikesRVM.librarySupport package to help porting
+   to use another standard library implementation.
+ - The original PowerPC linear scan implementation is 
+   deleted, and the new IA32 linear scan implementation 
+   has been refactored and ported to support both IA32 and 
+   PowerPC.
+ - The optimizing compiler now inlines trivial callees even
+   at optimization level zero.
+ - Significant improvements in speed of the optimizing 
+   compiler's register allocation and Heap Array SSA 
+   construction phases.
+ - Some more support for miscellaneous library functions
+   including class loaders and some system services.
+ - Miscellaneous enhancements to JDP.
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool and CVS 
+history.  The following bugs in version 2.0.3 are 
+fixed in 2.0.4: 
+ 2128: getMostRecentlyGeneratedCompilerInfo
+ 2359: update RunSanityTests default
+ 2739: static synchronized methods in boot image
+ 2763: jdp 'thread' command broken
+ 2794: Classes resolved but not in boot image
+ 2806: IA32: genThreadSwitchTest for deterministic thread
+       switching
+ 2823: VM_Lister of CMPXCHG
+ 2831: BaseBase GC Map bug for Native Bridge
