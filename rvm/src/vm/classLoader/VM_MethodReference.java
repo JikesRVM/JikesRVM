@@ -122,7 +122,19 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method, return null if the method cannot be resolved without classloading.
    */
   public final VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = (VM_Class)type.peekResolvedType();
+    VM_Class thisClass = null;
+    if (name == VM_ClassLoader.StandardClassInitializerMethodName) {
+      thisClass = (VM_Class)type.peekResolvedType();
+    } else { 
+      try {
+	thisClass = (VM_Class)type.resolve();
+      } catch (ClassNotFoundException e) {
+	// can't happen.
+	// We're at compile time doing resolution of an invocation to a private method or super call.
+	// We must have loaded the class already
+	if (VM.VerifyAssertions) VM._assert(false);
+      }
+    }
     if (thisClass == null) return null; // can't be found now.
     VM_Method sought = resolveInternal(thisClass);
 
