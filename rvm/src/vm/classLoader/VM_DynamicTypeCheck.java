@@ -206,7 +206,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfNonArray(VM_Class LHSclass, Object[] rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -224,7 +224,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) throws VM_PragmaUninterruptible {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
@@ -249,52 +249,9 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);
   }
 
-
-  /**
-   * LHSArray is [^LHSDimension of java.lang.Object
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSDimension the dimensionality of the array
-   * @param RHSType a type that might be an instanceof 
-   *        [^LHSDimension of java.lang.Object
-   * @return <code>true</code> if RHStype is an instanceof
-   *       [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  public static boolean instanceOfObjectArray(int LHSDimension, VM_Type RHSType) {
-    int RHSDimension = RHSType.getDimensionality();
-    if (RHSDimension < LHSDimension) return false;
-    if (RHSDimension > LHSDimension) return true;
-    return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
-  }
-
-
-  /**
-   * LHSArray is [^LHSDimension of LHSInnermostClass, LHSInnermostClass 
-   * is not java.lang.Object.
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSInnermostElementclass the innermost element type
-   * @param LHSDimension the dimensionality of the array
-   * @param RHStype a type that might be an instanceof 
-   *        [^LHSDimension of LHSInnermostClass
-   * @return <code>true</code> if RHStype is an instanceof
-   *        [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  public static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
-					int LHSDimension,  VM_Type RHSType) {
-    int RHSDimension = RHSType.getDimensionality();
-    if (RHSDimension != LHSDimension) return false;
-    VM_Type RHSInnermostElementType = RHSType.asArray().
-                                      getInnermostElementType();
-    if (RHSInnermostElementType.isPrimitiveType()) return false;
-    return instanceOfResolved(LHSInnermostElementClass, 
-			      RHSInnermostElementType.getTypeInformationBlock());
-  }
-  
   /**
    * Can we store an object of type RHSType in a variable of type LHSType?
+   * Assumption. LHSType and RHSType are already resolved.
    * 
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
@@ -302,25 +259,23 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  public static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) {
-    if (LHSType == RHSType) return true;
-    if (!LHSType.isResolved()) {
-      LHSType.resolve();
-    }
-    if (!RHSType.isResolved()) {
-      RHSType.resolve();
-    }
+  public static boolean instanceOfResolved(VM_Type LHSType, VM_Type RHSType) {
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();
     if (LHSDimension < 0 || RHSDimension < 0) return false;
-    if (LHSDimension == 0) return instanceOfResolved(LHSType.asClass(), 
+    if (LHSDimension == 0) return instanceOfNonArray(LHSType.asClass(), 
                                                      RHSType.getTypeInformationBlock());
     VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
     if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
-      return instanceOfObjectArray(LHSDimension, RHSType);
+      if (RHSDimension < LHSDimension) return false;
+      if (RHSDimension > LHSDimension) return true;
+      return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
     } else if (!LHSInnermostElementType.isPrimitiveType()) {
-      return instanceOfArray(LHSInnermostElementType.asClass(), 
-                             LHSDimension, RHSType);
+      if (RHSDimension != LHSDimension) return false;
+      VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
+      if (RHSInnermostElementType.isPrimitiveType()) return false;
+      return instanceOfNonArray(LHSInnermostElementType.asClass(), 
+				RHSInnermostElementType.getTypeInformationBlock());
     } else {
       return false;
     }

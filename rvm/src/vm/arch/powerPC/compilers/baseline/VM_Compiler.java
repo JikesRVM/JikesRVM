@@ -2285,6 +2285,19 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param type the LHS type
    * @param target the method to invoke to implement this checkcast
    */
+  protected final void emit_checkcast_resolvedClass(VM_Type type) {
+    asm.emitLtoc(T0,  VM_Entrypoints.checkcastResolvedClassMethod.getOffset());
+    asm.emitMTCTR(T0);
+    asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
+    asm.emitLVAL(T1, type.getId());
+    asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   * @param target the method to invoke to implement this checkcast
+   */
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitLtoc(T0,  VM_Entrypoints.checkcastFinalMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -2303,6 +2316,20 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitMTCTR(T0);
     asm.emitL   (T0, 0, SP);
     asm.emitLVAL(T1, typeRef.getId());
+    asm.emitCall(spSaveAreaOffset);
+    asm.emitST  (T0, 0, SP);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param typeRef the LHS type
+   * @param target the method to invoke to implement this instanceof
+   */
+  protected final void emit_instanceof_resolvedClass(VM_Type type) {
+    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
+    asm.emitMTCTR(T0);
+    asm.emitL   (T0, 0, SP);
+    asm.emitLVAL(T1, type.getId());
     asm.emitCall(spSaveAreaOffset);
     asm.emitST  (T0, 0, SP);
   }

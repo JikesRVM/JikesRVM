@@ -1732,9 +1732,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + typeRef);
 	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
-	  if (type.isClassType() && type.asClass().isFinal()) {
-	    emit_checkcast_final(type);
-	    break;
+	  if (type.isClassType()) {
+	    if (type.asClass().isFinal()) {
+	      emit_checkcast_final(type);
+	      break;
+	    } else if (type.isResolved() && !type.asClass().isInterface()) {
+	      emit_checkcast_resolvedClass(type);
+	      break;
+	    }
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
@@ -1754,9 +1759,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + typeRef);
 	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
-	  if (type.isClassType() && type.asClass().isFinal()) {
-	    emit_instanceof_final(type);
-	    break;
+	  if (type.isClassType()) {
+	    if (type.asClass().isFinal()) {
+	      emit_instanceof_final(type);
+	      break;
+	    } else if (type.isResolved() && !type.asClass().isInterface()) {
+	      emit_instanceof_resolvedClass(type);
+	      break;
+	    }
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
@@ -3055,12 +3065,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param type the LHS type
-   */
-  protected abstract void emit_checkcast_final(VM_Type type);
-
-  /**
-   * Emit code to implement the checkcast bytecode
    * @param typeRef the LHS type
    */
   protected abstract void emit_checkcast(VM_TypeReference typeRef);
@@ -3069,13 +3073,31 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_instanceof_final(VM_Type type);
+  protected abstract void emit_checkcast_resolvedClass(VM_Type type);
 
   /**
    * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_checkcast_final(VM_Type type);
+
+  /**
+   * Emit code to implement the instanceof bytecode
    * @param typeRef the LHS type
    */
   protected abstract void emit_instanceof(VM_TypeReference typeRef);
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_instanceof_resolvedClass(VM_Type type);
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_instanceof_final(VM_Type type);
 
   /**
    * Emit code to implement the monitorenter bytecode

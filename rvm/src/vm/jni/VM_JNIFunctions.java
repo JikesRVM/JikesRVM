@@ -592,7 +592,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       if (obj == null) return 0; // null instanceof T is always false
       VM_Type RHStype = VM_ObjectModel.getObjectType(obj);
       VM_Type LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
-      return VM_DynamicTypeCheck.instanceOf(LHStype, RHStype) ? 1 : 0;
+      return (LHStype == RHStype || VM_Runtime.isAssignableWith(LHStype, RHStype)) ? 1 : 0;
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);

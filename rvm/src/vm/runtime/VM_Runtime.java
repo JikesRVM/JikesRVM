@@ -79,17 +79,29 @@ public class VM_Runtime implements VM_Constants {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type lhsType = tRef.resolve();
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    return lhsType == rhsType || isAssignableWith(lhsType, rhsType);
+  }
 
-    if (lhsType == rhsType)
-      return true; // exact match
-         
-    // not an exact match, do more involved lookups
-    //
-    return isAssignableWith(lhsType, rhsType);
+  /**
+   * Uninterruptible version for fully resolved proper classes.
+   * @param object object to be tested
+   * @param id type id corresponding to target class.
+   * @return true iff is object instance of target type?
+   */
+  static boolean instanceOfResolvedClass(Object object, int id) throws VM_PragmaUninterruptible {
+    if (object == null)
+      return false; // null is not an instance of any type
+    
+    VM_Class lhsType = VM_Type.getType(id).asClass();
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
 
   /**
    * quick version for final classes, array of final class or array of primitives
+   * @param object object to be tested
+   * @param jtoc offset of TIB of target type
+   * @return true iff is object instance of target type?
    */
   static boolean instanceOfFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
     if (object == null)
@@ -97,8 +109,9 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib= VM_ObjectModel.getTIB(object);
-    return (lhsTib == rhsTib);
+    return lhsTib == rhsTib;
   }
+
 
   /**
    * Throw exception unless object is instance of target 
@@ -121,6 +134,22 @@ public class VM_Runtime implements VM_Constants {
     // not an exact match, do more involved lookups
     //
     if (!isAssignableWith(lhsType, rhsType)) {
+      raiseCheckcastException(lhsType, rhsType);
+    }
+  }
+
+  /**
+   * Throw exception unless object is instance of target resolved proper class.
+   * @param object object to be tested
+   * @param id of type corresponding to target class
+   */ 
+  static void checkcastResolvedClass(Object object, int id) throws VM_PragmaUninterruptible {
+    if (object == null) return; // null can be cast to any type
+
+    VM_Class lhsType = VM_Type.getType(id).asClass();
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    if (!VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
+      VM_Type rhsType = VM_ObjectModel.getObjectType(object);
       raiseCheckcastException(lhsType, rhsType);
     }
   }
@@ -185,7 +214,13 @@ public class VM_Runtime implements VM_Constants {
    *             so we need not repeat it here
    */ 
   public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
-    return VM_DynamicTypeCheck.instanceOf(lhs, rhs);
+    if (!lhs.isResolved()) {
+      lhs.resolve();
+    }
+    if (!rhs.isResolved()) {
+      rhs.resolve();
+    }
+    return VM_DynamicTypeCheck.instanceOfResolved(lhs, rhs);
   }
 
       

@@ -2315,21 +2315,31 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_checkcast(VM_TypeReference typeRef) {
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
-    asm.emitPUSH_Imm(typeRef.getId());               // JTOC index that identifies klass  
+    asm.emitPUSH_Imm(typeRef.getId());               // VM_TypeReference id.
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffset()); // checkcast(obj, klass-identifier)
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffset()); // checkcast(obj, type reference id);
   }
 
   /**
    * Emit code to implement the checkcast bytecode
    * @param typeRef the LHS type
-   * @param target the method to invoke to implement this checkcast
+   */
+  protected final void emit_checkcast_resolvedClass(VM_Type type) {
+    asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
+    asm.emitPUSH_Imm(type.getId());                  // VM_Type id.
+    genParameterRegisterLoad(2);                     // pass 2 parameter words
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastResolvedClassMethod.getOffset()); // checkcast(obj, type id)
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param typeRef the LHS type
    */
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getTibOffset());           // JTOC index that identifies klass  
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastFinalMethod.getOffset()); // checkcast(obj, klass-identifier)
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastFinalMethod.getOffset()); // checkcast(obj, TIB's JTOC offset)
   }
 
   /**
@@ -2340,6 +2350,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param typeRef the LHS type
+   */
+  protected final void emit_instanceof_resolvedClass(VM_Type type) {
+    asm.emitPUSH_Imm(type.getId());
+    genParameterRegisterLoad(2);          // pass 2 parameter words
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 

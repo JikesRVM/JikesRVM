@@ -189,7 +189,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
     return typeRef;
   }
 
-  public final int getId() { return id; }
+  public final int getId() throws VM_PragmaUninterruptible { return id; }
 
   /**
    * Get the class loader for this type
