@@ -90,20 +90,52 @@ public abstract class RCBaseHeader implements Constants {
     // nothing to do (no bytes of GC header)
   }
 
-  public static boolean isLiveRC(VM_Address obj) 
+  /**
+   * Return true if given object is live
+   *
+   * @param object The object whose liveness is to be tested
+   * @return True if the object is alive
+   */
+  public static boolean isLiveRC(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.REF_COUNT_SANITY_TRACING) {
-      return (VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) & INCREMENT_MASK) >= INCREMENT;
+      return (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & INCREMENT_MASK) >= INCREMENT;
     } else
-      return VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) >= INCREMENT;
+      return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) >= INCREMENT;
   }
 
+  /**
+   * Increment the reference count of an object, clearing the "purple"
+   * status of the object (if it were already purple).  An object is
+   * marked purple if it is a potential root of a garbage cycle.  If
+   * an object's RC is incremented, it must be live and therefore
+   * should not be considered as a potential garbage cycle.  This must
+   * be an atomic operation if parallel GC is supported.
+   *
+   * @param object The object whose RC is to be incremented.
+   */
   public static void incRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     changeRC(object, INCREMENT);
   }
 
-  public static boolean decRC(VM_Address object)
+  /**
+   * Decrement the reference count of an object.  Return either
+   * <code>DEC_KILL</code> if the count went to zero,
+   * <code>DEC_BUFFER</code> if the count did not go to zero and the
+   * object was not already in the purple buffer, and
+   * <code>DEC_PURPLE</code> if the count did not go to zero and the
+   * object was already in the purple buffer.  This must be an atomic
+   * operation if parallel GC is supported.
+   *
+   * @param object The object whose RC is to be decremented.
+   * @return <code>DEC_KILL</code> if the count went to zero,
+   * <code>DEC_BUFFER</code> if the count did not go to zero and the
+   * object was not already in the purple buffer, and
+   * <code>DEC_PURPLE</code> if the count did not go to zero and the
+   * object was already in the purple buffer.
+   */
+   public static boolean decRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int result = changeRC(object, -INCREMENT);
     if (Plan.REF_COUNT_SANITY_TRACING) {

@@ -38,6 +38,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final boolean MOVES_OBJECTS = false;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean REF_COUNT_SANITY_TRACING = false;
+  public static final boolean SUPPORTS_PARALLEL_GC = false;
 
   private static final boolean INLINE_WRITE_BARRIER = false;
 

@@ -54,8 +54,8 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TrialDeletion 
-  implements CycleDetector, Constants, VM_Uninterruptible {
+final class TrialDeletion extends CycleDetector
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////

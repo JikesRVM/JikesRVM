@@ -168,7 +168,8 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @return The object (a no-op in this case).
    */
   public final VM_Address traceBootObject(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
       RCBaseHeader.setBufferedBit(object);
       Plan.enqueue(object);

@@ -300,7 +300,7 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
     ScanObject.enumeratePointers(object, plan.enum);
-    if (!Plan.REF_COUNT_CYCLE_DETECTION ||	!RCBaseHeader.isBuffered(object)) 
+    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
       free(object);
   }
 
@@ -340,7 +340,8 @@ final class RefCountLocal extends SegregatedFreeList
    * established during the sanity scan.
    */
   private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     VM_Address obj;
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
@@ -388,7 +389,8 @@ final class RefCountLocal extends SegregatedFreeList
    * during a root scan.
    */
   public void rootScan(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
     if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
@@ -407,7 +409,8 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
@@ -436,7 +439,7 @@ final class RefCountLocal extends SegregatedFreeList
     VM_Interface.sysWriteInt(rootCounter); VM_Interface.sysWrite(" roots");
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       VM_Interface.sysWrite(", "); 
-      VM_Interface.sysWriteInt(purpleCounter); VM_Interface.sysWrite(" purple");
+      VM_Interface.sysWriteInt(purpleCounter);VM_Interface.sysWrite(" purple");
     }
     VM_Interface.sysWrite(">\n");
   }

@@ -53,6 +53,7 @@ public abstract class BasePlan
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
   public static final boolean REF_COUNT_CYCLE_DETECTION = false;
   public static final boolean REF_COUNT_SANITY_TRACING = false;
+  public static final boolean SUPPORTS_PARALLEL_GC = true;
 
   public  static int verbose = 0;
   private static final int MAX_PLANS = 100;
