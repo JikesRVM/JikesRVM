@@ -27,7 +27,6 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   static final boolean DEBUG = false;
 
   public final boolean shouldPerform (OPT_Options options) {
-    // only perform when the following options are set.
     return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT ||
       options.LOCAL_CHECK;
   }
@@ -139,9 +138,16 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   private boolean isExpression (OPT_Instruction inst) {
     if (inst.isDynamicLinkingPoint()) return false;
-    return Unary.conforms(inst) || GuardedUnary.conforms(inst) || 
-      Binary.conforms(inst) || GuardedBinary.conforms(inst) ||
-      InstanceOf.conforms(inst);
+    switch (inst.operator.format) {
+    case OPT_InstructionFormat.Unary_format:
+    case OPT_InstructionFormat.GuardedUnary_format:
+    case OPT_InstructionFormat.Binary_format:
+    case OPT_InstructionFormat.GuardedBinary_format:
+    case OPT_InstructionFormat.InstanceOf_format:
+      return true;
+    default:
+      return false;
+    }
   }
 
   /** 
@@ -361,7 +367,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   private static final class AvExCache {
     /** Implementation of the cache */
-    private Vector cache = new Vector(0);
+    private ArrayList cache = new ArrayList(0);
 
     /**
      * Find and return a matching available expression.
@@ -375,54 +381,72 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Operand op2 = null;
       OPT_Operand op3 = null;
       OPT_LocationOperand location = null;
-      if (GetField.conforms(inst)) {
+      switch(inst.operator.format) {
+      case OPT_InstructionFormat.GetField_format:
 	op1 = GetField.getRef(inst);
 	location = GetField.getLocation(inst);
-      } else if (GetStatic.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GetStatic_format:
 	location = GetStatic.getLocation(inst);
-      } else if (PutField.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.PutField_format:
 	op1 = PutField.getRef(inst);
 	location = PutField.getLocation(inst);
-      } else if (PutStatic.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.PutStatic_format:
 	location = PutStatic.getLocation(inst);
-      } else if (Unary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Unary_format:
 	op1 = Unary.getVal(inst);
-      } else if (GuardedUnary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GuardedUnary_format:
 	op1 = GuardedUnary.getVal(inst);
-      } else if (Binary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Binary_format:
 	op1 = Binary.getVal1(inst);
 	op2 = Binary.getVal2(inst);
-      } else if (GuardedBinary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GuardedBinary_format:
 	op1 = GuardedBinary.getVal1(inst);
 	op2 = GuardedBinary.getVal2(inst);
-      } else if (Move.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Move_format:
 	op1 = Move.getVal(inst);
-      } else if (NullCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.NullCheck_format:
 	op1 = NullCheck.getRef(inst);
-      } else if (ZeroCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.ZeroCheck_format:
 	op1 = ZeroCheck.getValue(inst);
-      } else if (BoundsCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.BoundsCheck_format:
 	op1 = BoundsCheck.getRef(inst);
 	op2 = BoundsCheck.getIndex(inst);
-      } else if (TrapIf.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.TrapIf_format:
 	op1 = TrapIf.getVal1(inst);
 	op2 = TrapIf.getVal2(inst);
 	op3 = TrapIf.getTCode(inst);
-      } else if (TypeCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.TypeCheck_format:
 	op1 = TypeCheck.getRef(inst);
 	op2 = TypeCheck.getType(inst);
-      } else if (InstanceOf.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.InstanceOf_format:
 	op1 = InstanceOf.getRef(inst);
 	op2 = InstanceOf.getType(inst);
-      } else 
+	break;
+      default:
 	throw  new OPT_OptimizingCompilerException("Unsupported type " + 
 						   inst);
+      }
+
       AvailableExpression ae = 
 	new AvailableExpression(inst, opr, op1, op2, op3, location, null);
       int index = cache.indexOf(ae);
       if (index == -1)
 	return null;
-      return ((AvailableExpression)cache.elementAt(index));
+      return ((AvailableExpression)cache.get(index));
     }
 
     /**
@@ -436,52 +460,71 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Operand op2 = null;
       OPT_Operand op3 = null;
       OPT_LocationOperand location = null;
-      if (GetField.conforms(inst)) {
+
+      switch(inst.operator.format) {
+      case OPT_InstructionFormat.GetField_format:
 	op1 = GetField.getRef(inst);
 	location = GetField.getLocation(inst);
-      } else if (GetStatic.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GetStatic_format:
 	location = GetStatic.getLocation(inst);
-      } else if (PutField.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.PutField_format:
 	op1 = PutField.getRef(inst);
 	location = PutField.getLocation(inst);
-      } else if (PutStatic.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.PutStatic_format:
 	location = PutStatic.getLocation(inst);
-      } else if (Unary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Unary_format:
 	op1 = Unary.getVal(inst);
-      } else if (GuardedUnary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GuardedUnary_format:
 	op1 = GuardedUnary.getVal(inst);
-      } else if (Binary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Binary_format:
 	op1 = Binary.getVal1(inst);
 	op2 = Binary.getVal2(inst);
-      } else if (GuardedBinary.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.GuardedBinary_format:
 	op1 = GuardedBinary.getVal1(inst);
 	op2 = GuardedBinary.getVal2(inst);
-      } else if (Move.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.Move_format:
 	op1 = Move.getVal(inst);
-      } else if (NullCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.NullCheck_format:
 	op1 = NullCheck.getRef(inst);
-      } else if (ZeroCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.ZeroCheck_format:
 	op1 = ZeroCheck.getValue(inst);
-      } else if (BoundsCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.BoundsCheck_format:
 	op1 = BoundsCheck.getRef(inst);
 	op2 = BoundsCheck.getIndex(inst);
-      } else if (TrapIf.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.TrapIf_format:
 	op1 = TrapIf.getVal1(inst);
 	op2 = TrapIf.getVal2(inst);
 	op3 = TrapIf.getTCode(inst);
-      } else if (TypeCheck.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.TypeCheck_format:
 	op1 = TypeCheck.getRef(inst);
 	op2 = TypeCheck.getType(inst);
-      } else if (InstanceOf.conforms(inst)) {
+	break;
+      case OPT_InstructionFormat.InstanceOf_format:
 	op1 = InstanceOf.getRef(inst);
 	op2 = InstanceOf.getType(inst);
-      } else 
+	break;
+      default:
 	throw  new OPT_OptimizingCompilerException("Unsupported type " + 
 						   inst);
+      }
+
       AvailableExpression ae = 
 	new AvailableExpression(inst, opr, 
 				op1, op2, op3, location, null);
-      cache.addElement(ae);
+      cache.add(ae);
     }
 
     /**
@@ -492,23 +535,23 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     private void eliminate (OPT_RegisterOperand op) {
       int i = 0;
       while (i < cache.size()) {
-	AvailableExpression ae = (AvailableExpression)cache.elementAt(i);
+	AvailableExpression ae = (AvailableExpression)cache.get(i);
 	OPT_Operand opx = ae.op1;
-	if ((opx != null) && (opx instanceof OPT_RegisterOperand) && 
-	    (((OPT_RegisterOperand)opx).register == op.register)) {
-	  cache.removeElementAt(i);
+	if (opx instanceof OPT_RegisterOperand && 
+	    ((OPT_RegisterOperand)opx).register == op.register) {
+	  cache.remove(i);
 	  continue;               // don't increment i, since we removed 
 	}
 	opx = ae.op2;
-	if ((opx != null) && (opx instanceof OPT_RegisterOperand) && 
-	    (((OPT_RegisterOperand)opx).register == op.register)) {
-	  cache.removeElementAt(i);
+	if (opx instanceof OPT_RegisterOperand && 
+	    ((OPT_RegisterOperand)opx).register == op.register) {
+	  cache.remove(i);
 	  continue;               // don't increment i, since we removed
 	}
 	opx = ae.op3;
-	if ((opx != null) && (opx instanceof OPT_RegisterOperand) && 
-	    (((OPT_RegisterOperand)opx).register == op.register)) {
-	  cache.removeElementAt(i);
+	if (opx instanceof OPT_RegisterOperand && 
+	    ((OPT_RegisterOperand)opx).register == op.register) {
+	  cache.remove(i);
 	  continue;               // don't increment i, since we removed
 	}
 	i++;
@@ -541,7 +584,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	  // walk through the cache and invalidate any killed locations
 	  while (i < cache.size()) {
 	    AvailableExpression ae = (AvailableExpression)
-              cache.elementAt(i);
+              cache.get(i);
 	    if (ae.inst != s) {   // a store instruction doesn't kill itself 
 	      boolean killIt = false;
 	      if (ae.isLoadOrStore()) {
@@ -553,7 +596,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 		}
 	      }
 	      if (killIt) {
-		cache.removeElementAt(i);
+		cache.remove(i);
 		continue;         // don't increment i, since we removed 
 	      }
 	    }
@@ -569,11 +612,11 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     public void invalidateAllLoads () {
       int i = 0;
       while (i < cache.size()) {
-	AvailableExpression ae = (AvailableExpression)cache.elementAt(i);
+	AvailableExpression ae = (AvailableExpression)cache.get(i);
 	if (ae.isLoadOrStore()) {
 	  if (OPT_LocalCSE.DEBUG)
 	    System.out.println("FOUND KILL " + ae);
-	  cache.removeElementAt(i);
+	  cache.remove(i);
 	  continue;               // don't increment i, since we removed 
 	}
 	i++;

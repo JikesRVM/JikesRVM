@@ -1,11 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//BootImageMap.java
 //$Id$
 
 import java.util.Hashtable;
-import java.util.Vector;
+import java.util.ArrayList;
 import com.ibm.JikesRVM.*;
 
 /**
@@ -26,7 +25,7 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * objectId->Entry map
    */
-  private static Vector objectIdToEntry;
+  private static ArrayList objectIdToEntry;
 
   /**
    * Entry used to represent null object
@@ -108,9 +107,9 @@ public class BootImageMap extends BootImageWriterMessages
    */
   public static void init() {
     keyToEntry      = new Hashtable(5000);
-    objectIdToEntry = new Vector(5000);
+    objectIdToEntry = new ArrayList(5000);
     // predefine "null" object
-    objectIdToEntry.addElement(nullEntry = new Entry(newId(), null, 0));
+    objectIdToEntry.add(nullEntry = new Entry(newId(), null, 0));
     // slot 0 reserved for "null" object entry
   }
 
@@ -128,7 +127,7 @@ public class BootImageMap extends BootImageWriterMessages
     if (entry == null) {
       entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
       keyToEntry.put(key, entry);
-      objectIdToEntry.addElement(entry);
+      objectIdToEntry.add(entry);
     }
 
     return entry;
@@ -140,7 +139,7 @@ public class BootImageMap extends BootImageWriterMessages
    * @return jdk object
    */
   public static Object getObject(int objectId) {
-    return ((Entry) objectIdToEntry.elementAt(objectId)).jdkObject;
+    return ((Entry) objectIdToEntry.get(objectId)).jdkObject;
   }
 
   /**

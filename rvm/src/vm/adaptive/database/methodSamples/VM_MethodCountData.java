@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * A container for recording how often a method is executed.
@@ -223,7 +223,7 @@ public final class VM_MethodCountData implements VM_Reportable {
   public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
 								double threshold) {
     if (DEBUG) validityCheck();
-    Vector collect = new Vector();
+    ArrayList collect = new ArrayList();
     collectHotOptMethodsInternal(1, collect, hotnessToCounts(threshold), optLevel);
 
     // now package the data into the form the caller expects.
@@ -231,7 +231,7 @@ public final class VM_MethodCountData implements VM_Reportable {
     double[] numCounts = new double[numHotMethods];
     VM_CompiledMethod[] hotMethods = new VM_CompiledMethod[numHotMethods];
     for (int i=0; i<numHotMethods; i++) {
-      VM_HotMethodEvent event = (VM_HotMethodEvent)collect.elementAt(i);
+      VM_HotMethodEvent event = (VM_HotMethodEvent)collect.get(i);
       hotMethods[i] = event.getCompiledMethod();
       numCounts[i] = event.getNumSamples();
     }
@@ -320,7 +320,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param optLevel target opt level to look for.
    */
   private void collectHotOptMethodsInternal(int index, 
-					    Vector collect, 
+					    ArrayList collect, 
 					    double threshold, 
 					    int optLevel) {
     if (index < nextIndex) {

@@ -185,7 +185,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @return the heap variables stored for this IR
    */
   public Enumeration getHeapVariables () {
-    return  new OPT_IteratorEnumerator(heapVariables.values().iterator());
+    return new OPT_IteratorEnumerator(heapVariables.values().iterator());
   }
 
   /**
@@ -197,10 +197,10 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * the basic block
    */
   public Enumeration getHeapPhiInstructions (OPT_BasicBlock bb) {
-    Vector v = (Vector)heapPhi.get(bb);
+    ArrayList v = (ArrayList)heapPhi.get(bb);
     if (v == null)
-      return  emptyVector.elements();
-    return  v.elements();
+      return new OPT_IteratorEnumerator(emptyArrayList.iterator());
+    return new OPT_IteratorEnumerator(v.iterator());
   }
 
   /**
@@ -343,15 +343,15 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @return an enumeration of all heap variables that may be exposed on
    * procedure exit
    */
-  public Enumeration enumerateExposedHeapVariables () {
-    Vector v = new Vector();
+  public Iterator enumerateExposedHeapVariables () {
+    ArrayList v = new ArrayList();
     for (Enumeration e = getHeapVariables(); e.hasMoreElements();) {
       OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
       if (isExposedOnExit(H)) {
-        v.addElement(H);
+        v.add(H);
       }
     }
-    return  v.elements();
+    return v.iterator();
   }
 
   /**
@@ -462,12 +462,12 @@ public final class OPT_SSADictionary implements OPT_Operators {
     Hprime[0].setInstruction(s);
     defs.put(s, Hprime);
     */
-    Vector heapPhis = (Vector)heapPhi.get(bb);
+    ArrayList heapPhis = (ArrayList)heapPhi.get(bb);
     if (heapPhis == null) {
-      heapPhis = new Vector(2);
+      heapPhis = new ArrayList(2);
       heapPhi.put(bb, heapPhis);
     }
-    heapPhis.addElement(s);
+    heapPhis.add(s);
     registerInstruction(s, bb);
   }
 
@@ -683,7 +683,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
   private HashMap nextNumber = new HashMap();         
 
   /**
-   * A mapping from <code> OPT_BasicBlock </code> to <code> Vector
+   * A mapping from <code> OPT_BasicBlock </code> to <code> ArrayList
    * </code> of <code> OPT_Instruction </code>.  
    * This map holds the list of heap phi instructions stored as
    * lookaside for each basic block.
@@ -693,7 +693,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
   /**
    * An empty vector, used for utility.
    */
-  private Vector emptyVector = new Vector();
+  private ArrayList emptyArrayList = new ArrayList(0);
 
   /**
    * A mapping from <code> OPT_HeapVariable </code> to <code> HashSet
@@ -1375,7 +1375,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * structure.*/
 
   final class AllInstructionEnumeration
-      implements Enumeration {
+    implements Enumeration {
 
     /**
      * Construct an enumeration for all instructions, both implicit and
