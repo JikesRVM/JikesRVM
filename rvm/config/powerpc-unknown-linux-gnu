@@ -44,7 +44,7 @@ export JNI_NATIVE_LIBS_LD=
 
 # The configuration for building the user guide.
 # You may have to edit this file.
-export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 
 export GREP="/usr/bin/grep"
