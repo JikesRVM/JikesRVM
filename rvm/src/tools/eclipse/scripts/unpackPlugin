@@ -2,6 +2,7 @@
 
 # (C) Copyright IBM Corp. 2002
 # $Id$
+# @author David Hovemeyer
 
 # Given the name of a plugin (e.g., org.eclipse.ui_2.0.0),
 # this script will attempt to unpack its source, create a symlink
