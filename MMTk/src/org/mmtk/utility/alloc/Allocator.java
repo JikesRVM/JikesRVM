@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -64,6 +65,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
   private VM_Address allocSlowBody(boolean isScalar, int bytes, boolean inGC) 
     throws VM_PragmaInline { 
 
+    int gcCountStart = Statistics.gcCount;
     Allocator current = this;
     for (int i=0; i<MAX_RETRY; i++) {
       VM_Address result = current.allocSlowOnce(isScalar, bytes, inGC);
@@ -71,7 +73,11 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    Log.write("GC Warning: OutOfMemory from allocSlowBody - possible VM range imbalance");
+    Log.write("GC Warning: OutOfMemory from allocSlowBody - possible VM range imbalance - space ");
+    Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
+    Log.write("gcCountStart = "); Log.writeln(gcCountStart);
+    Log.write("gcCount (now) = "); Log.writeln(Statistics.gcCount);
+    VM_Interface.dumpStack(); 
     MM_Interface.failWithOutOfMemoryError();
     /* NOTREACHED */
     return VM_Address.zero();
