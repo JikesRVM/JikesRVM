@@ -19,7 +19,6 @@ import java.util.*;
  *
  * @author Vivek Sarkar
  * @author Dave Grove
- * @modified Matthew Arnold
  */
 final class OPT_ReorderingPhase extends OPT_CompilerPhase
   implements OPT_Operators {
@@ -236,6 +235,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 	}
 	sourceInfo.outWeights.put(targetInfo, new Float(weight));
 	targetInfo.inWeight += e.weight;
+	if (DEBUG) VM.sysWriteln("\t"+targetInfo + ","+sourceInfo.outWeights.get(targetInfo));
       }
     }
 
@@ -268,26 +268,30 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
       if (chainInfo.isEmpty()) break; // no chains left to place.
       for (Iterator i = nextChoice.outWeights.keySet().iterator(); i.hasNext();) {
 	ChainInfo target = (ChainInfo)i.next();
+	if (DEBUG) VM.sysWrite("\toutedge "+target);
 	float weight = ((Float)nextChoice.outWeights.get(target)).floatValue();
+	if (DEBUG) VM.sysWriteln(" = "+weight);
 	target.placedWeight += weight;
 	target.inWeight -= weight;
       }
+
+      if (DEBUG) VM.sysWriteln("Chain Info "+chainInfo);
 
       // Find the next chain to append.
       nextChoice = null;
       float placedWeight = 0f;
       for (Iterator i = chainInfo.values().iterator(); i.hasNext();) {
 	ChainInfo cand = (ChainInfo)i.next();
-	if (nextChoice == null) {
-	  if (cand.placedWeight > 0f) {
+	if (cand.placedWeight > 0f) {
+	  if (nextChoice == null) {
 	    if (DEBUG) VM.sysWriteln("First reachable candidate "+cand);
 	    nextChoice = cand;
+	  } else if (cand.inWeight < nextChoice.inWeight ||
+		     (cand.inWeight == nextChoice.inWeight && 
+		      cand.placedWeight > nextChoice.placedWeight)) {
+	    if (DEBUG) VM.sysWriteln(cand + " is a better choice than "+nextChoice);
+	    nextChoice = cand;
 	  }
-	} else if (cand.inWeight < nextChoice.inWeight ||
-		   (cand.inWeight == nextChoice.inWeight && 
-		    cand.placedWeight > nextChoice.placedWeight)) {
-	  if (DEBUG) VM.sysWriteln(cand + " is a better choice than "+nextChoice);
-	  nextChoice = cand;
 	}
       }
       if (nextChoice != null) continue;
