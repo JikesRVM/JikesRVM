@@ -24,6 +24,9 @@ CFLAGS+=-std=gnu99
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
+## TODO: We need to add SelectTest, as soon as it works with 
+## RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
+
 # Tests for JNI 1.1
 TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
