@@ -48,11 +48,11 @@ do
 
 # Compilation rates first
   export RVM_BUILD=$BUILDDIR/FastAdaptiveSemispace
-  rvm $jvmcompoptions -X:processors=$PROCS -X:aos:primary_strategy=baseonly SpecApplication $appcompoptions -a $benchmark
+  rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:primary_strategy=baseonly SpecApplication $appcompoptions -a $benchmark
 
   for optLevel in $OPTLEVELS
   do
-    rvm $jvmcompoptions -X:processors=$PROCS -X:aos:primary_strategy=optonly -X:aos:irc:$optLevel SpecApplication $appcompoptions  -a $benchmark
+    rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:primary_strategy=optonly -X:aos:irc:$optLevel SpecApplication $appcompoptions  -a $benchmark
   done
 
 done
