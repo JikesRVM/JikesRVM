@@ -65,7 +65,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   private static final int ARRAY_HEADER_SIZE_ALIGNED = VM_Memory.alignUp(ARRAY_HEADER_SIZE,BYTES_IN_ADDRESS);
   
-  private static final int STATUS_OFFSET  = JAVA_HEADER_END;
+  private static final int STATUS_OFFSET  = JAVA_HEADER_OFFSET;
   private static final int TIB_OFFSET     = STATUS_OFFSET + STATUS_BYTES;
 
   private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);

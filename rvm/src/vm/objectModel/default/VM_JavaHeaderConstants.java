@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove
+ * @author Steve Blackburn
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
@@ -23,9 +24,14 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int ARRAY_LENGTH_BYTES = BYTES_IN_INT;
 
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
-  static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
-  static final int JAVA_HEADER_END = -JAVA_HEADER_BYTES;
+  static final int GC_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER;
+  static final int MISC_HEADER_BYTES = VM_MiscHeader.NUM_BYTES_HEADER;
+  static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
+  static final int GC_HEADER_OFFSET = -GC_HEADER_BYTES;
+  static final int MISC_HEADER_OFFSET = GC_HEADER_OFFSET - MISC_HEADER_BYTES;
+  static final int JAVA_HEADER_OFFSET = MISC_HEADER_OFFSET - JAVA_HEADER_BYTES;
+  static final int ARRAY_LENGTH_OFFSET = JAVA_HEADER_OFFSET - ARRAY_LENGTH_BYTES;
   /**
    * This object model supports two schemes for hashcodes:
    * (1) a 10 bit hash code in the object header
@@ -44,7 +50,6 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    */
   static final boolean FORWARDING_PTR_OVERLAYS_TIB = false;
 
-  static final int ARRAY_LENGTH_OFFSET = JAVA_HEADER_END - OTHER_HEADER_BYTES -ARRAY_LENGTH_BYTES;
 
   /*
    * Stuff for address based hashing
@@ -55,6 +60,6 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
   static final int HASHCODE_SCALAR_OFFSET      = 0; // to right of objref
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
-  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - ARRAY_LENGTH_BYTES - HASHCODE_BYTES; // to left of header
+  static final int HASHCODE_ARRAY_OFFSET       = ARRAY_LENGTH_OFFSET - HASHCODE_BYTES; // to left of header
   
 }

@@ -24,7 +24,7 @@ public final class VM_MiscHeader implements VM_Uninterruptible {
   // Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
   ///////////////////////
 
-  private static final int MISC_HEADER_START = VM_JavaHeaderConstants.JAVA_HEADER_END - VM_AllocatorHeader.NUM_BYTES_HEADER;
+  private static final int MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
 
   // offset from object ref to .oid field, in bytes
   static final int OBJECT_OID_OFFSET       = (VM.CompileForGCTracing ? MISC_HEADER_START - 4 : 0);

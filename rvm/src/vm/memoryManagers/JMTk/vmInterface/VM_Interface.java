@@ -192,8 +192,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static int readAvailableBitsWord(VM_Address o) {
       return VM_ObjectModel.readAvailableBitsWord(o);
   }
-  public static int JAVA_HEADER_END() {
-    return VM_ObjectModel.JAVA_HEADER_END;
+  public static int GC_HEADER_OFFSET() {
+    return VM_ObjectModel.GC_HEADER_OFFSET;
   }
   public static VM_Address objectStartRef(VM_Address object) throws VM_PragmaInline {
     return VM_ObjectModel.objectStartRef(object);

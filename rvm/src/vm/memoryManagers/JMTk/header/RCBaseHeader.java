@@ -28,8 +28,8 @@ public abstract class RCBaseHeader implements Constants {
   /**
    * How many bytes are used by all GC header fields?
    */
-  public static final int NUM_BYTES_HEADER = 4;
-  protected static final int RC_HEADER_OFFSET = VM_Interface.JAVA_HEADER_END() - NUM_BYTES_HEADER;
+  public static final int NUM_BYTES_HEADER = BYTES_IN_WORD;
+  protected static final int RC_HEADER_OFFSET = VM_Interface.GC_HEADER_OFFSET();
 
   /**
    * How many bits does this GC system require?
