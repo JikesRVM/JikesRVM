@@ -377,23 +377,6 @@ implements VM_Constants, VM_ClassLoaderConstants {
   }
 
   /**
-   * Expand an array.
-   */ 
-  private static int[] growArray(int[] array, int newLength) {
-    // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = VM_Interface.newContiguousIntArray(newLength);
-    for (int i = 0, n = array.length; i < n; ++i)
-      newarray[i] = array[i];
-
-    VM_Magic.sync();
-    return newarray;
-  }
-
-  // Expand an array.
-  //
-
-  /**
    * Create id for use by C signal handler as placeholder to mark stackframe
    * introduced when a hardware trap is encountered. This method is completely
    * artifical: it has no code, class description, etc. 
