@@ -166,7 +166,6 @@ public abstract class BasePlan
   public static void fullyBooted() {
     initialized = true;
     exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
-    VM_Interface.sysWrite("fully booted\n");
   }
 
   ////////////////////////////////////////////////////////////////////////////
