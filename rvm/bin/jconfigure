@@ -1765,7 +1765,7 @@ function emitController () {
 EOF
     if [[ ${CLASSPATH_INSTALLATION-} ]]; then
 	cat <<- EOF
-	# XXX Experimental; use a built GNU Classpath that was installed
+	# Experimental; use a built GNU Classpath that was installed
 	# with "make install".
 	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
 EOF
@@ -3174,9 +3174,16 @@ function emitBooterLinker () {
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
 
-    # copy native libraries
-    CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
-    echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
+    if [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+	if (( ! RVM_FOR_LINUX )); then
+	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
+	fi
+    else
+	# copy native libraries
+	CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
+    fi
+
     if (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
 
