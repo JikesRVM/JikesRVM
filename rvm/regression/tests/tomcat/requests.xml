@@ -3,13 +3,15 @@
               desired="expected/HelloWorldExample" />
  <get-request url="http://localhost:8080/examples/servlet/RequestInfoExample" />
  <get-request url="http://localhost:8080/examples/servlet/RequestHeaderExample" />
- <get-request url="http://localhost:8080/examples/servlet/RequestParamExample" />
- <post-request url="http://localhost:8080/examples/servlet/RequestParamExample">
+ <get-request url="http://localhost:8080/examples/servlet/RequestParamExample"
+              desired="expected/RequestParamExample.1" />
+ <post-request url="http://localhost:8080/examples/servlet/RequestParamExample"
+               desired="expected/RequestParamExample.2" >
    <form-param name="firstname" value="julian" />
    <form-param name="lastname" value="dolby" />
  </post-request>
  <get-request url="http://localhost:8080/examples/servlet/CookieExample" />
- <post-request url="http://localhost:8080/examples/servlet/CookieExample">
+ <post-request url="http://localhost:8080/examples/servlet/CookieExample" >
    <form-param name="cookiename" value="testCookie" />
    <form-param name="cookievalue" value="testValue" />
  </post-request>
@@ -28,17 +30,38 @@
    <form-param name="name" value="integra" />
    <form-param name="submit" value="Submit" />
  </post-request>
- <get-request url="http://localhost:8080/examples/jsp/sessions/carts.html" />
- <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
-   <form-param name="item" value="Concert+ticket" />
+ <get-request url="http://localhost:8080/examples/jsp/sessions/carts.html" 
+              desired="expected/CartsJspExample.1" />
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.jsp"
+              desired="expected/CartsJspExample.2" >
+   <form-param name="item" value="Concert tickets" />
    <form-param name="submit" value="add" />
  </post-request>
- <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
-   <form-param name="item" value="Switch-blade" />
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.jsp"
+               desired="expected/CartsJspExample.3" >
+   <form-param name="item" value="Switch blade" />
    <form-param name="submit" value="add" />
  </post-request>
- <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
-   <form-param name="item" value="Switch-blade" />
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.jsp"
+               desired="expected/CartsJspExample.4" >
+   <form-param name="item" value="Switch blade" />
    <form-param name="submit" value="remove" />
+ </post-request>
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.jsp"
+               desired="expected/CartsJspExample.5" >
+   <form-param name="item" value="Concert tickets" />
+   <form-param name="submit" value="remove" />
+ </post-request>
+ <get-request url="http://localhost:8080/examples/jsp/jsptoserv/jsptoservlet.jsp"
+              desired="expected/JspServletJspExample" />
+ <get-request url="http://localhost:8080/examples/jsp/simpletag/foo.jsp"
+              desired="expected/SimpleTagExample" />
+ <get-request url="http://localhost:8080/examples/jsp/checkbox/check.html"
+              desired="expected/CheckBoxExample.1" />
+ <post-request url="http://localhost:8080/examples/jsp/checkbox/checkresult.jsp"
+               desired="expected/CheckBoxExample.2" >
+   <form-param name="fruit" value="grapes" />
+   <form-param name="fruit" value="melons" />
+   <form-param name="submit" value="Submit" />
  </post-request>
 </request-set>
