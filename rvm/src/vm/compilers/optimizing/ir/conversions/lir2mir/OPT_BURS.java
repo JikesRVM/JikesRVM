@@ -102,10 +102,14 @@ final class OPT_BURS implements OPT_Operators {
   public void invoke (OPT_DepGraph dg) {
     if (DEBUG) dg.printDepGraph();
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
-    completeTrees(dg, burs);
-    labelTrees(dg, burs);
-    orderTrees(dg, burs);
-    generateTrees(dg, burs);
+    buildTrees(dg);
+    if (haveProblemEdges()) {
+      problemEdgePrep();
+      handleProblemEdges();
+    }
+    orderTrees(dg);
+    labelTrees(burs);
+    generateTrees(burs);
   }
 
 
@@ -131,9 +135,8 @@ final class OPT_BURS implements OPT_Operators {
    * We also mark nodes that must be tree roots.
    * 
    * @param dg  The dependence graph. 
-   * @param burs the OPT_BURS_STATE object.
    */
-  private void completeTrees(OPT_DepGraph dg, OPT_BURS_STATE burs) {
+  private void buildTrees(OPT_DepGraph dg) {
     OPT_DepGraphNode bbNodes = (OPT_DepGraphNode)dg.firstNode();
     OPT_Instruction firstInstruction = bbNodes.instruction();
     for (OPT_DepGraphNode n = bbNodes; 
@@ -162,13 +165,7 @@ final class OPT_BURS implements OPT_Operators {
           if (e == null) {        // operand is leaf	    
             child = Register; 
 	  } else {
-            OPT_BURS_TreeNode fromNode = 
-	      (OPT_BURS_TreeNode)e.fromNode().scratchObject;
-            if (fromNode.isTreeRoot()) { // operand is leaf
-              child = Register; 
-	    } else {            // Set child = tree node created for fromNode
-	      child = fromNode;
-	    }
+            child = (OPT_BURS_TreeNode)e.fromNode().scratchObject;
 	  }
         } else if (op instanceof OPT_IntConstantOperand) {
           child = IntConstant;                  // generic INT_CONSTANT
@@ -217,63 +214,135 @@ final class OPT_BURS implements OPT_Operators {
       }
 
       if (mustBeTreeRoot(n)) {
-        OPT_BURS_TreeNode treeNode = (OPT_BURS_TreeNode)n.scratchObject;
-        treeNode.setTreeRoot();
-	numTreeRoots++;
-        if (DEBUG) {
-          VM.sysWrite("DEBUG DUMP OF TREE ROOTED at "+n.instruction()+"\n");
-          OPT_BURS_STATE.dumpTree(treeNode);
-          VM.sysWrite('\n');
-        }
+	makeTreeRoot((OPT_BURS_TreeNode)n.scratchObject);
       }
     } 
   }
 
 
   /**
-   * Stage2: Label the trees with their min cost cover.
-   * @param dg  The dependence graph. 
-   * @param burs the OPT_BURS_STATE object.
+   * Stage 1b: Do bookkeeping to make it easier to identify 
+   * harmless problem edges.
    */
-  private void labelTrees(OPT_DepGraph dg, OPT_BURS_STATE burs) {
-    int i = 0;
-    for (OPT_SpaceEffGraphNode node = dg.firstNode(); 
-	 node != null; 
-	 node = node.getNext()) {
-      OPT_BURS_TreeNode n = (OPT_BURS_TreeNode)node.scratchObject;
-      if (n.isTreeRoot()) {
-        burs.label(n);
-        OPT_BURS_STATE.mark(n, /* goalnt */(byte)1);
-        if (DEBUG) {
-          VM.sysWrite("START OF PROCESSING FOR TREE #" + (++i) + ": ");
-          OPT_BURS_STATE.dumpTree(n);
-          VM.sysWrite("\nEND OF PROCESSING FOR TREE #" + i + "\n");
-        }
-      }
+  private void problemEdgePrep() {
+    for (int i=0; i<numTreeRoots; i++) {
+      OPT_BURS_TreeNode n = treeRoots[i];
+      problemEdgePrep(n, n.dg_node);
+    }
+  }
+  private void problemEdgePrep(OPT_BURS_TreeNode n, OPT_SpaceEffGraphNode root) {
+    OPT_BURS_TreeNode child1 = n.child1;
+    OPT_BURS_TreeNode child2 = n.child2;
+    if (child1 != null && !child1.isTreeRoot()) {
+      problemEdgePrep(child1, root);
+    }
+    if (child2 != null && !child2.isTreeRoot()) {
+      problemEdgePrep(child2, root);
+    }
+    if (n.dg_node != null) {
+      n.dg_node.nextSorted = root;
+      n.dg_node.scratch = 0;
     }
   }
 
+  /**
+   * Stage 1c: Mark src node of some problem edges as tree roots to avoid 
+   * cyclic dependencies.
+   */
+  private void handleProblemEdges() {
+    // Stage 1: Remove problem edges whose destination
+    //          is the root of their own tree; these edges 
+    //          are trivially redundant with reg-true edges.
+    int remaining = 0;
+    for (int i=0; i<numProblemEdges; i++) {
+      OPT_SpaceEffGraphEdge e = problemEdges[i];
+      OPT_SpaceEffGraphNode src = e.fromNode();
+      OPT_SpaceEffGraphNode dst = e.toNode();
+      OPT_SpaceEffGraphNode srcRoot = src.nextSorted;
+      if (srcRoot != dst) {
+	// might still be trouble
+	problemEdges[remaining++] = e;
+      }
+    }
+    numProblemEdges = remaining;
+    if (numProblemEdges == 0) return;
+
+    // Still some edges that might introduce cycles.
+    int searchnum = 0;
+    for (int i=0; i<numProblemEdges; i++) {
+      OPT_SpaceEffGraphEdge e = problemEdges[i];
+      OPT_SpaceEffGraphNode src = e.fromNode();
+      OPT_SpaceEffGraphNode dst = e.toNode();
+      OPT_BURS_TreeNode n = (OPT_BURS_TreeNode)src.scratchObject;
+      if (n.isTreeRoot()) continue; // some other problem edge already forced iut
+      OPT_SpaceEffGraphNode srcRoot = src.nextSorted;
+      OPT_SpaceEffGraphNode dstRoot = dst.nextSorted;
+      if (srcRoot == dstRoot) {
+	// potential for intra-tree cycle
+	if (DEBUG) {
+	  VM.sysWrite("Potential intra-tree cycle with edge "+e+
+		      " forcing "+n+" to be a tree root\n");
+	}
+	makeTreeRoot(n);
+	problemEdgePrep(n, n.dg_node);
+      } else {
+	// potential for inter-tree cycle
+	if (reachableRoot(dstRoot, srcRoot, ++searchnum)) {
+	  if (DEBUG) {
+	    VM.sysWrite("Potential inter-tree cycle with edge "+e+
+			" forcing "+n+" to be a tree root\n");
+	  }
+	  makeTreeRoot(n);
+	  problemEdgePrep(n, n.dg_node);
+	}
+      }
+    }
+  }
+  private boolean reachableRoot(OPT_SpaceEffGraphNode current,
+				OPT_SpaceEffGraphNode goal,
+				int searchnum) {
+    if (current == goal) return true;
+    if (current.scratch == searchnum) return false;
+    current.scratch = searchnum;
+    OPT_BURS_TreeNode root = (OPT_BURS_TreeNode)current.scratchObject;
+    if (reachableChild(root, goal, searchnum)) return true;
+    return false;
+  }
+  private boolean reachableChild(OPT_BURS_TreeNode n,
+				 OPT_SpaceEffGraphNode goal,
+				 int searchnum) {
+    OPT_SpaceEffGraphNode dgn = n.dg_node;
+    if (dgn != null) {
+      for (OPT_SpaceEffGraphEdge out = dgn.firstOutEdge();
+	   out != null;
+	   out = out.getNextOut()) {
+	if (reachableRoot(out.toNode().nextSorted, goal, searchnum)) return true;
+      }
+    }
+    if (n.child1 != null && !n.child1.isTreeRoot() &&
+	reachableChild(n.child1, goal, searchnum)) {
+      return true;
+    }
+    if (n.child2 != null && !n.child2.isTreeRoot() &&
+	reachableChild(n.child2, goal, searchnum)) {
+      return true;
+    }
+    return false;
+  }
 
   /**
-   * Stage 3: Construct topological ordering of tree roots based on the
+   * Stage 2: Construct topological ordering of tree roots based on the
    * dependencies between nodes in the tree. 
    * 
    * @param dg  The dependence graph. 
-   * @param burs the OPT_BURS_STATE object.
    */
-  private void orderTrees(OPT_DepGraph dg, OPT_BURS_STATE burs) {
+  private void orderTrees(OPT_DepGraph dg) {
     // Initialize tree root field for all nodes
     if (DEBUG) VM.sysWrite("Setting tree roots\n");
-    for (OPT_SpaceEffGraphNode node = dg.firstNode(); 
-	 node != null; 
-	 node = node.getNext()) {
-      OPT_BURS_TreeNode n = (OPT_BURS_TreeNode)node.scratchObject;
-      if (n.isTreeRoot()) {
-	node.scratch = 0; 
-        initTreeRootNode(n, node);
-      } else {
-	node.scratch = -1;
-      }
+    for (int i=0; i<numTreeRoots; i++) {
+      OPT_BURS_TreeNode n = treeRoots[i];
+      n.dg_node.scratch = 0; 
+      initTreeRootNode(n, n.dg_node);
     }
 
     // Initialize predCount[*]
@@ -290,34 +359,47 @@ final class OPT_BURS implements OPT_Operators {
       }
     }
     if (DEBUG) {
-      VM.sysWrite("predcounts:\n");
-      for (OPT_SpaceEffGraphNode n = dg.firstNode();
-	   n != null; 
-	   n = n.getNext()) {
-	if (((OPT_BURS_TreeNode)n.scratchObject).isTreeRoot()) {
-	  VM.sysWrite(n.scratch + ":" + n + "\n");
-	}
+      for (int i=0; i<numTreeRoots; i++) {
+	OPT_BURS_TreeNode n = treeRoots[i];
+	VM.sysWrite(n.dg_node.scratch + ":" + n + "\n");
       }
     }
   }
+
+  /**
+   * Stage 3: Label the trees with their min cost cover.
+   * @param burs the OPT_BURS_STATE object.
+   */
+  private void labelTrees(OPT_BURS_STATE burs) {
+    for (int i=0; i<numTreeRoots; i++) {
+      OPT_BURS_TreeNode n = treeRoots[i];
+      if (DEBUG) {
+	VM.sysWrite("START OF PROCESSING FOR TREE #" + (i) + ": ");
+	OPT_BURS_STATE.dumpTree(n);
+      }
+      burs.label(n);
+      OPT_BURS_STATE.mark(n, /* goalnt */(byte)1);
+      if (DEBUG) VM.sysWrite("\nEND OF PROCESSING FOR TREE #" + i + "\n");
+    }
+  }
+
 
   /**
    * Stage 4: Visit the tree roots in topological order and 
    * emit MIR instructions by calling OPT_BURS_STATE.code on each
    * supernode in the tree.
    * 
-   * @param dg  The dependence graph. 
    * @param burs the OPT_BURS_STATE object.
    */
-  private void generateTrees(OPT_DepGraph dg, OPT_BURS_STATE burs) {
+  private void generateTrees(OPT_BURS_STATE burs) {
     // Append tree roots with predCount = 0 to readySet
-    for (OPT_SpaceEffGraphNode n = dg.lastNode();
-	 n != null; 
-	 n = n.getPrev()) {
-      if (n.scratch == 0) {
-	readySetInsert((OPT_BURS_TreeNode)n.scratchObject);
+    for (int i=0; i<numTreeRoots; i++) {
+      OPT_BURS_TreeNode n = treeRoots[i];
+      if (n.dg_node.scratch == 0) {
+	readySetInsert(n);
       }
     }
+
     // Emit code for each tree root in readySet
     while (readySetNotEmpty()) {
       OPT_BURS_TreeNode k = readySetRemove();
@@ -338,8 +420,8 @@ final class OPT_BURS implements OPT_Operators {
   private void generateTree(OPT_BURS_TreeNode k, OPT_BURS_STATE burs) {
     OPT_BURS_TreeNode child1 = k.child1;
     OPT_BURS_TreeNode child2 = k.child2;
-    if (child1 != null && !child1.isTreeRoot()) {
-      if (child2 != null && !child2.isTreeRoot()) {
+    if (child1 != null) {
+      if (child2 != null) {
 	// k has two children; use register labeling to
 	// determine order that minimizes register pressure
 	if (k.isSuperNodeRoot()) {
@@ -371,7 +453,7 @@ final class OPT_BURS implements OPT_Operators {
       } else {
 	generateTree(child1, burs);
       }
-    } else if (child2 != null && !child2.isTreeRoot()) {
+    } else if (child2 != null) {
       generateTree(child2, burs);
     }
 
@@ -406,10 +488,13 @@ final class OPT_BURS implements OPT_Operators {
 
 
   /**
-   * Return true if node n must be a root of a BURS tree.
+   * Return true if node n must be a root of a BURS tree
+   * based only on its register true dependencies.
+   * If the node might later have to be marked as a tree
+   * root, then include in a set of problem nodes.
    * @param n the dep graph node in question.
    */
-  private boolean mustBeTreeRoot (OPT_DepGraphNode n) {
+  private boolean mustBeTreeRoot(OPT_DepGraphNode n) {
     // A "fan-out" node must be a root of a BURS tree.
     // (A fan-out node is a node with > 1 outgoing register-true dependences)
     OPT_SpaceEffGraphEdge trueDepEdge = null;
@@ -434,10 +519,10 @@ final class OPT_BURS implements OPT_Operators {
       OPT_RegisterOperand rop = ResultCarrier.getResult(instr);
       if (rop.register.spansBasicBlock()) return true;
       OPT_SpaceEffGraphNode parent = trueDepEdge.toNode();
-      // Must ensure that our parent has a superset of our
+      // If our parent has a superset of our
       // other out edges (ignoring trueDepEdge)
-      // this avoids a problem with creating circular dependencies
-      // among trees.
+      // then we don't have to worry about creating cycles
+      // by not forcing n to be a tree root.
       for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
 	   out != null; 
 	   out = out.getNextOut()) {
@@ -452,17 +537,8 @@ final class OPT_BURS implements OPT_Operators {
 	    }
 	  }
 	  if (!match) {
-	    // However, there is one important exception to this rule.  
-	    //   If the target of the problem edge is reachable via register-true
-	    //   dependencies from the current tree, then the extra edge is redundant
-	    //   and can be ignored.
-	    //   But, this can be expensive to compute naively, so only ask
-	    //   the question if it is likely to get us a big benefit (IA32 & instr is a load).
-	    if (!(VM.BuildForIA32 && 
-		  instr.isExplicitLoad() && 
-		  isReachableViaTrueDep(out.toNode(), parent))) {
-	      return true;
-	    }
+	    // could be trouble. Remember for later processing.
+	    rememberAsProblemEdge(out);
 	  }
 	}
       }
@@ -470,19 +546,20 @@ final class OPT_BURS implements OPT_Operators {
     }
   }
 
-  // can be very expensive; use only when absolutely necessary!
-  private boolean isReachableViaTrueDep(OPT_SpaceEffGraphNode goal,
-					OPT_SpaceEffGraphNode n) {
+  // NOTE: assumes n has exactly 1 reg true parent (ie it is in
+  //       an expression tree and is not the tree root).
+  private OPT_SpaceEffGraphNode regTrueParent(OPT_SpaceEffGraphNode n) {
     for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
 	 out != null; 
 	 out = out.getNextOut()) {
       if (OPT_DepGraphEdge.isRegTrue(out)) {
-	OPT_SpaceEffGraphNode p = out.toNode();
-	if (p == goal || isReachableViaTrueDep(goal, p)) return true;
+	return out.toNode();
       }
     }
-    return false;
+    if (VM.VerifyAssertions) VM.assert(false);
+    return null;
   }
+
 
   /**
    * Initialize nextSorted for nodes in tree rooted at t i.e.
@@ -492,23 +569,28 @@ final class OPT_BURS implements OPT_Operators {
   private void initTreeRootNode(OPT_BURS_TreeNode t, 
 				OPT_SpaceEffGraphNode treeRoot) {
     // Recurse
-    OPT_BURS_TreeNode child1 = t.child1;
-    if (child1 != null && !child1.isTreeRoot()) {
-      initTreeRootNode(child1, treeRoot);
+    if (t.child1 != null) {
+      if (t.child1.isTreeRoot()) {
+	t.child1 = Register; 
+      } else {
+	initTreeRootNode(t.child1, treeRoot);
+      }
     }
-    OPT_BURS_TreeNode child2 = t.child2;
-    if (child2 != null && !child2.isTreeRoot()) {
-      initTreeRootNode(child2, treeRoot);
+    if (t.child2 != null) {
+      if (t.child2.isTreeRoot()) {
+	t.child2 = Register; 
+      } else {
+	initTreeRootNode(t.child2, treeRoot);
+      }
     }
-
     if (t.dg_node != null) {
       t.dg_node.nextSorted = treeRoot;
       if (DEBUG) VM.sysWrite(t.dg_node + " --> " + treeRoot + "\n");
     }
-    if (child1 != null || child2 != null) {
+    if (t.child1 != null || t.child2 != null) {
       // label t as in section 9.10 of the dragon book
-      int lchild = (child1 != null) ? child1.numRegisters() : 0;
-      int rchild = (child2 != null) ? child2.numRegisters() : 0;
+      int lchild = (t.child1 != null) ? t.child1.numRegisters() : 0;
+      int rchild = (t.child2 != null) ? t.child2.numRegisters() : 0;
       if (lchild == rchild) {
 	t.setNumRegisters(lchild+1);
       } else {
@@ -517,6 +599,23 @@ final class OPT_BURS implements OPT_Operators {
       if (DEBUG) VM.sysWrite("\tnum registers = "+t.numRegisters()+"\n");
     }
   }
+
+  /**
+   * Set of all tree roots.
+   */
+  private OPT_BURS_TreeNode[] treeRoots = new OPT_BURS_TreeNode[32];
+  private void makeTreeRoot(OPT_BURS_TreeNode n) {
+    if (numTreeRoots == treeRoots.length) {
+      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[treeRoots.length*2];
+      for (int i=0; i<treeRoots.length; i++) {
+	tmp[i] = treeRoots[i];
+      }
+      treeRoots = tmp;
+    }
+    n.setTreeRoot();
+    treeRoots[numTreeRoots++] = n;
+  }
+
 
   /**
    * A priority queue of ready tree nodes. 
@@ -600,4 +699,31 @@ final class OPT_BURS implements OPT_Operators {
     heap[x] = heap[y];
     heap[y] = t;
   }
+
+
+  /*
+   * track problem nodes (nodes with outgoing non-reg-true edges)
+   */
+  private OPT_SpaceEffGraphEdge[] problemEdges;
+  private int numProblemEdges = 0;
+
+  void rememberAsProblemEdge(OPT_SpaceEffGraphEdge e) {
+    if (problemEdges == null) {
+      problemEdges = new OPT_SpaceEffGraphEdge[8];
+    }
+    if (numProblemEdges == problemEdges.length) {
+      OPT_SpaceEffGraphEdge[] tmp = new OPT_SpaceEffGraphEdge[problemEdges.length*2];
+      for (int i=0; i<problemEdges.length; i++) {
+	tmp[i] = problemEdges[i];
+      }
+      problemEdges = tmp;
+    }
+    problemEdges[numProblemEdges++] = e;
+  }
+
+  private boolean haveProblemEdges() {
+    return numProblemEdges > 0;
+  }
 }
+
+
