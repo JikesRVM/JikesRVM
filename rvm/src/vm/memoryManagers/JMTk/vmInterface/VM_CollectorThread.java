@@ -306,7 +306,6 @@ public class VM_CollectorThread extends VM_Thread {
       VM_Scheduler.collectorMutex.lock();
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_CT.run yielding");
       if (count > 0) { // resume normal scheduling
-	Plan.collectionComplete();
 	VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
       VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
@@ -436,6 +435,9 @@ public class VM_CollectorThread extends VM_Thread {
 	if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run clearing lock out field");
 	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0);
       }
+
+      if (gcOrdinal == 1)
+	Plan.collectionComplete();
 
     }  // end of while(true) loop
     
