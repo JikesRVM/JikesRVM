@@ -154,7 +154,7 @@ fi
 
 # configure and build library
 system_type=`$DEST_DIR/classpath/config.guess`  
-if [[ ! -e $DEST_DIR/$system_type/lib/glib.zip ]]; then
+if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
   mkdir $DEST_DIR/$system_type
   echo "Configuring for $system_type"
   cd $DEST_DIR/$system_type
