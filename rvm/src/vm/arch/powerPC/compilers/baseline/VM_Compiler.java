@@ -1185,8 +1185,17 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_f2i() {
     asm.emitLFS  (F0,  0, SP);
+    asm.emitFCMPU(F0, F0);
+    VM_ForwardReference fr1 = asm.emitForwardBC(NE);
+    // Normal case: F0 == F0 therefore not a NaN
     asm.emitFCTIZ(F0, F0);
     asm.emitSTFD (F0, -4, SP); 
+    VM_ForwardReference fr2 = asm.emitForwardB();
+    fr1.resolve(asm);
+    // A NaN => 0
+    asm.emitLIL  (T0, 0);
+    asm.emitST   (T0, 0, SP);
+    fr2.resolve(asm);
   }
 
   /**
