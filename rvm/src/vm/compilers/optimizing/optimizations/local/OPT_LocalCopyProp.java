@@ -38,7 +38,6 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
     java.util.HashMap info = new java.util.HashMap();
-
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
