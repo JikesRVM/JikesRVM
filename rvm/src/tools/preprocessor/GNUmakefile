@@ -34,7 +34,10 @@ tool:
 #     $(CC) --std=gnu99 $(CFLAGS) $< -o $@
 
 $(TOOL): ${TOOL_NAME}.C
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
+%.S: %.C
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -S $< -o $@
 
 # Preprocessor testing.
 # These rules make the executable anywhere; usually here if you're testing.
