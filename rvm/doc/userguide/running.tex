@@ -88,7 +88,7 @@ produce a report on class loading activity. More details than
 \item[{\tt -X:gc[:help]}]
 print options supported by memory management system
 
-\item[{\tt -X:aos:<option>}]
+\item[{\tt -X:gc:<option>}]
 pass {\tt <option>} to the memory management system
 
 \item[{\tt -X:aos[:help]}]
@@ -99,25 +99,28 @@ adaptive configuration
 pass {\tt <option>} to the adaptive optimization system when in an adaptive configuration
 
 \item[{\tt -X:irc[:help]}]
-print options supported by the initial runtime compiler when in a non-adaptive
-configuration 
+print options supported by the initial runtime compiler
 
 \item[{\tt -X:irc:<option>}]
-pass {\tt <option>} to the initial runtime compiler when in a non-adaptive configuration 
+pass {\tt <option>} to the initial runtime compiler
+
+\item[{\tt -X:recomp[:help]}]
+print options supported by the compilers used for recompilation
+
+\item[{\tt -X:irc:<option>}]
+pass {\tt <option>} to the compilers used for recompilation
 
 \item[{\tt -X:base[:help]}]
-print options supported by the baseline compiler when in a 
-non-adaptive configuration
+print options supported by the baseline compiler
 
 \item[{\tt -X:base:<option>}]
-pass {\tt <option>} to the baseline compiler when in a non-adaptive configuration
+pass {\tt <option>} to the baseline compiler
 
 \item[{\tt -X:opt[:help]}]
-print options supported by the optimizing compiler when in a 
-non-adaptive configuration
+print options supported by the optimizing compiler
 
 \item[{\tt -X:opt:<option>}]
-pass {\tt <option>} to the optimizing compiler when in a non-adaptive configuration
+pass {\tt <option>} to the optimizing compiler
 
 \item[{\tt -X:prof:<option>}]
 pass {\tt <option>} to the profiling subsystem

@@ -110,7 +110,9 @@ Here's how.
 \item Run the application using the opt compiler as the runtime compiler and
 instructing Jikes RVM to gather profile data.
 \begin{verbatim}
-% rvm -X:aos:primary_strategy=optonly -X:aos:gather_profile_data=true <classfile>
+% rvm -X:aos:enable_recompilation=false 
+      -X:aos:initial_compiler=opt 
+      -X:aos:gather_profile_data=true <classfile>
 \end{verbatim}
 \end{enumerate}
 
@@ -148,8 +150,9 @@ at end.
 
 Parameters: \\
 {\tt
--X:aos:primary\_strategy=optonly \\
--X:aos:share:insert\_method\_counters\_opt=true}
+-X:aos:enable\_recompilation=false \\
+-X:aos:insert\_method\_counters\_opt=true \\
+-X:recomp:insert\_method\_counters\_opt=true}
 
 \item {\bf Yieldpoint Counters}  
 
@@ -157,11 +160,9 @@ Inserts a counter after each yieldpoint instruction.  Maintains a
 separate counter for backedge and prologue yieldpoints.
 
 Parameters:\\
-{\tt -X:aos:primary\_strategy=optonly \\
--X:aos:share:insert\_yieldpoint\_counters=true}
-
-
-
+{\tt -X:aos:enable\_recompilation=false \\
+-X:aos:insert\_yieldpoint\_counters=true \\
+-X:recomp:insert\_yieldpoint\_counters=true}
 
 \item {\bf Instruction Counters}  
 
@@ -212,8 +213,9 @@ Look
 for the code guarded by the flag {\tt COUNT\_FAILED\_METHOD\_GUARDS}.
  
 Parameters:\\
-{\tt -X:aos:primary\_strategy=optonly \\
--X:aos:share:insert\_debugging\_counters=true}
+{\tt -X:aos:enable\_recompilation=false \\
+-X:aos:insert\_debugging\_counters=true \\
+-X:recomp:insert\_debugging\_counters=true}
 
 \end{enumerate}
 
@@ -322,8 +324,10 @@ For full details see the papers mentioned above.
 
 Example usage: 
 \begin{verbatim}
-rvm -X:aos:primary_strategy=optonly
-    -X:aos:share:insert_instruction_counters=true
+rvm -X:aos:enable_recompilation=false
+    -X:aos:initial_compiler=opt
+    -X:aos:insert_instruction_counters_opt=true
+    -X:opt:insert_instruction_counters_opt=true
     -X:aos:irc:instrumentation_sampling=true
     -X:aos:counter_based_sample_interval=10 MyProgram
 \end{verbatim}
