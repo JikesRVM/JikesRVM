@@ -279,7 +279,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // So for each block we will have at most 2 kill sets: Kill_tot and Kill_1
     // This code finds the first PEI in the block
     
-
     OPT_Instruction firstPEI = null;
     if (bblock.canThrowExceptions()) {
       for (OPT_Instruction inst = bblock.start; 
@@ -287,14 +286,12 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
         if (inst.isPEI() && 
             bblock.getApplicableExceptionalOut(inst).hasMoreElements()) {
           firstPEI = inst;
+	  // remember that this block has a PEI with a handler for use
+	  //  later in "processBlock"
+	  bbLiveInfo[bblock.getNumber()].setContainsPEIWithHandler(true);
           break;
         }
       }
-      // Minor hack: if the block is marked as canThrowExceptions, but it
-      // has no PEIs, then we claim we've seen the first PEI, since every
-      // instruction in the block occurs "before the first PEI" as far as
-      // this liveness computation is concerned.
-      if (firstPEI == null) seenFirstPEI = true;
     }
 
     // Get any uses from PHIs, which are in the successor blocks
@@ -337,8 +334,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
             // in this block.  We allow killing of instructions
             // after the last (in a backwards sense) potential exception
             // throwing statement. (PEI)
-            // If there are no PEIs in this block we always add, since
-            // we've previously set seenFirstPEI=true.
+            // If there are no PEIs in this block we don't bother to add
             if (seenFirstPEI) {
               bbLiveInfo[bblock.getNumber()].firstPEIKillSet().add(regOp);
             }
@@ -446,7 +442,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // Used in processBlock as a summary of the IN sets of all
     // exception handlers for the block
     OPT_LiveSet exceptionBlockSummary = new OPT_LiveSet();
-    boolean blockHasHandlers = false;
+	    
+    boolean blockHasHandlers = 
+      bbLiveInfo[block.getNumber()].getContainsPEIWithHandler();
 
     // The computation of the Kill set takes into consideration exception
     // semantics, i.e., that live information may flow into the middle
@@ -468,8 +466,11 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       for (OPT_BasicBlockEnumeration enum = block.getOut(); 
           enum.hasMoreElements();) {
         OPT_BasicBlock succ = (OPT_BasicBlock)enum.next();
-        if (succ.isExceptionHandlerBasicBlock()) {
-          blockHasHandlers = true;
+
+	// sometimes we may have a CFG edge to a handler, but no longer a
+	//   PEI that can make the edge realizable.  Thus, we have two
+	//   conditions in the following test.
+        if (blockHasHandlers && succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {
           currentSet.add(bbLiveInfo[succ.getNumber()].getIn());
@@ -865,6 +866,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     private OPT_LiveSet BBKillSet;
     private OPT_LiveSet firstPEIKillSet;
     private OPT_LiveSet in;
+    private boolean containsPEIWithHandler = false;   
 
     /**
      *  The constructor
@@ -903,6 +905,21 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
      */
     public final OPT_LiveSet getIn() {
       return  in;
+    }
+
+    /**
+     * Returns whether this block has a PEI with a handler in this method
+     * @return whether this block has a PEI with a handler in this method
+     */
+    public final boolean getContainsPEIWithHandler() {
+      return containsPEIWithHandler;
+    }
+
+    /**
+     * @param value whether this block has a PEI with a handler in this method
+     */
+    public final void setContainsPEIWithHandler(boolean value) {
+      containsPEIWithHandler = value;
     }
 
     /**
