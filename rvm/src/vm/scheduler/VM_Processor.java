@@ -864,5 +864,13 @@ if (loopcheck++ >= 1000000) break;
     VM_Scheduler.writeString(" threadSwitchRequested: ");
     VM_Scheduler.writeDecimal(threadSwitchRequested); 
     VM_Scheduler.writeString("\n");
+    VM_Scheduler.writeString("Chunk1: "); 
+    VM_Scheduler.writeHex(startChunk1.toInt()); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(currentChunk1.toInt()); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(endChunk1.toInt()); VM_Scheduler.writeString("\n");
+    VM_Scheduler.writeString("Chunk2: "); 
+    VM_Scheduler.writeHex(startChunk2.toInt()); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(currentChunk2.toInt()); VM_Scheduler.writeString(" < ");
+    VM_Scheduler.writeHex(endChunk2.toInt()); VM_Scheduler.writeString("\n");
   }
 }
