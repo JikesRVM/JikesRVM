@@ -57,8 +57,8 @@ vpath %.c	$(BENCH_HOME)
 	$(HOST_JAVA_HOME)/bin/javah -classpath $(BENCH_CLASS_CP) -jni -o $(BENCH_CLASS_CP)/$@ $(basename $(notdir $<))
 
 lib%.a:	%.c %.h
-	$(CC) -c -o $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include -O -g $<
-	$(LDSHARED) -o $(BENCH_CLASS_CP)/$@ -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include -O -g $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o
+	$(CC) $(CFLAGS) -c -o $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include $<
+	$(LDSHARED) $(CXXFLAGS) -o $(BENCH_CLASS_CP)/$@ -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o
 
 %.so:	%.a
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
