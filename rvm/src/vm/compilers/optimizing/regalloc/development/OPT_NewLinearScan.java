@@ -125,33 +125,51 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   private void replaceSymbolicRegisters(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      for (Enumeration e2 = s.getOperands(); e2.hasMoreElements(); ) {
-        OPT_Operand op = (OPT_Operand)e2.nextElement();
-        if (op.isRegister()) {
-          OPT_RegisterOperand rop = op.asRegister();
-          OPT_Register r = rop.register;
+    for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+      
+      // The following holds the floating point stack offset from its
+      // 'normal' position.
+      int fpStackOffset = 0;
 
-          // if we see a physical FPR, update the MIR state.
-          if (r.isPhysical() && r.isFloatingPoint()) {
-            int n = phys.getFPRIndex(r);
-            ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
-                                                n+1);
-          }
+      for (Enumeration inst = bb.forwardInstrEnumerator(); 
+           inst.hasMoreElements();) {
+        OPT_Instruction s = (OPT_Instruction)inst.nextElement();
+        for (Enumeration e2 = s.getOperands(); e2.hasMoreElements(); ) {
+          OPT_Operand op = (OPT_Operand)e2.nextElement();
+          if (op.isRegister()) {
+            OPT_RegisterOperand rop = op.asRegister();
+            OPT_Register r = rop.register;
 
-          if (r.isSymbolic() && !r.isSpilled()) {
-            OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
-            if (VM.VerifyAssertions) VM.assert(p!=null);
-            rop.register = p;
-            // update MIR state if needed
-            if (p.isFloatingPoint()) {
-              int n = phys.getFPRIndex(p);
+            // if we see a physical FPR, update the MIR state.
+            if (r.isPhysical() && r.isFloatingPoint()) {
+              int n = phys.getFPRIndex(r);
               ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
                                                   n+1);
             }
+
+            if (r.isSymbolic() && !r.isSpilled()) {
+              OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
+              if (VM.VerifyAssertions) VM.assert(p!=null);
+              // update MIR state if needed
+              if (p.isFloatingPoint()) {
+                int n = phys.getFPRIndex(p) + fpStackOffset;
+                ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
+                                                    n+1);
+                p = phys.getFPR(n);
+              }
+              rop.register = p;
+            }
           }
         }
+        // account for any effect s has on the floating point stack
+        // position.
+        if (s.operator().isFpPop()) {
+          fpStackOffset--;
+        } else if (s.operator().isFpPush()) {
+          fpStackOffset++;
+        }
+        if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
       }
     }
   } 
