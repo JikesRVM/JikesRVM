@@ -14,6 +14,9 @@ Should reference type processing be disabled?
 ignoreSystemGC false
 Should we ignore calls to java.lang.System.gc?
 
+fullHeapSystemGC false
+Should a major GC be performed when a system GC is triggered?
+
 genCycleDetection false
 Should we use a generational approach to cycle detection
 

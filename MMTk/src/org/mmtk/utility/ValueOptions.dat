@@ -38,17 +38,24 @@ if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val); \
 val = val2;
 
 
-V cycleMetaDataPages int MAX_INT cycleMetaDataLimit
+V cycleMetaDataPages int 512 cycleMetaDataLimit
 Trigger cycle detection if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val); \
 val = val2;
 
 
-V cycleDetectionPages int 1024 cycleTriggerThreshold
+V cycleDetectionPages int 512 cycleTriggerThreshold
 Trigger cycle detection if the space available falls below this threshold (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + val); \
+val = val2;
+
+
+V cycleFilterPages int 1024 cycleFilterThreshold
+Trigger cycle buffer filtering if the space available falls below this threshold (KB)
+int val2 = Conversions.bytesToPagesUp(val<<10); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle filter limit " + val); \
 val = val2;
 
 
