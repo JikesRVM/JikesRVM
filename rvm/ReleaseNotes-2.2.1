@@ -1,0 +1,29 @@
+This is release 2.2.1 of the Jikes RVM. 
+This release includes several major pieces of new 
+functionality and a number of bug fixes.
+
+Highlights of this release include:
+  + Jikes RVM is now based entirely on the GNU Classpath libraries.  
+    The prior hybrid library solution is still supported in
+    this release, but will be removed in subsequent releases. 
+    See the userguide for details on how to build with the hybrid libraries.
+  + Separate name spaces for classloaders.
+  + Implementation of JNI for Linux/PowerPC.
+  + The addition of an on-stack replacement mechanism to
+    enable the adaptive system transfer execution from long-running 
+    baseline compiled frames and to recover from speculative 
+    optimizations.  More details can be found in a CGO 2003 paper.
+  + Extensions for PowerPC hardware performance counters on AIX 5.
+  + Jikes RVM can run a significant subset of the Eclipse IDE.
+
+Other notes:
+  + Future release of Jikes RVM will not support using the OTI 
+    class libaries.
+  + We continue to anticipate moving completely to JMTk and removing 
+    support for the watson collectors in a future release of Jikes RVM.
+    This should happen in the 2.2.2 release depending on the 
+    performance of the JMTk MarkSweep collector.
+
+A number of other miscellaneous bugs in version 2.2.0
+are fixed in the 2.2.1 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
