@@ -34,7 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = true;
-  public static final boolean refCountCycleDetection = true;
+  public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -270,7 +270,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+    if (mustCollect || 
+	getPagesReserved() > getTotalPages() ||
+	rcMR.reservedPages() > Options.nurseryPages) {
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       VM_Interface.triggerCollection();

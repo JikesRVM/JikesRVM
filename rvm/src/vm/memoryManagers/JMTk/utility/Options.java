@@ -18,6 +18,7 @@ public class Options implements VM_Uninterruptible {
 
   static int initialHeapSize = 100 * (1 << 20);
   static int maxHeapSize     = 300 * (1 << 20);
+  static int nurseryPages     = (1<<30);  // default to variable nursery
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     //VM.sysWriteln("processing arg = ", arg);
@@ -39,6 +40,11 @@ public class Options implements VM_Uninterruptible {
       int level = Integer.parseInt(tmp);
       if (level <= 0) VM.sysFail("Unreasonable verbosity level " + tmp);
       Plan.verbose = level;
+    }
+    else if (arg.startsWith("nursery_size=")) {
+      String tmp = arg.substring(13);
+      nurseryPages = Conversions.bytesToPages(Integer.parseInt(tmp)<<20);
+      if (nurseryPages <= 0) VM.sysFail("Unreasonable nursery size " + tmp);
     }
     else 
       VM.sysWriteln("Ignoring unknown GC option: ", arg);

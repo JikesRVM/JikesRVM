@@ -112,7 +112,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("used pages = ", getPagesUsed());
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
       VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
-      VM.sysWrite("+ (ms) ", msMR.reservedPages());
+      VM.sysWrite(" + (ms) ", msMR.reservedPages());
       VM.sysWrite(" + (imm) ",  immortalMR.reservedPages());
       VM.sysWriteln(" + (md) ",  metaDataMR.reservedPages());
   }
@@ -277,7 +277,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+    if (mustCollect || 
+	getPagesReserved() > getTotalPages() ||
+	nurseryMR.reservedPages() > Options.nurseryPages) {
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR)

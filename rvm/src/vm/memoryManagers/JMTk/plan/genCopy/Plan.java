@@ -296,7 +296,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   public boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+    if (mustCollect ||
+	getPagesReserved() > getTotalPages() ||
+	nurseryMR.reservedPages() > Options.nurseryPages) {
       if (VM.VerifyAssertions)	VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || mr == matureMR)
