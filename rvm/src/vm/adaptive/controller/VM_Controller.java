@@ -119,13 +119,12 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     // Initialize the controller input queue
     controllerInputQueue = 
-      new VM_BlockingPriorityQueue(options.CONTROLLER_INPUT_QUEUE_SIZE,
-                                   new VM_BlockingPriorityQueue.CallBack() {
+      new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
                                        void aboutToWait() { controllerThread.aboutToWait(); }
                                        void doneWaiting() { controllerThread.doneWaiting(); }
                                      });
 
-    compilationQueue = new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
+    compilationQueue = new VM_BlockingPriorityQueue();
 
     // Create the analytic model used to make cost/benefit decisions.
     recompilationStrategy = new VM_MultiLevelAdaptiveModel();

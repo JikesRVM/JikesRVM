@@ -324,16 +324,10 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
            1.0 + (VM_Controller.options.MAX_EXPECTED_AI_BOOST * edgeHotness);
          VM_AINewHotEdgeEvent event = 
            new VM_AINewHotEdgeEvent(hotMethod, numSamples, boost);
-         if (!VM_Controller.controllerInputQueue.prioritizedInsert(numSamples, 
-                                                                   event)) {
-           if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-         } else {
-           if (VM.LogAOSEvents) {
-             VM_AOSLogging.controllerNotifiedForInlining(hotMethod, 
-                                                         numSamples, 
-                                                         boost);
-           }
-         }
+         VM_Controller.controllerInputQueue.insert(numSamples, event);
+         if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForInlining(hotMethod,
+                                                                          numSamples, 
+                                                                          boost);
        }
      }
      

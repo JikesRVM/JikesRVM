@@ -78,24 +78,10 @@ public final class OSR_OnStackReplacementEvent
                                      this.tsFromFPoff,
                                      this.ypTakenFPoff,
                                      priority);
+    
+    VM_Controller.compilationQueue.insert(priority, plan);
 
-    // take the high priority for on stack replacement event
-    boolean succeeded = 
-      VM_Controller.compilationQueue.prioritizedInsert(priority, plan);
-
-    if (succeeded) {
-      if (VM.LogAOSEvents) {
-        VM_AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
-      }
-    } else {
-      if (VM.LogAOSEvents) {
-        VM_AOSLogging.logOsrEvent("OSR was unable to insert compilation plan");
-      }
-      if (VM.TraceOnStackReplacement) {
-        VM.sysWriteln("OSR was unable to insert compilation plan");
-      }
-      suspendedThread.resume();
-    }
+    VM_AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
 
     // do not hold the reference anymore.
     suspendedThread = null;

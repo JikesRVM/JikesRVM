@@ -417,35 +417,6 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs when a recompilation could not occur
-   * because the queue is full
-   * @param plan the OPT_Compilation plan that would have been executed
-   */
-  public static void recompilationQueueFull(OPT_CompilationPlan plan) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(VM_Controller.controllerClock 
-                    +" Level "+ plan.options.getOptLevel()
-                    +" recompilation postponed of "+plan.method);
-      }
-    }
-  }
-
-  /**
-   * This method logs when the controller could not be notified 
-   * of an event because the controllerInputQueue was full.
-   * @param event the event the controller would have been told about
-   */
-  public static void controllerInputQueueFull(Object event) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(VM_Controller.controllerClock + 
-                    " Unable to inform controller of "+event+ " due to full input queue");
-      }
-    }
-  }
-
-  /**
    * This method logs the beginning of an adaptively selected recompilation
    * @param plan the OPT_Compilation plan being executed.
    */

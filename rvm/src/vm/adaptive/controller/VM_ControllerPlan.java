@@ -151,26 +151,14 @@ public final class VM_ControllerPlan {
       
     if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
         getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
-      // Attempt to add plan to compilation queue.
-      boolean succeeded = 
-        VM_Controller.compilationQueue.insert(getPriority(), this);
-
-      // Logging, and record failure in plan if necessary.
-      if (succeeded) {
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
-      } else {
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
-        setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
-      }
-      return succeeded;
+      VM_Controller.compilationQueue.insert(getPriority(), this);
+      if (VM.LogAOSEvents) VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
       return true;
     }
   }
-
 
 
   /**

@@ -97,11 +97,8 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
                (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
           VM_HotMethodRecompilationEvent event = 
             new VM_HotMethodRecompilationEvent(cm, ns);
-          if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-            if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
-          } else {
-            if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-          }
+          VM_Controller.controllerInputQueue.insert(ns, event);
+          if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
         }
       }
     }

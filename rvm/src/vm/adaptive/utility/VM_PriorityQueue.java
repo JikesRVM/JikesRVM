@@ -15,40 +15,23 @@ import com.ibm.JikesRVM.VM;
  */
 class VM_PriorityQueue {
 
-  private static final boolean DEBUG = false;
-
   /**
-   * the queue, we use elements 1..size
+   * the queue, we use elements 1..queue.length
    */
   private VM_PriorityQueueNode[] queue; 
 
   /**
-   * the index of the last valid entry
-   *  size = queue.length - 1
-   */
-  private int size;     
-
-  /**
    * the number of elements actually in the queue
    */
-  private int numElements; 
+  private int numElements = 0;
   
-  /**
-   * Constructor
-   * @param initialSize the initial number of elements
-   */
-  VM_PriorityQueue(int initialSize) {
-    // We don't use element #0
-    int allocSize = initialSize+1;
-    queue = new VM_PriorityQueueNode[allocSize];
+  VM_PriorityQueue() {
+    queue = new VM_PriorityQueueNode[20];
     
-    for (int i=0; i<allocSize; i++) {
+    // We don't use element #0
+    for (int i=1; i<queue.length; i++) {
       queue[i] = new VM_PriorityQueueNode();
     }
-
-    // We use elements 1..size
-    size = initialSize;
-    numElements = 0;
   }
 
   /**
@@ -65,14 +48,6 @@ class VM_PriorityQueue {
    */
   synchronized final boolean isEmpty() {
     return numElements == 0;
-  }
-
-  /**
-   * Checks if the queue is full
-   * @return is the queue full?
-   */
-  synchronized final boolean isFull() {
-    return numElements == size;
   }
 
   /**
@@ -103,70 +78,24 @@ class VM_PriorityQueue {
    * Insert the object passed with the priority value passed
    * @param _priority  the priority of the inserted object
    * @param _data the object to insert
-   * @return true if the insert succeeded, false if it failed because the queue was full
    */
-  synchronized public boolean insert(double _priority, Object _data) {
-    if (isFull()) {
-      return false;
-    }
-
+  synchronized public void insert(double _priority, Object _data) {
     numElements++;
+
+    if (numElements == queue.length) {
+      VM_PriorityQueueNode[] tmp = new VM_PriorityQueueNode[(int)(queue.length * 1.5)];
+      System.arraycopy(queue, 0, tmp, 0, queue.length);
+      for (int i = queue.length; i<tmp.length; i++) {
+        tmp[i] = new VM_PriorityQueueNode();
+      }
+      queue = tmp;
+    }
+    
     queue[numElements].data = _data;
     queue[numElements].priority = _priority;
     
     // re-heapify
     reheapify(numElements);
-    return true;
-  }
-
-  /**
-   * Insert the object passed with the priority value passed, but if the queue
-   *   is full, a lower priority object is removed to make room for this object.
-   *   If no lower priority object is found, we don't insert.
-   * @param _priority  the priority to 
-   * @param _data the object to insert
-   * @return true if the insert succeeded, false if it failed because the queue was full
-   */
-  synchronized public boolean prioritizedInsert(double _priority, Object _data) {
-    if (DEBUG) VM.sysWrite("prioInsert: prio: "+_priority+",size: "+
-                           size +", numElements: "+ numElements +")\n");
-
-    // the queue isn't full just use the regular insert
-    if (!isFull()) {
-      return insert(_priority, _data);
-    }
-
-    // search the leaves of the tree and find the lowest priority element
-    //  "numElements" is the last element.  The first leaf is the next
-    //  node after its parent, i.e,  numElements/2  + 1
-    //  We'll go from this value up to numElements.
-    int firstChild = numElements/2 + 1;
-    int evictee = -1;
-    double evicteePriority = _priority;  // start of with the priority of the insertor
-    for (int i=firstChild; i<=numElements; i++) {
-      if (queue[i].priority < evicteePriority) {
-        if (DEBUG) VM.sysWrite("  candidate at entry "+ i 
-                               +", prio: "+queue[i].priority +")\n");
-        evictee = i;
-        evicteePriority = queue[i].priority;
-      }
-    }
-
-    // Did we find an evictee?
-    if (evictee != -1) {
-      queue[evictee].data = _data;
-      queue[evictee].priority = _priority;
-    
-      if (DEBUG) VM.sysWrite("  evicting entry "+ evictee +")\n");
-
-      // re-heapify
-      reheapify(evictee);
-      return true;
-    }
-    else {
-      // didn't find a spot :-(
-      return false;
-    }
   }
 
   /**

@@ -31,16 +31,16 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    * @param initialSize the initial number of elements
    * @param _cb the callback object
    */
-  VM_BlockingPriorityQueue(int initialSize, CallBack _cb) {
-    super(initialSize);
+  VM_BlockingPriorityQueue(CallBack _cb) {
+    super();
     callback = _cb;
   }
 
   /**
    * @param initialSize the initial number of elements
    */
-  VM_BlockingPriorityQueue(int initialSize) {
-    this(initialSize, new CallBack());
+  VM_BlockingPriorityQueue() {
+    this(new CallBack());
   }
 
   /**
@@ -51,19 +51,15 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    *
    * @param _priority  the priority to 
    * @param _data the object to insert
-   * @return true if the insert succeeded, false if it failed because the queue was full
    */
-  synchronized final public boolean insert(double _priority, Object _data) { 
-    boolean success = super.insert(_priority, _data);
-    if (success) {
-      try {
-        notifyAll();
-      } catch (Exception e) {
-        // TODO: should we exit or something more dramatic?
-        VM.sysWrite("Exception occurred while notifying that element was inserted!\n");
-      }
+  synchronized final public void insert(double _priority, Object _data) { 
+    super.insert(_priority, _data);
+    try {
+      notifyAll();
+    } catch (Exception e) {
+      // TODO: should we exit or something more dramatic?
+      VM.sysWrite("Exception occurred while notifying that element was inserted!\n");
     }
-    return success;
   }
 
   /**
