@@ -7,7 +7,7 @@
 # @author Perry Cheng
 #
 
-ALL_TESTS	= FixedLive
+ALL_TESTS	= FixedLive Node2I2A
 
 include		$(RVM_BUILD)/Make.rules
 
