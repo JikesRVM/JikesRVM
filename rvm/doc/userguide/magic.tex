@@ -11,15 +11,14 @@ There are currently three types of magical operations which are
 described in the remainder of this section.  The first is a collection
 of magical methods that are static methods of the class {\tt
 VM\_Magic}.  The second is the magical classes {\tt VM\_Address}, {\tt
-VM\_Word}, {\tt VM\_Offset}, and  {\tt VM\_Extent} used in
+VM\_Word}\IndexttClass{VM\_Word}, {\tt VM\_Offset}\IndexttClass{VM\_Offset}, and  {\tt VM\_Extent}\IndexttClass{VM\_Extent} used in
 parts of the runtime and garbage collector. The third is various
 mechanisms to declare code {\em uninterruptible}.
 
-\subsection{VM\_Magic}
-\index{magic methods}
-\index{VM\_Magic}
-\index{semantic inlining}
-Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL} are
+\subsection{\texttt{VM\_Magic}}%
+\index{magic methods}%
+\index{semantic inlining}%
+Certain methods in the class \xlink{\IndexTexttt{VM\_Magic}}{\VMMagicURL} are
 treated differently by the compiler. Because these methods access raw
 memory or other machine state, perform unsafe casts, or are operating
 system calls, they cannot be implemented in Java code.  A
@@ -47,9 +46,8 @@ instructions that generate assembly code are only invoked by the
 baseline compiler.}.  Whenever the compiler encounters a call to one of these
 magic methods, it inlines appropriate code for the magic method into the caller method.
 
-\subsection{VM\_Address}
-\cindex[VM\_Address]{\texttt{VM\_Address}}
-The type \xlink{{\tt VM\_Address}}{\JikesRVMJavadocURL/VM\_Address.html} is used to represent a machine-dependent
+\subsection{VM\_Address}\IndexttClass{VM\_Address}
+The type \xlink{\texttt{VM\_Address}}{\JikesRVMJavadocURL/VM\_Address.html} is used to represent a machine-dependent
 address type.  In the past, the base type {\tt int} was used to
 represent addresses but this approach had several shortcomings.
 First, the lack of abstraction makes porting nightmarish.  Equally
@@ -89,14 +87,15 @@ array of {VM\_Address} values.  Instead make a
 \end{enumerate}
 
 
-\subsection{What are the Semantics of Uninterruptible Code?\label{uninterruptible_code}}
-\index{uninterruptible}
-\index{interruptible}
-\index{VM\_Uninterruptible}
-\index{VM\_PragmaInterruptible}
-\index{VM\_PragmaUninterruptible}
-\index{VM\_PragmaLogicallyUninterruptible}
-\index{yield point}
+\subsection{What are the Semantics of Uninterruptible Code?\label{uninterruptible_code}}%
+\index{uninterruptible}%
+\index{interruptible}%
+\Indextt{VM\_Uninterruptible}%
+\Indextt{VM\_PragmaInterruptible}%
+\Indextt{VM\_PragmaUninterruptible}%
+\Indextt{VM\_PragmaLogicallyUninterruptible}%
+\index{yield point}%
+
 Declaring a method uninterruptible enables a Jikes RVM developer to
 prevent the Jikes RVM compilers from inserting ``hidden'' thread
 switch points in the compiled code for the method.  As a result, the

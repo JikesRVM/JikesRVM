@@ -1,6 +1,7 @@
-\label{section:cmdline}
-\index{command line arguments}
 
+\label{section:cmdline}%
+\index{command line arguments}%
+%
 This section describes how non-standard Jikes\TMweb{} RVM command
 line options are specified. Command line options can be used to modify
 the behavior of the runtime system, adaptive optimization system, the
@@ -138,7 +139,7 @@ processing, and userguide. Although the details of the template and
 option description files varies slightly from one subsystem to the
 other, the general ideas are the same.  
 
-\index{OPT\_Options class}
+\IndexttClass{OPT\_Options}%
 As an example, here is a discussion on how to add a command line
 option to the optimizing compiler.
 Jikes RVM stores command-line options to the optimizing compiler 
@@ -146,8 +147,8 @@ as fields in an object of type {\tt OPT\_Options}.
 The Jikes RVM build process generates the {\tt OPT\_Options.java} 
 file automatically from a template.  
 
-\index{BooleanOptions.dat}
-\index{ValueOptions.dat}
+\Indextt{BooleanOptions.dat}%
+\Indextt{ValueOptions.dat}%
 To add or modify the command-line options in {\tt OPT\_Options.java},
 you must modify either {\tt BooleanOptions.dat} or 
 {\tt ValueOptions.dat}.  You should describe your desired
@@ -156,10 +157,9 @@ Your option will be generated the next time you build the
 system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{BooleanOptions.dat}
-\index{BooleanOptions.dat}
+\subsubsection{\texttt{BooleanOptions.dat}}
 
-The {\tt BooleanOptions.dat} file defines boolean options for
+The \IndexTexttt{BooleanOptions.dat} file defines boolean options for
 the optimizing compiler.  The file describes each command-line option 
 by a two-line record, and each record is separated
 by a blank line.  Long lines can be continued using ``$\backslash$''.
@@ -194,12 +194,11 @@ Perform local scalar replacement
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{ValueOptions.dat}
-\index{ValueOptions.dat}
 
-The {\tt ValueOptions.dat} file defines non-boolean options for
+The \IndexTexttt{ValueOptions.dat} file defines non-boolean options for
 the optimizing compiler.  The file describes each command-line option 
 with a three-line record, and each record is separated
-by a blank line.  As with {\tt BooleanOptions.dat},
+by a blank line.  As with \texttt{BooleanOptions.dat},
 long lines can be continued using ``$\backslash$'' and
 blank lines are once again significant.
 Lines starting with ``\#'' are ignored.

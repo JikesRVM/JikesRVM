@@ -189,7 +189,9 @@ were using version 1.13. Version 1.14 through 1.17 do not entirely
 work with Jikes RVM.  For versions of Jikes RVM before 2.2.0, you must
 use jikes 1.13.
 
-\subsubsection{Has anybody thought about incremental boot image writing?}
+\subsubsection{Has anybody thought about incremental boot image writing?}%
+\index{incremental boot image writing}%
+\index{boot image writing, incremental}
 
 Incremental boot image building is not a trivial problem.  One big
 issue is: if we change the implementation of one class in the boot image,
@@ -202,14 +204,14 @@ priorities.
 
 \subsubsection{Can I monitor progress during {\tt jbuild}?}
 
-Yes.  Use {\tt jbuild -trace} to see detailed progress.  Use {\tt
-jbuild -help} to see a list of sub-options you can give to the {\tt
+Yes.  Use ``{\tt jbuild -trace}'' to see detailed progress.  Use ``{\tt
+jbuild -help}'' to see a list of sub-options you can give to the {\tt
 -trace} flag.
 
 \subsubsection{How can I include my own classes in the boot image?}
 
 The {\tt jconfigure} script defines which classes go in the boot image, by
-spitting out the file {\tt \$RVM\_BUILD/RVM.primordials}.  By default, any
+spitting out the file {\tt \$RVM\_\-BUILD/\-RVM.primordials}.  By default, any
 class, with the {\tt VM\_} prefix, in a defined directory set, goes in the
 boot image.
 
@@ -341,17 +343,20 @@ LOCK prefix to implement attempt; prepare is a normal load instruction.
 
 \item[\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 
+\IndexttClass{VM\_Synchronization}
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Synchronization
 primitives, in turn, are implemented using VM\_Magic.prepare and attempt.
 
-\item[\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}]
+\item[\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}]%
+\IndexttClass{VM\_ProcessorLock}
 
 This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
 (pthreads.)  It provides a non-blocking attempt to require the lock
 ({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
 
-\item[\xlink{VM\_Lock}{\VMLockURL}]
+\item[\xlink{VM\_Lock}{\VMLockURL}]%
+\IndexttClass{VM\_Lock}
 
 This class provides the normal synchronization operations on Java objects
 between Java threads.  The implementation is a variant of Thin Locks.
@@ -364,7 +369,8 @@ bytecodes by inserting calls to \xlink{{\tt VM\_Lock}}{\VMLockURL} routines;
 the optimizing
 compiler inlines the common cases.
 
-\item[\xlink{VM\_GCLocks}{\VMGCLocksURL}]
+\item[\xlink{VM\_GCLocks}{\VMGCLocksURL}]%
+\IndexttClass{VM\_GCLocks}
 
 This class simply encapsulates a number of VM\_Synchronization locks 
 used for various purposes by the RVM GC system.
@@ -444,7 +450,7 @@ Most optimization passes over SSA form call this method at
 the beginning of the compiler phase.
 
 \subsubsection{What is Heap Array SSA form?}
-\index{Heap Array SSA Form}
+\index{Heap Array SSA form}
 See the \xlink{SAS 2000 paper}{\SASPaperURL}, as well as comments in
 \xlink{{\tt OPT\_SSA.java}}{\OPTSSAURL}.
 
@@ -492,8 +498,7 @@ contributing it back.
 
 \subsubsection{What is the OptTestHarness?}
 
-\index{OptTestHarness}
-The \link{OptTestHarness}[ (see section~\Ref)]{opttestharness} is a driver
+The \link{\IndexTexttt{OptTestHarness}}[ (see section~\Ref, on page~\Pageref)]{opttestharness} is a driver
 program to run the optimizing compiler even on a BaseBase boot image.
 This driver is useful for optimizing compiler development, since you
 can use the driver to selectively compile individual methods with
