@@ -63,11 +63,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
       if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
 	int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
-	tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(forwardPtr), TIB_OFFSET);
+	tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(VM_Address.fromInt(forwardPtr)), TIB_OFFSET);
       }
     }      
     int offset = (tibWord & TIB_MASK) >>> (TIB_SHIFT - 2);
-    return VM_Magic.addressAsObjectArray(VM_Magic.getMemoryAddress(VM_Magic.getTocPointer() + offset));
+    return VM_Magic.addressAsObjectArray(VM_Magic.getMemoryAddress(VM_Magic.getTocPointer().add(offset)));
   }
   
   /**
@@ -106,7 +106,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * @param address address of the object
    */
   public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
-    int tibWord = jdpService.readMemory(ptr + TIB_OFFSET);
+    int tibWord = jdpService.readMemory(ptr.add(TIB_OFFSET).toInt());
     if (VM_Collector.MOVES_OBJECTS) {
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
       if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
@@ -115,7 +115,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       }
     }      
     int index = (tibWord & TIB_MASK) >>> TIB_SHIFT;
-    return jdpService.readJTOCSlot(index);
+    return VM_Address.fromInt(jdpService.readJTOCSlot(index));
   }
 
   /*
@@ -253,3 +253,4 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   }
   //-#endif
 }
+                       
