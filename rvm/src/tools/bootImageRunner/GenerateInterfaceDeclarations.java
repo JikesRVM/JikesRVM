@@ -121,7 +121,7 @@ class GenerateInterfaceDeclarations {
       pln("#define VM_Address uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
-    pln("#endif NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS");
+    pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
     pln("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
