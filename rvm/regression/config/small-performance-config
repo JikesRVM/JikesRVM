@@ -1,2 +1,0 @@
-BaseBaseWatsonSemispace -test-list small-performance-tests
-BaseOptWatsonSemispace -test-list small-performance-tests -use-opt-levels "O0 O1 O2"
