@@ -17,7 +17,7 @@ ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE   = 300
   START_ARGS = 100
 else
-  HEAPSIZE   = 100
+  HEAPSIZE   = 150
   START_ARGS = 30
 endif
 EXPECTED=Tests.expected
