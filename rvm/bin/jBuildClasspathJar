@@ -21,7 +21,8 @@
 ## GREP
 ## XARGS
 
-
+## BUILDING_CLASSPATH_FROM_CVS_HEAD
+## USE_LOCAL_CLASSPATH
 ## CLASSPATH_ROOT		( optional )
 
 ME="${0##*/}"
@@ -42,7 +43,9 @@ export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=$(uname -v)
 
-JIKES_TOOL=$JIKES
+if [[ ${JIKES-:} ]]; then
+    JIKES_ARG="--with-jikes=\"$JIKES\""
+fi
 JAR_TOOL=$JAR
 
 declare -i AIX=0
@@ -68,7 +71,7 @@ function classpath_configure_args () {
 	echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
 	return;
     fi
-    echo " --enable-portable-native-sync" # Needed for Classpath 0.09 and 0.08
+    echo " --enable-portable-native-sync" # Needed for Classpath 0.09 and 0.08, benign for Classpath 0.10 and onward.
     if ! [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
 	echo "  --disable-gtk-peer"
     else
@@ -196,7 +199,7 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
     mkdir -p $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS eval ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $(classpath_configure_args)
+    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS eval ../classpath/configure --enable-jni $JIKES_ARG $(classpath_configure_args)
     if (( AIX )); then
 	echo "Cleaning up native/fdlibm/Makefile for AIX"
 	sed -e '/^CPPFLAGS/s/-D_ALL_SOURCE//' native/fdlibm/Makefile \
