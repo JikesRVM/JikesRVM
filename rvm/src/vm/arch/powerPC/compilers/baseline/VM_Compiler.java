@@ -3010,11 +3010,6 @@ public class VM_Compiler extends VM_BaselineCompiler
       // we never return from a DynamicBridge frame
       asm.emitTAddrWI(-1);
     } else {
-//       //-#if RVM_FOR_OSX
-//       if (klass.isBridgeFromNative()) {
-//         VM_JNICompiler.generateReturnCodeForJNIMethod (asm, method);
-//       }
-//       //-#endif
       if (frameSize <= 0x8000) {
         asm.emitADDI(FP, frameSize, FP); // discard current frame
       } else {
