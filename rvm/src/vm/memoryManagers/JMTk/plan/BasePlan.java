@@ -704,7 +704,7 @@ public abstract class BasePlan
    * instrumentation, etc.  By default do nothing.  Subclasses may
    * override.
    */
-  public static void harnessBegin() {
+  public static void harnessBegin() throws VM_PragmaInterruptible {
     Options.fullHeapSystemGC = true;
     System.gc();
     Options.fullHeapSystemGC = false;
