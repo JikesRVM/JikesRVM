@@ -617,7 +617,8 @@ public abstract class OPT_Operand {
 	    }
 	    return true;
 	  }
-	} else if (OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES) {
+	} else if (compatabilePrimitives(type1, type2) ||
+		   OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES) {
 	  // types are ok, only have to worry about the flags
 	  if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
 	    if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -653,6 +654,7 @@ public abstract class OPT_Operand {
 	
 	VM_Type type2 = op2.getType();
 	if (type1 == type2 || 
+	    compatabilePrimitives(type1, type2) ||
 	    (OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES)) {
 	  // only have to consider state of op1's flags.  Types are ok.
 	  if (rop1.isPreciseType() && (type1 != type2)) {
@@ -843,7 +845,8 @@ public abstract class OPT_Operand {
 	    }
 	    return op1;
 	  }
-	} else if (OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES) {
+	} else if (compatabilePrimitives(type1, type2) ||
+		   OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES) {
 	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Compatabily typed register operands, checking flags...");
 	  }
@@ -878,7 +881,7 @@ public abstract class OPT_Operand {
 	  }
 	} else {
  	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
-	    VM.sysWrite("Incompatabily typed register operands...");
+	    VM.sysWrite("Incompatabily typed register operands...("+type1+", "+type2+")...");
 	  }
 	  VM_Type resType = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(type1, type2);
 	  if (resType == null) {
@@ -914,6 +917,7 @@ public abstract class OPT_Operand {
 	}
 	VM_Type type2 = op2.getType();
 	if (type1 == type2 || 
+	    compatabilePrimitives(type1, type2) ||
 	    (OPT_ClassLoaderProxy.proxy.isAssignableWith(type1, type2) == OPT_Constants.YES)) {
 	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Compatabily typed register & other operand, checking flags...");
@@ -940,7 +944,7 @@ public abstract class OPT_Operand {
 	  return res;
 	} else {
  	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
-	    VM.sysWrite("Incompatabily typed register & other operand...");
+	    VM.sysWrite("Incompatabily typed register & other operand...("+type1+", "+type2+")...");
 	  }
 	  VM_Type resType = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(type1, type2);
 	  if (resType == null) {
@@ -970,6 +974,29 @@ public abstract class OPT_Operand {
       }
       return null; // bottom
     }
+  }
+
+  private static boolean compatabilePrimitives(VM_Type type1, VM_Type type2) {
+    if (type1.isIntLikeType() && type2.isIntLikeType()) {
+      if (type1.isIntType()) {
+	return type2.isBooleanType() ||
+	  type2.isByteType() ||
+	  type2.isShortType() ||
+	  type2.isIntType();
+      }
+      if (type1.isShortType()) {
+	return type2.isBooleanType() ||
+	  type2.isByteType() ||
+	  type2.isShortType();
+      } 
+      if (type1.isByteType()) {
+	return type2.isBooleanType() || 
+	  type2.isByteType();
+      } if (type1.isBooleanType()) {
+	return type2.isBooleanType();
+      }
+    }
+    return false;
   }
 
 }
