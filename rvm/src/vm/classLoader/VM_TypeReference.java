@@ -220,9 +220,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    * Get the element type of for this array type
    */
   public final VM_TypeReference getArrayElementType() {
-    // if (VM.VerifyAssertions) VM._assert(isArrayType());
-    if (! isArrayType())
-      throw new IllegalArgumentException(name + " is not a valid array type descriptor");
+    if (VM.VerifyAssertions) VM._assert(isArrayType());
     
     if (isWordArrayType()) {
       if (this == AddressArray) {
@@ -504,17 +502,14 @@ public class VM_TypeReference implements VM_SizeConstants {
    *	    validate them as soon as we insert them into a VM_TypeReference.
    *	    This stinks. XXX)
    */
-  public final synchronized VM_Type resolve() 
-    throws NoClassDefFoundError, // doesn't need declaring.
-	   IllegalArgumentException // ditto
-  {
+  public final synchronized VM_Type resolve() throws NoClassDefFoundError, 
+						     IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
       VM_Type ans; 
       if (VM.runningVM) {
 	Class klass;
 	String myName = name.classNameFromDescriptor();
-
 	try {
 	  klass = classloader.loadClass(myName);
 	} catch (ClassNotFoundException cnf) {
