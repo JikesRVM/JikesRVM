@@ -644,11 +644,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   /**
    * Return the number of pages reserved for use given the pending
-   * allocation.  This is <i>exclusive of</i> space reserved for
-   * copying.
+   * allocation. 
    *
    * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
+   * allocation.
    */
   protected static final int getPagesUsed() {
     int pages = rcMR.reservedPages();
@@ -657,6 +656,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return pages;
   }
 
+  /**
+   * Return the number of pages consumed by meta data.
+   *
+   * @return The number of pages consumed by meta data.
+   */
+  public static final int getMetaDataPagesUsed() {
+    return metaDataMR.reservedPages();
+  }
 
   /**
    * Return the number of pages available for allocation, <i>assuming
@@ -665,8 +672,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
-  protected static final int getPagesAvail() {
-    return getTotalPages() - rcMR.reservedPages() - immortalMR.reservedPages() - metaDataMR.reservedPages();
+  public static final int getPagesAvail() {
+    return getTotalPages() - getPagesUsed();
   }
 
   ////////////////////////////////////////////////////////////////////////////

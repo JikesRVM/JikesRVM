@@ -120,10 +120,14 @@ final class TrialDeletion
   public final void collectCycles() {
     filterCycleBufs();
     processFreeBufs();
-    doMarkGreyPhase();
-    doScanPhase();
-    doCollectPhase();
-    processFreeBufs();
+    if ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
+	(Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages)) {
+      //      VM.sysWrite("<CD>");
+      doMarkGreyPhase();
+      doScanPhase();
+      doCollectPhase();
+      processFreeBufs();
+    }
   }
  
   public final void possibleCycleRoot(VM_Address object)

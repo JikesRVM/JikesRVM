@@ -27,6 +27,8 @@ public class Options implements VM_Uninterruptible, Constants {
   static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = MAX_INT;  // default to variable nursery
   static int metaDataPages    = MAX_INT;  // default to no meta data limit
+  static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
+  static int cycleDetectionPages = 0;  // default to no cycle detection
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
 
@@ -72,7 +74,17 @@ public class Options implements VM_Uninterruptible, Constants {
     else if (arg.startsWith("metadata_limit=")) {
       String tmp = arg.substring(15);
       metaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (nurseryPages <= 0) VM.sysFail("Unreasonable metadata limit " + tmp);
+      if (metaDataPages <= 0) VM.sysFail("Unreasonable metadata limit " + tmp);
+    }
+    else if (arg.startsWith("cycle_metadata_limit=")) {
+      String tmp = arg.substring(21);
+      cycleMetaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
+      if (cycleMetaDataPages <= 0) VM.sysFail("Unreasonable cycle metadata limit " + tmp);
+    }
+    else if (arg.startsWith("cycle_detection_limit=")) {
+      String tmp = arg.substring(22);
+      cycleDetectionPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
+      if (cycleDetectionPages <= 0) VM.sysFail("Unreasonable cycle detection limit " + tmp);
     }
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);
