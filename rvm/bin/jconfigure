@@ -1565,7 +1565,7 @@ function emitImageLinker
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
-   if (( RVM_FOR_LINUX )); then
+   if (( RVM_FOR_IA32 )); then
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
