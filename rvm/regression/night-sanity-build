@@ -69,10 +69,10 @@ echo "Using the configuration $configuration, in $config_fullpath"
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
 
-echo "OK, now we will try to build the Javadoc for the FullAdaptiveCopyMS image"
-fass_dir="$RVM_ROOT/images/FullAdaptiveCopyMS"
+echo "OK, now we will try to build the Javadoc for the development image"
+fass_dir="$RVM_ROOT/images/development"
 if [[ ! -d $fass_dir ]]; then
-    echo "$ME: It looks as if you didn't make a FullAdaptiveCopyMS build.  We'll skip jdoc.sh."
+    echo "$ME: It looks as if you didn't make a development build.  We'll skip jdoc.sh."
 else
     je="$fass_dir/environment.host"
     . $je || croak "Unable to load $je"

@@ -304,7 +304,7 @@ fi >> $MSG
 function compResults () {
     local opt="$1"		# Optimization level: 0, 1, or 2
     # raw results in f:
-    local f=$(echo $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O${opt}.?proc.raw) 
+    local f=$(echo $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.production.O${opt}.?proc.raw) 
     local -r analyzer=$RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk
     if [[ -e $f ]]; then
 	echo -e "\n\n Opt Level ${opt} compilation breakdown for SPECjvm98 size 100\n"
