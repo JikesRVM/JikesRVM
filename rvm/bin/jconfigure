@@ -2675,13 +2675,11 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo 'echo -n "(booter linked)"'
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
-	# We use -Wno-unreachable-code to compile ihnpdsm.C because there 
-	# are stub functions there for stuff not appropriate to this 
-	# particular build, but which still has references to it in 
-	# the Java code. 
 
-	# We use -Wno-missing-noreturn because of the same stubbed-out 
-	# functions; some of them call sysExit().
+	# We woul like to use -Wno-missing-noreturn because of 
+	# the stubbed-out functions that call sysExit()
+	# when compiled for Linux.  Regrettably, this causes gripes from
+	# GCC version 2.96, although GCC 3.3 and 3.3.1 take it just fine.
 
 	# We use -Wno-float-equal because we legitimately compare floats in 
 	# sys.C. 
@@ -2692,8 +2690,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	  \${IMAGE} -DRVM_BOOTIMAGE=\"${BOOTIMAGE_STR}\" \
 	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
-	\${BOOTER_CXX} -Wno-float-equal -Wno-unreachable-code \
-	  -Wno-missing-noreturn \
+	\${BOOTER_CXX} -Wno-float-equal \
 	  -c -I${SCRATCH_DIRECTORY_STR} \
 	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 
