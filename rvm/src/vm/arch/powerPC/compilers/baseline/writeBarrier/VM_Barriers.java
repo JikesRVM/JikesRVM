@@ -18,7 +18,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+8 -> target_ref
 
     asm.emitLtoc(T0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
-    asm.emitMTLR(T0);
+    asm.emitMTCTR(T0);
     asm.emitL (T0, 8, SP);         // load arrayref
     asm.emitL (T1, 4, SP);         // load index
     asm.emitL (T2, 0, SP);         // load value
@@ -33,7 +33,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
 
     asm.emitLtoc(T0, VM_Entrypoints.resolvedPutfieldWriteBarrierMethod.getOffset());
-    asm.emitMTLR(T0);
+    asm.emitMTCTR(T0);
     asm.emitCAL (T1, fieldOffset, 0); // load offset 
     asm.emitL   (T0, 4, SP);          // load objref
     asm.emitL   (T2, 0, SP);          // load value
@@ -47,7 +47,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
 
     asm.emitLtoc(T0,  VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod.getOffset());
-    asm.emitMTLR(T0);
+    asm.emitMTCTR(T0);
     asm.emitCAL (T1, fieldID, 0); // load fieldID 
     asm.emitL   (T0, 4, SP);          // load objref
     asm.emitL   (T2, 0, SP);          // load value
