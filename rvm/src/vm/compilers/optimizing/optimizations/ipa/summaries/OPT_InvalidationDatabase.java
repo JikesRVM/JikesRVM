@@ -7,7 +7,7 @@ import  java.util.*;
 
 /**
  * This class holds the dependencies that define invalidation
- * requirements for the opt compiler.
+ * requirements for the opt compiled methods.
  *
  * <p> Currently we only support 2 kinds of dependencies: 
  *   The set of compiled method id's that depend on a VM_Method 
@@ -43,20 +43,17 @@ public final class OPT_InvalidationDatabase {
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
    * a delicate * dance to avoid recursive classloading. --dave.
    */
-  public java.util.Iterator invalidatedByOverriddenMethod (VM_Method m) {
+  public Iterator invalidatedByOverriddenMethod(VM_Method m) {
     MethodSet s = (MethodSet)nonOverriddenHash.get(m);
-    if (s == null)
-      return  null; 
-    else 
-      return  s.iterator();
+    return (s == null) ? null : s.iterator();
   }
 
   /**
    * Record that if a particular VM_Method method is ever overridden, then 
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNotOverriddenDependency (VM_Method source, 
-      int dependent_cmid) {
+  public void addNotOverriddenDependency(VM_Method source, 
+					 int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
     s.add(dependent_cmid);
   }
@@ -65,8 +62,8 @@ public final class OPT_InvalidationDatabase {
    * Delete a NotOverriddenDependency. 
    * No effect if the dependency doesn't exist..
    */
-  public void removeNotOverriddenDependency (VM_Method source, 
-      int dependent_cmid) {
+  public void removeNotOverriddenDependency(VM_Method source, 
+					    int dependent_cmid) {
     MethodSet s = (MethodSet)nonOverriddenHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
@@ -76,7 +73,7 @@ public final class OPT_InvalidationDatabase {
   /**
    * Delete all NotOverridden dependencies on the argument VM_Method
    */
-  public void removeNotOverriddenDependency (VM_Method source) {
+  public void removeNotOverriddenDependency(VM_Method source) {
     nonOverriddenHash.remove(source);
   }
 
@@ -89,14 +86,11 @@ public final class OPT_InvalidationDatabase {
    * return null if no dependent methods.
    *
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
-   * a delicate * dance to avoid recursive classloading. --dave.
+   * a delicate dance to avoid recursive classloading. --dave.
    */
-  public java.util.Iterator invalidatedBySubclass (VM_Class m) {
+  public Iterator invalidatedBySubclass(VM_Class m) {
     MethodSet s = (MethodSet)noSubclassHash.get(m);
-    if (s == null)
-      return  null; 
-    else 
-      return  s.iterator();
+    return (s == null) ? null : s.iterator();
   }
 
   /**
@@ -129,24 +123,24 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private java.util.HashMap nonOverriddenHash = new java.util.HashMap();                                   
+  private HashMap nonOverriddenHash = new HashMap();                                   
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private java.util.HashMap noSubclassHash = new java.util.HashMap();                     
+  private HashMap noSubclassHash = new HashMap();                     
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private MethodSet findOrCreateMethodSet (java.util.HashMap hash, Object key) {
+  private MethodSet findOrCreateMethodSet (HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
       hash.put(key, result);
     }
-    return  result;
+    return result;
   }
 
   /**
@@ -157,7 +151,7 @@ public final class OPT_InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */ 
-    java.util.HashSet methods = new java.util.HashSet();  
+    HashSet methods = new HashSet();  
 
     MethodSet (Object key) {
       this.key = key;
@@ -171,8 +165,8 @@ public final class OPT_InvalidationDatabase {
       methods.remove(new Integer(cmid));
     }
 
-    public java.util.Iterator iterator () {
-      return  methods.iterator();
+    public Iterator iterator () {
+      return methods.iterator();
     }
   }
 }
