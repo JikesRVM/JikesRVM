@@ -982,7 +982,7 @@ public final class OPT_BranchOptimizations
   }
 
   /**
-   * Attempt to generate a boolean compare opcode from a conditional branch
+   * Attempt to generate a boolean compare opcode from a conditional branch.
    *
    * <pre>
    * 1)   IF .. GOTO A	        replaced by  BOOLEAN_CMP x=..
@@ -992,7 +992,7 @@ public final class OPT_BranchOptimizations
    *   B: ...
    * </pre>
    *
-   * <p> Precondition: IfCmp.conforms(cb)
+   * <p> Precondition: <code>IfCmp.conforms(<i>cb</i>)</code>
    *
    * @modified Igor Pechtchanski
    *
@@ -1004,7 +1004,8 @@ public final class OPT_BranchOptimizations
   private boolean generateBooleanCompare (OPT_IR ir, 
 					  OPT_BasicBlock bb, 
 					  OPT_Instruction cb, 
-					  OPT_BasicBlock tb) {
+					  OPT_BasicBlock tb) 
+  {
     
     if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))
       return false;
