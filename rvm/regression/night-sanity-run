@@ -80,13 +80,7 @@ fi
 NS_OS=$( echo $NS_OS | sed "s/ //;" )
 NS_ARCH=$( echo $NS_ARCH | sed "s/ //;" )
 
-
-# Set number of processors based on OS
-if [[ $NS_OS = 'Linux' ]]; then
-  NUM_PROCS=4
-else
-  NUM_PROCS=2
-fi
+NUM_PROCS=2
 
 # cd to the SHADOW to get things started
 cd $RVM_ROOT
