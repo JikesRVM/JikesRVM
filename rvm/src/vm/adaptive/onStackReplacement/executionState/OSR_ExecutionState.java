@@ -338,8 +338,10 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 	
 	tail.next = new BC_InvokeStatic(getRefAtId);
 	tail = tail.next;
-	
-	VM_Type klass = this.objs[i].getClass().type;
+
+	// to get type ID from classloader from class signatures
+	// reconsider the solution
+	VM_Type klsss = VM_Magic.getObjectType(this.objs[i]);
 	int tid = klass.getDictionaryId();
 	
 	tail.next = new BC_CheckCast(tid);
