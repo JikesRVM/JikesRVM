@@ -320,7 +320,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (gcInProgress || !initialized) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
 	(progress &&
-	 ((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
+	 ((rcMR.committedPages() - lastRCPages) > Options.maxNurseryPages ||
 	  metaDataMR.committedPages() > Options.metaDataPages))) {
       if (mr == metaDataMR) {
         VM_Interface.triggerAsyncCollection();
