@@ -474,6 +474,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }
 
+  public static final void dumpStack () {
+    VM_Scheduler.dumpStack();
+  }
+
   /**
    * Determine whether a collection cycle has fully completed (this is
    * used to ensure a GC is not in the process of completing, to
