@@ -194,7 +194,7 @@ class OptTestHarness {
       try {
         String arg = args[i];
         if (arg.startsWith("-oc:") && 
-            options.processAsOption("-X:rc:", arg.substring(4))) {
+            options.processAsOption("-X:irc:", arg.substring(4))) {
           // handled in processAsOption
         } else if (arg.equals("-useBootOptions")) {
           OPT_Compiler.setBootOptions(options);
