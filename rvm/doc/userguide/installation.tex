@@ -6,7 +6,8 @@ This section gives instructions on how to install and run Jikes\TMweb{} RVM.
 If your system meets certain prerequisites, the install process is
 quite simple; if not, you may need to do some preparatory work.  We
 present the simple case first.  We then present details for installing
-on other platforms, and finally discuss further installation steps for
+on other platforms, and
+\link{finally discuss further installation steps}{sub-sub-sec:InstallationSteps} for
 running Eclipse on Jikes RVM.
 
 \subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.x, or SuSE Linux 8.x for~Intel~x86}
@@ -293,8 +294,9 @@ build directory.
 
 The remainder of this section describes the process in greater detail.
 
-\subsubsection{Installation Steps}
-\label{sec:manual-classpath-root}
+\subsubsection{Installation Steps}%
+\label{sub-sub-sec:InstallationSteps}%
+\label{sec:manual-classpath-root}%
 \label{single-virtual-processor-subsubsection}
 
 \begin{enumerate}
@@ -353,7 +355,7 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 {\em absolute} path.  The builder template expansion process will crash
 and burn if you use a \texttt{..} in these paths.
 
-For a Linux-Intel environment, the exports
+For a Linux\Rweb{}-Intel\Rweb{} environment, the exports
 would be replaced with the following:
 
 \begin{verbatim}
@@ -363,14 +365,15 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 
 These two variables point to the same file when the type of system  
 doing the build is the same as where you are going 
-the execute Jikes RVM.  To cross build a system
+the execute Jikes\TMweb{} RVM.  To cross build a system
 (e.g., build on Linux/x86 for an AIX\TMweb/PowerPC\TMweb
 platform, see \link{\SectionName{Cross Platform Building}}[
   (sub-section~\Ref, page~\Pageref)]{cross-platform-building}.
 
 \item {\bf Edit configuration scripts.}
 
-You must edit a script in the \texttt{\$RVM\_\-ROOT/rvm/config}  directory to set 
+You must edit a script in the \texttt{\$RVM\_\-ROOT/rvm/config}
+directory to set  
 up variables used by the installation process.  
 If someone else at your site has already installed Jikes RVM, they have
 probably already done this step for you.  Consult your local Jikes RVM guru.
@@ -557,6 +560,7 @@ One of the \xlink{\texttt{jikesrvm-researchers} readers contributed
 this information on how to install Jikes RVM on a clean OS~X
 box}{\RVMResearcherMailingListArchiveURL/2003-October/002367.html}:
 \begin{quote}
+\raggedright
 I first installed the following: \\
 \texttt{August2003gccUpdater.dmg  Java141Developer.dmg jikes-1.18.tar.bz2 \\
 CHUD\_3.0.1.dmg Dec2002DevToolsCD.dmg     dlcompat-20030629.tar.gz \\
