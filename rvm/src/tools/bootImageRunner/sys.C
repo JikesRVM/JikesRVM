@@ -28,7 +28,7 @@ extern "C" int sched_yield(void);
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>		// getenv() and others
 #include <unistd.h>
 #include <string.h>
 #include <dirent.h>
@@ -41,7 +41,6 @@ extern "C" int sched_yield(void);
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
@@ -127,6 +126,11 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *sysVirtualProcessorStartup(void *args);
 #endif
+
+/* This routine is not yet used by all of the functions that return strings in
+ * buffers, but I hope that it will be one day. */
+static int loadResultBuf(char * buf, int limit, const char *result);
+
 
 /*
  * Network addresses are sensible, that is big endian, and the intel
@@ -272,6 +276,65 @@ sysArg(int argno, char *buf, int buflen)
     }
     /* NOTREACHED */
 }
+
+/** Get the value of an enviroment variable.  (This refers to the C
+    per-process environment.)   Used, indirectly, by VMSystem.getenv()
+
+    Taken:    Name of the envar we want.
+	      buffer in which to place results
+              buffer size
+
+    Returned: Number of bytes writen to buffer, if the envar is set.
+	      If there is not enough space, we write what we can and return
+	      the # of characters that WOULD have been written to the final
+	      string BUF if enough space had been available, excluding any
+	      trailing '\0'.  This error handling is consistent with the C '99
+	      standard's behavior for the snprintf() system library function.
+	      
+	      Note that this is NOT consistent with the behavior of other
+	      functions in this file -- that should change with time. 
+
+	      This function will append a trailing '\0', if there is enough
+	      space, even though our caller does not need it nor use it.  
+	      
+	      0: A return value of 0 indicates that the envar was set with a
+	      zero-length value.   (Distinguised from unset, see below)
+
+	      -2: Indicates that the envar was unset.  This is distinguished
+		  from a zero-length value (see above).
+*/
+extern "C" int
+sysGetenv(const char *varName, char *buf, int limit)
+{
+    return loadResultBuf(buf, limit, getenv(varName));
+}
+
+	      
+	      
+/* Copy SRC, a string or NULL pointer, into DEST, a buffer with LIMIT
+ * characters capacity. 
+ *
+ * Handle the error handling for running out of space in BUF, in accordance
+ * with the C '99 specification for snprintf() -- see sysGetEnv().   
+ *
+ *
+ * Return -2 if the value was unset. 
+ */
+static int
+loadResultBuf(char * dest, int limit, const char *src)
+{
+    if ( ! src )			// Is it set?
+	return -2;		// Tell caller it was unset.
+
+    for (int i = 0;; ++i) {
+	if ( i < limit ) // If there's room for the next char of the value ... 
+	    dest[i] = src[i];	// ... write it into the destination buffer.
+	if (src[i] == '\0')
+	    return i;		// done, return # of chars needed for SRC
+    }
+}
+
+
 
 //------------------------//
 // Filesystem operations. //
