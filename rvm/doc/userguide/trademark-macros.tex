@@ -35,12 +35,14 @@
 
 %% Use the defined symbols to generate \TM and \R macros.
 
-\newcommand{\TMboth}{\link{\trademark}{trademarks}\xspace}
-\newcommand{\TMweb}{\htmlonly{\TMboth}\xspace}
-%\newcommand{\TMheading}{\trademark\xspace}
-\newcommand{\TMheadingweb}{\htmlonly{\trademark}\xspace}
+%\newcommand{\Xspace}{\xspace}
+\newcommand{\Xspace}{}
+\newcommand{\TMboth}{\link{\trademark}{trademarks}\Xspace}
+\newcommand{\TMweb}{\htmlonly{\TMboth}\Xspace}
+%\newcommand{\TMheading}{\trademark\Xspace}
+\newcommand{\TMheadingweb}{\htmlonly{\trademark}\Xspace}
 
-\newcommand{\Rboth}{\link{\registeredTrademark}{trademarks}\xspace}
-\newcommand{\Rweb}{\htmlonly{\Rboth}\xspace}
-%\newcommand{\Rheading}{\registeredTrademark\xspace}
-\newcommand{\Rheadingweb}{\htmlonly{\registeredTrademark}\xspace}
+\newcommand{\Rboth}{\link{\registeredTrademark}{trademarks}\Xspace}
+\newcommand{\Rweb}{\htmlonly{\Rboth}\Xspace}
+%\newcommand{\Rheading}{\registeredTrademark\Xspace}
+\newcommand{\Rheadingweb}{\htmlonly{\registeredTrademark}\Xspace}
