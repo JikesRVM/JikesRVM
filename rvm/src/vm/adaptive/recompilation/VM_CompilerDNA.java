@@ -34,9 +34,9 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on August 28, 2002 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on October 23, 2002 on AIX/PPC (munchkin)
    */
-  private static final double[] compilationRates = {382.14, 9.53, 3.95, 1.45};
+  private static final double[] compilationRates = {595.49, 9.38, 3.81, 1.29};
   //-#else
   /*
    *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
@@ -49,9 +49,9 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on August 28, 2002 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on October 23, 2002 on AIX/PPC (munchkin)
    */
-  private static final double[] speedupRates = {1.00, 3.98, 5.42, 6.11};
+  private static final double[] speedupRates = {1.00, 3.99, 5.47, 6.11};
   //-#else
   /*
    *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
