@@ -3111,8 +3111,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return;
     }
 
-    if (methodName == VM_MagicNames.resumeThreadExecution) {
-      int offset = VM_Entrypoints.resumeThreadExecutionInstructionsOffset;
+    if (methodName == VM_MagicNames.threadSwitch) {
+      int offset = VM_Entrypoints.threadSwitchInstructionsOffset;
       genParameterRegisterLoad(2); // pass 2 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       return;

@@ -33,7 +33,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     init() {
     reflectiveMethodInvokerInstructions       = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions               = generateSaveThreadStateInstructions();
-    resumeThreadExecutionInstructions         = generateResumeThreadExecutionInstructions();
+    threadSwitchInstructions                  = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
     getTimeInstructions                       = generateGetTimeInstructions();
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
@@ -47,8 +47,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return saveThreadStateInstructions;
   }
    
-  static INSTRUCTION[] getResumeThreadExecutionInstructions() {
-    return resumeThreadExecutionInstructions;
+  static INSTRUCTION[] getThreadSwitchInstructions() {
+    return threadSwitchInstructions;
   }
    
   static INSTRUCTION[] getRestoreHardwareExceptionStateInstructions() {
@@ -68,7 +68,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
   private static INSTRUCTION[] reflectiveMethodInvokerInstructions;
   private static INSTRUCTION[] saveThreadStateInstructions;
-  private static INSTRUCTION[] resumeThreadExecutionInstructions;
+  private static INSTRUCTION[] threadSwitchInstructions;
   private static INSTRUCTION[] restoreHardwareExceptionStateInstructions;
   private static INSTRUCTION[] getTimeInstructions;
   private static INSTRUCTION[] invokeNativeFunctionInstructions;
@@ -230,57 +230,77 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return asm.makeMachineCode().getInstructions();
   }
       
-  // Machine code to implement "VM_Magic.resumeThreadExecution()".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of VM_Registers object
-  //   T1 == address of VM_Thread object
-  //
-  // Registers returned at runtime:
-  //   none
-  //
-  // Side effects at runtime:
-  // - sets thread's "beingDispatched" field to false
-  // - non-volatile registers are restored, with execution resuming at
-  //   address specified by restored stackframe's "next instruction" field
-  //
-  private static INSTRUCTION[] generateResumeThreadExecutionInstructions() {
+  /**
+   * Machine code to implement "VM_Magic.threadSwitch()".
+   * 
+   *  Parameters taken at runtime:
+   *    T0 == address of VM_Thread object for the current thread
+   *    T1 == address of VM_Registers object for the new thread
+   * 
+   *  Registers returned at runtime:
+   *    none
+   * 
+   *  Side effects at runtime:
+   *    sets current Thread's beingDispatched field to false
+   *    saves current Thread's nonvolatile hardware state in its VM_Registers object
+   *    restores new thread's VM_Registers nonvolatile hardware state.
+   *    execution resumes at address specificed by restored thread's VM_Registers ip field
+   */
+  private static INSTRUCTION[] generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
+    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
     int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
     int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int regsOffset = VM.getMember("LVM_Thread;", "contextRegisters", "LVM_Registers;").getOffset();
 
-    // set field false
-    //
+    // (1) Save nonvolatile hardware state of current thread.
+    asm.emitMFLR (T3);                         // T3 gets return address
+    asm.emitL    (T2, regsOffset, T0);         // T2 = T0.contextRegisters
+    asm.emitST   (T3, ipOffset, T2);           // T0.contextRegisters.ip = return address
+
+    // save non-volatile fprs
+    asm.emitL(T3, fprsOffset, T2); // T3 := T0.contextRegisters.fprs[]
+    for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
+      asm.emitSTFD(i, i*8, T3);
+
+    // save non-volatile gprs
+    asm.emitL(T3, gprsOffset, T2); // T3 := registers.gprs[]
+    for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
+      asm.emitST(i, i*4, T3);
+
+    // save other 'nonvol' gprs: fp and ti
+    asm.emitST(FP, FP*4, T3);
+    asm.emitST(TI, TI*4, T3);
+
+    // (2) Set currentThread.beingDispatched to false
     asm.emitLIL(0, 0);                                        // R0 := 0
-    asm.emitST (0, VM_Entrypoints.beingDispatchedOffset, T1); // thread.beingDispatched := R0
+    asm.emitST (0, VM_Entrypoints.beingDispatchedOffset, T0); // T0.beingDispatched := R0
+
+    // (3) Restore nonvolatile hardware state of new thread.
 
     // restore non-volatile fprs
-    //
-    asm.emitL(T1, fprsOffset, T0); // T1 := registers.fprs[]
+    asm.emitL(T0, fprsOffset, T1); // T0 := T1.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
-      asm.emitLFD(i, i*8, T1);
+      asm.emitLFD(i, i*8, T0);
 
     // restore non-volatile gprs
-    //
-    asm.emitL(T1, gprsOffset, T0); // T1 := registers.gprs[]
+    asm.emitL(T0, gprsOffset, T1); // T0 := T1.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
-      asm.emitL(i, i*4, T1);
+      asm.emitL(i, i*4, T0);
 
-    // restore fp, sp, and ti
-    //
-    asm.emitL(FP, FP*4, T1);
-    asm.emitL(TI, TI*4, T1);
-    asm.emitL(SP, SP*4, T1);
+    // restore fp, and ti
+    asm.emitL(FP, FP*4, T0);
+    asm.emitL(TI, TI*4, T0);
 
-    // resume execution at restored stackframe's "next instruction"
-    //
-    asm.emitL(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
-    asm.emitMTLR(T1);
+    // resume execution at saved ip (T1.ipOffset)
+    asm.emitL(T0, ipOffset, T1);
+    asm.emitMTLR(T0);
     asm.emitBLR();
-         
+
     return asm.makeMachineCode().getInstructions();
   }
+  
       
   // Machine code to implement "VM_Magic.restoreHardwareExceptionState()".
   //

@@ -34,7 +34,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   static void init() {
     reflectiveMethodInvokerInstructions        = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions                = generateSaveThreadStateInstructions();
-    resumeThreadExecutionInstructions          = generateResumeThreadExecutionInstructions();
+    threadSwitchInstructions                   = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions  = generateRestoreHardwareExceptionStateInstructions();
     invokeNativeFunctionInstructions           = generateInvokeNativeFunctionInstructions();
   }
@@ -47,8 +47,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return saveThreadStateInstructions;
   }
    
-  static INSTRUCTION[] getResumeThreadExecutionInstructions() {
-    return resumeThreadExecutionInstructions;
+  static INSTRUCTION[] getThreadSwitchInstructions() {
+    return threadSwitchInstructions;
   }
    
   static INSTRUCTION[] getRestoreHardwareExceptionStateInstructions() {
@@ -64,7 +64,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
   private static INSTRUCTION[] reflectiveMethodInvokerInstructions;
   private static INSTRUCTION[] saveThreadStateInstructions;
-  private static INSTRUCTION[] resumeThreadExecutionInstructions;
+  private static INSTRUCTION[] threadSwitchInstructions;
   private static INSTRUCTION[] restoreHardwareExceptionStateInstructions;
   private static INSTRUCTION[] invokeNativeFunctionInstructions;
    
@@ -267,6 +267,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return asm.getMachineCodes();
   }
       
+
   /**
    *  Machine code to implement "VM_Magic.resumeThreadExecution()".
    * 
@@ -300,6 +301,59 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(FP, S0, FP<<LG_WORDSIZE); // FP := registers.gprs[#FP]
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE); // i'th register := registers.gprs[i]
+    }
+    asm.emitJMP_RegDisp    (T1, ipOffset);            // return to (save) return address
+    return asm.getMachineCodes();
+  }
+      
+
+  /**
+   * Machine code to implement "VM_Magic.threadSwitch()".
+   * 
+   *  Parameters taken at runtime:
+   *    T0 == address of VM_Thread object for the current thread
+   *    T1 == address of VM_Registers object for the new thread
+   * 
+   *  Registers returned at runtime:
+   *    none
+   * 
+   *  Side effects at runtime:
+   *    sets current Thread's beingDispatched field to false
+   *    saves current Thread's nonvolatile hardware state in its VM_Registers object
+   *    restores new thread's VM_Registers nonvolatile hardware state.
+   *    execution resumes at address specificed by restored thread's VM_Registers ip field
+   */
+  private static INSTRUCTION[] generateThreadSwitchInstructions() {
+    if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
+    VM_Assembler asm = new VM_Assembler(0);
+    int   fpOffset = VM.getMember("LVM_Registers;",   "fp",  "I").getOffset();
+    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
+    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int regsOffset = VM.getMember("LVM_Thread;", "contextRegisters", "LVM_Registers;").getOffset();
+
+    // (1) Save hardware state of thread we are switching off of.
+    asm.emitMOV_Reg_RegDisp  (S0, T0, regsOffset);      // S0 = T0.contextRegisters
+    asm.emitPOP_RegDisp      (S0, ipOffset);            // T0.contextRegisters.ip = returnAddress
+    asm.emitMOV_RegDisp_Reg  (S0, fpOffset, FP);        // T0.contextRegisters.fp = framepointer
+    asm.emitADD_Reg_Imm      (SP, 8);                   // discard 2 words of parameters (T0, T1)
+    asm.emitMOV_Reg_RegDisp  (S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
+    asm.emitMOV_RegDisp_Reg  (S0, SP<<LG_WORDSIZE, SP); // T0.contextRegisters.gprs[#SP] := SP
+    asm.emitMOV_RegDisp_Reg  (S0, FP<<LG_WORDSIZE, FP); // T0.contextRegisters.gprs[#FP] := FP
+    for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
+      asm.emitMOV_RegDisp_Reg(S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE, NONVOLATILE_GPRS[i]); // T0.contextRegisters.gprs[i] := i'th register
+    }
+
+    // (2) Set currentThread.beingDispatched to false
+    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedOffset, 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
+    
+    // (3) Restore hardware state of thread we are switching to.
+    asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerOffset, S0); // PR.framePointer = restoreRegs.fp
+    asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
+    asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := restoreRegs.gprs[#SP]
+    asm.emitMOV_Reg_RegDisp(FP, S0, FP<<LG_WORDSIZE); // FP := restoreRegs.gprs[#FP]
+    for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
+      asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE); // i'th register := restoreRegs.gprs[i]
     }
     asm.emitJMP_RegDisp    (T1, ipOffset);            // return to (save) return address
     return asm.getMachineCodes();

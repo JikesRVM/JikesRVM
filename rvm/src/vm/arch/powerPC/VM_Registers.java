@@ -15,13 +15,13 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   //
   int    gprs[]; // 32-bit general purpose registers
   double fprs[]; // 64-bit floating point registers
+  int    ip;     // instruction address register
   
   // The following are used by exception delivery.
   // They are set by either VM_Runtime.athrow or the C hardware exception 
   // handler and restored by "VM_Magic.restoreHardwareExceptionState".
   // They are not used for context switching.
   //
-  int    ip;     // instruction address register
   int    lr;     // link register
   boolean inuse; // do exception registers currently contain live values?
   
@@ -40,14 +40,14 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // Return next instruction address for the deepest stackframe
   //
   final int getInnermostInstructionAddress () {
-    if (ip != -1) return ip; // ip set by hardware exception handler
-    return VM_Magic.getNextInstructionAddress(gprs[FRAME_POINTER]); // ip set to -1 by thread switch or athrow
+    if (ip != -1) return ip; // ip set by hardware exception handler or VM_Magic.threadSwitch
+    return VM_Magic.getNextInstructionAddress(gprs[FRAME_POINTER]); // ip set to -1 because we're unwinding
   }
 
   // update the machine state to unwind the deepest stackframe.
   // 
   final void unwindStackFrame() {
-    ip = -1; // if there was a valid value in ip, it ain't valid anymore!
+    ip = -1; // if there was a valid value in ip, it ain't valid anymore
     gprs[FRAME_POINTER] = VM_Magic.getCallerFramePointer(gprs[FRAME_POINTER]);
   }
 

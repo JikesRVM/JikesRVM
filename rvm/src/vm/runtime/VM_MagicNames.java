@@ -77,7 +77,7 @@ class VM_MagicNames {
   static VM_Atom clearThreadSwitchBit;
     
   static VM_Atom saveThreadState;
-  static VM_Atom resumeThreadExecution;
+  static VM_Atom threadSwitch;
   static VM_Atom restoreHardwareExceptionState;
   static VM_Atom returnToNewStack;
   static VM_Atom dynamicBridgeTo;
@@ -194,7 +194,7 @@ class VM_MagicNames {
     clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
     
     saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
-    resumeThreadExecution         = VM_Atom.findOrCreateAsciiAtom("resumeThreadExecution");
+    threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
     restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");
     returnToNewStack              = VM_Atom.findOrCreateAsciiAtom("returnToNewStack");
     dynamicBridgeTo               = VM_Atom.findOrCreateAsciiAtom("dynamicBridgeTo");

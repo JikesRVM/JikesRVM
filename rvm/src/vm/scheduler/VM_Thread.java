@@ -364,7 +364,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Suspend execution of current thread in favor of some other thread.
    * @param q queue to put thread onto (must be processor-local, ie. 
    * not guarded with a lock)
-   *!!TODO: verify that this method gets inlined by opt compiler
   */
   static void yield (VM_AbstractThreadQueue q) {
     VM_Thread myThread = getCurrentThread();
@@ -446,7 +445,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Current thread has been placed onto some queue. Become another thread.
-   * !!TODO: verify that this method gets inlined by opt compiler
    */ 
   static void morph () {
     //VM_Scheduler.trace("VM_Thread", "morph");
@@ -458,10 +456,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // become another thread
     //
-    VM_Magic.saveThreadState(myThread.contextRegisters);
     VM_Processor.getCurrentProcessor().dispatch();
-
-    // return from thread switch
 
     // respond to interrupt sent to this thread by some other thread
     //
@@ -703,8 +698,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.deadQueue.enqueue(myThread);
     VM_Scheduler.threadCreationMutex.unlock();
 
-
-    VM_Magic.saveThreadState(myThread.contextRegisters);
     VM_Processor.getCurrentProcessor().dispatch();
 
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
@@ -1159,9 +1152,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Magic.setMemoryWord(sp -= 4, fp);                  // STACKFRAME_FRAME_POINTER_OFFSET
     fp = sp;
 
-//  contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
     contextRegisters.gprs[FRAME_POINTER]  = fp;
-
+    contextRegisters.ip  = ip;
 //-#endif
 
     VM_Scheduler.threadCreationMutex.lock();

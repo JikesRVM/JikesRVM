@@ -130,12 +130,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
   /**
    * Become next "ready" thread.
-   * Note: 1. This method is ONLY intended for use by VM_Thread.
-   *       2. The number words of arguments to this method must match the 
-   *       number of words of arguments to VM_Magic.saveThreadState(). 
-   *       Furthermore, a call to 
-   *       VM_Magic.saveThreadState() must immediately preceed 
-   *       the call to this method.
+   * Note: This method is ONLY intended for use by VM_Thread.
    */ 
   void dispatch () {
     if (VM.VerifyAssertions) VM.assert(lockCount == 0);// no processor locks should be held across a thread switch
@@ -152,12 +147,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     previousThread = activeThread;
     activeThread   = newThread;
     activeThreadStackLimit = newThread.stackLimit;
-
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
-    // save this threads next instruction address to be the return address of the call to dispatch()
-    // TODO!! eliminate this ugliness by unifying VM_Magic.saveThreadState() and VM_Magic.restoreThreadExecution
-    previousThread.contextRegisters.ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     //-#endif
 
     if (idleProcessor != null && !readyQueue.isEmpty() 
@@ -181,9 +172,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     }
     
     // (sets "previousThread.beingDispatched = false")
-    VM_Magic.resumeThreadExecution(previousThread, newThread.contextRegisters); 
-
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
 
   /**

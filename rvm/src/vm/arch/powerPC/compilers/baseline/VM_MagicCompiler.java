@@ -477,14 +477,16 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          return;
          }
 
-      if (methodName == VM_MagicNames.resumeThreadExecution)
+      if (methodName == VM_MagicNames.threadSwitch)
          {
-         asm.emitL(T0, 0, SP); // T0 := address of VM_Registers object
-         asm.emitL(T1, 4, SP); // T1 := address of VM_Thread object
+         asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
+         asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
          
-         asm.emitLtoc(S0, VM_Entrypoints.resumeThreadExecutionInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsOffset);
          asm.emitMTLR(S0);
-         asm.emitBLR(); // branch to out of line machine code (does not return)
+	 asm.emitCall(spSaveAreaOffset);
+
+         asm.emitCAL(SP, 8, SP);  // pop two args
          return;
          }
          

@@ -600,18 +600,19 @@ public class VM_Magic {
   }
 
   /**
-   * Resume execution with specified thread state.
-   * The following registers are restored:
+   * Switch threads.
+   * The following registers are saved/restored
    *        - nonvolatile fpr registers
    *        - nonvolatile gpr registers
-   *        - FRAME_POINTER register
+   *        - FRAME_POINTER "register"
    *        - THREAD_ID     "register"
-   * Does not return (execution resumes at new IP)
-   * @param phantomThread thread on whose stack we're currently running
-   * @param registers     register values to be restored
+   * 
+   * @param phantomThread thread that is currently running 
+   * @param restoreRegs   registers from which we should restore 
+   *                      the saved hardware state of another thread.
    */
-  public static void resumeThreadExecution(VM_Thread phantomThread, 
-					   VM_Registers registers) {
+  public static void threadSwitch(VM_Thread currentThread, 
+				  VM_Registers restoreRegs) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

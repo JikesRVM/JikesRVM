@@ -171,7 +171,7 @@ class VM_Entrypoints implements VM_Constants
    //
    static int reflectiveMethodInvokerInstructionsOffset;
    static int saveThreadStateInstructionsOffset;
-   static int resumeThreadExecutionInstructionsOffset;
+   static int threadSwitchInstructionsOffset;
    static int restoreHardwareExceptionStateInstructionsOffset;
    static int getTimeInstructionsOffset;
    static int invokeNativeFunctionInstructionsOffset;
@@ -467,7 +467,7 @@ class VM_Entrypoints implements VM_Constants
  
       reflectiveMethodInvokerInstructionsOffset       = VM.getMember("LVM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
       saveThreadStateInstructionsOffset               = VM.getMember("LVM_OutOfLineMachineCode;", "saveThreadStateInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
-      resumeThreadExecutionInstructionsOffset         = VM.getMember("LVM_OutOfLineMachineCode;", "resumeThreadExecutionInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
+      threadSwitchInstructionsOffset                  = VM.getMember("LVM_OutOfLineMachineCode;", "threadSwitchInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
       restoreHardwareExceptionStateInstructionsOffset = VM.getMember("LVM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
 //-#if RVM_FOR_POWERPC
       getTimeInstructionsOffset                       = VM.getMember("LVM_OutOfLineMachineCode;", "getTimeInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
