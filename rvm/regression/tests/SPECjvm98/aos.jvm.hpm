@@ -414,17 +414,28 @@ fi
 
 if [[ $hpm_mode = 20 ]]; then  
   hpm_alternatives="-X:hpm:listAll=true"
-  hpm_mode=8
+  if [[ $machine_type = "P4" ]]; then
+      hpm_mode=13;
+  else
+      hpm_mode=8
+  fi
 fi
 if [[ $hpm_mode = 21 ]]; then  
   hpm_alternatives="-X:hpm:listSelected=true"
-  hpm_mode=8
+  if [[ $machine_type = "P4" ]]; then
+      hpm_mode=13;
+  else
+      hpm_mode=8
+  fi
 fi
 if [[ $hpm_mode = 22 ]]; then  
   echo "hpm_mode = 22"
   hpm_alternatives="-X:hpm:processor=true"
-  hpm_mode=8
-  echo "hpm_mode = $hpm_mode"
+  if [[ $machine_type = "P4" ]]; then
+      hpm_mode=13;
+  else
+      hpm_mode=8
+  fi
 fi
 
 echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode"
