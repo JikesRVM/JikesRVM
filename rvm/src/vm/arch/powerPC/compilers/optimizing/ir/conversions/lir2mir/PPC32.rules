@@ -12,11 +12,7 @@
 PRODUCTION
 # COST is a Java expression that evaluates to an integer.
 # The following conventions are more or less followed:
-#   Each instruction generated has a base cost of 10
-#   A basic (r,r) or (r,riv) costs 3 more
-#   A (m,riv) costs 7
-#   A (r,m) costs 5
-#   Better basic opcodes (inc instead of add 1) decrease cost by 2
+# TODO: define conventions for PPC rules!
 COST
 # For definition of FLAGS bits see BURS_TreeNode.java
 FLAGS
@@ -48,42 +44,18 @@ r:	czr
 NOFLAGS
 // No code emitted
 
-# the nonterminal czr can map to non-terminal cz
-# cz indicates that the condition registers like a compare instruction
-cz:	czr
-0
-NOFLAGS
-// No code emitted
-
-# the non-terminal riv is either an r or an INT_CONSTANT
-riv:	r
-0
-NOFLAGS
-// No code emitted
-
-riv:	INT_CONSTANT
-0
-NOFLAGS
-// No code emitted
-
-# the non-terminal rlv is either an r or an lv
-rlv:	r
-0
-NOFLAGS
-// No code emitted
-
-rlv:	LONG_CONSTANT
-0
-NOFLAGS
-// No code emitted
-
 # A non-terminal that can be anything
 any:	NULL
 0
 NOFLAGS
 // No code emitted
 
-any:	riv
+any:	r
+0
+NOFLAGS
+// No code emitted
+
+any:	INT_CONSTANT
 0
 NOFLAGS
 // No code emitted
@@ -1910,21 +1882,6 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 # DUMMY RULES WHILE SWITCHING OVER TO NEW STYLE
 # TODO: DELTE THESE!
 ##########
-stm: SET_CAUGHT_EXCEPTION(cz)
-INFINITE
-EMIT_INSTRUCTION
-VM._assert(false, "why are we here?");
-
-stm: SET_CAUGHT_EXCEPTION(rlv)
-INFINITE
-EMIT_INSTRUCTION
-VM._assert(false, "why are we here?");
-
-stm: SET_CAUGHT_EXCEPTION(riv)
-INFINITE
-EMIT_INSTRUCTION
-VM._assert(false, "why are we here?");
-
 r:	OTHER_OPERAND(r,r)
 0
 NOFLAGS
