@@ -364,14 +364,11 @@ DestroyJavaVM(JavaVM UNUSED * vm)
     return JNI_ERR;
 }
 
-/* This is the JNI Invocation Interface function.  The only part that is
-   implemented is:
-
-   "Trying to attach a thread that is already attached is a no-op".  In other
-   words, it works like GetEnv().
-
-   So we don't support attaching threads that aren't already attached.  
- * */
+/* "Trying to attach a thread that is already attached is a no-op".  We
+ * implement that common case.  (In other words, it works like GetEnv()).
+ * However, we do not implement the more difficult case of actually attempting
+ * to attach a native thread that is not  currently attached to the VM.
+ */
 static
 jint 
 AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
@@ -396,7 +393,6 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
         return retval;
     else if (retval == JNI_EDETACHED) {
         fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
-        goto failed;
     } else {
         fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
     }
@@ -404,7 +400,7 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
 failed:
     // Upon failure:
     *penv = NULL;               // Make sure we don't yield a bogus one to use.
-    return JNI_EDETACHED;
+    return retval;
 }
 
 static
