@@ -64,23 +64,26 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
-# sources for GNU Classpath 0.06 (current stable version of Classpath)
+# sources for GNU Classpath 0.07 (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
-# export CLASSPATH_ROOT=/opt/classpath-0.06
+# export CLASSPATH_ROOT=/opt/classpath-0.07
 
-# path for GNU make
+# Path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
-# path for the Jikes java-to-byte-code compiler
+# Path for the Jikes java-to-byte-code compiler.
+# Try Jikes 1.13 if you have trouble figuring out the error messages
+# from Jikes 1.18 or 1.19.
 export JIKES=/usr/bin/jikes
 
-# what C compilers should be used?
+# What C compilers should be used?
 export CC='/usr/bin/gcc -w -g -O'
 
 # what C++ compilers should be used?
 export CPLUS='/usr/bin/g++ -w -g -O'
 
-# how to link a shared C++ library
+# how to link a shared C++ library (possibly also recompile one 
+# or more source files in it)
 export LDSHARED="${CPLUS} -shared"
 
 # The configuration for building the user guide.
@@ -90,7 +93,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 #  some Unix commands
 export AWK="/usr/bin/awk"
 export BASH="/bin/bash"
-# You need one of YACC or Bison (one will usually be installed)
+# You need one of Yacc or Bison (one will usually be installed)
 # If you're using Bison, uncomment the line below:
 # BISON="bison"
 export CVS="/usr/bin/cvs"
@@ -115,6 +118,14 @@ export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
 
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
+##########
+# PART IV: Miscellaneous variables.
+#
+# If you add any variables to this section, please document them.  Please.
+##########
+
+# BENCHMARK_ROOT is used in running some of the Jikes RVM regression
+# tests.  It doesn't need to be set unless you are running those tests.
 export BENCHMARK_ROOT=""
 
 # Used for the Emacs spell-checker
