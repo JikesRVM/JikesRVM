@@ -117,13 +117,11 @@ public abstract class RCBaseHeader implements Constants {
   static void incRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
-    //    Log.write("si[");Log.write(object);RCBaseHeader.print(object);
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
       if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
   }
 
   /**
@@ -146,7 +144,6 @@ public abstract class RCBaseHeader implements Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     int rtn;
-    //    Log.write("sd[");Log.write(object);RCBaseHeader.print(object);
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue - INCREMENT;
@@ -159,44 +156,18 @@ public abstract class RCBaseHeader implements Constants {
       } else
 	rtn = DEC_PURPLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
     return rtn;
   }
   
   static boolean isBuffered(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCbits(object, BUFFERED_MASK) != 0;
+    return  (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
 
   /****************************************************************************
    * 
-   * Coalescing support
+   * Finalization and dealing with roots
    */
-
-  static boolean attemptBarrierBitSet(VM_Address ref)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int old = VM_Interface.readAvailableBitsWord(ref);
-    boolean rtn = ((old & BARRIER_BIT_MASK) == 0);
-    if (rtn) {
-      do {
-	old = VM_Interface.prepareAvailableBits(ref);
-	rtn = ((old & BARRIER_BIT_MASK) == 0);
-      } while(!VM_Interface.attemptAvailableBits(ref, old, 
-						 old | BARRIER_BIT_MASK)
-	      && rtn);
-    }
-    return rtn;
-  }
-
-  static void clearBarrierBit(VM_Address ref) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Interface.setAvailableBit(ref, BARRIER_BIT, false);
-  }
-
-  private static int getRCbits(VM_Address object, int mask)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & mask;
-  }
 
   /**
    * Set the <code>ROOT_REACHABLE</code> bit for an object if it is
