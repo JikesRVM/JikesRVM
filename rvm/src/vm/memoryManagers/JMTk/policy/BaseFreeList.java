@@ -231,9 +231,10 @@ abstract class BaseFreeList extends Allocator implements Constants, VM_Uninterru
    */
   private final VM_Address slowUnlinkCell(int sizeClass)
     throws VM_PragmaNoInline {
-    if (expandSizeClass(sizeClass))
+      if (expandSizeClass(sizeClass)) {
       return unlinkCell(superPageFreeList.get(sizeClass),
 			sizeClass);
+      }
     else
       return VM_Address.zero();
   }
@@ -649,11 +650,9 @@ abstract class BaseFreeList extends Allocator implements Constants, VM_Uninterru
     if (!next.isZero()) {
       setPrevSuperPage(next, sp);
     }
-    // use magic to avoid aastores & therefore preserve interruptibility
-    if (free)
-      VM_Magic.setIntAtOffset(superPageFreeList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(sp).toInt());
-    else
-      VM_Magic.setIntAtOffset(superPageUsedList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(sp).toInt());
+
+    (free ? superPageFreeList : superPageUsedList).set(sizeClass, VM_Magic.objectAsAddress(sp));
+
   }
 
   /**
@@ -679,10 +678,7 @@ abstract class BaseFreeList extends Allocator implements Constants, VM_Uninterru
       setNextSuperPage(prev, next);
     else {
       // use magic to avoid aastores & therefore preserve interruptibility
-      if (free)
-	VM_Magic.setIntAtOffset(superPageFreeList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(next).toInt());
-      else
-	VM_Magic.setIntAtOffset(superPageUsedList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(next).toInt());
+	(free ? superPageFreeList : superPageUsedList).set(sizeClass, VM_Magic.objectAsAddress(next));
     }
     if (!next.isZero())
       setPrevSuperPage(next, prev);
