@@ -18,7 +18,6 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
-import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
@@ -500,7 +499,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
       // asked to allocate more than Integer.MAX_VALUE bytes
-      failWithOutOfMemoryError();
+      VM_Interface.failWithOutOfMemoryError();
     }
     int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
     Plan plan = VM_Interface.getPlan();
@@ -512,14 +511,6 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, false,
 		   allocator);
     return result;
-  }
-
-  /**
-   * Throw an out of memory exception.
-   */
-  public static void failWithOutOfMemoryError()
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
-    throw new OutOfMemoryError();
   }
 
   /**

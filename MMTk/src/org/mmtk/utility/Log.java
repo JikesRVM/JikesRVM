@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  * @version $Revision$
  * @date $Date$
  */ 
-class Log implements Constants, VM_Uninterruptible {
+public class Log implements Constants, VM_Uninterruptible {
 
   /****************************************************************************
    *

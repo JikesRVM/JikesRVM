@@ -14,7 +14,6 @@ import java.lang.ref.Reference;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDeque;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairDeque;
-import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
@@ -33,6 +32,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_CommandLineArgs;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Constants;
@@ -44,6 +44,7 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -1101,5 +1102,24 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static int rendezvous(int where) throws VM_PragmaUninterruptible {
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
+
+  /**
+   * Primitive parsing facilities for strings
+   */
+  public static int primitiveParseInt(String value) throws VM_PragmaInterruptible {
+    return VM_CommandLineArgs.primitiveParseInt(value);
+  }
+  public static float primitiveParseFloat(String value) throws VM_PragmaInterruptible {
+    return VM_CommandLineArgs.primitiveParseInt(value);
+  }
+
+  /**
+   * Throw an out of memory exception.
+   */
+  public static void failWithOutOfMemoryError()
+    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+    throw new OutOfMemoryError();
+  }
+
 
 }

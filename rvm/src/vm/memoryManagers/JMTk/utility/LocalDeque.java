@@ -7,7 +7,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -169,7 +168,7 @@ public class LocalDeque extends LocalSSB
    * replenished.
    */
   private final boolean popOverflow(int arity) throws VM_PragmaNoInline {
-    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
     VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity));
     do {
       if (!isReset())
@@ -205,7 +204,7 @@ public class LocalDeque extends LocalSSB
    * @return True if more entires were aquired.
    */
   private final boolean consumerStarved(int arity) {
-    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
     VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity)); 
     if (bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS))) {
       // entries in tail, so consume tail

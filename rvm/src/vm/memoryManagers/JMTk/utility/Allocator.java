@@ -6,7 +6,6 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
@@ -78,7 +77,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Statistics.gcCount);
     VM_Interface.dumpStack(); 
-    MM_Interface.failWithOutOfMemoryError();
+    VM_Interface.failWithOutOfMemoryError();
     /* NOTREACHED */
     return VM_Address.zero();
   }

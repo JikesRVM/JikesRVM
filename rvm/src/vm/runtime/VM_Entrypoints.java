@@ -148,7 +148,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQtailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field LQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalDeque;", "head","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQBEField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "bufsenqueued","I");
-  public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SynchronizedCounter;", "count", "I");
+  public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/SynchronizedCounter;", "count", "I");
   public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
