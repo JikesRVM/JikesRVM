@@ -13,10 +13,15 @@ include		$(RVM_BUILD)/Make.rules
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/gctest
 BENCH_SOURCE_PATH=$(BENCH_HOME)
-HEAPSIZE = 300
+ifeq ($(MODE),PERFORMANCE)
+  HEAPSIZE   = 300
+  START_ARGS = 100
+else
+  HEAPSIZE   = 100
+  START_ARGS = 30
+endif
 EXPECTED=Tests.expected
 START_NAME=FixedLive
-START_ARGS=100
 BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
