@@ -16,8 +16,9 @@ SLEEP_DURATION="120"
 export JALAPENO_HOME=/homes/fury5/jalapeno
 export CVSROOT=$JALAPENO_HOME/CVSmaster
 
-export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:.
- # the resulting message
+export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:/usr/contrib/bin:.
+
+# the resulting message
 MSG=$RVM_ROOT/../MSG
 
 # The directory where the archive lives

@@ -39,7 +39,7 @@ check:
 	@$(AWK) '/start\./{cnt++};/^-- Stack --/{cnt++};/Finished/{cnt--};END{exit cnt}' $(OUT)
 
 ifeq ($(MODE),PERFORMANCE)
-sanity:	
+sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
 	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m5 -M5 -s100 $(TESTS)" OUT=$(OUT) do-sanity-check-rule
 else
 sanity:	$(TESTS)
