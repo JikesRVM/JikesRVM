@@ -584,6 +584,14 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
                                            FIRST_INT+LAST_SCRATCH_GPR);
   }
 
+  static {
+    // enumerateVolatileGPRs relies on volatiles & scratches being
+    // contiguous; so let's make sure that is the case!
+    if (VM.VerifyAssertions)
+      VM._assert(LAST_VOLATILE_GPR+1 == FIRST_SCRATCH_GPR);
+  }
+  
+  
   /**
    * Enumerate the first n GPR parameters.
    */

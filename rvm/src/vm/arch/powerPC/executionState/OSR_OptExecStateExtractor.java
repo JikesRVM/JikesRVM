@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp 2002
  */
 //$Id$
-
 package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
@@ -151,6 +150,7 @@ public final class OSR_OptExecStateExtractor
    * later on. TODO:
    *
    * Current SaveVolatile stack frame:
+   *
    *   GPR 3 -- 14 15 16 17 -- 31, cr, xer, ctr, FPR 0 -- 15
    */
   private void restoreValuesFromOptSaveVolatile(int[] stack,
@@ -180,7 +180,7 @@ public final class OSR_OptExecStateExtractor
     VM.disableGC();
 	
     // recover volatile GPRs.
-    int lastVoffset = nvArea-2*SW_WIDTH; // skip two empty slots
+    int lastVoffset = nvArea; 
     for (int i=LAST_SCRATCH_GPR;
 	 i >= FIRST_VOLATILE_GPR;
 	 i--) {
@@ -481,16 +481,11 @@ public final class OSR_OptExecStateExtractor
 				      int fpOffset,
 				      OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
-
-//      return registers.fprs[value - FIRST_DOUBLE];
-	return registers.fprs[value];
-
+      return registers.fprs[value];
     } else if (vtype == SPILL) {
-
       int offset = fpOffset + value;
       long lbits = VM_Magic.getLongAtOffset(stack, offset);
       return VM_Magic.longBitsAsDouble(lbits);
-
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return -1.0;
@@ -506,16 +501,11 @@ public final class OSR_OptExecStateExtractor
       // the only constant object is NULL, I believe.
       if (VM.VerifyAssertions) VM._assert(value == 0);
       return VM_Magic.addressAsObject(VM_Address.fromInt(value));
-
     } else if (vtype == PHYREG) {
-
       return registers.objs[value];
-
     } else if (vtype == SPILL) {
-
       int offset = fpOffset + value;
       return VM_Magic.getObjectAtOffset(stack, offset);
-
     } else {
       VM.sysWrite("fatal error : ( vtype = "+vtype+" )\n");
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

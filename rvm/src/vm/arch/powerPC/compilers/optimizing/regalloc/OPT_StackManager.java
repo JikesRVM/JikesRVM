@@ -282,9 +282,10 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     }
     // 1. save the nonvolatile FPRs
     if (ir.compiledMethod.isSaveVolatile()) {
-      // pretend we use all non-volatiles
-      // DANGER: as an optimization, we assert that a SaveVolatile method
-      // will never use non-volatile FPRs.
+      // DANGER: as an optimization, we assume that a SaveVolatile method
+      // will never use nonvolatile FPRs.
+      // this invariant is not checked!!!!!
+      // TODO: We really need some way to verify that this is true.
     } else {
       int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
@@ -560,7 +561,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     ptr.insertBefore(MIR_Store.create(PPC_STW, R(R0), R(FP), 
 				      I(STACKFRAME_METHOD_ID_OFFSET)));
 
-    // Now add the non volatile save instructions
+    // Now save the volatile/nonvolatile registers
     if (ir.compiledMethod.isSaveVolatile()) {
       saveVolatiles(ptr);
     }
@@ -616,14 +617,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
       }
 
-      // Allocate two dummy slots in the stack frame between the volatile
-      // GPRs and the non-volatile GPRs.  This is expected by the Save
-      // Volatile GC map iterator.  Also, these two slots will allow us to
-      // save all GPRs with a stm if we choose
-      allocateNewSpillLocation(INT_REG);     // empty slot for R15 
-      allocateNewSpillLocation(INT_REG);     // emptly slot for R16
-      
-      
       // Map each non-volatile GPR register to a spill location.
       i=0;
       for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
@@ -647,24 +640,9 @@ public final class OPT_StackManager extends OPT_GenericStackManager
         saveVolatileFPRLocation[i] = allocateNewSpillLocation(DOUBLE_REG);      
       }
 
-      // Map each non-volatile FPR register to a spill location.
-      // DANGER: We forbid save volatile frames from using non-volatile
-      // FPRs.  Hence, the following is unnecessary.
-      /*
-      i=0;
-      for (Enumeration e = phys.enumerateNonvolatileFPRs(); 
-           e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
-        // Note that as a side effect, the following call bumps up the
-        // frame size.
-        nonVolatileFPRLocation[i] = allocateNewSpillLocation(DOUBLE_REG);      
-      }
-      */
-
       // Set the offset to find non-volatiles.
       int gprOffset = getNonvolatileGPROffset(0);
       ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
-
     } else {
       // Count the number of nonvolatiles used. 
       int numGprNv = 0;
@@ -815,6 +793,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
   boolean isSysCall(OPT_Instruction s) {
     return s.operator == PPC_BCTRL_SYS || s.operator == PPC_BL_SYS;
   } 
+
   /**
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
@@ -827,6 +806,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // PowerPC does not support memory operands.
     return true;
   }
+
   /**
    * In instruction s, replace all appearances of a symbolic register 
    * operand with uses of the appropriate spill location, as cached by the
@@ -836,8 +816,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * @param symb the symbolic register operand to replace
    */
   void replaceOperandWithSpillLocation(OPT_Instruction s, 
-                                               OPT_RegisterOperand symb) {
+				       OPT_RegisterOperand symb) {
     // PowerPC does not support memory operands.
-    VM._assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 }

@@ -18,7 +18,6 @@ import com.ibm.JikesRVM.*;
 public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator 
   implements VM_Uninterruptible {
 
-
   private final static boolean DEBUG = false;
 
   public VM_OptGCMapIterator(VM_WordArray registerLocations) {
@@ -51,7 +50,6 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     //
     //  LOW MEMORY
     
-
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
 
@@ -64,7 +62,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 	// move to the beginning of the save area for nonvolatiles
 	VM_Address location = nonVolArea;
 	for (int i = first; i <= LAST_GCMAP_REG; i++) {
-	  registerLocations.set(i, location);
+          registerLocations.set(i, location);
 	  location = location.add(BYTES_IN_ADDRESS);
 	}
       }
@@ -72,8 +70,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
 	// move to the beginning of the save area for volatiles
-	int numSlotsToSkip = FIRST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR;
-	VM_Address location = nonVolArea.sub(BYTES_IN_ADDRESS * numSlotsToSkip);
+	VM_Address location = nonVolArea.sub(SAVE_VOL_SIZE);
 	
 	// Walk the saved volatiles, updating registerLocations array
 	for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
@@ -111,12 +108,11 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
   }
 
   /** 
-   *  Get address of the last spill location for the given frame ptr
-   *
+   *  Get address of the last spill location for the given frame ptr.
    *
    *  @param the frame pointer
    *  @return the last spill location, if no spills occur, we return the
-   *      first spill location
+   *          first spill location
    */
   VM_Address getLastSpillLoc() {
     if (DEBUG) {
@@ -167,7 +163,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
   }
 
   final static int SPILL_DISTANCE_FROM_FP = 12;
-  final static int SAVE_VOL_SIZE = 4 *
+  final static int SAVE_VOL_SIZE = BYTES_IN_ADDRESS *
     ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) + 
      (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1)); 
 
