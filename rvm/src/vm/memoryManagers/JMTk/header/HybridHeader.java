@@ -38,8 +38,8 @@ public class HybridHeader {
   public static final int REQUESTED_BITS     = 2;
   public static final int GC_BITS_MASK       = 0x3;
 
-  public static final int MARK_BIT_MASK      = 0x1; 
-  public static final int SMALL_OBJECT_MASK  = 0x2;
+  public static final int MARK_BIT_MASK      = 0x1;  // ...01 
+  public static final int SMALL_OBJECT_MASK  = 0x2;  // ...10
   public static final int GC_FORWARDED       = 0x2;  // ...10
   public static final int GC_BEING_FORWARDED = 0x3;  // ...11
 
@@ -56,6 +56,8 @@ public class HybridHeader {
   public static void initializeHeader(Object ref, Object[] tib, int size,
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+    // nothing here because this is for default allocation, which is
+    // to the copying allocator, which requires nothing to be done.
   }
 
   /**
