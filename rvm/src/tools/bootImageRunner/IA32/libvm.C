@@ -125,15 +125,7 @@ boot (int ip, int jtoc, int pr, int sp)
     return bootThread (ip, jtoc, pr, sp);
 }
 
-#include <ihnpdsm.h>
-extern "C" PARLIST *Disassemble(
-  char *pHexBuffer,                /* output: hex dump of instruction bytes  */
-  char *pMnemonicBuffer,           /* output: instruction mnemonic string    */
-  char *pOperandBuffer,            /* output: operands string                */
-  char *pDataBuffer,               /* input:  buffer of bytes to disassemble */
-  int  *fInvalid,                  /* output: disassembly successful: 1 or 0 */
-  int   WordSize);                 /* input:  Segment word size: 2 or 4      */
-
+#include <disasm.h>
 
 unsigned int
 getInstructionFollowing(unsigned int faultingInstructionAddress)
@@ -141,14 +133,17 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
     int Illegal = 0;
     char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256];
     //, AddrBuffer[256];
+    PARLIST p_st;
     PARLIST *p;
 
     p = Disassemble(HexBuffer,
+                    sizeof HexBuffer,
                     MnemonicBuffer,
+                    sizeof MnemonicBuffer,
                     OperandBuffer,
+                    sizeof OperandBuffer,
                     (char *) faultingInstructionAddress,
-                    &Illegal,
-                    4);
+                    &Illegal, &p_st);
     if (Illegal)
         return faultingInstructionAddress;
     else
@@ -328,7 +323,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  isRecoverable? "" : " UNRECOVERABLE", 
                  signo, strsignal(signo));
 
-        writeErr("handler stack 0x%x\n", (unsigned) &localInstructionAddress);
+        writeErr("handler stack 0x%08x\n", (unsigned) &localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
         writeErr("gs            0x%08x\n", gregs[REG_GS]);
