@@ -372,10 +372,6 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 #
 declare -x -i RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
 
-# The following flags tweak the memory model used by the optimizing compiler
-# to constrain optimization
-declare -i RVM_WITH_NOFLUSH=0	 # omit sync/isync in all cases
-
 # controls for diagnostic flags
 declare -i RVM_FOR_STRESSGC=0
 
@@ -392,14 +388,7 @@ declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0
 declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
 declare -i RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0
 declare -i RVM_WITH_LOCK_CONTENTION_TRACING=0
-declare -i RVM_WITH_PURPLE_VPS=0
-declare -i RVM_WITH_CONCURRENT_GC=0
-declare -i JIKESBT=0
-declare -i BLOCK_COUNTER_WORKS=0
-declare -i RVM_WITH_CLASS_WRITER=0
 declare -i RVM_WITH_DEBUG=0
-declare -i BYTE_SIZED_INSTRUCTION=0
-
 
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 

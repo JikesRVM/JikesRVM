@@ -748,19 +748,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return result;
     }
 
-    //-#if RVM_WITH_CLASS_WRITER
-    // prune intervals before a specified start to avoid reinspecting them
-    void pruneIntervals( int before ) {
-	Iterator intervals = iterator();
-	while ( intervals.hasNext() ) {
-	    BasicInterval current = (BasicInterval)intervals.next();
-	    if ( current.endsBefore( before ) ) {
-		intervals.remove();
-	    }
-	}
-    }
-    //-#endif
-
     /**
      * SJF: Apparently our java.util implementation of removeAll()
      * doesn't work.  Perhaps I've somehow screwed up the comparator with
@@ -1841,14 +1828,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
            reg = reg.getNext()) {
         setInterval(reg, null); 
         OPT_RegisterAllocatorState.setSpill(reg,0);
-	//-#if RVM_WITH_CLASS_WRITER
-	//-#else
         // clear the 'long' type if it's persisted to here.
         if (reg.isLong()) {
           reg.clearType();
           reg.setInteger();
         }
-	//-#endif
       }
     }
 

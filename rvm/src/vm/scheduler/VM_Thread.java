@@ -815,9 +815,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       myThread.nativeAffinity    = null;          // clear native processor
       myThread.processorAffinity = null;          // clear processor affinity
       if (trace) VM_Scheduler.trace("VM_Thread", "terminate ", myThread.getIndex());
-//-#if RVM_WITH_PURPLE_VPS
-      VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.RVM_VP_GOING_TO_WAIT;
-//-#endif
     }   
 
     // become another thread

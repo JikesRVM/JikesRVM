@@ -254,8 +254,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     // No longer need currentSet, which is simply a cache of a LiveSet).
     currentSet = null;
 
-    //-#if JIKESBT
-    //-#else
     // This will be null if createGCMaps is false
     if (createGCMaps) {
       ir.MIRInfo.gcIRMap = map;
@@ -263,7 +261,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       ir.MIRInfo.osrVarMap = osrMap;
       //-#endif
     }
-    //-#endif
 
     // inform the IR that handler liveness is now available
     if (storeLiveAtHandlers) {
