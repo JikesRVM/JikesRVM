@@ -9,19 +9,9 @@
  * @author Ton Ngo
  * @author Steve Smith
  */
-interface VM_JNIConstants
-{
+interface VM_JNIConstants {
   // number of JNI function entries
-  static final int FUNCTIONCOUNT = 229 ;    
-
-  // byte offset of saved jtoc at end of JNIFunctions array
-  static final int JNIFUNCTIONS_JTOC_OFFSET = FUNCTIONCOUNT * 4;
-
-  // index of IP in the AIX linkage triplet
-  static final int IP = 0;                    
-
-  // index of TOC in the AIX linage triplet
-  static final int TOC = 1;                   
+  static final int FUNCTIONCOUNT = 229;    
 
   // index of the named function in the array
   // (these are constant as defined by the JNI specification)
@@ -254,7 +244,5 @@ interface VM_JNIConstants
   static final int NEWWEAKGLOBALREF              =  226;	   
   static final int DELETEWEAKGLOBALREF           =  227;	       
   static final int EXCEPTIONCHECK                =  228;	   
-
-						    
 }
 

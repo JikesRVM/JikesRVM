@@ -467,6 +467,7 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
    print $RVM_ROOT/rvm/src/vm/classLoader
+   print $RVM_ROOT/rvm/src/vm/jni
    print $RVM_ROOT/rvm/src/vm/runtime
    print $RVM_ROOT/rvm/src/vm/scheduler
    print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_Timer, VM_EventLogger references

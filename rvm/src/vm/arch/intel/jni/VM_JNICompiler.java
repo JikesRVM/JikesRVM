@@ -13,7 +13,7 @@
  * @author Ton Ngo
  * @author Steve Smith
  */
-public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
+public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstants {
 
   // offsets to saved regs and addresses in java to C glue frames
   // EDI (JTOC) and EBX are nonvolatile registers in RVM

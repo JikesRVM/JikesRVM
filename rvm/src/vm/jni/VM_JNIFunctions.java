@@ -12,18 +12,18 @@ import java.lang.reflect.*;
  * perform the transition from native code (AIX convention) to RVM
  * For this reason, no Java methods (including the JNI methods here) can call 
  * any methods in this class from within Java.  These JNI methods are to 
- * be invoked from native C or C++
+ * be invoked from native C or C++. <p>
  *
  * The first argument for all the functions is a JREF index for the 
  * VM_JNIEnvironment object of the thread.  Since the access method 
  * for the JREF index is itself virtual, we can't use this index to 
  * get the VM_JNIEnvironment. Rather, we use the current thread to 
- * access the VM_JNIEnvironment.
+ * access the VM_JNIEnvironment. <p>
  * 
  * The second argument is a JREF index for either the VM_Class object
  * or the object instance itself.  To get the actual object, we use 
  * the access method in VM_JNIEnvironment and cast the reference as
- * needed.
+ * needed. <p>
  * 
  * NOTE:  
  * (1) JREF index refers to the index into the side table of references
@@ -31,13 +31,13 @@ import java.lang.reflect.*;
  * of array access, no references are passed directly to the native code; 
  * rather, the references are kept in the table and the index is passed to the 
  * native procedure.  The JREF index are used by the JNI code to retrieve the 
- * corresponding reference.
+ * corresponding reference. <p>
  *
  * (2) Strings from C are seen as raw address (int) and need to be cloned as 
- * Java Strings
+ * Java Strings <p>
  *
  * (3) Because of many of the transformation above, the method signature of the 
- * JNI functions may not match its definition in the jni.h file
+ * JNI functions may not match its definition in the jni.h file <p>
  *
  * (4) For exception handling, all JNI functions are wrapped in Try/Catch block
  * to catch all exception generated during JNI call, then these exceptions
@@ -45,21 +45,20 @@ import java.lang.reflect.*;
  * in VM_JNIEnvironment.pendingException.  When the native code returns to the
  * the Java caller, the epilogue in the glue code will check for the pending
  * exception and deliver it to the caller as if executing an athrow bytecode
- * in the caller.
+ * in the caller. <p>
  * 
- * @see VM_Compiler.prologueForNative()
- *
- * @author Ton Ngo, Steve Smith  2/1/00
+ * @author Ton Ngo 
+ * @author Steve Smith  
+ * @date 2/1/00
  */
-public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
-{
+public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   static boolean verboseJNI = false;   // one message for each JNI function called from native
 
+  private static final boolean LittleEndian = VM.BuildForIA32;
+  
   //
   // Implementation of the JNI functions
   //
-
-
 
   /**
    * GetVersion: the version of the JNI
@@ -308,7 +307,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
     if (verboseJNI) VM.sysWrite("JNI called: FatalError  \n");
 
     try {
-      if (verboseJNI) VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
+      VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
       System.exit(0);
     } catch (Throwable unexpected) {
       System.exit(0);
@@ -4872,9 +4871,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       char[] contents = new char[len];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
       String s = new String(contents);
-
-      // VM.sysWrite("NewString: created ");
-      // VM.sysWrite(s); VM.sysWrite("\n");
       
       if (s!=null) {
       	return env.pushJNIRef(s);
@@ -4951,7 +4947,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
       
       return copyBuffer;
@@ -5109,7 +5109,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
         int temp = VM_Magic.getMemoryWord(isCopyAddress);
-        VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
       
       return copyBuffer;
@@ -5538,7 +5542,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5583,7 +5591,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5629,7 +5641,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5675,7 +5691,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5720,7 +5740,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
       	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-      	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5765,7 +5789,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
       	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-      	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5811,7 +5839,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
       	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-      	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5855,7 +5887,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
       	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-      	VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
+	}
       }
 
       return copyBuffer;
@@ -5900,14 +5936,25 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
       	for (int i=0, addr=copyBufferAddress; addr<copyBufferAddress+size; i+=4, addr+=4) {
       	  int data = VM_Magic.getMemoryWord(addr);
-      	  if (i<size) 
-      	    sourceArray[i]   = ((data)        & 0x000000ff) == 0 ? false : true;
-      	  if (i+1<size) 		    	         
-      	    sourceArray[i+1] = ((data >>> 8)  & 0x000000ff) == 0 ? false : true;
-      	  if (i+2<size) 		    	         
-      	    sourceArray[i+2] = ((data >>> 16) & 0x000000ff) == 0 ? false : true;
-      	  if (i+3<size) 		    	                 
-      	    sourceArray[i+3] = ((data >>> 24) & 0x000000ff) == 0 ? false : true;
+	  if (LittleEndian) {
+	    if (i<size) 
+	      sourceArray[i]   = ((data)        & 0x000000ff) == 0 ? false : true;
+	    if (i+1<size) 		    	         
+	      sourceArray[i+1] = ((data >>> 8)  & 0x000000ff) == 0 ? false : true;
+	    if (i+2<size) 		    	         
+	      sourceArray[i+2] = ((data >>> 16) & 0x000000ff) == 0 ? false : true;
+	    if (i+3<size) 		    	                 
+	      sourceArray[i+3] = ((data >>> 24) & 0x000000ff) == 0 ? false : true;
+	  } else {
+	    if (i<size) 
+	      sourceArray[i]   = ((data >>> 24) & 0x000000ff) == 0 ? false : true;
+	    if (i+1<size) 		    	         
+	      sourceArray[i+1] = ((data >>> 16) & 0x000000ff) == 0 ? false : true;
+	    if (i+2<size) 		    	         
+	      sourceArray[i+2] = ((data >>> 8)  & 0x000000ff) == 0 ? false : true;
+	    if (i+3<size) 		    	                 
+	      sourceArray[i+3] = ((data)        & 0x000000ff) == 0 ? false : true;
+	  }
       	}
       } 
       
@@ -7015,7 +7062,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // set Copy flag to false, if it's a valid address
       if (isCopyAddress != 0) {
 	int temp = VM_Magic.getMemoryWord(isCopyAddress);
-	VM_Magic.setMemoryWord(isCopyAddress, (temp & 0xffffff00));	
+	if (LittleEndian) {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0xffffff00)));
+	} else {
+	  VM_Magic.setMemoryWord(isCopyAddress, ((temp & 0x00ffffff)));
+	}
       }
 
       // For array of primitive, return the object address, which is the array itself
