@@ -1,0 +1,2 @@
+   . $1/FullAdaptivecopyingGC 
+   export RVM_WITHOUT_ASSERTIONS=1 
