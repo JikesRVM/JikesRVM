@@ -264,7 +264,7 @@ sysArg(int argno, char *buf, int buflen)
             return i;
         **************/
     } else { // return i-th arg
-        char *src = JavaArgs[argno];
+        const char *src = JavaArgs[argno];
         for (int i = 0;; ++i)
         {
             if (*src == 0)
