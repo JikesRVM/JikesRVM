@@ -154,16 +154,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = LOS_SPACE;
     VM_Address region;
-    switch (allocator) {
-    case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
-    case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-    case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-    default:             
-      region = VM_Address.zero();
-      if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      region = los.alloc(isScalar, bytes);
+    } else {
+      switch (allocator) {
+      case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
+      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator"); region = VM_Address.zero();
+      }
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
@@ -182,14 +182,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) 
-	allocator = LOS_SPACE;
-    switch (allocator) {
-    case       MS_SPACE: return;
-    case      LOS_SPACE: return;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-    default:
-      if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) {
+      Header.initializeLOSHeader(ref, tib, size, isScalar);
+    } else {
+      switch (allocator) {
+      case       MS_SPACE: return;
+      case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, size, isScalar); return;
+      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+      default: if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      }
     }
   }
 

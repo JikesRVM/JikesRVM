@@ -169,16 +169,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = LOS_SPACE;
-    VM_Address result = VM_Address.zero(); 
-    switch (allocator) {
-      case  DEFAULT_SPACE:  result = ss.alloc(isScalar, bytes); break;
-      case IMMORTAL_SPACE:  result = immortal.alloc(isScalar, bytes);  break;
-      case      LOS_SPACE:  result = los.alloc(isScalar, bytes); break;
-      default:              if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      return los.alloc(isScalar, bytes);
+    } else {
+      switch (allocator) {
+      case  DEFAULT_SPACE:  return ss.alloc(isScalar, bytes);
+      case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
+      case      LOS_SPACE:  return los.alloc(isScalar, bytes);
+      default: 
+	if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	return VM_Address.zero();
+      }
     }
-    return result;
   }
 
   /**
@@ -194,12 +196,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_SPACE;
-    switch (allocator) {
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
+    } else {
+      switch (allocator) {
       case  DEFAULT_SPACE: return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+      case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      }
     }
   }
 

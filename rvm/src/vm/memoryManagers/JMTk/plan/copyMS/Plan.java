@@ -171,16 +171,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
-      allocator = LOS_SPACE;
     VM_Address region;
-    switch (allocator) {
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      region = los.alloc(isScalar, bytes);
+    } else {
+      switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
       case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
-	                   region = VM_Address.zero();
+	region = VM_Address.zero();
+      }
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
@@ -199,15 +201,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
-      allocator = MS_SPACE;
-    switch (allocator) {
-    case  NURSERY_SPACE: return;
-    case      LOS_SPACE: return;
-    case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-    default:
-      if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
+    } else {
+      switch (allocator) {
+      case  NURSERY_SPACE: return;
+      case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
+      case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+      default:
+	if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      }
     }
   }
 

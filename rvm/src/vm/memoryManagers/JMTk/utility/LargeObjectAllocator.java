@@ -92,7 +92,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @return The address of the first byte of the allocated cell
    */
   public final VM_Address allocCopy(boolean isScalar, int bytes) 
-    throws VM_PragmaInline {
+    throws VM_PragmaNoInline {
     return alloc(isScalar, bytes, true);
   }
 

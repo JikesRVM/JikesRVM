@@ -187,32 +187,24 @@ public abstract class Generational extends StopTheWorldGC
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = (Plan.usesLOS) ? LOS_SPACE : MATURE_SPACE;
-    if (VM.VerifyAssertions) VM._assert(Plan.usesLOS || allocator != LOS_SPACE);
     VM_Address region;
-    switch (allocator) {
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      if (Plan.usesLOS) {
+	region = los.alloc(isScalar, bytes);
+      } else {
+	region = matureAlloc(isScalar, bytes);
+      }
+    } else {
+      switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
       case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       default:             region = VM_Address.zero();
-	                   VM.sysFail("No such allocator");
+	VM.sysFail("No such allocator");
+      }
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
-    return region;
-  }
-
-  public final VM_Address alloc2(int allocator, int bytes, boolean isScalar) throws VM_PragmaNoInline {
-      VM_Address region;
-    switch (allocator) {
-	 case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
-	 case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
-	 case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-	 case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:             region = VM_Address.zero();
-	                   VM.sysFail("No such allocator");
-    }
     return region;
   }
 
@@ -229,15 +221,20 @@ public abstract class Generational extends StopTheWorldGC
   public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
-      allocator = (Plan.usesLOS) ? LOS_SPACE : MATURE_SPACE;
-    if (VM.VerifyAssertions) VM._assert(Plan.usesLOS || allocator != LOS_SPACE);
-    switch (allocator) {
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      if (Plan.usesLOS) {
+	Header.initializeLOSHeader(ref, tib, bytes, isScalar);
+      } else {
+	if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
+      }
+    } else {
+      switch (allocator) {
       case  NURSERY_SPACE: return;
       case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      }
     }
   }
 

@@ -59,6 +59,22 @@ public class MarkSweepHeader {
   /**
    * Perform any required initialization of the GC portion of the header.
    * 
+   * @param ref the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for this object.
+   * @param isScalar are we initializing a scalar (true) or array (false) object?
+   */
+  public static void initializeLOSHeader(Object ref, Object[] tib, int size,
+					 boolean isScalar)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
+    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+  }
+
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * 
    * @param bootImage the bootimage being written
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
