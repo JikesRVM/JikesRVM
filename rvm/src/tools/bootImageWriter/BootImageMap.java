@@ -101,7 +101,7 @@ public class BootImageMap extends BootImageWriterMessages
 
   private static int idGenerator = 0;
   private static Address newId() {
-      return Address.fromInt(idGenerator++);
+      return Address.fromIntZeroExtend(idGenerator++);
   }
 
   /**
