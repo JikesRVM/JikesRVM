@@ -42,7 +42,7 @@ class TraceFileReader
   // number of HPM counters
   static private int n_counters = 0;
   // version using
-  static private int version = -1;
+  static private int version = 3;
   // name of header file
   static private String header_filename = null;
 
@@ -264,15 +264,13 @@ class TraceFileReader
    */
   static private void readVersion(DataInputStream input_file, String trace_filename)
   {
+    if(options.debug>=2)System.out.print("readVersion("+trace_filename+") ");
     int local_version = Utilities.getIntFromDataInputStream(input_file);
-    if (version == -1) {
-      if(options.debug>=2)System.out.println(" local version "+version);
-      version = local_version;
-    } else if (version != local_version) {
+    if(options.debug>=2)System.out.println(" reads "+local_version);
+    if (version != local_version) {
       System.out.println("***"+trace_filename+"'s version "+local_version+" != "+version+"!***");
       System.exit(-1);
     }
-    if(options.debug>=2)System.out.println(" version "+version);
   }
   /*
     * read meta file and process it.
@@ -285,6 +283,7 @@ class TraceFileReader
   static private void readMetaFile(DataInputStream input_file, String trace_filename)
   {
     String local_header_filename = Utilities.getStringFromDataInputStream(input_file);
+    if(options.debug>=2)System.out.println("readMetaFile("+trace_filename+") "+header_filename+"\n");
     if (header_filename == null) {
       traceHeader = new TraceHeader(local_header_filename, trace_filename);
       n_counters = traceHeader.n_counters;
@@ -461,19 +460,20 @@ class TraceFileReader
     TraceRecord tr = null;
     
     try {
-      int encoding = input_file.readInt();
-      int record_format = encoding & 0x0000000F;        // last 4 bits
-      if (record_format == 0) {
-        // EOF
+      int encoding = Utilities.getIntFromDataInputStream(input_file);
+      if (encoding == -1) {        // EOF
         return tr;
-      } else if (record_format == TraceRecord.COUNTER_TYPE) {
+      }
+      if(options.debug>=5){System.out.print("encoding "+encoding);}
+      int record_format = encoding & 0x0000000F;        // last 4 bits
+      if (record_format == TraceRecord.COUNTER_TYPE) {
         TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
         tcr.local_tid     =  encoding >> 16;
         tcr.buffer_code   = (encoding >> 15) & 0x00000001;
         int bit           = (encoding >> 14) & 0x00000001;
         tcr.vpid          = (encoding >>  4) & 0x000003FF;
         tcr.thread_switch = (bit==1?true:false);
-        tcr.tid           = input_file.readInt();
+        tcr.tid           = Utilities.getIntFromDataInputStream(input_file);
         if(options.debug>=5){
           if (tcr.thread_switch) {
             System.out.print(tcr.buffer_code+" VPID "+tcr.vpid);
@@ -482,17 +482,18 @@ class TraceFileReader
           }
           System.out.print(" TID "+tcr.tid+" LTID "+tcr.local_tid);
         }
-        tcr.start_wall_time   = input_file.readLong();
+        tcr.start_wall_time   = Utilities.getLongFromDataInputStream(input_file);
+	if(options.debug>=5){System.out.print("- SWT "+tcr.start_wall_time);}
         // translate end wall time to relative wall time.
-        tcr.counters[0]       = input_file.readLong() - tcr.start_wall_time;
-        tcr.callee_MID        = input_file.readInt();
-        tcr.caller_MID        = input_file.readInt();
-        if(options.debug>=5){
-          System.out.print(" SWT "+tcr.start_wall_time);System.out.print(" RWT "+tcr.counters[0]);
-        }
+        long end_wall_time    = Utilities.getLongFromDataInputStream(input_file);
+        tcr.counters[0]       = end_wall_time - tcr.start_wall_time;
+	if(options.debug>=5){System.out.print(" EWT "+end_wall_time+" duration "+tcr.counters[0]);}
+        tcr.callee_MID        = Utilities.getIntFromDataInputStream(input_file);
+        tcr.caller_MID        = Utilities.getIntFromDataInputStream(input_file);
+	if(options.debug>=5){System.out.print(" mids: callee "+tcr.callee_MID+", caller "+tcr.caller_MID);}
 
         for (int i=1; i<=tcr.n_counters; i++) {
-          tcr.counters[i] = input_file.readLong();
+          tcr.counters[i] = Utilities.getLongFromDataInputStream(input_file);
           if(options.debug>=5)System.out.print(" "+i+": "+tcr.counters[i]);
         }
         if(options.debug>=5)System.out.println();
@@ -521,25 +522,25 @@ class TraceFileReader
         tr = new TraceCompleteAppRecord(trace_file_vpid, app_name);
         
       } else if (record_format == TraceRecord.START_APP_RUN_TYPE) {
-        int  run = input_file.readInt();
+        int  run = Utilities.getIntFromDataInputStream(input_file);
         String app_name = Utilities.getStringFromDataInputStream(input_file);
         if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" START_APP_RUN_TYPE: app "+app_name+", run "+run);
         tr = new TraceStartAppRunRecord(trace_file_vpid, app_name, run);
 
       } else if (record_format == TraceRecord.COMPLETE_APP_RUN_TYPE) {
-        int  run = input_file.readInt();
+        int  run = Utilities.getIntFromDataInputStream(input_file);
         String app_name = Utilities.getStringFromDataInputStream(input_file);
         if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_RUN_TYPE: app "+app_name+", run "+run);
         Integer Index = (Integer)completeApplicationRunIndex.get(app_name);
         tr = new TraceCompleteAppRunRecord(trace_file_vpid, app_name, run);
 
       } else if (record_format == TraceRecord.EXIT_TYPE) {
-        int  value = input_file.readInt();      // value
+        int  value = Utilities.getIntFromDataInputStream(input_file);      // value
         if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" EXIT_TYPE: value "+value);
         tr = new TraceExitRecord(trace_file_vpid, value);
 
       } else if (record_format == TraceRecord.PADDING_TYPE) {
-        int  length = input_file.readInt();     // value
+        int  length = Utilities.getIntFromDataInputStream(input_file);     // value
         if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" PADDING_TYPE: length "+length);
         // gobble up padding
         for (int i=0; i<length; i++) {
@@ -555,7 +556,7 @@ class TraceFileReader
         int BOUND = 100;
         System.out.print("***"+BOUND+" additional values: ");
         for (int i = 0; i<BOUND; i++) {
-          value = input_file.readInt();
+          value = Utilities.getIntFromDataInputStream(input_file);
           System.out.print(" "+value);
         }
         System.out.println("***");
