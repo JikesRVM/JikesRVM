@@ -809,6 +809,8 @@ public class VM_Runtime implements VM_Constants {
     }
     /* No appropriate catch block found. */
 
+    VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
+    
     /* This should be (but isn't) undoable; ugh.  The heap is shared but the
      * thread isn't.  No way to just give the memory to this particular
      * thread, I think. */
@@ -828,8 +830,14 @@ public class VM_Runtime implements VM_Constants {
   private static void handlePossibleRecursiveException() {
     ++handlingUncaughtException;
     if (handlingUncaughtException > 1 
-	&& handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + 1)
-	VM.sysWrite("We got an uncaught exception while handling an uncaught exception");
+	&& handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      VM.sysWrite("We got an uncaught exception while (recursively) handling ");
+      VM.sysWrite(handlingUncaughtException - 1);
+      VM.sysWrite(" uncaught exception");
+      if (handlingUncaughtException - 1 != 1)
+	VM.sysWrite("s");
+      VM.sysWriteln(".");
+    }
     if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {
       VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
