@@ -1607,7 +1607,7 @@ EOF
     [[ ! ${ANT_CMD-} ]] || echo "export ANT_CMD='$ANT_CMD'"
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
-    [[ ! ${XALAN_J_DIR} ]] || echo "export XALAN_J_DIR='${XALAN_J_DIR}'"
+    [[ ! ${XALAN_J_DIR-} ]] || echo "export XALAN_J_DIR='${XALAN_J_DIR}'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
     [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"
