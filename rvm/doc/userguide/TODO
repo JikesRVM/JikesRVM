@@ -25,6 +25,8 @@ DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
 (6) Section 5 -- optimizing compiler details.  Exisiting text is
     mostly fine; Think about adding more stuff?  At least include
     pointer to tutorial slides.
+    STEVE
+    will add pointer to tutorial when slides are available.
 
 (7) Section 6 -- memory management details. Needs to be completely
     rewritten. 
