@@ -167,10 +167,8 @@ public class VM_Allocator
    */
   static void boot (VM_BootRecord thebootrecord) {
 
-    // VM.sysWriteln("Allocator.boot entered");
-
-    verbose = bootrecord.verboseGC;
     bootrecord = thebootrecord;	
+    verbose = bootrecord.verboseGC;
 
     // smallHeapSize might not originally have been an even number of pages
     smallHeapSize = bootrecord.smallSpaceSize;
