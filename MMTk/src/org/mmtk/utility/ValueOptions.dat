@@ -82,3 +82,9 @@ if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy tilesize " + val); \
 val <<= 10;
 
 
+E sampleEnum byte SAMPLE_FOO
+A dummy example of enumerations in JMTk
+// This line is the filter method body; unused for enums!
+"SAMPLE_FOO sampFoo foo" \
+"SAMPLE_BAR sampBar bar" \
+"SAMPLE_BAZ sampBaz baz"

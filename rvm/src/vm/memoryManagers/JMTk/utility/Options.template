@@ -23,7 +23,27 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Dave Grove
  **/
 public final class Options implements VM_Uninterruptible, Constants {
-   // Begin template-specified options
+
+   // Begin generated support for "Enumeration" options
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+   // FULL_NAME
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public static final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP
+
+      $$$$ END IF TAG == E
+      $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End generated support for "Enumeration" options
+
+    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
@@ -65,25 +85,6 @@ $$$$ FOREACH OPTION VDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
    // End generated support for filtering of value options
-
-   // Begin generated support for "Enumeration" options
-$$$$ LOOP VDATFILE VALUE_DAT_FILES
-$$$$ FOREACH OPTION VDATFILE
-     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
-     $$$$ IF TAG == E
-   // FULL_NAME
-          $$$$ LOOP CONSTNAME OPTION.ENUMS
-               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
-   public static final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
-               $$$$ END SPLIT CONSTNAME
-          $$$$ END LOOP
-
-      $$$$ END IF TAG == E
-      $$$$ END SPLIT
-$$$$ END FOREACH
-$$$$ END LOOP
-   // End generated support for "Enumeration" options
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
@@ -142,7 +143,7 @@ $$$$ END LOOP
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
-     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
+    $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
     if (name.equals("CMD_NAME")) {
      $$$$ IF TAG == V
           $$$$ IF TYPE == String
@@ -170,9 +171,9 @@ $$$$ FOREACH OPTION VDATFILE
      }
      $$$$ ELSE 
        $$$$ IF TAG == E
-            $$$$ LOOP CONSTNAME OPTION.ENUMS
-                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-       if (value.equals("CMD_NAME")) {
+           $$$$ LOOP CONSTNAME OPTION.ENUMS
+                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME2
+       if (value.equals("CMD_NAME2")) {
          FULL_NAME = ITEM_NAME;
          return true;
        }         
@@ -238,10 +239,10 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ IF TAG == E
     Log.writeln("\t\tOPTION.DESCRIP");
 	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    Log.writeln("MAIN_CMD_NAME");
+    Log.write("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-    Log.writeln("CMD_NAME ");
+    Log.write("CMD_NAME ");
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP CONSTNAME
           $$$$ END LET MAIN_CMD_NAME
