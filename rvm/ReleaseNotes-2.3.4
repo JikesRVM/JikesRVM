@@ -1,7 +1,5 @@
 -*-outline-*-
-These are in-progress release notes for what will be Jikes RVM release
-2.3.4.
-At the moment they reflect Jikes RVM 2.3.3 + CVS head.
+These are the release notes for Jikes RVM 2.3.4.
 
 
 *Sections of this document:
@@ -12,13 +10,22 @@ At the moment they reflect Jikes RVM 2.3.3 + CVS head.
 *Highlights of this release include:
 **We now run Eclipse 3.0
 
-**TODO: Update status of opt compiler PowerPC64 port.
+**The port to PowerPC64 is virtually complete.  There are a few fringe opt 
+compiler bugs remaining, but functionality has advanced to the point where 
+development and production images of Jikes RVM are passing almost all 
+regression tests. 
+
+**MMTk has been moved out of $RVM_ROOT/rvm/src/vm/memory managers to 
+$RVM_ROOT/MMTk.  It has also been reorganized to have the directory structure
+match its package structure and thus is "Eclipse-friendly."
 
 **Major revision of the object model. All objects (arrays and scalars) 
 are now layed out in a "forwards" direction. This simplifies and enables
 many common GC techniques (scannable heap; card-marking) at the cost of a 
 slight performance hit on AIX/PowerPC due to the need to make some null checks
 explicit. See VM_ObjectModel.java for more details. 
+
+**We have switched to GNU Classpath version 0.12.
 
 *Other notes:
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
@@ -45,4 +52,5 @@ it no longer inappropriately elides frames.
 *Internal Changes
 **Jikes RVM now uses GNU Classpath's java.lang.Class instead of its own.
 **The VM_Magic classes have been moved to the org.vmmagic namespace, 
-and rationalized.
+and rationalized. Further work on refactoring magic usage (mainly in Jikes 
+RVM as opposed to MMTk) is ongoing.
