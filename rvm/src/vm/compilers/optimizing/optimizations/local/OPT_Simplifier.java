@@ -865,12 +865,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
             if (val2.isZero()) {                 // x + 0 == x
               if (op1.isIntLike()) {
-                Move.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), 
-                            Binary.getClearVal1(s));
-				  } else {
-                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
-                            Binary.getClearVal1(s));
-				  }
+                Unary.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), Binary.getClearVal1(s));
+              } else {
+                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
+              }
               return MOVE_REDUCED;
             }
           }
@@ -1004,12 +1002,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
             if (val2.isZero()) {                 // x - 0 == x
               if (op1.isIntLike()) {
-                Move.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), 
-                            Binary.getClearVal1(s));
-				  } else {
-                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
-                            Binary.getClearVal1(s));
-				  }
+                Unary.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), Binary.getClearVal1(s));
+              } else {
+                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
+              }
               return MOVE_REDUCED;
             }
             // x - c = x + -c
