@@ -16,9 +16,9 @@ import java.util.Enumeration;
  * following properties:
  * <ul>
  * <li> The volatile GPRs form a linked list, starting with
- * FIRST_VOLATILE_GPR and ending with LAST_SCRATCH_GPR
+ * FIRST_VOLATILE_GPR and ending with LAST_VOLATILE_GPR
  * <li> The volatile FPRs form a linked list, starting with
- * FIRST_VOLATILE_FPR and ending with LAST_SCRATCH_FPR
+ * FIRST_VOLATILE_FPR and ending with LAST_VOLATILE_FPR
  * <li> The non-volatile GPRs form a linked list, starting with
  * FIRST_NONVOLATILE_GPR and ending with LAST_NONVOLATILE_GPR
  * <li> The non-volatile FPRs form a linked list, starting with
@@ -113,13 +113,6 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
       r.linkWithNext(reg[i + 1]);
     }
     reg[LAST_VOLATILE_GPR].setVolatile();
-    reg[LAST_VOLATILE_GPR].linkWithNext(reg[FIRST_SCRATCH_GPR]);
-    for (int i = FIRST_SCRATCH_GPR; i < LAST_SCRATCH_GPR; i++) {
-      OPT_Register r = reg[i];
-      r.setVolatile();
-      r.linkWithNext(reg[i + 1]);
-    }
-    reg[LAST_SCRATCH_GPR].setVolatile();
     
     // 6. set up the non-volatile GPRs
     for (int i = FIRST_NONVOLATILE_GPR; i < LAST_NONVOLATILE_GPR; i++) {
@@ -133,26 +126,15 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     reg[FRAME_POINTER].setSpansBasicBlock();
     reg[JTOC_POINTER].setSpansBasicBlock();
     reg[THREAD_ID_REGISTER].setSpansBasicBlock();
-    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + 
-        LAST_VOLATILE_FPR; i++) {
+
+    // 8. set up the volatile FPRs
+    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; 
+	 i < FIRST_DOUBLE + LAST_VOLATILE_FPR; 
+	 i++) {
       OPT_Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-
-    // 8. set up the volatile FPRs
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE
-        + FIRST_SCRATCH_FPR]);
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].setVolatile();
-    if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR)
-      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE + 
-          LAST_SCRATCH_FPR; i++) {
-        OPT_Register r = reg[i];
-        r.setVolatile();
-        r.linkWithNext(reg[i + 1]);
-      }
-    reg[FIRST_DOUBLE + LAST_SCRATCH_FPR].setVolatile();
-
 
     // 9. set up the non-volatile FPRs
     for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR; i < FIRST_DOUBLE
@@ -580,7 +562,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   Enumeration enumerateVolatileGPRs() {
     return new PhysicalRegisterEnumeration(FIRST_INT+FIRST_VOLATILE_GPR,
-                                           FIRST_INT+LAST_SCRATCH_GPR);
+                                           FIRST_INT+LAST_VOLATILE_GPR);
   }
 
   /**
@@ -609,7 +591,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    * <em> before</em> the volatile FPRs
    */
   Enumeration enumerateVolatileFPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_SCRATCH_FPR,
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_VOLATILE_FPR,
                                            FIRST_DOUBLE+LAST_VOLATILE_FPR);
   }
 
