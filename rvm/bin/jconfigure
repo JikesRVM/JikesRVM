@@ -1411,11 +1411,13 @@ function emitCopier () {
 
 	if [[ \$CLEAN_FLAG ]]; then
 	    if tracing jbuild; then
-		echo -n "(nuking .java files in ${CLASSES_DIRECTORY_STR}) "
+		open_paren "cleaning sources: nuking .java files in ${CLASSES_DIRECTORY_STR}"
+	    else
+		open_paren ""
 	    fi
 	    find ${CLASSES_DIRECTORY_STR} -name "*.java" -exec rm {} \;
 	    builtin echo "This file indicates that some or all classes need to be recompiled" > ${CLASSES_INVALID_STR}
-	    echo -n "(sources cleaned) "
+	    close_paren "sources cleaned"
 	    trap '' EXIT
 	    exit 0
 	fi
@@ -1436,7 +1438,7 @@ function emitCopier () {
 	for d in \$(< ${SOURCE_LIST_STR} ); do
 	    if tracing preprocessor; then
 	         cleanline
-	         echo -n "\${ME}: expanding \${d}..."
+b	         echo -n "\${ME}: expanding \${d}: "
 	    fi
 	    shopt -s nullglob
 	    # FILES may be empty.
@@ -1480,7 +1482,7 @@ done
 # around in the shadow (telling people that the file is generated).
 if tracing preprocessor; then
     cleanline
-    echo -n "${ME}: '${GENERATED_FILES_DIRECTORY_STR}'/"
+    echo -n "${ME}: expanding '${GENERATED_FILES_DIRECTORY_STR}': "
 fi
 FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")'
     emit_disable_exit_on_error
@@ -1497,6 +1499,12 @@ elif [[ ${status} != 0 ]]; then
     trap '' EXIT
     exit ${status}
 fi'
+    cat <<- EOF
+	if tracing preprocessor; then
+	    cleanline
+	    echo "${ME}: All files expanded"
+	fi
+EOF
 
     # copy classpath jar file
     CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
@@ -1565,13 +1573,14 @@ EOF
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 
 	if [[ \$CLEAN_FLAG ]]; then
+	    open_paren 'cleaning .class files'
 	    cd ${CLASSES_DIRECTORY_STR}
 	    # This avoids any limits on the size of the command-line arguments.
 	    # 'echo' is a bash builtin, and as such is unaffected by such O/S 
 	    # limits. 
 	    echo *.class | \$XARGS -r rm -f
 	    touch ${CLASSES_INVALID_STR} 
-	    echo -n "(classes cleaned) "
+	    close_paren "classes cleaned "
 	    trap "" EXIT
 	    exit 0
 	fi
@@ -1593,21 +1602,22 @@ EOF
 	    chdir $CLASSES_DIRECTORY_STR
 	    run rm -f $TOP_LEVEL_CLASSES
 	    jikes_invocation="$HOST_JIKES_STR $JIKES_WARNING_FLAGS -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
-	    echo -n '(compiling classes...'
+	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
 		cleanline
 	        echo "  "\${jikes_invocation}
 	    fi
 	    if \${jikes_invocation}; then
-	        echo -n 'classes compiled) '
+	        close_paren 'classes compiled'
 	    else
 	        status=\$?
+	        close_paren 'FAILED'
 	        echo >&2 "\$ME: The Jikes compiler exited with status \${status} while we were building the source file(s): $TOP_LEVEL_SOURCES"
 	        echo >&2 "\$ME: We invoked the Jikes compiler in the directory $CLASSES_DIRECTORY_STR"
 	        echo >&2 "\$ME: With the command-line: \$jikes_invocation"
 	        exit \$status
 	    fi
-	    echo -n '(building jksvm.jar...'	
+	    open_paren 'building jksvm.jar'
 	    rm -f jksvm.jar
 	    ## The Sun JAR manual page claims that '-O' (the letter Oh) is the
 	    ## flag for no-compression.  It's actually '0' (the number zero),
@@ -1615,21 +1625,21 @@ EOF
 	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class
 
 	    \$FIND . -name '*.class' | \$XARGS -r $HOST_JAR_STR -u0f jksvm.jar
-	    echo -n ' jksvm.jar built) '
+	    close_paren 'jksvm.jar built'
 
-	    echo -n '(building jksvmsrc.jar...'
+	    open_paren 'building jksvmsrc.jar'
 	    run rm -f jksvmsrc.jar
 	    run $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java
 	    ## -r is XARGS's no-run-if-empty flag.
 	    \$FIND . -name '*.java' | run \$XARGS -r $HOST_JAR_STR -u0f jksvmsrc.jar
-	    echo -n 'jksvmsrc.jar built) '
+	    close_paren 'jksvmsrc.jar built'
 
 	else
 	    if tracing jbuild; then
 	         echo -n "(nothing needed to be compiled) "
 	    fi
 	fi
-	run rm -f $CLASSES_INVALID_STR
+	rm -f $CLASSES_INVALID_STR
 
 	trap '' EXIT
 	EOF
@@ -3075,7 +3085,7 @@ then
     ( chdir ${BUILD_DIRECTORY} && run rm -rf * )
 fi
 if ! (( cleanse )) && ! (( quiet )); then
-    echo " (writing new files, but not deleting old stuff)"
+    show_mesg "We'll write new jbuild* files, but not delete existing compilation results."
 fi
 
 # Create output directory structure.
