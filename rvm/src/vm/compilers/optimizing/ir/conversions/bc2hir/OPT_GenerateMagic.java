@@ -134,7 +134,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  memAddr, 
-					  new OPT_IntConstantOperand(0), 
+					  new OPT_IntConstantOperand(0),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setMemoryWord) {
@@ -465,23 +465,23 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     }
     else if (methodName == VM_MagicNames.wordZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0, VM_Type.AddressType)));
       bc2ir.push(op0.copyD2U());
     }
     else if (methodName == VM_MagicNames.wordMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1, VM_Type.AddressType)));
       bc2ir.push(op0.copyD2U());
     }
     else if (methodName == VM_MagicNames.wordIsZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0, VM_Type.AddressType)));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
     }
     else if (methodName == VM_MagicNames.wordIsMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1, VM_Type.AddressType)));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
     }
