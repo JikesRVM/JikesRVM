@@ -50,11 +50,15 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
 		           420 ISU_FLOW 423 LSU BUSY  425 LSOURCE3  427 ISOURCE3 
 			   433 FXU      434 LSU_LMQ   436 LSU_LOAD1 
 		           455 branch   456 L1 & TLB  457 L2        458 L3
+                   Pentium: 4000
     mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
-                  Default is 12 (KERNEL & USER).
+                   Default is 12 (KERNEL & USER). 
+                   Alternatives: 20 list_all_events, 21 list_selected_events, 22 processor.
 EOF
 exit 1
 fi
+
+hpm_alternatives=""         
 
 # JikesRVM root directory
 #
@@ -77,7 +81,8 @@ esac
 
 if [[ $RVM_SPECJVM98 = "" ]]; then
   echo -e "$0: RVM_SPECJVM98 environment variable not set; \n\tRVM_SPECJVM98=\"/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98\""
-  RVM_SPECJVM98="/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98"
+  RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
+#  RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks-modified/SPECjvm98"
 fi
 
 echo -e "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
@@ -371,6 +376,22 @@ elif [[ $setting = 458 ]]; then
   machine_type="P4"
   hpm_event1=58
   setting=58
+#
+# Pentium 4
+#
+elif [[ $setting = 4000 ]]; then
+  # Pentium 4
+  #  1 PAPI_L1_DCM        2 PAPI_L2_DCM       3 PAPI_L1_LDM	   4 PAPI_TOT_CYC
+  machine_type="Pentium4"
+  hpm_event1=0
+  hpm_event2=2
+  hpm_event3=23
+  hpm_event4=60
+  hpm_event5=-1
+  hpm_event6=-1
+  hpm_event7=-1
+  hpm_event8=-1
+  setting=4000
 else 
   echo "setting $setting is invalid"
   exit 3
@@ -389,6 +410,21 @@ if [[ $# = 7 || $# > 7 ]]; then
   if [[ $7 != '+' ]]; then
     hpm_mode=$7
   fi
+fi
+
+if [[ $hpm_mode = 20 ]]; then  
+  hpm_alternatives="-X:hpm:listAll=true"
+  hpm_mode=8
+fi
+if [[ $hpm_mode = 21 ]]; then  
+  hpm_alternatives="-X:hpm:listSelected=true"
+  hpm_mode=8
+fi
+if [[ $hpm_mode = 22 ]]; then  
+  echo "hpm_mode = 22"
+  hpm_alternatives="-X:hpm:processor=true"
+  hpm_mode=8
+  echo "hpm_mode = $hpm_mode"
 fi
 
 echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode"
@@ -414,7 +450,8 @@ schedulingMultiplier=2
 # notify_vm_complete and measureCompilation results in compilation statistics
 jvm_options="-Xmx$small_heap -X:processors=$numProcessors -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc -X:vm:interruptQuantum=$interruptQuantum -X:vm:schedulingMultiplier=$schedulingMultiplier" 
 
-hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$hpm_verbose -X:hpm:trace_verbose=$trace_verbose -X:hpm:filename=HPM.$benchmark.$inputSize.$runs.$numProcessors  -X:hpm:trace=true -X:hpm:sample=true"
+hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$hpm_verbose -X:hpm:trace_verbose=$trace_verbose -X:hpm:filename=HPM.$benchmark.$inputSize.$runs.$numProcessors $hpm_alternatives -X:hpm:report=true"
+#  -X:hpm:trace=true -X:hpm:sample=true 
 
 # don't append ":." because it doesn't work, and don't need ./cp
 cp="-classpath $RVM_SPECJVM98"
