@@ -207,10 +207,26 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
               OPT_RegisterOperand lhs = OPT_IRTools.R(r);
               OPT_RegisterOperand rhs = OPT_IRTools.R(r);
               s = Unary.create(SPLIT,lhs,rhs);
-              // fix up types
-              OPT_RegisterOperand def = r.defList;
-              lhs.type = def.type;
-              rhs.type = def.type;
+              // fix up types: only split live ranges when the type is
+              // consistent at all defs
+              VM_Type t = null;
+              OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r);
+              if (!e.hasMoreElements()) {
+                s = null;
+              } else {
+                OPT_RegisterOperand rop = e.next();
+                t = rop.type;
+                while (e.hasMoreElements()) {
+                  OPT_RegisterOperand nextOp = e.next();
+                  if (nextOp.type != t) {
+                    s = null;
+                  }
+                }
+              }
+              if (s != null) {
+                lhs.type = t;
+                rhs.type = t;
+              }
               break;
             case OPT_Register.FLOAT_TYPE:
               s = Unary.create(SPLIT,OPT_IRTools.F(r), OPT_IRTools.F(r));
