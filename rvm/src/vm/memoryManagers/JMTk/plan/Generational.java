@@ -350,7 +350,6 @@ public abstract class Generational extends StopTheWorldGC
 	required = required<<1;  // must account for copy reserve
       int nurseryYield = ((int)((float) nurseryMR.committedPages() * SURVIVAL_ESTIMATE))<<1;
       fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
-      collectionInitiated = true;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }

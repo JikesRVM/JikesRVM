@@ -218,6 +218,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
+    Plan.collectionInitiated();
+
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     if (Options.verbose >= 4) {
       VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");

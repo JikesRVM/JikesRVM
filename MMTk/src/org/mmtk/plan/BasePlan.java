@@ -488,6 +488,23 @@ public abstract class BasePlan
     }
   }
 
+  /**
+   * A collection has been initiated.  Set the collectionInitiated
+   * state variable appropriately.
+   */
+  public static void collectionInitiated() {
+    collectionInitiated = true;
+  }
+
+  /**
+   * Return true if a collection is in progress.
+   *
+   * @return True if a collection is in progress.
+   */
+  public static boolean gcInProgress() {
+    return gcInProgress;
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous
@@ -502,15 +519,6 @@ public abstract class BasePlan
     MemoryResource.showUsage(PAGES);
     MemoryResource.showUsage(MB);
     VM_Interface.sysFail(str);
-  }
-
-  /**
-   * Return true if a collection is in progress.
-   *
-   * @return True if a collection is in progress.
-   */
-  static public boolean gcInProgress() {
-    return gcInProgress;
   }
 
   /**

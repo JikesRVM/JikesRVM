@@ -327,7 +327,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
         return false;
       }
       required = mr.reservedPages() - mr.committedPages();
-      collectionInitiated = true;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
