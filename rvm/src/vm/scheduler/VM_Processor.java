@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
  *
  * @author Bowen Alpern 
  * @author Derek Lieber
- * @author Peter F. Sweeney (add HPM support)
+ * @modified Peter F. Sweeney (added HPM support)
  */
 public final class VM_Processor 
 //-#if RVM_WITH_JMTK_INLINE_PLAN
@@ -60,23 +60,9 @@ implements VM_Uninterruptible, VM_Constants {
 
 
   //-#if RVM_WITH_HPM
-  /*  one per virtual processor  */
-  /*
-   * Keep counter values for each Virtual Processor.
-   */
-  public HPM_counters hpm_counters;
-
-  /* one per Jikes RVM */
-  /*
-   * set true in VM.boot() when we can collect hpm data!  
-   */
-  public  static boolean hpm_safe = false;
-  /*
-   * trace hpm events?
-   */
-  public static boolean hpm_trace = false;  
+  // Keep HPM information for each Virtual Processor.
+  public  VM_HardwarePerformanceMonitor hpm;
   //-#endif
-
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -116,7 +102,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     VM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
-    hpm_counters = new HPM_counters();
+    hpm = new VM_HardwarePerformanceMonitor(id);
     //-#endif
   }
 
@@ -207,76 +193,18 @@ implements VM_Uninterruptible, VM_Constants {
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
-    if (VM.BuildForHPM) {	      // update HPM counters
-      updateHPMcounters(previousThread, newThread, timerTick);
+    //-#if RVM_WITH_HPM
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.hpm_safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      hpm.updateHPMcounters(previousThread, newThread, timerTick);
     }
+    //-#endif 
 
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     //-#endif
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
-  }
-
-  /**
-   * Update HPM counters.
-   * @param previous_thread     thread that is being switched out
-   * @param current_thread      thread that is being scheduled
-   * @param timerTick   	timer interrupted if true
-   */
-  public void updateHPMcounters(VM_Thread previous_thread, VM_Thread current_thread, boolean timerTick)
-  {
-    //-#if RVM_WITH_HPM
-    // native calls cause stack to be grown and cause an assertion failure.
-    if (hpm_safe) {
-      if (previousThread.hpm_counters == null) {
-	previous_thread.hpm_counters = new HPM_counters();
-	VM.sysWriteln("***VM_Processor.dispatch() Previous thread id ",
-		      previous_thread.getIndex(),"'s hpm_counters was null!***");
-      }
-      int n_counters = VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMgetCountersIP);
-
-      if (hpm_trace) {
-	int processor_id = VM_Processor.getCurrentProcessorId();
-	int thread_id    = previous_thread.getIndex();
-	if (! timerTick) {
-	  thread_id = -thread_id;
-	}
-	VM.sysWrite("VP ", processor_id,", tid ",thread_id);
-      }
-
-      // dump real time and change in real time
-      long real_time       = VM_Magic.getTimeBase();
-      long real_time_delta = real_time - previous_thread.startOfRealTime;
-      if (real_time_delta < 0) {
-	VM.sysWrite("***VM_Processor.updateHPMcounters(");
-	VM.sysWrite(previous_thread.getClass().getName());
-	VM.sysWrite(") real time overflowed: start ",previous_thread.startOfRealTime);
-	VM.sysWrite(" current ",real_time);
-	VM.sysWrite(" delta ",real_time_delta);VM.sysWriteln("!***");
-      } else {
-	previous_thread.hpm_counters.counters[0] += real_time_delta;
-                        hpm_counters.counters[0] += real_time_delta;
-      }
-      if (current_thread != null) 
-	current_thread.startOfRealTime = real_time;
-      if (hpm_trace) {
-	VM.sysWrite(" RT "); VM.sysWriteLong(real_time);
-	VM.sysWrite(" D "); VM.sysWriteLong(real_time_delta);
-      }
-      // dump counters
-      for (int i=1; i<=n_counters; i++) {
-	long value = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,i);
-	if (hpm_trace && value > 0) { 
-	  VM.sysWrite(" ",i,": "); VM.sysWrite(value);
-	}
-                        hpm_counters.counters[i] += value;// update virtual processor HPM counters
-	previous_thread.hpm_counters.counters[i] += value;// update thread HPM counters
-      }
-      if (hpm_trace) VM.sysWriteln();
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
-    }
-    //-#endif
   }
 
   /**
@@ -308,7 +236,7 @@ implements VM_Uninterruptible, VM_Constants {
           // on the RVM	
           i++;
           if (loopcheck++ >= 1000000) break;
-          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread);
+          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread,"VM_Processor.getRunnableThread() assert t.isNativeIdleThread");
         }
       } else {
         if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
