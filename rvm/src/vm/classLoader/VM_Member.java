@@ -110,7 +110,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   }
   
   /**
-   * Usable from classes outside this package?
+   * Usable from classes outside its package?
    */ 
   public final boolean isPublic() {
     return (modifiers & ACC_PUBLIC) != 0; 
