@@ -11,8 +11,8 @@ import com.ibm.JikesRVM.opt.*;
  *  This class holds GC maps for various program points.
  *  This data structure is IR-based.  In a later phase, this information
  *  will be used to create the final GC map (see VM_OptMachineCodeMap.java)
- *  @author Michael Hind
  *
+ *  @author Michael Hind
  */
 public final class OPT_GCIRMap {
 
@@ -158,14 +158,11 @@ public final class OPT_GCIRMap {
    * @param inst    the IR instruction we want to remove
    */
   public void moveToEnd(OPT_Instruction inst) {
-
     boolean instructionInList = false;
-    // make sure list is not null
     if (list.first() != null) {
-
       OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-      // is it at the head of the list
       if (ptr.getInstruction() == inst) {
+	// it is at the head of the list
 	instructionInList = true;
 	list.removeHead();
 	list.append(ptr);
@@ -174,7 +171,6 @@ public final class OPT_GCIRMap {
 	for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
 	     ptr_next != null; 
 	     ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
-	  
 	  if (ptr_next.getInstruction() == inst) {
 	    instructionInList = true;
 	    list.removeNext(ptr);
@@ -184,7 +180,7 @@ public final class OPT_GCIRMap {
 	}
       }
     }
-    if (! instructionInList) {
+    if (!instructionInList) {
       throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd("+inst+
 						") did not delete instruction from GC Map ");
     }
