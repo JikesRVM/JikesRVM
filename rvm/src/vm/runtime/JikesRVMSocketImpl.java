@@ -1,6 +1,5 @@
 /*
- * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp 2002  All Rights Reserved
+ * (C) Copyright IBM Corp 2002
  */
 // $Id$
 package com.ibm.JikesRVM;
