@@ -133,10 +133,12 @@ Classpath jazzlib license is available at
 The first and second items are available  from the Jikes RVM
 \xlink{download}{\RVMDownloadURL} page. The third item is available at
 \xlink{jazzlib}{\jazzlibURL} page.  
-However, you do not need to explicitly download the 
+You do not always need to explicitly download
 second and third items; the Jikes RVM build process will automatically
-check that these two items are present. If they are not present, the
-files will be automatically downloaded, after asking for your
+check that these two items are present. If they are not present, and if
+the build process can confirm that you have viewed the appropriate license
+for JLIBRARIES, the build process
+will automatically download these items after asking for your
 confirmation. 
 
 Once these files have been downloaded, you will set up 
@@ -186,8 +188,9 @@ directory such as
 % zcat jikesrvm-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-Next, extract the Jikes RVM standard libraries, or ignore this step and
-it will be performed automatically for you when you try to build a
+Next, extract the Jikes RVM standard libraries. If you have previously
+downladed some version of the libraries, you may ignore this step and
+it will happen automatically for you when you try to build a
 Jikes RVM configuration.  The following installs the
 standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \begin{verbatim}
@@ -195,8 +198,10 @@ standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 % zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-If you downloaded the jazzlib library, place it also in 
-{\tt \$RVM\_ROOT/support/lib}.  If you did not download the library,
+If you explicitly downloaded the jazzlib library, place it also in 
+{\tt \$RVM\_ROOT/support/lib}.  You must rename the jar file 
+to be called {\tt jazzlib.jar}.
+If you did not download the library,
 it will also be automatically retrieved when you try to build a Jikes RVM
 configuration. 
 
