@@ -5,7 +5,7 @@ scheduled and synchronized by Jikes\TMweb{} RVM.
 \index{scheduling}
 \index{locking}
 
-All Java threads (application threads, garbage collector threads, {\em
+\label{threads:single-virtual-processor}All Java threads (application threads, garbage collector threads, {\em
 etc.})  derive from 
 \xlink{{\tt VM\_Thread}}{\VMThreadURL}.  
 These threads are multiplexed onto
@@ -18,9 +18,9 @@ processors may be created to handle threads executing non-Java code
 through the Java JNI.  Multiple virtual processors require a working
 pThread library, each virtual processor being bound to a pThread.  It
 is possible to build a system that only uses one virtual processor by
-setting the preprocessor directive {\tt
-RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} to 1.  This may give a minor
-performance benefit on uniprocessors. See the configuration files
+setting the preprocessor directive 
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} to 1.  This may give a minor
+performance benefit on uniprocessors. See the configuration file
 {\tt BaseBaseCopyMSUP} for examples of
 using this preprocessor directive.
 
