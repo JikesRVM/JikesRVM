@@ -1,5 +1,8 @@
-/*
- * (C) Copyright IBM Corp. 2001
+/* -*-coding: iso-8859-1 -*-
+ *
+ * Copyright © IBM Corp 2001, 2004
+ *
+ * $Id$
  */
 package org.vmmagic.unboxed;
 
@@ -9,17 +12,15 @@ import com.ibm.JikesRVM.VM_SizeConstants;
 import org.vmmagic.pragma.*;
 
 /**
- * The address type is used by the runtime system and collector to
+ * The {@link Address} type is used by the runtime system and collector to
  * denote machine addresses.  We use a separate type instead of the
  * Java int type for coding clarity,  machine-portability (it can map
  * to 32 bit and 64 bit integral types), and access to unsigned
- * operations (Java does not have unsigned int types).<p>
- *
+ * operations (Java does not have unsigned int types).
+ * <p>
  * For efficiency and to avoid meta-circularity, the Address class is
  * intercepted like magic and converted into the base type so no
  * Address object is created run-time.
- *
- * $Id$
  *
  * @author Perry Cheng
  * @modified Daniel Frampton
@@ -44,7 +45,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   //-#if RVM_FOR_32_ADDR
   /**
-   * Create an <code>Address</code> instance from an integer.
+   * Create an {@link Address} instance from an integer.
    */
   Address(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -52,7 +53,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
   //-#elif RVM_FOR_64_ADDR
   /**
-   * Create an <code>Address</code> instance from a long.
+   * Create an {@link Address} instance from a long.
    */
   Address(long address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -67,7 +68,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
 
   /**
-   * Return an <code>Address</code> instance that reflects the value
+   * Return an {@link Address} instance that reflects the value
    * zero.
    *
    * @return An address instance that reflects the value zero.
@@ -88,11 +89,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return an <code>Address</code> instance that reflects the maximum
-   * allowable <code>Address</code> value.
+   * Return an {@link Address} instance that reflects the maximum
+   * allowable {@link Address} value.
    *
-   * @return An <code>Address</code> instance that reflects the
-   * maximum allowable <code>Address</code> value.
+   * @return An {@link Address} instance that reflects the
+   * maximum allowable {@link Address} value.
    */
   public static Address max() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -101,10 +102,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Return <code>true</code> if this instance is the maximum allowable
-   * <code>Address</code> value.
+   * {@link Address} value.
    * 
    * @return <code>true</code> if this instance is the maximum allowable
-   * <code>Address</code> value.
+   * {@link Address} value.
    */
   public boolean isMax() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -117,10 +118,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
 
   /**
-   * Fabricate an <code>Address</code> instance from an integer, after
+   * Fabricate an {@link Address} instance from an integer, after
    * sign extending the integer.
    *
-   * @param address the integer from which to create an <code>Address</code>
+   * @param address the integer from which to create an {@link Address}
    * instance
    * @return An address instance
    */
@@ -131,10 +132,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Fabricate an <code>Address</code> instance from an integer, after
+   * Fabricate an {@link Address} instance from an integer, after
    * zero extending the integer.
    *
-   * @param address the integer from which to create an <code>Address</code>
+   * @param address the integer from which to create an {@link Address}
    * instance
    * @return An address instance
    */
@@ -151,9 +152,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   //-#if RVM_FOR_64_ADDR
   /**
-   * Fabricate an <code>Address</code> instance from a long.
+   * Fabricate an {@link Address} instance from a long.
    *
-   * @param address the long from which to create an <code>Address</code>
+   * @param address The long from which to create an {@link Address}
    * instance
    * @return An address instance
    */
@@ -165,12 +166,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   //-#endif
 
   /**
-   * Fabricate an <code>Address</code> instance from an integer
+   * Fabricate an {@link Address} instance from an integer
    *
    * @deprecated To support 32 & 64 bits, the user should be explicit
    * about sign extension
    *
-   * @param address the integer from which to create an <code>Address</code>
+   * @param address the integer from which to create an {@link Address}
    * instance
    * @return An address instance
    */
@@ -182,8 +183,8 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Fabricate an <code>ObjectReference</code> instance from an
-   * <code>Address</code> instance.  It is the user's responsibility
-   * to ensure that the <code>Address</code> is suitable (i.e. it
+   * {@link Address} instance.  It is the user's responsibility
+   * to ensure that the {@link Address} is suitable (i.e. it
    * points to the object header, or satisfies any other VM-specific
    * requirement for such a conversion).
    *
@@ -196,10 +197,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Return an integer that reflects the value of this
-   * <code>Address</code> instance.
+   * {@link Address} instance.
    *
    * @return An integer that reflects the value of this
-   * <code>Address</code> instance.
+   * {@link Address} instance.
    */
   public int toInt () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -208,10 +209,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Return an long that reflects the value of this
-   * <code>Address</code> instance.
+   * {@link Address} instance.
    *
    * @return An long that reflects the value of this
-   * <code>Address</code> instance.
+   * {@link Address} instance.
    */
   public long toLong () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -224,10 +225,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Return a <code>Word</code> instance that reflects the value of
-   * this <code>Address</code> instance.
+   * this {@link Address} instance.
    *
    * @return A <code>Word</code> instance that reflects the value of
-   * this <code>Address</code> instance.
+   * this {@link Address} instance.
    */
   public Word toWord() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -240,10 +241,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
 
   /**
-   * Add an integer to this <code>Address</code>, and return the sum.
+   * Add an integer to this {@link Address}, and return the sum.
    *
-   * @param  v the value to be added to this <code>Address</code>
-   * @return An <code>Address</code> instance that reflects the result
+   * @param  v the value to be added to this {@link Address}
+   * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
   public Address add(int v) throws UninterruptibleNoWarnPragma {
@@ -252,11 +253,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Add an <code>Offset</code> to this <code>Address</code>, and
+   * Add an {@link Offset} to this {@link Address}, and
    * return the sum.
    *
-   * @param offset the <code>Offset</code> to be added to the address
-   * @return An <code>Address</code> instance that reflects the result
+   * @param offset the {@link Offset} to be added to the address
+   * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
   public Address add(Offset offset) throws UninterruptibleNoWarnPragma {
@@ -269,12 +270,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Add an <code>Extent</code> to this <code>Address</code>, and
+   * Add an {@link Extent} to this {@link Address}, and
    * return the sum.
    *
-   * @param extent the <code>Extent</code> to be added to this
-   * <code>Address</code>
-   * @return An <code>Address</code> instance that reflects the result
+   * @param extent the {@link Extent} to be added to this
+   * {@link Address}
+   * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
   public Address add(Extent extent) throws UninterruptibleNoWarnPragma {
@@ -287,12 +288,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Subtract an integer from this <code>Address</code>, and return
+   * Subtract an integer from this {@link Address}, and return
    * the result.
    *
-   * @param v the integer to be subtracted from this
-   * <code>Address</code>.
-   * @return An <code>Address</code> instance that reflects the result
+   * @param v The integer to be subtracted from this
+   * {@link Address}.
+   * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
   public Address sub(int v) throws UninterruptibleNoWarnPragma {
@@ -301,12 +302,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Subtract an <code>Offset</code> from this <code>Address</code>, and
+   * Subtract an {@link Offset} from this {@link Address}, and
    * return the result.
    *
-   * @param offset the <code>Offset</code> to be subtracted from this
-   * <code>Address</code>.
-   * @return An <code>Address</code> instance that reflects the result
+   * @param offset the {@link Offset} to be subtracted from this
+   * {@link Address}.
+   * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
   public Address sub(Offset offset) throws UninterruptibleNoWarnPragma {
@@ -319,12 +320,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Subtract an <code>Extent</code> from this <code>Address</code>, and
+   * Subtract an {@link Extent} from this {@link Address}, and
    * return the result.
    *
-   * @param extent the <code>Extent</code> to be subtracted from this
-   * <code>Address</code>.
-   * @return An <code>Address</code> instance that reflects the result
+   * @param extent the {@link Extent} to be subtracted from this
+   * {@link Address}.
+   * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
   public Address sub(Extent extent) throws UninterruptibleNoWarnPragma {
@@ -337,12 +338,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Compute the difference between two <code>Address</code>es and
+   * Compute the difference between two {@link Address}es and
    * return the result.
    *
-   * @param addr2 the <code>Address</code> to be subtracted from this
-   * <code>Address</code>.
-   * @return An <code>Offset</code> instance that reflects the result
+   * @param addr2 the {@link Address} to be subtracted from this
+   * {@link Address}.
+   * @return An {@link Offset} instance that reflects the result
    * of the subtraction.
    */
   public Offset diff(Address addr2) throws UninterruptibleNoWarnPragma {
@@ -361,12 +362,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
 
   /**
-   * Return true if this <code>Address</code> instance is <i>less
+   * Return true if this {@link Address} instance is <i>less
    * than</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>less
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>less
    * than</i> <code>addr2</code>.
    */
  public boolean LT(Address addr2) {
@@ -378,12 +379,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>less
+   * Return true if this {@link Address} instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>less
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean LE(Address addr2) {
@@ -392,12 +393,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>greater
+   * Return true if this {@link Address} instance is <i>greater
    * than</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>greater
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>greater
    * than</i> <code>addr2</code>.
    */
   public boolean GT(Address addr2) {
@@ -406,12 +407,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>greater
+   * Return true if this {@link Address} instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>greater
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean GE(Address addr2) {
@@ -420,12 +421,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>equal
+   * Return true if this {@link Address} instance is <i>equal
    * to</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>equal
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>equal
    * to</i> <code>addr2</code>.
    */
   public boolean EQ(Address addr2) {
@@ -434,12 +435,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>not equal
+   * Return true if this {@link Address} instance is <i>not equal
    * to</i> <code>addr2</code>.
    *
-   * @param addr2 the <code>Address</code> to be compared to this
-   * <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>not
+   * @param addr2 the {@link Address} to be compared to this
+   * {@link Address}.
+   * @return true if this {@link Address} instance is <i>not
    * equal to</i> <code>addr2</code>.
    */
   public boolean NE(Address addr2) {
@@ -621,7 +622,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Loads a double from the memory location pointed to by the
+   * Loads a <code>double</code> from the memory location pointed to by the
    * current instance.
    *
    * @return the read value
@@ -632,7 +633,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Loads a double from the memory location pointed to by the
+   * Loads a <code>double</code> from the memory location pointed to by the
    * current instance.
    *
    * @param offset the offset to the value.
@@ -645,7 +646,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
 
   /** 
-   * Loads an address value from the memory location pointed to by the
+   * Loads an {@link Address} value from the memory location pointed to by the
    * current instance.
    *
    * @return the read address value.
@@ -656,7 +657,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Loads an address value from the memory location pointed to by the
+   * Loads an {@link Address} value from the memory location pointed to by the
    * current instance.
    *
    * @param offset the offset to the value.
@@ -691,7 +692,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Stores the address value in the memory location pointed to by the
+   * Stores the {@link Address} value in the memory location pointed to by the
    * current instance.
    *
    * @param value The address value to store.
@@ -733,7 +734,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Stores the float value in the memory location pointed to by the 
+   * Stores the {@link float} value in the memory location pointed to by the 
    * current instance.
    *
    * @param value The float value to store.
@@ -743,7 +744,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Stores the float value in the memory location pointed to by the 
+   * Stores the {@lfloat value in the memory location pointed to by the 
    * current instance.
    *
    * @param value The float value to store.
@@ -755,20 +756,20 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
 
   /**
-   * Stores the word value in the memory location pointed to by the 
+   * Stores the {@link Word} value in the memory location pointed to by the 
    * current instance.
    *
-   * @param value The word value to store.
+   * @param value The {@link Word} value to store.
    */
   public void store(Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
-   * Stores the word value in the memory location pointed to by the 
+   * Stores the {@link Word} value in the memory location pointed to by the 
    * current instance.
    *
-   * @param value The word value to store.
+   * @param value The {@link Word} value to store.
    * @param offset the offset to the value.
    */
   public void store(Word value, Offset offset) {
@@ -776,10 +777,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Stores the byte value in the memory location pointed to by the 
-   * current instance.
+   * Stores the <code>byte</code> value in the memory location pointed to by
+   * the  current instance.
    *
-   * @param value The byte value to store.
+   * @param value The <code>byte</code> value to store.
    */
   public void store(byte value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -911,9 +912,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public Word prepareWord() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -922,10 +923,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
    * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public Word prepareWord(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -934,9 +935,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public ObjectReference prepareObjectReference() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -945,10 +946,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
    * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public ObjectReference prepareObjectReference(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -957,9 +958,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public Address prepareAddress() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -968,10 +969,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
    * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public Address prepareAddress(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -980,9 +981,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public int prepareInt() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -991,10 +992,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
+   * a related call to {@link #attempt}.
    *
    * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
+   * @return the old value to be passed to an {@link #attempt} call.
    */
   public int prepareInt(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1070,7 +1071,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
+   * related call to {@link #prepareObjectReference}.
    *
    * @param old the old value.
    * @param value the new value.
@@ -1085,7 +1086,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
+   * related call to @link #prepareAddress}.
    *
    * @param old the old value.
    * @param value the new value.
