@@ -675,9 +675,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	// in particular, see java.lang.Thread.join()
 	myThread.isAlive = false;
 	myThread.notifyAll();
-	
-	// we need to do this, but it does not work for now
-	// myThread.releaseThreadSlot();
     }
 	
     //
@@ -719,11 +716,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 //-#endif
     }   
 
-
     // become another thread
     // begin critical section
     //
     VM_Scheduler.threadCreationMutex.lock();
+    myThread.releaseThreadSlot();
+    
     myThread.beingDispatched = true;
     VM_Scheduler.threadCreationMutex.unlock();
 
@@ -1148,6 +1146,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Release this thread's threads[] slot.
    * Assumption: call is guarded by threadCreationMutex.
+   * Note that after a thread calls this method, it can no longer 
+   * make JNI calls.  This matters when exiting the VM, because it
+   * implies that this method must be called after the exit callbacks
+   * are invoked if they are to be able to do JNI.
    */ 
   final void releaseThreadSlot() {
     //  Problem:
