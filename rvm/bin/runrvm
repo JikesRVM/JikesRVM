@@ -98,6 +98,7 @@ user_args=("$@")
 declare -a sys_args
 sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
+		"-Duser.timezone=$(date +%Z)"				\
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
 		"-Djava.home=$rvm_root"					\
