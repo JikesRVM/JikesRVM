@@ -6,8 +6,13 @@
 #ifndef _H_HPM
 #define _H_HPM
 #include "pmapi.h"
-/* defined for pmapi.h */
-extern int errno;
+/* NOTE: If you need a definition for "errno", please use the one
+   you'll get with
+   #include <errno.h>.  That's because errno isn't always an "extern int"; it
+   can be a function invocation; in a multi-threaded environment, errno has to
+   access thread-specific data. */
+// extern int errno;	/* defined for pmapi.h */
+
 
 /* 
  * Header file for hpm.c 
