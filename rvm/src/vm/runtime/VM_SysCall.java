@@ -29,10 +29,13 @@ package com.ibm.JikesRVM;
  */
 public class VM_SysCall implements VM_Uninterruptible { 
 
-  // startup/shutdown
+  // lowlevel write to console
   public static void sysWriteChar(char v) {} 
   public static void sysWrite(int value, int hexToo) {}
   public static void sysWriteLong(long value, int hexToo) {}
+  public static void sysWriteDouble(double value, int postDecimalDigits) {}
+
+  // startup/shutdown
   public static void sysExit(int value) {}
   public static int sysArg(int argno, byte[] buf, int buflen) { return 0; }
 

@@ -599,43 +599,15 @@ public class VM extends VM_Properties implements VM_Constants,
 
 
   /**
-   * Low level print of double to console.  Can't pass doubles so printing code in Java.
+   * Low level print of double to console.
    *
    * @param value   double to be printed
    * @param int     number of decimal places
    */
   public static void write(double value, int postDecimalDigits) 
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
-    /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
-      if (value != value) {
-        write("NaN");
-        return;
-      }
-      if (value > Integer.MAX_VALUE) {
-        write("TooBig");
-        return;
-      }
-      if (value < -Integer.MAX_VALUE) {
-        write("TooSmall");
-        return;
-      }
-      boolean negative = (value < 0.0);
-      value = (value < 0.0) ? (-value) : value;
-      int ones = (int) value;
-      int multiplier = 1;
-      while (postDecimalDigits-- > 0)
-        multiplier *= 10;
-      int remainder = (int) (multiplier * (value - ones));
-      if (negative) write('-');
-      write(ones, false); 
-      write('.');
-      while (multiplier > 1) {
-        multiplier /= 10;
-        write(remainder / multiplier);
-        remainder %= multiplier;
-      }
-    }
+    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    if (runningVM)
+      VM_SysCall.sysWriteDouble(value, postDecimalDigits);
     else
       System.err.print(value);
   }

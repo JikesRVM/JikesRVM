@@ -197,6 +197,20 @@ sysWriteLong(long long value, int hexToo)
     }
 }
 
+// Console write (java double).
+//
+extern "C" void
+sysWriteDouble(double value,  int postDecimalDigits)
+{
+    if (value != value) {
+        fprintf(SysTraceFile, "NaN");
+    } else {
+        if (postDecimalDigits > 9) postDecimalDigits = 9;
+        char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
+        fprintf(SysTraceFile, tmp, value);
+    }
+}
+
 // Exit with a return code.
 //
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
