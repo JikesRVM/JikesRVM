@@ -378,6 +378,22 @@ declare -i RVM_FOR_STRESSGC=0
 # using on stack replacement 
 declare -i RVM_WITH_OSR=0
 
+
+# These ones were being left out.  In other words, they were tested but never set.
+declare -i RVM_WITHOUT_LOAD_BALANCING=0	# default in VM_IdleThread.java
+declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
+declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
+declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
+declare -i RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0
+declare -i RVM_WITH_LOCK_CONTENTION_TRACING=0
+declare -i RVM_WITH_PURPLE_VPS=0
+declare -i RVM_WITH_CONCURRENT_GC=0
+declare -i JIKESBT=0
+declare -i BLOCK_COUNTER_WORKS=0
+declare -i RVM_WITH_CLASS_WRITER=0
+declare -i RVM_WITH_DEBUG=0
+
+
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
@@ -473,10 +489,12 @@ fi
 #
 PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
 PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
-PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} $(env     \
+PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} $(set     \
       | sed -n  -e 's/^RVM_ON_/-DRVM_ON_/p'		\
 		-e 's/^RVM_FOR_/-DRVM_FOR_/p'		\
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'		\
+		-e 's/^JIKES/-DJIKES/p'		\
+		-e 's/^BLOCK_COUNTER_WORKS=/-DBLOCK_COUNTER_WORKS=/p'		\
 		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p')"
 
 # Place where bootimage runner lives.
