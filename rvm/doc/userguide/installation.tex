@@ -16,12 +16,14 @@ and build Jikes RVM for this platform:
 \begin{enumerate}
 
 \item Download and install a Java Virtual Machine if you have not
-already done so.  We currently recommend the Blackdown VM, v1.3.1,
-which you can download from \xlink{{\tt \BlackdownURL}}
-{\BlackdownURL}. \footnote{We have seen problems using the IBM 1.3.1
-DK; avoid it until these problems can be resolved. Also, please note
-that RedHat 8.x does have a `java' command, but that does not invoke a
-JVM and will not suffice for building Jikes RVM.}
+already done so.  We currently recommend the Blackdown VM v1.4.1. 
+For versions of Jikes RVM prior to 2.2.2, we recommend
+the Blackdown VM, v1.3.1. You can download these VMs from 
+from \xlink{{\tt \BlackdownURL}} {\BlackdownURL}. 
+\footnote{We have seen problems using the IBM 1.3.1 and 1.4.0
+DK to build the Jikes RVM bootimage. Also, please note that RedHat 8.x
+does have a `java' command, but that does not invoke a JVM and will
+not suffice for building Jikes RVM.}
 
 \item Download and install {\tt ksh} if you have not already done so.
 Obtain the latest rpm file for pdksh; you can get this from
@@ -119,11 +121,11 @@ Jikes          & 1.18+    & \xlink{\tt \jikesURL}{\jikesURL}       \\
 ksh            & {\em any}& \xlink{\tt \kshURL}{\kshURL}	   \\ \hline
 \multicolumn{3}{|c|}{\em Linux/IA32}                      \\ \hline
 kernel         & 2.4+ ({\em See below}) & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
-JDK            & Blackdown 1.3.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
+JDK            & Blackdown 1.3.1 or 1.4.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ ({\em See below}) & \xlink{\tt \glibcURL}{\glibcURL} \\ \hline
 \multicolumn{3}{|c|}{\em AIX/PowerPC}                     \\ \hline
 AIX            & 4.3+     &                          \\
-JDK            & IBM DK 1.3.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ \hline
+JDK            & IBM DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ \hline
 \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline\hline 
