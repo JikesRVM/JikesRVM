@@ -62,12 +62,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MarkSweepSpace msSpace;
   private static TreadmillSpace losSpace;
 
+  // GC state
+  private static int msReservedPages;
+  private static int availablePreGC;
+
   // Allocators
   public static final byte MS_SPACE = 0;
   private static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = MS_SPACE;
 
   // Miscellaneous constants
+  private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_PAGE_SIZE; // 1M
+  private static final double MS_RESERVE_FRACTION = 0.1;
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
@@ -130,6 +136,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final void boot()
     throws VM_PragmaInterruptible {
     StopTheWorldGC.boot();
+    msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
 
 
@@ -152,7 +159,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+    if (allocator == DEFAULT_SPACE && bytes >= LOS_SIZE_THRESHOLD) {
       region = los.alloc(isScalar, bytes);
     } else {
       switch (allocator) {
@@ -179,7 +186,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(VM_Address ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) {
+    if (allocator == DEFAULT_SPACE && size >= LOS_SIZE_THRESHOLD) {
       Header.initializeLOSHeader(ref, tib, size, isScalar);
     } else {
       switch (allocator) {
@@ -302,10 +309,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
+    if (gcInProgress || !initialized) return false;
     mustCollect |= ms.mustCollect();
     mustCollect |= stressTestGCRequired();
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+    availablePreGC = getTotalPages() - getPagesReserved();
+    int reserve = (mr == msMR) ? msReservedPages : 0;
+    if (mustCollect || availablePreGC <= reserve) {
       required = mr.reservedPages() - mr.committedPages();
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
@@ -388,10 +397,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     losSpace.release();
     msSpace.release();
     ImmortalSpace.release(immortalVM, null);
-    if (getPagesReserved() + required >= getTotalPages()) {
-      progress = false;
-    } else
-      progress = true;
+    int available = getTotalPages() - getPagesReserved();
+
+    progress = (available > availablePreGC) && (available > exceptionReserve);
+    if (progress) {
+      msReservedPages = (int) (available * MS_RESERVE_FRACTION);
+      int threshold = 2 * exceptionReserve;
+      if (threshold < MS_PAGE_RESERVE) threshold = MS_PAGE_RESERVE;
+      if (msReservedPages < threshold) 
+	msReservedPages = threshold;
+    } else {
+      msReservedPages = msReservedPages/2;
+    }
   }
 
 
