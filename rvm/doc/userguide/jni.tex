@@ -94,7 +94,7 @@ perturb the Java heap without notifying the RVM through a JNI method
 invocation.  Note that this preemption mechanism is currently only
 implemented on AIX.
 
-On Linux/IA32 Jikes RVM ``hijacks'' certain blocking system calls and
+On Linux/x86, Jikes RVM ``hijacks'' certain blocking system calls and
 reflects them back into the VM. The VM then uses nonblocking
 equivalents. This handles many of the common cases of blocking native
 code without requiring the full complexity of the timer-based
