@@ -12,6 +12,7 @@ import com.ibm.JikesRVM.classloader.*;
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
+ * @modified Steven Augart
  */
 public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_SizeConstants {
 
@@ -300,16 +301,9 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Print this compiled method's portion of a stack trace 
    * @param instructionOffset offset of machine instruction from start of method
-   * @param out the PrintStream to print the stack trace to.
+   * @param out the PrintLN to print the stack trace to.
    */
-  public abstract void printStackTrace(VM_Offset instructionOffset, java.io.PrintStream out);
-     
-  /**
-   * Print this compiled method's portion of a stack trace 
-   * @param instructionOffset offset of machine instruction from start of method
-   * @param out the PrintWriter to print the stack trace to.
-   */
-  public abstract void printStackTrace(VM_Offset instructionOffset, java.io.PrintWriter out);
+  public abstract void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
