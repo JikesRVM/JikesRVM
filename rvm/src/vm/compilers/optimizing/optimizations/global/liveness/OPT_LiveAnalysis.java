@@ -812,7 +812,20 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
         // For a statement like "x = y", we are capturing the program point 
         // "in the middle", i.e., during the execution, after the y has been 
         // fetched, but before the x has been defined.
+		
+		//-#if RVM_WITH_OSR
+		// Above observation is not true for an OSR instruction. The current
+		// design of the OSR instruction requires the compiler build a GC map
+		// for variables used by the instruction.
+		// Otherwise, the compiler generates an empty gc map for the instruction.
+		// This results run away references if GC happens when a thread is being OSRed.
+		//
+		// TODO: better design of yieldpoint_osr instruction.
+		// -- Feng July 15, 2003
+		if (createGCMaps && !OsrPoint.conforms(inst) && inst.isGCPoint()) {		  
+		//-#else
         if (createGCMaps && inst.isGCPoint()) {
+		//-#endif
           // make deep copy (and translate to regList) because we reuse
           // local above.
 	  // NOTE: this translation does some screening, see OPT_GCIRMap.java
@@ -820,14 +833,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
           blockStack.push(new MapElement(inst, regList));
           if (verbose) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made
-
-        //-#if RVM_WITH_OSR
-        if (createGCMaps && (OsrPoint.conforms(inst))) {
-	  // collect osr info using live set
-          collectOsrInfo(inst, local);
-        }
-        //-#endif
-
+		
         // now process the uses
         for (OPT_OperandEnumeration uses = inst.getUses(); 
             uses.hasMoreElements();) {
@@ -852,6 +858,19 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
             }
           }     // if operand is a Register
         }     // uses
+
+        //-#if RVM_WITH_OSR
+        if (createGCMaps && OsrPoint.conforms(inst)) {
+          
+		  // delayed gc map generation for Osr instruction, 
+		  // see comments before processing uses -- Feng, July 15, 2003
+		  OPT_LinkedList regList = map.createDU(local);
+          blockStack.push(new MapElement(inst, regList));
+
+	      // collect osr info using live set
+          collectOsrInfo(inst, local);
+        }
+        //-#endif
       }     // end instruction loop
 
       // The register allocator prefers that any registers that are live
