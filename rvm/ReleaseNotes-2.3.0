@@ -15,7 +15,7 @@ Highlights of this release include:
 Other notes:
 
 A number of other miscellaneous bugs in version 2.2.2
-are fixed in the 2.2.3 release.  See the developerWorks bug 
+are fixed in the 2.3.0 release.  See the developerWorks bug 
 tracking software tool and CVS history for details.
 
 We fixed the 587 Javadoc warnings in the source code. 
