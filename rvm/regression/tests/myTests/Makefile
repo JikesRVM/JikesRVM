@@ -6,7 +6,7 @@
 #
 # @author Julian Dolby
 #
-include		$(RVM_ROOT)/rvm/Make.rules.target
+include		$(RVM_BUILD)/Make.rules.target
 
 JCOMPILE=$(RVM_BUILD)/jbuild.tool
 
