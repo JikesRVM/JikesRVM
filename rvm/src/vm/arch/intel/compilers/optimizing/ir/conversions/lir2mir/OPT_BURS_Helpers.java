@@ -1448,6 +1448,15 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // first try to constant fold
     if (val1.isConstant() && val2.isConstant()) {
       foldIntCondMove(burs,s);
+      return;
+    }
+
+    // normalize for the IA32_CMP code
+    if (val1.isConstant()) {
+      OPT_Operand temp = val2;
+      val2 = val1;
+      val1 = temp;
+      cond = cond.flipCode();
     }
     
     // generate the condition codes.
