@@ -1657,7 +1657,6 @@ function emitImageLinker
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
-   print "   print '[Lcom/ibm/JikesRVM/VM_Address;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
