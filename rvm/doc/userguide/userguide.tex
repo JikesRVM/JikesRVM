@@ -16,8 +16,10 @@
 \newcommand{\Mmeta}[1]{{\it $<$#1$>$}} %meta-token
 %%% Hyperlatex doesn't seem to know about \rm.  
 \W \newcommand{\rm}{}
+\W \newcommand{\raggedright}{}
 \newcommand{\Mlitch}[1]{{ \bf ``{\tt #1}''}} %literal char or txt
 \newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
+\newcommand{\MZeroOrOne}[1]{{\(\Mlsq\mbox{#1}\Mrsq\)}}
 
 %%%
 %%% End of Meta-grammar symbols.
@@ -52,6 +54,8 @@
 \newcommand{\instruction}{\it}
 \T\newcommand{\SectionName}[1]{{\sc #1}}
 \W\newcommand{\SectionName}[1]{\textbf{#1}}
+\newcommand{\varName}[1]{\texttt{#1}}
+
 \newcommand{\RVMTarFile}{jikes\-r\-v\-m-{\version}\-.tar\-.gz}
 
 %Define URLs
@@ -403,7 +407,7 @@ User's Guide} \\ {\huge Post \version (CVS Head)}\\ { } \texonly{\vfill} }
 
 \T \newpage
 \xname{profiling}
-\section{Using \jrvm\ to Profile an Application}
+\section{Using \jrvm{} to Profile an Application}
 \input{profiling}
 
 \T \newpage
