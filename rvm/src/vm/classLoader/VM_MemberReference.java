@@ -233,45 +233,21 @@ public abstract class VM_MemberReference {
   }
 
   public final int hashCode() {
-    return dictionaryHash(this);
+    return className.hashCode() + memberName.hashCode() + descriptor.hashCode();
   }
 
-  public final boolean equals(Object that) {
-    if (that instanceof VM_MemberReference) {
-      return dictionaryCompare(this, (VM_MemberReference)that) == 1;
+  public final boolean equals(Object other) {
+    if (other instanceof VM_MemberReference) {
+      VM_MemberReference that = (VM_MemberReference)other;
+      return className == that.className &&
+	memberName == that.memberName &&
+	descriptor == that.descriptor &&
+	classloader.equals(that.classloader);
     } else {
       return false;
     }
   }
 
-  /**
-   * Hash VM_Dictionary keys.
-   */ 
-  public static int dictionaryHash(VM_MemberReference key) {
-    return VM_Atom.dictionaryHash(key.className) +
-      VM_Atom.dictionaryHash(key.memberName) +
-      VM_Atom.dictionaryHash(key.descriptor) ;
-  }
-
-  /**
-   * Compare VM_Dictionary keys.
-   * @return 0 iff "leftKey" is null
-   *         1 iff "leftKey" is to be considered a duplicate of "rightKey"
-   *         -1 otherwise
-   */
-  public static int dictionaryCompare(VM_MemberReference leftKey, VM_MemberReference rightKey) {
-    if (leftKey == null)
-      return 0;
-         
-    if (leftKey.classloader.equals(rightKey.classloader) && 
-	leftKey.className == rightKey.className &&
-	leftKey.memberName == rightKey.memberName &&
-	leftKey.descriptor == rightKey.descriptor )
-      return 1;
-      
-    return -1;
-  }
-   
   public final String toString() {
     return "<" + classloader + ", "+ className + ", " + memberName + ", " + descriptor + ">";
   }

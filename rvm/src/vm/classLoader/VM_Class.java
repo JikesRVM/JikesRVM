@@ -296,7 +296,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "utf" constant pool entry.
    */
   final VM_Atom getUtf(int constantPoolIndex) throws VM_PragmaUninterruptible {
-    return VM_AtomDictionary.getValue(constantPool[constantPoolIndex]);
+    return VM_Atom.getAtom(constantPool[constantPoolIndex]);
   }
 
   /**
@@ -756,7 +756,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	  {
 	    byte utf[] = new byte[input.readUnsignedShort()];
 	    input.readFully(utf);
-	    tmpPool[i] = VM_Atom.findOrCreateAtomId(utf);
+	    tmpPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
 	    break;  
 	  }
 
@@ -840,7 +840,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	    break; // out: jtoc slot number
 
 	  case TAG_TYPEREF: { // in: utf index
-	    VM_Atom typeName = VM_AtomDictionary.getValue(tmpPool[tmpPool[i]]);
+	    VM_Atom typeName = VM_Atom.getAtom(tmpPool[tmpPool[i]]);
 	    if (typeName.isArrayDescriptor())
 	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId(typeName, classLoader);
 	    else
@@ -852,7 +852,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	    { // in: utf index
 	      int utfIndex = tmpPool[i];
 	      constantPool[i] = VM_Statics.findOrCreateStringLiteral
-		(VM_AtomDictionary.getValue(tmpPool[utfIndex]));
+		(VM_Atom.getAtom(tmpPool[utfIndex]));
 	      break; 
 	    } // out: jtoc slot number
 
@@ -867,10 +867,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	      int memberNameIndex              = (memberNameAndDescriptorBits >> 16) & 0xffff;
 	      int memberDescriptorIndex        = (memberNameAndDescriptorBits       ) & 0xffff;
 
-	      VM_Atom className        = VM_AtomDictionary.getValue(tmpPool[tmpPool[classNameIndex]]);
+	      VM_Atom className        = VM_Atom.getAtom(tmpPool[tmpPool[classNameIndex]]);
 	      VM_Atom classDescriptor  = className.descriptorFromClassName();
-	      VM_Atom memberName       = VM_AtomDictionary.getValue(tmpPool[memberNameIndex]);
-	      VM_Atom memberDescriptor = VM_AtomDictionary.getValue(tmpPool[memberDescriptorIndex]);
+	      VM_Atom memberName       = VM_Atom.getAtom(tmpPool[memberNameIndex]);
+	      VM_Atom memberDescriptor = VM_Atom.getAtom(tmpPool[memberDescriptorIndex]);
 	      VM_MemberReference mr    = VM_MemberReference.findOrCreate(classLoader, classDescriptor, 
 									 memberName, memberDescriptor);
 	      constantPool[i] = mr.getId();
@@ -930,8 +930,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       myType.declaredFields = new VM_Field[numFields];
       for (int i = 0, n = myType.declaredFields.length; i < n; ++i) {
 	int      fmodifiers      = input.readUnsignedShort();
-	VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-	VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom  fieldName       = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
+	VM_Atom  fieldDescriptor = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
 
 	VM_MemberReference memRef = VM_MemberReference.findOrCreate(classLoader, myType.getDescriptor(), fieldName, fieldDescriptor);
 	myType.declaredFields[i] = new VM_Field(myType, memRef, fmodifiers, input);
@@ -945,8 +945,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       myType.declaredMethods = new VM_Method[numMethods];
       for (int i = 0, n = myType.declaredMethods.length; i < n; ++i) {
 	int       mmodifiers       = input.readUnsignedShort();
-	VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-	VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom   methodName       = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
+	VM_Atom   methodDescriptor = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
 	VM_MemberReference memRef  = VM_MemberReference.findOrCreate(classLoader, myType.getDescriptor(), methodName, methodDescriptor);
 	VM_Method method           = VM_Method.readMethod(myType, memRef, mmodifiers, input);
 	myType.declaredMethods[i] = method;

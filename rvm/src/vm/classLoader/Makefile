@@ -8,8 +8,7 @@
 
 include			$(RVM_ROOT)/rvm/build.Make.rules
 
-MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
-			$(GEN_FILES_DIR)/VM_TypeDictionary.java \
+MakeTemplates:		$(GEN_FILES_DIR)/VM_TypeDictionary.java \
 			$(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java \
 			$(GEN_FILES_DIR)/VM_IntLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java \
@@ -21,9 +20,6 @@ MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_FieldReferenceVector.java \
 			$(GEN_FILES_DIR)/VM_MethodVector.java
 			@print -n "(classloader templates expanded) "
-
-$(GEN_FILES_DIR)/VM_AtomDictionary.java:	VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_AtomDictionary VM_Atom VM_Atom VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_AtomDictionary.java
 
 $(GEN_FILES_DIR)/VM_TypeDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_TypeDictionary VM_Atom VM_Type VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_TypeDictionary.java

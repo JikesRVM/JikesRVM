@@ -5,19 +5,57 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
+import java.util.HashMap;
+
 /** 
- * A utf8-encoded byte string.
+ * An  utf8-encoded byte string.
  *
- * <p> VM_Atom's of a given value are stored only once in the vm,
+ * VM_Atom's are interned (cannonicalized) 
  * so they may be compared for equality using the "==" operator.
  *
- * <p> Atoms are used to represent names, descriptors, and string literals
+ * VM_Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
+public final class VM_Atom implements VM_ClassLoaderConstants {
+
+  /**
+   * Used to cannonicalize VM_Atoms
+   */
+  private static HashMap dictionary = new HashMap();
+
+  /**
+   * Dictionary of all VM_Atom instances.
+   */
+  private static VM_Atom[] atoms = new VM_Atom[16000];
+
+  /**
+   * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
+   */
+  private static int nextId = 1; 
+  
+  /**
+   * The utf8 value this atom represents
+   */
+  private final byte val[];  
+
+  /**
+   * Cached hash code for this atom.
+   */
+  private final int  hash;  
+   
+  /**
+   * The id of this atom
+   */
+  private int id;
+
+  /**
+   *@return the id of this atom.
+   */
+  final int getId() { return id; }
 
   /**
    * Find or create an atom.
@@ -26,30 +64,59 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    */
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(utf8));
+    return findOrCreate(utf8);
   }
 
   /**
    * Find or create an atom.
    * @param str atom value, as string literal whose characters are from 
-   * ascii subset of unicode (not including null)
+   *            ascii subset of unicode (not including null)
    * @return atom
    */ 
   public static VM_Atom findOrCreateAsciiAtom(String str) {
     int    len   = str.length();
     byte[] ascii = new byte[len];
     str.getBytes(0, len, ascii, 0);
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(ascii));
+    return findOrCreate(ascii);
   }
    
   /**
    * Find or create an atom.
    * @param utf8 atom value, as utf8 encoded bytes
-   * @return id, for use by VM_AtomDictionary.getValue()
+   * @return atom
    */
-  public static int findOrCreateAtomId(byte[] utf8) {
-    VM_Atom atom = new VM_Atom(utf8);
-    return VM_AtomDictionary.findOrCreateId(atom, atom);
+  public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
+    return findOrCreate(utf8);
+  }
+
+  /**
+   * @param id the id of an Atom
+   * @return the VM_Atom whose id was given
+   */
+  public static VM_Atom getAtom(int id) throws VM_PragmaUninterruptible {
+    return atoms[id];
+  }
+
+  private static VM_Atom findOrCreate(byte utf8[], int off, int len) {
+    byte val[] = new byte[len];
+    for (int i = 0; i < len; ++i)
+      val[i] = utf8[off++];
+    return findOrCreate(val);
+  }
+
+  private static synchronized VM_Atom findOrCreate(byte[] bytes) {
+    VM_Atom key = new VM_Atom(bytes);
+    VM_Atom val = (VM_Atom)dictionary.get(key);
+    if (val != null)  return val;
+    key.id = nextId++;
+    if (key.id == atoms.length) {
+      VM_Atom[] tmp = new VM_Atom[atoms.length+1000];
+      System.arraycopy(atoms, 0, tmp, 0, atoms.length);
+      atoms = tmp;
+    }
+    atoms[key.id] = key;
+    dictionary.put(key, key);
+    return key;
   }
 
   //-------------//
@@ -81,7 +148,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
-    return findOrCreateAtom(sig);
+    return findOrCreate(sig);
   }
 
   /**
@@ -96,7 +163,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
     sig[sig.length - 1] = (byte)';';
-    return findOrCreateAtom(sig);
+    return findOrCreate(sig);
   }
 
   /**
@@ -180,8 +247,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
       case DoubleTypeCode:  return VM_Type.DoubleType;
       case CharTypeCode:    return VM_Type.CharType;
       case ClassTypeCode:   // fall through
-      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, i, val.length - i), classloader);
-      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED); return null;
+      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreate(val, i, val.length - i), classloader);
+      default:              if (VM.VerifyAssertions) VM._assert(false); return null;
       }
   }
       
@@ -210,20 +277,20 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 	case ClassTypeCode: {
 	  int off = i - 1;
 	  while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
+	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreate(val, off, i - off), classloader));
 	  continue;
 	}
 	case ArrayTypeCode: {
 	  int off = i - 1;
 	  while (val[i] == ArrayTypeCode) ++i;
 	  if (val[i++] == ClassTypeCode) while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
+	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreate(val, off, i - off), classloader));
 	  continue;
 	}
 	case (byte)')': // end of parameter list
 	  return sigs.finish();
             
-	default: if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+	default: if (VM.VerifyAssertions) VM._assert(false);
 	}
   }
 
@@ -295,7 +362,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    */
   public final VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
-    return findOrCreateAtom(val, 1, val.length - 1);
+    return findOrCreate(val, 1, val.length - 1);
   }
 
   //-----------//
@@ -311,21 +378,6 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     return val.length;
   }
 
-  //----------------//
-  // implementation //
-  //----------------//
-
-  private final byte val[];  
-  private final int  hash;  
-   
-  /**
-   * To guarantee uniqueness, only the VM_Atom class may construct 
-   * VM_Atom instances.
-   * All VM_Atom creation should be performed by calling 
-   * "VM_Atom.findOrCreate" methods.
-   */ 
-  private VM_Atom() { val = null; hash = 0;}
-   
   /**
    * Create atom from given utf8 sequence.
    */ 
@@ -333,28 +385,43 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     int tmp = 99989;
     for (int i = utf8.length; --i >= 0; )
       tmp = 99991 * tmp + utf8[i];
-          
     this.val  = utf8;
     this.hash = tmp;
-  }
-
-  private static VM_Atom findOrCreateAtom(byte utf8[]) {
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(utf8));
-  }
-
-  private static VM_Atom findOrCreateAtom(byte utf8[], int off, int len) {
-    byte val[] = new byte[len];
-    for (int i = 0; i < len; ++i)
-      val[i] = utf8[off++];
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(val));
   }
 
   public final int hashCode() {
     return hash;
   }
 
+  public final boolean equals(Object other) {
+    if (this == other) return true;
+    if (other instanceof VM_Atom) {
+      VM_Atom that = (VM_Atom)other;
+      if (hash != that.hash) return false;
+      if (val.length != that.val.length) return false;
+      for (int i=0; i<val.length; i++) {
+	if (val[i] != that.val[i]) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static void spaceReport() {
+    int atomBytes = 0;
+    for (int i=1; i<atoms.length; i++) {
+      VM_Atom val = atoms[i];
+      if (val != null) atomBytes += val.length();
+    }
+    VM.sysWriteln("\n[B that are backing store for VM_Atom instances ", atomBytes);
+  }
+
+
   /**
    * Hash VM_Dictionary keys.
+   * TODO: delete me as soon as the string literal and type dictionaries die.
+   * @deprecated 
    */ 
   public static int dictionaryHash(VM_Atom atom) {
     return atom.hash;
@@ -362,9 +429,11 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 
   /**
    * Compare VM_Dictionary keys.
+   * TODO: delete me as soon as the string literal and type dictionaries die.
    * @return 0 iff "leftKey" is null
    *           1 iff "leftKey" is to be considered a duplicate of "rightKey"
    *          -1 otherwise
+   * @deprecated 
    */
   public static int dictionaryCompare(VM_Atom left, VM_Atom right) {
     if (left == null)
@@ -381,4 +450,5 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 
     return 1;
   }  
+
 }
