@@ -1350,7 +1350,6 @@ function emitImageLinker
    else
      print "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
      print "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
-     print "   \$FIND ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
      print "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
    fi
 

@@ -11,13 +11,13 @@ import java.net.URL;
 import java.util.Vector;
 import java.util.HashMap;
 
-import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
 import com.ibm.JikesRVM.VM_UnimplementedError;
 
-import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 
 /**
  * Library support interface of Jikes RVM
@@ -62,7 +62,7 @@ public final class Class implements java.io.Serializable {
   }
     
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
-    return ReflectionSupport.forName(className,initialize,classLoader);
+    return VM_ReflectionSupport.forName(className,initialize,classLoader);
   }
 
   public ClassLoader getClassLoader() {
@@ -71,7 +71,7 @@ public final class Class implements java.io.Serializable {
   }
 
   public Class getComponentType() {
-    return ReflectionSupport.getComponentType(this);
+    return VM_ReflectionSupport.getComponentType(this);
   }
 
   public Class[] getClasses() {
@@ -90,70 +90,70 @@ public final class Class implements java.io.Serializable {
   }
 
   public Constructor getConstructor(Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
-    return ReflectionSupport.getConstructor(this,parameterTypes);
+    return VM_ReflectionSupport.getConstructor(this,parameterTypes);
   }                                                                                            
   public Constructor[] getConstructors() throws SecurityException {
-    return ReflectionSupport.getConstructors(this);
+    return VM_ReflectionSupport.getConstructors(this);
   }
 
   public Class[] getDeclaredClasses() throws SecurityException {
-    return ReflectionSupport.getDeclaredClasses(this);
+    return VM_ReflectionSupport.getDeclaredClasses(this);
   }
 
   public Constructor getDeclaredConstructor(Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
-    return ReflectionSupport.getDeclaredConstructor(this,parameterTypes);
+    return VM_ReflectionSupport.getDeclaredConstructor(this,parameterTypes);
   }
 
   public Constructor[] getDeclaredConstructors() throws SecurityException {
-    return ReflectionSupport.getDeclaredConstructors(this);
+    return VM_ReflectionSupport.getDeclaredConstructors(this);
   }
 
   public Field getDeclaredField(String name) throws NoSuchFieldException, SecurityException {
-    return ReflectionSupport.getDeclaredField(this,name);
+    return VM_ReflectionSupport.getDeclaredField(this,name);
   }
 
   public Field[] getDeclaredFields() throws SecurityException {
-    return ReflectionSupport.getDeclaredFields(this);
+    return VM_ReflectionSupport.getDeclaredFields(this);
   }
 
   public Method getDeclaredMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
-    return ReflectionSupport.getDeclaredMethod(this,name,parameterTypes);
+    return VM_ReflectionSupport.getDeclaredMethod(this,name,parameterTypes);
   }
 
   public Method[] getDeclaredMethods() throws SecurityException {
-    return ReflectionSupport.getDeclaredMethods(this);
+    return VM_ReflectionSupport.getDeclaredMethods(this);
   }
 
   public Class getDeclaringClass() {
-    return ReflectionSupport.getDeclaringClass(this);
+    return VM_ReflectionSupport.getDeclaringClass(this);
   }
 
   public Field getField(String name) throws NoSuchFieldException, SecurityException {
-    return ReflectionSupport.getField(this,name);
+    return VM_ReflectionSupport.getField(this,name);
   }
 
   public Field[] getFields() throws SecurityException {
-    return ReflectionSupport.getFields(this);
+    return VM_ReflectionSupport.getFields(this);
   }
 
   public Class[] getInterfaces () {
-    return ReflectionSupport.getInterfaces(this);
+    return VM_ReflectionSupport.getInterfaces(this);
   }
 
   public Method getMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
-    return ReflectionSupport.getMethod(this,name,parameterTypes);
+    return VM_ReflectionSupport.getMethod(this,name,parameterTypes);
   }
 
   public Method[] getMethods() throws SecurityException {
-    return ReflectionSupport.getMethods(this);
+    return VM_ReflectionSupport.getMethods(this);
   }
 
   public int getModifiers() {
-    return ReflectionSupport.getModifiers(this);
+    return VM_ReflectionSupport.getModifiers(this);
   }
 
   public String getName() {
-    return ReflectionSupport.getName(this);
+    return VM_ReflectionSupport.getName(this);
   }
 
   public ProtectionDomain getProtectionDomain() {
@@ -188,31 +188,31 @@ public final class Class implements java.io.Serializable {
   }
 
   public Class getSuperclass () {
-    return ReflectionSupport.getSuperclass(this);
+    return VM_ReflectionSupport.getSuperclass(this);
   }
     
   public boolean isArray() {
-    return ReflectionSupport.isArray(this);     
+    return VM_ReflectionSupport.isArray(this);     
   }
 
   public boolean isAssignableFrom(Class cls) {
-    return ReflectionSupport.isAssignableFrom(this,cls);
+    return VM_ReflectionSupport.isAssignableFrom(this,cls);
   }
 
   public boolean isInstance(Object object) {
-    return ReflectionSupport.isInstance(this,object);
+    return VM_ReflectionSupport.isInstance(this,object);
   }
 
   public boolean isInterface() {
-    return ReflectionSupport.isInterface(this);
+    return VM_ReflectionSupport.isInterface(this);
   }
 
   public boolean isPrimitive() {
-    return ReflectionSupport.isPrimitive(this);
+    return VM_ReflectionSupport.isPrimitive(this);
   }
 
   public Object newInstance() throws IllegalAccessException, InstantiationException {
-    return ReflectionSupport.newInstance(this);
+    return VM_ReflectionSupport.newInstance(this);
   }
 
   private String toResourceName(String resName) {
@@ -227,7 +227,7 @@ public final class Class implements java.io.Serializable {
   }
 
   public String toString() {
-    return ReflectionSupport.classToString(this);
+    return VM_ReflectionSupport.classToString(this);
   }
 
   public Package getPackage() {

@@ -11,7 +11,6 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -20,7 +19,6 @@ import com.ibm.JikesRVM.classloader.VM_Type;
  * Library support interface of Jikes RVM
  *
  * @author Julian Dolby
- *
  */
 final class VMClassLoader {
 

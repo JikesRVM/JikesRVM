@@ -10,8 +10,6 @@ import com.ibm.JikesRVM.classloader.*;
 import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
 
-import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
-
 /**
  * This class implements the 211 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
@@ -5141,7 +5139,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Object initElement = (Object) env.getJNIRef(initElementJREF);
       Class cls = (Class) env.getJNIRef(classJREF);
 
-      Object newArray[] = (Object [])ReflectionSupport.newInstance(cls, length);
+      Object newArray[] = (Object [])VM_ReflectionSupport.newInstance(cls, length);
 
       if (initElement != null) {
 	for (int i=0; i<length; i++) {
