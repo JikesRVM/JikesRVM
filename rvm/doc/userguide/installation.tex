@@ -26,7 +26,8 @@ JVM and will not suffice for building Jikes RVM.}
 Obtain the latest rpm file for pdksh; you can get this from
 \xlink{rpmfind}{http://rpmfind.net}. 
 
-\item Download and install the Jikes compiler, if you have not already
+\item Download and install the Jikes (Java source to bytecode)
+compiler, if you have not already 
 done so (it is not included in standard RedHat installs).  You can
 obtain Jikes from \xlink{the Jikes developerWorks site}{\JikesURL}.
 Use the pre-built rpm file for jikes-1.18 or higher.
@@ -40,7 +41,7 @@ more-or-less right to begin with.  On Linux, most standard commands
 (and Jikes) are in /usr/bin.  Hereinafter, we will call your edited
 file RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine
 
-\item Setup your evironment with definitions required by Jikes RVM.
+\item Setup your environment with definitions required by Jikes RVM.
 There are four of these that you must use; in addition,
 RVM\_ROOT/rvm/bin should be in your path.
 \begin{description}
@@ -60,7 +61,8 @@ can be anywhere.
 \end{description}
 
 \item Setup a build directory with `jconfigure BaseBaseSemiSpace,' or
-use some other configuration if you prefer.
+use some other configuration if you prefer. See Section~\ref{configs}
+for information about the various configurations.
 
 \item Build Jikes RVM: go to RVM\_BUILD and type `./jbuild'
 
@@ -301,7 +303,7 @@ The remaining variables in the config file are not required for basic
 Jikes RVM builds.
 
 Someday we should consider setting up an autoconf to automate this
-step.
+step.  Contributions are welcome!
 
 \index{configurations}
 \index{jconfigure script}
@@ -370,7 +372,7 @@ save for future reference by redirecting standard out and err.
 
 
 After the {\tt jbuild} script has completed successfully you should be able 
-to run RVM.  (See Section~\ref{section:running}.)
+to run Jikes RVM.  (See Section~\ref{section:running}.)
 
 Note: The jbuild process may produce warning messages; these should not
 affect system viability.
@@ -404,11 +406,12 @@ the classes loaded at runtime.
 \item the {\em garbage collector} is the garbage collection scheme used.
 \end{itemize}
 
-The types of compilers -- the baseline compiler and 
-the optimizing compiler -- are designated by the names {\em Base}
+The types of compilers --- the baseline compiler and 
+the optimizing compiler --- are designated by the names {\em Base}
 and {\em Opt} respectively.  In these configurations,
-all classes loaded at runtime are compiled once, by the specified
-compiler.  This is different than the adaptive configurations,
+methods of classes loaded at runtime are compiled once by the specified
+compiler when they are first called.
+This is different than the adaptive configurations,
 discussed in Section~\ref{adaptive-configs}.
 
 A garbage collector may have any of the following types:
@@ -439,8 +442,10 @@ Some files augment the standard configurations as follows:
 \item The word 
 {\em Full} at the beginning of the configuration name identifies a 
 configuration
-such that all the Jikes RVM classes are included in the boot image (by default
-a small subset of these classes are included in the boot image). 
+such that all the Jikes RVM classes are included in the boot image 
+and are compiled by the optimizing compiler. 
+(By default only
+a small subset of these classes are included in the boot image.)
 \item The word
 {\em Fast} at the beginning of the configuration name identifies a Full
 configuration where all assertion checking has been turned off. 
@@ -451,9 +456,10 @@ either of these modifications is likely to run faster than without
 
 \subsubsection{Adaptive Configurations} \label{adaptive-configs}
 \index{adaptive configurations}
-In the non-adaptive configurations, all classes
+In the non-adaptive configurations, methods of classes
 loaded at runtime are compiled once by the specified
-compiler: base or opt.  Another option is to build one configuration,
+compiler: baseline or optimizing, when they are first called.  Another
+option is to build one configuration, 
 an adaptive configuration,
 where the runtime compiler is either
 \begin{itemize}
@@ -512,8 +518,9 @@ JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 
 Because the building of the boot image can be a relatively lengthy
-process, it can be advantageous to perform that task somewhere other
-than the target platform.  To cross build, simply set your
+process, it can be advantageous to perform this task 
+on a faster machine than the target platform.  To cross build, simply
+set your 
 RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
 be different files.
 
@@ -545,7 +552,7 @@ The build process is then completed by building just the boot loader {\em
 \end{verbatim}
 
 After the {\tt jbuild -booter} script has completed successfully you should be able 
-to run RVM. 
+to run Jikes RVM. 
 
 The building of the boot loader must occur in the same directory as
 the rest of the build.  This can either be done transparently via a
