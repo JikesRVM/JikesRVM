@@ -39,7 +39,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   SharedQueue(RawPageAllocator rpa, int arity) {
     this.rpa = rpa;
     this.arity = arity;
-    lock = new int[1];
+    lock = new Lock("SharedQueue");
     completionFlag = 0;
   }
 
@@ -131,12 +131,12 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   private VM_Address head;
   private VM_Address tail;
   private int bufsenqueued;
-  private int lock[];
+  private Lock lock;
 
   
   private final VM_Address dequeue(boolean waiting) {
     lock();
-    VM_Address rtn;
+    VM_Address rtn = VM_Address.zero();
     if (head.isZero()) {
       if (VM.VerifyAssertions) VM._assert(tail.isZero());
       // no buffers available
@@ -145,7 +145,6 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
 	if (numClientsWaiting == numClients)
 	  setCompletionFlag(1);
       }
-      rtn = VM_Address.zero();
     } else {
       // dequeue the head buffer
       rtn = head;
@@ -204,8 +203,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
    * synchronize access to the shared queue of buffers.
    */
   private final void lock() {
-    while (!(VM_Synchronization.testAndSet(lock, 0, 1)));
-    VM_Magic.isync();
+    lock.acquire();
   }
   
   /**
@@ -213,8 +211,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
    * access to the shared queue of buffers.
    */
   private final void unlock() {
-    lock[0] = 0;
-    VM_Magic.sync();
+    lock.release();
   }
 
   // need to use this to avoid generating a putfield and so causing write barrier recursion
