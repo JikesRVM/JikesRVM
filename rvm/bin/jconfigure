@@ -1444,13 +1444,11 @@ EOF
 	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
     fi
     
-    ADDRESS_TYPE="int"
-
     cat <<- EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    cd $CLASSES_DIRECTORY_STR
 	    rm -f $TOP_LEVEL_CLASSES
-	    $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
+	    $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
 	    echo -n '(classes compiled) '
 
 	    rm -f jksvm.jar
@@ -2002,8 +2000,6 @@ EOF
 	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
     fi
     
-    ADDRESS_TYPE="int"
-
     BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
@@ -2449,8 +2445,6 @@ function emitToolCompiler () {
 	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
     fi
 
-    ADDRESS_TYPE="int"
-
     echo 'if [[ '${BUILD_DIRECTORY_STR}' = "" ]]; then'
     echo '    echo >&2 "${ME}: please set your' ${BUILD_DIRECTORY_STR1} 'environment variable (eg. ${HOME}/rvmBuild)"'
     echo '    trap "" EXIT'
@@ -2477,8 +2471,6 @@ function emitToolCompiler () {
     echo '    elif [[ $1 = -trace ]]; then'
     echo '        TRACE_FLAG=-trace'
     echo '        shift'
-    echo '    elif [[ $1 == -* ]]; then'
-    echo '        usage'
     echo '    else'
     echo '        break'
     echo '    fi'
@@ -2488,7 +2480,7 @@ function emitToolCompiler () {
     echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
     echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
 
-    echo "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \"\$CPATH\" \"\$@\""
+    echo "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U -classpath \"\$CPATH\" \"\$@\""
 }
   
 # Emit script to run jbuild.prep on java files that are not part of the build
