@@ -489,11 +489,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
     // Jikes RVM currently forces scalars to have this property;
     // we may change this later to waste less space in 64bit mode.
-    int rawSize = (align != 4) ? (size + align) : size;
+    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != 4) {
+    if (align != BYTES_IN_ADDRESS) {
       // This code is based on some fancy modulo artihmetic.
       // It ensures the property (region + offset) % alignment == 0
       VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
@@ -535,12 +535,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
     // Jikes RVM does not ensure this for arrays, so we must round up here.
     int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
-    int rawSize = (align != 4) ? (size + align) : size;
+    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != 4) {
+    if (align != BYTES_IN_ADDRESS) {
       // This code is based on some fancy modulo artihmetic.
       // It ensures the property (region + offset) % alignment == 0
       VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
