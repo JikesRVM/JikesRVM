@@ -1167,6 +1167,7 @@ createJVM(int vmInSeparateThread)
     }
 #endif
 
+#ifndef MMAP_COPY_ON_WRITE
     // read image into memory segment
     //
     int cnt = fread(bootRegion, 1, actualImageSize, fin);
@@ -1185,6 +1186,7 @@ createJVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", Me, errno);
         return 1;
     }
+#endif
   
     // fetch contents of boot record which is at beginning of boot image
     //
