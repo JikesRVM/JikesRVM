@@ -51,11 +51,13 @@ public class VM_MagicNames {
   public static final VM_Atom getReturnAddressLocation      = VM_Atom.findOrCreateAsciiAtom("getReturnAddressLocation");
 
   public static final VM_Atom getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
+  public static final VM_Atom getCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("getCharAtOffset");
   public static final VM_Atom getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
   public static final VM_Atom getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
   public static final VM_Atom getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
   public static final VM_Atom getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
   public static final VM_Atom setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
+  public static final VM_Atom setCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("setCharAtOffset");
   public static final VM_Atom setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
   public static final VM_Atom setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
   public static final VM_Atom setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");

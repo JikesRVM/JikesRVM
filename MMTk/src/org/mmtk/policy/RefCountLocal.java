@@ -333,12 +333,12 @@ final class RefCountLocal extends SegregatedFreeList
       int sanityRC = RCBaseHeader.getTracingRC(obj);
       RCBaseHeader.clearTracingRC(obj);
       if (rc != sanityRC) {
-	VM_Interface.sysWrite("---> ");
-	VM_Interface.sysWrite(checked);
-	VM_Interface.sysWrite(" roots checked, RC mismatch: ");
-	VM_Interface.sysWrite(obj); VM_Interface.sysWrite(" -> ");
-	VM_Interface.sysWrite(rc); VM_Interface.sysWrite(" (rc) != ");
-	VM_Interface.sysWrite(sanityRC); VM_Interface.sysWrite(" (sanity)\n");
+	Log.write("---> ");
+	Log.write(checked);
+	Log.write(" roots checked, RC mismatch: ");
+	Log.write(obj); Log.write(" -> ");
+	Log.write(rc); Log.write(" (rc) != ");
+	Log.write(sanityRC); Log.writeln(" (sanity)");
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
     }
@@ -416,15 +416,15 @@ final class RefCountLocal extends SegregatedFreeList
    * potential garbage cycles (purple objects).
    */
   public final void printStats() {
-    VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
-    VM_Interface.sysWriteInt(incCounter); VM_Interface.sysWrite(" incs, ");
-    VM_Interface.sysWriteInt(decCounter); VM_Interface.sysWrite(" decs, ");
-    VM_Interface.sysWriteInt(rootCounter); VM_Interface.sysWrite(" roots");
+    Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
+    Log.write(incCounter); Log.write(" incs, ");
+    Log.write(decCounter); Log.write(" decs, ");
+    Log.write(rootCounter); Log.write(" roots");
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
-      VM_Interface.sysWrite(", "); 
-      VM_Interface.sysWriteInt(purpleCounter);VM_Interface.sysWrite(" purple");
+      Log.write(", "); 
+      Log.write(purpleCounter);Log.write(" purple");
     }
-    VM_Interface.sysWrite(">\n");
+    Log.writeln(">");
   }
 
 
@@ -434,12 +434,12 @@ final class RefCountLocal extends SegregatedFreeList
   public final void printTimes(boolean totals) {
     double time;
     time = (totals) ? Statistics.rcIncTime.sum() : Statistics.rcIncTime.lastMs();
-    VM_Interface.sysWrite(" inc: "); VM_Interface.sysWrite(time);
+    Log.write(" inc: "); Log.write(time);
     time = (totals) ? Statistics.rcDecTime.sum() : Statistics.rcDecTime.lastMs();
-    VM_Interface.sysWrite(" dec: "); VM_Interface.sysWrite(time);
+    Log.write(" dec: "); Log.write(time);
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
-      VM_Interface.sysWrite(" cd: "); VM_Interface.sysWrite(time);
+      Log.write(" cd: "); Log.write(time);
       cycleDetector.printTimes(totals);
     }
   }

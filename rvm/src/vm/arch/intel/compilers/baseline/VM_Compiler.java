@@ -3242,6 +3242,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_Reg (T0);
       return true;
     }
+
+    if (methodName == VM_MagicNames.getCharAtOffset) {
+      asm.emitPOP_Reg (T0);                  // object ref
+      asm.emitPOP_Reg (S0);                  // offset
+      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend char [T0+S0]
+      asm.emitPUSH_Reg (T0);
+      return true;
+    }
     
     if (methodName == VM_MagicNames.setIntAtOffset ||
 	methodName == VM_MagicNames.setObjectAtOffset ) {
@@ -3257,6 +3265,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
       asm.emitMOV_RegIdx_Reg_Byte(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0
+      return true;
+    }
+    
+    if (methodName == VM_MagicNames.setCharAtOffset) {
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (char) T0
       return true;
     }
     

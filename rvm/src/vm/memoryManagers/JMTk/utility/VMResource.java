@@ -50,11 +50,11 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void showAll () {
     for (int vmr = 0; vmr < count; vmr++) {
-      VM_Interface.sysWrite("VMResource ");
-      VM_Interface.sysWrite(vmr); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWrite(resources[vmr].start); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWrite(resources[vmr].end); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWriteln(resources[vmr].name);
+      Log.write("VMResource ");
+      Log.write(vmr); Log.write(" ");
+      Log.write(resources[vmr].start); Log.write(" ");
+      Log.write(resources[vmr].end); Log.write(" ");
+      Log.writeln(resources[vmr].name);
     }
   }
 
@@ -118,8 +118,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       int startPage = Conversions.addressToPagesDown(vm.start);
       for (int p = startPage; p < (startPage + vm.pages); p++) {
 	if (resourceTable[p] != null) {
-	  VM_Interface.sysWrite("Conflicting VMResource: ",vm.name);
-	  VM_Interface.sysWriteln(" and ",resourceTable[p].name);
+	  Log.write("Conflicting VMResource: "); Log.write(vm.name);
+	  Log.write(" and "); Log.writeln(resourceTable[p].name);
 	  VM_Interface.sysFail("Conflicting VMResource");
 	}
 	resourceTable[p] = vm;
@@ -190,9 +190,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     status = status_;
     VM_Interface.setHeapRange(index, start, end);
     if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
-      VM_Interface.sysWrite("\nError creating VMResrouce ",vmName);
-      VM_Interface.sysWriteln(" with range ",start," to ",end);
-      VM_Interface.sysWriteln("Exceeds the maximum mappable address for this OS of ",VM_Interface.MAXIMUM_MAPPABLE);
+      Log.write("\nError creating VMResrouce "); Log.write(vmName);
+      Log.write(" with range "); Log.write(start);
+      Log.write(" to "); Log.writeln(end);
+      Log.write("Exceeds the maximum mappable address for this OS of "); Log.writeln(VM_Interface.MAXIMUM_MAPPABLE);
       VM_Interface._assert(false);
     }
   }
@@ -212,9 +213,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     if (spaceTable == null) 
 	VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
     int pageStart = Conversions.addressToPages(start);
-    // VM.sysWrite("Acquiring pages ", pageStart);
-    // VM.sysWrite(" to ", pageStart + pageRequest - 1);
-    // VM.sysWriteln(" for space ", space);
+    // Log.write("Acquiring pages "); Log.write(pageStart);
+    // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
+    // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
 	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE ||
@@ -226,9 +227,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   protected void releaseHelp (VM_Address start, int pageRequest) {
     if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.releaseHelp called before VM is running");
     int pageStart = Conversions.addressToPages(start);
-    // VM.sysWrite("Releasing pages ", pageStart);
-    // VM.sysWrite(" to ", pageStart + pageRequest - 1);
-    // VM.sysWriteln(" for space ", space);
+    // Log.write("Releasing pages "); Log.write(pageStart);
+    // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
+    // Log.write(" for space "); Log.writeln(spac!e);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
 	  VM_Interface._assert(spaceTable[pageStart+i] == space ||

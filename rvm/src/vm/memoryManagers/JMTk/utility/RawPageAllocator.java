@@ -63,7 +63,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     }
     int pageIndex = freeList.alloc(pages);
     if (pageIndex == -1) {
-      VM_Interface.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
+      Log.writeln("RawPageAllocator: unable to satisfy raw page allocation request");
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));

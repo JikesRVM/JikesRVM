@@ -160,12 +160,12 @@ final class DoublyLinkedList
   public final void show() {
     if (lock != null) lock.acquire();
     VM_Address cur = head;
-    VM_Interface.sysWrite(cur);
+    Log.write(cur);
     while (!cur.isZero()) {
       cur =      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
-      VM_Interface.sysWrite(" -> ",cur);
+      Log.write(" -> "); Log.write(cur);
     }
-    VM_Interface.sysWriteln();
+    Log.writeln();
     if (lock != null) lock.release();
   }
 

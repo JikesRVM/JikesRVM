@@ -249,22 +249,22 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    */
   private void dbgPrintFree() {
     if (DEBUG) {
-      VM_Interface.sysWrite("FL[");
+      Log.write("FL[");
       int i = HEAD;
       while ((i = getNext(i)) != HEAD) {
 	boolean f = getFree(i);
 	int s = getSize(i);
 	if (!f)
-	  VM_Interface.sysWrite("->");
-	VM_Interface.sysWrite(i);
+	  Log.write("->");
+	Log.write(i);
 	if (!f)
-	  VM_Interface.sysWrite("<-");
-	VM_Interface.sysWrite("[");
-	VM_Interface.sysWrite(s);
-	VM_Interface.sysWrite("]");
-	VM_Interface.sysWrite(" ");
+	  Log.write("<-");
+	Log.write("[");
+	Log.write(s);
+	Log.write("]");
+	Log.write(" ");
       }
-      VM_Interface.sysWrite("]FL\n");
+      Log.write("]FL\n");
     }
   }
 

@@ -376,7 +376,7 @@ public abstract class Generational extends StopTheWorldGC
    * Perform a collection.
    */
   public final void collect () {
-    if ((Options.verbose >= 1) && (fullHeapGC)) VM_Interface.sysWrite("[Full heap]");
+    if ((Options.verbose >= 1) && (fullHeapGC)) Log.write("[Full heap]");
     super.collect();
   }
 
@@ -451,9 +451,9 @@ public abstract class Generational extends StopTheWorldGC
       // This is printed independently of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
       // will know---it will have a noticable performance hit...
-      VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
-      VM_Interface.sysWrite(wbFastPathCounter); VM_Interface.sysWrite(" wb-fast, ");
-      VM_Interface.sysWrite(wbSlowPathCounter); VM_Interface.sysWrite(" wb-slow>\n");
+      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
+      Log.write(wbFastPathCounter); Log.write(" wb-fast, ");
+      Log.write(wbSlowPathCounter); Log.writeln(" wb-slow>");
       wbFastPathCounter = wbSlowPathCounter = 0;
     }
     if (fullHeapGC) { 

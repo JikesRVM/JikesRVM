@@ -115,13 +115,13 @@ public class HybridHeader {
    * @param ref the object reference whose header should be dumped 
    */
   public static void dumpHeader(VM_Address ref) throws VM_PragmaUninterruptible {
-//     VM_Interface.sysWrite("(");
-//     VM_Interface.sysWrite(VM_Magic.objectAsAddress(ref));
-//     VM_Interface.sysWrite(" ");
-//     VM_Interface.sysWrite((isSmall(ref))  ? "S" : "s");
-//     VM_Interface.sysWrite((isArray(ref))  ? "A" : "a");
-//     VM_Interface.sysWrite((isMarked(ref)) ? "M" : "m");
-//     VM_Interface.sysWrite(")\n");
+//     Log.write("(");
+//     Log.write(VM_Magic.objectAsAddress(ref));
+//     Log.write(" ");
+//     Log.write((isSmall(ref))  ? "S" : "s");
+//     Log.write((isArray(ref))  ? "A" : "a");
+//     Log.write((isMarked(ref)) ? "M" : "m");
+//     Log.writeln(")");
     // nothing to do (no bytes of GC header)
   }
 

@@ -236,23 +236,28 @@ public abstract class StopTheWorldGC extends BasePlan
     Statistics.gcCount++;
     gcStartTime = start;
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
-      VM_Interface.sysWrite("[GC ",Statistics.gcCount);
-      if (Options.verbose == 1) 
-	VM_Interface.sysWrite(" Start ",(gcStartTime - bootTime)," s");
-      else	
-	VM_Interface.sysWrite(" Start ",1000*(gcStartTime - bootTime)," ms");
-      VM_Interface.sysWrite("   ",Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB ");
+      Log.write("[GC "); Log.write(Statistics.gcCount);
+      if (Options.verbose == 1) {
+	Log.write(" Start "); Log.write(gcStartTime - bootTime);
+	Log.write(" s");
+      } else {
+	Log.write(" Start "); Log.write(1000*(gcStartTime - bootTime));
+	Log.write(" ms");
+      }
+      Log.write("   ");
+      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
+      Log.write(" KB ");
     }
     if (Options.verbose > 2) {
-      VM_Interface.sysWrite("Collection ",Statistics.gcCount);
-      VM_Interface.sysWrite(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
-      VM_Interface.sysWriteln();
-      VM_Interface.sysWrite("  Before Collection: ");
+      Log.write("Collection "); Log.write(Statistics.gcCount);
+      Log.write(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);
+      Log.writeln();
+      Log.write("  Before Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	  VM_Interface.sysWrite("                     ");
-	  MemoryResource.showUsage(PAGES);
+	Log.write("                     ");
+	MemoryResource.showUsage(PAGES);
       }
     }
     globalPrepare();
@@ -278,7 +283,7 @@ public abstract class StopTheWorldGC extends BasePlan
       VM_Interface.prepareParticipating((Plan) this);  
     flushRememberedSets();
     VM_Interface.rendezvous();
-    if (Options.verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for start");
+    if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
 
@@ -286,7 +291,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Clean up after a collection
    */
   protected final void release() {
-    if (Options.verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for termination");
+    if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for termination");
     int order = VM_Interface.rendezvous();
     baseThreadLocalRelease(order);
     if (order == 1) {
@@ -298,7 +303,10 @@ public abstract class StopTheWorldGC extends BasePlan
 	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
 	}
       }
-      if (Options.verbose >= 4) VM_Interface.sysWriteln("  There were ",count," non-participating GC threads");
+      if (Options.verbose >= 4) {
+	Log.write("  There were "); Log.write(count);
+	Log.writeln(" non-participating GC threads");
+      }
     }
     order = VM_Interface.rendezvous();
     if (order == 1)
@@ -345,14 +353,14 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void processAllWork() throws VM_PragmaNoInline {
 
-    if (Options.verbose >= 4) VM_Interface.psysWriteln("  Working on GC in parallel");
+    if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
     do {
-      if (Options.verbose >= 5) VM_Interface.psysWriteln("    processing root locations");
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
 	traceObjectLocation(loc, true);
       }
-      if (Options.verbose >= 5) VM_Interface.psysWriteln("    processing interior root locations");
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
 	VM_Address obj = interiorRootLocations.pop1();
 	VM_Address interiorLoc = interiorRootLocations.pop2();
@@ -360,12 +368,12 @@ public abstract class StopTheWorldGC extends BasePlan
 	VM_Address newInterior = traceInteriorReference(obj, interior, true);
 	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
-      if (Options.verbose >= 5) VM_Interface.psysWriteln("    processing gray objects");
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
-      if (Options.verbose >= 5) VM_Interface.psysWriteln("    processing locations");
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing locations"); }
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);
@@ -374,7 +382,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
 
-    if (Options.verbose >= 4) VM_Interface.psysWriteln("    waiting at barrier");
+    if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     VM_Interface.rendezvous();
   }
 
@@ -395,50 +403,53 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void printStats() {
     gcStopTime = VM_Interface.now();
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
-      VM_Interface.sysWrite("-> ");
-      VM_Interface.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB   ");
-      if (Options.verbose == 1)
-	VM_Interface.sysWriteln(1000 * (gcStopTime - gcStartTime)," ms]");
-      else
-	VM_Interface.sysWriteln("End ",1000 * (gcStopTime - bootTime)," ms]");
+      Log.write("-> ");
+      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
+      Log.write(" KB   ");
+      if (Options.verbose == 1) {
+	Log.write(1000 * (gcStopTime - gcStartTime)); Log.writeln(" ms]");
+      } else {
+	Log.write("End "); Log.write(1000 * (gcStopTime - bootTime));
+	Log.writeln(" ms]");
+      }
     }
     if (Options.verbose > 2) {
-      VM_Interface.sysWrite("   After Collection: ");
+      Log.write("   After Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	  VM_Interface.sysWrite("                     ");
+	  Log.write("                     ");
 	  MemoryResource.showUsage(PAGES);
       }
-      VM_Interface.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
-      VM_Interface.sysWriteln();
-      VM_Interface.sysWrite("    Collection time: ");
-      VM_Interface.sysWrite(gcStopTime - gcStartTime,3);
-      VM_Interface.sysWriteln(" seconds");
+      Log.write("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);
+      Log.writeln();
+      Log.write("    Collection time: ");
+      Log.write(gcStopTime - gcStartTime,3);
+      Log.writeln(" seconds");
     }
     if (Options.verboseTiming) printDetailedTiming(false);
   }
 
   protected final void printDetailedTiming(boolean totals) {
     double time;
-    VM_Interface.sysWrite((totals) ? "<=" : "<");
+    Log.write((totals) ? "<=" : "<");
     time = (totals) ? Statistics.initTime.sum() : Statistics.initTime.lastMs();
-    VM_Interface.sysWrite("pre: "); VM_Interface.sysWrite(time);
+    Log.write("pre: "); Log.write(time);
     time = (totals) ? Statistics.rootTime.sum() : Statistics.rootTime.lastMs();
-    VM_Interface.sysWrite(" root: "); VM_Interface.sysWrite(time);
+    Log.write(" root: "); Log.write(time);
     time = (totals) ? Statistics.scanTime.sum() : Statistics.scanTime.lastMs();
-    VM_Interface.sysWrite(" scan: "); VM_Interface.sysWrite(time);
+    Log.write(" scan: "); Log.write(time);
     if (!Options.noReferenceTypes) {
       time = (totals) ? Statistics.refTypeTime.sum() : Statistics.refTypeTime.lastMs();
-      VM_Interface.sysWrite(" refs: "); VM_Interface.sysWrite(time);
+      Log.write(" refs: "); Log.write(time);
     }
     if (!Options.noFinalizer) {
       time = (totals) ? Statistics.finalizeTime.sum() : Statistics.finalizeTime.lastMs();
-      VM_Interface.sysWrite(" final: "); VM_Interface.sysWrite(time);
+      Log.write(" final: "); Log.write(time);
     }
     printPlanTimes(totals);
     time = (totals) ? Statistics.finishTime.sum() : Statistics.finishTime.lastMs();
-    VM_Interface.sysWrite(" post: "); VM_Interface.sysWrite(time);
-    VM_Interface.sysWrite((totals) ? " sec=>\n" : " ms>\n");
+    Log.write(" post: "); Log.write(time);
+    Log.write((totals) ? " sec=>\n" : " ms>\n");
   }
 }

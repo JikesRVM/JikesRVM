@@ -191,6 +191,19 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, 
 					   null));
+    } else if (methodName == VM_MagicNames.getCharAtOffset) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Char);
+      bc2ir.appendInstruction(Load.create(USHORT_LOAD, val, object, offset, 
+					  null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.setCharAtOffset) {
+      OPT_Operand val = bc2ir.popInt();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      bc2ir.appendInstruction(Store.create(SHORT_STORE, val, object, offset, 
+					   null));
     } else if (methodName == VM_MagicNames.getMemoryInt) {
       OPT_Operand memAddr = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTempInt();

@@ -175,7 +175,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /** Get at a string-like representation without doing any heap allocation.
    * Hideous but necessary.  We will use it in the PrintContainer class. */
-  public final byte[] toByteArray() {
+  public final byte[] toByteArray() throws VM_PragmaUninterruptible {
     return val;
   }
 

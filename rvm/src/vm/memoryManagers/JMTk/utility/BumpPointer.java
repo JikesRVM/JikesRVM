@@ -102,7 +102,8 @@ final class BumpPointer extends Allocator
   }
 
   public void show() {
-    VM_Interface.sysWriteln("cursor = ",cursor," limit = ",limit);
+    Log.write("cursor = "); Log.write(cursor);
+    Log.write(" limit = "); Log.writeln(limit);
   }
 
   ////////////////////////////////////////////////////////////////////////////

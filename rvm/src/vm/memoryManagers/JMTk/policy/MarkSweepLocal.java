@@ -131,18 +131,18 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private static void dumpSizeClassData() {
-    VM_Interface.sysWrite("\nsc\tc size\tsets\tcells\tblk sc\thdr\tspace\twaste\tutilization\n");
+    Log.writeln("\nsc\tc size\tsets\tcells\tblk sc\thdr\tspace\twaste\tutilization");
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
-      VM_Interface.sysWrite(sc); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(cellSize[sc]); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(bitmapSets[sc]); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(cellsInBlock[sc]); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(blockSizeClass[sc]); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(blockHeaderSize[sc]); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(cellSize[sc]*cellsInBlock[sc]); VM_Interface.sysWrite("\t");
-      //      VM.sysWrite(cellSize[sc]*cellsInBlock[sc]+blockHeaderSize[sc]+Block.BLOCK_HEADER_SIZE); VM.sysWrite("\t");
-      VM_Interface.sysWrite(BlockAllocator.blockSize(blockSizeClass[sc]) - (cellSize[sc]*cellsInBlock[sc]+blockHeaderSize[sc])); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(((float) (cellSize[sc]*cellsInBlock[sc]))/((float)  BlockAllocator.blockSize(blockSizeClass[sc]))); VM_Interface.sysWrite("\n");
+      Log.write(sc); Log.write("\t");
+      Log.write(cellSize[sc]); Log.write("\t");
+      Log.write(bitmapSets[sc]); Log.write("\t");
+      Log.write(cellsInBlock[sc]); Log.write("\t");
+      Log.write(blockSizeClass[sc]); Log.write("\t");
+      Log.write(blockHeaderSize[sc]); Log.write("\t");
+      Log.write(cellSize[sc]*cellsInBlock[sc]); Log.write("\t");
+      //      Log.write(cellSize[sc]*cellsInBlock[sc]+blockHeaderSize[sc]+Block.BLOCK_HEADER_SIZE); Log.write("\t");
+      Log.write(BlockAllocator.blockSize(blockSizeClass[sc]) - (cellSize[sc]*cellsInBlock[sc]+blockHeaderSize[sc])); Log.write("\t");
+      Log.write(((float) (cellSize[sc]*cellsInBlock[sc]))/((float)  BlockAllocator.blockSize(blockSizeClass[sc]))); Log.writeln();
     }
   }
 
@@ -204,13 +204,13 @@ final class MarkSweepLocal extends SegregatedFreeList
       VM_Interface._assert(maintainInUse());
 
     if (!((INUSE_BITMAP_BASE + offset) < blockHeaderSize[sizeClass])) {
-      VM_Interface.sysWriteln("cell                       = ",cell);
-      VM_Interface.sysWriteln("block.add(...)             = ",block.add(blockHeaderSize[sizeClass]));
-      VM_Interface.sysWriteln("cellSize[sizeClass]        = ",cellSize[sizeClass]);
-      VM_Interface.sysWriteln("index                      = ",index);
-      VM_Interface.sysWriteln("offset                     = ",offset);
-      VM_Interface.sysWriteln("sizeClass                  = ",sizeClass);
-      VM_Interface.sysWriteln("blockHeaderSize[sizeClass] = ",blockHeaderSize[sizeClass]);
+      Log.write("cell                       = "); Log.writeln(cell);
+      Log.write("block.add(...)             = "); Log.writeln(block.add(blockHeaderSize[sizeClass]));
+      Log.write("cellSize[sizeClass]        = "); Log.writeln(cellSize[sizeClass]);
+      Log.write("index                      = "); Log.writeln(index);
+      Log.write("offset                     = "); Log.writeln(offset);
+      Log.write("sizeClass                  = "); Log.writeln(sizeClass);
+      Log.write("blockHeaderSize[sizeClass] = "); Log.writeln(blockHeaderSize[sizeClass]);
     }
     VM_Interface._assert((INUSE_BITMAP_BASE + offset) < blockHeaderSize[sizeClass]);
   }
@@ -472,18 +472,18 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void shortFragmentationStatistics(boolean prepare) {
-    if (Options.verbose > 2) VM_Interface.sysWrite("\n");
+    if (Options.verbose > 2) Log.writeln();
     if (Options.verboseFragmentationStats)
-      VM_Interface.sysWrite((prepare) ? "> " : "< "); 
-    VM_Interface.sysWrite("(Waste ");
+      Log.write((prepare) ? "> " : "< "); 
+    Log.write("(Waste ");
     int waste = blockAllocator.unusedBytes();
-    VM_Interface.sysWrite("B ");
-    VM_Interface.sysWrite(waste/(float)(1<<20)); VM_Interface.sysWrite(" MB + ");
-    VM_Interface.sysWrite("F ");
+    Log.write("B ");
+    Log.write(waste/(float)(1<<20)); Log.write(" MB + ");
+    Log.write("F ");
     waste = unusedBytes(prepare);
-    VM_Interface.sysWrite(waste/(float)(1<<20)); VM_Interface.sysWrite(" MB)");
+    Log.write(waste/(float)(1<<20)); Log.write(" MB)");
     if (Options.verbose > 2 || Options.verboseFragmentationStats)
-      VM_Interface.sysWrite("\n");
+      Log.writeln();
   }
 
  
@@ -620,20 +620,20 @@ final class MarkSweepLocal extends SegregatedFreeList
 
   private final void printFragHeader(boolean prepare, boolean all) {
     if (all) {
-      VM_Interface.sysWrite(prepare ? "\n=> " : "\n=< ");
-      VM_Interface.sysWrite("TOTAL FRAGMENTATION ");
-      VM_Interface.sysWrite(prepare ? "BEFORE " : "AFTER ");
-      VM_Interface.sysWrite("GC INVOCATION");
-      VM_Interface.sysWrite(prepare ? "\n=> " : "\n=< ");
+      Log.write(prepare ? "\n=> " : "\n=< ");
+      Log.write("TOTAL FRAGMENTATION ");
+      Log.write(prepare ? "BEFORE " : "AFTER ");
+      Log.write("GC INVOCATION");
+      Log.write(prepare ? "\n=> " : "\n=< ");
     }
-    VM_Interface.sysWrite("\n");
-    if (all) VM_Interface.sysWrite("=");
-    VM_Interface.sysWrite((prepare) ? "> " : "< "); 
-    VM_Interface.sysWrite("szcls size    live free used net  util | ");
+    Log.writeln();
+    if (all) Log.write("=");
+    Log.write((prepare) ? "> " : "< "); 
+    Log.write("szcls size    live free used net  util | ");
     for (int pctl = 0; pctl < FRAG_PERCENTILES; pctl++) {
-      VM_Interface.sysWrite((pctl < (FRAG_PERCENTILES-1)) ? "<" : "<=");
-      VM_Interface.sysWrite((100*(pctl+1))/FRAG_PERCENTILES);
-      VM_Interface.sysWrite((pctl < (FRAG_PERCENTILES-1)) ? "% " : "%\n");
+      Log.write((pctl < (FRAG_PERCENTILES-1)) ? "<" : "<=");
+      Log.write((100*(pctl+1))/FRAG_PERCENTILES);
+      Log.write((pctl < (FRAG_PERCENTILES-1)) ? "% " : "%\n");
     }
     printFragDivider(prepare, all);
   }
@@ -642,13 +642,13 @@ final class MarkSweepLocal extends SegregatedFreeList
 				  int sizeClass, int usedCellBytes,
 				  int freeBytes, int cellBytes, int totBytes,
 				  int blocks) {
-    if (all) VM_Interface.sysWrite("=");
-    VM_Interface.sysWrite((prepare) ? "> " : "< "); 
+    if (all) Log.write("=");
+    Log.write((prepare) ? "> " : "< "); 
     if (totals)
-      VM_Interface.sysWrite("totals\t");
+      Log.write("totals\t");
     else {
-      VM_Interface.sysWrite(sizeClass); VM_Interface.sysWrite("\t");
-      VM_Interface.sysWrite(cellSize[sizeClass]);VM_Interface.sysWrite("\t");
+      Log.write(sizeClass); Log.write("\t");
+      Log.write(cellSize[sizeClass]);Log.write("\t");
     }
     printMB(usedCellBytes, " ");
     printMB(freeBytes, " ");
@@ -678,20 +678,20 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void printMB(int bytes, String str) {
-    VM_Interface.sysWrite(bytes/(double)(1<<20));
-    VM_Interface.sysWrite(str);
+    Log.write(bytes/(double)(1<<20));
+    Log.write(str);
   }
   private final void printRatio(int numerator, int denominator, String str) {
-    VM_Interface.sysWrite(numerator/(double)denominator); 
-    VM_Interface.sysWrite(str);
+    Log.write(numerator/(double)denominator); 
+    Log.write(str);
   }
   private final void printFragDivider(boolean prepare, boolean all) {
-    if (all) VM_Interface.sysWrite("=");
-    VM_Interface.sysWrite((prepare) ? "> " : "< "); 
-    VM_Interface.sysWrite("----------------------------------------");
+    if (all) Log.write("=");
+    Log.write((prepare) ? "> " : "< "); 
+    Log.write("----------------------------------------");
     for (int i = 0; i < FRAG_PERCENTILES; i++) 
-      VM_Interface.sysWrite("-----");
-    VM_Interface.sysWrite("\n");
+      Log.write("-----");
+    Log.writeln();
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -705,23 +705,23 @@ final class MarkSweepLocal extends SegregatedFreeList
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(maintainInUse() && preserveFreeList());
 
-    VM_Interface.sysWrite("<");
+    Log.write("<");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       VM_Address block = firstBlock.get(sizeClass);
       while (!block.isZero()) {
 	if (block.EQ(DEBUG_BLOCK)) {
-	  VM_Interface.sysWrite(firstBlock.get(sizeClass)); VM_Interface.sysWrite("[ ");
+	  Log.write(firstBlock.get(sizeClass)); Log.write("[ ");
 	}
 	int free = checkFreeList(block, sizeClass);
 	checkUsed(block, sizeClass, free);
 	if (block.EQ(DEBUG_BLOCK)) {
-	  VM_Interface.sysWrite(firstBlock.get(sizeClass)); VM_Interface.sysWrite("] ");
-	  VM_Interface.sysWrite("done\n");
+	  Log.write(firstBlock.get(sizeClass)); Log.write("] ");
+	  Log.writeln("done");
 	}
 	block = BlockAllocator.getNextBlock(block);
       }
     }
-    VM_Interface.sysWrite("sane>");
+    Log.write("sane>");
   }
 
   private final int checkFreeList(VM_Address block, int sizeClass) {
@@ -733,26 +733,28 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Address cell = isCurrent ? freeList.get(sizeClass) : getFreeList(block);
     int freeCells = 0;
 
-    if (debug)
-      VM_Interface.sysWrite(sizeClass," (");
+    if (debug) {
+      Log.write(sizeClass); Log.write(" (");
+    }
     while (!cell.isZero()) {
-      if (debug)
-	VM_Interface.sysWrite(" ",cell); 
+      if (debug) {
+	Log.write(" "); Log.write(cell); 
+      }
       freeCells++;
       if (!isFree(block, cell, sizeClass)) {
-	VM_Interface.sysWrite("  Extraneous free list entry: ",cell);
-	VM_Interface.sysWriteln(" ",block); 
+	Log.write("  Extraneous free list entry: "); Log.write(cell);
+	Log.write(" "); Log.writeln(block); 
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
       if (freeCells > MAX_CELLS) {
-	VM_Interface.sysWrite("  Runaway freelist: ",cell);
-	VM_Interface.sysWriteln(" ",block); 
+	Log.write("  Runaway freelist: "); Log.write(cell);
+	Log.write(" "); Log.writeln(block); 
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
       cell = getNextCell(cell);
     }
     if (debug)
-      VM_Interface.sysWrite(") ");
+      Log.write(") ");
 
     return freeCells;
   }
@@ -767,7 +769,7 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Address word = block.add(INUSE_BITMAP_BASE + offset);
     boolean inuse = !(VM_Magic.getMemoryWord(word).and(mask).isZero());
     if (inuse && block.EQ(DEBUG_BLOCK)) {
-      VM_Interface.sysWrite(index); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(block); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(word); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(VM_Magic.getMemoryWord(word)); VM_Interface.sysWrite("\n");
+      Log.write(index); Log.write(" "); Log.write(block); Log.write(" "); Log.write(word); Log.write(" "); Log.write(VM_Magic.getMemoryWord(word)); Log.writeln();
     }
     return !inuse;
   }
@@ -777,14 +779,14 @@ final class MarkSweepLocal extends SegregatedFreeList
 
     int used = 0;
     if (block.EQ(DEBUG_BLOCK)) {
-      VM_Interface.sysWrite("\n"); VM_Interface.sysWrite(sizeClass); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(bitmapSets[sizeClass]); VM_Interface.sysWrite("\n"); 
+      Log.writeln(); Log.write(sizeClass); Log.write(" "); Log.write(bitmapSets[sizeClass]); Log.writeln(); 
     }
     VM_Address base = block;
     for (int set = 0; set < bitmapSets[sizeClass]; set++) {
       VM_Address bitmap = base.add(INUSE_BITMAP_BASE + (set<<(LOG_WORD_SIZE+LOG_SET_SIZE)));
       VM_Word word = VM_Magic.getMemoryWord(bitmap);
       if (block.EQ(DEBUG_BLOCK)) {
-	VM_Interface.sysWrite(set); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(bitmap); VM_Interface.sysWrite(" "); VM_Interface.sysWrite(word); VM_Interface.sysWrite("\n");
+	Log.write(set); Log.write(" "); Log.write(bitmap); Log.write(" "); Log.write(word); Log.writeln();
       }
       for (int bit = 0; bit < WORD_BITS; bit++) {
 	if (!(word.and(VM_Word.fromInt(1<<bit)).isZero()))
@@ -799,19 +801,19 @@ final class MarkSweepLocal extends SegregatedFreeList
       inuse = getInUse(block);
 
     if (inuse != used) {
-      VM_Interface.sysWrite("Incoherent inuse count ");
-      VM_Interface.sysWrite(block); VM_Interface.sysWrite(": ");
-      VM_Interface.sysWrite(inuse); VM_Interface.sysWrite(" != ");
-      VM_Interface.sysWrite(used); VM_Interface.sysWrite("\n");
+      Log.write("Incoherent inuse count ");
+      Log.write(block); Log.write(": ");
+      Log.write(inuse); Log.write(" != ");
+      Log.write(used); Log.writeln();
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
     
     if ((cellsInBlock[sizeClass] - used) != free) {
-      VM_Interface.sysWrite("Incoherent free and inuse counts ");
-      VM_Interface.sysWrite(block); VM_Interface.sysWrite(": ");
-      VM_Interface.sysWrite(cellsInBlock[sizeClass]); VM_Interface.sysWrite(" != ");
-      VM_Interface.sysWrite(used); VM_Interface.sysWrite(" + ");
-      VM_Interface.sysWrite(free); VM_Interface.sysWrite("\n");
+      Log.write("Incoherent free and inuse counts ");
+      Log.write(block); Log.write(": ");
+      Log.write(cellsInBlock[sizeClass]); Log.write(" != ");
+      Log.write(used); Log.write(" + ");
+      Log.write(free); Log.writeln();
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
   }

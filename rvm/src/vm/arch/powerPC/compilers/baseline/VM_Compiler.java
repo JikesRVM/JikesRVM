@@ -3548,6 +3548,11 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
       pushInt(T0);    // push *(object+offset) 
+    } else if (methodName == VM_MagicNames.getCharAtOffset) {
+      popInt(T1);   // pop offset
+      popAddr(T0);   // pop object
+      asm.emitLHZX(T0, T1, T0);   // load char with zero extension.
+      pushInt(T0);    // push *(object+offset) 
     } else if (methodName == VM_MagicNames.setIntAtOffset){
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
@@ -3563,6 +3568,11 @@ public class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
+    } else if (methodName == VM_MagicNames.setCharAtOffset) {
+      popInt(T2); // pop newvalue
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitSTHX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == VM_MagicNames.getLongAtOffset) {
       popInt(T2); // pop offset
       popAddr(T1); // pop object
@@ -3769,7 +3779,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	       methodName == VM_MagicNames.wordToAddress ||
 	       methodName == VM_MagicNames.wordToWord) {
       // no-op   
-    } else if (methodName == VM_MagicNames.wordToLong){
+    } else if (methodName == VM_MagicNames.wordToLong) {
       asm.emitLI(T0,0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordFromInt ||

@@ -93,8 +93,8 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     if (TRACE) {
         VM_Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
         VM_Address referent = VM_Interface.getReferent(referenceAsAddress);
-        VM_Interface.sysWriteln("Adding Reference: ", referenceAsAddress);
-        VM_Interface.sysWriteln("       ReferENT:  ", referent);
+        Log.write("Adding Reference: "); Log.writeln(referenceAsAddress);
+        Log.write("       ReferENT:  "); Log.writeln(referent);
     }
     
     lock.acquire();
@@ -118,13 +118,13 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     if (TRACE) {
       switch (semantics) {
       case SOFT_SEMANTICS:
-        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(SOFT)");
+        Log.writeln("Starting ReferenceProcessor.traverse(SOFT)");
         break;
       case WEAK_SEMANTICS:
-        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(WEAK)");
+        Log.writeln("Starting ReferenceProcessor.traverse(WEAK)");
         break;
       case PHANTOM_SEMANTICS:
-        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(PHANTOM)");
+        Log.writeln("Starting ReferenceProcessor.traverse(PHANTOM)");
         break;
       }
     }
@@ -137,8 +137,9 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     
       
     while (!reference.isZero()) {
-      if (TRACE) 
-        VM_Interface.sysWriteln("+++ old reference: ", reference);
+      if (TRACE) {
+        Log.write("+++ old reference: "); Log.writeln(reference);
+      }
 
       // If the reference is dead, we're done with it. Let it (and
       // possibly its referent) be garbage-collected.
@@ -151,8 +152,8 @@ public class ReferenceProcessor implements VM_Uninterruptible {
         VM_Address oldReferent = VM_Interface.getReferent(reference);
 
         if (TRACE_DETAIL) {
-          VM_Interface.sysWriteln("    new reference: ", newReference);
-          VM_Interface.sysWriteln(" old referENT: ", oldReferent);
+          Log.write("    new reference: "); Log.writeln(newReference);
+          Log.write(" old referENT: "); Log.writeln(oldReferent);
         }
         
         // If the application has cleared the referent the Java spec says
@@ -168,7 +169,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
               // Keep phantomly reachable objects from being collected
               // until they are completely unreachable.
               if (TRACE_DETAIL) {
-                VM_Interface.sysWriteln("    resurrecting: ", oldReferent);
+                Log.write("    resurrecting: "); Log.writeln(oldReferent);
               }
               makeAlive(oldReferent);
               if (!VM_Interface.referenceWasEverEnqueued((Reference)VM_Magic.addressAsObject(newReference))) {
@@ -181,7 +182,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // Unless we've completely run out of memory, we keep
             // softly reachable objects alive.
             if (TRACE_DETAIL) {
-              VM_Interface.sysWriteln("    resurrecting: ", oldReferent);
+              Log.write("    resurrecting: "); Log.writeln(oldReferent);
             }
             makeAlive(oldReferent);
           }
@@ -193,7 +194,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             VM_Address newReferent = getForwardingAddress(oldReferent);
 
             if (TRACE) {
-              VM_Interface.sysWriteln(" new referENT: ", newReferent);
+              Log.write(" new referENT: "); Log.writeln(newReferent);
             }
             
             // The reference object stays on the waiting list, and the
@@ -221,7 +222,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // Referent is unreachable.
             
             if (TRACE) {
-              VM_Interface.sysWriteln(" UNREACHABLE:  ", oldReferent);
+              Log.write(" UNREACHABLE:  "); Log.writeln(oldReferent);
             }
 
             // Weak and soft references always clear the referent
@@ -231,7 +232,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // occur.
             if (semantics != PHANTOM_SEMANTICS) {
               if (TRACE_DETAIL) {
-                VM_Interface.sysWriteln(" clearing: ", oldReferent);
+                Log.write(" clearing: "); Log.writeln(oldReferent);
               }
               VM_Interface.setReferent(newReference, VM_Address.zero());
             }
@@ -266,7 +267,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
       VM_Interface.setNextReferenceAsAddress(prevReference, VM_Address.zero());
 
     if (TRACE) {
-      VM_Interface.sysWriteln("Ending ReferenceProcessor.traverse()");
+      Log.writeln("Ending ReferenceProcessor.traverse()");
     }
 
     return enqueued;

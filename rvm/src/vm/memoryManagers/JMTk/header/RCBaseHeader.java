@@ -224,19 +224,19 @@ public abstract class RCBaseHeader implements Constants {
 
   public static void print(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Interface.sysWrite(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
-    VM_Interface.sysWrite(' ');
+    Log.write(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
+    Log.write(' ');
     switch (getRCColor(object)) {
-    case BLACK: VM_Interface.sysWrite('b'); break;
-    case WHITE: VM_Interface.sysWrite('w'); break;
-    case PURPLE: VM_Interface.sysWrite('p'); break;
-    case GREEN: VM_Interface.sysWrite('x'); break;
-    case GREY: VM_Interface.sysWrite('g'); break;
+    case BLACK: Log.write('b'); break;
+    case WHITE: Log.write('w'); break;
+    case PURPLE: Log.write('p'); break;
+    case GREEN: Log.write('x'); break;
+    case GREY: Log.write('g'); break;
     }
     if (isBuffered(object))
-      VM_Interface.sysWrite('b');
+      Log.write('b');
     else
-      VM_Interface.sysWrite('u');
+      Log.write('u');
   }
   public static boolean isBuffered(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {

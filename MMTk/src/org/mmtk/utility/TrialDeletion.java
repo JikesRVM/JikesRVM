@@ -175,7 +175,7 @@ final class TrialDeletion extends CycleDetector
 	processFreeBufs();
 	if (shouldCollectCycles()) {
 	  if (Options.verbose > 0) { 
-	    VM_Interface.sysWrite("(CD "); 
+	    Log.write("(CD "); 
 	  }
 	  double cycleStart = VM_Interface.now();
 	  remaining = finishTarget - cycleStart;
@@ -186,12 +186,10 @@ final class TrialDeletion extends CycleDetector
 	    abort = collectSomeCycles(time, finishTarget);
 	    remaining = finishTarget - VM_Interface.now();
 	  }
-	  if (abort)
-	    VM_Interface.sysWrite("abort");
 	  flushFilteredPurpleBufs();
 	  if (Options.verbose > 0) {
-	    VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
-	    VM_Interface.sysWrite(" ms)");
+	    Log.write((VM_Interface.now() - cycleStart)*1000);
+	    Log.write(" ms)");
 	  }
 	}
       }
@@ -208,7 +206,6 @@ final class TrialDeletion extends CycleDetector
     double start = VM_Interface.now();
     double remaining = finishTarget - start;
     double targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
-//     VM_Interface.sysWrite("<"); VM_Interface.sysWrite(remaining*1000); VM_Interface.sysWrite(" "); VM_Interface.sysWrite((targetTime-((int) targetTime))*1000); 
     boolean abort = doMarkGreyPhase(targetTime);
     if (time) Statistics.cdGreyTime.stop();
     if (time) Statistics.cdScanTime.start();
@@ -220,14 +217,13 @@ final class TrialDeletion extends CycleDetector
     if (time) Statistics.cdFreeTime.start();
     processFreeBufs();
     if (time) Statistics.cdFreeTime.stop();
-//     VM_Interface.sysWrite(" "); VM_Interface.sysWrite(visitCount); VM_Interface.sysWrite(">");
     return abort;
   }
 
   private final double timePhase(double start, String phase) {
     double end = VM_Interface.now();
-    VM_Interface.sysWrite(phase); VM_Interface.sysWrite(" ");
-    VM_Interface.sysWrite((end - start)*1000); VM_Interface.sysWrite(" ms ");
+    Log.write(phase); Log.write(" ");
+    Log.write((end - start)*1000); Log.write(" ms ");
     return end;
   }
 
@@ -535,13 +531,13 @@ final class TrialDeletion extends CycleDetector
     double time;
     if (collectedCycles) {
       time = (totals) ? Statistics.cdGreyTime.sum() : Statistics.cdGreyTime.lastMs();
-      VM_Interface.sysWrite(" grey: "); VM_Interface.sysWrite(time);
+      Log.write(" grey: "); Log.write(time);
       time = (totals) ? Statistics.cdScanTime.sum() : Statistics.cdScanTime.lastMs();
-      VM_Interface.sysWrite(" scan: "); VM_Interface.sysWrite(time);
+      Log.write(" scan: "); Log.write(time);
       time = (totals) ? Statistics.cdCollectTime.sum() : Statistics.cdCollectTime.lastMs();
-      VM_Interface.sysWrite(" coll: "); VM_Interface.sysWrite(time);
+      Log.write(" coll: "); Log.write(time);
       time = (totals) ? Statistics.cdFreeTime.sum() : Statistics.cdFreeTime.lastMs();
-      VM_Interface.sysWrite(" free: "); VM_Interface.sysWrite(time);
+      Log.write(" free: "); Log.write(time);
     }
   }
 }

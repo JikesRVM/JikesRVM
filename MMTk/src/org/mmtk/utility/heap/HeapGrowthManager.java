@@ -146,9 +146,9 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       // Heap size is going to change
       currentHeapSize = (int) newSize;
       if (Options.verbose >= 2) { 
-	VM_Interface.sysWrite("Heap changed from ", (int) (oldSize / 1024)); 
-	VM_Interface.sysWrite("KB to ", (int) (newSize / 1024)); 
-	VM_Interface.sysWriteln("KB"); 
+	Log.write("Heap changed from "); Log.write((int) (oldSize / 1024)); 
+	Log.write("KB to "); Log.write((int) (newSize / 1024)); 
+	Log.writeln("KB"); 
       } 
       return true;
     } else {
@@ -163,27 +163,29 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
 
     if (liveRatio > 1) {
       // Perhaps indicates bad bookkeeping in JMTk?
-      VM_Interface.sysWriteln("GCWarning: Live ratio greater than 1: ",liveRatio);
+      Log.write("GCWarning: Live ratio greater than 1: ");
+      Log.writeln(liveRatio);
       liveRatio = 1;
     }
     if (gcLoad > 1) {
       // Appears that this can actually happen....I can't explain why --dave
-      VM_Interface.sysWriteln("GCWarning: GC load was greater than 1!! ",gcLoad);
-      VM_Interface.sysWriteln("GCWarning:\ttotal time ",totalTime);
-      VM_Interface.sysWriteln("GCWarnin:\tgc time ",accumulatedGCTime);
+      Log.write("GCWarning: GC load was greater than 1!! ");
+      Log.writeln(gcLoad);
+      Log.write("GCWarning:\ttotal time "); Log.writeln(totalTime);
+      Log.write("GCWarnin:\tgc time "); Log.writeln(accumulatedGCTime);
       gcLoad = 1;
     }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
     if (VM_Interface.VerifyAssertions && gcLoad < 0) {
-      VM_Interface.sysWriteln("gcLoad computed to be ",gcLoad);
-      VM_Interface.sysWriteln("\taccumulateGCTime was ",accumulatedGCTime);
-      VM_Interface.sysWriteln("\ttotalTime was ", totalTime);
+      Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
+      Log.write("\taccumulateGCTime was "); Log.writeln(accumulatedGCTime);
+      Log.write("\ttotalTime was "); Log.writeln(totalTime);
       VM_Interface._assert(false);
     }
     
     if (Options.verbose > 2) {
-      VM_Interface.sysWriteln("Live ratio ",liveRatio);
-      VM_Interface.sysWriteln("GCLoad     ",gcLoad);
+      Log.write("Live ratio "); Log.writeln(liveRatio);
+      Log.write("GCLoad     "); Log.writeln(gcLoad);
     }
     
     // (2) Find the 4 points surrounding gcLoad and liveRatio
@@ -223,8 +225,10 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
     factor += (gcLoadFraction * gcLoadDelta);
 
-    if (Options.verbose > 2) VM_Interface.sysWriteln("Heap adjustment factor is ",factor);
-
+    if (Options.verbose > 2) {
+      Log.write("Heap adjustment factor is ");
+      Log.writeln(factor);
+    }
     return factor;
   }
 

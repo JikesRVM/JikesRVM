@@ -43,6 +43,7 @@ import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_ObjectModel;
@@ -499,106 +500,142 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM.sysExit(rc);
   }
 
-  public static void sysWrite   (VM_Atom value)         { VM.sysWrite(value); }
-  public static void sysWriteln (VM_Atom value)         { VM.sysWriteln(value); }
-  public static void sysWrite   (VM_Word value)         { VM.sysWrite(value); }
-  public static void sysWrite   (VM_Member m)           { VM.sysWrite(m);  }
-  public static void sysWrite   (VM_MemberReference mr) { VM.sysWrite(mr);  }
-  public static void sysWriteln ()                      { VM.sysWriteln(); }
-  public static void sysWrite   (char c)                { VM.sysWrite(c);  }
-  public static void sysWriteField(int w, int v)        { VM.sysWriteField(w,v); }
-  public static void sysWriteField(int w, String s)     { VM.sysWriteField(w,s);  }
-  public static void sysWriteHex(int value)             { VM.sysWriteHex(value);  }
-  public static void sysWriteHex(VM_Address v)          { VM.sysWriteHex(v);  }
-  public static void sysWriteInt(int v)                 { VM.sysWriteInt(v); }
-  public static void sysWriteLong(long v)               { VM.sysWriteLong(v); }
-  public static void sysWrite   (double d, int p)      { VM.sysWrite(d,p); }
-  public static void sysWrite   (double d)             { VM.sysWrite(d); }
-  public static void sysWrite   (String s)             { VM.sysWrite(s); }
-  public static void sysWrite   (VM_Address addr)      { VM.sysWrite(addr); }
-  public static void sysWriteln (VM_Address addr)      { VM.sysWriteln(addr); }
-  public static void sysWrite   (boolean b)            { VM.sysWrite(b); }
-  public static void sysWrite   (int i)                { VM.sysWrite(i); }
-  public static void sysWriteln (int i)                { VM.sysWriteln(i); }
-  public static void sysWriteln (double d)             { VM.sysWriteln(d); }
-  public static void sysWriteln (long l)               { VM.sysWriteln(l); }
-  public static void sysWriteln (boolean b)            { VM.sysWrite(b); }
-  public static void sysWriteln (String s)             { VM.sysWriteln(s); }
-  public static void sysWrite   (String s, boolean b)  { VM.sysWrite(s,b); }
-  public static void sysWriteln (String s, boolean b)  { VM.sysWriteln(s,b); }
-  public static void sysWrite   (String s, int i)      { VM.sysWrite(s,i); }
-  public static void sysWriteln (String s, int i)      { VM.sysWriteln(s,i); }
-  public static void sysWrite   (String s, double d)   { VM.sysWrite(s,d); }
-  public static void sysWriteln (String s, double d)   { VM.sysWriteln(s,d); }
-  public static void sysWrite   (double d, String s)   { VM.sysWrite(d,s); }
-  public static void sysWriteln (double d, String s)   { VM.sysWriteln(d,s); }
-  public static void sysWrite   (String s, long i)     { VM.sysWrite(s); }
-  public static void sysWriteln (String s, long i)     { VM.sysWriteln(s,i); }
-  public static void sysWrite   (int i, String s)      { VM.sysWrite(i,s); }
-  public static void sysWriteln (int i, String s)      { VM.sysWriteln(i,s); }
-  public static void sysWrite   (String s1, String s2) { VM.sysWrite(s1,s2); }
-  public static void sysWriteln (String s1, String s2) { VM.sysWriteln(s1,s2); }
-  public static void sysWrite   (String s, VM_Address addr) { VM.sysWrite(s,addr);   }
-  public static void sysWriteln (String s, VM_Address addr) { VM.sysWriteln(s,addr); }
-  public static void sysWrite   (String s, VM_Offset addr) { VM.sysWrite(s,addr);   }
-  public static void sysWriteln (String s, VM_Offset addr) { VM.sysWriteln(s,addr); }
-  public static void sysWrite   (String s1, String s2, VM_Address a) { VM.sysWrite(s1,s2,a); }
-  public static void sysWriteln (String s1, String s2, VM_Address a) { VM.sysWriteln(s1,s2,a); }
-  public static void sysWrite   (String s1, String s2, int i)  { VM.sysWrite(s1,s2,i);}
-  public static void sysWriteln (String s1, String s2, int i)  { VM.sysWriteln(s1,s2,i);  }
-  public static void sysWrite   (String s1, int i, String s2)  { VM.sysWrite(s1,i,s2); }
-  public static void sysWriteln (String s1, int i, String s2)  { VM.sysWriteln(s1,i,s2); }
-  public static void sysWrite   (String s1, String s2, String s3)  { VM.sysWrite(s1,s2,s3); }
-  public static void sysWriteln (String s1, String s2, String s3)  { VM.sysWriteln(s1,s2,s3); }
-  public static void sysWrite   (int i1, String s, int i2)     { VM.sysWrite(i1,s,i2); }
-  public static void sysWriteln (int i1, String s, int i2)     { VM.sysWriteln(i1,s,i2); }
-  public static void sysWrite   (int i1, String s1, String s2) { VM.sysWrite(i1,s1,s2); }
-  public static void sysWriteln (int i1, String s1, String s2) { VM.sysWriteln(i1,s1,s2); }
-  public static void sysWrite   (String s1, int i1, String s2, int i2) { VM.sysWrite(s1,i1,s2,i2); }
-  public static void sysWriteln (String s1, int i1, String s2, int i2) { VM.sysWriteln(s1,i1,s2,i2); }
-  public static void sysWrite   (String s1, int i1, String s2, long l1) { VM.sysWrite(s1,i1,s2,l1); }
-  public static void sysWriteln (String s1, int i1, String s2, long l1) { VM.sysWriteln(s1,i1,s2,l1); }
-  public static void sysWrite   (String s1, double d, String s2)        { VM.sysWrite(s1,d,s2); }
-  public static void sysWriteln (String s1, double d, String s2)        { VM.sysWriteln(s1,d,s2); }
-  public static void sysWrite   (String s1, String s2, int i1, String s3) { VM.sysWrite(s1,s2,i1,s3); }
-  public static void sysWriteln (String s1, String s2, int i1, String s3) { VM.sysWriteln(s1,s2,i1,s3); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1) { VM.sysWrite(s1,s2,s3,i1); }
-  public static void sysWriteln (String s1, String s2, String s3, int i1) { VM.sysWriteln(s1,s2,s3,i1); }
-  public static void sysWrite   (int i, String s1, double d, String s2) { VM.sysWrite(i,s1,d,s2); }
-  public static void sysWriteln (int i, String s1, double d, String s2) { VM.sysWriteln(i,s1,d,s2); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) { VM.sysWrite(s1,s2,s3,i1,s4);  }
-  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) { VM.sysWriteln(s1,s2,s3,i1,s4);  }
-  public static void sysWrite   (String s1, VM_Address a1, String s2, VM_Address a2) { VM.sysWrite(s1,a1,s2,a2);  }
-  public static void sysWriteln (String s1, VM_Address a1, String s2, VM_Address a2) { VM.sysWriteln(s1,a1,s2,a2);  }
+  /**
+   * Copies characters from the string into the character array.
+   *
+   * @param src the source string
+   * @param dst the destination array
+   * @param dstBegin the start offset in the desination array
+   * @param dstEnd the index after the last character in the
+   * destination to copy to
+   * @returns the number of charactes copied.
+   */
+  public static int copyStringToChars(String src, char [] dst,
+				      int dstBegin, int dstEnd)
+    throws VM_PragmaLogicallyUninterruptible {
+    if (runningVM())
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    int len = src.length();
+    int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
+    for (int i = 0; i < n; i++) 
+      setArrayNoBarrier(dst, dstBegin + i, src.charAt(i));
+    if (runningVM())
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    return n;
+  }
 
 
+  /**
+   * Sets an element of a char array without invoking any write
+   * barrier.  This method is called by the Log method, as it will be
+   * used during garbage collection and needs to manipulate character
+   * arrays without causing a write barrier operation.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  public static void setArrayNoBarrier(char [] dst, int index, char value) {
+    if (runningVM())
+      VM_Magic.setCharAtOffset(dst, index << LOG_BYTES_IN_CHAR, value);
+    else
+      dst[index] = value;
+  }
 
-  public static void ptsysWriteln (String s) { 
-    VM.ptsysWriteln(s);
+  /**
+   * Gets an element of a char array without invoking any read
+   * barrier.  This method is called by the Log method, as it will be
+   * used during garbage collection and needs to manipulate character
+   * arrays without causing a read barrier operation.
+   *
+   * @param src the source array
+   * @param index the index of the element to get
+   * @return the new value of element
+   */
+  public static char getArrayNoBarrier(char [] src, int index) {
+    if (runningVM())
+      return VM_Magic.getCharAtOffset(src, index << LOG_BYTES_IN_CHAR);
+    else
+      return src[index];
   }
-  public static void psysWriteln (VM_Address a) { 
-    VM.psysWriteln(a); 
+
+  /**
+   * Gets an element of a byte array without invoking any read
+   * barrier.  This method is called by the Log method, as it will be
+   * used during garbage collection and needs to manipulate character
+   * arrays without causing a read barrier operation.
+   *
+   * @param src the source array
+   * @param index the index of the element to get
+   * @return the new value of element
+   */
+  public static byte getArrayNoBarrier(byte [] src, int index) {
+    if (runningVM())
+      return VM_Magic.getByteAtOffset(src, index);
+    else
+      return src[index];
   }
-  public static void psysWriteln (String s) { 
-    VM.psysWriteln(s); 
+
+  /**
+   * Log a message.
+   *
+   * @param c character array with message starting at index 0
+   * @param len number of characters in message
+   */
+  public static void sysWrite(char [] c, int len) {
+    VM.sysWrite(c, len);
   }
-  public static void psysWriteln (String s, int i) { 
-    VM.psysWriteln(s,i); 
+
+  /**
+   * Log a thread identifier and a message.
+   *
+   * @param c character array with message starting at index 0
+   * @param len number of characters in message
+   */
+  public static void sysWriteThreadId(char [] c, int len) {
+    VM.psysWrite(c, len);
   }
-  public static void psysWriteln (String s, VM_Address a) { 
-    VM.psysWriteln(s,a); 
+
+  /**
+   * Get the type descriptor for an object.
+   *
+   * @param ref address of the object
+   * @return byte array with the type descriptor
+   */
+  public static byte [] getTypeDescriptor(VM_Address ref) {
+    VM_Atom descriptor = VM_Magic.getObjectType(ref).getDescriptor();
+    return descriptor.toByteArray();
   }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2)  { 
-    VM.psysWriteln(s1,a1,s2,a2); 
+
+  /**
+   * Get the long for an address
+   *
+   * @param addr the address
+   * @return long for the address
+   */
+  public static long addressToLong(VM_Address addr)
+  {
+    //-#if RVM_FOR_32_ADDR
+    return addr.toInt();
+    //-#elif RVM_FOR_64_ADDR
+    return addr.toLong();
+    //-#endif
   }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3) {  
-    VM.psysWriteln(s1,a1,s2,a2,s3,a3); 
-  }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4) { 
-    VM.psysWriteln(s1,a1,s2,a2,s3,a3,s4,a4); 
-  }
-  public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4, String s5, VM_Address a5) { 
-    VM.psysWriteln(s1,a1,s2,a2,s3,a3,s4,a4,s5,a5); 
+
+
+  /**
+   * Get the long for an offset
+   *
+   * @param offset the offset
+   * @return long for the offset
+   */
+  public static long offsetToLong(VM_Offset offset)
+  {
+    //-#if RVM_FOR_32_ADDR
+    return offset.toInt();
+    //-#elif RVM_FOR_64_ADDR
+    return offset.toLong();
+    //-#endif
   }
 
   /*
@@ -629,11 +666,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Magic.setMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()),
                               next);
     
-  }
-
-  public static void sysWriteTypeDescriptor(VM_Address obj) 
-        throws VM_PragmaUninterruptible {
-    sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
   }
 
   /**

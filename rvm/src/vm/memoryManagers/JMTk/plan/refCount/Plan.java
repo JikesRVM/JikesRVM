@@ -402,8 +402,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       // This is printed independantly of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
       // will know---it will have a noticable performance hit...
-      VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
-      VM_Interface.sysWriteInt(wbFastPathCounter); VM_Interface.sysWrite(" wb-fast>\n");
+      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
+      Log.write(wbFastPathCounter); Log.writeln(" wb-fast>");
       wbFastPathCounter = 0;
     }
   }

@@ -376,7 +376,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
       default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.isLive: unknown space",space);
+	                      Log.write("Plan.isLive: unknown space"); Log.writeln(space);
 			      VM_Interface.sysFail("Plan.isLive: unknown space");
                             }
 			    return false;

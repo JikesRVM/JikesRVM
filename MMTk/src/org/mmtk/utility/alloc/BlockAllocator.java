@@ -200,7 +200,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   public final void free(VM_Address block, byte blockSizeClass) {
     if (PARANOID)
       sanity();
-    //    VM.sysWrite("f["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(blockSizeClass);     VM.sysWrite("]\n");
+    //    Log.write("f["); Log.write(block); Log.write(" "); Log.write(blockSizeClass);     Log.writeln("]");
     if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
       decPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS));
     }
@@ -321,11 +321,11 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (!next.isZero())
       VM_Magic.setMemoryAddress(next.add(FL_PREV_FIELD_OFFSET), block);
     freeList.set(freeListID, block);
-    //    VM.sysWrite("a["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite("]\n");
+    //    Log.write("a["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.writeln("]");
   }
 
   private final void removeFromFreeList(VM_Address block, byte freeListID) {
-    //    VM.sysWrite("r["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(freeList.get(freeListID));
+    //    Log.write("r["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.write(" "); Log.write(freeList.get(freeListID));
     if (freeList.get(freeListID).EQ(block)) {
       freeList.set(freeListID, getNextFLBlock(block));
       if (!getNextFLBlock(block).isZero())
@@ -339,7 +339,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       if (!next.isZero())
 	setPrevFLBlock(next, prev);
     }
-    //    VM.sysWrite("]\n");
+    //    Log.writeln("]");
   }
 
   

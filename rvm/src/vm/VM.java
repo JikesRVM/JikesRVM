@@ -563,6 +563,16 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   /**
+   * Low level print to console.
+   * @param value character array that is printed
+   * @param len number of characters printed
+   */
+  public static void write(char [] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    for (int i = 0, n = len; i < n; ++i) 
+      write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+  }
+
+  /**
     * Low level print to console.
    * @param value	what is printed
    */
@@ -781,6 +791,7 @@ public class VM extends VM_Properties implements VM_Constants,
   public static void sysWrite   (double d, int p)      throws VM_PragmaNoInline { swLock(); write(d, p); swUnlock(); }
   public static void sysWrite   (double d)             throws VM_PragmaNoInline { swLock(); write(d); swUnlock(); }
   public static void sysWrite   (String s)             throws VM_PragmaNoInline { swLock(); write(s); swUnlock(); }
+  public static void sysWrite   (char [] c, int l)     throws VM_PragmaNoInline { swLock(); write(c, l); swUnlock(); }
   public static void sysWrite   (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
   public static void sysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); swUnlock(); }
@@ -858,6 +869,8 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
+
+  public static void psysWrite    (char [] c, int l)     throws VM_PragmaNoInline { swLock(); showProc(); write(c, l); swUnlock(); }
 
   public static void psysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); showProc(); write(a); writeln(); swUnlock(); }
   public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }

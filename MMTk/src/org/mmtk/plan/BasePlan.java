@@ -115,6 +115,7 @@ public abstract class BasePlan
   //
   private int id = 0;                     // Zero-based id of plan instance
   public BumpPointer immortal;
+  Log log;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -151,6 +152,7 @@ public abstract class BasePlan
     id = planCount++;
     plans[id] = (Plan) this;
     immortal = new BumpPointer(immortalVM);
+    log = new Log();
   }
 
   /**
@@ -270,10 +272,10 @@ public abstract class BasePlan
     VM_Address newObj = Plan.traceObject(obj, root);
     if (VM_Interface.VerifyAssertions) {
       if (offset.toInt() < 0 || offset.toInt() > (1<<24)) {  // There is probably no object this large
-	VM_Interface.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
-	VM_Interface.sysWriteln("       object base = ", obj);
-	VM_Interface.sysWriteln("       interior reference = ", interiorRef);
-	VM_Interface.sysWriteln("       delta = ", offset);
+	Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
+	Log.write("       object base = "); Log.writeln(obj);
+	Log.write("       interior reference = "); Log.writeln(interiorRef);
+	Log.write("       delta = "); Log.writeln(offset);
 	VM_Interface._assert(false);
       }
     }
@@ -546,11 +548,11 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (Options.verbose == 1) {
-      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime));
-      VM_Interface.sysWrite(" s]\n");
+      Log.write("[End "); Log.write((VM_Interface.now() - bootTime));
+      Log.writeln(" s]");
     } else if (Options.verbose == 2) {
-      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
-      VM_Interface.sysWrite(" ms]\n");
+      Log.write("[End "); Log.write((VM_Interface.now() - bootTime)*1000);
+      Log.writeln(" ms]");
     }
     if (Options.verboseTiming) printDetailedTiming(true);
     planExit(value);
@@ -587,10 +589,10 @@ public abstract class BasePlan
   public static void writePages(int pages, int mode) {
     double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
     switch (mode) {
-      case PAGES: VM_Interface.sysWrite(pages," pgs"); break; 
-      case MB:    VM_Interface.sysWrite(mb," Mb"); break;
-      case PAGES_MB: VM_Interface.sysWrite(pages," pgs ("); VM_Interface.sysWrite(mb," Mb)"); break;
-      case MB_PAGES: VM_Interface.sysWrite(mb," Mb ("); VM_Interface.sysWrite(pages," pgs)"); break;
+      case PAGES: Log.write(pages); Log.write(" pgs"); break; 
+      case MB:    Log.write(mb); Log.write(" Mb"); break;
+      case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
+    case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
       default: VM_Interface.sysFail("writePages passed illegal printing mode");
     }
   }
@@ -606,16 +608,25 @@ public abstract class BasePlan
   protected static void spaceFailure(VM_Address obj, byte space, 
 				     String source) {
     VM_Address addr = VM_Interface.refToAddress(obj);
-    VM_Interface.sysWrite(source);
-    VM_Interface.sysWrite(": obj ", obj);
-    VM_Interface.sysWrite(" or addr ", addr);
-    VM_Interface.sysWrite(" of page ", Conversions.addressToPagesDown(addr));
-    VM_Interface.sysWrite(" is in unknown space ");
-    VM_Interface.sysWriteln(space);
-    VM_Interface.sysWrite("Type = ");
-    VM_Interface.sysWriteTypeDescriptor(obj);
-    VM_Interface.sysWriteln();
-    VM_Interface.sysWrite(source);
+    Log.write(source);
+    Log.write(": obj "); Log.write(obj);
+    Log.write(" or addr "); Log.write(addr);
+    Log.write(" of page "); Log.write(Conversions.addressToPagesDown(addr));
+    Log.write(" is in unknown space ");
+    Log.writeln(space);
+    Log.write("Type = ");
+    Log.write(VM_Interface.getTypeDescriptor(obj));
+    Log.writeln();
+    Log.write(source);
     VM_Interface.sysFail(": unknown space");
+  }
+
+  /**
+   * Return the <code>Log</code> instance for this plan.
+   *
+   * @return the <code>Log</code> instance
+   */
+  Log getLog() {
+    return log;
   }
 }

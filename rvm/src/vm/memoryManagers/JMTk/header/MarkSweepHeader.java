@@ -92,13 +92,13 @@ public class MarkSweepHeader {
    * @param ref the object reference whose header should be dumped 
    */
   public static void dumpHeader(VM_Address ref) throws VM_PragmaUninterruptible {
-//     VM.sysWrite("(");
-//     VM.sysWrite(VM_Magic.objectAsAddress(ref));
-//     VM.sysWrite(" ");
-//     VM.sysWrite((isSmall(ref))  ? "S" : "s");
-//     VM.sysWrite((isArray(ref))  ? "A" : "a");
-//     VM.sysWrite((isMarked(ref)) ? "M" : "m");
-//     VM.sysWrite(")\n");
+//     Log.write("(");
+//     Log.write(VM_Magic.objectAsAddress(ref));
+//     Log.write(" ");
+//     Log.write((isSmall(ref))  ? "S" : "s");
+//     Log.write((isArray(ref))  ? "A" : "a");
+//     Log.write((isMarked(ref)) ? "M" : "m");
+//     Log.writeln(")");
     // nothing to do (no bytes of GC header)
   }
 
