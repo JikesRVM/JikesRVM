@@ -1026,6 +1026,7 @@ RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS="-O2 -g"
 
 RVM_CXX_OPTIMIZER_AND_DEBUG_FLAGS="${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}"
 
+declare -i quiet=0 quiet_cautions=0 quiet_warnings=0 cleanse=1
 
 load_config_file "${RVM_HOST_CONFIG}"
 
@@ -1482,8 +1483,6 @@ function croak_usage () {
     trap '' EXIT
     exit $Exit_Status_Bad_Args
 }
-
-declare -i quiet=0 quiet_cautions=0 quiet_warnings=0 cleanse=1
 
 ## $1: VAR=value
 function do_Dflag () {
