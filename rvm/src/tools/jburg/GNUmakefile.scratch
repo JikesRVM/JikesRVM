@@ -8,6 +8,8 @@
 ## Copyright © IBM Corporation, 2003
 ## Or, for compatibility with rvm/bin/findDeviantFiles: 
 # (C) Copyright IBM Corp. 2003
+#
+# @author Steven Augart
 
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
