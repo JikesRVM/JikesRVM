@@ -18,15 +18,13 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
-  static final boolean REVERSE_HEADER_ORDER = true;
-
   static final int TIB_BYTES = BYTES_IN_ADDRESS;
   static final int STATUS_BYTES = BYTES_IN_INT;
   static final int ARRAY_LENGTH_BYTES = BYTES_IN_INT;
 
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
   static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
-  static final int JAVA_HEADER_END = -JAVA_HEADER_BYTES - ((REVERSE_HEADER_ORDER) ? OTHER_HEADER_BYTES : 0);
+  static final int JAVA_HEADER_END = -JAVA_HEADER_BYTES;
 
   /**
    * This object model supports two schemes for hashcodes:
