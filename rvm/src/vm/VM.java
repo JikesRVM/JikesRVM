@@ -920,8 +920,7 @@ public class VM extends VM_Properties
    * @return virtual processor's o/s handle
    */
   static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-                                       VM_Address ti, VM_Address fp) 
-    throws VM_PragmaNoInline, VM_PragmaNoOptCompile {
+                                       VM_Address ti, VM_Address fp) {
     return VM_SysCall.sysVirtualProcessorCreate(jtoc, pr, ti, fp);
   }
 
