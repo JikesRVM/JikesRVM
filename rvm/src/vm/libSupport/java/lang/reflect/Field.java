@@ -247,8 +247,9 @@ public final class Field extends AccessibleObject implements Member {
     return buf.toString();
   }
 
-  private void checkReadAccess(Object obj) 
-    throws IllegalAccessException, IllegalArgumentException  {
+  private void checkReadAccess(Object obj) throws IllegalAccessException, 
+						  IllegalArgumentException,
+						  ExceptionInInitializerError {
 
     VM_Class declaringClass = field.getDeclaringClass();
     if (!field.isStatic()) {
@@ -268,12 +269,19 @@ public final class Field extends AccessibleObject implements Member {
     }
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      try {
+	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      } catch (Throwable e) {
+	ExceptionInInitializerError ex = new ExceptionInInitializerError();
+	ex.initCause(e);
+	throw ex;
+      }
     }
   }
 
-  private void checkWriteAccess(Object obj) 
-    throws IllegalAccessException, IllegalArgumentException  {
+  private void checkWriteAccess(Object obj) throws IllegalAccessException, 
+						   IllegalArgumentException,
+						   ExceptionInInitializerError {
 
     VM_Class declaringClass = field.getDeclaringClass();
     if (!field.isStatic()) {
@@ -296,7 +304,13 @@ public final class Field extends AccessibleObject implements Member {
       throw new IllegalAccessException();
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      try {
+	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      } catch (Throwable e) {
+	ExceptionInInitializerError ex = new ExceptionInInitializerError();
+	ex.initCause(e);
+	throw ex;
+      }
     }
   }
 

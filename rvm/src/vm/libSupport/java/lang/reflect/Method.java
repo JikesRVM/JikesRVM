@@ -6,6 +6,7 @@ package java.lang.reflect;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -79,19 +80,19 @@ public final class Method extends AccessibleObject implements Member {
     return code1 ^ code2;
   }
 
-  // TODO: This diverges from the spec in a number of way.
-  public Object invoke(Object receiver, Object args[])
-    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+  public Object invoke(Object receiver, Object args[]) throws IllegalAccessException, 
+							      IllegalArgumentException, 
+							      ExceptionInInitializerError,
+							      InvocationTargetException {
+    VM_Class declaringClass = method.getDeclaringClass();
+    
     // validate "this" argument
-    //
     if (!method.isStatic()) {
       if (receiver == null) throw new NullPointerException();
-      receiver = JikesRVMSupport.makeArgumentCompatible(method.getDeclaringClass(), receiver);
+      receiver = JikesRVMSupport.makeArgumentCompatible(declaringClass, receiver);
     }
     
     // validate number and types of remaining arguments
-    //
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     if (args == null) {
       if (parameterTypes.length != 0) {
@@ -108,10 +109,24 @@ public final class Method extends AccessibleObject implements Member {
       }
     }
 
-    // invoke method
-    // Note that we catch all possible exceptions, not just Error's and RuntimeException's,
-    // for compatibility with jdk behavior (which even catches a "throw new Throwable()").
-    //
+    // Accessibility checks
+    if (!method.isPublic() && !isAccessible()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      JikesRVMSupport.checkAccess(method, accessingClass);
+    }
+
+    // Forces initialization of declaring class
+    if (method.isStatic() && !declaringClass.isInitialized()) {
+      try {
+	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      } catch (Throwable e) {
+	ExceptionInInitializerError ex = new ExceptionInInitializerError();
+	ex.initCause(e);
+	throw ex;
+      }
+    }
+
+    // Invoke method
     try {
       return VM_Reflection.invoke(method, receiver, args);
     } catch (Throwable e) {
