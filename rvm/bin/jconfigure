@@ -732,7 +732,7 @@ function emitEnvironmentKsh
    print "export $BUILD_DIRECTORY_STR1=$RVM_BUILD"
    print "export $ROOT_DIRECTORY_STR1=$RVM_ROOT"
    print ""
-   print "export $HOST_JIKES_STR1=$JIKES"
+   print "export $HOST_JIKES_STR1=\"$JIKES\""
    print "export $HOST_JAVA_STR1=\"$HOST_JAVA\""
    print "export $HOST_JAVA_HOME_STR1=\"$HOST_JAVA_HOME\""
    print "export $HOST_JAVADOC_STR1=\"$HOST_JAVADOC\""
