@@ -435,7 +435,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static boolean isAcyclic(Object[] tib) throws VM_PragmaInline {
     Object type;
-    if (true) {
+    if (true) {  // necessary to avoid an odd compiler bug
       type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
     } else {
       type = tib[TIB_TYPE_INDEX];
