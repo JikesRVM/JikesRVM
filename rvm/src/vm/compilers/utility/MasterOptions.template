@@ -141,8 +141,10 @@ $$$$ END LOOP
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
     if (split == -1) {
-      VM.sysWrite("  Illegal option specification!\n  \""+arg+
-		  "\" must be specified as a name-value pair in the form of option=value\n");
+      if (!(arg.equals("O0") || arg.equals("O1") || arg.equals("O2") || arg.equals("O3"))) {
+        VM.sysWrite("  Illegal option specification!\n  \""+arg+
+	  	    "\" must be specified as a name-value pair in the form of option=value\n");
+      }
       return false;
     }
     String name = arg.substring(0,split);
