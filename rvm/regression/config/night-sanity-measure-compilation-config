@@ -1,1 +1,1 @@
-FastAdaptiveCopyMS -test-list night-sanity-measure-compilation-tests
+production -test-list night-sanity-measure-compilation-tests

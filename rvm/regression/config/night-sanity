@@ -1,6 +1,7 @@
-BaseBaseCopyMS                   -test-list nightly-tests
-BaseAdaptiveCopyMS               -test-list nightly-tests-short
-FullAdaptiveCopyMS               -test-list nightly-tests
+prototype                        -test-list nightly-tests
+prototype-opt                    -test-list nightly-tests
+development                      -test-list nightly-tests
+production                       -test-list nightly-tests
 BaseBaseMarkSweep                -test-list nightly-tests
 FullAdaptiveMarkSweep            -test-list nightly-tests
 BaseBaseSemiSpace                -test-list nightly-tests
@@ -10,5 +11,4 @@ FullAdaptiveGenCopy              -test-list nightly-tests
 ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
 BaseBaseCopyMSUP                 -test-list nightly-tests-short
 FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
-FastAdaptiveCopyMS               -test-list nightly-tests-short
 FastAdaptiveMarkSweep            -test-list nightly-tests-short
