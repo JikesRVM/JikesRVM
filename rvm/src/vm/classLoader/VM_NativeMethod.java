@@ -174,7 +174,7 @@ public final class VM_NativeMethod extends VM_Method {
       return false;
     } else {
       //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-	  // both intel and linux use direct address
+      // both intel and linux use direct address
       nativeIP = symbolAddress;		// Intel use direct branch address
       nativeTOC = VM_Address.zero();                    // not used
       //-#else
