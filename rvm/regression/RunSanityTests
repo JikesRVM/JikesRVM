@@ -365,8 +365,10 @@ function doRun
      # gather performance data, if appropriate
      if [ x$PERFORMANCE != x ]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
+	LIMIT=`expr 3600 '*' $NUM_PROCS`
 	echo "Performance mode: results to $PERFORMANCE"
      else
+	LIMIT=`expr 1800 '*' $NUM_PROCS`
 	PERFORMANCE_STR=
     fi
 
@@ -378,7 +380,7 @@ function doRun
     fi
 
     . $RVM_BUILD/environment
-    $RVM_ROOT/regression/limited.ksh `expr 1800 '*' $NUM_PROCS` $GNU_MAKE -ks \
+    $RVM_ROOT/regression/limited.ksh $LIMIT $GNU_MAKE -ks \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/bin/jalapeno\
            PROCESSORS="$NUM_PROCS"\

@@ -28,12 +28,18 @@ which java >> $VERBOSE_LOG
 $RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results -norun -wait sem" -config $1 >> $BUILD_LOG 2>> $BUILD_LOG
 
 echo "\n\nBuilding java doc" >> $BUILD_LOG 
-$RVM_ROOT/bin/watson/jdoc.sh $SHADOW/FullAdaptivecopyingGC $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
+$RVM_ROOT/bin/watson/jdoc.sh $RVM_ROOT/images/FullAdaptivecopyingGC $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
 
 echo "\n\nBuilding userguide" >> $BUILD_LOG 
 export BIBINPUTS=.:$RVM_ROOT/doc/papers/bib
 cd $RVM_ROOT/doc/userguide 
-jmake university >> $BUILD_LOG 2>> $BUILD_LOG
+if [ `uname` = "Linux" ]; then
+    GNU_MAKE=make
+else
+    GNU_MAKE=/homes/fury5/jalapeno/bin/jmake
+fi
+
+$GNU_MAKE university >> $BUILD_LOG 2>> $BUILD_LOG
 
 echo "\n\nBuilding IR html" >> $BUILD_LOG 
 cd $RVM_ROOT/doc

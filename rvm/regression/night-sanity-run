@@ -60,12 +60,17 @@ chmod -R 755 $RVM_ROOT/.. 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-(cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar; bzip2 $ARCHIVE/archive.`date +"%A".`uname`.tar) >> $RUN_LOG 2>> $RUN_LOG
+if [ `uname` = "Linux" ]; then
+  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvjf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
+else
+  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvzf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz) >> $RUN_LOG 2>> $RUN_LOG
+fi
 
 # determine how many ran, failed, and passed, then build a summary line
 numran=`grep "sane" $RUN_LOG | wc -l`
 numfailed=`grep "You are NOT sane" $RUN_LOG | wc -l`
 numpassed=`grep "You are sane" $RUN_LOG | wc -l`
+echo "Ran $numran, Passed \t$numpassed, Failed \t$numfailed" >> $RUN_LOG
 
 if [[ $numran -eq 0 ]] then
   echo "*** No tests were run! *** " >> $MSG
@@ -89,6 +94,9 @@ echo Performance Summary >> $MSG
 awk -f $RVM_ROOT/regression/PerformanceBottomLine.awk $RVM_ROOT/../results/performance.log >> $MSG
 
 # Finally!  Send the mail message to those who care.
+echo "mailing status to jvm-coders@watson.ibm.com"
+cat MSG >> $RUN_LOG
+
 if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
   cat $MSG | mail -s "jvm build SUCCEEDED" jvm-coders@watson.ibm.com
 else

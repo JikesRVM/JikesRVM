@@ -30,22 +30,25 @@ $(WORKING)/props:	$(WORKING)
 $(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/regression/tests/SPECjvm98/Makefile
 	cp -f $(JAL_ROOT)/regression/tests/SPECjvm98/Makefile $(WORKING)/Makefile
 
-
-$(TESTS): %: $(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
-	cd $(WORKING); $(MAKE) START_ARGS="-a -d3000 -g -m2 -M4 -s10 $@" OUT=$(OUT).$@ do-sanity-check-rule
-
 check:
 	@$(FGREP) -v "**NOT" $(OUT) > /dev/null
 	@$(AWK) '/start\./{cnt++};/^-- Stack --/{cnt++};/Finished/{cnt--};END{exit cnt}' $(OUT)
 
 ifeq ($(MODE),PERFORMANCE)
+
 sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
-	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m5 -M5 -s100 $(TESTS)" OUT=$(OUT) do-sanity-check-rule
-else
-sanity:	$(TESTS)
-	@$(MAKE) START_NAME="SPECjvm98" do-sanity-finish
-endif
+	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m5 -M5 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 do-gather-performance:
-	$(JAL_SHADOW)/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
+	$(JAL_ROOT)/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
+
+else
+
+$(TESTS): %: $(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
+	cd $(WORKING); $(MAKE) START_ARGS="-a -d3000 -g -m2 -M4 -s10 $@" OUT=$(OUT).$@ do-sanity-check-rule
+
+sanity:	$(TESTS)
+	@$(MAKE) START_NAME="SPECjvm98" do-sanity-finish
+
+endif
 
