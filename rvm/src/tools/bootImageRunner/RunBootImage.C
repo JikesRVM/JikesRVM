@@ -348,15 +348,17 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
     if (!strncmp(token, "-Xmx", 4)) {
       subtoken = token + 4;
       smallHeapSize = atoi(subtoken) * 1024 * 1024;
       if (smallHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
+	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
     if (!strncmp(token, "-X:lh=", 6)) {

@@ -28,7 +28,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-final class RawPageAllocator implements Constants {
+final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
   ////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,8 @@ final class RawPageAllocator implements Constants {
    */
   RawPageAllocator(MonotoneVMResource vmr, MemoryResource mr) {
     memoryResource = mr;
-    int blocks = vmr.getBlocks();
-    VM_Address base = vmr.acquire(blocks);
+    vmResource = vmr;
+    blocks = vmResource.getBlocks();
     freeList = new GenericFreeList(Conversions.blocksToPages(blocks));
   }
   
@@ -54,10 +54,15 @@ final class RawPageAllocator implements Constants {
    * @return The address of the first byte of the allocated pages
    */
   public VM_Address alloc(int pages) {
-    memoryResource.acquire(Conversions.pagesToBlocks(pages));
+    memoryResource.acquire(pages);
+    lock.acquire();
+    if (base.isZero()) {
+      base = vmResource.acquire(blocks, null);
+    }
     int pageIndex = freeList.alloc(pages);
+    lock.release();
     if (pageIndex == -1) {
-      VM.sysWriteln("unable to satisfy raw page allocation request");
+      VM.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
       VM._assert(false);
     }
     return base.add(Conversions.pagesToBytes(pageIndex));
@@ -71,7 +76,9 @@ final class RawPageAllocator implements Constants {
    * @return The number of pages freed.
    */
   public int free(VM_Address start) {
+    lock.acquire();
     int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toInt()));
+    lock.release();
     memoryResource.release(Conversions.pagesToBlocks(freed));
     return freed;
   }
@@ -92,6 +99,9 @@ final class RawPageAllocator implements Constants {
   // Private fields and methods
   //
   private VM_Address base;
+  private int blocks;
   private MemoryResource memoryResource;
+  private MonotoneVMResource vmResource;
   private GenericFreeList freeList;
+  private Lock lock = new Lock("RawPageAllocator");
 }

@@ -23,9 +23,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  * @version $Revision$
  * @date $Date$
  */
-final class MemoryResource implements Constants, VM_Uninterruptible {
-
+final class NewMemoryResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -35,7 +35,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  MemoryResource() {
+  NewMemoryResource() {
     this(0);
   }
 
@@ -45,14 +45,14 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    */
-  MemoryResource(int pageBudget) {
+  NewMemoryResource(int pageBudget) {
     gcLock = new Lock("MemoryResource.gcLock");
     mutatorLock = new Lock("MemoryResource.mutatorLock");
     this.pageBudget = pageBudget;
   }
 
   /**
-   * Set the page budget
+   * Set the pageBudget
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
@@ -64,24 +64,21 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
   /**
    * Reset this memory resource
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    */
-  public void reset(int pageBudget) {
-    lock();
-    this.pageBudget = pageBudget;
-    unlock();
-    reset();
+  public void reset() {
+    reset(0);
   }
 
   /**
    * Reset this memory resource
+   *
+   * @param pageBudget The budget of pages available to this memory
+   * manager before it must poll the collector.
    */
-  public void reset() {
-    lock();
+  public void reset(int pageBudget) {
     reserved = 0;
     committed = 0;
-    unlock();
+    this.pageBudget = pageBudget;
   }
 
   /**
@@ -95,17 +92,23 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    */
   public boolean acquire (int pages) {
     lock();
-    reserved = committed + pages;
-    if (reserved > pageBudget) {
+    reserved += pages;
+    if ((committed + pages) > pageBudget) {
       unlock();   // We cannot hold the lock across a GC point!
-      if (VM_Interface.getPlan().poll(false, this)) {
+      if (VM_Interface.getPlan().poll(false)) 
 	return false;
-      }
       lock();
     }
     committed += pages;
     unlock();
     return true;
+  }
+
+  /**
+   * Release all pages from the memory resource.
+   */
+  public void release() {
+    release(reserved);
   }
 
   /**
@@ -115,8 +118,8 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    */
   public void release(int pages) {
     lock();
+    reserved -= pages;
     committed -= pages;
-    reserved = committed;
     unlock();
   }
 

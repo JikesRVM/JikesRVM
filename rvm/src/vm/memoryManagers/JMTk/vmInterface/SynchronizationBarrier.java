@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  */
 public final class SynchronizationBarrier {
 
-  private static final boolean trace = false;  // emit trace messages? (all rendezvous)
+  private static final boolean trace         = false;  // emit trace messages? (all rendezvous)
   private static final boolean trace_startup = false;  // emit debugging messages? (startupRendezvous)
   private static final boolean trace_unusual = false;  // emit debugging messages? 
 

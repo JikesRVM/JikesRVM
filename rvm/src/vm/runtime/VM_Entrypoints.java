@@ -140,6 +140,16 @@ public class VM_Entrypoints implements VM_Constants {
 
   //-#if RVM_WITH_JMTK
   public static final VM_Field lockField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "lock","I");
+  public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
+  public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "start","D");
+  public static final VM_Field tailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalSSB;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field SQCFField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "completionFlag","I");
+  public static final VM_Field SQNCField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "numClients","I");
+  public static final VM_Field SQNCWField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "numClientsWaiting","I");
+  public static final VM_Field SQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "head","Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field SQtailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field LQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalQueue;", "head","Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field SQBEField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SynchronizedCounter;", "count", "I");
   public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
@@ -280,52 +290,6 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   static void init() {
-    //-#if RVM_WITH_GCTk
-    ADDRESS top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "writeBuffer0", "I").getOffset();
-    ADDRESS bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "writeBuffer1", "I").getOffset();
-    GCTk_WriteBufferBase = (top > bot) ? bot : top;
-    if (VM.VerifyAssertions) {
-      boolean discontigious = (((top > bot) && ((top - bot) != 4))
-			       || ((top < bot) && ((bot - top) != 4)));
-      if (discontigious)
-	VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_WriteBufferBase+"<----\n");
-      VM._assert(!discontigious);
-    }
-    GCTk_TraceBufferBase        = getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
-
-    top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocBump0", "I").getOffset();
-    bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocBump7", "I").getOffset();
-    GCTk_BumpPointerBase = (top > bot) ? bot : top;
-    if (VM.VerifyAssertions) {
-      boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
-			   || ((top < bot) && ((bot - top) != 28)));
-      if (unaligned)
-	VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_BumpPointerBase+"<----\n");
-      VM._assert(!unaligned);
-    }
-  
-    top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocSync0", "I").getOffset();
-    bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocSync7", "I").getOffset();
-    GCTk_SyncPointerBase = (top > bot) ? bot : top;
-    if (VM.VerifyAssertions) {
-      boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
-			   || ((top < bot) && ((bot - top) != 28)));
-      if (unaligned)
-	VM.sysWrite("---->"+top+","+bot+"->"+GCTk_SyncPointerBase+"<----\n");
-      VM._assert(!unaligned);
-    }
-	  
-    top = getMember("LGCTk_ChunkAllocator;", "allocChunkStart0", "I").getOffset();
-    bot = getMember("LGCTk_ChunkAllocator;", "allocChunkEnd7", "I").getOffset();
-    GCTk_ChunkAllocatorBase = (top > bot) ? bot : top;
-    if (VM.VerifyAssertions) {
-      boolean unaligned = (((top > bot) && ((top - bot) != 60)) 
-			   || ((top < bot) && ((bot - top) != 60)));
-      if (unaligned) 
-	VM.sysWrite("---->"+top+","+bot+"->"+GCTk_ChunkAllocatorBase+"<----\n");
-      VM._assert(!unaligned);
-    }
-    //-#endif
   }
 
 

@@ -308,6 +308,14 @@ public class VM_Magic {
   }
 
   /**
+   * Set double at arbitrary (byte) offset from object.
+   * Use setDoubleAtOffset(obj, ofs) instead of two setIntAtOffset
+   */ 
+  public static void setDoubleAtOffset(Object object, int offset, double newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
    * Set contents of memory location.
    * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
    */

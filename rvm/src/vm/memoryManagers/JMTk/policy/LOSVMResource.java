@@ -157,11 +157,14 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
     for (int count=0; count < 2 ; count++) {
 
       LOSlock();
-      while (current <= last_possible) {
+      outer:
+      while (true) {
 	// Increment until first free block found
 	while (allocated[current] != 0) {
 	  if (VM.VerifyAssertions) VM._assert(allocated[current] > 0);
 	  current += allocated[current];
+	  if (current > last_possible) 
+	    break outer;
 	}
 	// Look for needed number of free pages.  Search aborted if not found.
 	int i;

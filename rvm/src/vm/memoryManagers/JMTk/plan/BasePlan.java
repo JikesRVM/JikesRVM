@@ -30,9 +30,11 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_ObjectModel;
 
 /**
  *
+ * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
@@ -43,18 +45,47 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   public static int verbose = 0;
 
-  protected WorkQueue workQueue;
-  public AddressSet values;                 // gray objects
-  public AddressSet locations;              // locations containing white objects
-  public AddressPairSet interiorLocations;  // interior locations
-  // private AddressQueue values;                 // gray objects
-  // private AddressPairQueue interiorLocations;  // interior locations
+  protected AddressQueue values;          // gray objects
+  protected AddressQueue locations;       // locations containing white objects
+  protected AddressPairQueue interiorLocations; // interior locations
+  protected static SharedQueue valuePool;
+  protected static SharedQueue locationPool;
+  protected static SharedQueue interiorPool;
+  private static MonotoneVMResource metaDataVM;
+  protected static MemoryResource metaDataMR;
+  private static RawPageAllocator metaDataRPA;
+
+  protected static final EXTENT       SEGMENT_SIZE = 0x10000000;
+  protected static final int          SEGMENT_MASK = SEGMENT_SIZE - 1;
+  protected static final VM_Address     BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
+  protected static final EXTENT          BOOT_SIZE = SEGMENT_SIZE - (VM_Interface.bootImageAddress & SEGMENT_MASK);   // use the remainder of the segment
+  protected static final VM_Address       BOOT_END = BOOT_START.add(BOOT_SIZE);
+  protected static final VM_Address IMMORTAL_START = BOOT_START;
+  protected static final EXTENT      IMMORTAL_SIZE = BOOT_SIZE + 16 * 1024 * 1024;
+  protected static final VM_Address   IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
+  protected static final VM_Address META_DATA_START = IMMORTAL_END;
+  protected static final EXTENT     META_DATA_SIZE  = 16 * 1024 * 1024;
+  protected static final VM_Address   META_DATA_END   = META_DATA_START.add(META_DATA_SIZE);  
+  protected static final VM_Address   PLAN_START  = META_DATA_END;
+
+  private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
+  static {
+    metaDataMR = new MemoryResource(META_DATA_POLL_FREQUENCY);
+    metaDataVM = new MonotoneVMResource("Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
+    metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
+    valuePool = new SharedQueue(metaDataRPA, 1);
+    locationPool = new SharedQueue(metaDataRPA, 1);
+    interiorPool = new SharedQueue(metaDataRPA, 2);
+  }
 
   BasePlan() {
-    workQueue = new WorkQueue();
-    values = new AddressSet(64 * 1024);
-    locations = new AddressSet(32 * 1024);
-    interiorLocations = new AddressPairSet(16 * 1024);
+    id = count++;
+    values = new AddressQueue(valuePool);
+    valuePool.newClient();
+    locations = new AddressQueue(locationPool);
+    locationPool.newClient();
+    interiorLocations = new AddressPairQueue(interiorPool);
+    interiorPool.newClient();
   }
 
   /**
@@ -76,6 +107,8 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   protected static boolean gcInProgress = false;    // This flag should be turned on/off by subclasses.
   protected static int gcCount = 0;
+  private static int count = 0;                     // Number of plan instances in existence
+  private int id = 0;                               // Zero-based id of plan instance;
 
   static public boolean gcInProgress() {
     return gcInProgress;
@@ -92,8 +125,8 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected final void prepare() {
     SynchronizationBarrier barrier = VM_CollectorThread.gcBarrier;
     double tmp = VM_Time.now();
-    int id = barrier.rendezvous();
-    if (id == 1) {
+    int order = barrier.rendezvous();
+    if (order == 1) {
       gcInProgress = true;
       gcCount++;
       startTime = tmp;
@@ -103,6 +136,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     }
     VM_Interface.prepareParticipating();      // Every participating thread needs to adjust its context registers.
     barrier.rendezvous();
+    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for start");
     allPrepare();
     barrier.rendezvous();
   }
@@ -110,9 +144,10 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected final void release() {
     SynchronizationBarrier barrier = VM_CollectorThread.gcBarrier;
     barrier.rendezvous();
+    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for termination");
     allRelease();
-    int id = barrier.rendezvous();
-    if (id == 1) {
+    int order = barrier.rendezvous();
+    if (order == 1) {
       singleRelease();
       gcInProgress = false;    // GC is in progress until after release!
       stopTime = VM_Time.now();
@@ -120,7 +155,11 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 	VM.sysWrite("    Collection time: ", (stopTime - startTime));
 	VM.sysWriteln(" seconds");
       }
+      locationPool.reset();
     }
+    values.reset();
+    locations.reset();
+    interiorLocations.reset();
     barrier.rendezvous();
   }
 
@@ -141,8 +180,9 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   private void computeRoots() {
 
-    AddressPairSet codeLocations = VM_Interface.MOVES_OBJECTS ? interiorLocations : null;
+    AddressPairQueue codeLocations = VM_Interface.MOVES_OBJECTS ? interiorLocations : null;
 
+    //    fetchRemsets(locations);
     ScanStatics.scanStatics(locations);
 
     while (true) {
@@ -153,22 +193,22 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
       // VM.sysWrite("Proc ", VM_Processor.getCurrentProcessor().id); VM.sysWriteln(" scanning thread ", threadIndex);
       // See comment of ScanThread.scanThread
       //
-      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(VM_Magic.objectAsAddress(th)));
-      Plan.traceObject(VM_Magic.objectAsAddress(th.stack));
+      VM_Address thAddr = VM_Magic.objectAsAddress(th);
+      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr));
+      if (VM_Magic.objectAsAddress(th2).EQ(thAddr))
+	ScanObject.scan(thAddr);
+      ScanObject.scan(VM_Magic.objectAsAddress(th.stack));
       if (th.jniEnv != null) {
-	Plan.traceObject(VM_Magic.objectAsAddress(th.jniEnv));
-	Plan.traceObject(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
+	ScanObject.scan(VM_Magic.objectAsAddress(th.jniEnv));
+	ScanObject.scan(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
       }
-      Plan.traceObject(VM_Magic.objectAsAddress(th.contextRegisters));
-      Plan.traceObject(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
-      Plan.traceObject(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
-      Plan.traceObject(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
+      ScanObject.scan(VM_Magic.objectAsAddress(th.contextRegisters));
+      ScanObject.scan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
+      ScanObject.scan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
+      ScanObject.scan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
       ScanThread.scanThread(th2, locations, codeLocations);
     }
-
-    // VM.sysWriteln("locations size is ", locations.size());
-    // VM.sysWriteln("values size is ", values.size());
-    // VM.sysWriteln("interiorLocations size is ", interiorLocations.size());
+    ScanObject.scan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
   }
 
   // Add a gray object
@@ -179,6 +219,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   private void processAllWork() throws VM_PragmaNoInline {
 
+    if (verbose > 1) VM.sysWriteln("  Working on GC in parallel");
     while (true) {
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
@@ -207,12 +248,21 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     processAllWork();
   }
 
-  public static int getTotalBlocks() throws VM_PragmaUninterruptible { 
-    heapBlocks = Conversions.bytesToBlocks(Options.initialHeapSize);
-    return heapBlocks; 
+  public static int getTotalPages() throws VM_PragmaUninterruptible { 
+    heapPages = Conversions.bytesToPages(Options.initialHeapSize);
+    return heapPages; 
   }
 
-  private static int heapBlocks;
+  private static int heapPages;
+
+  /*
+   * This method should be called whenever an error is encountered.
+   *
+   */
+  public void error(String str) {
+    Plan.showUsage();
+    VM.sysFail(str);
+  }
 
   /**
    * Perform a write barrier operation for the putField bytecode.<p> <b>By default do nothing,
@@ -235,7 +285,11 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
    * @param offset The offset from static table (JTOC) of the slot the pointer is to be written into
    * @param tgt The address to which the source will point
    */
-  public void putStaticWriteBarrier(int staticOffset, VM_Address tgt){
+  public void putStaticWriteBarrier(VM_Address slot, VM_Address tgt){
+  }
+  public void arrayStoreWriteBarrier(VM_Address ref, int index, VM_Address value) {
+  }
+  public void arrayCopyWriteBarrier(VM_Address ref, int startIndex, int endIndex) {
   }
 
   /**

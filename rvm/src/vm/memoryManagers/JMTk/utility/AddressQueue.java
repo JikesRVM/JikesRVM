@@ -72,4 +72,8 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
     else
       return VM_Address.zero();
   }
+
+  public final boolean isEmpty() {
+    return !checkPop(1);
+  }
 }

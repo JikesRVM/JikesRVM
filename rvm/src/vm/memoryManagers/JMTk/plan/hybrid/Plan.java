@@ -33,7 +33,7 @@ import com.ibm.JikesRVM.VM_Processor;
 public final class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
   public final static String Id = "$Id$"; 
 
-  public static final boolean needsWriteBarrier = true;
+  public static final boolean needsWriteBarrier = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -66,12 +66,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
 	return Copy.traceObject(obj);
-      else if (fullHeapGC) {
-	if (addr.GE(MS_START))
-	  return msCollector.traceObject(obj);
-	else if (addr.GE(IMMORTAL_START))
-	  return Immortal.traceObject(obj);
-      }
+      else if (addr.GE(MS_START))
+	return msCollector.traceObject(obj);
+      else if (addr.GE(IMMORTAL_START))
+	return Immortal.traceObject(obj);
     } // else this is not a heap pointer
     return obj;
   }
@@ -108,7 +106,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
       VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
       VM.sysWrite("= (ms) ", msMR.reservedPages());
-      VM.sysWriteln(" + (imm) ",  immortalMR.reservedPages());
+      VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
   }
 
   public static int getInitialHeaderValue(int size) {
@@ -151,7 +149,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     nursery = new BumpPointer(nurseryVM);
     ms = new MarkSweepAllocator(msCollector);
     immortal = new BumpPointer(immortalVM);
-    remset = new WriteBuffer(locationPool);
   }
 
   /**
@@ -167,7 +164,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == NURSERY_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) 
+    if (allocator == NURSERY_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD)
       allocator = MS_ALLOCATOR;
     VM_Address region;
     switch (allocator) {
@@ -183,13 +180,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if ((allocator == NURSERY_ALLOCATOR && size > LOS_SIZE_THRESHOLD)
-	|| (allocator == MS_ALLOCATOR))
+    if ((allocator == NURSERY_ALLOCATOR && size > LOS_SIZE_THRESHOLD) ||
+	(allocator == MS_ALLOCATOR))
       Header.initializeMarkSweepHeader(ref, tib, size, isScalar);
   }
 
   public final void show() {
-    nursery.show();
     ms.show();
   }
 
@@ -205,7 +201,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    return ms.allocCopy(isScalar, bytes);
+    VM_Address rtn = ms.allocCopy(isScalar, bytes);
+    return rtn;
   }
 
   /**
@@ -247,12 +244,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   /**
    * This method is called periodically by the allocation subsystem
-   * (by default, each time a block is consumed), and provides the
+   * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.<p>
    *
    * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
+   * that would take the number of blocks in use (committed for use)
+   * beyond the number of blocks available.  Collections are triggered
    * through the runtime, and ultimately call the
    * <code>collect()</code> method of this class or its superclass.
    *
@@ -269,9 +266,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect || 
-	((mr != metaDataMR) && (getPagesReserved() > getTotalPages()))) {
-      fullHeapGC = mustCollect || fullHeapGC;
+    if (mustCollect || getPagesReserved() > getTotalPages()) {
       VM_Interface.triggerCollection();
       return true;
     }
@@ -306,31 +301,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     allPrepare();
   }
 
-  public void putFieldWriteBarrier(VM_Address src, int offset, VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt);
-  }
-
-  public void arrayStoreWriteBarrier(VM_Address src, int index, VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
-  }
-  public void arrayCopyWriteBarrier(VM_Address src, int startIndex, 
-				    int endIndex)
-    throws VM_PragmaInline {
-    src = src.add(startIndex<<LOG_WORD_SIZE);
-    for (int idx = startIndex; idx <= endIndex; idx++) {
-      VM_Address tgt = VM_Magic.getMemoryAddress(src);
-      writeBarrier(src, tgt);
-      src = src.add(WORD_SIZE);
-    }
-  }
-
-  private void writeBarrier(VM_Address src, VM_Address tgt) 
-    throws VM_PragmaInline {
-    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
-      remset.insert(src);
-  }
   ////////////////////////////////////////////////////////////////////////////
   //
   // Private class methods
@@ -350,7 +320,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return pages;
   }
 
-
   private static int getPagesUsed() {
     int pages = nurseryMR.reservedPages();
     pages += msMR.reservedPages();
@@ -361,14 +330,14 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   // Assuming all future allocation comes from nursery
   //
   private static int getPagesAvail() {
-    int nurseryTotal = getTotalPages() - msMR.reservedPages() - immortalMR.reservedPages();
-    return (nurseryTotal>>1) - nurseryMR.reservedPages();
+    int nurseryPages = getTotalPages() - msMR.reservedPages() - immortalMR.reservedPages();
+    return (nurseryPages>>1) - nurseryMR.reservedPages();
   }
 
   private static final String allocatorToString(int type) {
     switch (type) {
       case NURSERY_ALLOCATOR: return "Nursery";
-      case MS_ALLOCATOR: return "Mark-sweep";
+      case MS_ALLOCATOR: return "Semispace";
       case IMMORTAL_ALLOCATOR: return "Immortal";
       default: return "Unknown";
    }
@@ -396,22 +365,18 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       showUsage();
     }
     nurseryMR.reset();
-    if (fullHeapGC) {
-      msCollector.prepare(msVM, msMR);
-      Immortal.prepare(immortalVM, null);
-    }
+    Copy.prepare(nurseryVM, nurseryMR);
+    msCollector.prepare(msVM, msMR);
+    Immortal.prepare(immortalVM, null);
   }
 
   protected void allPrepare() {
-    remset.flushLocal();
+    ms.prepare();
     nursery.rebind(nurseryVM);
-    if (fullHeapGC) 
-      ms.prepare();
   }
 
   protected void allRelease() {
-    if (fullHeapGC) 
-      ms.release();
+    ms.release();
   }
 
   /**
@@ -420,13 +385,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   protected void singleRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    if (fullHeapGC) {
-      msCollector.release();
-      Immortal.release(immortalVM, null);
-    }
-
-    fullHeapGC = (getPagesAvail() < NURSERY_THRESHOLD);
-
+    Copy.release(nurseryVM, nurseryMR);
+    msCollector.release();
+    Immortal.release(immortalVM, null);
     if (verbose > 0) {
       VM.sysWrite("   After Collection: ");
       showUsage();
@@ -457,25 +418,18 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static MemoryResource msMR;
   private static MemoryResource immortalMR;
 
-  // write buffer
-  private WriteBuffer remset;
-
   // GC state
-  private static boolean fullHeapGC = false;
 
   //
   // Final class variables (aka constants)
   //
   private static final VM_Address       MS_START = PLAN_START;
-  private static final EXTENT            MS_SIZE = 512 * 1024 * 1024;              // size of each space
+  private static final EXTENT            MS_SIZE = 512 * 1024 * 1024;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address  NURSERY_START = MS_END;
   private static final EXTENT       NURSERY_SIZE = 64 * 1024 * 1024;
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
-
-  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
-  private static final int NURSERY_THRESHOLD = (512*1024)>>LOG_PAGE_SIZE;
 
   public static final int NURSERY_ALLOCATOR = 0;
   public static final int MS_ALLOCATOR = 1;
@@ -484,7 +438,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  private static final EXTENT LOS_SIZE_THRESHOLD = 4 * 1024;
+  private static final EXTENT LOS_SIZE_THRESHOLD = 16 * 1024;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -493,12 +447,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   static {
 
     // memory resources
-    nurseryMR = new MemoryResource(POLL_FREQUENCY);
-    msMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
+    nurseryMR = new MemoryResource();
+    msMR = new MemoryResource();
+    immortalMR = new MemoryResource();
 
     // virtual memory resources
-    nurseryVM  = new MonotoneVMResource("Nursery", nurseryMR, NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
+    nurseryVM  = new MonotoneVMResource("Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
     msVM       = new FreeListVMResource("MS",   MS_START,      MS_SIZE,      VMResource.MOVABLE);
     immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
 

@@ -3226,7 +3226,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.setLongAtOffset) {
+    if ((methodName == VM_MagicNames.setLongAtOffset) 
+      || (methodName == VM_MagicNames.setDoubleAtOffset)) {
       asm.emitMOV_Reg_RegInd (T0, SP);		// value high
       asm.emitMOV_Reg_RegDisp(S0, SP, +8 );	// offset
       asm.emitMOV_Reg_RegDisp(T1, SP, +12);	// obj ref

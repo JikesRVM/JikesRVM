@@ -20,6 +20,7 @@ import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_FieldDictionary;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_StackframeLayoutConstants;
@@ -172,29 +173,46 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return VM_Processor.getCurrentProcessor().mmPlan;
   }
 
-  public static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) {
-    getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset, VM_Magic.objectAsAddress(value));
+  public static void resolvedPutfieldWriteBarrier(Object ref, int offset,
+						  Object value)
+    throws VM_PragmaInline {
+    getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset,
+				   VM_Magic.objectAsAddress(value));
   }
   
-  public static void resolvedPutStaticWriteBarrier(int offset, Object value) { 
-    getPlan().putStaticWriteBarrier(offset, VM_Magic.objectAsAddress(value));
+  public static void resolvedPutStaticWriteBarrier(int offset, Object value)
+    throws VM_PragmaInline { 
+    VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
+    getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
-  public static void arrayStoreWriteBarrier(Object ref, int offset, Object value) {
-    VM._assert(false); // need to implement this
+  public static void arrayStoreWriteBarrier(Object ref, int index,Object value)
+    throws VM_PragmaInline {
+    getPlan().arrayStoreWriteBarrier(VM_Magic.objectAsAddress(ref), index,
+				     VM_Magic.objectAsAddress(value));
   }
 
-  public static void arrayCopyWriteBarrier(Object ref, int start, int end) {
-    VM._assert(false); // need to implement this
+  public static void arrayCopyWriteBarrier(Object ref, int startIndex,
+					   int endIndex)
+    throws VM_PragmaInline {
+    getPlan().arrayCopyWriteBarrier(VM_Magic.objectAsAddress(ref), startIndex,
+				    endIndex);
   }
 
 
-  public static void unresolvedPutfieldWriteBarrier(Object ref, int offset, Object value) {
-    VM._assert(false); // need to get rid of needing this
+  public static void unresolvedPutfieldWriteBarrier(Object ref, int fieldID,
+						    Object value)
+    throws VM_PragmaInline {
+    int offset = VM_FieldDictionary.getValue(fieldID).getOffset();
+    getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset,
+				   VM_Magic.objectAsAddress(value));
   }
   
-  public static void unresolvedPutStaticWriteBarrier(int offset, Object value) { 
-    VM._assert(false); // need to get rid of needing this
+  public static void unresolvedPutStaticWriteBarrier(int fieldID, Object value)
+    throws VM_PragmaInline { 
+    int offset = VM_FieldDictionary.getValue(fieldID).getOffset();
+    VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
+    getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
   /**
@@ -325,7 +343,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Address region = plan.alloc(size, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(size, result, allocator);
+    plan.postAlloc(result, tib, size, true, allocator);
     return result;
   }
 
@@ -337,7 +355,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Address region = plan.alloc(size, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
-    plan.postAlloc(size, result, allocator);
+    plan.postAlloc(result, tib, size, false, allocator);
     return result;
   }
 
@@ -529,7 +547,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       int mask = ~((1 << logAlignment) - 1);
       VM_Address region = VM_Address.fromInt(tmp.toInt() & mask).sub(offset);
       Object result = VM_ObjectModel.initializeArray(region, stackTib, n, arraySize);
-      getPlan().postAlloc(arraySize, result, Plan.IMMORTAL_ALLOCATOR);
+      getPlan().postAlloc(result, stackTib, arraySize, false, Plan.IMMORTAL_ALLOCATOR);
       return (int []) result;
     }
 
@@ -620,13 +638,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
 
-    if (NEEDS_WRITE_BARRIER)
-      forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;
 
     VM_Address toRef;
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
+      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = getPlan().allocCopy(fromObj, numBytes, true);
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
@@ -634,6 +651,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
+      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = getPlan().allocCopy(fromObj, numBytes, false);
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
@@ -643,7 +661,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	VM_Memory.sync(toRef, dataSize);
       }
     }
-
     return toRef;
 
   }

@@ -93,7 +93,9 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-final class GenericFreeList implements Constants {
+
+
+final class GenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
   ////////////////////////////////////////////////////////////////////////////
@@ -108,129 +110,19 @@ final class GenericFreeList implements Constants {
     VM._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels
-    table = new int[units + 2];
-    
-    // Initialize the sentiels
-    setEntry(-1, SENTINEL_INIT);
-    setEntry(units, SENTINEL_INIT);
+    table = new int[(units + 2)<<1];
 
-    // add an entry to the free list containing everything
-    setSize(0, units);
-    setFree(0, true);
-    addToFree(0);
+    initializeHeap(units);
   }
 
   /**
-   * Allocate <code>size</code> units.  Return the unit ID
+   * Initialize a unit as a sentinel
    *
-   * @param size  The number of units to be allocated
-   * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * @param unit The unit to be initilized
    */
-  public int alloc(int size) {
-    // Note: -1 is both the default return value *and* the start sentinel index
-    int rtn = HEAD; // HEAD = -1
-    int s = 0;
-
-    while (((rtn = getNext(rtn)) != HEAD) && ((s = getSize(rtn)) < size));
-
-    if (s >= size) {
-      if (s > size)
-	split(rtn, size);
-      removeFromFree(rtn);
-      setFree(rtn, false);
-    }
-
-    dbgPrintFree();
-    return rtn;
-  }
-
-  /**
-   * Free a previously allocated contigious lump of units.
-   *
-   * @param unit The index of the first unit.
-   * @return The number of units freed.
-   */
-  public int free(int unit) {
-    int freed = getSize(unit);
-    int start = getFree(getLeft(unit)) ? getLeft(unit) : unit;
-    int end = getFree(getRight(unit)) ? getRight(unit) : unit;
-    if (start != end)
-      coalesce(start, end);
-    addToFree(start);
-    dbgPrintFree();
-
-    return freed;
-  }
-
-  /**
-   * Return the size of the specified lump of units
-   *
-   * @param unit The index of the first unit in the lump.
-   * @return The size of the lump, in units.
-   */
-  public int size(int unit) {
-    return getSize(unit);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
-
-  /**
-   * Reduce a lump of units to size, freeing any excess.
-   *
-   * @param unit The index of the first unit
-   * @param size The size of the first part
-   */
-  private void split(int unit, int size) {
-    int basesize = getSize(unit);
-    VM._assert(basesize > size);
-    setSize(unit, size);
-    setSize(unit + size, basesize - size);
-    addToFree(unit + size);
-  }
-
-  /**
-   * Coalesce two or three contigious lumps of units, removing start
-   * and end lumps from the free list as necessary.
-   * @param start The index of the start of the first lump
-   * @param start Index of the start of the last lump
-   */
-  private void coalesce(int start, int end) {
-    if (getFree(end))
-      removeFromFree(end);
-    if (getFree(start))
-      removeFromFree(start);
-
-    setSize(start, end - start + getSize(end));
-  }
-
-  /**
-   * Add a lump of units to the free list
-   *
-   * @param unit The first unit in the lump of units to be added
-   */
-  private void addToFree(int unit) {
-    setFree(unit, true);
-    int next = getNext(HEAD);
-    setNext(unit, next);
-    setNext(HEAD, unit);
-    setPrev(unit, HEAD);
-    setPrev(next, unit);
-  }
-
-  /**
-   * Remove a lump of units from the free list
-   *
-   * @param unit The first unit in the lump of units to be removed
-   */
-  private void removeFromFree(int unit) {
-    int next = getNext(unit);
-    int prev = getPrev(unit);
-    setNext(prev, next);
-    setPrev(next, prev);
+  protected void setSentinel(int unit) {
+    setLoEntry(unit, SENTINEL_LO_INIT);
+    setHiEntry(unit, SENTINEL_HI_INIT);
   }
 
   /**
@@ -239,9 +131,9 @@ final class GenericFreeList implements Constants {
    * @param unit The first unit in the lump of units
    * @return The size of the lump of units
    */
-  private int getSize(int unit)  {
-    if ((getEntry(unit) & MULTI_MASK) == MULTI_MASK) 
-      return (getEntry(unit + 1) & SIZE_MASK);
+  protected int getSize(int unit)  {
+    if ((getHiEntry(unit) & MULTI_MASK) == MULTI_MASK) 
+      return (getHiEntry(unit + 1) & SIZE_MASK);
     else
       return 1;
   }
@@ -252,13 +144,13 @@ final class GenericFreeList implements Constants {
    * @param unit The first unit in the lump of units
    * @param size The size of the lump of units
    */
-  private void setSize(int unit, int size) {
+  protected void setSize(int unit, int size) {
     if (size > 1) {
-      setEntry(unit, getEntry(unit) | MULTI_MASK);
-      setEntry(unit + 1, MULTI_MASK | size);
-      setEntry(unit + size - 1, MULTI_MASK | size);
+      setHiEntry(unit, getHiEntry(unit) | MULTI_MASK);
+      setHiEntry(unit + 1, MULTI_MASK | size);
+      setHiEntry(unit + size - 1, MULTI_MASK | size);
     } else 
-      setEntry(unit, getEntry(unit) & ~MULTI_MASK);
+      setHiEntry(unit, getHiEntry(unit) & ~MULTI_MASK);
   }
 
   /**
@@ -267,8 +159,8 @@ final class GenericFreeList implements Constants {
    * @param unit The first or last unit in the lump
    * @return True if the lump is free
    */
-  private boolean getFree(int unit) {
-    return ((getEntry(unit) & FREE_MASK) == FREE_MASK);
+  protected boolean getFree(int unit) {
+    return ((getLoEntry(unit) & FREE_MASK) == FREE_MASK);
   }
   
   /**
@@ -278,16 +170,16 @@ final class GenericFreeList implements Constants {
    * @param unit The first unit in the lump
    * @param isFree True if the lump is to be marked as free
    */
-  private void setFree(int unit, boolean isFree) {
+  protected void setFree(int unit, boolean isFree) {
     int size;
     if (isFree) {
-      setEntry(unit, getEntry(unit) | FREE_MASK);
+      setLoEntry(unit, getLoEntry(unit) | FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setEntry(unit + size - 1, getEntry(unit + size - 1) | FREE_MASK);
+	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) | FREE_MASK);
     } else {
-      setEntry(unit, getEntry(unit) & ~FREE_MASK);
+      setLoEntry(unit, getLoEntry(unit) & ~FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setEntry(unit + size - 1, getEntry(unit + size - 1) & ~FREE_MASK);
+	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) & ~FREE_MASK);
     }
   }
   
@@ -297,8 +189,8 @@ final class GenericFreeList implements Constants {
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the next lump of units in the list
    */
-  private int getNext(int unit) {
-    int next = getEntry(unit) & NEXT_MASK;
+  protected int getNext(int unit) {
+    int next = getHiEntry(unit) & NEXT_MASK;
     return (next <= MAX_UNITS) ? next : HEAD;
   }
 
@@ -308,13 +200,13 @@ final class GenericFreeList implements Constants {
    * @param unit The index of the first unit in the lump to be set
    * @param next The value to be set.
    */
-  private void setNext(int unit, int next) {
+  protected void setNext(int unit, int next) {
     if (VM.VerifyAssertions) 
       VM._assert((next >= HEAD) && (next <= MAX_UNITS));
     if (next == HEAD) 
-      setEntry(unit, (getEntry(unit) | NEXT_MASK));
+      setHiEntry(unit, (getHiEntry(unit) | NEXT_MASK));
     else
-      setEntry(unit, (getEntry(unit) & ~NEXT_MASK) | next);
+      setHiEntry(unit, (getHiEntry(unit) & ~NEXT_MASK) | next);
   }
 
   /**
@@ -324,8 +216,8 @@ final class GenericFreeList implements Constants {
    * @return The index of the first unit of the previous lump of units
    * in the list
    */
-  private int getPrev(int unit) {
-    int prev = (getEntry(unit) & PREV_MASK) >> PREV_SHIFT;
+  protected int getPrev(int unit) {
+    int prev = getLoEntry(unit) & PREV_MASK;
     return (prev <= MAX_UNITS) ? prev : HEAD;
   }
 
@@ -335,13 +227,13 @@ final class GenericFreeList implements Constants {
    * @param unit The index of the first unit in the lump to be set
    * @param prev The value to be set.
    */
-  private void setPrev(int unit, int prev) {
+  protected void setPrev(int unit, int prev) {
     if (VM.VerifyAssertions) 
       VM._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
-      setEntry(unit, (getEntry(unit) | PREV_MASK));
+      setLoEntry(unit, (getLoEntry(unit) | PREV_MASK));
     else
-      setEntry(unit, (getEntry(unit) & ~PREV_MASK) | (prev << PREV_SHIFT));
+      setLoEntry(unit, (getLoEntry(unit) & ~PREV_MASK) | prev);
   }
 
   /**
@@ -351,32 +243,24 @@ final class GenericFreeList implements Constants {
    * @return The index of the first unit in the lump to the
    * "left"/"above" the lump in question.
    */
-  private int getLeft(int unit) {
-    if ((getEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
-      return unit - (getEntry(unit - 1) & SIZE_MASK);
+  protected int getLeft(int unit) {
+    if ((getHiEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
+      return unit - (getHiEntry(unit - 1) & SIZE_MASK);
     else
       return unit - 1;
   }
   
-  /**
-   * Get the lump to the "right" of the current lump (i.e. "below" it)
-   *
-   * @param unit The index of the first unit in the lump in question
-   * @return The index of the first unit in the lump to the
-   * "right"/"below" the lump in question.
-   */
-  private int getRight(int unit) {
-    return unit + getSize(unit);
-  }
-
   /**
    * Get the contents of an entry
    * 
    * @param unit The index of the unit
    * @return The contents of the unit
    */
-  private int getEntry(int unit) {
-    return table[unit + 1];
+  private int getLoEntry(int unit) {
+    return table[(unit + 1)<<1];
+  }
+  private int getHiEntry(int unit) {
+    return table[((unit + 1)<<1) + 1];
   }
 
   /**
@@ -385,50 +269,26 @@ final class GenericFreeList implements Constants {
    * @param unit The index of the unit
    * @param value The contents of the unit
    */
-  private void setEntry(int unit, int value) {
-    table[unit + 1] = value;
+  private void setLoEntry(int unit, int value) {
+    table[(unit + 1)<<1] = value;
+  }
+  private void setHiEntry(int unit, int value) {
+    table[((unit + 1)<<1)+1] = value;
   }
 
-  /**
-   * Print the free list (for debugging purposes)
-   */
-  private void dbgPrintFree() {
-    if (DEBUG) {
-      VM.sysWrite("FL[");
-      int i = HEAD;
-      while ((i = getNext(i)) != HEAD) {
-	boolean f = getFree(i);
-	int s = getSize(i);
-	if (!f)
-	  VM.sysWrite("->");
-	VM.sysWrite(i,false);
-	if (!f)
-	  VM.sysWrite("<-");
-	VM.sysWrite("[");
-	VM.sysWrite(s,false);
-	VM.sysWrite("]");
-	VM.sysWrite(" ");
-      }
-      VM.sysWrite("]FL\n");
-    }
-  }
-
-  private static final boolean DEBUG = false;
-  private static final int HEAD = -1;
-  private static final int LOG_UNIT_SIZE = 2;
   private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 2)>>1;
+  private static final int UNIT_BITS = (TOTAL_BITS - 1);
   private static final int MAX_UNITS = ((1<<UNIT_BITS) - 1) - 1;
   private static final int NEXT_MASK = (1<<UNIT_BITS) - 1;
-  private static final int PREV_SHIFT = UNIT_BITS;
-  private static final int PREV_MASK = ((1<<UNIT_BITS) - 1) << PREV_SHIFT;
+  private static final int PREV_MASK = (1<<UNIT_BITS) - 1;
   private static final int FREE_MASK = 1<<(TOTAL_BITS-1);
-  private static final int MULTI_MASK = 1<<(TOTAL_BITS-2);
+  private static final int MULTI_MASK = 1<<(TOTAL_BITS-1);
   private static final int SIZE_MASK = (1<<UNIT_BITS) - 1;
   
   // want the sentinels to be "used" & "single", and want first
   // sentinel to initially point to itself.
-  private static final int SENTINEL_INIT = NEXT_MASK | PREV_MASK;
+  private static final int SENTINEL_LO_INIT = PREV_MASK;
+  private static final int SENTINEL_HI_INIT = NEXT_MASK;
 
   private int[] table;
 }

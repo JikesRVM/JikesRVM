@@ -88,4 +88,8 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
   public final VM_Address pop2() {
     return VM_Address.fromInt(uncheckedPop());
   }
+
+  public final boolean isEmpty() {
+    return !checkPop(2);
+  }
 }

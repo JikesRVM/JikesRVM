@@ -39,14 +39,14 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
   /**
    * test to see if the mark bit has the given value
    */
-  static boolean testMarkBit(Object ref, int value) {
+  private static boolean testMarkBit(Object ref, int value) {
     return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
-  static void writeMarkBit(Object ref, int value) {
+  private static void writeMarkBit(Object ref, int value) {
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
     VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
@@ -55,7 +55,7 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
   /**
    * atomically write the given value in the mark bit.
    */
-  static void atomicWriteMarkBit(Object ref, int value) {
+  private static void atomicWriteMarkBit(Object ref, int value) {
     while (true) {
       int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
@@ -67,7 +67,7 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  static boolean testAndMark(Object ref, int value) throws VM_PragmaInline {
+  private static boolean testAndMark(Object ref, int value) throws VM_PragmaInline {
     int oldValue;
     do {
       oldValue = VM_ObjectModel.prepareAvailableBits(ref);

@@ -67,7 +67,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
   public static void scanThreadStack (VM_Thread t, VM_Address top_frame, boolean relocate_code) throws VM_PragmaUninterruptible {
 
     Plan plan = VM_Processor.getCurrentProcessor().mmPlan;
-    AddressSet rootLocations = plan.locations;
+    AddressQueue rootLocations = plan.locationsX;
     AddressPairSet codeLocations = relocate_code ? collector.interiorLocations : null;
 
     VM_Address             ip, fp, prevFp;

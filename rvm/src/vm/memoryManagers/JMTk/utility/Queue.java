@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-class Queue implements Constants {
+class Queue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////

@@ -250,7 +250,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitLX (T1, T1, T2); // *(object+offset+4)
       asm.emitST (T0,  0, SP); // *sp := *(object+offset)
       asm.emitST (T1, +4, SP); // *sp+4 := *(object+offset+4)
-    } else if (methodName == VM_MagicNames.setLongAtOffset) {
+    } else if ((methodName == VM_MagicNames.setLongAtOffset) 
+	       || (methodName == VM_MagicNames.setDoubleAtOffset)) {
       asm.emitL  (T0,+12, SP); // pop object
       asm.emitL  (T1, +8, SP); // pop offset
       asm.emitL  (T2,  0, SP); // pop newvalue low 
@@ -482,7 +483,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL  (T0,  0, SP);
       asm.emitLIL(T1, -1);
       asm.emitXOR(T2, T1, T0);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitSTU(T2,  0, SP);
     } else if (methodName == VM_MagicNames.wordXor) {
       asm.emitL  (T0,  0, SP);
       asm.emitL  (T1,  4, SP);

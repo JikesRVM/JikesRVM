@@ -93,9 +93,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-
-
-final class GenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
+final class SmallGenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
   ////////////////////////////////////////////////////////////////////////////
@@ -110,7 +108,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
     VM._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels
-    table = new int[(units + 2)<<1];
+    table = new int[units + 2];
 
     initializeHeap(units);
   }
@@ -121,8 +119,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @param unit The unit to be initilized
    */
   protected void setSentinel(int unit) {
-    setLoEntry(unit, SENTINEL_LO_INIT);
-    setHiEntry(unit, SENTINEL_HI_INIT);
+    setEntry(unit, SENTINEL_INIT);
   }
 
   /**
@@ -132,8 +129,8 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @return The size of the lump of units
    */
   protected int getSize(int unit)  {
-    if ((getHiEntry(unit) & MULTI_MASK) == MULTI_MASK) 
-      return (getHiEntry(unit + 1) & SIZE_MASK);
+    if ((getEntry(unit) & MULTI_MASK) == MULTI_MASK) 
+      return (getEntry(unit + 1) & SIZE_MASK);
     else
       return 1;
   }
@@ -146,11 +143,11 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    */
   protected void setSize(int unit, int size) {
     if (size > 1) {
-      setHiEntry(unit, getHiEntry(unit) | MULTI_MASK);
-      setHiEntry(unit + 1, MULTI_MASK | size);
-      setHiEntry(unit + size - 1, MULTI_MASK | size);
+      setEntry(unit, getEntry(unit) | MULTI_MASK);
+      setEntry(unit + 1, MULTI_MASK | size);
+      setEntry(unit + size - 1, MULTI_MASK | size);
     } else 
-      setHiEntry(unit, getHiEntry(unit) & ~MULTI_MASK);
+      setEntry(unit, getEntry(unit) & ~MULTI_MASK);
   }
 
   /**
@@ -160,7 +157,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @return True if the lump is free
    */
   protected boolean getFree(int unit) {
-    return ((getLoEntry(unit) & FREE_MASK) == FREE_MASK);
+    return ((getEntry(unit) & FREE_MASK) == FREE_MASK);
   }
   
   /**
@@ -173,13 +170,13 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
   protected void setFree(int unit, boolean isFree) {
     int size;
     if (isFree) {
-      setLoEntry(unit, getLoEntry(unit) | FREE_MASK);
+      setEntry(unit, getEntry(unit) | FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) | FREE_MASK);
+	setEntry(unit + size - 1, getEntry(unit + size - 1) | FREE_MASK);
     } else {
-      setLoEntry(unit, getLoEntry(unit) & ~FREE_MASK);
+      setEntry(unit, getEntry(unit) & ~FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) & ~FREE_MASK);
+	setEntry(unit + size - 1, getEntry(unit + size - 1) & ~FREE_MASK);
     }
   }
   
@@ -190,7 +187,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @return The index of the first unit of the next lump of units in the list
    */
   protected int getNext(int unit) {
-    int next = getHiEntry(unit) & NEXT_MASK;
+    int next = getEntry(unit) & NEXT_MASK;
     return (next <= MAX_UNITS) ? next : HEAD;
   }
 
@@ -204,9 +201,9 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
     if (VM.VerifyAssertions) 
       VM._assert((next >= HEAD) && (next <= MAX_UNITS));
     if (next == HEAD) 
-      setHiEntry(unit, (getHiEntry(unit) | NEXT_MASK));
+      setEntry(unit, (getEntry(unit) | NEXT_MASK));
     else
-      setHiEntry(unit, (getHiEntry(unit) & ~NEXT_MASK) | next);
+      setEntry(unit, (getEntry(unit) & ~NEXT_MASK) | next);
   }
 
   /**
@@ -217,7 +214,7 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * in the list
    */
   protected int getPrev(int unit) {
-    int prev = getLoEntry(unit) & PREV_MASK;
+    int prev = (getEntry(unit) & PREV_MASK) >> PREV_SHIFT;
     return (prev <= MAX_UNITS) ? prev : HEAD;
   }
 
@@ -231,9 +228,9 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
     if (VM.VerifyAssertions) 
       VM._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
-      setLoEntry(unit, (getLoEntry(unit) | PREV_MASK));
+      setEntry(unit, (getEntry(unit) | PREV_MASK));
     else
-      setLoEntry(unit, (getLoEntry(unit) & ~PREV_MASK) | prev);
+      setEntry(unit, (getEntry(unit) & ~PREV_MASK) | (prev << PREV_SHIFT));
   }
 
   /**
@@ -244,8 +241,8 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * "left"/"above" the lump in question.
    */
   protected int getLeft(int unit) {
-    if ((getHiEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
-      return unit - (getHiEntry(unit - 1) & SIZE_MASK);
+    if ((getEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
+      return unit - (getEntry(unit - 1) & SIZE_MASK);
     else
       return unit - 1;
   }
@@ -256,11 +253,8 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @param unit The index of the unit
    * @return The contents of the unit
    */
-  private int getLoEntry(int unit) {
-    return table[(unit + 1)<<1];
-  }
-  private int getHiEntry(int unit) {
-    return table[((unit + 1)<<1) + 1];
+  private int getEntry(int unit) {
+    return table[unit + 1];
   }
 
   /**
@@ -269,26 +263,23 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
    * @param unit The index of the unit
    * @param value The contents of the unit
    */
-  private void setLoEntry(int unit, int value) {
-    table[(unit + 1)<<1] = value;
-  }
-  private void setHiEntry(int unit, int value) {
-    table[((unit + 1)<<1)+1] = value;
+  private void setEntry(int unit, int value) {
+    table[unit + 1] = value;
   }
 
   private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 1);
+  private static final int UNIT_BITS = (TOTAL_BITS - 2)>>1;
   private static final int MAX_UNITS = ((1<<UNIT_BITS) - 1) - 1;
   private static final int NEXT_MASK = (1<<UNIT_BITS) - 1;
-  private static final int PREV_MASK = (1<<UNIT_BITS) - 1;
+  private static final int PREV_SHIFT = UNIT_BITS;
+  private static final int PREV_MASK = ((1<<UNIT_BITS) - 1) << PREV_SHIFT;
   private static final int FREE_MASK = 1<<(TOTAL_BITS-1);
-  private static final int MULTI_MASK = 1<<(TOTAL_BITS-1);
+  private static final int MULTI_MASK = 1<<(TOTAL_BITS-2);
   private static final int SIZE_MASK = (1<<UNIT_BITS) - 1;
   
   // want the sentinels to be "used" & "single", and want first
   // sentinel to initially point to itself.
-  private static final int SENTINEL_LO_INIT = PREV_MASK;
-  private static final int SENTINEL_HI_INIT = NEXT_MASK;
+  private static final int SENTINEL_INIT = NEXT_MASK | PREV_MASK;
 
   private int[] table;
 }

@@ -27,7 +27,9 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
+
 public abstract class VMResource implements Constants, VM_Uninterruptible {
+
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -112,7 +114,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    */
   VMResource(String vmName, VM_Address vmStart, EXTENT bytes, byte status) {
     start = vmStart;
-    blocks = Conversions.bytesToBlocks(bytes);
+    int blocks = Conversions.bytesToBlocks(bytes);
+    pages = Conversions.blocksToPages(blocks);
     end = start.add(bytes);
     name = vmName;
     index = count++;
@@ -142,8 +145,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    * zero on failure.
    */
   public abstract VM_Address acquire(int request);
+  public abstract VM_Address acquire(int request, MemoryResource mr);
   
-  public final int getBlocks() { return blocks; }
+  public final int getBlocks() { return Conversions.pagesToBlocks(pages); }
 
   public final VM_Address getStart() { return start; }
   public final VM_Address getEnd() { return end; }
@@ -157,6 +161,6 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   private int index;
   protected VM_Address start;
   protected VM_Address end;
-  private int blocks;
-  private String name;
+  private int pages;
+  final protected String name;
 }

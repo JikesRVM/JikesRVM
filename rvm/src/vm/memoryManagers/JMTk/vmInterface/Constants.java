@@ -16,10 +16,12 @@ import com.ibm.JikesRVM.VM_JavaHeader;
 public interface Constants {
 
   static final int LOG_ADDRESS_SPACE = 32;
-  static final int LOG_WORD_BITS = 5;
-  static final int WORD_BITS = 1<<LOG_WORD_BITS;
+  static final int LOG_BYTE_BITS = 3;
+  static final int BYTE_BITS = 1<<LOG_BYTE_BITS;
   static final int LOG_WORD_SIZE = 2;
   static final int WORD_SIZE = 1<<LOG_WORD_SIZE;
+  static final int LOG_WORD_BITS = LOG_BYTE_BITS + LOG_WORD_SIZE;
+  static final int WORD_BITS = 1<<LOG_WORD_BITS;
   static final int LOG_MBYTE_SIZE = 20;
   static final int MBYTE_SIZE = 1<<LOG_MBYTE_SIZE;
   static final int LOG_PAGE_SIZE = 12;

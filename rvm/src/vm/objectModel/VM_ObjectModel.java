@@ -209,6 +209,21 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     VM_JavaHeader.gcProcessTIB(ref);
   }
 
+//   public static int bytesRequiredWhenCopied(Object object) {
+//     return VM_JavaHeader.bytesRequiredWhenCopied(object);
+//   }
+
+  public static int bytesRequiredWhenCopied(Object obj) {
+    Object[] tib = VM_ObjectModel.getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return bytesRequiredWhenCopied(obj, type.asClass());
+    } else {
+      int numElements = VM_Magic.getArrayLength(obj);
+      return bytesRequiredWhenCopied(obj, type.asArray(), numElements);
+    }
+  }
+
   /**
    * how many bytes are needed when the scalar object is copied by GC?
    */

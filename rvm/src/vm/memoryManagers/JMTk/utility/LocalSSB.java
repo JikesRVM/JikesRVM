@@ -13,6 +13,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Entrypoints;
 
 /**
  * This class implements a local (<i>unsynchronized</i>) sequential
@@ -70,7 +71,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
   public void flushLocal() {
     if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(queue.getArity());
-      tail = Queue.TAIL_INITIAL_VALUE;
+      setTail(Queue.TAIL_INITIAL_VALUE);
     }
   }
 
@@ -103,7 +104,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    */
   protected final void uncheckedInsert(int value) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= WORDSIZE);
-    tail = tail.sub(WORDSIZE);
+    setTail(tail.sub(WORDSIZE));
     VM_Magic.setMemoryWord(tail, value);
     //    if (VM.VerifyAssertions) enqueued++;
   }
@@ -126,8 +127,8 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     VM_Address last = tgt.add(bufferLastOffset(arity) - bufferOffset(tail));
     while(tgt.LE(last)) {
       VM_Magic.setMemoryWord(tgt, VM_Magic.getMemoryWord(src));
-      src.add(WORDSIZE);
-      tgt.add(WORDSIZE);
+      src = src.add(WORDSIZE);
+      tgt = tgt.add(WORDSIZE);
     }
     return last;
   }
@@ -150,7 +151,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferLastOffset(arity) + WORDSIZE);
+    setTail(queue.alloc().add(bufferLastOffset(arity) + WORDSIZE));
   }
 
   /**
@@ -170,4 +171,13 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     }
     queue.enqueue(last.add(WORDSIZE), arity, true);
   }
+
+  // need to use this to avoid generating a putfield and so causing
+  // write barrier recursion
+  protected final void setTail(VM_Address newTail)
+    throws VM_PragmaInline {
+    VM_Magic.setIntAtOffset(this, tailFieldOffset, newTail.toInt());
+  }
+  
+  private static int tailFieldOffset = VM_Entrypoints.tailField.getOffset();
 }

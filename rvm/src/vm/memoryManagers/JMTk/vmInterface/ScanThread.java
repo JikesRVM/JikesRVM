@@ -80,7 +80,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   //   t.hardwareExceptionRegisters
   //   t.hardwareExceptionRegisters.gprs 
   //
-  public static void scanThread(VM_Thread t, AddressSet rootLocations, AddressPairSet codeLocations) {
+  public static void scanThread(VM_Thread t, AddressQueue rootLocations, AddressPairQueue codeLocations) {
 	
 	Plan plan = VM_Processor.getCurrentProcessor().mmPlan;
 
@@ -131,7 +131,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
    * @param rootLocations  set to store addresses containing roots
    * @param relocate_code  set to store addresses containing return addresses (if null, skip)
    */
-  public static void scanThreadInternal (AddressSet rootLocations, AddressPairSet codeLocations,
+  public static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
 					 VM_Thread t, VM_Address top_frame) {
     
     VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
