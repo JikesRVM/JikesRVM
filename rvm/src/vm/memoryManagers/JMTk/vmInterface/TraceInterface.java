@@ -120,12 +120,12 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
    */
   public static final Offset adjustSlotOffset(boolean isScalar, 
                                               ObjectReference src,
-                                                 Address slot) {
+                                              Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
        of the object. */
     Offset offset = slot.diff(src.toAddress());
     if (isScalar)
-      return Offset.fromInt(getHeaderEndOffset()).sub(offset);
+      return offset.sub(getHeaderEndOffset());
     else
       return offset;
   }

@@ -421,6 +421,21 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
   }
 
   /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  public static final ObjectReference 
+  getForwardedReference(ObjectReference object) {
+    if (traceInducedGC)
+      return object;     // Nothing moves during tracing
+    else
+      return SemiSpaceBase.getForwardedReference(object);
+  }
+
+  /**
    * Return true if <code>obj</code> is a live object.
    *
    * @param object The object in question

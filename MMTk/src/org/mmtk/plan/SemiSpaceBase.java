@@ -386,7 +386,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final ObjectReference getForwardedReference(ObjectReference object) {
+  public static ObjectReference getForwardedReference(ObjectReference object) {
     if (!object.isNull()) {
       if ((hi && Space.isInSpace(SS0, object)) || 
           (!hi && Space.isInSpace(SS1, object))) {
