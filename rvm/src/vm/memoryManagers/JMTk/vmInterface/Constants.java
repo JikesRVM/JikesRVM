@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  *  static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
  *
  * In this case, we simply extend VM_SizeConstants, which has already
- * defined all such constants.  This is in fact a neccesity becuase of
+ * defined all such constants.  This is in fact a necessity becuase of
  * the wierdness of VM_Processor *extending* Plan (and therefore
  * implementing both Constants and VM_SizeConstants, and thus being
  * exposed to potential duplication of constants).
@@ -33,10 +33,10 @@ public interface Constants extends VM_SizeConstants {
   static final int MAX_INT = 0x7fffffff;
 
   static final int LOG_BYTES_IN_MBYTE = 20;
-  static final int BYTES_IN_MBYTE = 1<<LOG_BYTES_IN_MBYTE;
+  static final int BYTES_IN_MBYTE = 1 << LOG_BYTES_IN_MBYTE;
 
   static final int LOG_BYTES_IN_PAGE = 12;
-  static final int BYTES_IN_PAGE = 1<<LOG_BYTES_IN_PAGE;
+  static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
 
   /* Assume an address refers to a byte */
   static final int LOG_BYTES_IN_ADDRESS_SPACE = BITS_IN_ADDRESS;
