@@ -184,7 +184,8 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   final public VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(false);
-    return null;
+    // return VM_Address.zero();  this trips some Intel assembler bug
+    return VM_Address.max();
   }
 
   /**
