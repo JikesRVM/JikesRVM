@@ -431,6 +431,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     if (!strncmp(token, "-D", 2) || !strncmp(token, "-X:gc", 5) ||
 	!strncmp(token, "-X:aos",6)   || !strncmp(token, "-X:irc", 6) ||
 	!strncmp(token, "-X:base",7)  || !strncmp(token, "-X:opt", 6) ||
+	!strncmp(token, "-X:prof",7)  ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
 	!strcmp(token, "-verbose:gc") ||
 	!strncmp(token, "-X:vmClasses=", 13)  || 
