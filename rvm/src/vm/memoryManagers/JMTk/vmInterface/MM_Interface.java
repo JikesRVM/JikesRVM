@@ -95,6 +95,13 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     Plan.postBoot();
   }
 
+  /**
+   * Notify the MM that the host VM is now fully booted.
+   */
+  public static void fullyBootedVM() throws VM_PragmaInterruptible {
+    Plan.fullyBooted();
+  }
+
   /** 
    *  Process GC parameters.
    */

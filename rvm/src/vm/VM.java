@@ -244,6 +244,7 @@ public class VM extends VM_Properties
 
     // Process most of the VM's command line arguments.
     // The VM is fully booted at this point. 
+    MM_Interface.fullyBootedVM();
     if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
     String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
     if (applicationArguments.length == 0) {  

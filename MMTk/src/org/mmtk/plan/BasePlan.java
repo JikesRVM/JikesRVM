@@ -54,7 +54,9 @@ public abstract class BasePlan
   protected static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
-  protected static boolean gcInProgress = false;  // Controlled by subclasses
+  protected static boolean initialized = false;
+  protected static boolean gcInProgress = false;    // Controlled by subclasses
+  protected static int exceptionReserve = 0;
 
   // Timing variables
   protected static double bootTime;
@@ -159,6 +161,11 @@ public abstract class BasePlan
     if (verbose > 2) VMResource.showAll();
   }
 
+  public static void fullyBooted() {
+    initialized = true;
+    exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
+    VM_Interface.sysWrite("fully booted\n");
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //

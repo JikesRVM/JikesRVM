@@ -134,7 +134,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static final boolean stressTestGCRequired()
     throws VM_PragmaInline {
     int pagesReserved = Plan.getPagesReserved();
-    if (VM_Interface.fullyInitialized() &&
+    if (initialized &&
 	((pagesReserved ^ lastStressPagesReserved) > Options.stressTest)) {
       lastStressPagesReserved = pagesReserved;
       return true;

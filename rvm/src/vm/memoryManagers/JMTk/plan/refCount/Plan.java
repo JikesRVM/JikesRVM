@@ -323,7 +323,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	getPagesReserved() > getTotalPages() ||
 	(((rcMR.committedPages() - lastRCPages) > Options.nurseryPages ||
 	  metaDataMR.committedPages() > Options.metaDataPages)
-	 && VM_Interface.fullyInitialized())) {
+	 && initialized)) {
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();

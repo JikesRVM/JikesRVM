@@ -260,7 +260,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Miscellaneous
    */
 
-  final private static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
+  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
 
   public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
@@ -348,11 +348,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
     VM_CollectorThread.gcBarrier.rendezvous();
   }
-
-  public static boolean fullyInitialized() {
-    return VM_Scheduler.allProcessorsInitialized;
-  }
-
 
   public static boolean isNonParticipating (Plan plan) {
     VM_Processor vp = (VM_Processor) plan;
