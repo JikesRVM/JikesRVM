@@ -48,13 +48,15 @@ Java_StringRegion_testStringRegion(JNIEnv *env, jclass cls, jstring str)
     jchar *bufp = buf1;
     jsize offset = 3;
     jsize len = nchars - offset;
+    size_t i;
+    char buf2[nchars + 1];      /* trailing null? */
 
     (*env)->GetStringRegion(env, str, offset, len, bufp);
     if ((*env) -> ExceptionCheck(env)) {
         fprintf(stderr, "> Unexpected exception from GetStringRegion\n");
     }
     
-    for (size_t i = 0; i < nchars - offset; ++i) {
+    for (i = 0; i < nchars - offset; ++i) {
         int sampIdx = offset + i;
         if (buf1[i] != sample[sampIdx]) {
             fprintf(stderr, "> buf1[%d] = '%c', sample[%d] = '%c'\n",
@@ -73,7 +75,6 @@ Java_StringRegion_testStringRegion(JNIEnv *env, jclass cls, jstring str)
     
     // Now GetStringUTFRegion.  We are using only low-bit chars, so we should
     // get a string-for-string match with bytes.
-    char buf2[nchars + 1];      /* trailing null? */
     (*env)->GetStringUTFRegion(env, str, 0, nchars, buf2);
     if ((*env) -> ExceptionCheck(env)) {
         fprintf(stderr, "> Unexpected exception from GetStringUTFRegion\n");
@@ -104,6 +105,7 @@ Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
     int trouble = 0;
     jboolean isCopy;
     int offset = 0;
+    size_t i;
 
     jchar *js = (*env)->GetStringCritical(env, str, &isCopy);
     if (! js) {
@@ -119,7 +121,7 @@ Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
 //        fprintf(stderr, "> GetStringCritical returned a copy; should not happen!!\n");
 //    }
     
-    for (size_t i = 0; i < nchars; ++i) {
+    for (i = 0; i < nchars; ++i) {
         int sampIdx = i;
         if (js[i] != sample[sampIdx]) {
             fprintf(stderr, "> js[%d] = '%c', sample[%d] = '%c'\n",
@@ -127,7 +129,7 @@ Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
             ++trouble;
         }
     }
-    for (int i = 0; i < 9; ++i) {
+    for (i = 0; i < 9; ++i) {
         js[i] = "Free Java"[i];
     }
     
