@@ -36,7 +36,7 @@ function checkenv () {
 	HOME | RVM_ROOT | RVM_BUILD ) wantdir=1 ;;
     esac
     ## Now perform the testing.
-    if [ ! "${!envar}" ]; then
+    if [[ ! ${!envar-} ]]; then
 	echo -n "$ME: Please set your ${envar} environment variable"
 
 	local example="$(checkenv_example ${envar})";
