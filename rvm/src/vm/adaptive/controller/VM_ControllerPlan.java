@@ -10,6 +10,17 @@ import java.util.ListIterator;
  * An instance of this class describes a compilation decision made by
  * the controller
  *
+ * Constraints:
+ *   Given the plan list of a method:
+ * 	Only one plan will have status COMPLETED
+ * 	Multiple plans may have status OUTDATED
+ *	Only one plan will have status IN_PROGRESS
+ *
+ * status states:
+ * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
+ *             \              \--> ABORTED_COMPILATION_ERROR (never recompile method)
+ *             \--> ABORTED_QUEUE_FULL
+ *
  * @author Michael Hind
  */
 final class VM_ControllerPlan {
@@ -29,8 +40,8 @@ final class VM_ControllerPlan {
   // The compilation is still in progress
   static final byte IN_PROGRESS = 4;
 
-  // The compilation completed, but a new plan for the same method also completed,
-  // so this is not the most recent completed plan
+  // The compilation completed, but a new plan for the same method also 
+  // completed, so this is not the most recent completed plan
   static final byte OUTDATED = 5;
 
   // This is used by clients to initialize local variables for Java semantics
