@@ -1597,40 +1597,50 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 			    VM_ReferenceMaps referenceMaps, VM_PendingRETInfo currPendingRET, 
 			    boolean blockSeen, int currBBStkEmpty ) {
     boolean skipRecordingReferenceMap = false;
-    int stkDepth = currBBStkTop;
+    boolean popParams = true;
 
     if (target.getType().isMagicType()) {
       boolean producesCall = VM_MagicCompiler.checkForActualCall(target);
       if (producesCall) {
-	stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 
-	// items from the operand stack. Chances are what
-	// appear to be parameters are not parameters to
+	// register a map, but do NOT include any of the parameters to the call. 
+	// Chances are what appear to be parameters are not parameters to
 	// the routine that is actually called.
+	// In any case, the callee routine will map its parameters
+	// and we don't have to double map because we are positive that this can't be
+	// a dynamically linked call site.
+	VM_TypeReference[] parameterTypes = target.getParameterTypes();
+	for (int i=0; i<parameterTypes.length; i++) {
+	  currBBStkTop -= parameterTypes[i].getStackWords();
+	}
+	if (!isStatic) currBBStkTop--; // pop implicit "this" object reference
+	popParams = false;
       } else {
 	skipRecordingReferenceMap = true;
       }
     }
 
     if (!skipRecordingReferenceMap) {
-      // Register the reference map, including the arguments on the stack for this 
-      // call 
+      // Register the reference map, including the arguments on the stack for this call 
+      // (unless it is a magic call whose params we have popped above).
       if (!inJSRSub)
-	referenceMaps.recordStkMap(byteindex, currBBMap, stkDepth, blockSeen);
+	referenceMaps.recordStkMap(byteindex, currBBMap, currBBStkTop, blockSeen);
       else
-	referenceMaps.recordJSRSubroutineMap(byteindex, currBBMap, stkDepth,
+	referenceMaps.recordJSRSubroutineMap(byteindex, currBBMap, currBBStkTop,
 					     currPendingRET.returnAddressLocation, blockSeen);
     }
 
-    VM_TypeReference[] parameterTypes = target.getParameterTypes();
-    int pTypesLength = parameterTypes.length;
+    if (popParams) {
+      VM_TypeReference[] parameterTypes = target.getParameterTypes();
+      int pTypesLength = parameterTypes.length;
 
-    // Pop the arguments for this call off the stack; 
-    for (int i=0; i<pTypesLength; i++) {
-      currBBStkTop -= parameterTypes[i].getStackWords();
+      // Pop the arguments for this call off the stack; 
+      for (int i=0; i<pTypesLength; i++) {
+	currBBStkTop -= parameterTypes[i].getStackWords();
+      }
+
+      if (!isStatic)
+	currBBStkTop--; // pop implicit "this" object reference
     }
-
-    if (!isStatic)
-      currBBStkTop--; // pop implicit "this" object reference
 
     // Add the return value to the stack
     VM_TypeReference returnType = target.getReturnType();

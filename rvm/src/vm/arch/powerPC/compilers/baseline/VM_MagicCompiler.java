@@ -547,7 +547,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       methodName == VM_MagicNames.invokeMethodReturningLong   ||
       methodName == VM_MagicNames.invokeMethodReturningFloat  ||
       methodName == VM_MagicNames.invokeMethodReturningDouble ||
-      methodName == VM_MagicNames.invokeMethodReturningObject;
+      methodName == VM_MagicNames.invokeMethodReturningObject ||
+      methodName == VM_MagicNames.addressArrayCreate;
   }
 
 
