@@ -6,11 +6,11 @@
 # made.  You will need to edit the file to insert your own log message.
 #
 # You will need to update the cvs path, below
-cvs=/homes/fury5/jalapeno/bin/cvs
+. $RVM_HOST_CONFIG
 echo "#! /bin/sh" > doit
-echo "cvs=/homes/fury5/jalapeno/bin/cvs" >> doit
+echo "cvs=$CVS" >> doit
 
-$cvs -q -n update -Idoit -I\*.class -I\*.html -I\*.gif $* | \
+$CVS -q -n update -Idoit -I\*.class -I\*.html -I\*.gif $* | \
 grep -v "^[UP]" | \
 sed -e 's/^M /\$cvs commit -m "MSG" /' |\
 sed -e 's/^A /\$cvs commit -m "Initial Revision" /' |\
