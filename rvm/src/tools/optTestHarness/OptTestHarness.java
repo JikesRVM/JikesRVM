@@ -63,6 +63,7 @@ class Performance implements VM_Callbacks.ExitMonitor {
 }
 
 class OptTestHarness {
+  static boolean DISABLE_CLASS_LOADING   = false;
   static boolean EXECUTE_WITH_REFLECTION = false;
   // Default value for for compiling opt/baseline
   static boolean BASELINE = false; 
@@ -156,6 +157,16 @@ class OptTestHarness {
   }
   
   static VM_Class loadClass(String s) throws ClassNotFoundException {
+    if (s.startsWith("./")) s = s.substring(2, s.length());
+    if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
+    if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
+
+    // parse the class signature
+    if (s.startsWith("L") && s.endsWith(";")) {
+      s = s.substring(1, s.length()-1);
+    }
+
+    s = s.replace('.','/');
     return (VM_Class)cl.loadClass(s, true).getVMType();
   }
 
@@ -211,7 +222,11 @@ class OptTestHarness {
 	  BufferedReader in = new BufferedReader(new FileReader(args[i]));
 	  StringBuffer s = new StringBuffer("");
 	  while (in.ready()) {
-	    s.append(in.readLine());
+	    String line = in.readLine().trim();
+	    if (!line.startsWith("#")) {
+	      s.append(line);
+	      s.append(" ");
+	    }
 	  }
 	  in.close();
 	  StringTokenizer t = new StringTokenizer(s.toString());
@@ -267,6 +282,8 @@ class OptTestHarness {
 	  options = (OPT_Options) options.clone() ;
 	} else if (arg.equals("-performance")) {
 	    perf = new Performance();
+	} else if (arg.equals("-disableClassLoading")) {
+	  DISABLE_CLASS_LOADING = true;
 	} else if (arg.equals("-er")) {
 	  EXECUTE_WITH_REFLECTION = true ;
 	  VM_Class  klass      = loadClass(args[++i]);
@@ -360,6 +377,11 @@ class OptTestHarness {
     compileMethodsInVector();
 
     if(EXECUTE_WITH_REFLECTION == true) {
+
+      if (DISABLE_CLASS_LOADING) {
+	VM_Class.classLoadingDisabled = true;
+      }
+
       int size = reflectoidVector.size() ;
       for(int i = 0; i < size ; i++) {
 	reflectoid = (java.lang.reflect.Method) reflectoidVector.elementAt(i);

@@ -712,11 +712,19 @@ public final class VM_Class extends VM_Type
     VM_Statics.setSlotContents(tibSlot, tib);
   }
 
+  // for close world testing
+  public static boolean classLoadingDisabled = false;
+
   /**
    * Read this class's description from its .class file.
    */ 
   public final synchronized void load() throws VM_ResolutionException {
     if (isLoaded()) return;
+
+    if (classLoadingDisabled) {
+      throw new RuntimeException("ClassLoading Disabled : "
+				 +this.getDescriptor());
+    }
 
     if (VM.TraceClassLoading && VM.runningVM) 
       VM.sysWrite("VM_Class: (begin) load " + descriptor + "\n");
@@ -743,6 +751,11 @@ public final class VM_Class extends VM_Type
    */ 
   final synchronized void load(DataInputStream input) throws ClassFormatError, IOException {
     if (isLoaded()) return;
+
+    if (classLoadingDisabled) {
+      throw new RuntimeException("ClassLoading Disabled : "
+				 +this.getDescriptor());
+    }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
