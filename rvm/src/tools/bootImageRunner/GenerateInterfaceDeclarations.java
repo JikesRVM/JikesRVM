@@ -61,6 +61,14 @@ class GenerateInterfaceDeclarations {
     System.out.println("#endif /* NEED_BOOT_RECORD_INITIALIZATION */");
     System.out.println();
 
+    System.out.println("#ifdef NEED_GNU_CLASSPATH_VERSION");
+    // version of the classpath library from gnu.classpath.configuration
+    System.out.print("static const char*classpath_version                        = \""
+		     + gnu.classpath.Configuration.CLASSPATH_VERSION +"\";\n");
+    System.out.println("#endif /* NEED_GNU_CLASSPATH_VERSION */");
+    System.out.println();
+
+
     System.out.println("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
     emitVirtualMachineDeclarations(bootImageAddress);
     System.out.println("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
@@ -254,10 +262,6 @@ class GenerateInterfaceDeclarations {
     //
     System.out.print("static const int bootImageAddress                        = 0x"
         + Integer.toHexString(bootImageAddress) + ";\n");
-
-    // verion of the classpath library from gnu.classpath.configuration
-    System.out.print("static const char*classpath_version                        = \""
-		     + gnu.classpath.Configuration.CLASSPATH_VERSION +"\";\n");
 
     // values in VM_Constants, from VM_Configuration
     //
