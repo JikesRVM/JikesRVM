@@ -26,7 +26,8 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   // and other invokes when using profile information to identify the hot targets.
   public OPT_InlineDecision shouldInline(OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
-    
+    VM_Method originalCallee = state.obtainTarget();
+
     if (!opts.INLINE) return OPT_InlineDecision.NO("inlining not enabled");
     
     // (1) If the static heuristics will inline this call, we're done.
@@ -61,10 +62,10 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	if (opts.GUARDED_INLINE) {
 	  boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
 	    isCurrentlyFinal(staticCallee, true);
-	  byte guard = chooseGuard(caller, staticCallee, state, codePatch);
+	  byte guard = chooseGuard(caller, staticCallee, originalCallee, state, codePatch);
 	  if (guard == OPT_Options.IG_METHOD_TEST) {
 	    // see if we can get away with the cheaper class test on the actual target 
-	    guard = chooseGuard(caller, callee, state, false);
+	    guard = chooseGuard(caller, callee, originalCallee, state, false);
 	  }
 	  return OPT_InlineDecision.guardedYES(callee, guard,
 					       "AI: guarded inline of hot edge");
@@ -109,7 +110,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  for (int i=0; i<targets.length; i++) {
 	    if (targets[i] != null) {
 	      viableTargets[viable] = targets[i];
-	      guards[viable++] = chooseGuard(caller, targets[i], state, false);
+	      guards[viable++] = chooseGuard(caller, targets[i], originalCallee, state, false);
 	    }
 	  }
 	  return OPT_InlineDecision.guardedYES(viableTargets, 
