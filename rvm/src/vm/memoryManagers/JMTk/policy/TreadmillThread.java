@@ -124,6 +124,7 @@ final class TreadmillThread extends LargeObjectAllocator
       free(cell);
     }
     treadmill.flip();
+    if (VM.VerifyAssertions) VM._assert(treadmill.toSpaceEmpty());
   }
 
 
