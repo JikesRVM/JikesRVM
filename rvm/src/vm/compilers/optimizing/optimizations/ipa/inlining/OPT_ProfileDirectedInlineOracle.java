@@ -57,23 +57,27 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
       } 
       VM_Method staticCallee = state.obtainTarget();
-      if (candidateNeedsGuard(caller, staticCallee, state)) {
-	if (opts.GUARDED_INLINE) {
-	  boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
-	    isCurrentlyFinal(staticCallee, true);
-	  byte guard = chooseGuard(caller, staticCallee, originalCallee, state, codePatch);
-	  if (guard == OPT_Options.IG_METHOD_TEST) {
-	    // see if we can get away with the cheaper class test on the actual target 
-	    guard = chooseGuard(caller, callee, originalCallee, state, false);
-	  }
-	  return OPT_InlineDecision.guardedYES(callee, guard,
-					       "AI: guarded inline of hot edge");
-	} else {
-	  recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
-	  return OPT_InlineDecision.NO("AI: guarded inlining disabled");
-	}
-      } else {
-	return OPT_InlineDecision.YES(callee, "AI: hot edge");
+      // Critical section: must prevent class hierarchy from changing while
+      // we are inspecting it to determine how/whether to do the guard
+      synchronized(VM_Class.OptCLDepManager) {
+        if (candidateNeedsGuard(caller, staticCallee, state)) {
+          if (opts.GUARDED_INLINE) {
+            boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
+              isCurrentlyFinal(staticCallee, true);
+            byte guard = chooseGuard(caller, staticCallee, originalCallee, state, codePatch);
+            if (guard == OPT_Options.IG_METHOD_TEST) {
+              // see if we can get away with the cheaper class test on the actual target 
+              guard = chooseGuard(caller, callee, originalCallee, state, false);
+            }
+            return OPT_InlineDecision.guardedYES(callee, guard,
+                                                 "AI: guarded inline of hot edge");
+          } else {
+            recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
+            return OPT_InlineDecision.NO("AI: guarded inlining disabled");
+          }
+        } else {
+          return OPT_InlineDecision.YES(callee, "AI: hot edge");
+        }
       }
     } else {
       // (2c) We have multiple hot edges to consider.
@@ -105,13 +109,17 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  VM_Method[] viableTargets = new VM_Method[viable];
 	  byte[] guards = new byte[viable];
 	  viable = 0;
-	  for (int i=0; i<targets.length; i++) {
-	    if (targets[i] != null) {
-	      viableTargets[viable] = targets[i];
-	      guards[viable++] = chooseGuard(caller, targets[i], originalCallee, state, false);
-	    }
-	  }
-	  return OPT_InlineDecision.guardedYES(viableTargets, 
+          // Critical section: must prevent class hierarchy from changing while
+          // we are inspecting it to determine how/whether to do the guard
+          synchronized(VM_Class.OptCLDepManager) {
+            for (int i=0; i<targets.length; i++) {
+              if (targets[i] != null) {
+                viableTargets[viable] = targets[i];
+                guards[viable++] = chooseGuard(caller, targets[i], originalCallee, state, false);
+              }
+            }
+          }
+          return OPT_InlineDecision.guardedYES(viableTargets, 
 					       guards,
 					       "AI: viable hot edge(s) found");
 	} else {
@@ -120,7 +128,6 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       }
     }
   }
-	
 
   protected boolean viableCandidate(VM_Method caller, VM_Method callee, 
 				    OPT_CompilationState state) {
@@ -151,24 +158,27 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 
   // note: !state.getHasPreciseTarget is known to be null.
   protected boolean candidateNeedsGuard(VM_Method caller, VM_Method callee, 
-				      OPT_CompilationState state) {
+                                        OPT_CompilationState state) {
     // for now, guard all inlined interface invocations.
     // TODO: is this too strict? Does pre-existance apply?
     if (state.isInvokeInterface()) return true;
     
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM_Lock.owns(VM_Class.OptCLDepManager));
+    }
     if (needsGuard(callee)) {
       // check pre-existance
       if (state.getIsExtant() && state.getOptions().PREEX_INLINE) {
-	if (isCurrentlyFinal(callee, true)) {
-	  // use pre-existence !!
-	  if (OPT_ClassLoadingDependencyManager.TRACE || OPT_ClassLoadingDependencyManager.DEBUG) {
-	    VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "+callee+
-					    " into "+caller+"\n");
-	  }
-	  VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-					      state.getCompiledMethod());
-	  return false;
-	}
+        if (isCurrentlyFinal(callee, true)) {
+          // use pre-existence !!
+          if (OPT_ClassLoadingDependencyManager.TRACE || OPT_ClassLoadingDependencyManager.DEBUG) {
+            VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "+callee+
+                                            " into "+caller+"\n");
+          }
+          VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
+                                                              state.getCompiledMethod());
+          return false;
+        }
       }
       return true;
     }

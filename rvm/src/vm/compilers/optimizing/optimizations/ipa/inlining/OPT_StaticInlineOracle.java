@@ -41,52 +41,55 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       return OPT_InlineDecision.NO("recursive call");
     }
 
-    OPT_Options opts = state.getOptions();
-    // more or less figure out the guard situation early -- impacts size estimate.
-    boolean needsGuard = !state.getHasPreciseTarget() && needsGuard(callee);
-    boolean preEx = 
-      needsGuard && state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(callee, true);
+
+    // Critical section: must prevent class hierarchy from changing while
+    // we are inspecting it to determine how/whether to do the inline guard.
+    synchronized(VM_Class.OptCLDepManager) {
+      OPT_Options opts = state.getOptions();
+      // more or less figure out the guard situation early -- impacts size estimate.
+      boolean needsGuard = !state.getHasPreciseTarget() && needsGuard(callee);
+      boolean preEx = 
+        needsGuard && state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(callee, true);
     
-    // See if inlining action passes simple size heuristics
-    int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
-    OPT_InlineDecision sizeCheck = sizeHeuristics(caller, callee, state, cost);
-    if (sizeCheck != null) return sizeCheck;
+      // See if inlining action passes simple size heuristics
+      int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
+      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, callee, state, cost);
+      if (sizeCheck != null) return sizeCheck;
 
-    // Ok, the size looks good, attempt to do it.
-    if (needsGuard) {
-
-      if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
-	return OPT_InlineDecision.NO("Forbidden speculation");
-      }
-
-      if (preEx) {
-
-	if (OPT_ClassLoadingDependencyManager.TRACE || 
-	    OPT_ClassLoadingDependencyManager.DEBUG) {
-	  VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
-					  + callee + " into " + caller + "\n");
-	}
-	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-							    state.getCompiledMethod());
-	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
-      } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
-	OPT_InlineDecision YES = OPT_InlineDecision.guardedYES(callee, 
-							       chooseGuard(caller, callee, callee, state, true), 
-							       "static guarded inline passsed size checks");
-	//-#if RVM_WITH_OSR
-        if (opts.OSR_GUARDED_INLINING && 
-            OPT_Compiler.getAppStarted() &&
-	    (VM_Controller.options != null) &&
-	    VM_Controller.options.ENABLE_RECOMPILATION) {
-	  // note that we will OSR the failed case.
-	  YES.setOSRTestFailed();
+      // Ok, the size looks good, attempt to do it.
+      if (needsGuard) {
+        if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+          return OPT_InlineDecision.NO("Forbidden speculation");
         }
-	//-#endif
-	return YES;
+
+        if (preEx) {
+          if (OPT_ClassLoadingDependencyManager.TRACE || 
+              OPT_ClassLoadingDependencyManager.DEBUG) {
+            VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
+                                            + callee + " into " + caller + "\n");
+          }
+          VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
+                                                              state.getCompiledMethod());
+          return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
+        } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
+          OPT_InlineDecision YES = OPT_InlineDecision.guardedYES(callee, 
+                                                                 chooseGuard(caller, callee, callee, state, true), 
+                                                                 "static guarded inline passsed size checks");
+          //-#if RVM_WITH_OSR
+          if (opts.OSR_GUARDED_INLINING && 
+              OPT_Compiler.getAppStarted() &&
+              (VM_Controller.options != null) &&
+              VM_Controller.options.ENABLE_RECOMPILATION) {
+            // note that we will OSR the failed case.
+            YES.setOSRTestFailed();
+          }
+          //-#endif
+          return YES;
+        }
+        return OPT_InlineDecision.NO(callee, "non-final virtual method");
+      } else {
+        return OPT_InlineDecision.YES(callee, "Non-guarded passed size checks");
       }
-      return OPT_InlineDecision.NO(callee, "non-final virtual method");
-    } else {
-      return OPT_InlineDecision.YES(callee, "Non-guarded passed size checks");
     }
   }
 
@@ -155,60 +158,64 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
   protected OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller,
 								  VM_Method callee,
 								  OPT_CompilationState state) {
-    // see if there is only one implementation of the abstract method
-    VM_Class klass = callee.getDeclaringClass();
-    VM_Class[] subClasses = klass.getSubClasses();
-    if (subClasses.length != 1) return OPT_InlineDecision.NO("abstract class doesn't have exactly one subclass");
-    VM_Method singleImpl = 
-      subClasses[0].findDeclaredMethod(callee.getName(), callee.getDescriptor());
-    if (singleImpl == null || !hasBody(singleImpl)) {
-      return OPT_InlineDecision.NO("Implementation of abstract method is illegal candidate");
-    }
-    if (hasNoInlinePragma(singleImpl, state))
-      return OPT_InlineDecision.NO("pragmaNoInline");
-    
-    // Don't allow the static inline oracle to inline recursive calls.
-    // It isn't smart enough to do this effectively.
-    OPT_InlineSequence seq = state.getSequence();
-    if (seq.containsMethod(singleImpl)) {
-      return OPT_InlineDecision.NO("recursive call");
-    }
-
-    OPT_Options opts = state.getOptions();
-    // more or less figure out the guard situation early -- impacts size estimate.
-    boolean preEx = state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(singleImpl, true);
-    
-    // See if inlining action passes simple size heuristics
-    int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
-    int cost = inliningActionCost(inlinedSizeEstimate, true, preEx, opts);
-    OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
-    if (sizeCheck != null) return sizeCheck;
-
-    if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
-      return OPT_InlineDecision.NO("Forbidden speculation");
-    }
-
-    // Ok, the size looks good, attempt to do it.
-    if (preEx) {
-      if (OPT_ClassLoadingDependencyManager.TRACE || 
-	  OPT_ClassLoadingDependencyManager.DEBUG) {
-	VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
-					+ singleImpl + " into " + caller + "\n");
+    // Critical section: must prevent class hierarchy from changing while
+    // we are inspecting it to determine how/whether to do the inlining
+    synchronized(VM_Class.OptCLDepManager) {
+      // see if there is only one implementation of the abstract method
+      VM_Class klass = callee.getDeclaringClass();
+      VM_Class[] subClasses = klass.getSubClasses();
+      if (subClasses.length != 1) return OPT_InlineDecision.NO("abstract class doesn't have exactly one subclass");
+      VM_Method singleImpl = 
+        subClasses[0].findDeclaredMethod(callee.getName(), callee.getDescriptor());
+      if (singleImpl == null || !hasBody(singleImpl)) {
+        return OPT_InlineDecision.NO("Implementation of abstract method is illegal candidate");
       }
-      VM_Class.OptCLDepManager.addNotOverriddenDependency(singleImpl, 
-							  state.getCompiledMethod());
-      VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-							  state.getCompiledMethod());
-      return OPT_InlineDecision.YES(singleImpl, "PREEX_INLINE passed size checks");
-    } else if (opts.GUARDED_INLINE && isCurrentlyFinal(singleImpl, !opts.guardWithClassTest())) {
-      return OPT_InlineDecision.guardedYES(singleImpl, 
-					   chooseGuard(caller, singleImpl, callee, state, true), 
-					   "static guarded inline passsed size checks");
+      if (hasNoInlinePragma(singleImpl, state))
+        return OPT_InlineDecision.NO("pragmaNoInline");
+    
+      // Don't allow the static inline oracle to inline recursive calls.
+      // It isn't smart enough to do this effectively.
+      OPT_InlineSequence seq = state.getSequence();
+      if (seq.containsMethod(singleImpl)) {
+        return OPT_InlineDecision.NO("recursive call");
+      }
+
+      OPT_Options opts = state.getOptions();
+      // more or less figure out the guard situation early -- impacts size estimate.
+      boolean preEx = state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(singleImpl, true);
+    
+      // See if inlining action passes simple size heuristics
+      int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
+      int cost = inliningActionCost(inlinedSizeEstimate, true, preEx, opts);
+      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
+      if (sizeCheck != null) return sizeCheck;
+
+      if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+        return OPT_InlineDecision.NO("Forbidden speculation");
+      }
+
+      // Ok, the size looks good, attempt to do it.
+      if (preEx) {
+        if (OPT_ClassLoadingDependencyManager.TRACE || 
+            OPT_ClassLoadingDependencyManager.DEBUG) {
+          VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
+                                          + singleImpl + " into " + caller + "\n");
+        }
+        VM_Class.OptCLDepManager.addNotOverriddenDependency(singleImpl, 
+                                                            state.getCompiledMethod());
+        VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
+                                                            state.getCompiledMethod());
+        return OPT_InlineDecision.YES(singleImpl, "PREEX_INLINE passed size checks");
+      } else if (opts.GUARDED_INLINE && isCurrentlyFinal(singleImpl, !opts.guardWithClassTest())) {
+        return OPT_InlineDecision.guardedYES(singleImpl, 
+                                             chooseGuard(caller, singleImpl, callee, state, true), 
+                                             "static guarded inline passsed size checks");
+      }
+      return OPT_InlineDecision.NO(callee, "abstract method with multiple implementations");
     }
-    return OPT_InlineDecision.NO(callee, "abstract method with multiple implementations");
   }
 
-
+  
   /**
    * Check static size heuristics.
    *

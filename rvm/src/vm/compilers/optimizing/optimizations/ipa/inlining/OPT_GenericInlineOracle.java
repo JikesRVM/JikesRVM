@@ -108,7 +108,8 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * from caller to callee according to the controlling OPT_Options.
    * If we are using IG_CODE_PATCH, then these method also records 
    * the required dependency.
-   * 
+   * Precondition: lock on VM_Class.OptCLDepManager is held.
+   *
    * @param caller the caller method
    * @param callee the callee method
    * @param opts the opt options
@@ -121,6 +122,9 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 			     boolean codePatchSupported) {
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
+      if (VM.VerifyAssertions && VM.runningVM) {
+        VM._assert(VM_Lock.owns(VM_Class.OptCLDepManager));
+      }
       if (guard == OPT_Options.IG_CODE_PATCH) {
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {

@@ -37,6 +37,7 @@ public final class OPT_ClassLoadingDependencyManager {
   /////////////////////////
   // Entrypoints for the opt compiler to record dependencies
   /////////////////////////
+
   /** 
    * Record that the code currently being compiled (cm) must be 
    * invalidated if source is overridden.
