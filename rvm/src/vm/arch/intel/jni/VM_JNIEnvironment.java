@@ -989,7 +989,7 @@ public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants 
     }
 
    byte[] contents = new byte[length];
-   VM_Memory.copy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
    
    return contents;
   }

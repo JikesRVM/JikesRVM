@@ -199,7 +199,7 @@ public class VM_Allocator implements VM_Constants {
     int cnt = size - SCALAR_HEADER_SIZE;
     int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
     int dst = objAddress                         + OBJECT_HEADER_OFFSET - cnt;
-    VM_Memory.copy(dst, src, cnt);
+    VM_Memory.aligned32Copy(dst, src, cnt);
 
     // store address of new object into a field of type Object, to keep it
     // live in case GC occurs during call to addElement
@@ -329,7 +329,7 @@ public class VM_Allocator implements VM_Constants {
     int cnt = size - ARRAY_HEADER_SIZE;
     int src = VM_Magic.objectAsAddress(cloneSrc);
     int dst = objAddress;
-    VM_Memory.copy(dst, src, cnt); // !!TODO: implement in inline assembler instead of c library call?
+    VM_Memory.aligned32Copy(dst, src, cnt); 
     
     // return object reference
     //

@@ -307,7 +307,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.alignedCopy32(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				len<<2);
       } else {
@@ -329,7 +329,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.alignedCopy32(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				len<<2);
       } else {
@@ -351,7 +351,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.alignedCopy64(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
 				VM_Magic.objectAsAddress(src) + (srcPos<<3),
 				len<<3);
       }	else {
@@ -373,7 +373,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.alignedCopy64(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
 				VM_Magic.objectAsAddress(src) + (srcPos<<3),
 				len<<3);
       } else {
@@ -410,7 +410,7 @@ public class VM_Array extends VM_Type
 
 	  // handle as two cases, for efficiency and in case subarrays overlap
 	  if (src != dst || srcPos > dstPos) {
-	    VM_Memory.alignedCopy32(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
+	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				    VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				    len<<2);
 	    if (VM.BuildForConcurrentGC) { // dfb: must increment for copied pointers

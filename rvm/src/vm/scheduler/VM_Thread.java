@@ -891,7 +891,7 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
      if (VM.VerifyAssertions)
        VM.assert(newFP >= VM_Magic.objectAsAddress(newStack) + STACK_SIZE_GUARD);
 
-     VM_Memory.copy(newFP, myFP, myDepth);
+     VM_Memory.aligned32Copy(newFP, myFP, myDepth);
 
      return newFP - myFP;
   }

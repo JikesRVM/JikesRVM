@@ -1088,7 +1088,7 @@ int glueFrameSize = JNI_GLUE_FRAME_SIZE;
     }
 
    byte[] contents = new byte[length];
-   VM_Memory.copy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
    
    return contents;
   }

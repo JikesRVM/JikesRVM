@@ -613,7 +613,7 @@ public class VM_Allocator
       int cnt = size - SCALAR_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
       int dst = VM_Magic.objectAsAddress(objRef) + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.copy(dst, src, cnt);
+      VM_Memory.aligned32Copy(dst, src, cnt);
     }
     
     if( hasFinalizer )  VM_Finalizer.addElement(objRef);
@@ -734,7 +734,7 @@ public class VM_Allocator
       int cnt = size - ARRAY_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc);
       int dst = VM_Magic.objectAsAddress(objRef);
-      VM_Memory.copy(dst, src, cnt);
+      VM_Memory.aligned32Copy(dst, src, cnt);
     }
     
     return objRef;  // return reference for allocated array
@@ -1941,7 +1941,7 @@ public class VM_Allocator
       fromAddress = fromRef + OBJECT_HEADER_OFFSET + SCALAR_HEADER_SIZE - full_size;
       
       // now copy object (including the overwritten status word)
-      VM_Memory.copy( toAddress, fromAddress, full_size );
+      VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
     }
     else {
       if (VM.VerifyAssertions) VM.assert(type.isArrayType());
@@ -1953,7 +1953,7 @@ public class VM_Allocator
       fromAddress = fromRef+OBJECT_HEADER_OFFSET;
       
       // now copy object(array) (including the overwritten status word)
-      VM_Memory.copy( toAddress, fromAddress, full_size );
+      VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
       
       // sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
       // changed 11/03/00 to fix ExecuteOptCode failure (GC executing just moved code)
@@ -2053,7 +2053,7 @@ public class VM_Allocator
     fromAddress = fromRef + OBJECT_HEADER_OFFSET + SCALAR_HEADER_SIZE - full_size;
     
     // copy object...before status word modified
-    VM_Memory.copy( toAddress, fromAddress, full_size );
+    VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
     
     // replace status word in copied object, forcing writebarrier bit on (bit 30)
     // markbit in orig. statusword should be 0 (unmarked)

@@ -6,28 +6,31 @@
 /**
  * Low level memory management functions.
  *
- * !!TODO: These functions currently call C library routines, but should probably
- * be replaced with inlined machine code at some point.
- * -- in progress 9/28/01 -- dave
- *
  * Note that this class is "uninterruptible" - calling its methods will never 
  * cause the current thread to yield the cpu to another thread (one that
  * might cause a gc, for example).
  *
- * @author Derek Lieber
  * @author Dave Grove
+ * @author Derek Lieber
  */
 class VM_Memory implements VM_Uninterruptible {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
   ////////////////////////
+  /** 
+   * Should we call C stdlib memcopy for large copies? 
+   */
   private static final boolean USE_NATIVE_CODE = true;
-  private static final int NATIVE_THRESHOLD = 256; // only meaningful if USE_NATIVE_CODE == true
+  /** 
+   * How many bytes is considered large enough to call C stdlib
+   * (when USE_NATIVE_CODE is true)?
+   */
+  private static final int NATIVE_THRESHOLD = 256; 
 
   /**
-   * Copies len elements from src[srcPos] to dst[dstPos].
-   * Assumption src != dst || (scrPos >= dstPos + 4).
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   * Assumption: src != dst || (scrPos >= dstPos + 4).
    * 
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -38,9 +41,9 @@ class VM_Memory implements VM_Uninterruptible {
   static void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
     if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD)) {
-      copy(VM_Magic.objectAsAddress(dst) + dstPos, 
-	   VM_Magic.objectAsAddress(src) + srcPos, 
-	   len);
+      memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
+	      VM_Magic.objectAsAddress(src) + srcPos, 
+	      len);
     } else {
       if ((srcPos & 0x3) == (dstPos & 0x3)) {
 	// alignment is the same
@@ -61,7 +64,7 @@ class VM_Memory implements VM_Uninterruptible {
 	} else if (startDiff == 1) {
 	  dst[dstPos++] = src[srcPos++];
 	}
-	internalAlignedCopy32(VM_Magic.objectAsAddress(dst) + dstPos,
+	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + dstPos,
 			      VM_Magic.objectAsAddress(src) + srcPos,
 			      wordLen);
 	srcPos += wordLen;
@@ -85,7 +88,7 @@ class VM_Memory implements VM_Uninterruptible {
   }    
 
   /**
-   * Copies len elements from src[srcPos] to dst[dstPos].
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * Assumption src != dst || (scrPos >= dstPos + 4).
    * 
    * @param src     the source array
@@ -97,9 +100,9 @@ class VM_Memory implements VM_Uninterruptible {
   static void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
     if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD)) {
-      copy(VM_Magic.objectAsAddress(dst) + dstPos, 
-	   VM_Magic.objectAsAddress(src) + srcPos, 
-	   len);
+      memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
+	      VM_Magic.objectAsAddress(src) + srcPos, 
+	      len);
     } else {
       if ((srcPos & 0x3) == (dstPos & 0x3)) {
 	// alignment is the same
@@ -120,7 +123,7 @@ class VM_Memory implements VM_Uninterruptible {
 	} else if (startDiff == 1) {
 	  dst[dstPos++] = src[srcPos++];
 	}
-	internalAlignedCopy32(VM_Magic.objectAsAddress(dst) + dstPos,
+	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + dstPos,
 			      VM_Magic.objectAsAddress(src) + srcPos,
 			      wordLen);
 	srcPos += wordLen;
@@ -145,7 +148,7 @@ class VM_Memory implements VM_Uninterruptible {
 
 
   /**
-   * Copies len elements from src[srcPos] to dst[dstPos].
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * Assumption src != dst || (srcPos >= dstPos + 2).
    * 
    * @param src     the source array
@@ -157,9 +160,9 @@ class VM_Memory implements VM_Uninterruptible {
   static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
     if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD/2)) {
-      copy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
-	   VM_Magic.objectAsAddress(src) + (srcPos<<1), 
-	   len<<1);
+      memcopy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
+	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
+	      len<<1);
     } else {
       if ((srcPos & 0x1) == (dstPos & 0x1)) {
 	// alignment is the same
@@ -173,7 +176,7 @@ class VM_Memory implements VM_Uninterruptible {
 	if (startDiff != 0) {
 	  dst[dstPos++] = src[srcPos++];
 	}
-	internalAlignedCopy32(VM_Magic.objectAsAddress(dst) + (dstPos<<1),
+	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<1),
 			      VM_Magic.objectAsAddress(src) + (srcPos<<1),
 			      wordLen);
 	wordLen = wordLen >>> 1;
@@ -191,7 +194,7 @@ class VM_Memory implements VM_Uninterruptible {
   }    
 
   /**
-   * Copies len elements from src[srcPos] to dst[dstPos].
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * Assumption src != dst || (srcPos >= dstPos + 2).
    * 
    * @param src     the source array
@@ -203,9 +206,9 @@ class VM_Memory implements VM_Uninterruptible {
   static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
     if (USE_NATIVE_CODE && (len > NATIVE_THRESHOLD/2)) {
-      copy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
-	   VM_Magic.objectAsAddress(src) + (srcPos<<1), 
-	   len<<1);
+      memcopy(VM_Magic.objectAsAddress(dst) + (dstPos<<1), 
+	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
+	      len<<1);
     } else {
       if ((srcPos & 0x1) == (dstPos & 0x1)) {
 	// alignment is the same
@@ -219,7 +222,7 @@ class VM_Memory implements VM_Uninterruptible {
 	if (startDiff != 0) {
 	  dst[dstPos++] = src[srcPos++];
 	}
-	internalAlignedCopy32(VM_Magic.objectAsAddress(dst) + (dstPos<<1),
+	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<1),
 			      VM_Magic.objectAsAddress(src) + (srcPos<<1),
 			      wordLen);
 	wordLen = wordLen >>> 1;
@@ -238,45 +241,30 @@ class VM_Memory implements VM_Uninterruptible {
 
 
   /**
-   * Copy numbytes from src to dst
+   * Copy numbytes from src to dst.
    * Assumption either the ranges are non overlapping, or src >= dst + 4.
    * Also, src and dst are 4 byte aligned and numBytes is a multiple of 4.
    * @param dst the destination addr
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  static void alignedCopy32(int dst, int src, int numBytes) {
+  static void aligned32Copy(int dst, int src, int numBytes) {
     VM_Magic.pragmaInline();
     if (USE_NATIVE_CODE && (numBytes > NATIVE_THRESHOLD)) {
-      copy(dst, src, numBytes);
+      memcopy(dst, src, numBytes);
     } else {
-      internalAlignedCopy32(dst, src, numBytes);
+      internalAligned32Copy(dst, src, numBytes);
     }
   }
 
   /**
-   * Copy numbytes from src to dst
-   * Assumption either the ranges are non overlapping, or src >= dst + 8.
-   * Also, src and dst are 8 byte aligned and numBytes is a multiple of 8.
-   * @param dst the destination addr
-   * @param src the source addr
-   * @param numBytes the number of bytes top copy
-   */
-  static void alignedCopy64(int dst, int src, int numBytes) {
-    // for now, just use the 32 bit version.
-    VM_Magic.pragmaInline();
-    alignedCopy32(dst, src, numBytes);
-  }
-
-
-  /**
-   * Copy numbytes from src to dst
+   * Copy numbytes from src to dst.
    * Assumption either the ranges are non overlapping, or src >= dst + 4.
    * @param dst the destination addr
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  private static void internalAlignedCopy32(int dst, int src, int numBytes) {
+  private static void internalAligned32Copy(int dst, int src, int numBytes) {
     VM_Magic.pragmaInline();
     for (int i=0; i<numBytes; i+= 4) {
       VM_Magic.setMemoryWord(dst + i, VM_Magic.getMemoryWord(src + i));
@@ -292,10 +280,10 @@ class VM_Memory implements VM_Uninterruptible {
    * Returned: nothing
    * Assumption: source and destination regions do not overlap
    */
-   static void copy(int dst, int src, int cnt) {
-     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-     VM.sysCall3(bootRecord.sysCopyIP, dst, src, cnt);
-   }
+  static void memcopy(int dst, int src, int cnt) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    VM.sysCall3(bootRecord.sysCopyIP, dst, src, cnt);
+  }
    
   /**
    * Fill a region of memory.

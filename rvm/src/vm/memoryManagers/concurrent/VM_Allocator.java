@@ -1666,7 +1666,7 @@ public class VM_Allocator
 	int cnt = size - SCALAR_HEADER_SIZE;
 	int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
 	int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-	VM_Memory.copy(dst, src, cnt); 
+	VM_Memory.aligned32Copy(dst, src, cnt); 
 	enqueueIncsForScalarClone(objaddr);	// account for low-level copy of object refs
 
 	return object;
@@ -1698,7 +1698,7 @@ public class VM_Allocator
 	int cnt = size - ARRAY_HEADER_SIZE;
 	int src = VM_Magic.objectAsAddress(cloneSrc);
 	int dst = objaddr;
-	VM_Memory.copy(dst, src, cnt);
+	VM_Memory.aligned32Copy(dst, src, cnt);
 	enqueueIncsForArrayClone(objaddr); // account for low-level copy of object refs
 
 	return object;

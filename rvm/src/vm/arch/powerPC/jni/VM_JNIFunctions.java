@@ -4868,7 +4868,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       char[] contents = new char[len];
-      VM_Memory.copy(VM_Magic.objectAsAddress(contents), uchars, len*2);
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
       String s = new String(contents);
       
       if (s!=null) {
@@ -4941,7 +4941,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	env.recordException(new OutOfMemoryError());
 	return 0;
       }
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(contents), len*2 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(contents), len*2 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5099,7 +5099,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       // store word of 0 at end, before the copy, to set C null terminator
       VM_Magic.setMemoryWord( copyBuffer + copyBufferLen - 4, 0 );
 
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(utfcontents), len );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(utfcontents), len );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5528,7 +5528,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return 0;
       }
       
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5573,7 +5573,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       	return 0;
       }
       
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5619,7 +5619,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       	return 0;
       }
       
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*2 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*2 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5665,7 +5665,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return 0;
       }
       
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*2 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*2 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5710,7 +5710,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	env.recordException(new OutOfMemoryError());
 	return 0;
       }
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*4 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*4 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5755,7 +5755,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	env.recordException(new OutOfMemoryError());
 	return 0;
       }
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5801,7 +5801,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return 0;
       }
 
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*4 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*4 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5845,7 +5845,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       	env.recordException(new OutOfMemoryError());
       	return 0;
       }
-      VM_Memory.copy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8 );
+      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*8 );
       
       // set callers isCopy boolean to true, if it's a valid address
       if (isCopyAddress != 0) {
@@ -5949,7 +5949,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -5997,7 +5997,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*2 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*2 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6045,7 +6045,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*2 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*2 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6093,7 +6093,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if (releaseMode== 0 || releaseMode== 1) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6140,7 +6140,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if (releaseMode== 0 || releaseMode== 1) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*8 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*8 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6188,7 +6188,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if (releaseMode== 0 || releaseMode== 1) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*4 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6236,7 +6236,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       
       // mode 0 and mode 1:  copy back the buffer
       if (releaseMode== 0 || releaseMode== 1) {
-      	VM_Memory.copy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*8 );
+      	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size*8 );
       } 
       
       // mode 0 and mode 2:  free the buffer
@@ -6279,7 +6279,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex, length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex, length); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6315,7 +6315,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex, length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex, length); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6350,7 +6350,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*2, length*2); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*2, length*2); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6386,7 +6386,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*2, length*2); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*2, length*2); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6422,7 +6422,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*4, length*4); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*4, length*4); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6458,7 +6458,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*8, length*8); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*8, length*8); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6494,7 +6494,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*4, length*4); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*4, length*4); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6530,7 +6530,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*8, length*8); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray) + startIndex*8, length*8); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6566,7 +6566,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex, bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex, bufAddress, length); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6602,7 +6602,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex, bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex, bufAddress, length); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6638,7 +6638,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*2, bufAddress, length*2); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*2, bufAddress, length*2); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6674,7 +6674,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*2, bufAddress, length*2); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*2, bufAddress, length*2); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6710,7 +6710,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       	return;
       }
       
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*4, bufAddress, length*4); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*4, bufAddress, length*4); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6746,7 +6746,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*8, bufAddress, length*8); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*8, bufAddress, length*8); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6782,7 +6782,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*4, bufAddress, length*4); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*4, bufAddress, length*4); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6818,7 +6818,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 	return;
       }
 
-      VM_Memory.copy(VM_Magic.objectAsAddress(destinationArray) + startIndex*8, bufAddress, length*8); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray) + startIndex*8, bufAddress, length*8); 
 
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();

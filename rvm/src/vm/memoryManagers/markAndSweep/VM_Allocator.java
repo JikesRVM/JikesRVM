@@ -1023,7 +1023,7 @@ tib));
       int cnt = size - SCALAR_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
       int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.copy(dst, src, cnt); 
+      VM_Memory.aligned32Copy(dst, src, cnt); 
     }
     return VM_Magic.addressAsObject(objaddr);
   }
@@ -1046,7 +1046,7 @@ tib));
       int cnt = size - SCALAR_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
       int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.copy(dst, src, cnt); 
+      VM_Memory.aligned32Copy(dst, src, cnt); 
     }
     return VM_Magic.addressAsObject(objaddr);
   }
@@ -1073,7 +1073,7 @@ tib));
       int cnt = size - SCALAR_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
       int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.copy(dst, src, cnt); 
+      VM_Memory.aligned32Copy(dst, src, cnt); 
     }
     return VM_Magic.addressAsObject(objaddr);
   }
@@ -1097,7 +1097,7 @@ tib));
       int cnt = size - SCALAR_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
       int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.copy(dst, src, cnt); 
+      VM_Memory.aligned32Copy(dst, src, cnt); 
     }
     return VM_Magic.addressAsObject(objaddr);
   }
@@ -1128,7 +1128,7 @@ tib));
     int cnt = size - SCALAR_HEADER_SIZE;
     int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
     int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-    VM_Memory.copy(dst, src, cnt); 
+    VM_Memory.aligned32Copy(dst, src, cnt); 
   }
   else VM_Memory.zero(objaddr - (size - OBJECT_ADDR_POSITION), 
   objaddr - (size - OBJECT_ADDR_POSITION) + size);
@@ -1352,7 +1352,7 @@ tib));
           int cnt = size - ARRAY_HEADER_SIZE;
           int src = VM_Magic.objectAsAddress(cloneSrc);
           int dst = objaddr;
-          VM_Memory.copy(dst, src, cnt);
+          VM_Memory.aligned32Copy(dst, src, cnt);
         }
 
         return VM_Magic.addressAsObject(objaddr);
@@ -1374,7 +1374,7 @@ tib));
           int cnt = size - ARRAY_HEADER_SIZE;
           int src = VM_Magic.objectAsAddress(cloneSrc);
           int dst = objaddr;
-          VM_Memory.copy(dst, src, cnt);
+          VM_Memory.aligned32Copy(dst, src, cnt);
         }
          return VM_Magic.addressAsObject(objaddr);
       }
@@ -1404,7 +1404,7 @@ tib));
           int cnt = size - ARRAY_HEADER_SIZE;
           int src = VM_Magic.objectAsAddress(cloneSrc);
           int dst = objaddr;
-          VM_Memory.copy(dst, src, cnt);
+          VM_Memory.aligned32Copy(dst, src, cnt);
         }
         return VM_Magic.addressAsObject(objaddr);
       }
@@ -1424,7 +1424,7 @@ tib));
         int cnt = size - ARRAY_HEADER_SIZE;
         int src = VM_Magic.objectAsAddress(cloneSrc);
         int dst = objaddr;
-        VM_Memory.copy(dst, src, cnt);
+        VM_Memory.aligned32Copy(dst, src, cnt);
       }
       return VM_Magic.addressAsObject(objaddr);
     }
@@ -1459,7 +1459,7 @@ tib));
       int cnt = size - ARRAY_HEADER_SIZE;
       int src = VM_Magic.objectAsAddress(cloneSrc);
       int dst = objRef;
-      VM_Memory.copy(dst, src, cnt);
+      VM_Memory.aligned32Copy(dst, src, cnt);
     }
     return VM_Magic.addressAsObject(objRef);
 
