@@ -1689,7 +1689,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return isSystemThread;
   }
 
-  protected boolean isSystemThread = true;
+  // Public since it needs to be able to be set by java.lang.Thread.
+  public boolean isSystemThread = true;
 
   public OSR_OnStackReplacementEvent onStackReplacementEvent;
 

@@ -35,7 +35,7 @@ class MainThread extends Thread {
     this.args = args;
     this.vmdata.isMainThread = true;
     //-#if RVM_WITH_OSR
-    super.isSystemThread = false;
+    this.vmdata.isSystemThread = false;
     //-#endif
     if (dbg) VM.sysWriteln("MainThread(args.length == ", args.length,
                          "): constructor done");
