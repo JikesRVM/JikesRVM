@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
+
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
  * runtime services.
@@ -15,7 +17,6 @@ package com.ibm.JikesRVM.opt;
  * @author Jong-Deok Choi
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.*;
 public final class VM_OptLinker implements VM_BytecodeConstants {
 
   /**
@@ -40,34 +41,12 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     case JBC_getstatic: case JBC_putstatic: 
       { 
 	VM_Field target = realMethod.getDeclaringClass().getFieldRef(cpi);
-	if (VM.TraceDynamicLinking) {
-	  VM_Class declaringClass = target.getDeclaringClass();
-	  VM.sysWrite(realMethod);
-	  VM.sysWrite(" at bci ");
-	  VM.sysWrite(bci, false);
-	  VM.sysWrite(" is causing dynamic loading of ");
-	  VM.sysWrite(declaringClass.getDescriptor());
-	  VM.sysWrite(" due to ");
-	  VM.sysWrite(target);
-	  VM.sysWrite("\n");
-	}
 	VM_TableBasedDynamicLinker.resolve(target);
       }
       break;
     case JBC_invokevirtual:case JBC_invokestatic:
       {
 	VM_Method target = realMethod.getDeclaringClass().getMethodRef(cpi);
-	if (VM.TraceDynamicLinking) {
-	  VM_Class declaringClass = target.getDeclaringClass();
-	  VM.sysWrite(realMethod);
-	  VM.sysWrite(" at bci ");
-	  VM.sysWrite(bci, false);
-	  VM.sysWrite(" is causing dynamic loading of ");
-	  VM.sysWrite(declaringClass.getDescriptor());
-	  VM.sysWrite(" due to ");
-	  VM.sysWrite(target);
-	  VM.sysWrite("\n");
-	}
 	VM_TableBasedDynamicLinker.resolve(target);
       }
       break;

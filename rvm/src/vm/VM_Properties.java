@@ -86,15 +86,10 @@ public class VM_Properties extends VM_Configuration {
   //
   public static final boolean TraceDictionaries       = false;
   public static final boolean TraceStatics            = false;
-  public static final boolean TraceDynamicLinking     = false;
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
   public static final boolean TraceStackTrace         = false;
   public static boolean TraceClassLoading             = true;
-
-  // Baseline compiler tracing.
-  //
-  public static final boolean TraceAssembler         = false; // PPC only
 
   // Baseline compiler reference map tracing.
   //
