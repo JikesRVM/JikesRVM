@@ -8,7 +8,9 @@
  * save/restore all registers (both volatile and non-volatile).
  * TODO: Instead of VM_SaveVolatile, make this class implement
  * VM_DynamicBridge...will allow us to kill support for VM_SaveVolatile!.
- * I'm working on this.... --dave.
+ * ISSUE: GCMapping for dynamic bridge assumes that it is being used for
+ *        lazy method compilation.  Need to generalize to support 
+ *        opt's use for other purposes. 
  * 
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
  * @see special treatment of VM_OptCompilerInfo.saveVolatile
