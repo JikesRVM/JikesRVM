@@ -301,36 +301,6 @@ public class VM_BootRecord {
   int sysDoubleRemainderIP;
   //-#endif
 
-  //-#if RVM_WITH_HPM
-  // Hardware performance monitors
-  int sysHPMinitIP;
-  int sysHPMsetSettingsIP;
-  int sysHPMgetSettingsIP;
-  int sysHPMdeleteSettingsIP;
-  int sysHPMsetEventIP;
-  int sysHPMsetEventXIP;
-  int sysHPMsetModeIP;
-  int sysHPMstartCountingIP;
-  int sysHPMstopCountingIP;
-  int sysHPMresetCountersIP;
-  int sysHPMgetCounterIP;
-  int sysHPMprintIP;
-  int sysHPMtestIP;
-  int sysHPMinitTOC;
-  int sysHPMsetSettingsTOC;
-  int sysHPMgetSettingsTOC;
-  int sysHPMdeleteSettingsTOC;
-  int sysHPMsetEventTOC;
-  int sysHPMsetEventXTOC;
-  int sysHPMsetModeTOC;
-  int sysHPMstartCountingTOC;
-  int sysHPMstopCountingTOC;
-  int sysHPMresetCountersTOC;
-  int sysHPMgetCounterTOC;
-  int sysHPMprintTOC;
-  int sysHPMtestTOC;
-   //-#endif                                
-
   // time
   int sysGetTimeOfDayIP;
 
@@ -378,4 +348,19 @@ public class VM_BootRecord {
   public int sysWaitForMultithreadingStartIP;
   //-#endif
   public int traceClassLoading;
+
+  //-#if RVM_WITH_HPM
+  // sysCall entry points to HPM
+  public int sysHPMinitIP;
+  public int sysHPMsetEventIP;
+  public int sysHPMsetEventXIP;
+  public int sysHPMsetModeIP;
+  public int sysHPMsetSettingsIP;
+  public int sysHPMstartCountingIP;
+  public int sysHPMstopCountingIP;
+  public int sysHPMresetCountersIP;
+  public int sysHPMgetCountersIP;
+  public int sysHPMgetCounterIP;
+  public int sysHPMtestIP;
+  //-#endif
 }
