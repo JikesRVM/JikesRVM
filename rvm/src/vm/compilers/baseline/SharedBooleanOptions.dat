@@ -14,6 +14,9 @@ DESCRIP
 ANNOTATIONS -1 false annotations
 Act on annotations in class files
 
+PRELOAD_AS_BOOT -1 false
+Apply boot options to preload_class
+
 ##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix
@@ -23,3 +26,4 @@ Print method name at start of compilation
 
 PRINT_MACHINECODE -1 false mc
 Print final machine code
+

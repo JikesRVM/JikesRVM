@@ -65,10 +65,6 @@ S EXCLUDE String
 Exclude methods from being opt compiled
 
 
-V PRELOAD_CLASS String null
-Class to preload upon 1st OPT compilation
-
-
 V UNROLL_LOG int 2
 Unroll loops. Duplicates the loop body n times.
 
