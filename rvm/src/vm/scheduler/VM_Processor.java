@@ -75,16 +75,17 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     if (VM.runningVM) jtoc = VM_Magic.getJTOC();
     //-#endif
 
-    this.id = id;
-    this.transferQueue = new VM_ThreadQueue(VM_EventLogger.TRANSFER_QUEUE);
-    this.transferMutex = new VM_ProcessorLock();
-    this.readyQueue    = new VM_ThreadQueue(VM_EventLogger.READY_QUEUE);
-    this.ioQueue       = new VM_ThreadIOQueue(VM_EventLogger.IO_QUEUE);
-    this.idleQueue     = new VM_ThreadQueue(VM_EventLogger.IDLE_QUEUE);
-    this.lastLockIndex = -1;
-    this.isInSelect    = false;
-    this.processorMode = RVM;
-    this.djvDaemon     = false;
+    this.id                = id;
+    this.transferQueue     = new VM_ThreadQueue(VM_EventLogger.TRANSFER_QUEUE);
+    this.transferMutex     = new VM_ProcessorLock();
+    this.readyQueue        = new VM_ThreadQueue(VM_EventLogger.READY_QUEUE);
+    this.ioQueue           = new VM_ThreadIOQueue(VM_EventLogger.IO_QUEUE);
+    this.idleQueue         = new VM_ThreadQueue(VM_EventLogger.IDLE_QUEUE);
+    this.chosenProcessorId = id;
+    this.lastLockIndex     = -1;
+    this.isInSelect        = false;
+    this.processorMode     = RVM;
+    this.djvDaemon         = false;
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS 
     //// alternate implementation of jni
@@ -203,7 +204,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   void enableThreadSwitching () {
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
-      VM_Scheduler.assert(threadSwitchingEnabledCount <= 1);
+      VM.assert(threadSwitchingEnabledCount <= 1);
     if (VM.VerifyAssertions && 
         VM_Collector.gcInProgress() && !VM.BuildForConcurrentGC)
       VM.assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
@@ -253,7 +254,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // no processor locks should be held across a thread switch
     //
-    if (VM.VerifyAssertions) VM_Scheduler.assert(lockCount == 0);
+    if (VM.VerifyAssertions) VM.assert(lockCount == 0);
 
     VM_Thread newThread = getRunnableThread();
     while (newThread.suspendPending) {
@@ -303,7 +304,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // (sets "previousThread.beingDispatched = false")
     VM_Magic.resumeThreadExecution(previousThread, newThread.contextRegisters); 
-    if (VM.VerifyAssertions) VM_Scheduler.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
 
   //-----------------//
@@ -313,11 +314,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   /**
    * non-null --> a processor that has no work to do
    */
-  static VM_Processor idleProcessor;      
-  /**
-   * id of next processor to receive load balancing
-   */
-  int                 nextTransferId = 1; 
+  static VM_Processor idleProcessor; 
   
   /**
    * Put thread onto most lightly loaded virtual processor.
@@ -334,14 +331,14 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     if (VM.BuildForConcurrentGC) { 
       // currently don't move threads around - so keep on same processor
       if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", " staying on same processor");
-      VM_Processor.getCurrentProcessor().transferThread(t);
+      getCurrentProcessor().transferThread(t);
       return;
     }
 
     // if t is this thread and is the only (runable) thread on this processor, stay here
     if (t == VM_Thread.getCurrentThread() && readyQueue.isEmpty() && transferQueue.isEmpty()) {
       if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "staying on same processor:", t.getIndex());
-      readyQueue.enqueue(t);
+      getCurrentProcessor().transferThread(t);
       return;
     }
 
@@ -356,18 +353,37 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // otherwise round robin
     if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "outgoing to round-robin processor:", t.getIndex());
-    VM_Scheduler.processors[nextTransferId].transferThread(t);
-    if (++nextTransferId > VM_Scheduler.numProcessors)
-      nextTransferId = 1 ;
+    chooseNextProcessor().transferThread(t);
+    
   }
+
+  /**
+   * Cycle (round robin) through the available processors.
+   */
+  private VM_Processor chooseNextProcessor () {
+    chosenProcessorId = (chosenProcessorId % VM_Scheduler.numProcessors) + 1; 
+    return VM_Scheduler.processors[chosenProcessorId];
+  }
+     
+  /**
+   * id of next processor to receive load balancing
+   */
+  int chosenProcessorId; 
 
   /**
    * Add a thread to this processor's transfer queue.
    */ 
   private void transferThread (VM_Thread t) {
-    transferMutex.lock();
-    transferQueue.enqueue(t);
-    transferMutex.unlock();
+    if (this != getCurrentProcessor() || t.isGCThread) {
+      transferMutex.lock();
+      transferQueue.enqueue(t);
+      transferMutex.unlock();
+    } else if (t.isIdleThread) {
+      idleQueue.enqueue(t);
+    } else {
+      readyQueue.enqueue(t);
+    }
+
   }
 
   /**
@@ -380,109 +396,82 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     if (!transferQueue.isEmpty()) {
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();
-      if (t.beingDispatched && t != VM_Thread.getCurrentThread()) { 
-        // thread's stack in use by some OTHER dispatcher
-	if (trace) 
-          VM_Scheduler.trace("VM_Processor", 
-                             "getRunnableThread: stack in use", t.getIndex());
-	///	transferQueue.enqueue(t);
+      transferMutex.unlock();
+      if (t.beingDispatched && t != VM_Thread.getCurrentThread()) { // thread's stack in use by some OTHER dispatcher
+	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
+	transferMutex.lock();
+	transferQueue.enqueue(t);
 	transferMutex.unlock();
-	// for default jni implementation - if running is stack 
-        // of a native idle thread, do not spinwait here,
-	// instead proceed on to other threads, the idle thread if 
-        // necessary, to free
-	// up the native idle thread so it can be dispatched on its 
-        // native processor
-	// confused? ask steve & dick.
-	if ( ! VM_Thread.getCurrentThread().isNativeIdleThread ) {
-	  while(t.beingDispatched && t != VM_Thread.getCurrentThread()){
-	    VM_Magic.isync();
-	  }
-	  return t;
-	}
-	else 
-	  transferQueue.enqueue(t);
       } else {
-	if (trace) 
-          VM_Scheduler.trace("VM_Processor", 
-                             "getRunnableThread: transferQueue", t.getIndex());
-	transferMutex.unlock();
+	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transferQueue", t.getIndex());
 	return t;
       }
     }
 
     if (!readyQueue.isEmpty()) {
       VM_Thread t = readyQueue.dequeue();
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor", 
-                           "getRunnableThread: readyQueue", t.getIndex());
-      if (VM.VerifyAssertions) 
-        // local queue: no other dispatcher should be running on thread's stack
-        VM_Scheduler.assert(t.beingDispatched == false || 
-                            t == VM_Thread.getCurrentThread()); 
+      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
+      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
     if (ioQueue.isReady()) {
       VM_Thread t = ioQueue.dequeue();
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor", 
-                           "getRunnableThread: ioQueue", t.getIndex());
-      if (VM.VerifyAssertions) 
-        // local queue: no other dispatcher should be running on thread's stack
-        VM_Scheduler.assert(t.beingDispatched == false || 
-                            t == VM_Thread.getCurrentThread()); 
+      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
+      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
 
-    if ( ! VM_Thread.getCurrentThread().isNativeIdleThread ) {
-      // recheck the transfer queue- if entry "being dispatch" spin
-      //
-      if(!transferQueue.isEmpty()){
-	transferMutex.lock();
-	VM_Thread t = transferQueue.dequeue();
-	transferMutex.unlock();
-	while(t.beingDispatched && t != VM_Thread.getCurrentThread()){
+    if(!transferQueue.isEmpty()){
+      transferMutex.lock();
+      VM_Thread t = transferQueue.dequeue();
+      transferMutex.unlock();
+      if (!t.beingDispatched || t == VM_Thread.getCurrentThread()) {
+	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transferQueue", t.getIndex());
+	return t;
+      }
+      if (!VM_Thread.getCurrentThread().isNativeIdleThread) {
+	while(t.beingDispatched){
 	  VM_Magic.isync();
 	}
-        return t;  
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transferQueue", t.getIndex());
+	return t;  
       }
+      // A nativeIdleThread trying to get back to its native vitrual processor.  
+      // Let the idle thread run (possible deadlock otherwise).
+      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
+      transferMutex.lock();
+      transferQueue.enqueue(t);
+      transferMutex.unlock();
     }
-
 
     if (!idleQueue.isEmpty()) {
       VM_Thread t = idleQueue.dequeue();
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor", 
-                           "getRunnableThread: idleQueue", t.getIndex());
-      if (VM.VerifyAssertions) 
-        // local queue: no other dispatcher should be running on thread's stack
-        VM_Scheduler.assert(t.beingDispatched == false || 
-                            t == VM_Thread.getCurrentThread()); 
+      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: idleQueue", t.getIndex());
+      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
+
     // if the idle thread isn't on the idle queue, 
     // it must be on the transfer queue
-    if (!transferQueue.isEmpty()) {
+    for (int i=transferQueue.length(); 0<i; i--) { 
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();
-      while (t.beingDispatched && t != VM_Thread.getCurrentThread()) { 
-        // thread's stack in use by some OTHER dispatcher
-        if (trace) VM_Scheduler.trace("VM_Processor", 
-                                      "getRunnableThread: stack in use", 
-                                      t.getIndex());
-	transferQueue.enqueue(t);
-	t = transferQueue.dequeue();
-      } 
-      if (trace) VM_Scheduler.trace("VM_Processor", 
-                                    "getRunnableThread: transferQueue", 
-                                    t.getIndex());
       transferMutex.unlock();
-      return t;
-    }
-    debugGetRunnableThread(); // should not get here
-    VM_Scheduler.assert(VM.NOT_REACHED);
+      if (!t.beingDispatched || t == VM_Thread.getCurrentThread()) { 
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transferQueue", t.getIndex());
+	return t;
+      }
+      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
+      transferMutex.lock();
+      transferQueue.enqueue(t);
+      transferMutex.unlock();
+    } 
+	   
+    // should not get here
+    debugGetRunnableThread(); 
+    VM.assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -551,10 +540,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   private static int debugRetries = 0;
   private VM_Thread debugGetRunnableThread () {
     dumpProcessorState();
-    VM_Scheduler.assert(debugRetries++ < 10);
-    VM_Scheduler.trace("VM_Processor", 
-                       "debugGetRunnableThread: no runnable thread after pass", 
-                       debugRetries);
+    VM.assert(debugRetries++ < 10);
+    VM_Scheduler.trace("VM_Processor", "debugGetRunnableThread: no runnable thread after pass", debugRetries);
     return getRunnableThread();
   }
 
@@ -735,12 +722,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // otherwise round robin
     //
-    VM_Processor nativeProcessor = VM_Processor.getCurrentProcessor();
-    p = VM_Scheduler.processors[nativeProcessor.nextTransferId];
-    if (++nativeProcessor.nextTransferId > VM_Scheduler.numProcessors)
-      nativeProcessor.nextTransferId = 1 ;
-      return p;
-      }
+    return getCurrentProcessor().chooseNextProcessor();
+    
    **************/
 
   //-#else
