@@ -308,7 +308,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
     if (verboseJNI) VM.sysWrite("JNI called: FatalError  \n");
 
     try {
-      VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
+      if (verboseJNI) VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
       System.exit(0);
     } catch (Throwable unexpected) {
       System.exit(0);
@@ -4873,8 +4873,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
       String s = new String(contents);
 
-      VM.sysWrite("NewString: created ");
-      VM.sysWrite(s); VM.sysWrite("\n");
+      // VM.sysWrite("NewString: created ");
+      // VM.sysWrite(s); VM.sysWrite("\n");
       
       if (s!=null) {
       	return env.pushJNIRef(s);
