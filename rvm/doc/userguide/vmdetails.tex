@@ -51,7 +51,7 @@ The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generate a NullPointerException.  In the Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\AIXTMFootnote operating system permits loads from low memory,
+The AIX\AIXTMFootnote\ operating system permits loads from low memory,
 but accesses 
 to very high memory (at small {\em negative} offsets from a null
 pointer) normally cause hardware interrupts.\footnote{In AIX, it is at

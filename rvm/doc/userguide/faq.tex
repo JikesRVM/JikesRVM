@@ -14,7 +14,7 @@ The Jikes Research Virtual Machine (RVM) is a software project
 designed to provide the academic and research communities with a
 flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
-choices. It executes Java\JavaTMFootnote programs useful for research on
+choices. It executes Java\JavaTMFootnote\ programs useful for research on
 fundamental virtual machine design issues.
 It runs on the AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote,
 Linux\copyright/PowerPC and Linux/IA-32, 
@@ -441,7 +441,7 @@ Yes.  Every thread switch point is a GC safe point, but every GC safe point
 need not be a thread switch point.
 
 A thread switch point is an instruction where the RVM thread scheduler may
-intervene and cause a different Java\JavaTMFootnote thread (VM\_Thread) to
+intervene and cause a different Java\JavaTMFootnote\ thread (VM\_Thread) to
 run on the current 
 pthread (VM\_Processor), even if no exception is thrown.  
 Thread switch points include yield points inserted in prologues, epilogues, 
