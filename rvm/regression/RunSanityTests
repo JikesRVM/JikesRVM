@@ -387,7 +387,7 @@ function doBuild {
 		echo ";  it's already here."
 	    else
 		local -i waited_minutes
-		let waited_minutes=(dots * SLEEP_DURATION) / 60
+		let waited_minutes=(dots * SLEEP_DURATION / 60)
 		echo "Done.  (Had to wait $waited_minutes minutes.)"
 	    fi
 	    cd $RVM_BUILD || return 1
