@@ -1803,6 +1803,7 @@ implements VM_Constants
 		  rc = X_checkcast(ref, lhsClass);
 		} else {
 		  rc = lhsClass.isAssignableFrom(rhsClass);
+		  // println("checkcast: "+lhsClass+" "+rhsClass+" = " + rc);
 		}
 		if (rc == false)
 		  _throwException(new ClassCastException());	      
@@ -1831,7 +1832,7 @@ implements VM_Constants
 		  rc = X_instanceof(ref, lhsClass);
 		} else {
 		  rc = lhsClass.isAssignableFrom(rhsClass);
-		  // println("instanceof: isAssignableFrom is " + rc);
+		  // println("instanceof: "+lhsClass+" "+rhsClass+" = " + rc);
 		}
 		if (rc == true)
 		  stack.push(1);	     // passes.
