@@ -327,11 +327,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
         VM.sysWriteln();
       }
-      if (VM.BuildFor64Addr) {
-        VM.sysWriteln("Warning: Time slicing disabled in 64 bit mode until more stuff is working");
-      } else {
-        VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
-      }
+      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
     }
 
     // Allow virtual cpus to commence feeding off the work queues.
