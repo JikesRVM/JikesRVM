@@ -254,4 +254,18 @@ public class Platform implements jdpConstants {
     return getSystemThreadSPR1(pid, VMThreadID, systemThreadId);
   }
 
+  /********************************************************************
+   * for Debugger.java
+   **/
+  public static final int initialbp_offset = 16;
+  public static final int stepbrImplemented = 1; // Yes - implemented
+  public static final int cthreadImplemented = 1; // Yes - implemented
+  public static final int listtRunImplemented = 1; // Yes - implemented
+  public static final int listtSystemImplemented = 1; // Yes - implemented
+  public static final String extraRegNames = "IP LR CR\n";
+
+  public static void printbp() {
+    // No significance on PowerPC - do nothing
+  }
+
 }
