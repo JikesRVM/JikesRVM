@@ -115,7 +115,7 @@ echo "   aos_log: $aos_log"
 echo "output_log: $output_log"
 echo ""
 
-logging_level=2
+logging_level=0
 sampleSize=10
 # filterValue=0
 # -X:aos:k_factor=$k  -X:aos:number_of_samples_filter=$filterValue
@@ -129,5 +129,5 @@ cp="-classpath $RVM_SPECJVM98"
 spec_options="-d3000 -g -m1 -M1 -s$inputSize"
 
 echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication  $spec_options -a $benchmark > $output_log"
-$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication $spec_options -a $benchmark > $output_log
+$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
 
