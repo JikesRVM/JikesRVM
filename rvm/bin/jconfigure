@@ -147,6 +147,8 @@ function get_bin_dir() {
 }
 
 function croak_nonusage () {
+    ## If we have not loaded show_mesg() yet, substitute.
+    [[ $(type -t show_mesg) = function ]] || function show_mesg () { echo "$ME: $@" ; }
     show_mesg "$*"  >&2;
     trap '' EXIT
     exit 2
