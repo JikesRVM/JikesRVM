@@ -43,7 +43,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
 
   // spaces
   private static ImmortalSpace defaultSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
-  private static final int DS = defaultSpace.getID();
+  private static final int DS = defaultSpace.getDescriptor();
 
   /****************************************************************************
    *

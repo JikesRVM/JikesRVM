@@ -418,7 +418,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean addrInVM(Address address)
     throws UninterruptiblePragma, InlinePragma {
-    return Space.mappedAddress(address);
+    return Space.isMappedAddress(address);
   }
 
   /**
@@ -434,7 +434,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean refInVM(Address ref)
     throws UninterruptiblePragma, InlinePragma {
-    return Space.mappedObject(ref);
+    return Space.isMappedObject(ref);
   }
 
   /***********************************************************************

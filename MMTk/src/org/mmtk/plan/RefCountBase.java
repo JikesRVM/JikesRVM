@@ -60,7 +60,7 @@ public abstract class RefCountBase extends StopTheWorldGC
 
   // Spaces
   protected static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
-  protected static final int RC = rcSpace.getID();
+  protected static final int RC = rcSpace.getDescriptor();
 
   /****************************************************************************
    *

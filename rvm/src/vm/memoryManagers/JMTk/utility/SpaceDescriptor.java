@@ -13,7 +13,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class manages the e ncoding and decoding of space descriptors.<p>
+ * This class manages the encoding and decoding of space descriptors.<p>
  * 
  * Space descriptors are integers that encode a space's mapping into
  * virtual memory.  For discontigious spaces, they indicate
@@ -34,6 +34,12 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 public class SpaceDescriptor implements Uninterruptible, Constants {
+
+  /****************************************************************************
+   *
+   * Class variables
+   */
+
   private static final int VM_TYPE_BITS = 2; 
   private static final int VM_TYPE_SHARED = 0;
   private static final int VM_TYPE_CONTIGUOUS = 1;
@@ -49,7 +55,20 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
   private static final int VM_MANTISSA_BITS = 14;
   private static final int VM_BASE_EXPONENT = BITS_IN_INT - VM_MANTISSA_BITS;
 
-  public static int getDescriptor(Address start, Address end) {
+  /****************************************************************************
+   *
+   * Descriptor creation
+   */
+
+  /**
+   * Create a descriptor for a <i>contigious</i> space
+   *
+   * @param start The start address of the space
+   * @param end The end address of the space
+   * @return An integer descriptor encoding the region of virtual
+   * memory occupied by the space
+   */
+  public static int createDescriptor(Address start, Address end) {
     int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
     if (Assert.VERIFY_ASSERTIONS) 
       Assert._assert(!start.isZero() && chunks > 0 
@@ -71,25 +90,67 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
       | ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
   }
 
-  public static int getDescriptor() {
+  /**
+   * Create a descriptor for a <i>dis-contigious</i> (shared) space
+   *
+   * @return An integer descriptor reflecting the fact that this space
+   * is shared (and thus discontigious and so must be established via
+   * maps).
+   */
+  public static int createDescriptor() {
     return VM_TYPE_SHARED;
   }
 
+  /****************************************************************************
+   *
+   * Descriptor interrogation
+   */
+
+  /**
+   * Return true if this descriptor describes a contigious space
+   *
+   * @param descriptor
+   * @return True if this descriptor describes a contigious space
+   */
   public static boolean isContiguous(int descriptor) throws InlinePragma {
     return ((descriptor & VM_TYPE_CONTIGUOUS) == VM_TYPE_CONTIGUOUS);
   }
 
+  /**
+   * Return true if this descriptor describes a contigious space that
+   * is at the top of the virtual address space
+   *
+   * @param descriptor
+   * @return True if this descriptor describes a contigious space that
+   * is at the top of the virtual address space
+   */
   public static boolean isContiguousHi(int descriptor) throws InlinePragma {
     return ((descriptor & VM_TYPE_MASK) == VM_TYPE_CONTIGUOUS_HI);
   }
 
+  /**
+   * Return the start of this region of memory encoded in this descriptor
+   *
+   * @param descriptor
+   * @return The start of this region of memory encoded in this descriptor
+   */
   public static Address getStart(int descriptor) throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isContiguous(descriptor));
     Word mantissa = Word.fromInt(descriptor>>>VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK)>>>VM_EXPONENT_SHIFT;
     return mantissa.lsh(VM_BASE_EXPONENT+exponent).toAddress();
   }
    
+  /**
+   * Return the size of the region of memory encoded in this
+   * descriptor, in chunks
+   *
+   * @param descriptor
+   * @return The size of the region of memory encoded in this
+   * descriptor, in chunks
+   */
   public static int getChunks(int descriptor) throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isContiguous(descriptor));
     return (descriptor & VM_SIZE_MASK)>>>VM_SIZE_SHIFT;
   }
 }

@@ -92,7 +92,7 @@ public abstract class Generational extends StopTheWorldGC
 							  DEFAULT_POLL_FREQUENCY, 
 							  (float) 0.15, true, 
 							  false);
-  protected static final int NS = nurserySpace.getID();
+  protected static final int NS = nurserySpace.getDescriptor();
   protected static final Address NURSERY_START = nurserySpace.getStart();
 
   // Statistics

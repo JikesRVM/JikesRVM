@@ -28,17 +28,58 @@ import org.vmmagic.unboxed.*;
 public final class RawPageSpace extends Space 
   implements Constants, Uninterruptible {
 
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
+   */
   public RawPageSpace(String name, int pageBudget, Address start,
 		      Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
  
+  /**
+   * Construct a space of a given number of megabytes in size.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>.  If there is insufficient address
+   * space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   */
   public RawPageSpace(String name, int pageBudget, int mb) {
     super(name, false, false, mb);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
   
+  /**
+   * Construct a space that consumes a given number of megabytes of
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>, and whether it should be at the
+   * top or bottom of the available virtual memory.  If the request
+   * clashes with existing virtual memory allocations, then the
+   * constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
   public RawPageSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, false, mb, top);
     pr = new FreeListPageResource(pageBudget, this, start, extent);

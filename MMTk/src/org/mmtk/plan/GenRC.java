@@ -66,7 +66,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
 
   // Spaces
   protected static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  protected static final int NS = nurserySpace.getID();
+  protected static final int NS = nurserySpace.getDescriptor();
 
   /****************************************************************************
    *

@@ -30,6 +30,10 @@ import org.vmmagic.unboxed.*;
 public final class MonotonePageResource extends PageResource 
   implements Constants, Uninterruptible {
 
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private Address cursor;
   private Address sentinel;
 

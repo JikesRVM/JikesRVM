@@ -33,8 +33,8 @@ public class Assert implements Uninterruptible {
    * @param str A string describing the error condition.
    */
   public static void error(String str) {
-    Space.showUsagePages();
-    Space.showUsageMB();
+    Space.printUsagePages();
+    Space.printUsageMB();
     fail(str);
   }
 

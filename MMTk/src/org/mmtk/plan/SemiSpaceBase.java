@@ -70,8 +70,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   // Spaces
   protected static CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.35, false);
   protected static CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.35, true);
-  protected static final int SS0 = copySpace0.getID();
-  protected static final int SS1 = copySpace1.getID();
+  protected static final int SS0 = copySpace0.getDescriptor();
+  protected static final int SS1 = copySpace1.getDescriptor();
 
   /****************************************************************************
    *

@@ -67,7 +67,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
 
   // Spaces
   private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
-  private static final int MS = msSpace.getID();
+  private static final int MS = msSpace.getDescriptor();
 
 
   // Miscellaneous constants

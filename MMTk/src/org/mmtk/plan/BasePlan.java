@@ -87,11 +87,11 @@ public abstract class BasePlan
   protected static final float LOS_FRAC = (float) 0.1;
   protected static Space vmSpace = Memory.getVMSpace();
   protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-  protected static final int IMMORTAL = immortalSpace.getID();
+  protected static final int IMMORTAL = immortalSpace.getDescriptor();
   protected static RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-  protected static final int META = metaDataSpace.getID();
+  protected static final int META = metaDataSpace.getDescriptor();
   protected static LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
-  public static final int LOS = loSpace.getID();
+  public static final int LOS = loSpace.getDescriptor();
 
   // Allocators
   public static final int ALLOC_DEFAULT = 0;
@@ -174,7 +174,7 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (Options.verbose > 2) Space.showVMMap();
+    if (Options.verbose > 2) Space.printVMMap();
     if (Options.verbose > 0) Stats.startAll();
   }
 
@@ -260,7 +260,7 @@ public abstract class BasePlan
     if (space == null)
       return "<null>";
     else
-      return space.name();
+      return space.getName();
   }
 
   /** 

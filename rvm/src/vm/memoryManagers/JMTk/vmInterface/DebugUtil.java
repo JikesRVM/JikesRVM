@@ -52,7 +52,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean validType(Address typeAddress)
     throws UninterruptiblePragma {
-     if (!Space.mappedObject(typeAddress))
+     if (!Space.isMappedObject(typeAddress))
       return false;  // type address is outside of heap
 
     // check if types tib is one of three possible values
@@ -95,10 +95,10 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     throws UninterruptiblePragma {
 
     if (ref.isZero()) return true;
-    if (!Space.mappedObject(ref)) {
+    if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref); VM.sysWrite("\n");
-      Space.showVMMap();
+      Space.printVMMap();
       return false;
     }
     if (MM_Interface.MOVES_OBJECTS) {
@@ -113,7 +113,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     
     Object[] tib = VM_ObjectModel.getTIB(ref);
     Address tibAddr = VM_Magic.objectAsAddress(tib);
-    if (!Space.mappedObject(ref)) {
+    if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
@@ -142,9 +142,9 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     return true;
   }  // validRef
 
-  public static boolean mappedVMRef (Address ref)
+  public static boolean mappedVMRef(Address ref)
     throws UninterruptiblePragma {
-    return Space.isInVM(ref) && LazyMmapper.refIsMapped(ref);
+    return Space.isMappedObject(ref) && LazyMmapper.refIsMapped(ref);
   }
 
   public static void dumpRef(Address ref) throws UninterruptiblePragma {

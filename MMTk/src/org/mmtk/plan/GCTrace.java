@@ -109,7 +109,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
 
   /* Spaces */
   protected static RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-  protected static final int TRACE = traceSpace.getID();
+  protected static final int TRACE = traceSpace.getDescriptor();
 
   /****************************************************************************
    *

@@ -61,6 +61,10 @@ abstract public class PageResource implements Constants, Uninterruptible {
   private Lock mutatorLock;  // used by mutators
 
 
+  /****************************************************************************
+   *
+   * Initialization
+   */
   static {
     classLock = new Lock("PageResource");
   }
@@ -74,8 +78,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   PageResource(int pageBudget, Space space) {
     this.pageBudget = pageBudget;
-    gcLock = new Lock(space.name() + ".gcLock");
-    mutatorLock = new Lock(space.name() + ".mutatorLock");
+    gcLock = new Lock(space.getName() + ".gcLock");
+    mutatorLock = new Lock(space.getName() + ".mutatorLock");
   }
 
   /**

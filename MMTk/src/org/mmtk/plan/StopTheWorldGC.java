@@ -454,10 +454,10 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write(":        "); 
       printUsedPages();
       Log.write("  Before Collection: ");
-      Space.showUsageMB();
+      Space.printUsageMB();
       if (Options.verbose >= 4) {
         Log.write("                     ");
-        Space.showUsagePages();
+        Space.printUsagePages();
       }
     }
   }
@@ -481,10 +481,10 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (Options.verbose > 2) {
       Log.write("   After Collection: ");
-      Space.showUsageMB();
+      Space.printUsageMB();
       if (Options.verbose >= 4) {
           Log.write("                     ");
-          Space.showUsagePages();
+          Space.printUsagePages();
       }
       Log.write("                     ");
       printUsedPages();

@@ -1,8 +1,7 @@
 /*
  * (C) Copyright Department of Computer Science,
- *     Australian National University. 2002
+ *     Australian National University. 2002, 2003, 2004
  */
-
 package org.mmtk.policy;
 
 import org.mmtk.utility.heap.MonotonePageResource;
@@ -24,8 +23,6 @@ import org.vmmagic.pragma.*;
  *
  * $Id$ 
  *
- * $Id$
- *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -34,24 +31,115 @@ import org.vmmagic.pragma.*;
 public final class ImmortalSpace extends Space 
   implements Constants, Uninterruptible {
 
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  static final Word GC_MARK_BIT_MASK = Word.one();
+  public static Word immortalMarkState = Word.zero(); // when GC off, the initialization value
+
+  /****************************************************************************
+   *
+   * Initialization
+   */
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
+   */
   public ImmortalSpace(String name, int pageBudget, Address start,
 		       Extent bytes) {
     super(name, false, true, start, bytes);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
   
+  /**
+   * Construct a space of a given number of megabytes in size.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>.  If there is insufficient address
+   * space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   */
   public ImmortalSpace(String name, int pageBudget, int mb) {
     super(name, false, true, mb);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
-  
+
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>.  If there
+   * is insufficient address space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   */
+  public ImmortalSpace(String name, int pageBudget, float frac) {
+    super(name, false, true, frac);
+    pr = new MonotonePageResource(pageBudget, this, start, extent);
+  }
+
+  /**
+   * Construct a space that consumes a given number of megabytes of
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>, and whether it should be at the
+   * top or bottom of the available virtual memory.  If the request
+   * clashes with existing virtual memory allocations, then the
+   * constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
   public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, true, mb, top);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
 
-  public ImmortalSpace(String name, int pageBudget, float frac) {
-    super(name, false, true, frac);
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>, and
+   * whether it should be at the top or bottom of the available
+   * virtual memory.  If the request clashes with existing virtual
+   * memory allocations, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
+  public ImmortalSpace(String name, int pageBudget, float frac, boolean top) {
+    super(name, false, true, frac, top);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
 
@@ -102,8 +190,6 @@ public final class ImmortalSpace extends Space
     return true;
   }
 
-  static final Word GC_MARK_BIT_MASK    = Word.one();
-  public static Word immortalMarkState = Word.zero(); // when GC off, the initialization value
 
 
   /**
@@ -137,7 +223,17 @@ public final class ImmortalSpace extends Space
   public void release() { 
   }
 
-  public boolean isLive(Address obj) {
+  /**
+   * Release an allocated page or pages.  In this case we do nothing
+   * because we only release pages enmasse.
+   *
+   * @param start The address of the start of the page or pages
+   */
+  public final void release(Address start) throws InlinePragma {
+    Assert._assert(false);  // this policy only releases pages enmasse
+  }
+
+  public final boolean isLive(Address obj) throws InlinePragma {
     return true;
   }
 

@@ -41,7 +41,6 @@ public final class RefCountSpace extends Space
 
   /****************************************************************************
    *
- * @author Ian Warrington
    * Class variables
    */
   public static final boolean INC_DEC_ROOT = false;
@@ -108,38 +107,104 @@ public final class RefCountSpace extends Space
    */
 
   /**
-   * Constructor
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
    */
   public RefCountSpace(String name, int pageBudget, Address start,
-			Extent bytes) {
+		       Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
 
+  /**
+   * Construct a space of a given number of megabytes in size.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>.  If there is insufficient address
+   * space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   */
   public RefCountSpace(String name, int pageBudget, int mb) {
     super(name, false, false, mb);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
    
-  public RefCountSpace(String name, int pageBudget, int mb, boolean top) {
-    super(name, false, false, mb, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
-  }
-  
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>.  If there
+   * is insufficient address space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   */
   public RefCountSpace(String name, int pageBudget, float frac) {
     super(name, false, false, frac);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
    
+  /**
+   * Construct a space that consumes a given number of megabytes of
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>, and whether it should be at the
+   * top or bottom of the available virtual memory.  If the request
+   * clashes with existing virtual memory allocations, then the
+   * constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
+  public RefCountSpace(String name, int pageBudget, int mb, boolean top) {
+    super(name, false, false, mb, top);
+    pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
+  }
+  
+  /**
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>, and
+   * whether it should be at the top or bottom of the available
+   * virtual memory.  If the request clashes with existing virtual
+   * memory allocations, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
+   */
   public RefCountSpace(String name, int pageBudget, float frac, boolean top) {
     super(name, false, false, frac, top);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
-
-  /****************************************************************************
-   *
-   * Allocation
-   */
 
   /****************************************************************************
    *
@@ -180,7 +245,12 @@ public final class RefCountSpace extends Space
     return object;
   }
 
-  public void release(Address start) {
+  /**
+   * Release an allocated page or pages
+   *
+   * @param start The address of the start of the page or pages
+   */
+  public final void release(Address start) throws InlinePragma {
     ((FreeListPageResource) pr).releasePages(start); 
   }
 

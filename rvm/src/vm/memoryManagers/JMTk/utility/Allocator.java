@@ -175,7 +175,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
     Log.write(" on space "); Log.writeln(Plan.getSpaceNameFromAllocatorAnyPlan(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
-    Space.showUsageMB();
+    Space.printUsageMB();
     Assert.dumpStack(); 
     Assert.failWithOutOfMemoryError();
     /* NOTREACHED */

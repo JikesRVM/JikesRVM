@@ -71,9 +71,9 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
 
   // spaces
   private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
-  private static final int MS = msSpace.getID();
+  private static final int MS = msSpace.getDescriptor();
   protected static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  protected static final int NS = nurserySpace.getID();
+  protected static final int NS = nurserySpace.getDescriptor();
 
   /****************************************************************************
    *
