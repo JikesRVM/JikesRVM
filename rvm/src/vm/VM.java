@@ -104,7 +104,6 @@ public class VM extends VM_Properties implements VM_Constants,
       VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
     }
      
-
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
@@ -113,7 +112,8 @@ public class VM extends VM_Properties implements VM_Constants,
 
     
     // Create class objects for static synchronized methods in the bootimage.
-    // 
+    // This must happen before any bootimage static synchronized methods 
+    // can be invoked.
     if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
     
