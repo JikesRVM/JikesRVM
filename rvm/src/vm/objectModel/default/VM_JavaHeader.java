@@ -59,14 +59,14 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 {
 
   // TIB + STATUS + OTHER_HEADER_BYTES
-  private static final int SCALAR_HEADER_SIZE = BYTES_IN_ADDRESS + BYTES_IN_INT + OTHER_HEADER_BYTES;
+  private static final int SCALAR_HEADER_SIZE = JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
   // SCALAR_HEADER + ARRAY LENGTH;
-  private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + BYTES_IN_INT;
+  private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
 
   private static final int ARRAY_HEADER_SIZE_ALIGNED = VM_Memory.alignUp(ARRAY_HEADER_SIZE,BYTES_IN_ADDRESS);
   
-  private static final int TIB_OFFSET     = -BYTES_IN_ADDRESS;
-  private static final int STATUS_OFFSET  = TIB_OFFSET - BYTES_IN_INT;
+  private static final int STATUS_OFFSET  = JAVA_HEADER_END;
+  private static final int TIB_OFFSET     = STATUS_OFFSET + STATUS_BYTES;
 
   private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
 
@@ -218,8 +218,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Copy an object to the given raw storage address
    */
-  public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, int availBitsWord) throws VM_PragmaInline {
+  public static Object moveObject(VM_Address toAddress, Object fromObj,
+				  int numBytes, VM_Array type,
+				  int availBitsWord) throws VM_PragmaInline {
     int headersizeAligned; 
     int hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord & HASH_STATE_MASK;

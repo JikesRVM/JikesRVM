@@ -18,7 +18,15 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
-  static final int JAVA_HEADER_END = -BYTES_IN_ADDRESS - BYTES_IN_INT;
+  static final boolean REVERSE_HEADER_ORDER = true;
+
+  static final int TIB_BYTES = BYTES_IN_ADDRESS;
+  static final int STATUS_BYTES = BYTES_IN_INT;
+  static final int ARRAY_LENGTH_BYTES = BYTES_IN_INT;
+
+  static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
+  static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
+  static final int JAVA_HEADER_END = -JAVA_HEADER_BYTES - ((REVERSE_HEADER_ORDER) ? OTHER_HEADER_BYTES : 0);
 
   /**
    * This object model supports two schemes for hashcodes:
@@ -38,9 +46,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    */
   static final boolean FORWARDING_PTR_OVERLAYS_TIB = false;
 
-  static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
-
-  static final int ARRAY_LENGTH_OFFSET = JAVA_HEADER_END - OTHER_HEADER_BYTES -BYTES_IN_INT;
+  static final int ARRAY_LENGTH_OFFSET = JAVA_HEADER_END - OTHER_HEADER_BYTES -ARRAY_LENGTH_BYTES;
 
   /*
    * Stuff for address based hashing
@@ -50,7 +56,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
   static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
   static final int HASHCODE_SCALAR_OFFSET      = 0; // to right of objref
-  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 2*BYTES_IN_INT; // to left of header
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
+  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - ARRAY_LENGTH_BYTES - HASHCODE_BYTES; // to left of header
   
 }
