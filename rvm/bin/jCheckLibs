@@ -170,7 +170,9 @@ fi
 
 if [[ x$automatic = x ]] ; then 
   echo "Do you want to automatically download and install the new revision now? \c"
-  read automatic
+  if ! read automatic ; then # with help from Igor
+    automatic="y"
+  fi
 fi
 if [[ x$automatic = xy || x$automatic = xyes ]] ; then
   echo "Dowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
