@@ -9,6 +9,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Allocator;
 import org.mmtk.utility.BumpPointer;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.MMType;
 import org.mmtk.utility.MonotoneVMResource;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -120,26 +121,28 @@ public class Plan extends Generational implements VM_Uninterruptible {
   /**
    * Allocate space (for an object) in the mature space
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
+  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
    * Allocate space for copying an object in the mature space (this
    * method <i>does not</i> copy the object, it only allocates space)
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
+  protected final VM_Address matureCopy(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -289,10 +292,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size,
-                             boolean isScalar) throws VM_PragmaInline {
+  public final void postCopy(VM_Address ref, Object[] tib, int size)
+    throws VM_PragmaInline {
     CopyingHeader.clearGCBits(ref);
     if (IGNORE_REMSET)
       ImmortalSpace.postAlloc(ref);

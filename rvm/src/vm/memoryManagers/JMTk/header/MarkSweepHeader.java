@@ -44,10 +44,8 @@ public class MarkSweepHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-                                      boolean isScalar)
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Word oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     VM_Word newValue = oldValue.and(GC_BITS_MASK.not()).or(Plan.getInitialHeaderValue(size));
@@ -60,10 +58,8 @@ public class MarkSweepHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeLOSHeader(VM_Address ref, Object[] tib, 
-                                         int size, boolean isScalar)
+  public static void initializeLOSHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Word oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     VM_Word newValue = oldValue.and(GC_BITS_MASK.not()).or(Plan.getInitialHeaderValue(size));
@@ -78,11 +74,9 @@ public class MarkSweepHeader {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib, 
-                                                 int size, boolean isScalar,
+                                                 int size, 
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)

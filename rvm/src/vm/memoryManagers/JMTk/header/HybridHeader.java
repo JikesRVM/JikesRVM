@@ -48,10 +48,8 @@ public class HybridHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-                                      boolean isScalar)
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // nothing here because this is for default allocation, which is
     // to the copying allocator, which requires nothing to be done.
@@ -63,10 +61,8 @@ public class HybridHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeMarkSweepHeader(VM_Address ref, Object[] tib,
-                                               int size, boolean isScalar)
+  public static void initializeMarkSweepHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions && Plan.gcInProgress())
       VM_Interface._assert(false);
@@ -81,10 +77,8 @@ public class HybridHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeLOSHeader(VM_Address ref, Object[] tib,
-                                         int size, boolean isScalar)
+  public static void initializeLOSHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions && Plan.gcInProgress())
       VM_Interface._assert(false);
@@ -101,11 +95,9 @@ public class HybridHeader {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
-                                                 int size, boolean isScalar,
+                                                 int size,
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)

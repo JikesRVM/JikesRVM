@@ -53,10 +53,9 @@ public abstract class RCBaseHeader implements Constants {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeaderBootTime(int ref, Object[] tib, 
-                                              int size, boolean isScalar)
+                                              int size)
     throws VM_PragmaUninterruptible {
     // nothing to do for boot image objects
   }

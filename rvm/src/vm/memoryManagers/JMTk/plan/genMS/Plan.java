@@ -113,26 +113,28 @@ public class Plan extends Generational implements VM_Uninterruptible {
   /**
    * Allocate space (for an object) in the mature space
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
+  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes, false);
+    return mature.alloc(bytes, align, offset, false);
   }
 
   /**
    * Allocate space for copying an object in the mature space (this
    * method <i>does not</i> copy the object, it only allocates space)
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
+  protected final VM_Address matureCopy(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes, matureSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset, matureSpace.inMSCollection());
   }
 
   /**
@@ -234,10 +236,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size,
-                             boolean isScalar) throws VM_PragmaInline {
+  public final void postCopy(VM_Address ref, Object[] tib, int size)
+    throws VM_PragmaInline {
     HybridHeader.writeMarkBit(ref, matureSpace.getInitialHeaderValue());
   }
 

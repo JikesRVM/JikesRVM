@@ -117,16 +117,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Allocate space (for an object)
    *
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment
+   * @param offset The alignment offset
    * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
     case      LOS_SPACE:  // no los, so use default allocator
-    case  DEFAULT_SPACE:  return def.alloc(isScalar, bytes);
-    case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
+    case  DEFAULT_SPACE:  return def.alloc(bytes, align, offset);
+    case IMMORTAL_SPACE:  return immortal.alloc(bytes, align, offset);
     default:
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface.sysFail("No such allocator"); 
@@ -141,15 +142,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-                              boolean isScalar, int allocator)
+                              int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
     case      LOS_SPACE: // no los, so use default allocator
-    case  DEFAULT_SPACE: Header.initializeHeader(ref, tib, bytes, isScalar); return;
+    case  DEFAULT_SPACE: Header.initializeHeader(ref, tib, bytes); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
       if (VM_Interface.VerifyAssertions)
@@ -163,11 +163,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes, 
-                                    boolean isScalar) 
+                                    int align, int offset) 
     throws VM_PragmaInline {
     VM_Interface.sysFail("no allocCopy in noGC");
     //    return VM_Address.zero();   // Trips some intel opt compiler bug...
@@ -180,30 +181,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) {
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes) {
     VM_Interface.sysFail("no postCopy in noGC");
   } 
-
-  /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(MMType type, int bytes, CallSite callsite, 
-                                AllocAdvice hint) {
-    return DEFAULT_SPACE;
-  }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == def) return DEFAULT_SPACE;

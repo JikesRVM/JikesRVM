@@ -70,7 +70,7 @@ public abstract class BasePlan
   public static final boolean REF_COUNT_SANITY_TRACING = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
-  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean STEAL_NURSERY_GC_HEADER = false;
   public static final boolean GENERATE_GC_TRACE = false;
 
   private static final int MAX_PLANS = 100;
@@ -228,14 +228,19 @@ public abstract class BasePlan
   /**
    * Run-time check of the allocator to use for a given allocation
    * 
+   * At the moment this method assumes that allocators will use the simple 
+   * (worst) method of aligning to determine if the object is a large object
+   * to ensure that no objects are larger than other allocators can handle. 
+   * 
    * @param bytes The number of bytes to be allocated
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation
    * @return The allocator dyncamically assigned to this allocation
    */
-  public static int checkAllocator(int bytes, boolean isScalar, int allocator) 
+  public static int checkAllocator(int bytes, int align, int allocator) 
     throws VM_PragmaInline {
-    if (allocator == Plan.DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD)
+    if (allocator == Plan.DEFAULT_SPACE && 
+        Allocator.getMaximumAlignedSize(bytes, align) > LOS_SIZE_THRESHOLD)
       return LOS_SPACE;
     else 
       return allocator;

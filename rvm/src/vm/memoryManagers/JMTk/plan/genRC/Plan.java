@@ -66,7 +66,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final boolean MOVES_OBJECTS = true;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
-  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean STEAL_NURSERY_GC_HEADER = false;
   static final boolean WITH_COALESCING_RC = true;
 
   // virtual memory regions
@@ -216,23 +216,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param allocator The allocator number to be used for this allocation
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment
+   * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
-    if (STEAL_NURSERY_SCALAR_GC_HEADER && isScalar 
+    if (STEAL_NURSERY_GC_HEADER
 	&& allocator == NURSERY_SPACE) {
-      // steal the GC header word for scalar nursery objects
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(Header.RC_HEADER_OFFSET == -Header.NUM_BYTES_HEADER);
-      bytes -= Header.NUM_BYTES_HEADER;
+      // this assertion is unguarded so will even fail in FastAdaptive!
+      // we need to abstract the idea of stealing nursery header bytes,
+      // but we want to wait for the forward object model first...
+      VM_Interface._assert(false);
     }
     switch (allocator) {
-    case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
-    case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
-    case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
-    case      LOS_SPACE: return los.alloc(isScalar, bytes);
+    case  NURSERY_SPACE: return nursery.alloc(bytes, align, offset);
+    case       RC_SPACE: return rc.alloc(bytes, align, offset, false);
+    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    case      LOS_SPACE: return los.alloc(bytes, align, offset);
     default:
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface.sysFail("No such allocator");
@@ -247,18 +248,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-                              boolean isScalar, int allocator)
+                              int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
     case NURSERY_SPACE: return;
     case RC_SPACE:
     case LOS_SPACE:
       modBuffer.push(ref);
-      Header.initializeRCHeader(ref, tib, bytes, isScalar, true);
+      Header.initializeRCHeader(ref, tib, bytes, true);
       decBuffer.push(ref);
       if (RefCountSpace.RC_SANITY_CHECK) {
         RefCountLocal.sanityAllocCount(ref); 
@@ -281,12 +281,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment
+   * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    boolean isScalar) throws VM_PragmaInline {
-    return rc.alloc(isScalar, bytes, false);  // FIXME is this right???
+                                    int align, int offset) throws VM_PragmaInline {
+    return rc.alloc(bytes, align, offset, false);  // FIXME is this right???
   }
 
   /**  
@@ -295,12 +296,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) throws VM_PragmaInline {
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes)
+    throws VM_PragmaInline {
     CopyingHeader.clearGCBits(ref);
-    Header.initializeRCHeader(ref, tib, bytes, isScalar, false);
+    Header.initializeRCHeader(ref, tib, bytes, false);
     Header.makeUnlogged(ref);
     if (RefCountSpace.RC_SANITY_CHECK) {
       RefCountLocal.sanityAllocCount(ref); 
