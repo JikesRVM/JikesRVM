@@ -21,7 +21,7 @@
 ## should be set, suggest an example value (if <example> is set), and
 ## exit fatally.
 
-## jconfigure gdbrvm, and rvm all use checkenv()
+## jconfigure, findDeviantFiles, gdbrvm, and rvm all use checkenv()
 function checkenv () {
     local may_not_exist=0;
     if (( $# > 1 )); then
