@@ -23,8 +23,8 @@ import java.io.PrintStream;
 public final class VM_ControllerMemory implements VM_Constants {
 
   /**
-   *  This is a hashtable of controller plans indexed on the method ID.  
-   *  Each method ID can have a list of such plans associated with.
+   *  This is a hashtable of controller plans indexed by VM_Method.  
+   *  Each method can have a list of such plans associated with.
    */
   private static final HashMap table = new HashMap();
 
@@ -36,7 +36,7 @@ public final class VM_ControllerMemory implements VM_Constants {
   /**
    * Number of times controller is awoken
    */
-  private static int awoken     = 0;
+  private static int awoken = 0;
 
   // counters for chosen opt levels
   private static int numMethodsConsidered               = 0;
@@ -104,8 +104,8 @@ public final class VM_ControllerMemory implements VM_Constants {
       // no synch needed here because the planList is not in the table yet
       planList.addLast(plan);
 
-      // insert in the hashtable using the method ID as the hash value
-      table.put(new Integer(plan.getCompPlan().method.getId()), planList);
+      // insert in the hashtable using the method as the hash value
+      table.put(plan.getCompPlan().method, planList);
     } else {
       // add the current plan to the end of the list
       synchronized(planList) {
@@ -115,7 +115,6 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     // tell the plan what list it is on
     plan.setPlanList(planList);
-
   }
 
   /**
@@ -125,8 +124,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
-  static synchronized LinkedList findPlan(VM_Method method) {
-    return (LinkedList)table.get(new Integer(method.getId()));
+  private static synchronized LinkedList findPlan(VM_Method method) {
+    return (LinkedList)table.get(method);
   }
 
   /**
@@ -318,8 +317,8 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     // traverse table and give a summary of all actions that have occurred
     for (Iterator it = table.keySet().iterator(); it.hasNext();) {
-      Integer intObject = (Integer) it.next();
-      LinkedList planList = (LinkedList) table.get(intObject);
+      VM_Method meth = (VM_Method) it.next();
+      LinkedList planList = (LinkedList) table.get(meth);
 
       int bitPattern = 0;
       int recompsAtLevel2 = 0;

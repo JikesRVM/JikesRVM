@@ -287,24 +287,25 @@ public final class VM_ControllerPlan {
     // for this method should be marked as OUTDATED
     if (newStatus == COMPLETED) {
       // iterate over the planList until we get to this item
-      ListIterator iter = planList.listIterator();
-      while (iter.hasNext()) {
-	VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+      synchronized(planList) {
+	ListIterator iter = planList.listIterator();
+	while (iter.hasNext()) {
+	  VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
 
-	// exit when we find ourselves
-	if (curPlan == this) break;
-
-	if (curPlan.getStatus() == COMPLETED) {
-	  curPlan.status = OUTDATED;
-	}
-      } // more to process
+	  // exit when we find ourselves
+	  if (curPlan == this) break;
+	  
+	  if (curPlan.getStatus() == COMPLETED) {
+	    curPlan.status = OUTDATED;
+	  }
+	} // more to process
+      }
     }
   }
 
   /**
    * List of plans for a source method
    */
-  public LinkedList getPlanList() { return planList; }
   public void setPlanList(LinkedList list) { planList = list; }
 
   public String getStatusString() {
