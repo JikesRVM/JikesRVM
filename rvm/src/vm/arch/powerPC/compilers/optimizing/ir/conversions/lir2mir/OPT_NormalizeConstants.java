@@ -68,10 +68,10 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
                 throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               //-#if RVM_FOR_32_ADDR
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, asImmediateOrRegInt(I(offset), s, ir), loc));
+              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir), loc));
               //-#endif
               //-#if RVM_FOR_64_ADDR
-              s.insertBefore(Load.create(LONG_LOAD, rop, jtoc, asImmediateOrRegInt(I(offset), s, ir), loc));
+              s.insertBefore(Load.create(LONG_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir), loc));
               //-#endif
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
@@ -89,7 +89,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               }
               int offset = index << LOG_BYTES_IN_INT;
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegInt(I(offset), s, ir), loc));
+              s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
@@ -101,18 +101,18 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               }
               int offset = index << LOG_BYTES_IN_INT;
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegInt(I(offset), s, ir), loc));
+              s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_NullConstantOperand) {
               //-#if RVM_FOR_32_ADDR
-              s.putOperand(idx, I(0));
+              s.putOperand(idx, IC(0));
               //-#endif
               //-#if RVM_FOR_64_ADDR
               s.putOperand(idx, LC(0L));
               //-#endif
             } else if (use instanceof OPT_AddressConstantOperand) {
               //-#if RVM_FOR_32_ADDR
-              s.putOperand(idx, I(((OPT_AddressConstantOperand)use).value.toInt()));
+              s.putOperand(idx, IC(((OPT_AddressConstantOperand)use).value.toInt()));
               //-#endif
               //-#if RVM_FOR_64_ADDR
               s.putOperand(idx, LC(((OPT_AddressConstantOperand)use).value.toLong()));

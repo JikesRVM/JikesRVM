@@ -79,17 +79,17 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand cond = ir.regpool.makeTempCondition();
     BB1.appendInstruction(MIR_Binary.create(PPC_FCMPU, cond, D(src), D(src)));
-    BB1.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(0)));
+    BB1.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(0)));
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND, cond.copyD2U(), 
                                                 OPT_PowerPCConditionOperand.UNORDERED(), BB3.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand()));
     BB2.appendInstruction(MIR_Unary.create(PPC_FCTIWZ, D(temp), D(src)));
-    BB2.appendInstruction(MIR_Store.create(PPC_STFD, D(temp), R(FP), I(p)));
+    BB2.appendInstruction(MIR_Store.create(PPC_STFD, D(temp), R(FP), IC(p)));
     //-#if RVM_FOR_32_ADDR
-    BB2.appendInstruction(MIR_Load.create(PPC_LWZ, R(res), R(FP), I(p + 4)));
+    BB2.appendInstruction(MIR_Load.create(PPC_LWZ, R(res), R(FP), IC(p + 4)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    BB2.appendInstruction(MIR_Load.create(PPC64_LWA, R(res), R(FP), I(p + 4)));
+    BB2.appendInstruction(MIR_Load.create(PPC64_LWA, R(res), R(FP), IC(p + 4)));
     //-#endif
     // fix up CFG
     BB1.insertOut(BB2);
@@ -124,9 +124,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND, t.copyD2U(), 
                                                 OPT_PowerPCConditionOperand.get(cond), BB3.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand()));
-    BB2.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(0)));
+    BB2.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(0)));
     BB2.appendInstruction(MIR_Branch.create(PPC_B, BB4.makeJumpTarget()));
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(1)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(1)));
     // fix CFG
     BB1.insertOut(BB2);
     BB1.insertOut(BB3);
@@ -177,7 +177,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       (MIR_CondBranch.create(PPC_BCOND, t.copyD2U(), firstCond,
                              BB3.makeJumpTarget(),
                              new OPT_BranchProfileOperand(0.5f)));
-    BB2.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(firstConst)));
+    BB2.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(firstConst)));
     BB2.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
     BB3.appendInstruction
       (MIR_CondBranch.create(PPC_BCOND, t.copyD2U(),
@@ -185,9 +185,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                              BB5.makeJumpTarget(),
                              OPT_BranchProfileOperand.unlikely()));
 
-    BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(-firstConst)));
+    BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(-firstConst)));
     BB4.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
-    BB5.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(0)));
+    BB5.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(0)));
     // fix CFG
     BB1.insertOut(BB2);
     BB1.insertOut(BB3);
@@ -241,11 +241,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                               OPT_PowerPCConditionOperand.GREATER(),
                               BB5.makeJumpTarget(),
                               new OPT_BranchProfileOperand(0.49f)));
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(0)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(0)));
     BB3.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
-    BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(-1)));
+    BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(-1)));
     BB4.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
-    BB5.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(1)));
+    BB5.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), IC(1)));
     // fix CFG
     BB1.insertOut(BB2);
     BB1.insertOut(BB4);
@@ -280,15 +280,15 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Register cr = ir.regpool.getCondition();
     defLow.setSpansBasicBlock();
     defHigh.setSpansBasicBlock();
-    s.insertBack(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
+    s.insertBack(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), IC(32)));
     s.insertBack(MIR_Binary.create(PPC_SRW, R(defLow), R(leftLow), R(shift)));
     s.insertBack(MIR_Binary.create(PPC_SLW, R(t0), R(leftHigh), R(t31)));
     s.insertBack(MIR_Binary.create(PPC_OR, R(defLow), R(defLow), R(t0)));
-    s.insertBack(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), I(-32)));
+    s.insertBack(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), IC(-32)));
     s.insertBack(MIR_Binary.create(PPC_SRAW, R(t0), R(leftHigh), R(t31)));
     s.insertBack(MIR_Binary.create(PPC_SRAW, R(defHigh), R(leftHigh), 
                                    R(shift)));
-    s.insertBack(MIR_Binary.create(PPC_CMPI, R(cr), R(t31), I(0)));
+    s.insertBack(MIR_Binary.create(PPC_CMPI, R(cr), R(t31), IC(0)));
     MIR_CondBranch.mutate(s, PPC_BCOND, R(cr), 
                           OPT_PowerPCConditionOperand.LESS_EQUAL(), 
                           BB3.makeJumpTarget(),
@@ -405,11 +405,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                                 BB3.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand()));
     // BB2 sets result to FALSE and jumps to BB4
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(0)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), IC(0)));
     BB2.appendInstruction(MIR_Branch.create(PPC_B, BB4.makeJumpTarget()));
     
     // BB3 sets result to TRUE and falls through to BB4
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(1)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), IC(1)));
   }
 
   private static void attemptWord(OPT_Instruction s, OPT_IR ir) {
@@ -449,11 +449,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                                 BB3.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand()));
     // BB2 sets result to FALSE and jumps to BB4
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(0)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), IC(0)));
     BB2.appendInstruction(MIR_Branch.create(PPC_B, BB4.makeJumpTarget()));
 
     // BB3 sets result to TRUE and falls through to BB4
-    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(1)));
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), IC(1)));
   }
 
 }

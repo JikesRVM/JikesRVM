@@ -228,7 +228,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         {
           TrapIf.mutate(s, TRAP_IF, 
                         ZeroCheck.getClearGuardResult(s),
-                        ZeroCheck.getClearValue(s), I(0), 
+                        ZeroCheck.getClearValue(s), IC(0), 
                         OPT_ConditionOperand.EQUAL(), 
                         OPT_TrapCodeOperand.DivByZero());
         }
@@ -238,7 +238,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         {
           TrapIf.mutate(s, TRAP_IF, 
                         ZeroCheck.getClearGuardResult(s),
-                        ZeroCheck.getClearValue(s), I(0), 
+                        ZeroCheck.getClearValue(s), IC(0), 
                         OPT_ConditionOperand.EQUAL(), 
                         OPT_TrapCodeOperand.DivByZero());
         }
@@ -272,7 +272,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           // Get the java.lang.Class object from the VM_Type object
           // TODO: Valid location operand?
           Load.mutate(s, REF_LOAD, Unary.getClearResult(s), type.copyD2U(), 
-                      I(VM_Entrypoints.classForTypeField.getOffset()), null);
+                      IC(VM_Entrypoints.classForTypeField.getOffset()), null);
         }
         break;
         
@@ -310,7 +310,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                               TableSwitch.getClearDefaultBranchProfile(s),
                                               number*3);
       for (int i = 0; i < number; i++) {
-        LookupSwitch.setMatch(l, i, I(lowLimit + i));
+        LookupSwitch.setMatch(l, i, IC(lowLimit + i));
         LookupSwitch.setTarget(l, i, TableSwitch.getClearTarget(s, i));
         LookupSwitch.setBranchProfile(l, i, 
                                       TableSwitch.getClearBranchProfile(s,i));
@@ -327,12 +327,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     OPT_RegisterOperand t;
     int last;
     if (lowLimit != 0) {
-      t = InsertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, I(-lowLimit));
+      t = InsertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, IC(-lowLimit));
     } else {
       t = reg.copyU2U();
     }
     OPT_BranchProfileOperand defaultProb = TableSwitch.getClearDefaultBranchProfile(s);
-    s.replace(IfCmp.create(INT_IFCMP, null, t, I(highLimit - lowLimit),
+    s.replace(IfCmp.create(INT_IFCMP, null, t, IC(highLimit - lowLimit),
                            OPT_ConditionOperand.HIGHER(), 
                            defaultLabel, defaultProb));
     float weight = 1f / (1f - defaultProb.takenProbability);
@@ -572,10 +572,10 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       OPT_LocationOperand loc = ALoad.getClearLocation(s);
       if (logwidth != 0) {
         if (offset instanceof OPT_IntConstantOperand)  // constant propagation
-          offset = I(((OPT_IntConstantOperand)offset).value << logwidth); 
+          offset = IC(((OPT_IntConstantOperand)offset).value << logwidth); 
         else 
           offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, offset, 
-                                I(logwidth));
+                                IC(logwidth));
       }
       Load.mutate(s, op, result, array, offset, loc, ALoad.getClearGuard(s));
     }
@@ -598,10 +598,10 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       OPT_LocationOperand loc = AStore.getClearLocation(s);
       if (logwidth != 0) {
         if (offset instanceof OPT_IntConstantOperand) // constant propagation
-          offset = I(((OPT_IntConstantOperand)offset).value << logwidth); 
+          offset = IC(((OPT_IntConstantOperand)offset).value << logwidth); 
         else 
           offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, offset, 
-                                I(logwidth));
+                                IC(logwidth));
       }
       Store.mutate(s, op, value, array, offset, loc, AStore.getClearGuard(s));
     }
@@ -744,10 +744,10 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
             ir.regpool.makeTemp(VM_TypeReference.CodeArray);
           VM_Method target = VM_Entrypoints.invokeInterfaceMethod;
           OPT_Instruction vp = 
-            Call.create2(CALL, realAddrReg, I(target.getOffset()), 
+            Call.create2(CALL, realAddrReg, IC(target.getOffset()), 
                          OPT_MethodOperand.STATIC(target),
                          Call.getParam(v, 0).asRegister().copyU2U(), 
-                         I(methOp.getMemberRef().getId()));
+                         IC(methOp.getMemberRef().getId()));
           vp.position = v.position;
           vp.bcIndex = RUNTIME_SERVICES_BCI;
           v.insertBack(vp);
@@ -764,9 +764,9 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
             getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
           VM_Method target = VM_Entrypoints.findItableMethod;
           OPT_Instruction fi = 
-            Call.create2(CALL, iTable, I(target.getOffset()), 
+            Call.create2(CALL, iTable, IC(target.getOffset()), 
                          OPT_MethodOperand.STATIC(target),
-                         RHStib, I(methOp.getTarget().getDeclaringClass().getInterfaceId()));
+                         RHStib, IC(methOp.getTarget().getDeclaringClass().getInterfaceId()));
           fi.position = v.position;
           fi.bcIndex = RUNTIME_SERVICES_BCI;
           v.insertBack(fi);
@@ -812,12 +812,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     OPT_RegisterOperand offsetTable = 
       getStatic(testBB.lastInstruction(), ir, VM_Entrypoints.memberOffsetsField);
     testBB.appendInstruction(Load.create(INT_LOAD, offset, offsetTable,
-                                         I(dictId << LOG_BYTES_IN_INT), 
+                                         IC(dictId << LOG_BYTES_IN_INT), 
                                          new OPT_LocationOperand(VM_TypeReference.Int), 
                                          TG()));
     testBB.appendInstruction(IfCmp.create(INT_IFCMP, null, 
                                           offset.copy(),
-                                          I(NEEDS_DYNAMIC_LINK),
+                                          IC(NEEDS_DYNAMIC_LINK),
                                           OPT_ConditionOperand.EQUAL(), 
                                           resolveBB.makeJumpTarget(),
                                           bp));
@@ -911,7 +911,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                    VM_TypeReference type, 
                                                    int offset) {
     return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(ir,s), 
-                            I(offset), new OPT_LocationOperand(offset), null);
+                            IC(offset), new OPT_LocationOperand(offset), null);
   }
 
   /**
@@ -989,7 +989,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                int offset, 
                                                OPT_LocationOperand loc, 
                                                OPT_Operand guard) {
-    return InsertLoadOffset(s, ir, operator, type, reg2, I(offset), loc, guard);
+    return InsertLoadOffset(s, ir, operator, type, reg2, IC(offset), loc, guard);
   }
 
   /**

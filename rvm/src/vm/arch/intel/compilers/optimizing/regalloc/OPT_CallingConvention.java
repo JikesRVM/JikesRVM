@@ -70,7 +70,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       FPRRegisterParams = Math.min(FPRRegisterParams, 
                                    phys.getNumberOfFPRParams());
       call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,
-                                              I(FPRRegisterParams)));
+                                              IC(FPRRegisterParams)));
     }
     
     // 2. Move the return value into a register
@@ -86,15 +86,15 @@ final class OPT_CallingConvention extends OPT_IRTools
           OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(phys.getPR()), 
                                                      VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
                                                      (byte)WORDSIZE, null, null);
-          call.insertBefore(MIR_Move.create(IA32_MOV,M,I(sig.getId())));
+          call.insertBefore(MIR_Move.create(IA32_MOV,M,IC(sig.getId())));
         }
       }
     }
 
     // 4. ESP must be parameterBytes before call, will be at either parameterBytes
     //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
-    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes)));
-    call.insertAfter(MIR_UnaryNoRes.create(ADVISE_ESP, I(isSysCall?parameterBytes:0)));
+    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes)));
+    call.insertAfter(MIR_UnaryNoRes.create(ADVISE_ESP, IC(isSysCall?parameterBytes:0)));
   }
 
   /**
@@ -139,12 +139,12 @@ final class OPT_CallingConvention extends OPT_IRTools
         nSave=1;
       }
     }
-    ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,I(nSave)));
+    ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,IC(nSave)));
 
     // Set the first 'Val' in the return instruction to hold an integer
     // constant which is the number of words to pop from the stack while 
     // returning from this method.
-    MIR_Return.setPopBytes(ret, I(ir.incomingParameterBytes()));
+    MIR_Return.setPopBytes(ret, IC(ir.incomingParameterBytes()));
   }
 
   /**
@@ -215,7 +215,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_Register ESP = phys.getESP();
 
     // Require ESP to be at bottom of frame before a call,
-    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
 
     // walk over each parameter
     // must count then before we start nulling them out!
@@ -252,7 +252,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         if (nGPRParams > phys.getNumberOfGPRParams()) {
           // Too many parameters to pass in registers.  Write the
           // parameter into the appropriate stack frame location.
-          call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes + 4)));
+          call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + 4)));
           call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
         } else {
           // Pass the parameter in a register.
@@ -406,7 +406,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       } else {
         nGPRParams++;
         parameterBytes -= 4;
-        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes + 4)));
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + 4)));
         call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
       }
     }

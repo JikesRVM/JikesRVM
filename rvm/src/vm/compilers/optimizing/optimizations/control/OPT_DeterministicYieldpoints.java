@@ -104,7 +104,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
           OPT_Instruction load = 
             Load.create(INT_LOAD, tempReg.copyRO(), 
                         ir.regpool.makePROp(),
-                        OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
+                        OPT_IRTools.IC(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
                         new OPT_LocationOperand(VM_Entrypoints.
                                                 deterministicThreadSwitchCountField.getOffset()));
           // Insert the call followed by the load
@@ -125,7 +125,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
           load = 
             Load.create(INT_LOAD, tempReg.copyRO(), 
                         ir.regpool.makePROp(),
-                        OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
+                        OPT_IRTools.IC(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
                         new OPT_LocationOperand(VM_Entrypoints.
                                                 deterministicThreadSwitchCountField.getOffset()));
           
@@ -157,7 +157,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
             Store.create(INT_STORE, 
                          tempReg.copyRO(),
                          ir.regpool.makePROp(),
-                         OPT_IRTools.I(VM_Entrypoints.
+                         OPT_IRTools.IC(VM_Entrypoints.
                                        deterministicThreadSwitchCountField.getOffset()),
                          new OPT_LocationOperand(VM_Entrypoints.
                                                  deterministicThreadSwitchCountField.getOffset()));
@@ -171,7 +171,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
           OPT_RegisterOperand def = use.copyU2D();
           OPT_Instruction inc = Binary.create(INT_ADD,
                                               def,use, 
-                                              OPT_IRTools.I(-1));
+                                              OPT_IRTools.IC(-1));
           afterYP.prependInstruction(inc);    
 
           // Matt, don't you need a recomputeNormalOut?

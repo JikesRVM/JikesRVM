@@ -107,35 +107,35 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    * Integer Shift Right Immediate
    */
   protected final OPT_IntConstantOperand SRI (OPT_Operand o, int amount) {
-    return  I(IV(o) >>> amount);
+    return  IC(IV(o) >>> amount);
   }
 
   /**
    * Integer And Immediate
    */
   protected final OPT_IntConstantOperand ANDI (OPT_Operand o, int mask) {
-    return  I(IV(o) & mask);
+    return  IC(IV(o) & mask);
   }
 
   /**
    * Calculate Lower 16 Bits
    */
   protected final OPT_IntConstantOperand CAL16 (OPT_Operand o) {
-    return  I(OPT_Bits.PPCMaskLower16(IV(o)));
+    return  IC(OPT_Bits.PPCMaskLower16(IV(o)));
   }
 
   /**
    * Calculate Upper 16 Bits
    */
   protected final OPT_IntConstantOperand CAU16 (OPT_Operand o) {
-    return  I(OPT_Bits.PPCMaskUpper16(IV(o)));
+    return  IC(OPT_Bits.PPCMaskUpper16(IV(o)));
   }
 
   /**
    * Mask Begin
    */
   protected final OPT_IntConstantOperand MB (OPT_Operand o) {
-    return  I(MaskBegin(IV(o)));
+    return  IC(MaskBegin(IV(o)));
   }
 
   protected final int MaskBegin (int integer) {
@@ -148,7 +148,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    * Mask End
    */
   protected final OPT_IntConstantOperand ME (OPT_Operand o) {
-    return  I(MaskEnd(IV(o)));
+    return  IC(MaskEnd(IV(o)));
   }
 
   protected final int MaskEnd (int integer) {
@@ -200,13 +200,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
     OPT_Instruction s;
     if (valueHigh == 0) {
-      s = MIR_Load.create(operator, D(RT), R(JTOC), I(offset));
+      s = MIR_Load.create(operator, D(RT), R(JTOC), IC(offset));
       EMIT(s);
     } else {
       OPT_Register reg = regpool.getInteger();
       int valueLow = OPT_Bits.PPCMaskLower16(offset);
-      EMIT(MIR_Binary.create(PPC_ADDIS, R(reg), R(JTOC), I(valueHigh)));
-      s = MIR_Load.create(operator, D(RT), R(reg), I(valueLow));
+      EMIT(MIR_Binary.create(PPC_ADDIS, R(reg), R(JTOC), IC(valueHigh)));
+      s = MIR_Load.create(operator, D(RT), R(reg), IC(valueLow));
       EMIT(s);
     }
   }
@@ -219,11 +219,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int lo = OPT_Bits.PPCMaskLower16(value);
     int hi = OPT_Bits.PPCMaskUpper16(value);
     if (hi != 0) {
-      EMIT(MIR_Unary.create(PPC_LDIS, R(reg), I(hi)));
+      EMIT(MIR_Unary.create(PPC_LDIS, R(reg), IC(hi)));
       if (lo != 0)
-        EMIT(MIR_Binary.create(PPC_ADDI, R(reg), R(reg), I(lo)));
+        EMIT(MIR_Binary.create(PPC_ADDI, R(reg), R(reg), IC(lo)));
     } else {
-      EMIT(MIR_Unary.create(PPC_LDI, R(reg), I(lo)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(reg), IC(lo)));
     }
   }
 
@@ -237,11 +237,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_LocationOperand loc = new OPT_LocationOperand(-offset);
     //-#if RVM_FOR_32_ADDR
     EMIT(MIR_Load.mutate(s, PPC_LWZ, Nullary.getClearResult(s), 
-                         R(FP), I(offset), loc, TG()));
+                         R(FP), IC(offset), loc, TG()));
     //-#endif
     //-#if RVM_FOR_64_ADDR
     EMIT(MIR_Load.mutate(s, PPC64_LD, Nullary.getClearResult(s),
-                         R(FP), I(offset), loc, TG()));
+                         R(FP), IC(offset), loc, TG()));
     //-#endif
   }
 
@@ -256,10 +256,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_LocationOperand loc = new OPT_LocationOperand(-offset);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
     //-#if RVM_FOR_32_ADDR
-    EMIT(MIR_Store.mutate(s, PPC_STW, obj, R(FP), I(offset), loc, TG()));
+    EMIT(MIR_Store.mutate(s, PPC_STW, obj, R(FP), IC(offset), loc, TG()));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Store.mutate(s, PPC64_STD, obj, R(FP), I(offset), loc, TG()));
+    EMIT(MIR_Store.mutate(s, PPC64_STD, obj, R(FP), IC(offset), loc, TG()));
     //-#endif
   }
 
@@ -273,9 +273,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(MIR_Store.create(PPC_STFS, val, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Store.create(PPC_STFS, val, R(FP), IC(offset), null, TG()));
     EMIT(MIR_Load.mutate(s, PPC_LWZ, Unary.getClearResult(s), 
-                         R(FP), I(offset), null, TG()));
+                         R(FP), IC(offset), null, TG()));
   }
 
   /**
@@ -288,9 +288,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(MIR_Store.create(PPC_STW, val, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Store.create(PPC_STW, val, R(FP), IC(offset), null, TG()));
     EMIT(MIR_Load.mutate(s, PPC_LFS, Unary.getClearResult(s), R(FP), 
-                         I(offset), null, TG()));
+                         IC(offset), null, TG()));
   }
 
   /**
@@ -303,16 +303,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(MIR_Store.create(PPC_STFD, val, R(FP), I(offset), 
+    EMIT(MIR_Store.create(PPC_STFD, val, R(FP), IC(offset), 
                           null, TG()));
     OPT_RegisterOperand i1 = Unary.getClearResult(s);
     OPT_RegisterOperand i2 = R(regpool.getSecondReg(i1.register));
     //-#if RVM_FOR_32_ADDR
-    EMIT(MIR_Load.create(PPC_LWZ, i1, R(FP), I(offset), null, TG()));
-    EMIT(MIR_Load.mutate(s, PPC_LWZ, i2, R(FP), I(offset+4), null, TG()));
+    EMIT(MIR_Load.create(PPC_LWZ, i1, R(FP), IC(offset), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LWZ, i2, R(FP), IC(offset+4), null, TG()));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Load.create(PPC64_LD, i1, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Load.create(PPC64_LD, i1, R(FP), IC(offset), null, TG()));
     //-#endif
   }
 
@@ -328,14 +328,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_RegisterOperand i1 = (OPT_RegisterOperand)Unary.getClearVal(s);
     OPT_RegisterOperand i2 = R(regpool.getSecondReg(i1.register));
     //-#if RVM_FOR_32_ADDR
-    EMIT(MIR_Store.create(PPC_STW, i1, R(FP), I(offset), null, TG()));
-    EMIT(MIR_Store.create(PPC_STW, i2, R(FP), I(offset+4), null, TG()));
+    EMIT(MIR_Store.create(PPC_STW, i1, R(FP), IC(offset), null, TG()));
+    EMIT(MIR_Store.create(PPC_STW, i2, R(FP), IC(offset+4), null, TG()));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Store.create(PPC64_STD, i1, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Store.create(PPC64_STD, i1, R(FP), IC(offset), null, TG()));
     //-#endif
     EMIT(MIR_Load.mutate(s, PPC_LFD, Unary.getClearResult(s), R(FP), 
-                         I(offset), null, TG()));
+                         IC(offset), null, TG()));
   }
 
   /**
@@ -555,11 +555,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int y = shift2.value;
     if (x < y) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
-                                    I((32 - (y - x)) & 0x1f), 
-                                    I(y), I(31))); 
+                                    IC((32 - (y - x)) & 0x1f), 
+                                    IC(y), IC(31))); 
     } else {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
-                                    I(x - y), I(y), I(31 - (x - y))));
+                                    IC(x - y), IC(y), IC(31 - (x - y))));
     }
   }
 
@@ -572,11 +572,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int y = shift2.value;
     if (x < y) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
-                                    I(y - x), I(0), I(31 - y))); 
+                                    IC(y - x), IC(0), IC(31 - y))); 
     } else {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
-                                    I((32 - (x - y)) & 0x1f), 
-                                    I(x - y), I(31 - y)));
+                                    IC((32 - (x - y)) & 0x1f), 
+                                    IC(x - y), IC(31 - y)));
     }
   }
 
@@ -590,14 +590,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int MB = MaskBegin(mask);
     int ME = MaskEnd(mask);
     if (shift > ME) {           // result should be 0
-      EMIT(MIR_Unary.create(PPC_LDI, Def, I(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, Def, IC(0)));
       return;
     } else if (shift > MB) {
       MB = shift;
     }
     EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, 
-                                  I((32 - shift) & 0x1f), 
-                                  I(MB), I(ME)));
+                                  IC((32 - shift) & 0x1f), 
+                                  IC(MB), IC(ME)));
   }
 
   protected final void AND_USHR(OPT_Instruction s, 
@@ -610,7 +610,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int MB = MaskBegin(mask);
     int ME = MaskEnd(mask);
     if ((MB + shift) >= 32) {                   // result should be 0
-      EMIT(MIR_Unary.create(PPC_LDI, Def, I(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, Def, IC(0)));
       return;
     }
     MB += shift;
@@ -619,8 +619,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       ME = 31;
     }
     EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, 
-                                  I((32 - shift) & 0x1f), 
-                                  I(MB), I(ME)));
+                                  IC((32 - shift) & 0x1f), 
+                                  IC(MB), IC(ME)));
   }
 
   protected final void AND_MASK(OPT_Instruction s, 
@@ -632,13 +632,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       mask = ~mask;
       int MB = MaskBegin(mask);
       int ME = MaskEnd(mask);
-      EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, I(0), 
-                                    I((ME + 1) & 0x1f), I(MB - 1)));
+      EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, IC(0), 
+                                    IC((ME + 1) & 0x1f), IC(MB - 1)));
     } else {
       int MB = MaskBegin(mask);
       int ME = MaskEnd(mask);
-      EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, I(0), 
-                                    I(MB), I(ME)));
+      EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Def, left, IC(0), 
+                                    IC(MB), IC(ME)));
     }
   }
 
@@ -774,13 +774,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       mask = ~mask;
       int MB = MaskBegin(mask);
       int ME = MaskEnd(mask);
-      EMIT(MIR_RotateAndMask.create(PPC_RLWINMr, def, left, I(0), 
-                                    I((ME + 1) & 0x1f), I(MB - 1)));
+      EMIT(MIR_RotateAndMask.create(PPC_RLWINMr, def, left, IC(0), 
+                                    IC((ME + 1) & 0x1f), IC(MB - 1)));
     } else {
       int MB = MaskBegin(mask);
       int ME = MaskEnd(mask);
-      EMIT(MIR_RotateAndMask.create(PPC_RLWINMr, def, left, I(0), 
-                                    I(MB), I(ME)));
+      EMIT(MIR_RotateAndMask.create(PPC_RLWINMr, def, left, IC(0), 
+                                    IC(MB), IC(ME)));
     }
     EMIT(MIR_CondBranch.mutate(s, PPC_BCOND, CR(0), 
                                new OPT_PowerPCConditionOperand(cond), 
@@ -809,7 +809,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void EMIT_PUSHED_BOOLCMP(OPT_RegisterOperand res) {
     if (VM.VerifyAssertions) VM._assert(cc != null);
     if (val2 instanceof OPT_IntConstantOperand) {
-      BOOLEAN_CMP_IMM(res, cc, R(val1), I(val2));
+      BOOLEAN_CMP_IMM(res, cc, R(val1), IC(val2));
     } else {
       BOOLEAN_CMP(res, cc, R(val1), R(val2));
     }
@@ -857,38 +857,38 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       if (value == 0) {
         EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), one)); 
       } else {
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t), one, I(value)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t), one, IC(value)));
         EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
       }
-      EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), I(5)));
+      EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(5)));
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), one, I(-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), one, IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t), one.copyRO()));
       } else {
         t1 = regpool.getInteger();
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t1), one, I(value)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), R(t1), I(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t1), one, IC(value)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), R(t1), IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t), R(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, def, one, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, one, IC(31)));
       } else if (value > 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
         EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, 
-                               I(value - 1)));
+                               IC(value - 1)));
         EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else if (value != 0xFFFF8000) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
         EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), 
-                               I(value - 1)));
+                               IC(value - 1)));
         EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
       } else {                  // value = 0xFFFF8000
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
-        EMIT(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
+        EMIT(MIR_Unary.create(PPC_LDIS, R(zero), IC(1)));
         EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), R(zero)));
         EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
       }
@@ -897,49 +897,49 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       if (value == 0) {
         EMIT(MIR_Unary.create(PPC_NEG, R(t), one));
         EMIT(MIR_Binary.create(PPC_ANDC, R(t), R(t), one.copyRO()));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(31)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
         EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
-                               I(-value - 1)));
+                               IC(-value - 1)));
         EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else {
         t1 = regpool.getInteger();
-        EMIT(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+        EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
         EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
-                               I(-value - 1)));
+                               IC(-value - 1)));
         EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_ADDI, R(t), one, I(-1)));
+        EMIT(MIR_Binary.create(PPC_ADDI, R(t), one, IC(-1)));
         EMIT(MIR_Binary.create(PPC_OR, R(t), R(t), one.copyRO()));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(31)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), I(value)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), IC(value)));
         EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), I(value)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), IC(value)));
         EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_XORI, def, R(t), I(1)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_XORI, def, R(t), IC(1)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), IC(-value)));
         EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else if (value != 0xFFFF8000) {
         t1 = regpool.getInteger();
-        EMIT(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
+        EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), IC(-value)));
         EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       } else {
         EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null));
@@ -947,9 +947,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         break;
         /*
           t1 = regpool.getInteger();
-          EMIT(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-          EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
-          EMIT(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
+          EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
+          EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
+          EMIT(MIR_Unary.create(PPC_LDIS, R(zero), IC(1)));
           EMIT(MIR_Binary.create(PPC_ADDC, R(zero), one.copyRO(), R(zero)));
           EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
         */
@@ -965,8 +965,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.LOWER_EQUAL:
-      EMIT(MIR_Unary.create(PPC_LDI, R(t), I(-1)));
-      EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, I(value)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(t), IC(-1)));
+      EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, IC(value)));
       EMIT(MIR_Unary.create(PPC_SUBFZE, def, R(t)));
       break;
 
@@ -985,14 +985,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         EMIT(MIR_Binary.create(PPC_SUBF, R(t), one, two));
         EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), I(5)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(5)));
       }
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       {
         t1 = regpool.getInteger();
         EMIT(MIR_Binary.create(PPC_SUBF, R(t), one, two));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t1), R(t), I(-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, R(t1), R(t), IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t1), R(t)));
       }
       break;
@@ -1000,8 +1000,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         t1 = regpool.getInteger();
         zero = regpool.getPhysicalRegisterSet().getTemp();
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), two, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), two, IC(31)));
         EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), two.copyRO()));
         EMIT(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
       }
@@ -1010,8 +1010,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         t1 = regpool.getInteger();
         zero = regpool.getPhysicalRegisterSet().getTemp();
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), two, I(31)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), one, I(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, R(t), two, IC(31)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), one, IC(31)));
         EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), two.copyRO(), one.copyRO()));
         EMIT(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
       }
@@ -1061,7 +1061,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (VM.VerifyAssertions) VM._assert(shift==PPC_SRW || shift==PPC_SRAW ||
                                         shift==PPC_SLW);
         OPT_Register t0=regpool.getInteger();
-        EMIT(MIR_Binary.create(PPC_ANDIr, R(t0), R(Binary.getVal2(s)), I(0x1f)));
+        EMIT(MIR_Binary.create(PPC_ANDIr, R(t0), R(Binary.getVal2(s)), IC(0x1f)));
         EMIT(MIR_Binary.mutate(s, shift, Binary.getResult(s),
                            R(Binary.getVal1(s)), R(t0)));
   }
@@ -1073,7 +1073,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                    OPT_IntConstantOperand right) {
     int power = PowerOf2(right.value);
     if (power != -1) {
-      EMIT(MIR_Binary.create(PPC_SRAWI, c, left, I(power)));
+      EMIT(MIR_Binary.create(PPC_SRAWI, c, left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, def, c.copyD2U()));
     } else {
       IntConstant(c.register, right.value);
@@ -1100,9 +1100,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register temp = regpool.getInteger();
     int power = PowerOf2(right.value);
     if (power != -1) {
-      EMIT(MIR_Binary.mutate(s, PPC_SRAWI, R(temp), left, I(power)));
+      EMIT(MIR_Binary.mutate(s, PPC_SRAWI, R(temp), left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, R(temp), R(temp)));
-      EMIT(MIR_Binary.create(PPC_SLWI, R(temp), R(temp), I(power)));
+      EMIT(MIR_Binary.create(PPC_SLWI, R(temp), R(temp), IC(power)));
       EMIT(MIR_Binary.create(PPC_SUBF, def, R(temp), left.copyU2U()));
     } else {
       IntConstant(c.register, right.value);
@@ -1122,7 +1122,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     //-#if RVM_FOR_32_ADDR
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     EMIT(MIR_Move.mutate(s, PPC_MOVE, R(defLow), left));
-    EMIT(MIR_Binary.create(PPC_SRAWI, R(defHigh), left.copyU2U(), I(31)));
+    EMIT(MIR_Binary.create(PPC_SRAWI, R(defHigh), left.copyU2U(), IC(31)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
     EMIT(MIR_Move.mutate(s, PPC_MOVE, L(defHigh), left));
@@ -1142,15 +1142,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand temp = regpool.makeTempInt();
     int p = burs.ir.stackManager.allocateSpaceForConversion();
-    EMIT(MIR_Unary.mutate(s, PPC_LDIS, temp, I(0x4330)));
+    EMIT(MIR_Unary.mutate(s, PPC_LDIS, temp, IC(0x4330)));
     // TODO: valid location?
-    EMIT(MIR_Store.create(PPC_STW, R(temp.register), R(FP), I(p), 
+    EMIT(MIR_Store.create(PPC_STW, R(temp.register), R(FP), IC(p), 
                           new OPT_TrueGuardOperand()));
     OPT_Register t1 = regpool.getInteger();
-    EMIT(MIR_Binary.create(PPC_XORIS, R(t1), R(src), I(0x8000)));
-    EMIT(MIR_Store.create(PPC_STW, R(t1), R(FP), I(p + 4), 
+    EMIT(MIR_Binary.create(PPC_XORIS, R(t1), R(src), IC(0x8000)));
+    EMIT(MIR_Store.create(PPC_STW, R(t1), R(FP), IC(p + 4), 
                           new OPT_TrueGuardOperand()));
-    EMIT(MIR_Load.create(PPC_LFD, D(res), R(FP), I(p)));
+    EMIT(MIR_Load.create(PPC_LFD, D(res), R(FP), IC(p)));
     OPT_Register tempF = regpool.getDouble();
     emitLFtoc(PPC_LFD, tempF, VM_Entrypoints.I2DconstantField);
     EMIT(MIR_Binary.create(PPC_FSUB, D(res), D(res), D(tempF)));
@@ -1217,75 +1217,75 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register register = def.register;
     OPT_Register temp1 = regpool.getLong();
     if (fits(value, 16)){
-      EMIT(MIR_Unary.create(PPC_LDI, R(register), I(bytes01)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(bytes01)));
     } else if (fits(value, 32)) {
-      EMIT(MIR_Unary.create(PPC_LDIS, R(register), I(bytes23)));
-      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+      EMIT(MIR_Unary.create(PPC_LDIS, R(register), IC(bytes23)));
+      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
     } else if (fits(value, 48)) {
-      EMIT(MIR_Unary.create(PPC_LDI, R(register), I(bytes45)));
-      EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), I(32)));
-      if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes23)));
-      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(bytes45)));
+      EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), IC(32)));
+      if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes23)));
+      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
     } else {
-      EMIT(MIR_Unary.create(PPC_LDIS, R(register), I(bytes67)));
-      if (bytes45 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes45)));
-      EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), I(32)));
-      if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes23)));
-      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+      EMIT(MIR_Unary.create(PPC_LDIS, R(register), IC(bytes67)));
+      if (bytes45 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes45)));
+      EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), IC(32)));
+      if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes23)));
+      if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
     }
 
 /*          
     if (value == 0L) { //special test for frequent case
-      EMIT(MIR_Unary.create(PPC_LDI, R(register), I(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(0)));
     } else {
       if (bytes67 == 0) {
         if (bytes45 == 0) {
           if (bytes23 == 0) {
             // only bytes01 are non-zero
             if (negative01) {
-              EMIT(MIR_Unary.create(PPC_LDI, R(register), I(0)));
-              EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+              EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(0)));
+              EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
             } else {
-              EMIT(MIR_Unary.create(PPC_LDI, R(register), I(bytes01)));
+              EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(bytes01)));
             }
           } else {
             if (negative23) {
-              EMIT(MIR_Unary.create(PPC_LDI, R(register), I(0)));
-              EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes23)));
+              EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(0)));
+              EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes23)));
             } else {
-              EMIT(MIR_Unary.create(PPC_LDIS, R(register), I(bytes23)));
+              EMIT(MIR_Unary.create(PPC_LDIS, R(register), IC(bytes23)));
             }
             if (bytes01 != 0) {
-              EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+              EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
             }
           }
         } else {
           if (negative45) {
-            EMIT(MIR_Unary.create(PPC_LDI, R(register), I(0)));
-            EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes45)));
+            EMIT(MIR_Unary.create(PPC_LDI, R(register), IC(0)));
+            EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes45)));
           } else {
-            EMIT(MIR_Unary.create(PPC_LDIS, R(register), I(bytes45)));
+            EMIT(MIR_Unary.create(PPC_LDIS, R(register), IC(bytes45)));
           }
-          EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), I(16)));
+          EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), IC(16)));
           if (bytes23 != 0) {
-            EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes23)));
+            EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes23)));
           }
           if (bytes01 != 0) {
-            EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+            EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
           }
         }
       } else {
-        EMIT(MIR_Unary.create(PPC_LDIS, R(register), I(bytes67)));
-        EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), I(16)));
+        EMIT(MIR_Unary.create(PPC_LDIS, R(register), IC(bytes67)));
+        EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), IC(16)));
         if (bytes45 != 0) {
-          EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes45)));
+          EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes45)));
         }
-        EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), I(16)));
+        EMIT(MIR_Binary.create(PPC64_SLDI, R(register), R(register), IC(16)));
         if (bytes23 != 0) {
-          EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), I(bytes23)));
+          EMIT(MIR_Binary.create(PPC_ORIS, R(register), R(register), IC(bytes23)));
         }
         if (bytes01 != 0) {
-          EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), I(bytes01)));
+          EMIT(MIR_Binary.create(PPC_ORI, R(register), R(register), IC(bytes01)));
         }
     }
       }*/
@@ -1343,14 +1343,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Binary.create(PPC_SUBFIC, 
                            R(regpool.getSecondReg(defReg)), 
                            R(regpool.getSecondReg(leftReg)), 
-                           I(0)));
+                           IC(0)));
     EMIT(MIR_Unary.create(PPC_SUBFZE, R(defReg), R(leftReg)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
     EMIT(MIR_Binary.create(PPC_SUBFIC,
                            L(regpool.getSecondReg(defReg)),
                            L(regpool.getSecondReg(leftReg)),
-                           I(0)));
+                           IC(0)));
     //-#endif
   }
 
@@ -1409,11 +1409,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register shift = right.register;
     OPT_Register t0 = regpool.getInteger();
     OPT_Register t31 = regpool.getInteger();
-    EMIT(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
+    EMIT(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), IC(32)));
     EMIT(MIR_Binary.create(PPC_SLW, R(defHigh), R(leftHigh), R(shift)));
     EMIT(MIR_Binary.create(PPC_SRW, R(t0), R(leftLow), R(t31)));
     EMIT(MIR_Binary.create(PPC_OR, R(defHigh), R(defHigh), R(t0)));
-    EMIT(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), I(-32)));
+    EMIT(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), IC(-32)));
     EMIT(MIR_Binary.create(PPC_SLW, R(t0), R(leftLow), R(t31)));
     EMIT(MIR_Binary.create(PPC_OR, R(defHigh), R(defHigh), R(t0)));
     EMIT(MIR_Binary.create(PPC_SLW, R(defLow), R(leftLow), R(shift)));
@@ -1431,20 +1431,20 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, R(defHigh), 
                                     R(leftHigh), 
-                                    I(shift), I(0), I(31 - shift)));
+                                    IC(shift), IC(0), IC(31 - shift)));
       EMIT(MIR_RotateAndMask.create(PPC_RLWIMI, R(defHigh), R(defHigh), 
-                                    R(leftLow), I(shift), 
-                                    I(32 - shift), I(31)));
+                                    R(leftLow), IC(shift), 
+                                    IC(32 - shift), IC(31)));
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, R(defLow), R(leftLow), 
-                                    I(shift), I(0), I(31 - shift)));
+                                    IC(shift), IC(0), IC(31 - shift)));
     } else if (shift == 32) {
       EMIT(MIR_Move.create(PPC_MOVE, R(defHigh), R(leftLow)));
-      EMIT(MIR_Unary.create(PPC_LDI, R(defLow), I(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(defLow), IC(0)));
     } else {
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SLWI, R(defHigh), R(leftLow), 
-                             I(shift)));
-      EMIT(MIR_Unary.create(PPC_LDI, R(defLow), I(0)));
+                             IC(shift)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(defLow), IC(0)));
     }
   }
 
@@ -1459,11 +1459,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register shift = right.register;
     OPT_Register t0 = regpool.getInteger();
     OPT_Register t31 = regpool.getInteger();
-    EMIT(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
+    EMIT(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), IC(32)));
     EMIT(MIR_Binary.create(PPC_SRW, R(defLow), R(leftLow), R(shift)));
     EMIT(MIR_Binary.create(PPC_SLW, R(t0), R(leftHigh), R(t31)));
     EMIT(MIR_Binary.create(PPC_OR, R(defLow), R(defLow), R(t0)));
-    EMIT(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), I(-32)));
+    EMIT(MIR_Binary.create(PPC_ADDI, R(t31), R(shift), IC(-32)));
     EMIT(MIR_Binary.create(PPC_SRW, R(t0), R(leftHigh), R(t31)));
     EMIT(MIR_Binary.create(PPC_OR, R(defLow), R(defLow), R(t0)));
     EMIT(MIR_Binary.create(PPC_SRW, R(defHigh), R(leftHigh), R(shift)));
@@ -1480,21 +1480,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int shift = right.value & 0x3f;
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, R(defLow), R(leftLow), 
-                                    I(32 - shift), I(shift), I(31)));
+                                    IC(32 - shift), IC(shift), IC(31)));
       EMIT(MIR_RotateAndMask.create(PPC_RLWIMI, R(defLow), R(defLow), 
-                                    R(leftHigh), I(32 - shift), 
-                                    I(0), I(shift - 1)));
+                                    R(leftHigh), IC(32 - shift), 
+                                    IC(0), IC(shift - 1)));
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, R(defHigh), 
                                     R(leftHigh),
-                                    I(32 - shift), I(shift), I(31)));
+                                    IC(32 - shift), IC(shift), IC(31)));
     } else if (shift == 32) {
       EMIT(MIR_Move.create(PPC_MOVE, R(defLow), R(leftHigh)));
-      EMIT(MIR_Unary.create(PPC_LDI, R(defHigh), I(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(defHigh), IC(0)));
     } else {
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SRWI, R(defLow), R(leftHigh), 
-                             I(shift)));
-      EMIT(MIR_Unary.create(PPC_LDI, R(defHigh), I(0)));
+                             IC(shift)));
+      EMIT(MIR_Unary.create(PPC_LDI, R(defHigh), IC(0)));
     }
   }
 
@@ -1509,22 +1509,22 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int shift = right.value & 0x3f;
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, R(defLow), R(leftLow), 
-                                    I(32 - shift), I(shift), I(31)));
+                                    IC(32 - shift), IC(shift), IC(31)));
       EMIT(MIR_RotateAndMask.create(PPC_RLWIMI, R(defLow), R(defLow), 
-                                    R(leftHigh), I(32 - shift), I(0), 
-                                    I(shift - 1)));
+                                    R(leftHigh), IC(32 - shift), IC(0), 
+                                    IC(shift - 1)));
       EMIT(MIR_Binary.create(PPC_SRAWI, R(defHigh), R(leftHigh), 
-                             I(shift)));
+                             IC(shift)));
     } else if (shift == 32) {
       EMIT(MIR_Move.create(PPC_MOVE, R(defLow), R(leftHigh)));
       EMIT(MIR_Binary.create(PPC_SRAWI, R(defHigh), R(leftHigh), 
-                             I(31)));
+                             IC(31)));
     } else {
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SRAWI, R(defLow), R(leftHigh), 
-                             I(shift)));
+                             IC(shift)));
       EMIT(MIR_Binary.create(PPC_SRAWI, R(defHigh), R(leftHigh), 
-                             I(31)));
+                             IC(31)));
     }
   }
 
@@ -1558,7 +1558,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                     OPT_IntConstantOperand right) {
     int power = PowerOf2(right.value);
     if (power != -1) {
-      EMIT(MIR_Binary.create(PPC64_SRADI, c, left, I(power)));
+      EMIT(MIR_Binary.create(PPC64_SRADI, c, left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, def, c.copyD2U()));
     } else {
       IntConstant(c.register, right.value);
@@ -1585,9 +1585,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register temp = regpool.getInteger();
     int power = PowerOf2(right.value);
     if (power != -1) {
-      EMIT(MIR_Binary.mutate(s, PPC64_SRADI, R(temp), left, I(power)));
+      EMIT(MIR_Binary.mutate(s, PPC64_SRADI, R(temp), left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, R(temp), R(temp)));
-      EMIT(MIR_Binary.create(PPC64_SLDI, R(temp), R(temp), I(power)));
+      EMIT(MIR_Binary.create(PPC64_SLDI, R(temp), R(temp), IC(power)));
       EMIT(MIR_Binary.create(PPC_SUBF, def, R(temp), left.copyU2U()));
     } else {
       IntConstant(c.register, right.value);
@@ -1611,7 +1611,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (VM.VerifyAssertions) VM._assert(imm < (0x8000 - 4));
     OPT_Instruction inst = MIR_Load.create(PPC_LWZ, 
                                            R(defHigh), 
-                                           left, I(imm), loc, 
+                                           left, IC(imm), loc, 
                                            guard);
     inst.copyPosition(s);
     EMIT(inst);
@@ -1619,7 +1619,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       loc = (OPT_LocationOperand)loc.copy();
     }
     inst = MIR_Load.create(PPC_LWZ, R(defLow), left.copyU2U(), 
-                           I(imm + 4), loc, guard);
+                           IC(imm + 4), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1635,10 +1635,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     int value = Value.value;
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
-                           I(OPT_Bits.PPCMaskUpper16(value))));
+                           IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = MIR_Load.create(PPC_LWZ, R(defHigh), 
                                            right.copyD2U(), 
-                                           I(OPT_Bits.PPCMaskLower16(value)), 
+                                           IC(OPT_Bits.PPCMaskLower16(value)), 
                                            loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
@@ -1647,7 +1647,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
     inst = MIR_Load.create(PPC_LWZ, R(defLow), 
                            right.copyD2U(), 
-                           I(OPT_Bits.PPCMaskLower16(value) + 4), 
+                           IC(OPT_Bits.PPCMaskLower16(value) + 4), 
                            loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
@@ -1666,7 +1666,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     inst.copyPosition(s);
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
-    EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), I(4)));
+    EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), IC(4)));
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = MIR_Load.create(PPC_LWZX, R(defLow), left.copyU2U(), 
@@ -1687,14 +1687,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (VM.VerifyAssertions)
       VM._assert(imm < (0x8000 - 4));
     OPT_Instruction inst = MIR_Store.create(PPC_STW, R(defHigh), 
-                                            left, I(imm), loc, guard);
+                                            left, IC(imm), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = MIR_Store.create(PPC_STW, R(defLow), 
                             left.copyU2U(), 
-                            I(imm + 4), loc, 
+                            IC(imm + 4), loc, 
                             guard);
     inst.copyPosition(s);
     EMIT(inst);
@@ -1711,18 +1711,18 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     int value = Value.value;
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
-                           I(OPT_Bits.PPCMaskUpper16(value))));
+                           IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = 
       MIR_Store.create(PPC_STW, R(defHigh), 
                        right.copyD2U(), 
-                       I(OPT_Bits.PPCMaskLower16(value)), 
+                       IC(OPT_Bits.PPCMaskLower16(value)), 
                        loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = MIR_Store.create(PPC_STW, R(defLow), right.copyD2U(), 
-                            I(OPT_Bits.PPCMaskLower16(value) + 4), loc, guard);
+                            IC(OPT_Bits.PPCMaskLower16(value) + 4), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1740,7 +1740,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     inst.copyPosition(s);
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
-    EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), I(4)));
+    EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), IC(4)));
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = MIR_Store.create(PPC_STWX, R(defLow), 
@@ -1951,21 +1951,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), I(VM_TrapConstants.CHECKCAST_TRAP & 0xffff), tc));
+                             R(12), IC(VM_TrapConstants.CHECKCAST_TRAP & 0xffff), tc));
       }
       break;
     case VM_Runtime.TRAP_MUST_IMPLEMENT:
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), I(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
+                             R(12), IC(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
       }
       break;
     case VM_Runtime.TRAP_STORE_CHECK:
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), I(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff), tc));
+                             R(12), IC(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff), tc));
       }
       break;
     default:
@@ -1983,10 +1983,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     meth.setIsNonReturningCall(true);
     if (SI16(offset)) {
       //-#if RVM_FOR_32_ADDR
-      EMIT(MIR_Load.create(PPC_LWZ, tmp, R(JTOC), I(offset)));
+      EMIT(MIR_Load.create(PPC_LWZ, tmp, R(JTOC), IC(offset)));
       //-#endif
       //-#if RVM_FOR_64_ADDR
-      EMIT(MIR_Load.create(PPC64_LD, tmp, L(JTOC), I(offset)));
+      EMIT(MIR_Load.create(PPC64_LD, tmp, L(JTOC), IC(offset)));
       //-#endif
     } else {
       OPT_RegisterOperand tmp2 = regpool.makeTempInt();

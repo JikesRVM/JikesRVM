@@ -185,7 +185,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // Store it
     OPT_Instruction store = AStore.mutate(counterInst,DOUBLE_ASTORE,
                                          newValue, array2.copyU2D(),
-                                         OPT_IRTools.I(index),null,null);
+                                         OPT_IRTools.IC(index),null,null);
     OPT_ConvertToLowLevelIR.doArrayStore(store, ir, DOUBLE_STORE, 3);
                                        
   }
@@ -207,7 +207,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
                                                 int offset){
     OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);
     OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2,
-                                      OPT_IRTools.I(offset),
+                                      OPT_IRTools.IC(offset),
                                       null,null);
     s.insertBack(s2);
     return  regTarget.copyD2U();

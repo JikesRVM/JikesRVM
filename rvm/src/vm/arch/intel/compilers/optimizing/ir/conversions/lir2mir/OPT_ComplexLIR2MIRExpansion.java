@@ -93,11 +93,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         s.remove(); // operation is a nop.
       } else if (shift >= 32) {
         s.insertBefore(MIR_Move.create(IA32_MOV, R(hval), R(lval)));
-        s.insertBefore(MIR_BinaryAcc.create(IA32_SHL, R(hval), I(shift)));
-        MIR_Move.mutate(s, IA32_MOV, R(lval), I(0));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_SHL, R(hval), IC(shift)));
+        MIR_Move.mutate(s, IA32_MOV, R(lval), IC(0));
       } else {
-        s.insertBefore(MIR_DoubleShift.create(IA32_SHLD, R(hval), R(lval), I(shift)));
-        MIR_BinaryAcc.mutate(s, IA32_SHL, R(lval), I(shift));
+        s.insertBefore(MIR_DoubleShift.create(IA32_SHLD, R(hval), R(lval), IC(shift)));
+        MIR_BinaryAcc.mutate(s, IA32_SHL, R(lval), IC(shift));
       }
     } else {
       OPT_RegisterOperand shiftTemp = ir.regpool.makeTempInt();
@@ -123,7 +123,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       
       // See if the shift is lt or gt 32
       sizeTestBB.appendInstruction(MIR_Move.create(IA32_MOV, R(ecx), R(shift)));
-      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), I(32)));
+      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), IC(32)));
       sizeTestBB.appendInstruction(MIR_CondBranch.create(IA32_JCC, 
                                                          OPT_IA32ConditionOperand.EQ(),
                                                          lt32BB.makeJumpTarget(),
@@ -133,7 +133,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_XOR, R(ecx), R(shift)));
       gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(hval), R(lval)));
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SHL, R(hval), R(ecx)));
-      gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(lval), I(0)));
+      gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(lval), IC(0)));
       gt32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
       
       // handle shift lt 32
@@ -157,11 +157,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         s.remove(); // operation is a nop.
       } else if (shift >= 32) {
         s.insertBefore(MIR_Move.create(IA32_MOV, R(lval), R(hval)));
-        s.insertBefore(MIR_BinaryAcc.create(IA32_SAR, R(lval), I(shift)));
-        MIR_BinaryAcc.mutate(s, IA32_SAR, R(hval), I(31));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_SAR, R(lval), IC(shift)));
+        MIR_BinaryAcc.mutate(s, IA32_SAR, R(hval), IC(31));
       } else {
-        s.insertBefore(MIR_DoubleShift.create(IA32_SHRD, R(lval), R(hval), I(shift)));
-        MIR_BinaryAcc.mutate(s, IA32_SAR, R(hval), I(shift));
+        s.insertBefore(MIR_DoubleShift.create(IA32_SHRD, R(lval), R(hval), IC(shift)));
+        MIR_BinaryAcc.mutate(s, IA32_SAR, R(hval), IC(shift));
       }
     } else {
       OPT_RegisterOperand shiftTemp = ir.regpool.makeTempInt();
@@ -187,7 +187,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       
       // See if the shift is lt or gt 32
       sizeTestBB.appendInstruction(MIR_Move.create(IA32_MOV, R(ecx), R(shift)));
-      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), I(32)));
+      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), IC(32)));
       sizeTestBB.appendInstruction(MIR_CondBranch.create(IA32_JCC, 
                                                          OPT_IA32ConditionOperand.EQ(),
                                                          lt32BB.makeJumpTarget(),
@@ -197,7 +197,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_XOR, R(ecx), R(shift)));
       gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(lval), R(hval)));
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SAR, R(lval), R(ecx)));
-      gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SAR, R(hval), I(31)));
+      gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SAR, R(hval), IC(31)));
       gt32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
       
       // handle shift lt 32
@@ -221,11 +221,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         s.remove(); // operation is a nop.
       } else if (shift >= 32) {
         s.insertBefore(MIR_Move.create(IA32_MOV, R(lval), R(hval)));
-        s.insertBefore(MIR_BinaryAcc.create(IA32_SHR, R(lval), I(shift)));
-        MIR_Move.mutate(s, IA32_MOV, R(hval), I(0));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_SHR, R(lval), IC(shift)));
+        MIR_Move.mutate(s, IA32_MOV, R(hval), IC(0));
       } else {
-        s.insertBefore(MIR_DoubleShift.create(IA32_SHRD, R(lval), R(hval), I(shift)));
-        MIR_BinaryAcc.mutate(s, IA32_SHR, R(hval), I(shift));
+        s.insertBefore(MIR_DoubleShift.create(IA32_SHRD, R(lval), R(hval), IC(shift)));
+        MIR_BinaryAcc.mutate(s, IA32_SHR, R(hval), IC(shift));
       }
     } else {
       OPT_RegisterOperand shiftTemp = ir.regpool.makeTempInt();
@@ -251,7 +251,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       
       // See if the shift is lt or gt 32
       sizeTestBB.appendInstruction(MIR_Move.create(IA32_MOV, R(ecx), R(shift)));
-      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), I(32)));
+      sizeTestBB.appendInstruction(MIR_BinaryAcc.create(IA32_AND, R(shift), IC(32)));
       sizeTestBB.appendInstruction(MIR_CondBranch.create(IA32_JCC, 
                                                          OPT_IA32ConditionOperand.EQ(),
                                                          lt32BB.makeJumpTarget(),
@@ -261,7 +261,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_XOR, R(ecx), R(shift)));
       gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(lval), R(hval)));
       gt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SHR, R(lval), R(ecx)));
-      gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(hval), I(0)));
+      gt32BB.appendInstruction(MIR_Move.create(IA32_MOV, R(hval), IC(0)));
       gt32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
       
       // handle shift lt 32
@@ -292,8 +292,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_LongConstantOperand rhs = (OPT_LongConstantOperand)IfCmp.getVal2(s);
     int low = rhs.lower32();
     int high = rhs.upper32();
-    OPT_IntConstantOperand yh = I(high);
-    OPT_IntConstantOperand yl = I(low);
+    OPT_IntConstantOperand yh = IC(high);
+    OPT_IntConstantOperand yl = IC(low);
     
     if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
       // tricky... ((xh^yh)|(xl^yl) == 0) <==> (lhll == rhrl)!!
@@ -359,14 +359,14 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       if (rhs.value == 0L) {
         if (cond.isLESS()) {
           // xh < 0 implies true
-          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), I(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), IC(0)));
           MIR_CondBranch.mutate(s, IA32_JCC,
                                 OPT_IA32ConditionOperand.LT(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER_EQUAL()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), I(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), IC(0)));
           MIR_CondBranch.mutate(s, IA32_JCC,
                                 OPT_IA32ConditionOperand.GE(),
                                 IfCmp.getTarget(s),
@@ -375,14 +375,14 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         }
       } else if (rhs.value == -1L) {
         if (cond.isLESS_EQUAL()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), I(-1)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), IC(-1)));
           MIR_CondBranch.mutate(s, IA32_JCC,
                                 OPT_IA32ConditionOperand.LE(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), I(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, R(xh), IC(0)));
           MIR_CondBranch.mutate(s, IA32_JCC,
                                 OPT_IA32ConditionOperand.GE(),
                                 IfCmp.getTarget(s),
@@ -624,13 +624,13 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                                 minusOneBlock.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand(0.33f)));
     
-    oneBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(1)));
+    oneBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(1)));
     oneBlock.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
 
-    zeroBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(0)));
+    zeroBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(0)));
     zeroBlock.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
 
-    minusOneBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(-1)));
+    minusOneBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(-1)));
     minusOneBlock.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
 
 
@@ -665,8 +665,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       ltwo = L(ir.regpool.getSecondReg(((OPT_RegisterOperand)two).register));
     } else {
       OPT_LongConstantOperand tmp = (OPT_LongConstantOperand)two;
-      two = I(tmp.upper32());
-      ltwo = I(tmp.lower32());
+      two = IC(tmp.upper32());
+      ltwo = IC(tmp.lower32());
     }
     res.setSpansBasicBlock();
     OPT_BasicBlock BB1 = s.getBasicBlock();
@@ -692,11 +692,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                                  OPT_IA32ConditionOperand.LGT(),
                                                  BB5.makeJumpTarget(),
                                                  new OPT_BranchProfileOperand(0.49f)));
-    BB3.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(0)));
+    BB3.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(0)));
     BB3.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
-    BB4.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(-1)));
+    BB4.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(-1)));
     BB4.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
-    BB5.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(1)));
+    BB5.appendInstruction(MIR_Move.create(IA32_MOV, R(res), IC(1)));
     // fix CFG
     BB1.insertOut(BB2);
     BB1.insertOut(BB4);
@@ -732,7 +732,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     if (ir.options.FIXED_JTOC) return nextInstr; // defer expansion until later
 
-    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
     
     // get the correct method to be called for a thread switch
     VM_Method meth = null;
@@ -779,7 +779,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
     int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
-    OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, I(0));
+    OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, IC(0));
     s.insertBefore(compare);
     MIR_CondBranch.mutate(s, IA32_JCC, OPT_IA32ConditionOperand.NE(),
                           yieldpoint.makeJumpTarget(),
@@ -795,7 +795,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     if (ir.options.FIXED_JTOC) return nextInstr; // defer expansion until later
 
-    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
     
     // get the correct method to be called for a thread switch
     VM_Method meth = null;

@@ -111,13 +111,13 @@ r:      LONG_DIV(r,INT_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 LONG_DIV_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
-                   Move.getResult(PR(p)), I(Move.getVal(PR(p))));
+                   Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 r:      LONG_DIV(r,LONG_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 LONG_DIV_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
-                   Move.getResult(PR(p)), I(Move.getVal(PR(p))));
+                   Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 #####
 # LONG_REM
@@ -131,13 +131,13 @@ r:      LONG_REM(r,INT_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 LONG_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
-                   Move.getResult(PR(p)), I(Move.getVal(PR(p))));
+                   Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 r:      LONG_REM(r,LONG_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 LONG_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
-                   Move.getResult(PR(p)), I(Move.getVal(PR(p))));
+                   Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 #####
 # LONG_NEG
@@ -165,8 +165,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC64_SLD, Binary.getResult(P(p)),               \
 r:      LONG_SHL(LONG_USHR(r,INT_CONSTANT),INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-USHR_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), I(Binary.getVal2(PL(p))),      \
-               I(Binary.getVal2(P(p))));
+USHR_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), IC(Binary.getVal2(PL(p))),      \
+               IC(Binary.getVal2(P(p))));
 
 #####
 # LONG_SHR
@@ -206,7 +206,7 @@ LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binar
 czr:	LONG_AND(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p)))));
+EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p)))));
 
 r:	LONG_AND(LONG_NOT(r),LONG_NOT(r))
 10
@@ -317,7 +317,7 @@ GPR2FPR_64(P(p));
 r:	LONG_MOVE(LONG_CONSTANT)
 40
 EMIT_INSTRUCTION
-LONG_CONSTANT(P(p), Move.getResult(P(p)), L(Move.getVal(P(p))));
+LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
 
 r:      LONG_MOVE(r)
 11

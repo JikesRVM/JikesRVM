@@ -57,13 +57,13 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
           for (int i = 0; i < NumTargets; i++) {
             thisBlock.appendInstruction(MIR_CaseLabel.create
-                                        (IA32_OFFSET, I(i), 
+                                        (IA32_OFFSET, IC(i), 
                                          MIR_LowTableSwitch.getClearTarget(p, i)));
           }
           // calculate address to which to jump, and store it
           // on the top of the stack
           OPT_Register regS = MIR_LowTableSwitch.getIndex(p).register;
-          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL, R(regS), I(2)));
+          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL, R(regS), IC(2)));
           nextBlock.appendInstruction(MIR_BinaryAcc.create
                                       (IA32_ADD, R(regS), 
                                        OPT_MemoryOperand.I(R(phys.getESP()),
@@ -78,7 +78,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
                                                            (byte)4,null,null),
                                        R(regS))); 
           // ``return'' to mangled return address
-          nextBlock.appendInstruction(MIR_Return.create(IA32_RET, I(0), null, null));
+          nextBlock.appendInstruction(MIR_Return.create(IA32_RET, IC(0), null, null));
 
           // CALL next block to push pc of next ``instruction'' onto stack
           MIR_Call.mutate0(p, IA32_CALL, null, null, nextBlock.makeJumpTarget(), null);
@@ -100,7 +100,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
           // mutate this into a TRAPIF, and then fall through to the the
           // TRAP_IF case. 
           OPT_Operand ref = NullCheck.getRef(p);
-          MIR_TrapIf.mutate(p,IA32_TRAPIF,null,ref.copy(),I(0),
+          MIR_TrapIf.mutate(p,IA32_TRAPIF,null,ref.copy(),IC(0),
                             OPT_IA32ConditionOperand.EQ(),
                             OPT_TrapCodeOperand.NullPtr());
         } 
@@ -141,7 +141,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
             OPT_Operand index = MIR_TrapIf.getVal2(p);
             if (!(index instanceof OPT_RegisterOperand ||
                   index instanceof OPT_IntConstantOperand)) {
-              index = I(0xdeadbeef); // index was spilled, and 
+              index = IC(0xdeadbeef); // index was spilled, and 
               // we can't get it back here.
             }
             OPT_MemoryOperand mo = 
@@ -382,7 +382,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
     int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
-    thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
+    thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),
                                                       yieldpoint.makeJumpTarget(),
                                                       OPT_BranchProfileOperand.never()));

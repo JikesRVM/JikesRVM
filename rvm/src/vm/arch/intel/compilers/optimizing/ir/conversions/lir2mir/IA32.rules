@@ -570,18 +570,18 @@ EMIT(MIR_TrapIf.mutate(P(p), IA32_TRAPIF, \
 r:	BOOLEAN_NOT_ACC(r)
 13
 EMIT_INSTRUCTION
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, UnaryAcc.getResult(P(p)), I(1)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, UnaryAcc.getResult(P(p)), IC(1)));
 
 ### Memory operands ###
 stm:	BYTE_STORE(BOOLEAN_NOT_ACC(UBYTE_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_S(P(p), B), I(1)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_S(P(p), B), IC(1)));
 
 stm:	BYTE_ASTORE(BOOLEAN_NOT_ACC(UBYTE_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_AS(P(p), B_S, B), I(1)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_AS(P(p), B_S, B), IC(1)));
 
 #####
 # BOOLEAN_CMP
@@ -1952,13 +1952,13 @@ szpr:	INT_2USHORT(r)
 23
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), Unary.getVal(P(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), I(0xFFFF)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), IC(0xFFFF)));
 
 szpr:	INT_2USHORT(load32)
 25
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), consumeMO())); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), I(0xFFFF)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), IC(0xFFFF)));
 
 stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
 15
@@ -2580,9 +2580,9 @@ r:	LONG_MOVE(LONG_CONSTANT)
 EMIT_INSTRUCTION
 OPT_Register res1 = Move.getResult(P(p)).register;                \
 OPT_Register res2 = regpool.getSecondReg(res1);           \
-OPT_LongConstantOperand val = L(Move.getVal(P(p)));               \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), I(val.upper32()))); \
-EMIT(MIR_Move.create(IA32_MOV, R(res2), I(val.lower32())));
+OPT_LongConstantOperand val = LC(Move.getVal(P(p)));               \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), IC(val.upper32()))); \
+EMIT(MIR_Move.create(IA32_MOV, R(res2), IC(val.lower32())));
 
 ##################################
 # Loads (memory to register moves)
@@ -2647,7 +2647,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX$B, BinaryAcc.getResult(P(p)), consumeMO()
 
 # load8 & 0x000000ab ===> uload8 & 0x000000ab
 r:	INT_AND_ACC(load8, INT_CONSTANT)
-I(BinaryAcc.getValue(P(p))).upper24() == 0?25:INFINITE
+IC(BinaryAcc.getValue(P(p))).upper24() == 0?25:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.create(IA32_MOVZX$B, BinaryAcc.getResult(P(p)), consumeMO())); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)).copyD2D(), BinaryAcc.getValue(P(p))));
@@ -2713,7 +2713,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX$W, BinaryAcc.getResult(P(p)), consumeMO()
 
 # load16 & 0x0000abcd ===> uload16 & 0x0000abcd
 r:	INT_AND_ACC(load16, INT_CONSTANT)
-I(BinaryAcc.getValue(P(p))).upper16() == 0 ? 25 : INFINITE
+IC(BinaryAcc.getValue(P(p))).upper16() == 0 ? 25 : INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.create(IA32_MOVZX$W, BinaryAcc.getResult(P(p)), consumeMO())); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)).copyD2D(), BinaryAcc.getValue(P(p))));
@@ -3286,9 +3286,9 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
 stm:	LONG_STORE(LONG_CONSTANT, OTHER_OPERAND(riv, riv))
 26
 EMIT_INSTRUCTION
-OPT_LongConstantOperand val = L(Store.getValue(P(p))); \
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), I(val.upper32())))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), I(val.lower32())));
+OPT_LongConstantOperand val = LC(Store.getValue(P(p))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), IC(val.upper32())))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), IC(val.lower32())));
 
 #####
 # LONG_ASTORE
@@ -3304,9 +3304,9 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), lval));
 stm:	LONG_ASTORE(LONG_CONSTANT, OTHER_OPERAND(r, riv))
 26
 EMIT_INSTRUCTION
-OPT_LongConstantOperand val = L(AStore.getValue(P(p))); \
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), I(val.upper32())))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), I(val.lower32())));
+OPT_LongConstantOperand val = LC(AStore.getValue(P(p))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), IC(val.upper32())))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), IC(val.lower32())));
 
 #####
 # DOUBLE_STORE
@@ -3719,8 +3719,8 @@ EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2));
 stm:	RETURN(LONG_CONSTANT)
 11
 EMIT_INSTRUCTION
-OPT_LongConstantOperand val = L(Return.getVal(P(p))); \
-EMIT(MIR_Return.mutate(P(p), IA32_RET, null, I(val.upper32()), I(val.lower32())));
+OPT_LongConstantOperand val = LC(Return.getVal(P(p))); \
+EMIT(MIR_Return.mutate(P(p), IA32_RET, null, IC(val.upper32()), IC(val.lower32())));
 
 stm:	RETURN(fp0)
 11

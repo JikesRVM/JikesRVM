@@ -56,7 +56,7 @@ LONG_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2
 r:	LONG_SHL(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
 
 #####
 # LONG_SHR
@@ -69,7 +69,7 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 r:	LONG_SHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
 
 #####
 # LONG_USHR
@@ -82,7 +82,7 @@ LONG_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal
 r:	LONG_USHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
 
 #####
 # LONG_AND
@@ -154,7 +154,7 @@ GPR2FPR_64(P(p));
 r:	LONG_MOVE(LONG_CONSTANT)
 40
 EMIT_INSTRUCTION
-LONG_CONSTANT(P(p), Move.getResult(P(p)), L(Move.getVal(P(p))));
+LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
 
 r:	LONG_MOVE(r)
 22

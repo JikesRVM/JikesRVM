@@ -356,7 +356,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     //    ECX += frame Size
     int frameSize = getFrameFixedSize();
-    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ECX), I(frameSize)));
+    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ECX), IC(frameSize)));
     //    Trap if ESP <= ECX
     MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),R(ECX),
                       OPT_IA32ConditionOperand.LE(),
@@ -414,7 +414,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
       // 4. Store my compiled method id
       int cmid = ir.compiledMethod.getId();
-      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
+      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, IC(cmid)));
     } else {
       // 1. Save caller's frame pointer
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, fpHome));
@@ -424,7 +424,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
       // 3. Store my compiled method id
       int cmid = ir.compiledMethod.getId();
-      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
+      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, IC(cmid)));
 
       // 4. Insert Stack overflow check.  
       insertNormalStackOverflowCheck(plg);
@@ -559,7 +559,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     // 2. Restore caller's stackpointer and framepointer
     int frameSize = getFrameFixedSize();
-    ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(frameSize)));
+    ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
                            (byte)WORDSIZE, null, null);
@@ -680,7 +680,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int delta = desiredOffset - ESPOffset;
     if (delta != 0) {
       if (canModifyEFLAGS(s)) {
-        s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), I(delta)));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), IC(delta)));
       } else {
         OPT_MemoryOperand M = 
           OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 

@@ -46,18 +46,18 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   }
 
   // returns the given operand as an integer constant
-  protected final OPT_IntConstantOperand I(OPT_Operand op) {
+  protected final OPT_IntConstantOperand IC(OPT_Operand op) {
     return (OPT_IntConstantOperand) op;
   }
    
   // returns the given operand as a long constant
-  protected final OPT_LongConstantOperand L(OPT_Operand op) {
+  protected final OPT_LongConstantOperand LC(OPT_Operand op) {
     return (OPT_LongConstantOperand) op;
   }
 
   // returns the integer value of the given operand
   protected final int IV(OPT_Operand op) {
-    return I(op).value;
+    return IC(op).value;
   }
 
   // is a == 0?

@@ -58,7 +58,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           }
           OPT_Register temp = phys.getGPR(0);
           p.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getLR())));
-          p.insertBack(MIR_Binary.create(PPC_SLWI, R(regI), R(regI), I(2)));
+          p.insertBack(MIR_Binary.create(PPC_SLWI, R(regI), R(regI), IC(2)));
           //-#if RVM_FOR_32_ADDR
           p.insertBack(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regI), R(temp)));
           //-#endif
@@ -99,17 +99,17 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
                 if (OPT_Bits.fits(signatureId, 16)) {
                   s = MIR_Unary.create(PPC_LDI, 
                                        R(phys.getGPR(LAST_SCRATCH_GPR)), 
-                                       I(signatureId)); p.insertBack(s);
+                                       IC(signatureId)); p.insertBack(s);
                   instructionCount++;
                 } else {
                   s = MIR_Unary.create(PPC_LDIS, 
                                        R(phys.getGPR(LAST_SCRATCH_GPR)), 
-                                       I(OPT_Bits.PPCMaskUpper16(signatureId)));
+                                       IC(OPT_Bits.PPCMaskUpper16(signatureId)));
                   p.insertBack(s);
                   s = MIR_Binary.create(PPC_ADDI, 
                                         R(phys.getGPR(LAST_SCRATCH_GPR)), 
                                         R(phys.getGPR(LAST_SCRATCH_GPR)), 
-                                        I(OPT_Bits.PPCMaskLower16(signatureId)));
+                                        IC(OPT_Bits.PPCMaskLower16(signatureId)));
                   p.insertBack(s);
                   instructionCount += 2;
                 }
@@ -133,16 +133,16 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           int offset = VM_Entrypoints.optResolveMethod.getOffset();
           if (OPT_Bits.fits(offset, 16)) {
             //-#if RVM_FOR_32_ADDR
-            p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), I(offset)));
+            p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), IC(offset)));
             //-#endif
             //-#if RVM_FOR_64_ADDR
-            p.insertBefore(MIR_Load.create(PPC64_LD, R(zero), R(JTOC), I(offset)));
+            p.insertBefore(MIR_Load.create(PPC64_LD, R(zero), R(JTOC), IC(offset)));
             //-#endif
           } else {
             p.insertBefore(MIR_Unary.create(PPC_LDIS, R(zero), 
-                                            I(offset >>> 16)));
+                                            IC(offset >>> 16)));
             p.insertBefore(MIR_Binary.create(PPC_ORI, R(zero), R(zero), 
-                                             I(offset & 0xffff)));
+                                             IC(offset & 0xffff)));
             //-#if RVM_FOR_32_ADDR
             p.insertBefore(MIR_Load.create(PPC_LWZX, R(zero), R(JTOC), R(zero)));
             //-#endif
@@ -183,14 +183,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             //-#if RVM_FOR_32_ADDR
             p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
                                            R(PR), 
-                                           I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
             //-#endif
             //-#if RVM_FOR_64_ADDR
             p.insertBefore(MIR_Load.create(PPC64_LWA, R(zero),
                                            R(PR),
-                                           I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
             //-#endif
-            p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+            p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
@@ -211,14 +211,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             //-#if RVM_FOR_32_ADDR
             p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
                                            R(PR), 
-                                           I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
             //-#endif
             //-#if RVM_FOR_64_ADDR
             p.insertBefore(MIR_Load.create(PPC64_LWA, R(zero),
                                            R(PR),
-                                           I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
             //-#endif
-            p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+            p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
@@ -327,16 +327,16 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
     int offset = meth.getOffset();
     if (OPT_Bits.fits(offset, 16)) {
       //-#if RVM_FOR_32_ADDR
-      result.appendInstruction(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), I(offset)));
+      result.appendInstruction(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), IC(offset)));
       //-#endif
       //-#if RVM_FOR_64_ADDR
-      result.appendInstruction(MIR_Load.create(PPC64_LD, R(zero), R(JTOC), I(offset)));
+      result.appendInstruction(MIR_Load.create(PPC64_LD, R(zero), R(JTOC), IC(offset)));
       //-#endif
     } else {
       result.appendInstruction(MIR_Unary.create(PPC_LDIS, 
-                               R(zero), I(offset >>> 16)));
+                               R(zero), IC(offset >>> 16)));
       result.appendInstruction(MIR_Binary.create(PPC_ORI, 
-                               R(zero), R(zero), I(offset & 0xffff)));
+                               R(zero), R(zero), IC(offset & 0xffff)));
       //-#if RVM_FOR_32_ADDR
       result.appendInstruction(MIR_Load.create(PPC_LWZX, R(zero), R(JTOC), R(zero)));
       //-#endif

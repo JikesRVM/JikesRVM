@@ -66,7 +66,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
             Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
                         GuardedUnary.getClearVal(s),
-                        I(VM_ObjectModel.getArrayLengthOffset()), 
+                        IC(VM_ObjectModel.getArrayLengthOffset()), 
                         new OPT_LocationOperand(), 
                         GuardedUnary.getClearGuard(s));
           }
@@ -84,7 +84,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             int offset = type.getTibOffset();
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         ir.regpool.makeJTOCOp(ir,s), 
-                        I(offset), new OPT_LocationOperand(offset));
+                        IC(offset), new OPT_LocationOperand(offset));
           }
           break;
 
@@ -93,7 +93,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // TODO: Valid location operand?
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
@@ -102,7 +102,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // TODO: Valid location operand?
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
@@ -111,7 +111,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // TODO: Valid location operand?
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
@@ -120,7 +120,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             // TODO: Valid location operand?
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
-                        I(TIB_ARRAY_ELEMENT_TIB_INDEX << LOG_BYTES_IN_ADDRESS), null);
+                        IC(TIB_ARRAY_ELEMENT_TIB_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
@@ -264,7 +264,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
       }
     }
 
-    private final OPT_IntConstantOperand I (int i) {
+    private final OPT_IntConstantOperand IC (int i) {
       return new OPT_IntConstantOperand(i);
     }
   }
