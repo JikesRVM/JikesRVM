@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Entrypoints;
+
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * address pairs
@@ -210,40 +210,31 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
     VM_Magic.sync();
   }
 
-  // need to use this to avoid generating a putfield and so causing
-  // write barrier recursion
-  private final void setCompletionFlag(int flag)
-    throws VM_PragmaInline {
-    VM_Magic.setIntAtOffset(this, SQCFFieldOffset, flag);
+  // need to use this to avoid generating a putfield and so causing write barrier recursion
+  //
+  private final void setCompletionFlag(int flag) throws VM_PragmaInline {
+    completionFlag = flag;
   }
-  private static int SQCFFieldOffset = VM_Entrypoints.SQCFField.getOffset();
-  private final void setNumClients(int newNumClients)
-    throws VM_PragmaInline {
-    if (VM.runningVM)
-      VM_Magic.setIntAtOffset(this, SQNCFieldOffset, newNumClients);
-    else
+
+  private final void setNumClients(int newNumClients) throws VM_PragmaInline {
       numClients = newNumClients;
   }
-  private static int SQNCFieldOffset = VM_Entrypoints.SQNCField.getOffset();
-  private final void setNumClientsWaiting(int newNCW)
-    throws VM_PragmaInline {
-    VM_Magic.setIntAtOffset(this, SQNCWFieldOffset, newNCW);
+
+  private final void setNumClientsWaiting(int newNCW) throws VM_PragmaInline {
+    numClientsWaiting = newNCW;
   }
-  private static int SQNCWFieldOffset = VM_Entrypoints.SQNCWField.getOffset();
-  private final void setHead(VM_Address newHead)
-    throws VM_PragmaInline {
-    VM_Magic.setIntAtOffset(this, SQheadFieldOffset, newHead.toInt());
+
+  private final void setHead(VM_Address newHead) throws VM_PragmaInline {
+    head = newHead;
   }
-  private static int SQheadFieldOffset = VM_Entrypoints.SQheadField.getOffset();
-  private final void setTail(VM_Address newTail)
-    throws VM_PragmaInline {
-    VM_Magic.setIntAtOffset(this, SQtailFieldOffset, newTail.toInt());
+
+  private final void setTail(VM_Address newTail) throws VM_PragmaInline {
+    tail = newTail;
   }
-  private static int SQtailFieldOffset = VM_Entrypoints.SQtailField.getOffset();
-  private final void setBufsEnqueued(int newBE)
-    throws VM_PragmaInline {
-    VM_Magic.setIntAtOffset(this, SQBEFieldOffset, newBE);
+
+  private final void setBufsEnqueued(int newBE) throws VM_PragmaInline {
+    bufsenqueued = newBE;
   }
-  private static int SQBEFieldOffset = VM_Entrypoints.SQBEField.getOffset();
+
   
 }
