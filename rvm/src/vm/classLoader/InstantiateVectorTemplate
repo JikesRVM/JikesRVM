@@ -6,9 +6,9 @@
 #
 # Produce a ".java" file from a "VM_Vector.template" file.
 #
-# author Bowen Alpern
-# author Anthony Cocchi
-# author Derek Lieber
+# @author Bowen Alpern
+# @author Anthony Cocchi
+# @author Derek Lieber
 
 if [ $# != 4 ]; then
    echo "usage: $0 vectorClassName elementTypeName templateFileName outputFileName"

@@ -3,8 +3,8 @@
 #
 #$Id$
 
-# author Bowen Alpern
-# author Derek Lieber
+# @author Bowen Alpern
+# @author Derek Lieber
 
 include			$(RVM_ROOT)/rvm/build.Make.rules
 
