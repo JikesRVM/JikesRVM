@@ -40,7 +40,7 @@ load
 
 ####################
 PPC_LIntUX
-MIR_Load
+MIR_LoadUpdate
 load
 
 
@@ -89,7 +89,7 @@ load
 
 ####################
 PPC_LAddrUX
-MIR_Load
+MIR_LoadUpdate
 load
 
 
