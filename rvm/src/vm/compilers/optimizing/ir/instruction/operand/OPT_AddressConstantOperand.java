@@ -72,9 +72,9 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    */
   public String toString() {
     //-#if RVM_FOR_64_ADDR
-    return "Addr " + value.toLong();
+    return "Addr 0x" + Long.toHexString(value.toLong());
     //-#elif RVM_FOR_32_ADDR
-    return "Addr " + value.toInt();
+    return "Addr 0x" + Integer.toHexString(value.toInt());
     //-#endif
   }
 }
