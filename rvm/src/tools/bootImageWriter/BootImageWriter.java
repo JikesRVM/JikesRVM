@@ -35,8 +35,9 @@ import org.vmmagic.unboxed.*;
  *                             line argument
  *    -classpath <path>        list of places to look for bootimage classes
  *    -littleEndian            write words to bootimage in little endian format?
- *    -trace                   talk while we work?
+ *    -trace                   talk while we work? (increment "verbose")
  *    -detailed                print detailed info on traversed objects
+ *                                  (double-increment "verbose")
  *    -demographics            show summary of how boot space is used
  *    -ia <addr>               address where boot image starts
  *    -o <filename>            place to put bootimage
@@ -56,10 +57,6 @@ public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
 
   public static int PARALLELIZE = 0;
-
-  public static void setVerbose(int value) {
-    verbose = value;
-  }
 
   /**
    * How much talking while we work?
@@ -375,7 +372,7 @@ public class BootImageWriter extends BootImageWriterMessages
       }
       // generate trace messages while writing bootimage (for debugging)
       if (args[i].equals("-trace")) {
-        verbose = 1;
+        ++verbose;
         continue;
       }
       // generate info by type
@@ -395,7 +392,7 @@ public class BootImageWriter extends BootImageWriterMessages
       }
       // generate detailed information about traversed objects (for debugging)
       if (args[i].equals("-detailed")) {
-        verbose = 2;
+        verbose += 2;
         continue;
       }
       // write words to bootimage in little endian format
