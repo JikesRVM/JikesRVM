@@ -753,8 +753,6 @@ public class VM_Class extends VM_Type
 
     VM_Thread myThread;
     
-    if (VM.TraceTimes) VM_Timer.start(VM_Timer.CLASS_LOAD);
-
     try {
 	classloader.loadClass( getName().toString() );
     } catch (ClassNotFoundException e) { 
@@ -767,7 +765,6 @@ public class VM_Class extends VM_Type
       throw new VM_ResolutionException(descriptor, e);
     }
 
-    if (VM.TraceTimes) VM_Timer.stop(VM_Timer.CLASS_LOAD);
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load " + descriptor + "\n");
   }
 
@@ -1060,8 +1057,6 @@ public class VM_Class extends VM_Type
                                             descriptor.classNameFromDescriptor()
                                             +"]\n");
 
-    if (VM.TraceTimes) VM_Timer.start(VM_Timer.CLASS_RESOLVE);
-
     // build field and method lists for this class
     //
     {
@@ -1247,7 +1242,6 @@ public class VM_Class extends VM_Type
     else
       finalizeMethod = null;
 
-    if (VM.TraceTimes) VM_Timer.stop(VM_Timer.CLASS_RESOLVE);
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   resolve " + descriptor + "\n");
   }
 

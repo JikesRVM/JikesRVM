@@ -38,17 +38,12 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       VM.sysWrite("\n");
     }
 
-    //  tracing and statistics
-    if (VM.TraceTimes) VM_Timer.start(VM_Timer.REFERENCEMAP_GEN);
-
     // define the basic blocks
     VM_BuildBB buildBB = new VM_BuildBB();
     buildBB.determineTheBasicBlocks(method);
     VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
 
-    // tracing and statistics
-    if (VM.TraceTimes) VM_Timer.stop(VM_Timer.REFERENCEMAP_GEN);
     if (VM.ReferenceMapsBitStatistics) {
       int    junk =  showReferenceMapStatistics(method);
     }

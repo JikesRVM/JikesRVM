@@ -23,8 +23,6 @@ public class VM_StackTrace implements VM_Constants {
    * @return list of stackframes that called us
    */
    public static VM_StackTrace[] create() {
-     if (VM.TraceTimes) VM_Timer.start(VM_Timer.EXCEPTION_HANDLING);
-
      // count number of frames comprising stack
      //
      int stackFrameCount = 0;
@@ -78,8 +76,6 @@ public class VM_StackTrace implements VM_Constants {
      }
      VM.enableGC();
       
-     if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
-
      if (VM.TraceStackTrace) {
 	 VM.disableGC();
 	 VM_Scheduler.dumpStack();

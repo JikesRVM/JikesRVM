@@ -363,8 +363,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       mostRecentlyGeneratedInstructions = getUnexpectedNativeMethodInstructions();
     else
     {
-      if (VM.TraceTimes) VM_Timer.start(VM_Timer.METHOD_COMPILE);
-
       // generate machine code
       //
       VM_CompiledMethod compiledMethod;
@@ -380,8 +378,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
       mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
       mostRecentlyGeneratedCompiledMethod = compiledMethod;
-
-      if (VM.TraceTimes) VM_Timer.stop(VM_Timer.METHOD_COMPILE);
     }
 
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");

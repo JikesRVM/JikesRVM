@@ -815,8 +815,6 @@ public class VM_Runtime implements VM_Constants {
    */
   private static void deliverException(Throwable exceptionObject, 
 				       VM_Registers exceptionRegisters) {
-    if (VM.TraceTimes) VM_Timer.start(VM_Timer.EXCEPTION_HANDLING);
-
     //-#if RVM_FOR_IA32
     VM_Magic.clearFloatingPointState();
     //-#endif
@@ -837,7 +835,6 @@ public class VM_Runtime implements VM_Constants {
 
 	  if (catchBlockOffset >= 0) { 
 	      // found an appropriate catch block
-	      if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
 	      exceptionDeliverer.deliverException(compiledMethod, 
 						  methodStartAddress.add(catchBlockOffset), 
 						  exceptionObject, 
@@ -854,7 +851,6 @@ public class VM_Runtime implements VM_Constants {
 
     // no appropriate catch block found
     //
-    if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
     VM.enableGC();
     exceptionObject.printStackTrace();
     VM_Thread.terminate();

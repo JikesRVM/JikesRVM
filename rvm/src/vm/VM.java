@@ -117,11 +117,6 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
     
-    // Reset timers, so they don't inherit values from boot image.
-    //
-    if (verbose >= 1) VM.sysWriteln("Resetting timers");
-    VM_Timer.reset();
-
     // Fetch arguments from program command line.
     //
     if (verbose >= 1) VM.sysWriteln("Fetching command-line arguments");

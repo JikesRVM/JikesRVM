@@ -67,28 +67,13 @@ public class VM_Properties extends VM_Configuration {
 
   // Symbolic info to support debugger.
   //
-  public static       boolean LoadLocalVariableTables = false;
+  public static boolean LoadLocalVariableTables = false;
 
   /**
    * The following is set on by -X:measureCompilation=true command line arg.
    * When true, it times compilations and generates a report at VM exit.
    */
-  public static       boolean MeasureCompilation      = false;  
-
-  /**
-   * The following boolean fields provide controls for various
-   * diagnostics.
-   * Normally, these are static final and false, so no overhead is 
-   * associated with them.
-   */
-
-  public static final boolean BuildWithDiagnostics    = false;
-
-  // Virtual machine subsystem timing.
-  //
-  public static final boolean TraceTimes              = false;
-  public static final boolean TraceRuntimeTimes       = false;
-  public static final boolean TraceTypecheckTimes     = false;
+  public static boolean MeasureCompilation      = false;  
 
   // Runtime subsystem tracing.
   //
