@@ -12,19 +12,25 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
+ * JMTk follows the pattern set by Jikes RVM for defining sizes of
+ * primitive types thus:
+ *
+ *  static final int LOG_BYTES_IN_INT = 2;
+ *  static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
+ *  static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
+ *  static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
+ *
+ * In this case, we simply extend VM_SizeConstants, which has already
+ * defined all such constants.  This is in fact a neccesity becuase of
+ * the wierdness of VM_Processor *extending* Plan (and therefore
+ * implementing both Constants and VM_SizeConstants, and thus being
+ * exposed to potential duplication of constants).
+ *
  * @author Perry Cheng
  */
-public interface Constants {
+public interface Constants extends VM_SizeConstants {
+
   static final int MAX_INT = 0x7fffffff;
-
-  /* AJG: Contants based on naming conventions of latest
-   * VM_SizeConstants. */
-  static final int LOG_BYTES_IN_ADDRESS = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  static final int BYTES_IN_ADDRESS = VM_SizeConstants.BYTES_IN_ADDRESS;
-  static final int LOG_BITS_IN_ADDRESS = VM_SizeConstants.LOG_BITS_IN_ADDRESS;
-  static final int BITS_IN_ADDRESS = VM_SizeConstants.BITS_IN_ADDRESS;
-
-  static final int LOG_BITS_IN_BYTE = VM_SizeConstants.LOG_BITS_IN_BYTE; 
 
   static final int LOG_BYTES_IN_MBYTE = 20;
   static final int BYTES_IN_MBYTE = 1<<LOG_BYTES_IN_MBYTE;
@@ -32,75 +38,7 @@ public interface Constants {
   static final int LOG_BYTES_IN_PAGE = 12;
   static final int BYTES_IN_PAGE = 1<<LOG_BYTES_IN_PAGE;
 
-  // Assume an address refers to a byte
+  /* Assume an address refers to a byte */
   static final int LOG_BYTES_IN_ADDRESS_SPACE = BITS_IN_ADDRESS;
-
-  /*
-   * Data Fields that control the allocation of memory
-   * subpools for the heap; allocate from 
-   * fixed size blocks in subpools; never-copying collector
-   */
-  static final int[]	GC_SIZEVALUES = {
-                                 VM_JavaHeader.MINIMUM_HEADER_SIZE + 4,
-				 VM_JavaHeader.MINIMUM_HEADER_SIZE + 8,
-				 VM_JavaHeader.MINIMUM_HEADER_SIZE + 12,
-				 32,
-				 64,
-				 84,
-				 128,
-				 256,
-                                 512,
-  	                         524,
-				 1024,
-				 2048
-                                 };
-  static final int	        GC_SIZES          = GC_SIZEVALUES.length;
-  static final int		GC_MAX_SMALL_SIZE = GC_SIZEVALUES[GC_SIZEVALUES.length-1];
-  static final int  		LOG_GC_BLOCKSIZE  = 14;
-  static final int		GC_BLOCKSIZE      = 1 << LOG_GC_BLOCKSIZE;
-  static final int 		GC_BLOCKALIGNMENT = GC_BLOCKSIZE;
-
-  /** number of gc cycles for new objects to become old */
-  static final int		GC_STEPS = 2;	
-  static final int 		GC_OLD   = GC_STEPS - 1;
-
-  // N.B. GC_THRESHHOLD changes when GC_OLD changes.
-  static final int		GC_THRESHHOLD = 2 * GC_OLD - 1;
-  static final int		GC_REMEMBERED_COHORTS = GC_OLD;
-
-   // initial number of old objects to allocate for
-  static final int		GC_INITIALOLDOBJECTS = 1024; 
-  static final int		GC_NEW_BLOCK_DEPTH = 10;
-
-  static final int		GC_INITIAL_LARGE_SPACE_PAGES = 100;
-  static final int		GC_LARGE_SIZES = 20;
-
-  /**
-   * When true (the default), 
-   * mutator allocations are done via VM_Chunk.allocateChunk1
-   */
-  static final boolean PROCESSOR_LOCAL_ALLOCATE = true;
-
-  /**
-   * When true (the default), Collector Threads 
-   * acquire space to copy objects via VM_Chunk.allocateChunk2
-   */
-  static final boolean PROCESSOR_LOCAL_MATURE_ALLOCATE = true;
-
-  // set at most one of the following 2 zeroing options on, if neither is
-  // on then one processor zeros at end of GC (a bad idea, keep for comparison)
-
-  /**
-   * When true, all collector threads zero the space for new allocations
-   * in parallel, at the end of a collection, before mutators execute.
-   */
-  static final boolean ZERO_NURSERY_IN_PARALLEL = false;
-
-  /**
-   * When true (the default), no zeroing is done at the end of a collection.
-   * Instead, each VM_Processor zeros the chunks of heap it acquires in order
-   * to satisfy allocation requests.
-   */
-  static final boolean ZERO_CHUNKS_ON_ALLOCATION = true;
-}				
+}
 
