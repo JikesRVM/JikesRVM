@@ -19,8 +19,9 @@ import java.lang.ref.Reference;
  *			    such as when out of memory)
  * @date 10 July 2003
  */
-public class VM extends VM_Properties 
-    implements VM_Constants, VM_Uninterruptible { 
+public class VM extends VM_Properties implements VM_Constants, 
+						 VM_Uninterruptible { 
+
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -65,10 +66,11 @@ public class VM extends VM_Properties
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception, VM_PragmaLogicallyUninterruptible {
-    VM.writingBootImage = false;
-    VM.runningVM        = true;
-    VM.runningAsSubsystem = false;
+  public static void boot() throws Exception, 
+				   VM_PragmaLogicallyUninterruptible {
+    writingBootImage = false;
+    runningVM        = true;
+    runningAsSubsystem = false;
 
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
@@ -93,7 +95,7 @@ public class VM extends VM_Properties
     if (!BuildForSingleVirtualProcessor)
       VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
 
-    // Initialize memory manager's write barrier.
+    // Initialize memory manager's virtual processor local state.
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.
     //
@@ -108,15 +110,15 @@ public class VM extends VM_Properties
 
     VM_Time.boot();
 
-    // Reset the options for the baseline compiler to avoid carrying them over from
-    // bootimage writing time.
+    // Reset the options for the baseline compiler to avoid carrying 
+    // them over from bootimage writing time.
     // 
     if (verboseBoot >= 1) VM.sysWriteln("Setting up baseline compiler options");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
-    // This must happen before any static synchronized methods of bootimage classes
-    // can be invoked.
+    // This must happen before any static synchronized methods of bootimage 
+    // classes can be invoked.
     if (verboseBoot >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
 
@@ -140,9 +142,7 @@ public class VM extends VM_Properties
     // "object not part of bootimage" messages printed out by bootimage 
     // writer.
     //
-
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
