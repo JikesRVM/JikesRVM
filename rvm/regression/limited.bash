@@ -134,10 +134,19 @@ else
     executioner=$!
     (( verbose )) && echo "$ME: Executioner pid is $executioner"
     wait $worker
+## From the Bash 2.05b manual page:
+#       When  bash  is
+#       waiting  for an asynchronous command via the wait builtin,
+#       the reception of a signal for which a trap  has  been  set
+#       will  cause the wait builtin to return immediately with an
+#       exit status greater than 128, immediately after which  the
+#       trap is executed.
     worker_xitstatus=$?
-#    if (( worker_xitstatus != 128 + 9 )); then
+
     if (( ! executioner_started )); then
 	(( verbose )) && echo "$ME: worker $worker (running $*) exited with status $worker_xitstatus; let's kill the executioner $executioner"
 	kill_recursively $executioner
     fi
+    # Report the worker's exit status!  RunSanityTests requires this.
+    exit $worker_xitstatus
 fi
