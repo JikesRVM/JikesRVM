@@ -9,13 +9,13 @@
  * 
  * Conceptually each Java object is composed of the following pieces:
  * <ul>
- * <li> The JavaHeader defined by @see{VM_JavaHeader}. This portion of the
+ * <li> The JavaHeader defined by {@link VM_JavaHeader}. This portion of the
  *      object supports language-level functions such as locking, hashcodes,
  *      dynamic type checking, virtual function invocation, and array length.
- * <li> The GCHeader defined by @see{VM_AllocatorHeader}. This portion
+ * <li> The GCHeader defined by {@link VM_AllocatorHeader}. This portion
  *      of the object supports allocator-specific requirements such as 
  *      mark/barrier bits, reference counts, etc.
- * <li> The MiscHeader defined by @see{VM_MiscHeader}. This portion supports 
+ * <li> The MiscHeader defined by {@link VM_MiscHeader}. This portion supports 
  *      various other clients that want to add bits/words to all objects. 
  *      Typical uses are profiling and instrumentation (basically this is a 
  *      way to add an instance field to java.lang.Object).
@@ -90,6 +90,10 @@
  * available at the same offset from an objref for both arrays and 
  * scalar objects.
  * 
+ * @see VM_JavaHeader
+ * @see VM_MiscHeader
+ * @see VM_AllocatorHeader
+ * 
  * @author Bowen Alpern
  * @author David Bacon
  * @author Stephen Fink
@@ -99,10 +103,14 @@
 public final class VM_ObjectModel implements VM_Uninterruptible, 
 					     VM_JavaHeaderConstants {
 
-  static final boolean HASH_STATS = VM_Lock.STATS; // kludge rhs to simplify scripts
-  static int hashRequests    = 0; // count number of hashCode() operations
-  static int hashTransition1 = 0; // count transitions from HASH_STATE_UNHASHED to HASH_STATE_HASHED
-  static int hashTransition2 = 0; // count transitions from HASH_STATE_HASHED to HASH_STATE_HASHED_AND_MOVED
+  /** Should we gather stats on hash code state transitions for address-based hashing? */
+  static final boolean HASH_STATS = false;
+  /** count number of Object::hashCode() operations */
+  static int hashRequests    = 0; 
+  /** count transitions from HASH_STATE_UNHASHED to HASH_STATE_HASHED */
+  static int hashTransition1 = 0; 
+  /** count transitions from HASH_STATE_HASHED to HASH_STATE_HASHED_AND_MOVED */
+  static int hashTransition2 = 0; 
 
   /**
    * Given a reference to an object of a given class, 
