@@ -56,8 +56,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     summ.setInProgress(true);
     OPT_FI_EscapeSummary result = new OPT_FI_EscapeSummary();
     // set up register lists, SSA flags
-    OPT_RegisterInfo.computeRegisterList(ir);
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.computeDU(ir);
+    OPT_DefUse.recomputeSSA(ir);
     // pass through registers, and mark escape information
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {

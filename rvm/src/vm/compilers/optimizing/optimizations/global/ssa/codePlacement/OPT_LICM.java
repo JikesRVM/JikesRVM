@@ -322,7 +322,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     } 
     else if (op instanceof OPT_RegisterOperand) {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
-      OPT_RegisterOperandEnumeration defs = OPT_RegisterInfo.defs(reg);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       if (!defs.hasMoreElements()) {          // params have no def
 	return  ir.firstInstructionInCodeOrder();
       } 
@@ -569,7 +569,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       escapeSummary = analyzer.simpleEscapeAnalysis(ir);
     }
     ssad = ir.HIRInfo.SSADictionary;    
-    OPT_RegisterInfo.computeRegisterList(ir);
+    OPT_DefUse.computeDU(ir);
     ssad.recomputeArrayDU();
     new OPT_DominatorsPhase().perform(ir);
     OPT_Dominators.computeApproxPostdominators(ir);

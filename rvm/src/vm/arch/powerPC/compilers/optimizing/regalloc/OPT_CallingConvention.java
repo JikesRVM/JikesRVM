@@ -134,7 +134,7 @@ implements OPT_PhysicalRegisterConstants {
     
   // set up register lists for dead code elimination.
     if (ir.options.SIMPLE_OPT) {
-      OPT_RegisterInfo.computeRegisterList(ir);
+      OPT_DefUse.computeDU(ir);
     }
 
     OPT_Instruction prologueInstr = 

@@ -140,7 +140,7 @@ final class OPT_Register {
 
   /**
    * Used to store register lists.
-   * Computed on demand by OPT_IR.computeRegisterList().
+   * Computed on demand by OPT_IR.computeDU().
    */
   OPT_RegisterOperand defList, useList;
 

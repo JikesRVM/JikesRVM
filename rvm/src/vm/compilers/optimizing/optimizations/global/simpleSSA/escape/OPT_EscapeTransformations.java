@@ -38,8 +38,8 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
    */
   public void perform (OPT_IR ir) {
     // perform simple optimizations to increase efficacy
-    OPT_RegisterInfo.computeRegisterList(ir);
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.computeDU(ir);
+    OPT_DefUse.recomputeSSA(ir);
     OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
     OPT_FI_EscapeSummary summary = analyzer.simpleEscapeAnalysis(ir);
     // pass through registers. look for registers that point

@@ -236,7 +236,7 @@ final class OPT_LinearScanActiveSet extends OPT_RegisterAllocatorState {
   
   int countDefs(OPT_Register reg) {
     int count = 0;
-    for (OPT_RegisterOperandEnumeration e = OPT_RegisterInfo.defs(reg);  
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(reg);  
 	 e.hasMoreElements();) {
       e.next();
       count++;
@@ -246,7 +246,7 @@ final class OPT_LinearScanActiveSet extends OPT_RegisterAllocatorState {
   
   int countUses(OPT_Register reg) {
     int count = 0;
-    for (OPT_RegisterOperandEnumeration e = OPT_RegisterInfo.uses(reg); 
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(reg); 
 	 e.hasMoreElements();) {
       e.next();
       count++;

@@ -38,13 +38,13 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     this.ir = ir;
     
     if (ir.hasReachableExceptionHandlers()) return;
-    OPT_RegisterInfo.computeRegisterList (ir);
+    OPT_DefUse.computeDU (ir);
     new OPT_Simple().perform(ir);
     new OPT_BranchOptimizations(-1).perform(ir, true);
 
     new OPT_CFGTransformations().perform(ir);
     new OPT_DominatorsPhase().perform(ir);
-    OPT_RegisterInfo.computeRegisterList (ir);
+    OPT_DefUse.computeDU (ir);
 
     ir.setInstructionScratchWord(0);
     
@@ -499,7 +499,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       if (!(use instanceof OPT_RegisterOperand)) return use;
       OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
       OPT_RegisterOperandEnumeration
-	defs = OPT_RegisterInfo.defs (rop.register);
+	defs = OPT_DefUse.defs (rop.register);
       if (!defs.hasMoreElements()) {return use;}
       OPT_Instruction def = defs.next().instruction;
       if (!Move.conforms (def)) return use;
@@ -515,7 +515,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   private static OPT_Instruction definingInstruction (OPT_Operand op) {
     if (!(op instanceof OPT_RegisterOperand)) return op.instruction;
     OPT_RegisterOperandEnumeration
-      defs = OPT_RegisterInfo.defs (((OPT_RegisterOperand) op).register);
+      defs = OPT_DefUse.defs (((OPT_RegisterOperand) op).register);
     if (!defs.hasMoreElements()) {return op.instruction;}
     OPT_Instruction def = defs.next().instruction;
     if (defs.hasMoreElements()) {return op.instruction;}
@@ -527,7 +527,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     if (op instanceof OPT_RegisterOperand) {
       boolean variant = false;
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
-      OPT_RegisterOperandEnumeration defs = OPT_RegisterInfo.defs(reg);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       while (defs.hasMoreElements()) {
 	OPT_Instruction inst = defs.next().instruction;
 	if (Move.conforms (inst))
@@ -538,7 +538,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	}
       }
       if (variant) {
-	defs = OPT_RegisterInfo.defs(reg);
+	defs = OPT_DefUse.defs(reg);
 	while (defs.hasMoreElements()) {
 	  OPT_Instruction inst = defs.next().instruction;
 	  if (Move.conforms (inst))
@@ -679,7 +679,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       this.use = use;
       if (use instanceof OPT_RegisterOperand) {
 	OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
-	defs = OPT_RegisterInfo.defs (rop.register);
+	defs = OPT_DefUse.defs (rop.register);
 	this.use = null;
 	if (!defs.hasMoreElements()) defs = null;
       }

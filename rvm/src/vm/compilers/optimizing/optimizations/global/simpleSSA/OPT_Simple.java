@@ -97,9 +97,9 @@ final class OPT_Simple extends OPT_CompilerPhase
    */
   void perform (OPT_IR ir) {
     // Compute defList, useList, useCount fields for each register.
-    OPT_RegisterInfo.computeRegisterList(ir);
+    OPT_DefUse.computeDU(ir);
     // Recompute isSSA flags
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.recomputeSSA(ir);
     // Simple copy propagation.
     // This pass incrementally updates the register list.
     copyPropagation(ir);
@@ -115,12 +115,12 @@ final class OPT_Simple extends OPT_CompilerPhase
     // This pass incrementally updates the register list
     eliminateDeadInstructions(ir);
     // constant folding
-    // This pass usually doesn't modify the registerList, but
+    // This pass usually doesn't modify the DU, but
     // if it does it will recompute it.
     foldConstants(ir);
     // Try to remove conditional branches with constant operands
     // If it actually constant folds a branch, 
-    // this pass will recompute the registerList.
+    // this pass will recompute the DU
     if (foldBranches)
       simplifyConstantBranches(ir);
   }
@@ -195,7 +195,7 @@ final class OPT_Simple extends OPT_CompilerPhase
             OPT_RegisterOperand rhsRegOp = rhs.asRegister();
             if (VM.VerifyAssertions)
               VM.assert(rhsRegOp.register.getType() == use.register.getType());
-            OPT_RegisterInfo.transferUse(use, rhsRegOp);
+            OPT_DefUse.transferUse(use, rhsRegOp);
           } else if (rhs.isConstant()) {
             int index = use.getIndexInInstruction();
             use.instruction.putOperand(index, rhs);
@@ -207,7 +207,7 @@ final class OPT_Simple extends OPT_CompilerPhase
 	// defInstr is now dead. Remove it.
 	defInstr.remove();
 	if (rhs.isRegister())
-	  OPT_RegisterInfo.removeUse(rhs.asRegister());
+	  OPT_DefUse.removeUse(rhs.asRegister());
 	ir.regpool.removeRegister(lhs.register);
       }
     }
@@ -321,8 +321,8 @@ final class OPT_Simple extends OPT_CompilerPhase
               s.position = i.position;
               s.bcIndex = i.bcIndex;
               i.insertAfter(s);
-              OPT_RegisterInfo.updateRegisterListsForNewInstruction(s);
-              OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(i);
+              OPT_DefUse.updateDUForNewInstruction(s);
+              OPT_DefUse.removeInstructionAndUpdateDU(i);
             }
           }
         } else if (arraylengthOK && i.getOpcode() == ARRAYLENGTH_opcode) {
@@ -333,8 +333,8 @@ final class OPT_Simple extends OPT_CompilerPhase
           s.position = i.position;
           s.bcIndex = i.bcIndex;
           i.insertAfter(s);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(s);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(i);
+          OPT_DefUse.updateDUForNewInstruction(s);
+          OPT_DefUse.removeInstructionAndUpdateDU(i);
         }
       }
     }
@@ -390,15 +390,15 @@ final class OPT_Simple extends OPT_CompilerPhase
 
       // remove NOPs
       if (instr.operator() == NOP) {
-	OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(instr);
+	OPT_DefUse.removeInstructionAndUpdateDU(instr);
       }
       
       // remove UNINT_BEGIN/UNINT_END with nothing in between them
       if (instr.operator() == UNINT_BEGIN) {
 	OPT_Instruction s = instr.nextInstructionInCodeOrder();
 	if (s.operator() == UNINT_END) {
-	  OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(s);
-	  OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(instr);
+	  OPT_DefUse.removeInstructionAndUpdateDU(s);
+	  OPT_DefUse.removeInstructionAndUpdateDU(instr);
 	}
       }
 
@@ -408,7 +408,7 @@ final class OPT_Simple extends OPT_CompilerPhase
         if (Move.getVal(instr).isRegister()) {
           OPT_Register rhs = Move.getVal(instr).asRegister().register;
           if (lhs == rhs) {
-            OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(instr);
+            OPT_DefUse.removeInstructionAndUpdateDU(instr);
             continue;
           }
         }
@@ -442,7 +442,7 @@ final class OPT_Simple extends OPT_CompilerPhase
         continue;
       // There are 1 or more register defs, but all of them are dead. 
       // Remove instr.
-      OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(instr);
+      OPT_DefUse.removeInstructionAndUpdateDU(instr);
     }
   }
 
@@ -458,15 +458,15 @@ final class OPT_Simple extends OPT_CompilerPhase
       byte code = OPT_Simplifier.simplify(s);
       // If something was reduced (as opposed to folded) then its uses may 
       // be different. This happens so infrequently that it's cheaper to 
-      // handle it by  recomputing the registerlist from
+      // handle it by  recomputing the DU from
       // scratch rather than trying to do the incremental bookkeeping. 
       recomputeRegList |= (code == OPT_Simplifier.MOVE_REDUCED || 
 			   code == OPT_Simplifier.TRAP_REDUCED || 
 			   code == OPT_Simplifier.REDUCED);
     }
     if (recomputeRegList) {
-      OPT_RegisterInfo.computeRegisterList(ir);
-      OPT_RegisterInfo.recomputeSSA(ir);
+      OPT_DefUse.computeDU(ir);
+      OPT_DefUse.recomputeSSA(ir);
     }
   }
 
@@ -489,8 +489,8 @@ final class OPT_Simple extends OPT_CompilerPhase
       // killed at least one branch, cleanup the CFG removing dead code.
       // Then recompute register list and isSSA info
       branchOpts.perform(ir, true);
-      OPT_RegisterInfo.computeRegisterList(ir);
-      OPT_RegisterInfo.recomputeSSA(ir);
+      OPT_DefUse.computeDU(ir);
+      OPT_DefUse.recomputeSSA(ir);
     }
   }
 }

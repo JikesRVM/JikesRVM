@@ -54,9 +54,9 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // Compute simple ssa, u/d chains, spansBasicBlock
     // to catch some easy cases where we don't have to insert move operations
     if (OPTIMIZE) {
-      OPT_RegisterInfo.computeRegisterList(ir);
-      OPT_RegisterInfo.recomputeSSA(ir);
-      OPT_RegisterInfo.recomputeSpansBasicBlock(ir);
+      OPT_DefUse.computeDU(ir);
+      OPT_DefUse.recomputeSSA(ir);
+      OPT_DefUse.recomputeSpansBasicBlock(ir);
     }
 
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -128,8 +128,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	  if (op1 instanceof OPT_RegisterOperand) {
 	    OPT_RegisterOperand rop1 = (OPT_RegisterOperand)op1;
 	    if (!rop1.register.spansBasicBlock() && 
-		OPT_RegisterInfo.exactlyOneUse(rop1.register)) {
-	      OPT_RegisterInfo.mergeRegisters(ir, rop1.register, result.register);
+		OPT_DefUse.exactlyOneUse(rop1.register)) {
+	      OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
 	      BinaryAcc.mutate(s, opCode, rop1, op2);
 	      return;
 	    }
@@ -137,8 +137,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	  if (op2 instanceof OPT_RegisterOperand) {
 	    OPT_RegisterOperand rop2 = (OPT_RegisterOperand)op2;
 	    if (!rop2.register.spansBasicBlock() && 
-		OPT_RegisterInfo.exactlyOneUse(rop2.register)) {
-	      OPT_RegisterInfo.mergeRegisters(ir, rop2.register, result.register);
+		OPT_DefUse.exactlyOneUse(rop2.register)) {
+	      OPT_DefUse.mergeRegisters(ir, rop2.register, result.register);
 	      BinaryAcc.mutate(s, opCode, rop2, op1);
 	      return;
 	    }
@@ -176,8 +176,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	  if (op1 instanceof OPT_RegisterOperand) {
 	    OPT_RegisterOperand rop1 = (OPT_RegisterOperand)op1;
 	    if (!rop1.register.spansBasicBlock() && 
-		OPT_RegisterInfo.exactlyOneUse(rop1.register)) {
-	      OPT_RegisterInfo.mergeRegisters(ir, rop1.register, result.register);
+		OPT_DefUse.exactlyOneUse(rop1.register)) {
+	      OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
 	      BinaryAcc.mutate(s, opCode, rop1, op2);
 	      return;
 	    }
@@ -205,8 +205,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	  if (op1 instanceof OPT_RegisterOperand) {
 	    OPT_RegisterOperand rop1 = (OPT_RegisterOperand)op1;
 	    if (!rop1.register.spansBasicBlock() && 
-		OPT_RegisterInfo.exactlyOneUse(rop1.register)) {
-	      OPT_RegisterInfo.mergeRegisters(ir, rop1.register, result.register);
+		OPT_DefUse.exactlyOneUse(rop1.register)) {
+	      OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
 	      UnaryAcc.mutate(s, opCode, rop1);
 	      return;
 	    }

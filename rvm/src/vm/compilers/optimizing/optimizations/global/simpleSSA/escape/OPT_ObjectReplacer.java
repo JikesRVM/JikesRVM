@@ -56,7 +56,7 @@ public class OPT_ObjectReplacer
     // now remove the def
     if (DEBUG)
       System.out.println("Removing " + defI);
-    OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(defI);
+    OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
         use = (OPT_RegisterOperand)use.getNext()) {
@@ -125,8 +125,8 @@ public class OPT_ObjectReplacer
           OPT_Instruction i = Move.create(moveOp, scalars[index], 
               PutField.getValue(inst));
           inst.insertBefore(i);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(i);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
+          OPT_DefUse.updateDUForNewInstruction(i);
         }
         break;
       case GETFIELD_opcode:
@@ -138,34 +138,34 @@ public class OPT_ObjectReplacer
           OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), 
               scalars[index]);
           inst.insertBefore(i);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(i);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
+          OPT_DefUse.updateDUForNewInstruction(i);
         }
         break;
       case MONITORENTER_opcode:
         if (ir.options.NO_CACHE_FLUSH)
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst); 
+          OPT_DefUse.removeInstructionAndUpdateDU(inst); 
         else {
           //-#if RVM_FOR_POWERPC
           inst.insertBefore(Empty.create(ISYNC));
           //-#endif
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
         }
         break;
       case MONITOREXIT_opcode:
         if (ir.options.NO_CACHE_FLUSH)
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst); 
+          OPT_DefUse.removeInstructionAndUpdateDU(inst); 
         else {
           //-#if RVM_FOR_POWERPC
           inst.insertBefore(Empty.create(SYNC));
           //-#endif
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
         }
         break;
       case NULL_CHECK_opcode:
         // (SJF) TODO: Why wasn't this caught by BC2IR for
         //	java.lang.Double.<init> (Ljava/lang/String;)V ?
-        OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+        OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
         throw  new OPT_OptimizingCompilerException(

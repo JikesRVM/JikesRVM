@@ -25,7 +25,7 @@ class OPT_ValueGraph
   OPT_ValueGraph (OPT_IR ir) {
     // TODO!!: compute register lists incrementally
     // we need register lists in order to call OPT_Register.getFirstDef()
-    OPT_RegisterInfo.computeRegisterList(ir);
+    OPT_DefUse.computeDU(ir);
     // add value graph nodes for each symbolic register
     addRegisterNodes(ir);
     // go through the IR and add nodes and edges to the value graph

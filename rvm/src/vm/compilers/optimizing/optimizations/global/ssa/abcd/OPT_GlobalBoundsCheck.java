@@ -539,8 +539,8 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       answers = new java.util.HashMap();
       closures = new java.util.HashMap();
       // recompute register lists
-      OPT_RegisterInfo.clearRegisterList(ir);
-      OPT_RegisterInfo.computeRegisterList(ir);
+      OPT_DefUse.clearDU(ir);
+      OPT_DefUse.computeDU(ir);
       if (ir.options.DEBUG_ABCD) {
         System.out.println("\nafter SSA with PI nodes");
         ir.printInstructions();
@@ -617,7 +617,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
         while (!redundant.empty()) {
           RedundantCheck rc = (RedundantCheck)redundant.pop();
           insertCompensatingGuards(rc);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(rc.check);
+          OPT_DefUse.removeInstructionAndUpdateDU(rc.check);
         }
       } catch (EmptyStackException e) {}
       OPT_PiNodes.cleanUp(ir);
@@ -649,7 +649,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
             resultGuard.copy().asRegister(), 
             originalGuard.copy(), g.copy());
         check.insertBefore(s);
-        OPT_RegisterInfo.updateRegisterListsForNewInstruction(s);
+        OPT_DefUse.updateDUForNewInstruction(s);
       } 
       else {                    // n > 1
         //  suppose the guards we depend on are v1, v2, v3, v4,
@@ -668,7 +668,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
               g3.copy().asRegister(), 
               g1.copy(), g2.copy());
           check.insertBefore(s);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(s);
+          OPT_DefUse.updateDUForNewInstruction(s);
           g1 = g2;
           g2 = g3;
         }
@@ -676,7 +676,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
             resultGuard.copy().asRegister(), 
             originalGuard.copy(), g3.copy());
         check.insertBefore(s);
-        OPT_RegisterInfo.updateRegisterListsForNewInstruction(s);
+        OPT_DefUse.updateDUForNewInstruction(s);
       }
     }
     private int depth = 0;      // recursion depth

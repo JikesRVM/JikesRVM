@@ -125,7 +125,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   void perform(OPT_IR ir) {
 
     // make sure IR info is up-to-date
-    OPT_RegisterInfo.recomputeSpansBasicBlock(ir);
+    OPT_DefUse.recomputeSpansBasicBlock(ir);
     debugBegining(ir, createGCMaps);
     bbLiveInfo = new BBLiveElement[ir.cfg.numberOfNodes()];
 
@@ -669,7 +669,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
           // make deep copy (and translate to regList) because we reuse
           // local above.
 	  // NOTE: this translation does some screening, see OPT_GCIRMap.java
-          OPT_LinkedList regList = map.createRegisterList(local);
+          OPT_LinkedList regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
           if (verbose) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made

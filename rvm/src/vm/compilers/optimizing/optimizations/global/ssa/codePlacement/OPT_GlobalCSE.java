@@ -37,9 +37,9 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     dominator = ir.HIRInfo.dominatorTree;
     if (ir.IRStage == ir.LIR) {
       if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
-      OPT_RegisterInfo.computeRegisterList(ir);
+      OPT_DefUse.computeDU(ir);
       OPT_Simple.copyPropagation(ir);
-      OPT_RegisterInfo.computeRegisterList(ir);
+      OPT_DefUse.computeDU(ir);
       GlobalCSE(ir.firstBasicBlockInCodeOrder(),
 		new OPT_HashedValueNumbers());
       if (VM.VerifyAssertions)
@@ -83,14 +83,14 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	formerDef = getResult(former);
 	OPT_Register reg = result.register;
 	reg.setSpansBasicBlock();
-	OPT_RegisterOperandEnumeration uses = OPT_RegisterInfo.uses(reg);
+	OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(reg);
 	if (verbose) {
 	  VM.sysWrite("using      " + former + "\n" + "instead of " + 
 		      inst + "\n");
 	}
 	while (uses.hasMoreElements()) {
 	  OPT_RegisterOperand use = uses.next();
-	  OPT_RegisterInfo.transferUse(use, formerDef);
+	  OPT_DefUse.transferUse(use, formerDef);
 	}
 	inst.remove();
       } 

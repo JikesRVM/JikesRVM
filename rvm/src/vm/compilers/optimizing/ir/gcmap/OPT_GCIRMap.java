@@ -69,7 +69,7 @@ final class OPT_GCIRMap {
    * @param set the set of registers, encoded as a OPT_LiveSet object 
    * @return a list corresponding to the set passed
    */
-  public OPT_LinkedList createRegisterList(OPT_LiveSet set) {
+  public OPT_LinkedList createDU(OPT_LiveSet set) {
     if (DEBUG) {
       System.out.println("creating a RegList for " + set);
     }

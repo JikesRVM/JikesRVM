@@ -85,7 +85,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
           inst.insertBefore(Empty.create(ISYNC));
         }
 	//-#endif
-        OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+        OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
         if (DEBUG) {
@@ -96,7 +96,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
           inst.insertAfter(Empty.create(SYNC));
         }
 	//-#endif
-        OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+        OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
         // no action necessary

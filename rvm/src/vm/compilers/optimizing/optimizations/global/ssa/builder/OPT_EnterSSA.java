@@ -298,8 +298,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     if (DEBUG)
       System.out.println("Computing register lists...");
     // 1. re-compute the flow-insensitive isSSA flag for each register
-    OPT_RegisterInfo.computeRegisterList(ir);
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.computeDU(ir);
+    OPT_DefUse.recomputeSSA(ir);
     // 2. set up a mapping from symbolic register number to the
     //	register.  !!TODO: factor this out and make it more
     //	useful.
@@ -712,9 +712,9 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     OPT_BasicBlock entry = ir.cfg.entry();
     java.util.HashMap phiDefTypes = new java.util.HashMap(10);
     java.util.HashSet ambiguous = new java.util.HashSet(10);
-    OPT_RegisterInfo.clearRegisterList(ir);
+    OPT_DefUse.clearDU(ir);
     search(entry, S, ir, phiDefTypes, ambiguous);
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.recomputeSSA(ir);
     setAmbiguousTypes(ambiguous, phiDefTypes);
   }
 
@@ -756,7 +756,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
                   + r2);
             if (r2 != null) {
               rop.register = r2.register;
-              OPT_RegisterInfo.recordUse(rop);
+              OPT_DefUse.recordUse(rop);
               dictionary.setOriginalRegister(r2.register, r1);
             }
           }
@@ -823,7 +823,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
             } 
             else {
               rop.register = r2.register;
-              OPT_RegisterInfo.recordUse(rop);
+              OPT_DefUse.recordUse(rop);
               // if type is null, then this register was
               // defined in a phi instruction.  get the type
               // from the mapping phiDefTypes
@@ -920,7 +920,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
         }
         if (op == null) {
           // in this case, this phi instruction is really dead
-          OPT_RegisterOperandEnumeration uses = OPT_RegisterInfo.uses
+          OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
               (s.getOperand(0).asRegister().register);
           while (uses.hasMoreElements()) {
             OPT_RegisterOperand use = uses.next();
@@ -943,7 +943,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     // phis are truly dead. remove them
     for (java.util.Iterator i3 = ambig.iterator(); i3.hasNext();) {
       OPT_Instruction s = (OPT_Instruction)i3.next();
-      OPT_RegisterOperandEnumeration uses = OPT_RegisterInfo.uses
+      OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
           (s.getOperand(0).asRegister().register);
       while (uses.hasMoreElements()) {
         OPT_RegisterOperand use = uses.next();
@@ -1156,7 +1156,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
       }
       if (VM.VerifyAssertions) VM.assert (t != null);
       phiDefTypes.put(result.asRegister().register, t);
-      OPT_RegisterOperandEnumeration uses = OPT_RegisterInfo.uses
+      OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
           (result.asRegister().register);
       while (uses.hasMoreElements()) {
         OPT_RegisterOperand use = uses.next();

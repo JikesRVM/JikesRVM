@@ -196,7 +196,7 @@ public class OPT_Compiler {
    * this would be fixed. --dave.
    */
   static void cleanIR (OPT_IR ir) {
-    OPT_RegisterInfo.clearRegisterList(ir);
+    OPT_DefUse.clearDU(ir);
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
         != null;) {
       int numberOperands = instr.getNumberOfOperands();

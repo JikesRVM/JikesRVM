@@ -289,7 +289,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
       OPT_Options options = ir.options;
       // Ensure that spans basic block is set correctly 
       // (required for BURS correctness).
-      OPT_RegisterInfo.recomputeSpansBasicBlock(ir);
+      OPT_DefUse.recomputeSpansBasicBlock(ir);
       OPT_BURS burs = new OPT_BURS(ir);
       
       for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 

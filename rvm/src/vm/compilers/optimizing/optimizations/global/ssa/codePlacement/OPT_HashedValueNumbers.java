@@ -57,7 +57,7 @@ class OPT_HashedValueNumbers implements OPT_Operators {
     
     if (op instanceof OPT_RegisterOperand) {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
-      OPT_RegisterOperandEnumeration defs = OPT_RegisterInfo.defs(reg);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       if (reg.isPhysical()) {
 	// these are nasty
 	// todo: only handle volatile registers in this crude manner

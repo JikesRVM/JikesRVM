@@ -943,7 +943,7 @@ final class OPT_IR implements OPT_Operators {
    * @param where    phrase identifying invoking  compilation phase
    */
   private void verifyRegisterDefs(String where) {
-    OPT_RegisterInfo.computeRegisterList(this);
+    OPT_DefUse.computeDU(this);
     //TODO: (SJF)I hate the register list interface.  Re-do it.
     for (OPT_Register r = regpool.getFirstRegister(); 
 	 r != null; 

@@ -581,7 +581,7 @@ final class OPT_CallingConvention
   private static void expandPrologue(OPT_IR ir) {
     // set up register lists for dead code elimination.
     if (DEAD_CODE_ELIM && ir.options.SIMPLE_OPT) {
-      OPT_RegisterInfo.computeRegisterList(ir);
+      OPT_DefUse.computeDU(ir);
     }
 
     OPT_Instruction p = ir.firstInstructionInCodeOrder().

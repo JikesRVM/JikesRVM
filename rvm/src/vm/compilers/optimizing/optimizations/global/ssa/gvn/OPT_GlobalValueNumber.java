@@ -51,8 +51,8 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
   final public void perform (OPT_IR ir) {
     // make sure the SSA computation completed successfully
     // TODO if (!ir.SSAForm()) return;
-    OPT_RegisterInfo.computeRegisterList(ir);
-    OPT_RegisterInfo.recomputeSSA(ir);
+    OPT_DefUse.computeDU(ir);
+    OPT_DefUse.recomputeSSA(ir);
 
     // before doing global value numbering, get rid of
     // some troublesome dead code: <MOVE a = a> will

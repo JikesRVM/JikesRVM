@@ -66,7 +66,7 @@ public class OPT_ShortArrayReplacer
     // now remove the def
     if (DEBUG)
       System.out.println("Removing " + defI);
-    OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(defI);
+    OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
         use = (OPT_RegisterOperand)use.getNext()) {
@@ -125,8 +125,8 @@ public class OPT_ShortArrayReplacer
           OPT_Instruction i = Move.create(moveOp, ALoad.getResult(inst), 
               scalars[index]);
           inst.insertBefore(i);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(i);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
+          OPT_DefUse.updateDUForNewInstruction(i);
         }
         break;
       case INT_ASTORE_opcode:case LONG_ASTORE_opcode:case FLOAT_ASTORE_opcode:
@@ -137,12 +137,12 @@ public class OPT_ShortArrayReplacer
           OPT_Instruction i2 = Move.create(moveOp, scalars[index], 
               AStore.getValue(inst));
           inst.insertBefore(i2);
-          OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
-          OPT_RegisterInfo.updateRegisterListsForNewInstruction(i2);
+          OPT_DefUse.removeInstructionAndUpdateDU(inst);
+          OPT_DefUse.updateDUForNewInstruction(i2);
         }
         break;
       case BOUNDS_CHECK_opcode:
-        OPT_RegisterInfo.removeInstructionAndUpdateRegisterLists(inst);
+        OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
         throw  new OPT_OptimizingCompilerException("Unexpected instruction: "

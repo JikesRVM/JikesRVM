@@ -54,7 +54,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
 	break;
       }
     }
-    OPT_RegisterInfo.recomputeSpansBasicBlock(ir);
+    OPT_DefUse.recomputeSpansBasicBlock(ir);
   }
 
   /**
