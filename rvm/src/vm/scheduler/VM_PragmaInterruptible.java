@@ -9,7 +9,7 @@
  * Used to override the class-wide pragma
  * implied by implementing VM_Uninteruptible.
  * 
- * @Dave Grove
+ * @author Dave Grove
  */
 public class VM_PragmaInterruptible extends VM_PragmaException {
   private static final VM_Class vmClass = getVMClass(VM_PragmaInterruptible.class);

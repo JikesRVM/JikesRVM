@@ -3,5 +3,8 @@
  */
 //$Id$
 
+/**
+ * @author Dave Grove
+ */
 public class VM_PragmaNoInline extends RuntimeException {
 }

@@ -6,6 +6,8 @@
 /**
  * Profile data for all conditional branches (including switches)
  * of a single VM_Method.
+ *
+ * @author Dave Grove
  */
 final class VM_BranchProfiles implements VM_BytecodeConstants {
   private VM_Method method;
