@@ -48,6 +48,8 @@ BEGIN {
 /^GC Warning:/ { next }
 /^GC Message:/ { next }
 /^\[GC [0-9]*/ { next }
+/^\[Forced GC\]*/ { next }
+/^\[End [0-9]*.[0-9]* ms\]*/ { next }
 /^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
 
 kill_next==yes { kill_next = no; next }
