@@ -257,7 +257,7 @@ driver are two files, both called {\tt OperatorList.dat}.  One input
 file resides in {\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction} and defines machine-independent
 operators.  The other resides in {\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/instruction}
 and defines machine-dependent operators, where \{arch\} is the
-specific architecture of interest, such as powerPC.
+specific architecture of interest, such as PowerPC\PowerPCTMFootnote.
 
 Each operator in {\tt OperatorList.dat} is defined by a five-line record,
 consisting of:
@@ -290,7 +290,10 @@ branch | conditional
 \end{verbatim}
 
 Additionally,  the machine-specific {\tt OperatorList.dat} file contains 
-another line of information for use by the assembler.  See the file for details.
+another line of information for use by the assembler.  See the file
+for details. 
+
+\PowerPCTMFooter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instruction Formats}\label{iformats}
@@ -423,7 +426,8 @@ Proebsting, LOPLAS 1(3), Sept.\ 1992.)
 The instruction selection rules for each architecture are specified in an
 architecture-specific file called {\tt LIR2MIR.rules}, which resides in
 {\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir}, where \{arch\} is the
-specific architecture of interest, such as powerPC.  The rules are
+specific architecture of interest, such as PowerPC\PowerPCTMFootnote.
+The rules are 
 used in generating a parser, which transforms the IR.
 
 Each rule in {\tt LIR2MIR.rules} is defined by a four-line record,
@@ -502,6 +506,8 @@ For more information on the BURS algorithm see
 {\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir/OPT\_BURS.java}.
 
 \JavaTMFooter
+
+\PowerPCTMFooter
 
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{"Magic" Methods}\label{magic}
