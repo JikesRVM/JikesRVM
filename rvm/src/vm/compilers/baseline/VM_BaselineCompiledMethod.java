@@ -240,8 +240,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 	if (deltaBC <= 6 && deltaIns <= 31)
 	  count++;
 	else {
-	  VM._assert(deltaBC <= 65535);
-	  VM._assert(deltaIns <= 65535);
+	  if (deltaBC > 65535 || deltaIns > 65535)
+	    VM.sysFail("VM_BaselineCompiledMethod: a fancier encoding is needed");
 	  count += 5;
 	}
 	lastBC = i;
