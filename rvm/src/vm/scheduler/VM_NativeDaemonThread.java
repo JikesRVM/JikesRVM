@@ -44,6 +44,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 
   static final boolean DEBUG = false;
   static final boolean trace = false;
+	static int switch_count = 0;
 
   boolean inSysWait;
 
@@ -197,6 +198,7 @@ class VM_NativeDaemonThread extends VM_Thread {
    void transfer (VM_Processor stuckProcessor) {
 
      if (trace) VM_Scheduler.trace("NDT","Entering transfer for processor",stuckProcessor.id);
+		 switch_count++;
      VM_Scheduler.nativeProcessorMutex.lock();
      VM_Processor nativeProcessor = VM_Scheduler.nativeProcessorQueue.dequeue();
      VM_Scheduler.nativeProcessorMutex.unlock();
