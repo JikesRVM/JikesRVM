@@ -2168,7 +2168,7 @@ function emitBooterLinker
 
         print "cd $SCRATCH_DIRECTORY_STR &&\
                 \$LDSHARED -o \$JAL_BUILD/libJava2HPM.a  Java2HPM.o\
-	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm"
+	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm > /dev/null 2>&1"
       else
 	print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
 	    \$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
