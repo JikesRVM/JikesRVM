@@ -90,7 +90,7 @@ If you want to use a subshell in your build-system code, then try:
 which will make the right thing happen, or:
 \begin{example}
 \tt{}if ! ({\it subshell-commands }); then 
-    echo >&2 "$ME: Something bad happened."
+    echo >&2 "\$ME: Something bad happened."
     exit 1
 fi
 
