@@ -809,7 +809,7 @@ function emitEnvironmentPerl
    print "\$ENV{NU_TAR} = '$GNU_TAR';"  
    print "\$ENV{D5SUM} = '$MD5SUM';"  
    print ""
-   print "\$ENV{AZZLIBJAR} = '$JAZZLIBJAR';"
+   print "\$ENV{JAZZLIBJAR} = '$JAZZLIBJAR';"
    }
 
 #
