@@ -321,6 +321,8 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
       fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated, please use -Xms and/or -Xmx\n", me);
+      fprintf(SysTraceFile, "\tI am interpreting -X:h=H as if it was -XmsH.\n");
+      fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use both -XmsH and -XmxH\n");
       subtoken = token + 5;
       initialHeapSize = atoi(subtoken) * 1024 * 1024;
       if (initialHeapSize <= 0) {
