@@ -43,7 +43,6 @@ INPUT_FILES = 	userguide.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
-		jdp.tex \
 		mmdetails.tex \
 		optdetails.tex \
 		performance.tex \
