@@ -294,7 +294,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
   /**
    * Record an exception as pending so that it will be delivered on the return
    * to the Java caller;  clear the exception by recording null
-   * @param an exception or error
+   * @param e  An exception or error
    */
   public final void recordException(Throwable e) {
     // don't overwrite the first exception except to clear it
