@@ -188,7 +188,7 @@ extern "C" void processTimerTick() {
      if (processors[i] != VM_NULL) {  // Have a NativeDaemon Processor (the last one)
  #if (defined RVM_FOR_LINUX) && (!defined __linuxsmp__)
        // we're hosed because we don't support pthreads
-       fprintf(stderr, "vm: Unsupported operation (no linux pthreads)\n");
+       fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
        exit(-1);
 #else
        int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
@@ -229,7 +229,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
    }
 
    if (signum == SIGHUP) { // asynchronous signal used to awaken external debugger
-     // fprintf(SysTraceFile, "vm: signal SIGHUP at ip=0x%08x ignored\n", iar);
+     // fprintf(SysTraceFile, "%s: signal SIGHUP at ip=0x%08x ignored\n", Me, iar);
      return;
    }
    
@@ -243,10 +243,10 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
       //
       unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
       if (*flag) {
-	fprintf(SysTraceFile, "vm: debug request already in progress, please wait\n");
+	fprintf(SysTraceFile, "%s: debug request already in progress, please wait\n", Me);
       }
       else {
-	fprintf(SysTraceFile, "vm: debug requested, waiting for a thread switch\n");
+	fprintf(SysTraceFile, "%s: debug requested, waiting for a thread switch\n", Me);
 	*flag = 1;
       }
       return;
@@ -254,7 +254,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
 
    if (signum == SIGTERM) {
 
-     fprintf(SysTraceFile, "vm: kill requested: (exiting)\n");
+     fprintf(SysTraceFile, "%s: kill requested: (exiting)\n", Me);
      // Process was killed from command line with a DumpStack signal
      // Dump stack by returning to VM_Scheduler.dumpStackAndDie passing
      // it the fp of the current thread.
@@ -416,9 +416,9 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
      fprintf(SysTraceFile,"   pthread_self=0x%08lx\n", pthread_self());
      fprintf(SysTraceFile,"          instr=0x%08lx\n", *(unsigned *)ip);
      if (isRecoverable)
-       fprintf(SysTraceFile,"vm: normal trap\n");
+       fprintf(SysTraceFile,"%s: normal trap\n", Me);
      else {
-       fprintf(SysErrorFile, "vm: internal error trap\n");
+       fprintf(SysErrorFile, "%s: internal error trap\n", Me);
        if (--remainingFatalErrors <= 0)
 	 exit(-1); 
      }
@@ -439,7 +439,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    unsigned *inuse        =  (unsigned  *)((char *)registers + VM_Registers_inuse_offset);
    
    if (*inuse) {
-      fprintf(SysTraceFile, "vm: internal error: recursive use of hardware exception registers (exiting)\n");
+      fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers (exiting)\n", Me);
       // Things went badly wrong, so attempt to generate a useful error dump 
       // before exiting by returning to VM_Scheduler.dumpStackAndDie passing it the fp 
       // of the offending thread.
@@ -502,52 +502,52 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    switch (signum) {
       case SIGSEGV:
 	if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: null pointer trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_NULL_POINTER;
 	  break;
 	}
-	if (lib_verbose) fprintf(SysTraceFile, "vm: unknown seg fault\n");
+	if (lib_verbose) fprintf(SysTraceFile, "%s: unknown seg fault\n", Me);
 	trapCode = VM_Runtime_TRAP_UNKNOWN;
 	break;
 
       case SIGTRAP:
 	if ((instruction & VM_Constants_ARRAY_INDEX_MASK) == VM_Constants_ARRAY_INDEX_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: array bounds trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_ARRAY_BOUNDS;
 	  trapInfo = gprs[(instruction & VM_Constants_ARRAY_INDEX_REG_MASK)
 			  >> VM_Constants_ARRAY_INDEX_REG_SHIFT];
 	  break;
 	} else if ((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_MASK) == VM_Constants_CONSTANT_ARRAY_INDEX_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: array bounds trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_ARRAY_BOUNDS;
 	  trapInfo = ((int)((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
 	  break;
 	} else if ((instruction & VM_Constants_DIVIDE_BY_ZERO_MASK) == VM_Constants_DIVIDE_BY_ZERO_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: divide by zero trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: divide by zero trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
 	  break;
 	} else if ((instruction & VM_Constants_MUST_IMPLEMENT_MASK) == VM_Constants_MUST_IMPLEMENT_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: must implement trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: must implement trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_MUST_IMPLEMENT;
 	  break;
 	} else if ((instruction & VM_Constants_STORE_CHECK_MASK) == VM_Constants_STORE_CHECK_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: objarray store check trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: objarray store check trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_STORE_CHECK;
 	  break;
 	} else if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: checkcast trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: checkcast trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_CHECKCAST;
 	  break;
 	} else if ((instruction & VM_Constants_REGENERATE_MASK) == VM_Constants_REGENERATE_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: regenerate trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: regenerate trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_REGENERATE;
 	  break;
 	} else if ((instruction & VM_Constants_NULLCHECK_MASK) == VM_Constants_NULLCHECK_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: null pointer trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_NULL_POINTER;
 	  break;
 	} else if ((instruction & VM_Constants_JNI_STACK_TRAP_MASK) == VM_Constants_JNI_STACK_TRAP) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: resize stack for JNI call\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: resize stack for JNI call\n", Me);
 	  trapCode = VM_Runtime_TRAP_JNI_STACK;
 	  // We haven't actually bought the stackframe yet, so pretend that
 	  // we are actually trapping directly from the call instruction that invoked the 
@@ -556,12 +556,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  break;
 	} else if ((instruction & VM_Constants_WRITE_BUFFER_OVERFLOW_MASK) == VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
 	  //!!TODO: someday use logic similar to stack guard page to force a gc
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: write buffer overflow trap\n");
-	  fprintf(SysErrorFile,"vm: write buffer overflow trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
+	  fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
 	  exit(-1);
 	} else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) ||
 		   ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP)) {
-	  if (lib_verbose) fprintf(SysTraceFile, "vm: stack overflow trap\n");
+	  if (lib_verbose) fprintf(SysTraceFile, "%s: stack overflow trap\n", Me);
 	  trapCode = VM_Runtime_TRAP_STACK_OVERFLOW;
 	  haveFrame = ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP);
 
@@ -572,7 +572,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  stackLimit -= VM_Constants_STACK_SIZE_GUARD;
 	  if (stackLimit < stackStart) { 
 	    // double fault - stack overflow exception handler used too much stack space
-	    fprintf(SysErrorFile, "vm: stack overflow exception (double fault)\n");
+	    fprintf(SysErrorFile, "%s: stack overflow exception (double fault)\n", Me);
 	      
 	    // Go ahead and get all the stack space we need to generate the error dump (since we're crashing anyways)
 	    *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = 0;
@@ -597,12 +597,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  
 	  break;
 	}
-	if (lib_verbose) fprintf(SysTraceFile, "vm: unknown trap\n");
+	if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
 	trapCode = VM_Runtime_TRAP_UNKNOWN;
 	break;
 
       default:
-	if (lib_verbose) fprintf(SysTraceFile, "vm: unknown trap\n");
+	if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
 	trapCode = VM_Runtime_TRAP_UNKNOWN;
 	break;
       }
@@ -660,7 +660,7 @@ const char *bootFilename     = 0;
 
 // name of program that will load and run RVM
 // Declared in bootImageRunner.h
-char *me;
+char *Me;
 
 static int pageRoundUp(int size) {
     int pageSize = 4096;
@@ -694,13 +694,13 @@ int createJVM(int vmInSeparateThread) {
    //
    FILE *fin = fopen(bootFilename, "r");
    if (!fin) {
-       fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", me, bootFilename);
+       fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", Me, bootFilename);
        return 1;
    }
 
    // measure image size
    //
-   if (lib_verbose) fprintf(SysTraceFile, "%s: loading from \"%s\"\n", me, bootFilename);
+   if (lib_verbose) fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, bootFilename);
    fseek(fin, 0L, SEEK_END);
    unsigned actualImageSize = ftell(fin);
    unsigned roundedImageSize = pageRoundUp(actualImageSize);
@@ -716,22 +716,22 @@ int createJVM(int vmInSeparateThread) {
 		     PROT_READ | PROT_WRITE | PROT_EXEC, 
 		     MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
    if (bootRegion == (void *)-1) {
-       fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
+       fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
        return 1;
    }
 #else
    int id1 = shmget(IPC_PRIVATE, roundedImageSize, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
    if (id1 == -1) {
-       fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", me, errno);
+       fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", Me, errno);
        return 1;
    }
    bootRegion = shmat(id1, (const void *) bootImageAddress, 0);
    if (bootRegion == (void *)-1) {
-       fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", me, errno);
+       fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", Me, errno);
        return 1;
    }
    if (shmctl(id1, IPC_RMID, 0)) {  // free shmid to avoid persistence
-       fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", me, errno);
+       fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", Me, errno);
        return 1;
    }
 #endif
@@ -741,17 +741,17 @@ int createJVM(int vmInSeparateThread) {
    int cnt = fread(bootRegion, 1, actualImageSize, fin);
    
    if (actualImageSize % 4 != 0) {
-      fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n", me, actualImageSize);
+      fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n", Me, actualImageSize);
       return 1;
    }
 
    if (cnt != actualImageSize) {
-      fprintf(SysErrorFile, "%s: read of boot image failed (errno=%d)\n", me, errno);
+      fprintf(SysErrorFile, "%s: read of boot image failed (errno=%d)\n", Me, errno);
       return 1;
    }
    
    if (fclose(fin) != 0) {
-      fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", me, errno);
+      fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", Me, errno);
       return 1;
    }
   
@@ -764,27 +764,27 @@ int createJVM(int vmInSeparateThread) {
    if ((bootRecord.spRegister % 4) != 0)
       {
       // In the RISC6000 asm manual we read that sp had to be quad word aligned, but we don't align our stacks...yet.
-      fprintf(SysErrorFile, "%s: image format error: sp (0x%08x) is not word aligned\n", me, bootRecord.spRegister);
+      fprintf(SysErrorFile, "%s: image format error: sp (0x%08x) is not word aligned\n", Me, bootRecord.spRegister);
       return 1;
       }
    
    if ((bootRecord.ipRegister % 4) != 0) {
-     fprintf(SysErrorFile, "%s: image format error: ip (0x%08x) is not word aligned\n", me, bootRecord.ipRegister);
+     fprintf(SysErrorFile, "%s: image format error: ip (0x%08x) is not word aligned\n", Me, bootRecord.ipRegister);
      return 1;
    }
    
    if ((bootRecord.tocRegister % 4) != 0) {
-     fprintf(SysErrorFile, "%s: image format error: toc (0x%08x) is not word aligned\n", me, bootRecord.tocRegister);
+     fprintf(SysErrorFile, "%s: image format error: toc (0x%08x) is not word aligned\n", Me, bootRecord.tocRegister);
      return 1;
    }
    
    if (((int *)bootRecord.spRegister)[-1] != 0xdeadbabe) {
-     fprintf(SysErrorFile, "%s: image format error: missing stack sanity check marker (0x%08x)\n", me, ((int *)bootRecord.spRegister)[-1]);
+     fprintf(SysErrorFile, "%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, ((int *)bootRecord.spRegister)[-1]);
      return 1;
    }
 
    if (bootRecord.bootImageStart != (int)bootRegion) {
-     fprintf(SysErrorFile, "%s: image load error: image was compiled for address (0x%08x) but loaded at (0x%08x)\n", me, bootRecord.bootImageStart, bootRegion);
+     fprintf(SysErrorFile, "%s: image load error: image was compiled for address (0x%08x) but loaded at (0x%08x)\n", Me, bootRecord.bootImageStart, bootRegion);
      return 1;
    }
   
@@ -802,7 +802,7 @@ int createJVM(int vmInSeparateThread) {
   
    // set host o/s linkage information into boot record
    //
-   if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", me);
+   if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", Me);
    setLinkage(&bootRecord);
 
    // remember location of java exception handler
@@ -821,7 +821,7 @@ int createJVM(int vmInSeparateThread) {
    
    if (lib_verbose) {
 #ifdef RVM_FOR_32_ADDR
-      fprintf(SysTraceFile, "%s: boot record contents:\n", me);
+      fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
       fprintf(SysTraceFile, "   bootImageStart:       0x%08lx\n",   bootRecord.bootImageStart);
       fprintf(SysTraceFile, "   bootImageEnd:         0x%08lx\n",   bootRecord.bootImageEnd);
       fprintf(SysTraceFile, "   initialHeapSize:      0x%08lx\n",   bootRecord.initialHeapSize);
@@ -834,7 +834,7 @@ int createJVM(int vmInSeparateThread) {
       fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08lx\n",   bootRecord.sysWriteCharIP);
 #endif
 #ifdef RVM_FOR_64_ADDR
-      fprintf(SysTraceFile, "%s: boot record contents:\n", me);
+      fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
       fprintf(SysTraceFile, "   bootImageStart:       0x%016llx\n",   bootRecord.bootImageStart);
       fprintf(SysTraceFile, "   bootImageEnd:         0x%016llx\n",   bootRecord.bootImageEnd);
       fprintf(SysTraceFile, "   initialHeapSize:      0x%08lx\n",   bootRecord.initialHeapSize);
@@ -863,7 +863,7 @@ int createJVM(int vmInSeparateThread) {
    altstack.ss_flags = 0;
    altstack.ss_size = SIGNAL_STACKSIZE;
    if (sigaltstack(&altstack, 0) < 0) {
-     fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
      return 1;
    }
    struct sigaction action;
@@ -871,7 +871,7 @@ int createJVM(int vmInSeparateThread) {
    action.sa_flags     = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
    if (sigfillset(&(action.sa_mask)) ||
        sigdelset(&(action.sa_mask), SIGCONT)) {
-     fprintf(SysErrorFile, "%s: sigfillset or sigdelset failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
      return 1;
    }
 #endif
@@ -880,7 +880,7 @@ int createJVM(int vmInSeparateThread) {
    stackInfo.ss_sp = topOfSignalStack;
    stackInfo.ss_onstack = 0;
    if (sigstack(&stackInfo, 0)) {
-     fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
      return 1;
    }
    // install hardware trap handler
@@ -894,7 +894,7 @@ int createJVM(int vmInSeparateThread) {
    if (sigaction(SIGSEGV, &action, 0) || // catch null pointer references
        sigaction(SIGTRAP, &action, 0) || // catch array bounds violations
        sigaction(SIGILL, &action, 0)) {  // catch vm errors (so we can try to give a traceback)
-     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
      return 1;
    }
 
@@ -910,7 +910,7 @@ int createJVM(int vmInSeparateThread) {
        sigaction(SIGHUP, &action, 0)  || // catch signal to awaken external debugger
        sigaction(SIGQUIT, &action, 0) || // catch signal to awaken internal debugger
        sigaction(SIGTERM, &action, 0)) { // catch signal to dump stack and die
-     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
      return 1;
    }
 
@@ -919,7 +919,7 @@ int createJVM(int vmInSeparateThread) {
    //
    action.sa_handler = (SIGNAL_HANDLER)SIG_IGN;
    if (sigaction(SIGPIPE, &action, 0)) {
-     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
      return 1;
    }
       
@@ -967,7 +967,7 @@ int createJVM(int vmInSeparateThread) {
      bootRecord.bootCompleted = 0;
 
 #if (defined RVM_FOR_LINUX) && (!defined __linuxsmp__)
-     fprintf(stderr, "vm: Unsupported operation (no linux pthreads)\n");
+     fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
      exit(-1);
 #else
 
@@ -991,11 +991,11 @@ int createJVM(int vmInSeparateThread) {
      if (lib_verbose) 
 #ifdef RVM_FOR_32_ADDR
        fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%08lx   pr = 0x%08lx   tid = %d   fp = 0x%08lx\n", 
-	       me, jtoc, pr, tid, fp);
+	       Me, jtoc, pr, tid, fp);
 #endif
 #ifdef RVM_FOR_64_ADDR
        fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%016llx   pr = 0x%016llx   tid = %d   fp = 0x%016llx\n", 
-	       me, jtoc, pr, tid, fp);
+	       Me, jtoc, pr, tid, fp);
 #endif
      bootThread(jtoc, pr, tid, fp);
      fprintf(SysErrorFile, "Unexpected return from bootThread\n");
@@ -1016,11 +1016,11 @@ static void *bootThreadCaller(void *dummy) {
   ulong_t tid  = startupRegs[2];
   ulong_t fp   = startupRegs[3];
 
-  fprintf(SysErrorFile, "about to boot vm: \n");
+  fprintf(SysErrorFile, "about to boot vm:\n");
 
   bootThread(jtoc, pr, tid, fp); 
   
-  fprintf(SysErrorFile, "Unexpected return from vm startup thread\n");
+  fprintf(SysErrorFile, "%s: Unexpected return from vm startup thread\n", Me);
   return NULL;
 
 }

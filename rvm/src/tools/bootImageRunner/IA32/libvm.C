@@ -31,12 +31,8 @@
 #include <sys/ucontext.h>
 #endif
 #include <assert.h>
-#if (defined __linuxsmp__)
-#include <pthread.h>
-#endif
 
-// Seems unused --Steve Augart, July 2003
-// extern pthread_key_t VmProcessorKey;
+#include <pthread.h>
 
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -60,6 +56,9 @@ int SysTraceFd;
 char **JavaArgs;
 int JavaArgc;
 
+/* global; startup configuration option with default values */
+const char *bootFilename = 0;
+
 /* Emit trace information? */
 int lib_verbose = 0;
 
@@ -67,16 +66,20 @@ int lib_verbose = 0;
 static unsigned VmToc;
 
 /* TOC offset of VM_Scheduler.dumpStackAndDie */
-int DumpStackAndDieOffset;
+static int DumpStackAndDieOffset;
 
 /* TOC offset of VM_Scheduler.processors[] */
-int ProcessorsOffset;
+static int ProcessorsOffset;
 
 /* TOC offset of VM_Scheduler.debugRequested */
-int DebugRequestedOffset;
+static int DebugRequestedOffset;
 
 /* name of program that will load and run RVM */
-char *me;
+char *Me;
+
+static VM_BootRecord *bootRecord;
+
+
 
 static int 
 pageRoundUp(int size) 
@@ -130,27 +133,23 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
     }
 }
 
-VM_BootRecord *bootRecord;
-
-
 static int 
 inRVMAddressSpace(unsigned int addr) 
 {
+    /* get the boot record */
+    VM_Address *heapRanges = bootRecord->heapRanges;
+    int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
 
-   /* get the boot record */
-   VM_Address *heapRanges = bootRecord->heapRanges;
-   int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
-
-   for (int which = 0; ; which++) {
-     assert(which <= 2 * (MaxHeaps + 1));
-       VM_Address start = heapRanges[2 * which];
-       VM_Address end = heapRanges[2 * which + 1];
-       if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
-       if (start <= addr  && addr  < end)
-	 return true;
-   }
+    for (int which = 0; ; which++) {
+	assert(which <= 2 * (MaxHeaps + 1));
+	VM_Address start = heapRanges[2 * which];
+	VM_Address end = heapRanges[2 * which + 1];
+	if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
+	if (start <= addr  && addr  < end)
+	    return true;
+    }
 	
-   return false;
+    return false;
 }
 
 static int 
@@ -160,13 +159,11 @@ isVmSignal(unsigned int ip, unsigned int jtoc)
 }
 
 
-#include <pthread.h>
- 
-pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
-
 void
-hardwareTrapHandler (int signo, siginfo_t *si, void *context)
+hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
+    static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
+
     pthread_mutex_lock( &exceptionLock );
 
     unsigned int localInstructionAddress;
@@ -219,7 +216,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     if (lib_verbose || !isRecoverable)
     {
 	write (SysErrorFd, buf, 
-	       sprintf(buf, "%s: trap %d (%s)\n", me, signo, 
+	       sprintf(buf, "%s: trap %d (%s)\n", Me, signo, 
 			signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
 
 	write (SysErrorFd, buf, sprintf(buf, "handler stack 0x%x\n", &buf));
@@ -268,15 +265,11 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 	}
 
 	if (isRecoverable) {
-	    fprintf(SysTraceFile, "vm: normal trap\n");
+	    fprintf(SysTraceFile, "%s: normal trap\n", Me);
 	} else {
-	    fprintf(SysTraceFile, "vm: internal error\n");
+	    fprintf(SysTraceFile, "%s: internal error\n", Me);
 	}
     }
-
-    /* get the boot record */
-    void *bootRegion = (void *) bootImageAddress;
-    bootRecord = (VM_BootRecord *) bootRegion;
 
     /* test validity of virtual processor address */
     {
@@ -347,8 +340,8 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     if (*vmr_inuse || !isRecoverable) {
 	if (*vmr_inuse)
 	    fprintf(SysTraceFile, 
-		     "vm: internal error: recursive use of"
-		    "hardware exception registers (exiting)\n");
+		     "%s: internal error: recursive use of"
+		    " hardware exception registers (exiting)\n", Me);
 	/*
 	 * Things went badly wrong, so attempt to generate a useful error dump
 	 * before exiting by returning to VM_Scheduler.dumpStackAndDie passing
@@ -444,8 +437,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 	}
     }
 
-    else if (signo == SIGFPE)
-    {
+    else if (signo == SIGFPE) {
 	*(int *) sp = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
     }
 
@@ -457,7 +449,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 	if (*(unsigned char *)(localInstructionAddress - 1) == 0xCC) {
 	    // is INT 3 instruction
 	}
-
     }
 
     else {
@@ -498,22 +489,15 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 }
 
 
-
-// #define ANNOUNCE_TICK(message) write(SysTraceFd, message, strlen(message))
-// #define ANNOUNCE(message) write(SysTraceFd, message, strlen(message))
-   #define ANNOUNCE(message)
-   #define ANNOUNCE_TICK(message)
-
 extern "C" void 
 processTimerTick(void) 
 {
-    void *bootRegion = (void *) bootImageAddress;
-    VM_BootRecord *bootRecord = (VM_BootRecord *) bootRegion;
-
     /*
      * Turn on thread-switch flag in each virtual processor.
-     * Note that "jtoc" is not necessarily valid, because we might have interrupted
-     * C-library code, so we use boot image jtoc address (== VmToc) instead.
+     * Note that "jtoc" is not necessarily valid, because we might have
+     * interrupted C-library code, so we use boot image 
+     * jtoc address (== VmToc) instead. 
+     *
      * !!TODO: if vm moves table, it must tell us so we can update "VmToc".
      * For now, we assume table is fixed in boot image and never moves.
      */
@@ -560,7 +544,7 @@ processTimerTick(void)
 #endif
 	} else {
 	    if (val <= -500 && (val % 50) == 0) {
-		fprintf(stderr, "WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 10 * (-val));
+		fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", Me, 10 * (-val));
 		fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
 	    }
 	}
@@ -588,11 +572,12 @@ softwareSignalHandler(int signo,
 	// For now, we assume table is fixed in boot image and never moves.
 	//
 	unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
+	write(SysTraceFd, Me, strlen(Me));
 	if (*flag) {
-	    static const char *message = "vm: debug request already in progress, please wait\n";
+	    static const char *message = ": debug request already in progress, please wait\n";
 	    write(SysTraceFd, message, strlen(message));
 	} else {
-	    static const char *message = "vm: debug requested, waiting for a thread switch\n";
+	    static const char *message = ": debug requested, waiting for a thread switch\n";
 	    write(SysTraceFd, message, strlen(message));
 	    *flag = 1;
 	}
@@ -639,18 +624,13 @@ softwareSignalHandler(int signo,
     }
 
     /* Default case. */
-    fprintf(SysTraceFile, "vm: got an unexpected software signal (# %d)", signo);
+    fprintf(SysTraceFile, "%s: got an unexpected software signal (# %d)", Me, signo);
 #if defined __GLIBC__ && defined _GNU_SOURCE
     fprintf(SysTraceFile, " %s", strsignal(signo));
 #endif    
     fprintf(SysTraceFile, "; ignoring it.\n");
 }
 
-/* startup configuration option with default values */
-const char *bootFilename = 0;
-
-// /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
-// static int TimerDelay = 10;
 
 int
 createJVM(int __attribute__((unused)) vmInSeparateThread)
@@ -679,13 +659,13 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
      */
     FILE *fin = fopen (bootFilename, "r");
     if (!fin) {
-	fprintf(SysTraceFile, "%s: can't find bootimage \"%s\"\n", me, bootFilename);
+	fprintf(SysTraceFile, "%s: can't find bootimage \"%s\"\n", Me, bootFilename);
 	return 1;
     }
 
     /* measure image size */
     if (lib_verbose)
-	fprintf(SysTraceFile, "%s: loading from \"%s\"\n", me, bootFilename);
+	fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, bootFilename);
     fseek (fin, 0L, SEEK_END);
     unsigned actualImageSize = ftell(fin);
     unsigned roundedImageSize = pageRoundUp(actualImageSize);
@@ -699,25 +679,25 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
 		       MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 
     if (bootRegion == (void *) -1) {
-	fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
     /* read image into memory segment */
     int cnt = fread (bootRegion, 1, actualImageSize, fin);
     if (cnt < 0 || (unsigned) cnt != actualImageSize) {
-	fprintf(SysErrorFile, "%s: read failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: read failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
     if (actualImageSize % 4 != 0) {
 	fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n",
-		 me, actualImageSize);
+		 Me, actualImageSize);
 	return 1;
     }
 
     if (fclose (fin) != 0) {
-	fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
@@ -727,26 +707,26 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
 
     if (bootRecord->bootImageStart != (unsigned) bootRegion) {
 	fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
-		 me, bootRecord->bootImageStart, bootRegion);
+		 Me, bootRecord->bootImageStart, (unsigned) bootRegion);
 	return 1;
     }
 
     if ((bootRecord->spRegister % 4) != 0) {
 	fprintf(SysErrorFile, "%s: image format error: sp (0x%08x) is not word aligned\n",
-		 me, bootRecord->spRegister);
+		 Me, bootRecord->spRegister);
 	return 1;
     }
 
     if ((bootRecord->ipRegister % 4) != 0) {
 	fprintf(SysErrorFile, "%s: image format error: ip (0x%08x) is not word aligned\n",
-		 me, bootRecord->ipRegister);
+		 Me, bootRecord->ipRegister);
 	return 1;
     }
 
     if (((u_int32_t *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
 	fprintf(SysErrorFile,
 		 "%s: image format error: missing stack sanity check marker (0x%08x)\n",
-		 me, ((int *) bootRecord->spRegister)[-1]);
+		 Me, ((int *) bootRecord->spRegister)[-1]);
 	return 1;
     }
 
@@ -770,7 +750,7 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     /* write sys.C linkage information into boot record */
     setLinkage(bootRecord);
     if (lib_verbose) {
-	fprintf(SysTraceFile, "%s: boot record contents:\n", me);
+	fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
 	fprintf(SysTraceFile, "   bootImageStart:       0x%08x\n", 
 		bootRecord->bootImageStart);
 	fprintf(SysTraceFile, "   bootImageEnd:         0x%08x\n", 
@@ -801,7 +781,7 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
 	fprintf(SysErrorFile, "%s: sigaltstack failed (errno=%d)\n", 
-		me, errno);
+		Me, errno);
 	return 1;
     }
 
@@ -815,44 +795,44 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
      * handler is running
      */
     if (sigfillset(&(action.sa_mask))) {
-	fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", Me, errno);
 	return 1;
     }
     /*
      * exclude the signal used to wake up the daemons
      */
     if (sigdelset(&(action.sa_mask), SIGCONT)) {
-	fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
     action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
     if (sigaction (SIGSEGV, &action, 0)) {
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
     if (sigaction (SIGFPE, &action, 0)) {
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
     if (sigaction (SIGTRAP, &action, 0)) {
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
     /* install software signal handler */
     action.sa_sigaction = &softwareSignalHandler;
     if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
     if (sigaction (SIGQUIT, &action, 0)) { /* catch QUIT to invoke debugger
 					    * thread */ 
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
     if (sigaction (SIGTERM, &action, 0)) { /* catch TERM to dump and die */
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
@@ -861,9 +841,8 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     //
     memset (&action, 0, sizeof action);
     action.sa_handler = SIG_IGN;
-    if (sigaction(SIGPIPE, &action, 0))
-    {
-	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    if (sigaction(SIGPIPE, &action, 0)) {
+	fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
 	return 1;
     }
 
@@ -894,10 +873,10 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     *--sp = VM_Constants_INVISIBLE_METHOD_ID; /* STACKFRAME_METHOD_ID_OFFSET */
     *--sp = 0; /* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 
-    // fprintf(SysTraceFile, "%s: here goes...\n", me);
+    // fprintf(SysTraceFile, "%s: here goes...\n", Me);
     int rc = boot (ip, jtoc, pr, (int) sp);
 
-    fprintf(SysTraceFile, "%s: we're back! rc=%d. bye.\n", me, rc);
+    fprintf(SysTraceFile, "%s: we're back! rc=%d. bye.\n", Me, rc);
     return 1;
 }
 

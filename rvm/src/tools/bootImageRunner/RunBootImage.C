@@ -72,7 +72,7 @@ int verboseBoot;		/* Declared in bootImageRunner.h */
  * If you change this value, change it there too. */
 const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 98;
 
-int DEBUG = 0;			// have to set this from a debugger
+static int DEBUG = 0;			// have to set this from a debugger
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
@@ -83,9 +83,9 @@ static bool strnequal(const char *s1, const char *s2, size_t n);
 static void 
 usage(void) 
 {
-    fprintf(SysTraceFile,"Usage: rvm [-options] class [args...]\n");
+    fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
-    //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",me);
+    //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",Me);
     //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
     fprintf(SysTraceFile,"\nwhere options include:\n");
     fprintf(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
@@ -114,7 +114,7 @@ usage(void)
 static void 
 nonstandard_usage() 
 {
-    fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",me);
+    fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
     fprintf(SysTraceFile,"where options include\n");
     for (int i=0; i<numNonStandardUsageLines; i++) {
@@ -142,91 +142,6 @@ fullVersion()
 }
 
 
-
-// /**
-//  * Maximum number of tokens
-//  */
-// static const int maxTokens = 256;
-
-// /* This code is unused.  I am avoiding deleting it in case someone wants it 
-//    later.  --Steven Augart, July 2003 */
-
-// /**
-//  * Maximum length of token
-//  */
-// const int maxToken = 2048;
-
-// /*
-//  * function findAndRemoveQuotes
-//  * input:  token
-//  * output: boolean that is true if the string contains an open quote, otherwise
-//  *	   returns false.
-//  * A string contains an open quote if the string contains an odd number of 
-//  * double quotes.
-//  */
-// int findAndRemoveQuotes(char **tokenContainer) 
-// {
-//   char *token	   =*tokenContainer;
-//   int length       =strlen(token);
-//   int n_quotes     =0; 
-//   int n_backSlashes=0;
-//   char buffer[maxToken];
-//   int b_index=0;
-//   int i;
-//   for (i=0; i<length; i++) {
-//     if (token[i]=='"' && ((n_backSlashes%2)==0)) { 
-//       // found double quote, remove quote
-//       n_quotes++;
-//     } else {
-//       buffer[b_index++]=token[i];
-//       if (token[i]=='\\') {
-// 	// found backslash, keep running count
-// 	n_backSlashes++;
-//       } else {
-// 	n_backSlashes=0;
-//       }
-//     }
-//   }
-//   buffer[b_index++]='\0';
-//   if(n_quotes) {
-//     // found at least one quote, update tokenContainer
-//     char *buf = (char*)malloc(b_index);
-//     for(i=0;i<b_index;i++) {
-//       buf[i]=buffer[i];
-//     }
-//     *tokenContainer = buf;
-//   }
-//   return (n_quotes%2);
-// }
-
-// /* This code is unused.  I am avoiding deleting it in case someone wants it 
-//    later.  --Steven Augart, July 2003 */
-// /*
-//  * function stringAppendWithSpace
-//  *   given two strings, first and second, return a pointer to freshly
-//  *   allocated memory containing a new string that consists
-//  *   of first, followed by a space, followed by second.
-//  */
-// char *stringAppendWithSpace(char *first, char *second) 
-// {
-//   if (second == "") {
-//   }
-//   int l_first  = strlen(first);
-//   int l_second = strlen(second);
-//   int length   = l_first+l_second+2;
-//   char *result = (char*)malloc(length);
-//   int i=0;
-//   for(; i<l_first; i++) {
-//     result[i]=first[i]; 
-//   }
-//   result[i++]=' ';
-//   for (int j=0; j<l_second; j++) {
-//     result[i++]=second[j];
-//   }
-//   result[i++]='\0';
-//   return result;
-// }
-
 /*
  * Identify all command line arguments that are VM directives.
  * VM directives are positional, they must occur before the application
@@ -242,7 +157,7 @@ fullVersion()
  *        are not processed here.
  * Side Effect  global varable JavaArgc is set.
  *
- * This is a bit sneaky -- we reuse the array 'CLAs'.  We're
+ * We reuse the array 'CLAs' to contain the return values.  We're
  * guaranteed that we will not generate any new command-line arguments, but
  * only consume them. So, n_JCLAs indexes 'CLAs', and it's always the case
  * that n_JCLAs <= n_CLAs, and is always true that n_JCLAs <= i (CLA index).
@@ -298,13 +213,13 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 		++endp;
 
 	    if (vb < 0) {
-		fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", me, token);
+		fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
 		*fastExit = 1; break;
 	    } else if (errno == ERANGE || vb > INT_MAX ) {
-		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", me, token);
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
 		*fastExit = 1; break;
 	    } else if (*endp) {
-		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", me, token, subtoken);		
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
 		*fastExit = 1; break;
 	    }
 	    
@@ -344,17 +259,17 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 		    ++endp;
 
 		if (level < 0) {
-		    fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", me, token);
+		    fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
 		    *fastExit = 1; 
 		} else if (errno == ERANGE || level > INT_MAX ) {
-		    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", me, token);
+		    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
 		    *fastExit = 1;
 		} else if (*endp) {
-		    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", me, token, subtoken);		
+		    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
 		    *fastExit = 1;
 		}
 		if (*fastExit) {
-		    fprintf(SysTraceFile, "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", me);
+		    fprintf(SysTraceFile, "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
 		    break;
 		}
 	    }
@@ -368,7 +283,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	}
 	if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
 	    subtoken = token + 5;
-	    fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", me);
+	    fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", Me);
 	    fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s.\n", subtoken, subtoken);
 	    fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
 	    goto set_initial_heap_size;
@@ -381,20 +296,20 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	    char *endp;
 	    ihsMB = strtol(subtoken, &endp, 0);
 	    if (ihsMB <= 0) {
-		fprintf(SysTraceFile, "%s: You may not specify a %s initial heap size;", me, ihsMB < 0 ? "negative" : "zero");
+		fprintf(SysTraceFile, "%s: You may not specify a %s initial heap size;", Me, ihsMB < 0 ? "negative" : "zero");
 		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
 		*fastExit = 1;
 	    } else if (ihsMB > (int) (UINT_MAX / (1024U * 1024U ))
 		       || errno == ERANGE) 
 	    {
-		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", me, token);
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
 		*fastExit = 1;
 	    } else if (*endp) {
-		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", me, token, subtoken);		
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
 		*fastExit = 1;
 	    }
 	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n", me);
+		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n", Me);
 		break;
 	    }
 	    initialHeapSize = ihsMB * 1024U * 1024U;
@@ -407,20 +322,20 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	    char *endp;
 	    mhsMB = strtol(subtoken, &endp, 0);
 	    if (mhsMB <= 0) {
-		fprintf(SysTraceFile, "%s: You may not specify a %s maximum heap size;", me, mhsMB < 0 ? "negative" : "zero");
+		fprintf(SysTraceFile, "%s: You may not specify a %s maximum heap size;", Me, mhsMB < 0 ? "negative" : "zero");
 		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
 		*fastExit = 1;
 	    } else if (mhsMB > (int) (UINT_MAX / (1024U * 1024U ))
 		       || errno == ERANGE) 
 	    {
-		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", me, token);
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
 		*fastExit = 1;
 	    } else if (*endp) {
-		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", me, token, subtoken);		
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
 		*fastExit = 1;
 	    }
 	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n", me);
+		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n", Me);
 		break;
 	    }
 	    maximumHeapSize = mhsMB * 1024U * 1024U;
@@ -431,10 +346,10 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	    subtoken = token + 14;
 	    FILE* ftmp = fopen(subtoken, "a");
 	    if (!ftmp) {
-		fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", me, subtoken, strerror(errno));
+		fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
 		continue;
 	    }
-	    fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",me, subtoken);
+	    fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
 	    SysTraceFile = ftmp;
 	    SysTraceFd = fileno(ftmp);
 	    continue;
@@ -449,7 +364,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	 * TO DO: provide support
 	 */
 	if (strequal(token, "-jar")) {
-	    fprintf(SysTraceFile, "%s: -jar is not supported\n", me);
+	    fprintf(SysTraceFile, "%s: -jar is not supported\n", Me);
 	    continue;
 	}
 
@@ -489,7 +404,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	CLAs[n_JCLAs++]=token;
 	++startApplicationOptions; // found one that we do not recognize;
 				   // start to copy them all blindly
-    } // for()
+    } // for ()
 
     /* and set the count */
     JavaArgc = n_JCLAs;
@@ -510,7 +425,7 @@ main(int argc, char **argv)
     SysTraceFile = stderr;
     SysTraceFd   = 2;
   
-    me            = basename(*argv++);
+    Me            = basename(*argv++);
     --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
@@ -554,11 +469,11 @@ main(int argc, char **argv)
 
     if (maximumHeapSize < initialHeapSize) {
 	fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
-		me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
+		Me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
 	return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-    if(DEBUG){
+    if (DEBUG){
 	printf("\nRunBootImage.main(): VM variable settings\n");
 	printf("initialHeapSize %d\nmaxHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
 	       initialHeapSize, maximumHeapSize, bootFilename, lib_verbose);
@@ -571,7 +486,7 @@ main(int argc, char **argv)
     }
 
     if (!bootFilename) {
-	fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", me);
+	fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", Me);
 	return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
@@ -579,7 +494,7 @@ main(int argc, char **argv)
   
     // not reached
     //
-    fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", me);
+    fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", Me);
     exit(-1);
 }
 
