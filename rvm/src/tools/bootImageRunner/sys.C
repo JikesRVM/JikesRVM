@@ -2086,7 +2086,7 @@ sysFree(void *location)
 extern "C" void
 sysZero(void *dst, int cnt)
 {
-    bzero(dst, cnt);
+    memset(dst, 0x00, cnt);
 }
 
 // Zero a range of memory pages.
@@ -2109,7 +2109,7 @@ sysZeroPages(void *dst, int cnt)
     // Disadvantage: more page faults during collection, at least until
     //               steady state working set is achieved
     //
-    bzero(dst, cnt);
+    sysZero(dst, cnt);
 #endif
 
 #if (STRATEGY == 2)
