@@ -546,7 +546,7 @@ extern "C" void processTimerTick() {
       pthread_kill(thread, SIGCONT);
 #endif
     } else {
-      if (val <= -25) {
+      if (val <= -500) {
 	fprintf(stderr, "WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 10 * (-val));
 	fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
       }
