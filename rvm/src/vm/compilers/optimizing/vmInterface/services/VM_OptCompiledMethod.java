@@ -44,7 +44,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Find "catch" block for a machine instruction of this method.
    */ 
   public final int findCatchBlockForInstruction(int instructionOffset, 
-					 VM_Type exceptionType) throws VM_PragmaInterruptible {
+						VM_Type exceptionType) throws VM_PragmaInterruptible {
     if (eTable == null) {
       return -1;
     } else {
@@ -410,7 +410,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Print the eTable
    */
-  public final void printExceptionTable() {
+  public final void printExceptionTable() throws VM_PragmaInterruptible {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
