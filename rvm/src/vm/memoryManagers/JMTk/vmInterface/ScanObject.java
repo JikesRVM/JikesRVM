@@ -113,9 +113,8 @@ public class ScanObject implements VM_Constants, Constants {
     if (ref.isZero()) return true;   // null is always valid
 
     // First check passed ref, before looking into it for refs
-    if ( !Util.validRef(ref) ) {
+    if ( !Util.validRef (ref) ) {
       VM.sysWrite("ScanObject.validateRefs: Bad Ref = ");
-      Util.dumpRef( ref );
       VM_Memory.dumpMemory(ref, 32, 32 );  // dump 16 words on either side of bad ref
       return false;
     }
@@ -128,8 +127,7 @@ public class ScanObject implements VM_Constants, Constants {
       for (int i = 0, n=referenceOffsets.length; i < n; i++) {
         VM_Address iref = VM_Magic.getMemoryAddress(ref.add(referenceOffsets[i]));
         if ( ! validateRefs( iref, depth-1 ) ) {
-          VM.sysWrite("Referenced from Object: Ref = ");
-          Util.dumpRef( ref );
+          VM.sysWrite("Referenced from Object: Ref = ", ref);
           VM.sysWrite("                  At Offset = ");
           VM.sysWrite(referenceOffsets[i],false);
           VM.sysWrite("\n");
@@ -146,8 +144,7 @@ public class ScanObject implements VM_Constants, Constants {
         for ( location = 0; location < end; location += 4 ) {
           VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
           if ( ! validateRefs( iref, depth-1 ) ) {
-            VM.sysWrite("Referenced from Array: Ref = ");
-            Util.dumpRef( ref );
+            VM.sysWrite("Referenced from Array: Ref = ", ref);
             VM.sysWrite("                  At Index = ");
             VM.sysWrite((location>>2),false);
             VM.sysWrite("              Array Length = ");

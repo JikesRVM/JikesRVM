@@ -103,14 +103,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
 	
 	if (VM.VerifyAssertions) {
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
-	  VM._assert(t.jniEnv == null || plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
-	  VM._assert(t.jniEnv == null || t.jniEnv.JNIRefs == null || plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.JNIRefs)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
+	  VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
+	  VM._assert(t.jniEnv == null || t.jniEnv.JNIRefs == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.JNIRefs)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
 	}
 
 	// all threads in "unusual" states, such as running threads in
