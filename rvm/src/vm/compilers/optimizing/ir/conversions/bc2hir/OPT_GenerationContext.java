@@ -306,8 +306,16 @@ public final class OPT_GenerationContext
     child.semanticExpansionComplete = parent.semanticExpansionComplete;
 
     // Now inherit state based on callSite
-    child.inlineSequence = new OPT_InlineSequence
-      (child.method, callSite.position, callSite.bcIndex);
+    //-#if RVM_WITH_OSR
+    child.inlineSequence = new OPT_InlineSequence(child.method,
+						  callSite.position,
+						  callSite);
+    //-#else
+    child.inlineSequence = new OPT_InlineSequence(child.method, 
+						  callSite.position, 
+						  callSite.bcIndex);
+    //-#endif
+
     child.enclosingHandlers = ebag;
     child.arguments = new OPT_Operand[Call.getNumberOfParams(callSite)];
     for (int i=0; i< child.arguments.length; i++) {
@@ -642,6 +650,13 @@ public final class OPT_GenerationContext
     // When working with the class writer do not expand static
     // synchronization headers as there is no easy way to get at
     // class object
+//-#if RVM_WITH_OSR	
+    // if this is a specialized method, no monitor enter at the beginging
+	// since it's the second time reenter
+	if (method.isForSpecialization()) {
+	  // do nothing
+	} else
+//-#endif
     if (method.isSynchronized() && !options.MONITOR_NOP
     				&& !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject(PROLOGUE_BCI, prologue);

@@ -59,6 +59,13 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile {
     VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
   }
 
+  //-#if RVM_WITH_OSR
+  public static void OPT_threadSwitchFromOsrOpt() 
+    throws VM_PragmaUninterruptible {
+    VM_Thread.threadSwitch(VM_Thread.OSROPT);
+  }
+  //-#endif 
+
   /**
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.

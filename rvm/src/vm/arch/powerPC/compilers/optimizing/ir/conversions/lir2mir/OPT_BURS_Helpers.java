@@ -1678,4 +1678,58 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Move.create(PPC_MTSPR, R(CTR), tmp.copyD2U()));
     EMIT(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));
   }
+
+  /* special case handling OSR instructions */
+  void OSR(OPT_BURS burs, OPT_Instruction s) {
+//-#if RVM_WITH_OSR
+    if (VM.VerifyAssertions) VM._assert(OsrPoint.conforms(s));
+
+    // 1. how many params
+    int numparam = OsrPoint.getNumberOfElements(s);
+    int numlong = 0;
+    for (int i = 0; i < numparam; i++) {
+      if (OsrPoint.getElement(s, i).getType() == VM_Type.LongType) {
+        numlong++;
+      }
+    }
+
+    // 2. collect params
+    OPT_Operand[] params = new OPT_Operand[numparam];
+    for (int i = 0; i <numparam; i++) {
+      params[i] = OsrPoint.getClearElement(s, i);
+    }
+
+    OPT_InlinedOsrTypeInfoOperand typeInfo = 
+      OsrPoint.getClearInlinedTypeInfo(s);
+
+    if (VM.VerifyAssertions) VM._assert(typeInfo != null);
+
+    // 3: only makes second half register of long being used
+    //    creates room for long types.
+    burs.append(OsrPoint.mutate(s, YIELDPOINT_OSR, 
+				typeInfo,
+				numparam + numlong));
+
+    // set the number of valid params in osr type info, used
+    // in LinearScan
+    typeInfo.validOps = numparam;
+
+    int pidx = numparam;
+    for (int i = 0; i < numparam; i++) {
+      OPT_Operand param = params[i];
+      OsrPoint.setElement(s, i, param);
+      if (param instanceof OPT_RegisterOperand) {
+        OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
+	// the second half is appended at the end
+	// OPT_LinearScan will update the map.
+        if (rparam.type == VM_Type.LongType) {
+          OsrPoint.setElement(s, pidx++, 
+			    L(burs.ir.regpool.getSecondReg(rparam.register)));
+        }
+      }
+    }
+
+    if (VM.VerifyAssertions) VM._assert(pidx == (numparam+numlong));
+//-#endif
+  }
 }

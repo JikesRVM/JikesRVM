@@ -842,6 +842,17 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   }
 
 
+  //-#if RVM_WITH_OSR
+  public final boolean hasNonReturningOsr() {
+    if (isEmpty()) return false;
+    OPT_Instruction s = lastRealInstruction();
+    if (OsrPoint.conforms(s)) 
+      return true;
+    else 
+      return false;
+  }
+  //-#endif
+
   /**
    * If there is a fallthrough FCFG successor of this node 
    * return it.
@@ -856,6 +867,11 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     if (hasAthrowInst()) return null;
     if (hasTrap()) return null;
     if (hasNonReturningCall()) return null;
+    
+    //-#if RVM_WITH_OSR
+    if (hasNonReturningOsr()) return null;
+    //-#endif
+
     return nextBasicBlockInCodeOrder();
   }
 
@@ -1189,12 +1205,16 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     // Check special cases that require edge to exit
     if (hasReturn()) {
       insertOut(ir.cfg.exit());
-    }
-    else if (hasAthrowInst() ||
+    } else if (hasAthrowInst() ||
 	     hasNonReturningCall()) {
       if (mayThrowUncaughtException())
 	insertOut(ir.cfg.exit());
     }
+    //-#if RVM_WITH_OSR
+    else if (hasNonReturningOsr()) {
+      insertOut(ir.cfg.exit());
+    }
+    //-#endif
   }
 	
   /**

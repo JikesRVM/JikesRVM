@@ -236,6 +236,13 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod);
 	break;
 
+      //-#if RVM_WITH_OSR
+      case YIELDPOINT_OSR_opcode:
+	// must yield, does not check threadSwitch request
+	expandUnconditionalYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromOsrOptMethod);
+	break;
+      //-#endif
+
       case IR_ENDPROLOGUE_opcode:
 	// Remember where the end of prologue is for debugger
 	p.remove();
@@ -380,4 +387,44 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 						      yieldpoint.makeJumpTarget(),
 						      OPT_BranchProfileOperand.never()));
   }
+
+  //-#if RVM_WITH_OSR
+  /* generate yieldpoint without checking threadSwith request
+   */
+  private static void expandUnconditionalYieldpoint(OPT_Instruction s,
+						    OPT_IR ir,
+						    VM_Method meth) {
+    if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
+
+    // split the basic block after the yieldpoint, create a new
+    // block at the end of the IR to hold the yieldpoint,
+    // remove the yieldpoint (to prepare to out it in the new block at the end)
+    OPT_BasicBlock thisBlock = s.getBasicBlock();
+    OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
+    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    thisBlock.insertOut(yieldpoint);
+    yieldpoint.insertOut(nextBlock);
+    ir.cfg.addLastInCodeOrder(yieldpoint);
+    s.remove();
+    
+    // change thread switch instruction into call to thread switch routine
+    // NOTE: must make s the call instruction: it is the GC point!
+    //       must also inform the GCMap that s has been moved!!!
+    int offset = meth.getOffset();
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+    OPT_Operand guard = TG();
+    OPT_Operand target = 
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);
+    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
+		     OPT_MethodOperand.STATIC(meth));
+    yieldpoint.appendInstruction(s);
+    ir.MIRInfo.gcIRMap.moveToEnd(s);
+
+    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
+						   nextBlock.makeJumpTarget())); 
+    
+    // make a jump to yield block
+    thisBlock.appendInstruction(MIR_Branch.create(IA32_JMP, yieldpoint.makeJumpTarget()));
+  }
+  //-#endif
 }

@@ -26,7 +26,7 @@ import java.util.ListIterator;
  *
  * @author Michael Hind
  */
-final class VM_ControllerPlan {
+public final class VM_ControllerPlan {
 
   // The plan was created, but the setStatus method was never called
   static final byte UNINITIALIZED = 0;
@@ -47,6 +47,9 @@ final class VM_ControllerPlan {
   // completed, so this is not the most recent completed plan
   static final byte OUTDATED = 5;
 
+  // The compilation plan is for a promotion from BASE to OPT
+  static final byte OSR_BASE_2_OPT = 6;
+  
   // This is used by clients to initialize local variables for Java semantics
   static final byte UNKNOWN = 99;   
   
@@ -244,6 +247,7 @@ final class VM_ControllerPlan {
     case ABORTED_QUEUE_FULL:        return "ABORTED_QUEUE_FULL";
     case IN_PROGRESS:               return "IN_PROGRESS";
     case OUTDATED:                  return "OUTDATED";
+	case OSR_BASE_2_OPT:			return "OSR_BASE_2_OPT";
     case UNKNOWN:                   return "UNKNOWN (not error)";
     default:                        return "**** ERROR, UNKNOWN STATUS ****";
     }

@@ -17,6 +17,10 @@ import com.ibm.JikesRVM.*;
  */
 abstract class VM_Organizer extends VM_Thread {
 
+  public String toString() {
+    return "VM_Organizer";
+  }
+
   /**
    * The listener associated with this organizer.
    * May be null if the organizer has no associated listener.

@@ -29,6 +29,10 @@ class JNIServiceThread extends VM_Thread   {
     VM_Address yy  = VM_Magic.objectAsAddress(this);
     VM_Thread  j   = (VM_Thread)VM_Magic.addressAsObject(yy);
     j.makeDaemon(true);
+
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }
 
   public String toString() // overrides VM_Thread

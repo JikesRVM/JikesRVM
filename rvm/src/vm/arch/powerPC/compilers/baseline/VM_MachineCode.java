@@ -18,12 +18,12 @@ import java.util.Vector;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-final class VM_MachineCode {
+public final class VM_MachineCode {
 
   /**
    * Get the instructions comprising this block of machine code.
    */ 
-  INSTRUCTION[] getInstructions() {
+  public INSTRUCTION[] getInstructions() {
     if (VM.VerifyAssertions) VM._assert(instructions != null); // must call "finish" first
     return instructions;
   }

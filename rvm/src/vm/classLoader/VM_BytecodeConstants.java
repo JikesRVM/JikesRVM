@@ -217,6 +217,9 @@ public interface VM_BytecodeConstants  {
   public static final int JBC_goto_w = 200;
   public static final int JBC_jsr_w = 201;
 
+  public static final int JBC_impdep1 = 254;
+  public static final int JBC_impdep2 = 255;
+
    // Length of each instruction introduced by the above bytecodes.
    // -1 indicates a variable length instruction.
    // -2 indicates an unused instruction.
@@ -425,6 +428,62 @@ public interface VM_BytecodeConstants  {
     3, // ifnonnull
     5, // goto_w
     5, // jsr_w
+      //-#if RVM_WITH_OSR
+      -2, // 202
+      -2, // 203
+      -2, // 204
+      -2, // 205
+      -2, // 206
+      -2, // 207
+      -2, // 208
+      -2, // 209
+      -2, // 210
+      -2, // 211
+      -2, // 212
+      -2, // 213
+      -2, // 214
+      -2, // 215
+      -2, // 216
+      -2, // 217
+      -2, // 218
+      -2, // 219
+      -2, // 220
+      -2, // 221
+      -2, // 222
+      -2, // 223
+      -2, // 224
+      -2, // 225
+      -2, // 226
+      -2, // 227
+      -2, // 228
+      -2, // 229
+      -2, // 230
+      -2, // 231
+      -2, // 232
+      -2, // 233
+      -2, // 234
+      -2, // 235
+      -2, // 236
+      -2, // 237
+      -2, // 238
+      -2, // 239
+      -2, // 240
+      -2, // 241
+      -2, // 242
+      -2, // 243
+      -2, // 244
+      -2, // 245
+      -2, // 246
+      -2, // 247
+      -2, // 248
+      -2, // 249
+      -2, // 250
+      -2, // 251
+      -2, // 252
+      -2, // 253
+      -1, // impdep1  254
+      -2, // 255
+      //-#endif RVM_WITH_OSR
   };
 
   /**

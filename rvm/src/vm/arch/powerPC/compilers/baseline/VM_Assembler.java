@@ -26,18 +26,18 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @modified Dave Grove
  */
-final class VM_Assembler implements VM_BaselineConstants,
+public final class VM_Assembler implements VM_BaselineConstants,
 				    VM_AssemblerConstants {
 
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
   private boolean shouldPrint;
 
-  VM_Assembler (int length) {
+  public VM_Assembler (int length) {
     this(length, false);
   }
 
-  VM_Assembler (int length, boolean sp) {
+  public VM_Assembler (int length, boolean sp) {
     mc = new VM_MachineCode();
     mIP = 0;
     shouldPrint = sp;
@@ -126,6 +126,45 @@ final class VM_Assembler implements VM_BaselineConstants,
       throw new InternalError("Long offset doesn't fit in short branch\n");
     }
   }
+
+  //-#if RVM_WITH_OSR
+  private int toBePatchedMCAddr;
+  private int targetBCpc = -1;
+ 
+  final void registerLoadAddrConst(int target) {
+    toBePatchedMCAddr = mIP;
+    targetBCpc = target;
+  }
+ 
+  /* the prologue is always before any real bytecode index.
+   *
+   * CAUTION: the machine code to be patched has following pattern:
+   *          BL 4
+   *          MFLR T1                   <- address in LR
+   *          CAL  T1, offset, T1       <- toBePatchedMCAddr
+   *          STU
+   *
+   * The third instruction should be patched with accurate relative address.
+   * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
+   * */
+  final void patchLoadAddrConst(int bIP){
+    if (bIP != targetBCpc) return;
+ 
+    int offset = (mIP - toBePatchedMCAddr + 1)*4;
+    INSTRUCTION mi = CAL(T1, offset, T1);
+    mc.putInstruction(toBePatchedMCAddr, mi);
+    targetBCpc = -1;
+  }
+ 
+  final INSTRUCTION CAL(int RT, int D, int RA) {
+	return CALtemplate | RT << 21 | RA << 16 | (D&0xFFFF);
+  }
+
+  public final VM_ForwardReference generatePendingJMP(int bTarget) {
+    return this.emitForwardB();
+  }
+
+  //-#endif RVM_WITH_OSR
 
   final void patchSwitchCase(int sourceMachinecodeIndex) {
     int delta = (mIP - sourceMachinecodeIndex) << 2;
@@ -330,7 +369,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
 
-  final void emitBCTR () {
+  public final void emitBCTR () {
     INSTRUCTION mi = BCTRtemplate;
     mIP++;
     mc.addInstruction(mi);
@@ -581,7 +620,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Ltemplate = 32<<26;
 
-  final void emitL (int RT, int D, int RA) {
+  public final void emitL (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = Ltemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -625,7 +664,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFDtemplate = 50<<26;
 
-  final void emitLFD (int FRT, int D, int RA) {
+  public final void emitLFD (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LFDtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -741,7 +780,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
-  final void emitMTLR (int RS) {
+  public final void emitMTLR (int RS) {
     INSTRUCTION mi = MTLRtemplate | RS<<21;
     mIP++;
     mc.addInstruction(mi);
@@ -758,7 +797,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
 
-  final void emitMTCTR (int RS) {
+  public final void emitMTCTR (int RS) {
     INSTRUCTION mi = MTCTRtemplate | RS<<21;
     mIP++;
     mc.addInstruction(mi);
@@ -1120,7 +1159,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
     
 
-  final void emitLtoc (int RT, int offset) {
+  public final void emitLtoc (int RT, int offset) {
     emitLoffset(RT, JTOC, offset);
   }
 
@@ -1215,7 +1254,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     return makeMachineCode();
   }
 
-  VM_MachineCode makeMachineCode () {
+  public VM_MachineCode makeMachineCode () {
     mc.finish();
     if (shouldPrint) {
       VM.sysWriteln();

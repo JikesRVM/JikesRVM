@@ -66,6 +66,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       case YIELDPOINT_BACKEDGE_opcode:
 	nextInstr = yield_point(s,ir);
 	break;
+      //-#if RVM_WITH_OSR
+      case YIELDPOINT_OSR_opcode:
+	nextInstr = unconditional_yield_point(s, ir);
+	break;
+      //-#endif
       default:
 	nextInstr = s.nextInstructionInCodeOrder();
 	break;
@@ -781,5 +786,61 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 			  OPT_BranchProfileOperand.unlikely());
     return nextInstr;
   }
+
+
+  //-#if RVM_WITH_OSR
+  /* generate thread switch point without check threadSwitch request
+   */
+  private static OPT_Instruction unconditional_yield_point(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    if (ir.options.FIXED_JTOC) return nextInstr; // defer expansion until later
+
+    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+    
+    // get the correct method to be called for a thread switch
+    VM_Method meth = null;
+    
+    if (VM.VerifyAssertions) {
+      VM._assert(s.getOpcode() == YIELDPOINT_OSR_opcode);
+    }
+
+    meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+
+    // split the basic block after the yieldpoint
+    OPT_BasicBlock thisBlock = s.getBasicBlock();
+    OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
+    
+    // create a basic block at the end of the IR to hold the yieldpoint   
+    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    thisBlock.insertOut(yieldpoint);
+    yieldpoint.insertOut(nextBlock);
+    ir.cfg.addLastInCodeOrder(yieldpoint);
+    
+    int offset = meth.getOffset();
+    OPT_Operand jtoc = 
+      OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
+			   VM_Entrypoints.jtocField.getOffset(), 
+			   (byte)4, null, TG());
+    OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
+    yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
+    OPT_Operand target =
+      OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
+			   new OPT_LocationOperand(offset), TG());
+    
+    // call thread switch
+    OPT_Instruction call = 
+      MIR_Call.create0(CALL_SAVE_VOLATILE, null, null, target, 
+		       OPT_MethodOperand.STATIC(meth));
+    call.markAsNonPEI();
+    call.copyPosition(s);
+    yieldpoint.appendInstruction(call);
+    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
+						   nextBlock.makeJumpTarget())); 
+    
+    // unconditionally jump to yield point block
+    MIR_Branch.mutate(s, IA32_JMP, yieldpoint.makeJumpTarget());
+    return nextInstr;
+  }
+  //-#endif
 }
 

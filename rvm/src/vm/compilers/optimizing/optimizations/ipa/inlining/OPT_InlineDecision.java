@@ -126,6 +126,15 @@ public final class OPT_InlineDecision {
   }
 
   /**
+   * Should the test-failed block be replaced with an OSR point?
+   */
+  //-#if RVM_WITH_OSR
+  private boolean testFailedOSR = false;
+  public void setOSRTestFailed() { testFailedOSR = true; }
+  public boolean OSRTestFailed() { return testFailedOSR; }
+  //-#endif
+  
+  /**
    * Symbolic constant coding internal state.
    */
   private static final short DECIDE_NO = 0;

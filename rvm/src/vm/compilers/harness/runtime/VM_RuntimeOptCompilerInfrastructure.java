@@ -41,8 +41,8 @@ public class VM_RuntimeOptCompilerInfrastructure
   protected static boolean preloadChecked = false;
 
   // Cache objects needed to cons up compilation plans
-  protected static OPT_Options options;
-  protected static OPT_OptimizationPlanElement[] optimizationPlan;
+  public static OPT_Options options;
+  public static OPT_OptimizationPlanElement[] optimizationPlan;
 
   /**
    * Perform intitialization for OPT compiler
@@ -200,6 +200,46 @@ public class VM_RuntimeOptCompilerInfrastructure
   }
 
 
+  //-#if RVM_WITH_OSR
+  /* recompile the specialized method with OPT_Compiler. */ 
+  public static VM_CompiledMethod
+    recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
+
+    if (VM.VerifyAssertions) { VM._assert(plan.method.isForSpecialization());}
+
+    if (compilationInProgress) {
+      return null;
+    }
+
+    try {
+      compilationInProgress = true;
+
+      // the compiler will check if isForSpecialization of the method
+      VM_CompiledMethod cm = optCompile(plan.method, plan);
+
+      // we donot replace the compiledMethod of original method, 
+      // because it is temporary method
+      return cm;
+
+    } catch (OPT_OptimizingCompilerException e) {
+		e.printStackTrace();
+      String msg = "Optimizing compiler " 
+	+"(via recompileWithOptOnStackSpecialization): "
+	+"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+
+      if (e.isFatal && plan.options.ERRORS_FATAL) {
+	VM.sysFail(msg);
+      } else {
+	VM.sysWrite(msg);
+      }
+      return null;	
+    } finally {
+      compilationInProgress = false;
+    }
+  }
+  //-#endif 
+
+
   /**
    * This method tries to compile the passed method with the OPT_Compiler.
    * It will install the new compiled method in the VM, if sucessful.
@@ -251,7 +291,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * optimization plans
    * @param method the method to recompile
    */
-  static int recompileWithOpt(VM_Method method) {
+  public static int recompileWithOpt(VM_Method method) {
     OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
 						       optimizationPlan, 
 						       null, 

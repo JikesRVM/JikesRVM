@@ -23,7 +23,7 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
    * bytecode offset at which each instruction sequence begins
    * 0-indexed from start of method's bytecodes[]     
    */
-  public final int[] startPCs;    
+  public int[] startPCs;    
 
   /** 
    * line number at which each instruction sequence begins
@@ -57,5 +57,4 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
     }
     return lineNumbers[--idx];
   }
-
 }

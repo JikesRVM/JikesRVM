@@ -11,6 +11,9 @@ package com.ibm.JikesRVM;
  * @date 09 Nov 1999 
  */
 class CpuMonitor extends VM_Thread {
+  public String toString() {
+    return "CpuMonitor";
+  }
   // Invoked by VM_Debugger.
   //
   static void main() {

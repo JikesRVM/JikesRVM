@@ -26,6 +26,10 @@ import java.util.Enumeration;
  */
 class VM_ControllerThread extends VM_Thread {
 
+  public String toString() {
+    return "VM_ControllerThread";
+  }
+
   /**
    * constructor
    * @param sentinel: an object to signal when up and running

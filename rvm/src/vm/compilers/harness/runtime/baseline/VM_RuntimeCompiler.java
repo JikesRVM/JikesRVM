@@ -28,7 +28,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
     return method.isNative() ? jniCompile(method) : baselineCompile(method);
   }
   
-  static void detailedCompilationReport(boolean explain) {
+  public static void detailedCompilationReport(boolean explain) {
   }
   
   public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {

@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.classloader.*;
  *
  * @author Bowen Alpern
  */
-final public class VM_BaselineCompiledMethod extends VM_CompiledMethod 
+public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
   implements VM_BaselineConstants {
 
   // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
@@ -30,7 +30,7 @@ final public class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Stack-slot reference maps for the compiled method.
    */
-  VM_ReferenceMaps referenceMaps;
+  public VM_ReferenceMaps referenceMaps;
 
   // the bytecode map; currently needed to support dynamic bridge magic; 
   private int[] _bytecodeMap;
@@ -54,10 +54,32 @@ final public class VM_BaselineCompiledMethod extends VM_CompiledMethod
   private int[] localStartInstructionOffsets;           // range of instructions for which...
   private int[] localEndInstructionOffsets;             // ...i-th table entry is in scope (inclusive)
 
+  //-#if RVM_WITH_OSR
+  /* To make a compiled method's local/stack offset independ of
+   * original method, we move 'getFirstLocalOffset' and 'getEmptyStackOffset'
+   * here.
+   */
+  private int firstLocalOffset;
+  private int emptyStackOffset;
+ 
+  public int getFirstLocalOffset() {
+    return firstLocalOffset;
+  }
+ 
+  public int getEmptyStackOffset() {
+    return emptyStackOffset;
+  }
 
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
+    this.firstLocalOffset = VM_Compiler.getFirstLocalOffset(method);
+    this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(method);
   }
+  //-#else
+  VM_BaselineCompiledMethod(int id, VM_Method m) {
+    super(id, m);
+  }
+  //-#endif
 
   public final int getCompilerType () throws VM_PragmaUninterruptible {
     return BASELINE;

@@ -107,6 +107,11 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       ir.compiledMethod.createFinalExceptionTable(ir);
       // 3b: Create the primary machine code map
       ir.compiledMethod.createFinalMCMap(ir, codeLength);
+
+      //-#if RVM_WITH_OSR
+      ir.compiledMethod.createFinalOSRMap(ir);
+      //-#endif
+
       // 3c: Create code patching maps
       if (ir.options.guardWithCodePatch()) {
 	ir.compiledMethod.createCodePatchMaps(ir);

@@ -69,4 +69,7 @@ public interface VM_ClassLoaderConstants {
   static final byte FloatTypeCode   = (byte)'F';
   static final byte DoubleTypeCode  = (byte)'D';
   static final byte CharTypeCode    = (byte)'C';
+  //-#if RVM_WITH_OSR
+  static final byte AddressTypeCode = (byte)'A';
+  //-#endif
 }

@@ -300,3 +300,13 @@ Enable debugging support for ABCD (Array Bound Check elimination on Demand)
 PRINT_MC_SIZE -1 false
 Report generated machine code size
 
+###########
+# OnStackReplacement options, use this when guarded_inlining 
+# is enabled
+###########
+OSR_GUARDED_INLINING 1 true 
+Insert OSR point at off branch of guarded inlining?
+
+OSR_INLINE_POLICY 1 true
+Use OSR knowledge to drive more aggressive inlining?
+

@@ -50,12 +50,20 @@ class VM_NativeIdleThread extends VM_IdleThread {
     super ( processorAffinity );
     super.isNativeIdleThread = true;
     forAttachJVM = false;
+    
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }        
 
   VM_NativeIdleThread (VM_Processor processorAffinity, boolean asAttached) {
     super ( processorAffinity );
     super.isNativeIdleThread = true;
     forAttachJVM = asAttached;
+
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }        
 
   public String toString() { // overrides VM_IdleThread

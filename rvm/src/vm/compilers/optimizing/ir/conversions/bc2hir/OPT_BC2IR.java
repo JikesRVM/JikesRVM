@@ -9,6 +9,11 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+import com.ibm.JikesRVM.adaptive.*;
+import java.util.*;
+//-#endif
 
 /**
  * This class translates from bytecode to HIR.
@@ -50,7 +55,12 @@ import java.util.NoSuchElementException;
 public final class OPT_BC2IR implements OPT_IRGenOptions, 
 				 OPT_Operators, 
 				 VM_BytecodeConstants, 
-				 OPT_Constants {
+					VM_ClassLoaderConstants,
+					OPT_Constants 
+//-#if RVM_WITH_OSR
+                   , OSR_Constants
+//-#endif
+{
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -102,6 +112,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Bytecode index of current instruction.
    */
   private int instrIndex;
+
+  //-#if RVM_WITH_OSR
+  private boolean osrGuardedInline = false;
+
+  /* adjustment of bcIndex of instructions because of
+   * specialized bytecode.
+   */
+  private int bciAdjustment;
+  //-#endif
 
   /**
    * Last instruction generated (for ELIM_COPY_LOCALS)
@@ -191,6 +210,21 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     bcodes = context.method.getBytecodes();
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
+
+    //-#if RVM_WITH_OSR
+    if (context.method.isForSpecialization()) {
+      this.bciAdjustment = context.method.getOsrPrologueLength();
+    } else {
+      this.bciAdjustment = 0;
+    }
+
+    this.osrGuardedInline = VM.runningVM &&
+      context.options.OSR_GUARDED_INLINING &&
+      !context.method.isForSpecialization() &&
+	  OPT_Compiler.getAppStarted() &&
+	  (VM_Controller.options != null) &&
+	  VM_Controller.options.adaptive();
+    //-#endif
   }
 
   private void finish(OPT_GenerationContext context) {
@@ -263,6 +297,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code));
       }
       OPT_Instruction s = null;
+
+      //-#if RVM_WITH_OSR
+      lastOsrBarrier = null;
+      //-#endif
+
       switch (code) {
       case JBC_nop:
 	break;
@@ -1245,7 +1284,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  bcodes.skipTableSwitchOffsets(number);
 	  
 	  // Set branch probabilities
+//-#if RVM_WITH_OSR
+  	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
+//-#else
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+//-#endif
 	  if (sp == null) {
 	    float approxProb = 1.0f/(float)(number+1); // number targets + default
 	    TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1294,7 +1337,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  bcodes.skipLookupSwitchPairs(numpairs);
 
 	  // Set branch probabilities
+//-#if RVM_WITH_OSR
+	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
+//-#else
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+//-#endif
 	  if (sp == null) {
 	    float approxProb = 1.0f/(float)(numpairs+1); // num targets + default
 	    LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1538,6 +1585,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, bcodes.declaringClass());
 	  if (!unresolved) meth = meth.resolve();
 	  OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(meth, unresolved);
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline)  {
+	    lastOsrBarrier = _createOsrBarrier();
+          }
+	  //-#endif
+
 	  s = _callHelper(methOp);
 
 	  // Handle possibility of dynamic linking. Must be done before null_check!
@@ -1603,6 +1660,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // See comments in VM_OptLinker and VM_TableBasedDynamicLinker
 	  boolean unresolved = !meth.getDeclaringClass().isResolved() || (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
 	  if (!unresolved) meth = meth.resolve();
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
 	  s = _callHelper(OPT_MethodOperand.SPECIAL(meth, unresolved));
 
 	  // Handle possibility of dynamic linking. Must be done before null_check!
@@ -1644,6 +1710,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // A non-magical invokestatic.  Create call instruction.
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, bcodes.declaringClass());
 	  if (!unresolved) meth = meth.resolve();
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
 	  s = _callHelper(OPT_MethodOperand.STATIC(meth, unresolved));
 	  
 	  // Handle possibility of dynamic linking.
@@ -1671,6 +1746,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_Method meth = bcodes.getMethodReference();
 	  bcodes.alignInvokeInterface();
 	  OPT_MethodOperand methOp = OPT_MethodOperand.INTERFACE(meth, false);
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
 	  s = _callHelper(methOp);
 
 	  // null check on this parameter of call
@@ -2153,6 +2237,176 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_jsr_w:
 	s = _jsrHelper(bcodes.getWideBranchOffset());
 	break;
+
+      //-#if RVM_WITH_OSR
+      case JBC_impdep1: {
+        int pseudo_opcode = bcodes.nextPseudoInstruction();
+        switch (pseudo_opcode) {
+        case PSEUDO_LoadIntConst: {
+          int value = bcodes.readIntConst();
+
+	  if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadIntConst "+value);
+
+          push(new OPT_IntConstantOperand(value));
+
+          // used for PSEUDO_InvokeStatic to recover the type info
+          param1 = param2;
+          param2 = value;
+
+          break;
+        }
+        case PSEUDO_LoadLongConst: {
+          long value = bcodes.readLongConst();
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadLongConst "+value);
+
+          // put on jtoc
+          int offset = VM_Statics.findOrCreateLongLiteral(value);
+
+          pushDual(new OPT_LongConstantOperand(value, offset));
+          break;
+        }
+        case PSEUDO_LoadFloatConst:
+        {
+          int ibits = bcodes.readIntConst();
+          float value = Float.intBitsToFloat(ibits);
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadFloatConst "+value);
+
+          int offset = VM_Statics.findOrCreateFloatLiteral(ibits);
+
+          push(new OPT_FloatConstantOperand(value, offset));
+          break;
+        }
+
+        case PSEUDO_LoadDoubleConst:
+        {
+          long lbits = bcodes.readLongConst();
+
+          double value = VM_Magic.longBitsAsDouble(lbits);
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadDoubleConst "+ lbits);
+
+          // put on jtoc
+          int offset = VM_Statics.findOrCreateDoubleLiteral(lbits);
+
+          pushDual(new OPT_DoubleConstantOperand(value, offset));
+          break;
+        }
+
+        case PSEUDO_LoadAddrConst:
+        {
+          int value = bcodes.readIntConst();
+
+	  if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
+
+          push(new ReturnAddressOperand(value));
+          break;
+        }
+        case PSEUDO_InvokeStatic:
+        {
+	  /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
+          int mid = bcodes.readIntConst();
+          VM_Method meth = VM_MethodDictionary.getValue(mid);
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
+
+          s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
+	  Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
+
+          /* try to set the type of return register */
+          if (meth.getName() == VM_Atom.findOrCreateAsciiAtom("getRefAt")) {
+            Object realObj = OSR_ObjectHolder.getRefAt(param1, param2);
+            if (realObj != null) {
+
+	      // bypass
+	      VM_Type klass = realObj.getClass().type;
+
+              OPT_RegisterOperand op0 = gc.temps.makeTemp(klass);
+              Call.setResult(s, op0);
+              pop();    // pop the old one and push the new return type.
+              push(op0.copyD2U(), klass);
+            }
+          }
+  
+          // If we don't need dynamic linking code, think about inlining
+	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
+	    return;
+	  }
+
+          // CALL must be treated as potential throw of anything
+          rectifyStateWithExceptionHandlers();
+          break;
+        }
+	case PSEUDO_CheckCast: {
+	  int tid = bcodes.readIntConst();
+	  VM_Type typeRef = VM_TypeDictionary.getValue(tid);
+
+	  // I know this won't cause the class loading,
+	  // it is just providing some type information
+	  // for the opt compiler.
+	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
+	  OPT_Operand op2 = pop();
+
+	  OPT_RegisterOperand reg = (OPT_RegisterOperand)op2;
+	  if (isNonNull(reg)) {
+	    s = TypeCheck.create(CHECKCAST_NOTNULL, reg, 
+				 typeOp, getGuard(reg));
+	  } else {
+	    s = TypeCheck.create(CHECKCAST, reg, typeOp);
+	  }
+
+	  reg = reg.copyU2U();
+	  reg.type = typeRef;
+	  push(reg);
+	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
+	  rectifyStateWithExceptionHandler(et);
+
+	  break;
+	}
+	case PSEUDO_InvokeCompiledMethod: {
+          int cmid = bcodes.readIntConst();
+	  int origBCIdx = bcodes.readIntConst(); // skip it
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+          VM_Method meth = cm.getMethod();
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_InvokeCompiledMethod "+meth+"\n");
+
+	  /* the bcIndex should be adjusted to the original */ 
+	  s = _callHelper(OPT_MethodOperand.COMPILED(meth, 
+						     cm.getOsrJTOCoffset()));
+
+	  // adjust the bcindex of s to the original bytecode's index
+	  // it should be able to give the correct exception handling
+	  s.bcIndex = origBCIdx + bciAdjustment;
+	  
+      	  rectifyStateWithExceptionHandlers();
+	  break;
+	}
+	case PSEUDO_ParamInitEnd: {
+	  // indicates the place to insert method prologue and stack
+	  // overflow checks.
+	  // opt compiler should consider this too
+
+	  break;
+	}
+        default:
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("OSR Error, no such pseudo opcode : "+pseudo_opcode);
+
+          OPT_OptimizingCompilerException.UNREACHABLE();
+          break;
+        }
+        break;
+      }
+     //-#endif
 	
       default:
 	OPT_OptimizingCompilerException.UNREACHABLE();
@@ -2192,6 +2446,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
     } 
   }
+
+  //-#if RVM_WITH_OSR
+  int param1, param2;
+  //-#endif
 
   private OPT_Instruction _unaryHelper(OPT_Operator operator, 
 				       OPT_Operand val, 
@@ -2370,6 +2628,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       push(op0.copyD2U(), rtype);
     }
     Call.setMethod(s, methOp);
+
+    /* need to set it up early because inlining oracle use it */
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
     return s;
@@ -3398,8 +3658,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return IfCmp.create(INT_IFCMP, guard, op0, 
 			  new OPT_IntConstantOperand(0), 
 			  cond, generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else			  
 			  gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-    }
+//-#endif 
+	}
     OPT_RegisterOperand val = (OPT_RegisterOperand)op0;
     OPT_BranchOperand branch = null;
     if (lastInstr != null) {
@@ -3478,8 +3742,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
+//-#if RVM_WITH_OSR
+ 	gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-
+//-#endif
 	}
       case INSTANCEOF_NOTNULL_opcode:
 	{
@@ -3549,7 +3816,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else				  
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
 	}
       case DOUBLE_CMPG_opcode:case DOUBLE_CMPL_opcode:
       case FLOAT_CMPG_opcode:case FLOAT_CMPL_opcode:case LONG_CMP_opcode:
@@ -3592,8 +3863,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  branch = generateTarget(offset);
 	  OPT_RegisterOperand guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(operator, guard, val1, val2, cond, 
-			      branch, 
+			      branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
 	}
       default:
 	// Fall through and Insert INT_IFCMP
@@ -3605,7 +3880,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return IfCmp.create(INT_IFCMP, guard, val, 
 			new OPT_IntConstantOperand(0), 
 			cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   // helper function for if_icmp?? bytecodes
@@ -3643,7 +3922,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, op0, op1, cond, 
 			generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   // helper function for ifnull/ifnonnull bytecodes
@@ -3721,7 +4004,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, ref, 
 			new OPT_NullConstantOperand(), cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
   
   // helper function for if_acmp?? bytecodes
@@ -3754,7 +4041,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, op0, op1, 
 			cond, generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   //// REPLACE LOCALS ON STACK.
@@ -3783,7 +4074,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   //////////
   // EXCEPTION HANDLERS.
-  //////////
+//////////
   // Some common cases to make the code more readable...
   private OPT_BasicBlock rectifyStateWithNullPtrExceptionHandler() {
     return rectifyStateWithNullPtrExceptionHandler(false);
@@ -3977,6 +4268,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return d;
   }
 
+  //-#if RVM_WITH_OSR
+  /* osr barrier needs type information of locals and stacks,
+   * it has to be created before a _callHelper.
+   * only when the call site is going to be inlined, the instruction
+   * is inserted before the call site.
+   */
+  private OPT_Instruction lastOsrBarrier = null;
+  //-#endif
+
   /**
    * Attempt to inline a method. This may fail.
    *
@@ -3989,6 +4289,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (inlDec.isNO()) {
       return false;
     }
+
+    //-#if RVM_WITH_OSR
+    // Insert OsrBarrier point before the callsite which is going to be
+    // inlined, attach the OsrBarrier instruction to callsite's scratch
+    // object, then the callee can find this barrier
+    
+    // verify it
+    if (this.osrGuardedInline) {
+      if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
+      callSite.scratchObject = lastOsrBarrier;
+    }
+    //-#endif
+
     // Execute the inline decision.
     // NOTE: It is tempting to wrap the call to OPT_Inliner.execute in 
     // a try/catch block that suppresses MagicNotImplemented failures
@@ -4082,6 +4395,205 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     endOfBasicBlock = true;
     return true;
   }
+
+  //-#if RVM_WITH_OSR
+  /* create an OSR Barrier instruction at the current position.
+   */
+  private OPT_Instruction _createOsrBarrier() {
+    LinkedList livevars = new LinkedList();
+ 
+    /* for local variables, we have to use helper to make a register. */
+    /* ltypes and stypes should be the full length
+     * WARNING: what's the order of DUMMY and LONG?
+     */
+    int localnum = _localState.length;
+    byte[] ltypes = new byte[localnum];
+ 
+    int num_llocals = 0;
+    for (int i=0, n=_localState.length; i<n; i++) {
+      OPT_Operand op = _localState[i];
+
+      if ((op != null) && (op != DUMMY)) {
+        livevars.add(_loadLocalForOSR(op));
+        num_llocals++;
+ 
+        if (op instanceof ReturnAddressOperand) {
+          ltypes[i] = AddressTypeCode;
+        } else {
+          ltypes[i] = op.getType().getDescriptor().parseForTypeCode();
+        }
+ 
+      } else {
+        ltypes[i] = VoidTypeCode;
+      }
+    }
+    int stacknum = stack.getSize();
+    byte[] stypes = new byte[stacknum];
+ 
+    /* the variabel on stack can be used directly ? */
+    int num_lstacks = 0;
+    for (int i=0, n=stack.getSize(); i<n; i++) {
+      OPT_Operand op = stack.peekAt(i);
+ 
+      if ((op != null) && (op != DUMMY)) {
+ 
+	if (op.isRegister()) {
+	  livevars.add(op.asRegister().copyU2U());
+	} else {
+	  livevars.add(op);
+	}
+
+        num_lstacks++;
+ 
+        if (op instanceof ReturnAddressOperand) {
+          stypes[i] = AddressTypeCode;
+        } else {
+          /* for stack operand, reverse the order for long and double */
+          byte tcode = op.getType().getDescriptor().parseForTypeCode();
+          if ((tcode == LongTypeCode)
+              || (tcode == DoubleTypeCode)) {
+            stypes[i-1] = tcode;
+            stypes[i] = VoidTypeCode;
+          } else {
+            stypes[i] = op.getType().getDescriptor().parseForTypeCode();
+          }
+        }
+ 
+      } else {
+        stypes[i] = VoidTypeCode;
+      }
+    }
+ 
+    OPT_Instruction barrier = OsrBarrier.create(OSR_BARRIER,
+                                                null, // temporarily
+                                                num_llocals+num_lstacks);
+
+    for (int i=0, n=livevars.size(); i<n; i++) {
+      OPT_Operand op = (OPT_Operand)livevars.get(i);
+      if (op instanceof ReturnAddressOperand) {
+        int tgtpc = ((ReturnAddressOperand)op).retIndex
+                        - gc.method.realBCOffset;
+        op = new OPT_IntConstantOperand(tgtpc);
+      } else if (op instanceof OPT_LongConstantOperand) {
+        op = _prepareLongConstant(op);
+      } else if (op instanceof OPT_DoubleConstantOperand) {
+        op = _prepareDoubleConstant(op);
+      }
+
+      if (VM.VerifyAssertions) VM._assert(op != null);
+
+      OsrBarrier.setElement(barrier, i, op);
+    }
+ 
+    // patch type info operand
+    OPT_OsrTypeInfoOperand typeinfo =
+      new OPT_OsrTypeInfoOperand(ltypes, stypes);
+ 
+    OsrBarrier.setTypeInfo(barrier, typeinfo);
+
+    /* if the current method is for specialization, the bcIndex
+     * has to be adjusted at "OPT_OsrPointConstructor".
+     */
+    barrier.position = gc.inlineSequence;
+    barrier.bcIndex = instrIndex;   
+
+    return barrier;
+  }
+
+  /* special process for long/double constants */
+  private OPT_Operand _prepareLongConstant(OPT_Operand op) {
+    /* for long and double constants, always move them to a register,
+     * therefor, BURS will split it in two registers.
+     */
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    appendInstruction(Move.create(LONG_MOVE, t, op));
+    t.copyD2U();
+ 
+    return t;
+  }
+ 
+  /* special process for long/double constants */
+  private OPT_Operand _prepareDoubleConstant(OPT_Operand op) {
+    /* for long and double constants, always move them to a register,
+     * therefor, BURS will split it in two registers.
+     */
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    appendInstruction(Move.create(DOUBLE_MOVE, t, op));
+    t.copyD2U();
+ 
+    return t;
+  }
+ 
+  /* make a temporary register, and create a move instruction
+   * @param op, the local variable.
+   * @return operand marked as use.
+   */
+  private OPT_Operand _loadLocalForOSR(OPT_Operand op) {
+ 
+    /* if it is LOCALS ON STACK, do nothing. */
+/*
+	if (LOCALS_ON_STACK) {
+      return op;
+    }
+*/
+		  
+    /* otherwise, create move instructions. */
+    /* return address is processed specially */
+    if (op instanceof ReturnAddressOperand) {
+      return op;
+    }
+ 
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    t.copyD2U();
+ 
+    byte tcode = op.getType().getDescriptor().parseForTypeCode();
+ 
+    OPT_Operator operator = null;
+ 
+    switch (tcode) {
+    case ClassTypeCode:
+    case ArrayTypeCode:
+      operator = REF_MOVE;
+      break;
+    case BooleanTypeCode:
+    case ByteTypeCode:
+    case ShortTypeCode:
+    case CharTypeCode:
+    case IntTypeCode:
+      operator = INT_MOVE;
+      break;
+    case LongTypeCode:
+      operator = LONG_MOVE;
+      break;
+    case FloatTypeCode:
+      operator = FLOAT_MOVE;
+      break;
+    case DoubleTypeCode:
+      operator = DOUBLE_MOVE;
+      break;
+    case VoidTypeCode:
+      return null;
+    }
+ 
+    appendInstruction(Move.create(operator, t, op));
+    return t;
+  }
+
+
+  /**
+   * Creates an OSR point instruction with its dependent OsrBarrier
+   * which provides type and variable information.
+   * The OsrPoint instruction is going to be refilled immediately 
+   * after BC2IR, before any other optimizations.
+   */
+  public static OPT_Instruction _osrHelper(OPT_Instruction barrier) {
+    OPT_Instruction inst = OsrPoint.create(YIELDPOINT_OSR,
+					   null,  // currently unknown 
+					   0);    // currently unknown
+    inst.scratchObject = barrier;
+    return inst;
+  }
+  //-#endif RVM_WITH_OSR
 
 
   //// LOCAL STATE.
@@ -5343,7 +5855,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     void push(OPT_Operand val) {
-      if (VM.VerifyAssertions) VM._assert(val.instruction == null);
+//      if (VM.VerifyAssertions) VM._assert(val.instruction == null);
       stack[top++] = val;
     }
 
@@ -5354,6 +5866,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operand peek(int depth) {
       return stack[top - depth - 1];
     }
+
+    //-#if RVM_WITH_OSR
+    OPT_Operand peekAt(int pos) {
+      return stack[pos];
+    }
+    //-#endif
 
     void pop2() {
       pop();

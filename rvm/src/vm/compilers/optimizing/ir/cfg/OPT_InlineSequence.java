@@ -35,6 +35,13 @@ public final class OPT_InlineSequence {
    */
   public int bcIndex;
 
+  //-#if RVM_WITH_OSR
+  /**
+   * We need more detailed information of call site than bcIndex.
+   */
+  OPT_Instruction callSite;
+  //-#endif
+
   /**
    * @return contents of {@link #method}
    */
@@ -84,6 +91,28 @@ public final class OPT_InlineSequence {
     this.caller = caller;
     this.bcIndex = bcIndex;
   }
+
+  //-#if RVM_WITH_OSR
+  /**
+   * Constructs a new inline sequence operand.
+   *
+   * @param method current method
+   * @param caller caller info
+   * @param callsite the call site instruction of this callee
+   */
+  OPT_InlineSequence(VM_Method method,
+		     OPT_InlineSequence caller,
+		     OPT_Instruction callsite) {
+    this.method = method;
+    this.caller = caller;
+    this.callSite = callsite;
+    this.bcIndex = callsite.bcIndex;
+  }
+
+  public OPT_Instruction getCallSite() {
+    return this.callSite;
+  }
+  //-#endif
 
   /**
    * Returns the string representation of this inline sequence.

@@ -2419,6 +2419,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
       int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
       asm.emitADD_Reg_Imm (SP, emptyStackOffset);		// set aside room for non parameter locals
+
+      //-#if RVM_WITH_OSR
+      /* defer generating code which may cause GC until 
+       * locals were initialized. see emit_deferred_prologue
+       */
+      if (method.isForSpecialization()) {
+	return;
+      }
+      //-#endif
+
       /*
        * generate stacklimit check
        */
@@ -2441,6 +2451,33 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       genThreadSwitchTest(VM_Thread.PROLOGUE);
     }
   }
+
+  //-#if RVM_WITH_OSR
+  protected final void emit_deferred_prologue() {
+
+    if (VM.VerifyAssertions) VM._assert(method.isForSpecialization());
+        
+    if (isInterruptible) {
+      // S0<-limit
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+                        VM_Entrypoints.activeThreadStackLimitField.getOffset());
+      asm.emitSUB_Reg_Reg (S0, SP);                                       // spa
+      asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE);  // spa
+      VM_ForwardReference fr = asm.forwardJcc(asm.LT);    // Jmp around trap if 
+      asm.emitINT_Imm ( VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE ); // tra
+      fr.resolve(asm);
+    } else {
+      // TODO!! make sure stackframe of uninterruptible method doesn't overflow 
+    }
+
+    /* never do monitor enter for synced method since the specialized 
+     * code starts after original monitor enter.
+     */
+//    if (method.isSynchronized()) genMonitorEnter();
+
+    genThreadSwitchTest(VM_Thread.PROLOGUE);
+  }
+  //-#endif
   
   private final void genEpilogue (int bytesPopped) {
     if (klass.isBridgeFromNative()) {
@@ -3605,4 +3642,39 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member
     }
   }
+
+  //-#if RVM_WITH_OSR
+  protected final void emit_threadSwitch(int whereFrom) {
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset());
+  }
+
+  /**
+   * Emit code to invoke a compiled method (with known jtoc offset).
+   * Treat it like a resolved invoke static, but take care of
+   * this object in the case.
+   *
+   * I havenot thought about GCMaps for invoke_compiledmethod 
+   */
+  protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
+    int methodOffset = cm.getOsrJTOCoffset();
+    boolean takeThis = !cm.method.isStatic();
+    genParameterRegisterLoad(cm.method, takeThis);
+    asm.emitCALL_RegDisp(JTOC, methodOffset);
+    genResultRegisterUnload(cm.method);
+  }
+
+  protected final void emit_loadaddrconst(int bcIndex) {
+    asm.registerLoadAddrConst(bcIndex);
+    asm.emitPUSH_Imm(bcIndex);
+  }
+
+  /* bTarget is optional, it emits a JUMP instruction, but the caller
+   * in resposible for patch the target address by call resolve method
+   * of returned forward reference
+   */
+  protected final VM_ForwardReference emit_pending_goto(int bTarget) {
+    return asm.generatePendingJMP(bTarget);
+  }
+
+  //-#endif
 }

@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -19,7 +22,11 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
+public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
+//-#if RVM_WITH_OSR
+  , OSR_Constants
+//-#endif
+{
 
   /** 
    * Options used during base compiler execution 
@@ -186,11 +193,74 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
   protected void compile() {
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
-    VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(compiledMethod, stackHeights);
-    VM_MachineCode  machineCode  = genCode();
 
+    //-#if RVM_WITH_OSR
+    /* adjust stack heights, get heights for the original bytecodes, 
+     * then compute the heights for the prologue, and concat 
+     * together.
+     */
+    VM_ReferenceMaps refMaps = null;
+    boolean edge_counters = options.EDGE_COUNTERS;
+    if (method.isForSpecialization()) {
+      if (stackHeights != null) {
+	// only do this on IA32 where stackHeights is not null
+	OSR_BytecodeTraverser.computeStackHeights(method, stackHeights, true);
+      }
+      options.EDGE_COUNTERS = false;
+    } else {
+      refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
+    }
+    //-#else
+    VM_ReferenceMaps refMaps = 
+      new VM_ReferenceMaps(compiledMethod, stackHeights);
+    //-#endif
+
+    VM_MachineCode  machineCode  = genCode();
     INSTRUCTION[]   instructions = machineCode.getInstructions();
     int[]           bytecodeMap  = machineCode.getBytecodeMap();
+
+    //-#if RVM_WITH_OSR
+    /* adjust machine code map, and restore original bytecode
+     * for building reference map later.
+     */
+    if (method.isForSpecialization()) {
+      int[] newmap = new int[bytecodeMap.length - method.realBCOffset];
+      System.arraycopy(bytecodeMap,
+		       method.realBCOffset,
+		       newmap,
+		       0,
+		       newmap.length);
+      machineCode.setBytecodeMap(newmap);
+      bytecodeMap = newmap;
+
+      // switch back 
+      method.finalizeSpecialization();
+      
+      // stack heights are useless now, but we can verify it
+      if (VM.VerifyAssertions &&
+	  VM.TraceOnStackReplacement && 
+	  (stackHeights != null)) {
+	int[] newheights = new int[method.getBytecodeArray().length];
+	refMaps = new VM_ReferenceMaps(compiledMethod, newheights);
+	// verify the stack heights computed before
+	for (int i=0, n=newheights.length; i<n; i++) {
+	  // it may be unreachable code in specialied bytecode
+	  if ((newheights[i] != stackHeights[i+method.realBCOffset]) 
+					  && (stackHeights[i+method.realBCOffset] != 0)){
+	    VM.sysWriteln("stack heights mismatch : "+i+"@"+method.toString());
+
+	    VM._assert(VM.NOT_REACHED);
+	  }
+	}
+      }
+      
+      // restore stack heights for original bytecodes
+      refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
+      // restore options
+      options.EDGE_COUNTERS = edge_counters;
+    }
+    //-#endif
+	
     if (method.isSynchronized()) {
       compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
@@ -262,11 +332,15 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
    * Main code generation loop.
    */
   protected final VM_MachineCode genCode () {
+
     emit_prologue();
     while (bcodes.hasMoreBytecodes()) {
       biStart = bcodes.index();
       bytecodeMap[biStart] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(biStart);
+      //-#if RVM_WITH_OSR
+      asm.patchLoadAddrConst(biStart);
+      //-#endif
       int code = bcodes.nextInstruction();
       switch (code) {
       case JBC_nop: {
@@ -1482,6 +1556,21 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	  if (emit_Magic(methodRef))
 	    break;
 	} 
+
+	//-#if RVM_WITH_OSR
+	VM_ForwardReference xx = null;
+	if (biStart == this.pendingIdx) {
+	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
+	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
+	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
+	  xx = emit_pending_goto(0);                     // goto XX
+	  x.resolve(asm);                       //  X:
+	}
+	//-#endif
+
+
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
@@ -1491,10 +1580,28 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
 	  emit_resolved_invokevirtual(methodRef);
 	}
+
+	//-#if RVM_WITH_OSR
+	if (xx != null) {
+	  xx.resolve(asm);                     // XX:
+	}
+	//-#endif
 	break;
       }
 
       case JBC_invokespecial: {
+	//-#if RVM_WITH_OSR
+	VM_ForwardReference xx = null;
+	if (biStart == this.pendingIdx) {
+	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
+	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
+	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
+	  xx = emit_pending_goto(0);                     // goto XX
+	  x.resolve(asm);                       //  X:
+	}
+	//-#endif
 	int cpi = bcodes.getMethodReferenceIndex();
 	VM_Method methodRef = klass.getMethodRef(cpi);
 	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + cpi + " (" + methodRef + ")");
@@ -1506,6 +1613,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	} else {
 	  emit_unresolved_invokespecial(methodRef);
 	}     
+
+	//-#if RVM_WITH_OSR
+	if (xx != null) {
+	  xx.resolve(asm);                     // XX:
+	}
+	//-#endif
+
 	break;
       }
 
@@ -1518,6 +1632,20 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	  if (emit_Magic(methodRef))
 	    break;
 	}
+
+	//-#if RVM_WITH_OSR
+	VM_ForwardReference xx = null;
+	if (biStart == this.pendingIdx) {
+	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
+	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
+	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
+	  xx = emit_pending_goto(0);                     // goto XX
+	  x.resolve(asm);                       //  X:
+	}
+	//-#endif
+
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
@@ -1527,16 +1655,42 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
 	  emit_resolved_invokestatic(methodRef);
 	}
+
+	//-#if RVM_WITH_OSR
+	if (xx != null) {
+	  xx.resolve(asm);                     // XX:
+	}
+	//-#endif
+
 	break;
       }
 
       case JBC_invokeinterface: {
+	//-#if RVM_WITH_OSR
+	VM_ForwardReference xx = null;
+	if (biStart == this.pendingIdx) {
+	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
+	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
+	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
+	  xx = emit_pending_goto(0);                     // goto XX
+	  x.resolve(asm);                       //  X:
+	}
+	//-#endif
 	int cpi = bcodes.getMethodReferenceIndex();
 	VM_Method methodRef = klass.getMethodRef(cpi);
 	bcodes.alignInvokeInterface();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + cpi + " (" + methodRef + ") ");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface "+methodRef);
 	emit_invokeinterface(methodRef); 
+
+	//-#if RVM_WITH_OSR
+	if (xx != null) {
+	  xx.resolve(asm);                     // XX:
+	}
+	//-#endif
+
 	break;
       }
 
@@ -1786,6 +1940,136 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
 	break;
       }
 
+      //-#if RVM_WITH_OSR
+      /* CAUTION: can not use JBC_impdep1, which is 0xfffffffe ( signed ),
+       * this is not consistant with OPT compiler.
+       */
+      case JBC_impdep1: /* --- pseudo bytecode --- */ {
+	int pseudo_opcode = bcodes.nextPseudoInstruction(); 
+	// pseudo instruction
+	switch (pseudo_opcode) {
+	case PSEUDO_LoadIntConst: {
+	  int value = bcodes.readIntConst();
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int "+value);
+	  
+	  int slot = VM_Statics.findOrCreateIntLiteral(value);
+	  int offset = slot << 2;
+
+	  emit_ldc(offset);
+	    
+	  break;
+	}
+	case PSEUDO_LoadLongConst: {
+	  long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
+ 
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long "+value);
+	  
+	  int slot = VM_Statics.findOrCreateLongLiteral(value);
+	  int offset = slot << 2;
+
+	  emit_ldc2(offset);
+
+	  break;
+	}
+	case PSEUDO_LoadFloatConst: {
+	  int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
+	  
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float "+ibits);
+	  
+	  int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
+	  int offset = slot << 2;
+
+	  emit_ldc(offset);
+
+	  break;
+	}
+	case PSEUDO_LoadDoubleConst: {
+	  long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double "+lbits);
+	  
+	  int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
+	  int offset = slot << 2;
+
+	  emit_ldc2(offset);
+
+	  break;
+	}
+	case PSEUDO_LoadAddrConst: {
+	  int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr "+bcIndex);
+	  // for bytecode to get future bytecode's address
+	  // we register it and patch it later.
+	  emit_loadaddrconst(bcIndex);
+
+	  break;
+	}
+	case PSEUDO_InvokeStatic: {
+	  int mid = bcodes.readIntConst(); // fetch4BytesSigned();
+	  VM_Method methodRef = VM_MethodDictionary.getValue(mid);
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic "+methodRef.toString());
+	  
+	  if (methodRef.getDeclaringClass().isMagicType() ||
+	      methodRef.getDeclaringClass().isWordType()) {
+	    if (emit_Magic(methodRef))
+	      break;
+	  }
+	  VM_Class methodRefClass = methodRef.getDeclaringClass();
+	  if (methodRef.needsDynamicLink(method)) {
+	    if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
+	    emit_unresolved_invokestatic(methodRef);
+	  } else {
+	    methodRef = methodRef.resolve();
+	    if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
+	    emit_resolved_invokestatic(methodRef);
+	  }
+	  break;
+	}
+	case PSEUDO_CheckCast: {
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
+	  
+	  // fetch 4 byte type id
+	  int tid = bcodes.readIntConst(); // fetch4BytesSigned();
+	  // do nothing now
+	  break;
+	}
+	case PSEUDO_InvokeCompiledMethod: {
+	  int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
+	  int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
+
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid "+cmid);
+	  
+	  this.pendingCMID = cmid;
+	  this.pendingIdx = origIdx+this.method.realBCOffset;
+	  this.pendingRef = emit_pending_goto(this.pendingIdx);
+	  /*
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
+	  emit_invoke_compiledmethod(cm);
+	  */
+	  break;
+	}
+	case PSEUDO_ParamInitEnd: {
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
+	  // now we can inserted stack overflow check, 
+	  emit_deferred_prologue();
+	  break;
+	}
+	default:
+	  if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
+				 +VM.intAsHexString(pseudo_opcode)+"\n");
+	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+	  break;
+	}
+
+	break;
+      }
+      //-#endif
+
       default:
 	VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
 	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1795,6 +2079,32 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
     return asm.finalizeMachineCode(bytecodeMap);
   }
 
+  //-#if RVM_WITH_OSR
+  /* for invoke compiled method, we have to fool GC map, 
+   * InvokeCompiledMethod has two parameters compiledMethodID 
+   * and originalBytecodeIndex of that call site
+   * 
+   * we make the InvokeCompiledMethod pending until generating code
+   * for the original call.
+   * it looks like following instruction sequence:
+   *    invokeCompiledMethod cmid, bc
+   *
+   *  ==>  forward (x)
+   *
+   *          bc:  forward(x')
+   *             resolve (x):
+   *               invoke cmid
+   *               forward(x")
+   *             resolve (x'):
+   *               invoke xxxx
+   *             resolve (x");
+   * in this way, the instruction for invokeCompiledMethod is right before
+   * the original call, and it uses the original call's GC map
+   */
+  private int pendingCMID = -1;
+  private int pendingIdx  = -1;
+  private VM_ForwardReference pendingRef = null;
+  //-#endif
 
   /**
    * Print a warning message whan we compile a bytecode that is forbidden in
@@ -1842,6 +2152,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
   protected abstract void emit_threadSwitchTest(int whereFrom);
+
+  //-#if RVM_WITH_OSR
+  protected abstract void emit_threadSwitch(int whereFrom);
+  protected abstract void emit_deferred_prologue();
+  //-#endif
 
   /**
    * Emit the code to implement the spcified magic.
@@ -2719,6 +3034,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
    */
   protected abstract void emit_resolved_invokestatic(VM_Method methodRef);
 
+  //-#if RVM_WITH_OSR
+  protected abstract void emit_invoke_compiledmethod(VM_CompiledMethod cm);
+  protected abstract VM_ForwardReference emit_pending_goto(int origidx);
+  //-#endif
 
   /**
    * Emit code to implement the invokeinterface bytecode
@@ -2798,4 +3117,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants {
    * Emit code to implement the monitorexit bytecode
    */
   protected abstract void emit_monitorexit();
+
+  //-#if RVM_WITH_OSR
+  protected abstract void emit_loadaddrconst(int bcIndex);
+  //-#endif
+
 }

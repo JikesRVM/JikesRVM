@@ -8,6 +8,9 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
 
 /**
  * Main driver for linear scan register allocation.
@@ -28,7 +31,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           new OPT_OptimizationPlanAtomicElement(new LinearScan()),
           new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps1()),
           new OPT_OptimizationPlanAtomicElement(new SpillCode()),
-          new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps2())
+          new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps2()),
+	  //-#if RVM_WITH_OSR
+	      new OPT_OptimizationPlanAtomicElement(new UpdateOSRMaps()),
+	  //-#endif
           });
   }
 
@@ -2532,4 +2538,156 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       //-#endif
     }
   }
+
+  //-#if RVM_WITH_OSR
+  /**
+   * Update GC maps after register allocation but before inserting spill
+   * code.
+   */
+  final static class UpdateOSRMaps extends OPT_CompilerPhase {
+
+    public final boolean shouldPerform(OPT_Options options) { 
+      return true; 
+    }
+
+    public final String getName() { 
+      return "Update OSRMaps"; 
+    }
+
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
+      return false;
+    }
+
+    private OPT_IR ir;
+    /*
+     * Iterate over the IR-based OSR map, and update symbolic registers
+     * with real reg number or spill locations.
+     * Verify there are only two types of operands:
+     *    OPT_ConstantOperand
+     *    OPT_RegisterOperand
+     *        for integer constant, we save the value of the integer
+     *
+     * The LONG register has another half part.
+     *
+     * CodeSpill replaces any allocated symbolic register by 
+     * physical registers. 
+     */
+    public void perform(OPT_IR ir)
+      throws OPT_OptimizingCompilerException {
+      this.ir = ir;
+
+      // list of OsrVariableMapElement
+      LinkedList mapList = ir.MIRInfo.osrVarMap.list;
+
+      // for each osr instruction
+      for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
+	OSR_VariableMapElement elm = 
+	  (OSR_VariableMapElement)mapList.get(numOsrs);
+
+	// for each inlined method
+	LinkedList mvarsList = elm.mvars;
+	for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
+	  OSR_MethodVariables mvar =
+	    (OSR_MethodVariables)mvarsList.get(numMvars);
+
+	  // for each tuple
+	  LinkedList tupleList = mvar.tupleList;
+	  for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
+	    OSR_LocalRegPair tuple = 
+	      (OSR_LocalRegPair) tupleList.get(numTuple);
+
+	    OPT_Operand op = tuple.operand;
+	    if (op.isRegister()) {
+	      OPT_Register sym_reg = ((OPT_RegisterOperand)op).register;
+
+	      setRealPosition(tuple, sym_reg);
+
+	      // get another half part of long register
+	      if (tuple.typeCode == VM_ClassLoaderConstants.LongTypeCode) {
+
+		OSR_LocalRegPair other = tuple._otherHalf;
+		OPT_Operand other_op = other.operand;
+
+		if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
+
+		OPT_Register other_reg = ((OPT_RegisterOperand)other_op).register;
+		setRealPosition(other, other_reg);
+	      }
+      /* According to OPT_ConvertToLowLevelIR, StringConstant, LongConstant,
+       * NullConstant, FloatConstant, and DoubleConstant are all materialized
+       * The only thing left is the integer constant.
+       * POTENTIAL DRAWBACKS: since any long, float, and double are moved
+       * to register and treated as use, it may consume more registers and
+       * add unnecessary MOVEs.
+       *
+       * Perhaps, OPT_ConvertToLowLevelIR can skip OsrPoint instruction.
+       */
+	    } else if (op.isIntConstant()) {
+	      setTupleValue(tuple,
+			    OSR_Constants.ICONST,
+			    ((OPT_IntConstantOperand)op).value
+			    );
+	      if (tuple.typeCode == VM_ClassLoaderConstants.LongTypeCode) {
+		OSR_LocalRegPair other = tuple._otherHalf;
+		OPT_Operand other_op = other.operand;
+
+		if (VM.VerifyAssertions) VM._assert(other_op.isIntConstant());
+		setTupleValue(other,
+			      OSR_Constants.ICONST,
+			      ((OPT_IntConstantOperand)other_op).value
+			      );			      
+	      } 
+	    } else {
+	      throw new OPT_OptimizingCompilerException("OPT_LinearScan",
+                        "Unexpected operand type at ", op.toString());
+	    } // for the op type
+	  } // for each tuple
+	} // for each inlined method
+      } // for each osr instruction
+
+      this.ir = null;
+    } // end of method
+ 
+    final void setRealPosition(OSR_LocalRegPair tuple, 
+				      OPT_Register sym_reg) {
+      if (VM.VerifyAssertions) VM._assert(sym_reg != null);
+
+      int REG_MASK = 0x01F;      
+
+      // now it is not symbolic register anymore.
+      // is is really confusing that sometimes a sym reg is a phy, 
+      // and sometimes not.
+      if (sym_reg.isAllocated()) {
+        OPT_Register ra = OPT_RegisterAllocatorState.getMapping(sym_reg);
+	setTupleValue(tuple,
+		      OSR_Constants.PHYREG,
+		      sym_reg.number & REG_MASK
+		      ); 
+      } else if (sym_reg.isPhysical()) {
+	setTupleValue(tuple,
+		      OSR_Constants.PHYREG,
+		      sym_reg.number & REG_MASK
+		      );
+      } else if (sym_reg.isSpilled()) {
+	setTupleValue(tuple,
+		      OSR_Constants.SPILL,
+		      sym_reg.getSpillAllocated()
+		      );
+      } else {
+
+ 	(new OPT_IRPrinter("PANIC")).dumpIR(ir, "PANIC");
+
+	throw new RuntimeException("OPT_LinearScan PANIC in OSRMAP, "
+				       +sym_reg+" is not alive");
+      }
+    } // end of setRealPosition
+
+    final static void setTupleValue(OSR_LocalRegPair tuple,
+				    int type,
+				    int value) {
+      tuple.valueType = type;
+      tuple.value     = value;
+    } // end of setTupleValue
+  } // end of inner class
+  //-#endif RVM_WITH_OSR
 }

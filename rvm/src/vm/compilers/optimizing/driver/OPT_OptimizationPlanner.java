@@ -7,7 +7,9 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Vector;
-
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
 /**
  * OPT_OptimizationPlanner.java
  *
@@ -151,8 +153,13 @@ public class OPT_OptimizationPlanner {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
 
-                      // Always do initial wave of peephole branch optimizations
-                      new OPT_BranchOptimizations(0, true, false),  
+		      //-#if RVM_WITH_OSR
+		      new OSR_AdjustBCIndexes(),
+		      new OSR_OsrPointConstructor(),
+		      //-#endif
+
+		      // Always do initial wave of peephole branch optimizations
+		      new OPT_BranchOptimizations(0, true, false),  
 
                       // Adjust static branch probabilites to account for infrequent blocks
                       new OPT_AdjustBranchProbabilities(),

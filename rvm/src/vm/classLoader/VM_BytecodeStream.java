@@ -864,6 +864,33 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
     }
   }
 
+//-#if RVM_WITH_OSR
+  public final int nextPseudoInstruction() {
+	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+	return readUnsignedByte();
+  }
+  public final int readIntConst() {
+	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+	return readSignedInt();	
+  }
+  public final long readLongConst() {
+	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+	return readLong();
+  }
+
+  private final long readLong() {
+    long l = ((long)bcodes[bcIndex++] & 0x0FF) << 56;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 48;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 40;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 32;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 24;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 16;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 8;
+    l |= ((long)bcodes[bcIndex++] & 0x0FF);
+    return l;    
+  }
+//-#endif
+
   //// READ BYTECODES
   private final byte readSignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);

@@ -47,7 +47,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @author Derek Lieber
  *
  */
-class CCC {
+public class CCC {
   //-----------//
   // interface //
   //-----------//
@@ -167,7 +167,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: value
   //
-  static VVV getValue(int id)  throws VM_PragmaUninterruptible {
+  public static VVV getValue(int id)  throws VM_PragmaUninterruptible {
     return values[id];
   }
    

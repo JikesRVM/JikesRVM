@@ -8,11 +8,16 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
-import java.util.Stack;
-import java.util.Enumeration;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
+
+import  java.util.Stack;
+import  java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
@@ -27,7 +32,8 @@ import java.util.HashSet;
  * @author Martin Trapp
  * @author Stephen Fink
  */
-final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators {
+final class OPT_LiveAnalysis extends OPT_CompilerPhase 
+  implements OPT_Operators, VM_ClassLoaderConstants {
 
   // Real Instance Variables
   /**
@@ -64,6 +70,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * The GC map associated with the IR, optionally filled by this class
    */
   private OPT_GCIRMap map;
+
+  //-#if RVM_WITH_OSR
+  private OSR_VariableMap osrMap;
+  //-#endif
 
   /**
    * For each register, the set of live interval elements describing the
@@ -172,6 +182,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       // At a later phase this map is converted into the "runtime"
       //  map, which is called VM_OptReferenceMap.
       map = new OPT_GCIRMap();
+
+      //-#if RVM_WITH_OSR
+      osrMap = new OSR_VariableMap();
+      //-#endif
     }
 
     // allocate the "currentSet" which is used to cache the current results
@@ -242,6 +256,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // This will be null if createGCMaps is false
     if (createGCMaps) {
       ir.MIRInfo.gcIRMap = map;
+      //-#if RVM_WITH_OSR
+      ir.MIRInfo.osrVarMap = osrMap;
+      //-#endif
     }
     //-#endif
 
@@ -801,6 +818,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
           if (verbose) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made
 
+        //-#if RVM_WITH_OSR
+        if (createGCMaps && (OsrPoint.conforms(inst))) {
+	  // collect osr info using live set
+          collectOsrInfo(inst, local);
+        }
+        //-#endif
+
         // now process the uses
         for (OPT_OperandEnumeration uses = inst.getUses(); 
             uses.hasMoreElements();) {
@@ -1158,6 +1182,90 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     private OPT_Instruction inst;
     private OPT_LinkedList list;
   }
+
+  //-#if RVM_WITH_OSR
+  /* collect osr info according to live information */
+  private void collectOsrInfo(OPT_Instruction inst, OPT_LiveSet lives) {
+    // create an entry to the OSRIRMap, order: callee => caller
+    LinkedList mvarList = new LinkedList();
+ 
+    // get the type info for locals and stacks
+    OPT_InlinedOsrTypeInfoOperand typeInfo =
+      OsrPoint.getInlinedTypeInfo(inst);
+ 
+    /* iterator over type info and create LocalRegTuple
+     * for each variable.
+     * NOTE: we do not process LONG type register operand here,
+     * which was splitted in BURS.
+     */
+    byte[][] ltypes = typeInfo.localTypeCodes;
+    byte[][] stypes = typeInfo.stackTypeCodes;
+
+    int nummeth = typeInfo.methodids.length;
+
+    int elm_idx = 0; 
+    int snd_long_idx = typeInfo.validOps;
+    for (int midx = 0; midx < nummeth; midx++) {
+
+      LinkedList tupleList = new LinkedList();
+
+      byte[] ls = ltypes[midx];
+      byte[] ss = stypes[midx];
+
+      /* record maps for local variables, skip dead ones */
+      for (int i=0, n=ls.length; i<n; i++) {
+	if (ls[i] != VoidTypeCode) {
+	  // check liveness
+	  int cur_idx = elm_idx;
+	  OPT_Operand op = OsrPoint.getElement(inst, elm_idx++);
+	  OSR_LocalRegPair tuple =
+	    new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
+	  // put it in the list
+	  tupleList.add(tuple);
+
+	  // get another half of a long type operand
+	  if (ls[i] == LongTypeCode) {
+	    OPT_Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
+	    tuple._otherHalf = 
+	      new OSR_LocalRegPair(OSR_Constants.LOCAL,	i, ls[i], other_op);
+
+	  }
+	}
+      }
+ 
+      /* record maps for stack slots */
+      for (int i=0, n=ss.length; i<n; i++) {
+	if (ss[i] != VoidTypeCode) {
+	  OSR_LocalRegPair tuple =
+	    new OSR_LocalRegPair(OSR_Constants.STACK,
+				    i,
+				    ss[i],
+				    OsrPoint.getElement(inst, elm_idx++));
+ 
+	  tupleList.add(tuple);
+
+	  if (ss[i] == LongTypeCode) {
+	    tuple._otherHalf = 
+	      new OSR_LocalRegPair(OSR_Constants.STACK,
+				      i,
+				      ss[i],
+	       		      OsrPoint.getElement(inst, snd_long_idx++));
+	  }
+	}
+      }
+
+      // create OSR_MethodVariables    
+      OSR_MethodVariables mvar =
+	new OSR_MethodVariables(typeInfo.methodids[midx],
+				   typeInfo.bcindexes[midx],
+				   tupleList);
+      mvarList.add(mvar);
+    }
+
+    // put the method variables for this OSR in the osrMap, encoding later.
+    osrMap.insertFirst(inst, mvarList);
+  }
+  //-#endif RVM_WITH_OSR
 }
 
 

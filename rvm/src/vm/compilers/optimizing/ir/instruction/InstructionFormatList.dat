@@ -298,6 +298,16 @@ Phi
 "D Result OPT_Operand"
 "Value OPT_Operand" "Pred OPT_BasicBlockOperand"
 
+OsrBarrier
+0 0 1 1 U -1
+"U TypeInfo OPT_OsrTypeInfoOperand"
+"Element OPT_Operand"
+
+OsrPoint
+0 0 1 1 U -1
+"U InlinedTypeInfo OPT_InlinedOsrTypeInfoOperand"
+"Element OPT_Operand"
+
 # Bogus instruction format only used by template generation code.
 ARCH_INDEPENDENT_INSTR_FORMAT_END
 0 0 0 0 0

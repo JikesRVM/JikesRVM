@@ -93,7 +93,15 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     }
     
     VM_ControllerPlan plan = VM_ControllerMemory.findMatchingPlan(cmpMethod);
+
+    //-#if RVM_WITH_OSR
+    // for a outdated hot method from baseline, we consider OSR, and execute plan
+    // in the rountine, no more action here
+    if (considerOSRRecompilation(cmpMethod, hme, plan)) return null;
+    //-#endif
+
     if (!considerForRecompilation(hme, plan)) return null;
+
     double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
     
     // Now we know the compiler that generated the method (prevCompiler).
@@ -156,6 +164,93 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     return plan;
   }
 
+  //-#if RVM_WITH_OSR
+  /* check if a compiled method is outdated, then decide if it needs OSR from BASE to OPT
+   */
+  boolean considerOSRRecompilation(VM_CompiledMethod cmpMethod, 
+				   VM_HotMethodEvent hme,
+				   VM_ControllerPlan plan) {
+    boolean outdatedBaseline = false;
+    if (plan == null) {
+      // if plan is null, this method was not compiled by AOS; it was
+      // either in the boot image or compiled by the initial baseline
+      // compiler.  In either case, if we've completed any recompilation
+      // then the compiled method is outdated.
+      outdatedBaseline = VM_ControllerMemory.planWithStatus(cmpMethod.getMethod(), 
+                                                      VM_ControllerPlan.COMPLETED)
+                        && cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE;
+      if (VM.LogAOSEvents && outdatedBaseline)
+        VM_AOSLogging.debug("outdated Baseline " +  cmpMethod.getMethod() + 
+                            "(" + cmpMethod.getId() + ")");
+    }
+
+    // consider OSR option for old baseline-compiled activation
+    if (outdatedBaseline) {
+      if (!hme.getCompiledMethod().getSamplesReset()) {
+        // the first time we see an outdated event, we clear the samples
+        // associated with the cmid.
+        hme.getCompiledMethod().setSamplesReset();
+        VM_Controller.methodSamples.reset(hme.getCMID());
+        if (VM.LogAOSEvents) VM_AOSLogging.debug(" Resetting method samples " + hme); 
+        return true;
+      } else {
+
+        plan = chooseOSRRecompilation(hme);
+        // insert the plan to memory, which sets up state in the system to trigger
+        // the OSR promotion
+        if (plan != null) {
+		  VM_ControllerMemory.insert(plan);
+		  // to work with VM_Thread, it flags the compiled method 
+		  // that it is outdated
+		  if (VM.VerifyAssertions) {
+			VM._assert(cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE);
+		  }
+		  cmpMethod.setOutdated();
+		}
+        // we don't do any more action on the controller side.
+        return true;
+      }
+    } 
+    return false;
+  }
+
+  /**
+   * @param hme sample data for an outdated cmid 
+   * @return a plan representing recompilation with OSR, null if OSR not
+   * justified.
+   */
+  private VM_ControllerPlan chooseOSRRecompilation(VM_HotMethodEvent hme) { 
+    if (!VM_Controller.options.OSR_PROMOTION) return null;
+
+    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Consider OSR" + hme); 
+
+    VM_ControllerPlan prev = VM_ControllerMemory.findLatestPlan(hme.getMethod());
+    double millis = (double)(prev.getTimeCompleted() - prev.getTimeInitiated());
+    double speedup = prev.getExpectedSpeedup();
+    double futureTimeForMethod = futureTimeForMethod(hme);
+
+    double futureTimeOptimized = futureTimeForMethod / speedup;
+
+    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Estimated future time for method " + hme + " is " +
+                                             futureTimeForMethod); 
+    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Estimated future time optimized " + hme + " is " +
+                                             (futureTimeOptimized+millis)); 
+
+    if (futureTimeForMethod > futureTimeOptimized + millis) {
+      VM_AOSLogging.recordOSRRecompilationDecision(prev);
+      VM_ControllerPlan p = new VM_ControllerPlan(prev.getCompPlan(), 
+                                                         prev.getTimeCreated(),
+                                                         hme.getCMID(),
+                                                         prev.getExpectedSpeedup(),
+                                                         prev.getPriority());
+	  // set up state to trigger osr
+	  p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
+      return p;
+    } else {
+      return null;
+    }
+  }
+  //-#endif
 
   /**
    * This function defines how the analytic model handles a

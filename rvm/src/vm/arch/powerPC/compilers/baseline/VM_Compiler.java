@@ -77,7 +77,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
   
   // size of method's stackframe.
-  static int getFrameSize (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getFrameSize (VM_Method m) throws VM_PragmaUninterruptible {
     int size;
     if (!m.isNative()) {
       size = getSPSaveAreaOffset(m) + 4;
@@ -2475,13 +2475,24 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitSTU (FP, -frameSize, FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
     
     // If this is a "dynamic bridge" method, then save all registers except GPR0, FPR0, JTOC, and FP.
-    //
+    // 
     if (klass.isDynamicBridge()) {
       int offset = frameSize;
       for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
          asm.emitSTFD (i, offset -= 8, FP);
       for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
          asm.emitST (i, offset -= 4, FP);
+
+      //-#if RVM_WITH_OSR
+      // round up first, save scratch FPRs
+      offset = (offset - STACKFRAME_ALIGNMENT_MASK) & 
+	       ~STACKFRAME_ALIGNMENT_MASK;
+
+      for (int i = LAST_SCRATCH_FPR; i >= FIRST_SCRATCH_FPR; --i)
+	asm.emitSTFD(i, offset -= 8, FP);
+      for (int i = LAST_SCRATCH_GPR; i >= FIRST_SCRATCH_GPR; --i)
+	asm.emitST(i, offset -= 4, FP);
+      //-#endif
     }
     
     // Fill in frame header.
@@ -2497,15 +2508,33 @@ public class VM_Compiler extends VM_BaselineCompiler
     genMoveParametersToLocals();                                                   // move parameters to locals
    
     // Perform a thread switch if so requested.
-    //
-    genThreadSwitchTest(VM_Thread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
+	//-#if RVM_WITH_OSR
+	/* defer generating prologues which may trigger GC, see emit_deferred_prologue*/
+    if (method.isForSpecialization()) {
+	  return;
+	}
+	//-#endif
 
+    genThreadSwitchTest(VM_Thread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
     // Acquire method syncronization lock.  (VM_BaselineExceptionDeliverer will release the lock (for synchronized methods) after  prologue code)
     //
     if (method.isSynchronized()) 
       genSynchronizedMethodPrologue();
   }
 
+  //-#if RVM_WITH_OSR
+  protected final void emit_deferred_prologue() {
+	if (VM.VerifyAssertions) VM._assert(method.isForSpecialization());
+	
+	genThreadSwitchTest(VM_Thread.PROLOGUE);
+
+	/* donot generate sync for synced method because we are reenter 
+	 * the method in the middle.
+	 */
+	//	if (method.isSymchronized()) genSynchronizedMethodPrologue();
+  }
+  //-#endif
+  
   // Emit code to acquire method synchronization lock.
   //
   private void genSynchronizedMethodPrologue() {
@@ -2664,6 +2693,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     spillOffset = getFrameSize(method) + STACKFRAME_HEADER_SIZE;
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
+ 
     int localIndex = 0;
     if (!method.isStatic()) {
       if (gp > LAST_VOLATILE_GPR) genUnspillWord(localIndex++);
@@ -2774,4 +2804,44 @@ public class VM_Compiler extends VM_BaselineCompiler
      asm.emitSTFD(0, localOffset(localIndex) - 4, FP);
      spillOffset += 8;
   }
+
+
+  //-#if RVM_WITH_OSR
+  protected final void emit_threadSwitch(int whereFrom) {
+    if (whereFrom == VM_Thread.OSRBASE) {
+      asm.emitL(S0, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset(), JTOC);
+      asm.emitMTLR(S0);
+      asm.emitCall(spSaveAreaOffset);
+    }
+  }
+
+  protected final void emit_loadaddrconst(int bcIndex) {
+    asm.emitBL(1, 0);
+    asm.emitMFLR(T1);                   // LR +  0
+    asm.registerLoadAddrConst(bcIndex);
+    asm.emitCAL (T1, bcIndex<<2, T1);   
+    asm.emitSTU (T1, -4, SP);   // LR +  8
+  }
+
+  /**
+   * Emit code to invoke a compiled method (with known jtoc offset).
+   * Treat it like a resolved invoke static, but take care of
+   * this object in the case.
+   *
+   * I havenot thought about GCMaps for invoke_compiledmethod 
+   */
+  protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
+    int methOffset = cm.getOsrJTOCoffset();
+    asm.emitLtoc(T0, methOffset);
+    asm.emitMTCTR(T0);
+    boolean takeThis = !cm.method.isStatic();
+    genMoveParametersToRegisters(takeThis, cm.method);
+    asm.emitCall(spSaveAreaOffset);
+    genPopParametersAndPushReturnValue(takeThis, cm.method);
+  }
+
+  protected final VM_ForwardReference emit_pending_goto(int bTarget) {
+    return asm.generatePendingJMP(bTarget);
+  }
+  //-#endif
 }

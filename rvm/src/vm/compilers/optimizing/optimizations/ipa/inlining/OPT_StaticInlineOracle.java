@@ -7,7 +7,9 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+//-#endif
 /**
  * Inlining oracle using static size heuristics during on-the-fly compilation.
  *
@@ -68,9 +70,19 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 							    state.getCompiledMethod());
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
       } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
-	return OPT_InlineDecision.guardedYES(callee, 
+	OPT_InlineDecision YES = OPT_InlineDecision.guardedYES(callee, 
 					     chooseGuard(caller, callee, callee, state, true), 
 					     "static guarded inline passsed size checks");
+	//-#if RVM_WITH_OSR
+        if (opts.OSR_GUARDED_INLINING && 
+            OPT_Compiler.getAppStarted() &&
+			(VM_Controller.options != null) &&
+			VM_Controller.options.adaptive()) {
+	  // note that we will OSR the failed case.
+	  YES.setOSRTestFailed();
+        }
+	//-#endif
+	return YES;
       }
       return OPT_InlineDecision.NO(callee, "non-final virtual method");
     } else {

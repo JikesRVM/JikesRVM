@@ -10,6 +10,14 @@ import com.ibm.JikesRVM.classloader.*;
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.VM_ControllerMemory;
+//-#endif
+
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementTrigger;
+import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementEvent;
+import com.ibm.JikesRVM.OSR.OSR_PostThreadSwitch;
+import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
 //-#endif
 
 /**
@@ -34,6 +42,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public final static int PROLOGUE = 0;
   public final static int BACKEDGE = 1;
   public final static int EPILOGUE = 2;
+  //-#if RVM_WITH_OSR
+  public final static int OSRBASE = 98;
+  public final static int OSROPT  = 99;
+  //-#endif
   
   //-#if RVM_WITH_HPM
   /*
@@ -132,6 +144,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
   }
 
+  //-#if RVM_WITH_OSR
+  /**
+   * Suspends the thread which is wait for OSR (waiting for scheduling now).
+   */
+  public final void osrSuspend() {
+	suspendLock.lock();
+	suspendPending = true;
+	suspendLock.unlock();
+  }
+  //-#endif
+  
   /**
    * Put given thread to sleep.
    */
@@ -231,6 +254,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void threadSwitchFromEpilogue() {
     threadSwitch(EPILOGUE);
   }
+
+  //-#if RVM_WITH_OSR
+  public static void threadSwitchFromOsrBase() {
+    threadSwitch(OSRBASE);
+  }
+  public static void threadSwitchFromOsrOpt() {
+    threadSwitch(OSROPT);
+  }
+  //-#endif
 
   /**
    * Preempt execution of current thread.
@@ -332,8 +364,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       // Determine if ypTakenInCallerCMID actually corresponds to a real 
       // Java stackframe.
       boolean ypTakenInCallerCMIDValid = true;
-      VM_CompiledMethod ypTakenInCM = 
-        VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
 
       // Check for one of the following:
       //    Caller is top-of-stack psuedo-frame
@@ -344,6 +375,45 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
           ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
         ypTakenInCallerCMIDValid = false;
       } 
+
+      //-#if RVM_WITH_OSR                                                       
+      if (!VM_Thread.getCurrentThread().isSystemThread) {
+        boolean baseToOptOSR = false;
+		if (whereFrom == VM_Thread.BACKEDGE) {
+		  if (ypTakenInCM.isOutdated()) {
+			baseToOptOSR = true;
+		  }
+		}
+		/* this has to be changed to make all calls without threadSwitch */
+		/*
+        // check for base-to-opt OSR triggered by adaptive system               
+        if (whereFrom == VM_Thread.BACKEDGE) {
+          if (VM_ControllerMemory.requestedOSR(ypTakenInCMID)) {
+            baseToOptOSR = true;
+          }
+        }
+		*/
+	if (baseToOptOSR || (whereFrom == VM_Thread.OSROPT)) {
+	
+	  // get this fram pointer
+	  VM_Address tsFP = VM_Magic.getFramePointer(); 	
+	  // Get pointer to my caller's frame
+	  VM_Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);
+	  // Skip over wrapper to "real" method
+	  VM_Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
+	  
+	  VM_Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
+	  
+	  int tsFromFPoff = tsFromFP.diff(stackbeg).toInt();
+	  int realFPoff = realFP.diff(stackbeg).toInt();
+	  
+	  OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, 
+						tsFromFPoff,
+						realFPoff,
+						whereFrom);
+	}
+      }
+      //-#endif
 
       // Now that we have the basic information we need, 
       // notify all currently registered listeners
@@ -377,6 +447,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // VM_Scheduler.trace("VM_Thread", "threadSwitch");
     timerTickYield();
+
+    //-#if RVM_WITH_OSR
+    VM_Thread myThread = getCurrentThread();
+    if (myThread.isWaitingForOsr) {
+      OSR_PostThreadSwitch.postProcess(myThread);
+    }
+    //-#endif 
   }
 
   /**
@@ -1117,6 +1194,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.runningVM)
          jniEnv = new VM_JNIEnvironment(threadSlot);
 
+    //-#if RVM_WITH_OSR
+    onStackReplacementEvent = new OSR_OnStackReplacementEvent();
+    //-#endif
   }
   
   /**
@@ -1400,4 +1480,25 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public boolean isAlive() {
     return isAlive;
   }
+
+  //-#if RVM_WITH_OSR
+  public boolean isSystemThread() {
+    return isSystemThread;
+  }
+
+  protected boolean isSystemThread = true;
+
+  public OSR_OnStackReplacementEvent onStackReplacementEvent;
+  //  OSR_DeoptimizationEvent deOptimizationEvent;
+ 
+  // the flag indicates whether this thread is waiting for on stack replacement
+  // before being rescheduled.
+  public boolean isWaitingForOsr = false;
+ 
+  // before call newInstructions, we need a bridge to recover register
+  // states from the stack frame.
+  public INSTRUCTION[] bridgeInstructions = null;
+  public int fooFPOffset = 0;
+  public int tsFPOffset = 0;
+  //-#endif 
 }

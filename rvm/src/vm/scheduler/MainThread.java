@@ -41,6 +41,9 @@ class MainThread extends Thread {
   MainThread(String args[]) {
     super(args); // special constructor to create thread that has no parent
     this.args = args;
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = false;
+    //-#endif
   }
       
   public String toString() {

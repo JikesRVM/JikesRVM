@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
 
 /** 
  * An implementation of VM_CompiledMethod for the OPT compiler.
@@ -252,6 +255,18 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   private static final VM_OptExceptionDeliverer exceptionDeliverer = 
     new VM_OptExceptionDeliverer();
 
+//-#if RVM_WITH_OSR
+  private OSR_EncodedOSRMap _osrMap;
+
+  public void createFinalOSRMap(OPT_IR ir) {
+    this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
+  }
+
+  public OSR_EncodedOSRMap getOSRMap() {
+    return this._osrMap;
+  }
+//-#endif
+
   //////////////////////////////////////
   // Information the opt compiler needs to persistently associate 
   // with a particular compiled method.
@@ -368,7 +383,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Return the number of non-volatile GPRs used by this method.
    */
-  int getNumberOfNonvolatileGPRs() {
+  public int getNumberOfNonvolatileGPRs() {
     //-#if RVM_FOR_POWERPC
     return VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     //-#elif RVM_FOR_IA32
@@ -378,7 +393,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Return the number of non-volatile FPRs used by this method.
    */
-  int getNumberOfNonvolatileFPRs() {
+  public int getNumberOfNonvolatileFPRs() {
     //-#if RVM_FOR_POWERPC
     return VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     //-#elif RVM_FOR_IA32
@@ -388,7 +403,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the number of non-volatile GPRs used by this method.
    */
-  void setNumberOfNonvolatileGPRs(short n) {
+  public void setNumberOfNonvolatileGPRs(short n) {
     //-#if RVM_FOR_POWERPC
     setFirstNonVolatileGPR(VM_RegisterConstants.NUM_GPRS - n);
     //-#elif RVM_FOR_IA32
@@ -398,7 +413,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the number of non-volatile FPRs used by this method.
    */
-  void setNumberOfNonvolatileFPRs(short n) {
+  public void setNumberOfNonvolatileFPRs(short n) {
     //-#if RVM_FOR_POWERPC
     setFirstNonVolatileFPR(VM_RegisterConstants.NUM_FPRS - n);
     //-#elif RVM_FOR_IA32

@@ -24,6 +24,14 @@ public class VM_ExceptionHandlerMap {
   public final VM_Type[] getExceptionTypes() { return exceptionTypes; }
   public final VM_Type getExceptionType(int i) { return exceptionTypes[i]; }
    
+  //-#if RVM_WITH_OSR
+  /* we need to adjust the exception handler map for pseudo bytecode
+   */
+  public final void setStartPC(int[] newPCs) { startPCs = newPCs; }
+  public final void setEndPC(int[] newPCs) { endPCs = newPCs; }
+  public final void setHandlerPC(int[] newPCs) { handlerPCs = newPCs; }
+  //-#endif
+
   //----------------//
   // Implementation //
   //----------------//
@@ -77,4 +85,26 @@ public class VM_ExceptionHandlerMap {
       }
     }
   }
+
+  //-#if RVM_WITH_OSR
+  VM_ExceptionHandlerMap() {}
+ 
+  VM_ExceptionHandlerMap deepCopy() {
+    VM_ExceptionHandlerMap other =
+      new VM_ExceptionHandlerMap();
+ 
+    int n = startPCs.length;
+    other.startPCs = new int[n];
+    other.endPCs   = new int[n];
+    other.handlerPCs = new int[n];
+    other.exceptionTypes = new VM_Type[n];
+ 
+    System.arraycopy(this.startPCs, 0, other.startPCs, 0, n);
+    System.arraycopy(this.endPCs, 0, other.endPCs, 0, n);
+    System.arraycopy(this.handlerPCs, 0, other.handlerPCs, 0, n);
+    System.arraycopy(this.exceptionTypes, 0, other.exceptionTypes, 0, n);
+ 
+    return other;
+  }
+  //-#endif
 }

@@ -12,6 +12,10 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
 
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
+//-#endif
+
 /**
  * Global variables used to implement virtual machine thread scheduler.
  *    - virtual cpus
@@ -357,6 +361,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     //-#else
     VM.sysWaitForMultithreadingStart();
+    //-#endif
+
+    //-#if RVM_WITH_OSR
+    OSR_ObjectHolder.boot();
     //-#endif
 
     // Start collector threads on each VM_Processor.

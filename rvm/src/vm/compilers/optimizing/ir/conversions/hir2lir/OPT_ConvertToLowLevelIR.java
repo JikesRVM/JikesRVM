@@ -635,7 +635,16 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         return v;
       }
     }
-    
+
+    //-#if RVM_WITH_OSR
+    if (methOp.hasDesignatedTarget()) {
+      Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD,
+				  OPT_ClassLoaderProxy.InstructionArrayType,
+					      methOp.jtocOffset));
+      return v;
+    }
+    //-#endif
+
     switch (methOp.type) {
     case OPT_MethodOperand.STATIC: {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));

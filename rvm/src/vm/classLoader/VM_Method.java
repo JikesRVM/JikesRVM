@@ -19,6 +19,95 @@ import com.ibm.JikesRVM.opt.*;
  * @author Derek Lieber
  */
 public final class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
+
+  //-#if RVM_WITH_OSR 
+  /* indicate this method has been osred */
+  public boolean osrFlag = false;
+
+  /* For on stack replacement, it memorizes the length of prologue.
+   * OPT compiler has a phase called OPT_AdjustBCIndexes after BC2HIR.
+   * The baseline compiler will adjust the bytecodeMap after assembling
+   * the machine code.
+   */
+  public int realBCOffset;
+ 
+  /* OriginalBC keeps original bytecode. 
+   *
+   * NOTE:
+   * For the baseline compiler, the caller of VM_Compiler.compile
+   * sets the bytecode to the specialized one
+   */
+ 
+  /* is this method bytecode set for special compilation? */
+  private byte[] originalBytecodes = null;
+  private byte[] specialBytecodes = null;
+  private boolean isForSpecialization = false;
+
+  private int savedOperandWords;
+  
+  public boolean isForSpecialization() {
+    return this.isForSpecialization;
+  }
+
+  /* between flag and action, it does not allow GC or threadSwitch happen. */
+  public void setForSpecialization(byte[] specialbcodes, int prolength, int newStackHeight) {
+    this.isForSpecialization = true;
+    this.originalBytecodes = this.bytecodes;
+    this.specialBytecodes = specialbcodes;
+	this.realBCOffset = prolength;
+	this.bytecodes = this.specialBytecodes;
+	this.savedOperandWords = this.operandWords;
+	if (newStackHeight > this.operandWords) {
+	  this.operandWords = newStackHeight;
+
+	  if (VM.TraceOnStackReplacement) {
+		VM.sysWriteln("new stack height "+newStackHeight
+						+" old "+this.savedOperandWords+" "+this.toString());
+	  }
+	}
+  }
+ 
+  /* restore the original bytecode. */
+  public void finalizeSpecialization() {
+    if (this.isForSpecialization == false) return;
+
+    this.isForSpecialization = false;
+    this.bytecodes = this.originalBytecodes;
+    this.originalBytecodes = null;
+    this.specialBytecodes = null;
+    this.operandWords = this.savedOperandWords;
+  }
+
+  /* return the OSR prologue length */
+  public int getOsrPrologueLength() {
+    return this.realBCOffset;
+  }
+
+  /**
+   * This is a special method for GC, dynamic linker when the method
+   * on the top of a thread waiting for specialization.
+   */
+  public final byte[] getOriginalBytecodes() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    if (this.isForSpecialization) {
+      return this.originalBytecodes;
+    } else {
+      return this.specialBytecodes;
+    }
+  }
+
+  /**
+   * This is a kludge for OSR, OSR_SpecialCompiler needs to see the
+   * bytecode array
+   */
+  public final byte[] getBytecodeArray() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+	if (VM.VerifyAssertions) VM._assert(isLoaded());
+	return this.bytecodes;
+  }
+  //-#endif RVM_WITH_OSR
+
   //-----------//
   // Interface //
   //-----------//
@@ -228,7 +317,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   final void setOperandWords(int owords) {
     operandWords = owords;
   }
-
+  
   /**
    * Get a representation of the bytecodes in the code attribute of this method.
    * @return object representing the bytecodes
@@ -237,8 +326,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return new VM_BytecodeStream(this, bytecodes);
-  }
-
+  }  
+  
   /**
    * setter for bytecodes
    */

@@ -12,6 +12,10 @@ package com.ibm.JikesRVM;
  */
 class NetworkMonitor extends Thread
    {
+   public String toString() {
+    return "NetworkMonitor";
+   }
+
    // Invoked by VM_Debugger.
    //
    static void 

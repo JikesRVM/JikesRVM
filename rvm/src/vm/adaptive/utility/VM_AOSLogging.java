@@ -42,7 +42,7 @@ import java.io.*;
  * @author Michael Hind
  * @modified Peter Sweeney
  */
-class VM_AOSLogging {
+public class VM_AOSLogging {
 
   /*
    * The output file stream, where all log messages will go
@@ -587,13 +587,13 @@ class VM_AOSLogging {
    * @param hotMethod	method to be recompiled, and
    * @param numSamples	number of samples attributed to the method
    */
-  public static void 
-    controllerNotifiedForHotness(VM_CompiledMethod hotMethod,
+  public static void controllerNotifiedForHotness(VM_CompiledMethod hotMethod,
 				 double numSamples) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
-		    +" Controller notified that method "+hotMethod.getMethod()+
+                    +" Controller notified that method "+hotMethod.getMethod()
+                    + "(" + hotMethod.getId() + ")" + 
 		    " has "+numSamples+" samples");
       }
     }
@@ -609,8 +609,7 @@ class VM_AOSLogging {
    * @param optLevel the opt level being estimated, -1 = baseline
    * @param cost  the computed cost for this method and level
    */
-  public static void 
-    recordControllerEstimateCostDoNothing(VM_Method method, 
+  public static void recordControllerEstimateCostDoNothing(VM_Method method, 
 					  int optLevel,
 					  double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
@@ -634,8 +633,7 @@ class VM_AOSLogging {
    * @param choiceDesc
    @ @param cost  the computed cost for this method and level
    */
-  public static void 
-    recordControllerEstimateCostOpt(VM_Method method, 
+  public static void recordControllerEstimateCostOpt(VM_Method method, 
 				    String choiceDesc,
 				    double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
@@ -647,4 +645,104 @@ class VM_AOSLogging {
       }
     }
   }
+
+  //-#if RVM_WITH_OSR
+  public static void recordOSRRecompilationDecision(VM_ControllerPlan plan) {
+    OPT_CompilationPlan cplan = plan.getCompPlan();
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" recompile with OSR " +
+                    "( at level " + cplan.options.getOptLevel() +" ) " + cplan.method);
+      }
+    }
+  }
+  public static void onStackReplacementStarted(OPT_CompilationPlan plan) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" OSR starts " +
+                    "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+      }
+    }
+  }
+
+  public static void onStackReplacementCompleted(OPT_CompilationPlan plan) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" OSR ends " +
+                    "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+      }
+    }
+  }
+
+  public static void onStackReplacementAborted(OPT_CompilationPlan plan) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" OSR failed "+
+                    "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+      }
+    }
+  }
+
+  public static void logOsrEvent(String s) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock + " " + s);
+      }
+    }
+  }
+
+  public static void deOptimizationStarted() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" Deoptimization starts ");
+      }
+    }
+  }
+
+  public static void deOptimizationCompleted() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" Deoptimization ends.");
+      }
+    }
+  }
+
+  public static void deOptimizationAborted() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock +" Deoptimization aborted.");
+      }
+    }
+  }
+  //-#endif
+  public static void debug(String s) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized(log) {
+        log.println(VM_Controller.controllerClock + s);
+      }
+    }
+  }
+
+  //-#if RVM_WITH_OSR
+  public static void onstackreplacementStarted(OPT_CompilationPlan plan) {
+    synchronized(log) {
+      log.println(VM_Controller.controllerClock +" OSR starts " +
+         "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+    }
+  }
+ 
+  public static void onstackreplacementCompleted(OPT_CompilationPlan plan) {
+    synchronized(log) {
+      log.println(VM_Controller.controllerClock +" OSR ends " +
+        "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+    }
+  }
+ 
+  public static void onstackreplacementAborted(OPT_CompilationPlan plan) {
+    synchronized(log) {
+      log.println(VM_Controller.controllerClock +" OSR failed "+
+         "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
+    }
+  }
+  //-#endif
 }

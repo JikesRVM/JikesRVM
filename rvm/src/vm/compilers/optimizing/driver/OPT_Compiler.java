@@ -39,7 +39,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  *
  */
-public class OPT_Compiler {
+public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
 
   ////////////////////////////////////////////
   // Initialization
@@ -76,7 +76,10 @@ public class OPT_Compiler {
         // TODO: This could be phased out as the new DynamicBridge 
         // magic comes on line.
         loadSpecialClass("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", options);
+
       }
+      // want to be notified by app start event
+	  VM_Callbacks.addAppRunStartMonitor(new OPT_Compiler());
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
       // failures during initialization can't be ignored
@@ -89,6 +92,25 @@ public class OPT_Compiler {
 						  + " Converting to OPT_OptimizingCompilerException");
     }
   }
+
+  /*
+   * callback when application is about to startup.
+   */
+  public void notifyAppRunStart(String app, int n) {
+  //-#if RVM_WITH_OSR
+  if (VM.TraceOnStackReplacement) {
+    VM.sysWriteln("OPT_Compiler got notified of AppRunStart");
+  }
+  //-#endif
+  setAppStarted();
+  }
+
+  /**
+   * indicate when the application has started
+   */
+  private static boolean appStarted = false;
+  public static synchronized boolean getAppStarted() { return appStarted; }
+  public static synchronized void setAppStarted() { appStarted = true; }  
 
   /**
    * Set up option used while compiling the boot image

@@ -1349,4 +1349,92 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_CondBranch.create(IA32_JCC, COND(cond), target, bp));
   }
 
+  /* special case handling OSR instructions 
+   * expand long type variables to two intergers
+   */
+  void OSR(OPT_BURS burs, OPT_Instruction s) {
+//-#if RVM_WITH_OSR
+   if (VM.VerifyAssertions) VM._assert(OsrPoint.conforms(s));
+
+    // 1. how many params
+    int numparam = OsrPoint.getNumberOfElements(s);
+    int numlong = 0;
+    for (int i = 0; i < numparam; i++) {
+      OPT_Operand param = OsrPoint.getElement(s, i);
+      if (param.getType() == VM_Type.LongType) {
+        numlong++;
+      }
+    }
+
+    // 2. collect params
+    OPT_InlinedOsrTypeInfoOperand typeInfo = 
+      OsrPoint.getClearInlinedTypeInfo(s);
+
+    if (VM.VerifyAssertions) {
+      if (typeInfo == null) {
+	VM.sysWriteln("OsrPoint "+s+" has a <null> type info:");
+	VM.sysWriteln("  position :"+s.bcIndex+"@"+s.position.method);
+      }
+      VM._assert(typeInfo != null);
+    }
+
+    OPT_Operand[] params = new OPT_Operand[numparam];
+    for (int i = 0; i <numparam; i++) {
+      params[i] = OsrPoint.getClearElement(s, i);
+    }
+
+    // set the number of valid params in osr type info, used
+    // in LinearScan
+    typeInfo.validOps = numparam;
+
+    // 3: only makes second half register of long being used
+    //    creates room for long types.
+    burs.append(OsrPoint.mutate(s, s.operator(), 
+				typeInfo,
+				numparam + numlong));
+
+    int pidx = numparam;
+    for (int i = 0; i < numparam; i++) {
+      OPT_Operand param = params[i];
+      OsrPoint.setElement(s, i, param);
+      if (param instanceof OPT_RegisterOperand) {
+        OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
+	// the second half is appended at the end
+	// OPT_LinearScan will update the map.
+        if (rparam.type == VM_Type.LongType) {
+          OsrPoint.setElement(s, pidx++, 
+			    L(burs.ir.regpool.getSecondReg(rparam.register)));
+        }
+      } else if (param instanceof OPT_LongConstantOperand) {
+	OPT_LongConstantOperand val = (OPT_LongConstantOperand)param;
+
+	if (VM.TraceOnStackReplacement) {
+	  VM.sysWriteln("caught a long const " + val);
+	}
+
+	OsrPoint.setElement(s, i, I(val.upper32()));
+	OsrPoint.setElement(s, pidx++, I(val.lower32()));
+      } else if (param instanceof OPT_IntConstantOperand){
+	continue;
+      } else {
+	throw new OPT_OptimizingCompilerException("OPT_BURS_Helpers", "unexpected parameter type"+param);
+      }
+    }
+
+    if (pidx != (numparam+numlong)) {
+      VM.sysWriteln("pidx = "+pidx);
+      VM.sysWriteln("numparam = "+numparam);
+      VM.sysWriteln("numlong = "+numlong);
+    }
+
+    if (VM.VerifyAssertions) VM._assert(pidx == (numparam+numlong));
+
+	/*
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("BURS rewrite OsrPoint "+s);
+      VM.sysWriteln("  position "+s.bcIndex+"@"+s.position.method);
+    }
+	*/
+  //-#endif
+  }
 }

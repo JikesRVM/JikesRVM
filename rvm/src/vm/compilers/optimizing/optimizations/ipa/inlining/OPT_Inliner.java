@@ -169,7 +169,21 @@ public class OPT_Inliner implements OPT_Operators,
       }
       //-#endif
 	
+      //-#if RVM_WITH_OSR
+      if (inlDec.OSRTestFailed()) {
+        // note where we're storing the osr barrier instruction
+        OPT_Instruction lastOsrBarrier = (OPT_Instruction)callSite.scratchObject;
+        OPT_Instruction s = OPT_BC2IR._osrHelper(lastOsrBarrier);
+        s.position = callSite.position;
+        s.bcIndex = callSite.bcIndex;
+        testFailed.appendInstruction(s);
+//      testFailed.appendInstruction(call);
+      } else {
+        testFailed.appendInstruction(call);
+      }
+      //-#else
       testFailed.appendInstruction(call);
+      //-#endif
       testFailed.insertOut(container.epilogue);
       container.cfg.linkInCodeOrder(testFailed, container.epilogue);
       // This is ugly....since we didn't call BC2IR to generate the 

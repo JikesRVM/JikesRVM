@@ -69,6 +69,11 @@ public final class OPT_MethodOperand extends OPT_Operand {
    */
   public byte type = -1;
 
+  //-#if RVM_WITH_OSR
+  private boolean designatedOffset = false;
+  public int jtocOffset;
+  //-#endif
+
   /**
    * Is the target currently unresolved?
    */
@@ -99,6 +104,31 @@ public final class OPT_MethodOperand extends OPT_Operand {
       }
     }
   }
+
+  //-#if RVM_WITH_OSR
+  /**
+   * Returns a method operand representing a compiled method with designated
+   * JTOC offset.
+   * @param callee, the callee method
+   * @param offset, designated jtop offset of compiled method of callee
+   * @return the method operand
+   * @see OPT_ConvertToLowLevelIR which uses jtocOffset
+   */
+  public static OPT_MethodOperand COMPILED(VM_Method callee, int offset) {
+    byte type = callee.isStatic()?STATIC:VIRTUAL;
+    // must be resolved already.
+    OPT_MethodOperand op = new OPT_MethodOperand(callee, type, false);
+    op.jtocOffset = offset;
+    op.designatedOffset = true;
+    op.isSingleTarget = true;
+    
+    return op;
+  }
+
+  public boolean hasDesignatedTarget() {
+    return this.designatedOffset;
+  }
+  //-#endif
 
   /**
    * create a method operand for an INVOKE_SPECIAL bytecode

@@ -122,6 +122,23 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
           }
         }
       }
+
+      //-#if RVM_WITH_OSR
+      // Before OSR points, we need to save all FPRs, 
+      // On OptExecStateExtractor, all GPRs have to be recovered, 
+      // but not FPRS.
+      //
+      if (s.operator == YIELDPOINT_OSR) {
+        for (Iterator sym = symbolic.iterator(); sym.hasNext(); ) {
+          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+          if (symb.getRegister().isFloatingPoint()) {
+            if (contains(symb,s.scratch)) {
+	      forbidAllVolatiles(symb.getRegister());
+            }
+          }
+        }	
+      }
+      //-#endif
     }
 
     // 3. architecture-specific restrictions

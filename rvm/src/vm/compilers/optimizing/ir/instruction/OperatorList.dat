@@ -1320,6 +1320,20 @@ tsp | yieldPoint
 
 
 
+# explict thread switch point, must success
+YIELDPOINT_OSR
+OsrPoint
+tsp | yieldPoint
+
+
+
+# On stack replacement barrier
+OSR_BARRIER
+OsrBarrier
+none
+
+
+
 # a pseudo instruction to represent the prologue
 IR_PROLOGUE
 Prologue

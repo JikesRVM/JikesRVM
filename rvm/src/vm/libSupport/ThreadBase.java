@@ -13,4 +13,12 @@ import com.ibm.JikesRVM.VM_Thread;
  * @author Stephen Fink
  */
 public class ThreadBase extends VM_Thread {
+  //-#if RVM_WITH_OSR
+  public ThreadBase() {
+    super.isSystemThread = false;
+  }
+  //-#endif
+  public String toString() {
+    return "ThreadBase";
+  }
 }

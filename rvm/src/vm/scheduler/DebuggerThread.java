@@ -23,6 +23,9 @@ class DebuggerThread extends VM_Thread {
 
   DebuggerThread() {
     makeDaemon(true);
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }
 
   public String toString() {

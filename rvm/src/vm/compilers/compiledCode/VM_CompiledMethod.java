@@ -26,6 +26,11 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   private final static int COMPILED     = 0x80000000;
   private final static int INVALID      = 0x40000000;
   private final static int OBSOLETE     = 0x20000000;
+
+  //-#if RVM_WITH_OSR
+  // flags the baseline compiled method is outdated, needs OSR
+  private final static int OUTDATED	    = 0x10000000;
+  //-#endif
   protected final static int AVAIL_BITS = 0x0fffffff;
 
   /**
@@ -43,6 +48,40 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    */
   protected INSTRUCTION[] instructions; 
 
+  //-#if RVM_WITH_OSR
+  /* the offset of instructions in JTOC, for osr-special compiled method
+   * only. all osr-ed method is treated like static.
+   */
+  protected boolean isSpecialForOSR = false;
+  protected int osrJTOCoffset = 0;
+  public void setSpecialForOSR() {
+    this.isSpecialForOSR = true;
+
+    // set jtoc
+    this.osrJTOCoffset = VM_Statics.allocateSlot(VM_Statics.METHOD);
+    VM_Statics.setSlotContents(this.osrJTOCoffset, this.instructions);
+    this.osrJTOCoffset <<= 2;
+  }
+
+  public boolean isSpecialForOSR() {
+    return this.isSpecialForOSR;
+  }
+
+  public int getOsrJTOCoffset() {
+    if (VM.VerifyAssertions) VM._assert(this.isSpecialForOSR);
+    return this.osrJTOCoffset;
+  }
+  //-#endif
+
+  /**
+   * Has the method sample data for this compiled method been reset?
+   */
+  private boolean samplesReset = false;
+ 
+  public void setSamplesReset() { samplesReset = true; }
+  public boolean getSamplesReset() { return samplesReset; }
+
+  
   /**
    * The time in milliseconds taken to compile the method.
    */
@@ -111,6 +150,25 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     }
   }
 
+  //-#if RVM_WITH_OSR
+  /**
+   * Mark the compiled method as outdated (ie requires OSR),
+   * the flag is set in VM_AnalyticModel
+   */
+  public final void setOutdated() throws VM_PragmaUninterruptible {
+	if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
+	bitField1 |= OUTDATED;
+  }
+  
+  /**
+   * Check if the compiled method is marked as outdated,
+   * called by VM_Thread
+   */
+  public final boolean isOutdated() throws VM_PragmaUninterruptible {
+	return (bitField1 & OUTDATED) != 0;
+  }
+  //-#endif
+  
   /**
    * Has compilation completed?
    */

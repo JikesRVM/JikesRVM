@@ -227,6 +227,21 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             conditionalBranchCount++;
           }
           break;
+        //-#if RVM_WITH_OSR
+        case YIELDPOINT_OSR_opcode:
+          {
+	    // unconditionally branch to yield point.
+            OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
+                                        VM_Thread.OSROPT);
+            // Because the GC Map code holds a reference to the original
+            // instruction, it is important that we mutate the last instruction
+            // because this will be the GC point.
+	    MIR_Call.mutate0(p, PPC_BL, null, null, 
+			     yieldpoint.makeJumpTarget());
+          }
+	  instructionCount++;
+          break;
+        //-#endif
         case IR_ENDPROLOGUE_opcode:
           {
 	    // Remember where the end of prologue is for debugger
@@ -252,6 +267,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       machinecodeLength = instructionCount + 2*conditionalBranchCount; 
     else 
       machinecodeLength = instructionCount + conditionalBranchCount;
+
+    //-#if RVM_WITH_OSR
+    // reserver more space for thread swith basic blocks
+    int OSR_TS_BLOCK_SIZE = 5;
+    machinecodeLength += OSR_TS_BLOCK_SIZE;
+    //-#endif
     if ((machinecodeLength & ~OPT_Assembler.MAX_24_BITS) != 0)
       throw new OPT_OptimizingCompilerException("CodeGen", 
 						"method too large to compile:", 
@@ -291,6 +312,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       else 
         meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     }
+    //-#if RVM_WITH_OSR
+    else if (whereFrom == VM_Thread.OSROPT) {
+      if (ir.MIRInfo.osrYieldpointBlock != null)
+	return ir.MIRInfo.osrYieldpointBlock;
+      else
+	meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+    }
+    //-#endif 
 
     // Not found.  create new basic block holding the requested yieldpoint
     // method
@@ -316,8 +345,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       ir.MIRInfo.prologueYieldpointBlock = result;
     else if (whereFrom == VM_Thread.BACKEDGE) 
       ir.MIRInfo.backedgeYieldpointBlock = result;
-    else                                      
+    else if (whereFrom == VM_Thread.EPILOGUE) 
       ir.MIRInfo.epilogueYieldpointBlock = result;
+    //-#if RVM_WITH_OSR
+    else if (whereFrom == VM_Thread.OSROPT)
+      ir.MIRInfo.osrYieldpointBlock = result;
+    //-#endif 
 
     return result;
   }

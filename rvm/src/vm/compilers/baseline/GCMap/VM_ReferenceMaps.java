@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Anthony Cocchi
  * @modified Perry Cheng
  */
-final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
+public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
 
   VM_ReferenceMaps(VM_BaselineCompiledMethod cm, int[] stackHeights) {
     VM_Method method = cm.getMethod();
@@ -1229,7 +1229,7 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
    * the index of the corresponding byte,
    * and the remaining number of bits in the map,
    * this routine scans forward to find the next ref in
-   * the map (inclusive serch ie include bitnum)
+   * the map (inclusive search ie include bitnum)
    */
   private int scanForNextRef(int bitnum, int wordnum, int remaining, byte[] map)   {
     int  remain, retbit, startbit, count = 0;
@@ -1868,4 +1868,46 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
 
     return totalCount;
   }
+
+  //-#if RVM_WITH_OSR
+  /* Interface for general queries such as given a GC point, if a stack slot or a local
+   * variable is a reference
+   */
+
+  /* query if a local variable at a bytecode index has a reference type value
+   * @param bcidx, the bytecode index
+   * @param lidx, the local index
+   * @return true, if it is a reference type
+   *         false, otherwise
+   */
+  public boolean isLocalRefType(VM_Method method, int mcoff, int lidx) {
+    int bytenum, bitnum;
+    byte[] maps;
+	
+    if (bytesPerMap == 0) return false;           // no map ie no refs
+    int mapid = locateGCPoint(mcoff, method);
+
+    if (mapid >= 0) {
+      // normal case
+      bytenum  = mapid * bytesPerMap;
+      bitnum = lidx + 1 + 1; // 1 for being 1 based +1 for jsr bit      
+	  maps = referenceMaps;
+	} else {
+      // in JSR
+      bytenum = mergedReferenceMap;
+      bitnum = lidx + 1; // 1 for being 1 based
+	  maps = unusualReferenceMaps;
+    }
+
+    // adjust bitnum and wordnum to bit within word
+    while(bitnum > BITS_PER_MAP_ELEMENT) {
+      bytenum++;
+      bitnum -= BITS_PER_MAP_ELEMENT;
+    }
+
+    int mask = (1 << (BITS_PER_MAP_ELEMENT - bitnum));  // generate mask
+
+    return ((mask & maps[bytenum]) != 0);
+  }
+  //-#endif
 }

@@ -1918,3 +1918,11 @@ r:	OTHER_OPERAND(r,r)
 NOFLAGS
 // do nothing
 
+###############
+# on stack replace 
+###############
+r:  YIELDPOINT_OSR(any, any)
+11
+EMIT_INSTRUCTION
+OSR(burs, P(p));
+
