@@ -682,8 +682,7 @@ softwareSignalHandler(int signo,
 }
 
 
-/* Returns 1 upon any errors; the only time it can return is if there's an
-   error. */
+/* Returns 1 upon any errors.   Never returns except to report an error. */
 int
 createJVM(int UNUSED vmInSeparateThread)
 {
@@ -700,6 +699,28 @@ createJVM(int UNUSED vmInSeparateThread)
         fprintf(SysTraceFile, " for SMP\n");
 #endif
     }
+
+/* Note: You probably always want to use MMAP_COPY_ON_WRITE.
+   <p>
+   On my sample
+   machine (IBM Thinkpad T23), using MMAP_COPY_ON_WRITE we can run "Hello
+   World" a lot faster.  These results are the averages after a settling-down
+   period for the disk cache to fill up.  They are even more dramatic without
+   the settling-down period:
+
+		    With MMAP_COPY_ON_WRITE		Old Way
+   BaseBaseCopyMS:      0.875 seconds			1.4 seconds
+   FastAdaptiveCopyMS:	0.237 seconds			2.0   seconds
+
+   The only disadvantage I can see here is that with copy-on-write, it means
+   that if somebody rewrites the boot image file while you're running from that
+   boot image, you will lose big.  However, we never did perform any boot
+   image locking, so that if somebody had rewritten the boot image while you
+   were loading it, you would have had the same problem.  Of course, now the
+   window of vulnerability is much wider than two seconds; it's the entire run
+   time of the program. */
+
+#define MMAP_COPY_ON_WRITE
 
     /* open and mmap the image file. 
      * create bootRegion
@@ -720,8 +741,29 @@ createJVM(int UNUSED vmInSeparateThread)
 
 
     void *bootRegion = 0;
+#ifdef MMAP_COPY_ON_WRITE
+    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
+		      PROT_READ | PROT_WRITE | PROT_EXEC,
+		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
+		      fileno(fin), 0);
+    if (bootRegion == (void *) MAP_FAILED) {
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %e\n", 
+		Me, errno, errno);
+        return 1;
+    }
+    if (bootRegion != (void *) bootImageAddress) {
+	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
+			     " got %p instead.  This should never happen.",
+		bootRegion, bootImageAddress);
+	/* Don't check the return value.  This is insane already.
+	 * If we weren't part of a larger runtime system, I'd abort at this
+	 * point.  */
+	(void) munmap(bootRegion, roundedImageSize);
+	return 1;
+    }
+#else
     // allocate region 1 and 2
-    bootRegion = mmap ((void *) bootImageAddress, roundedImageSize,
+    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
                        PROT_READ | PROT_WRITE | PROT_EXEC,
                        MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 
@@ -742,6 +784,14 @@ createJVM(int UNUSED vmInSeparateThread)
                  Me, actualImageSize);
         return 1;
     }
+
+#endif
+
+#ifdef MMAP_COPY_ON_WRITE
+    /* Quoting from the Linux mmap(2) manual page:
+       "closing the file descriptor does not unmap the region."
+    */
+#endif
 
     if (fclose (fin) != 0) {
         fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
