@@ -1679,6 +1679,7 @@ function emitImageLinker
     print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan;' >> $PRIMORDIAL_CLASSES_STR"
+	print "   print 'Lcom/ibm/JikesRVM/adaptive/OSR_OrganizerThread;' >> $PRIMORDIAL_CLASSES_STR"
   fi
 
    if (( RVM_WITH_GNU_CLASSPATH )); then
