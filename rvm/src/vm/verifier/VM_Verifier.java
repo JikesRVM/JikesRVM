@@ -4,35 +4,40 @@
 //$Id$
 
 /**
- * Verify a method or a class
- *
- * TODO: add javadoc comments
+ * This class is used to verify the bytecode of a method or a class.
+ * <p> 
+ * Note: the verifier will try to load classes when necessary, breaking
+ * lazy class loading here.
+ * 
+ * @author Lingli Zhang  6/20/02
  *
  * @see VM_BasicBlock.java
  * @see VM_BuildBB.java
  *
- * @author Lingli Zhang  06/20/02
  */
 import java.util.Stack;
 import java.lang.Exception;
 
 public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
+
   //type of local variable and stack cell
-  static final int V_NULL = 0; 
-  static final int V_INT = -1;
-  static final int V_FLOAT = -2;
-  static final int V_RETURNADDR = -3;
-  static final int V_UNDEF = -4;
-  static final int V_VOID = -5;
-  static final int V_LONG =-6;
-  static final int V_DOUBLE = -7;
-  static final int V_REF =1;
+  static final private int V_NULL = 0; 
+  static final private int V_INT = -1;
+  static final private int V_FLOAT = -2;
+  static final private int V_RETURNADDR = -3;
+  static final private int V_UNDEF = -4;
+  static final private int V_VOID = -5;
+  static final private int V_LONG =-6;
+  static final private int V_DOUBLE = -7;
+  static final private int V_REF =1;
 
 
   static final private byte ONEWORD = 1;
   static final private byte DOUBLEWORD = 2;
 
+  //work list top pointer
   private int workStkTop;
+  //work list
   private short[] workStk = null;
 
   private int currBBNum ;
@@ -57,6 +62,12 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
   private VM_PendingJSRInfo[] bbPendingJsrs = null;
 
 
+  /**
+   * Verify the bytecode of a given class. If the class hasn't been loaded, this method
+   * will try to load it. It will verify the declared methods of this class one by one.
+   *
+   * @param cls the class to be verify
+   */
   public void verifyClass(VM_Class cls) {
     if(cls == null){
       VM.sysWrite("No class to be verified. \n");
@@ -92,6 +103,25 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
   }
 
+  /**
+   * Verify the bytecode of a given method.
+   * <p>
+   * This verifier does abstract interpretation on the type stack. It uses the
+   * basic dataflow analysis algorithm (worklist to reach fix points) to check
+   * the validity of the bytecodes. Each basic block has one IN type map and one
+   * OUT type map. The IN map is got by merging the maps from all its predecessors.
+   * The OUT map is calculated by simulating the execution of bytecodes on types.
+   * <p>
+   * At any program point, if the conditions described in The Java Virtual Machine
+   * Specification are broken, bytecode verification fails.
+   *
+   * @param method the method to be verified
+   * @return true if the method passes the verification
+   *         false if the method fails the verification
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   public boolean verifyMethod(VM_Method method) throws Exception{
 
     currMethodName = method.toString();
@@ -1503,24 +1533,23 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
                                       cls.load();
 
                                     VM_Atom d = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;");
-                                    VM_Class throwType = VM_ClassLoader.findOrCreateType(d, 
-                                                                                         VM_SystemClassLoader.getVMClassLoader()).asClass(); 
-                                                                                         //resolve class
-                                                                                         if(!throwType.isLoaded())
-                                                                                           throwType.load();
+                                    VM_Class throwType = VM_ClassLoader.findOrCreateType(d, VM_SystemClassLoader.getVMClassLoader()).asClass(); 
+                                    //resolve class
+                                    if(!throwType.isLoaded())
+                                      throwType.load();
 
-                                                                                         while(cls!= null && cls!= throwType)
-                                                                                           cls = cls.getSuperClass();
+                                    while(cls!= null && cls!= throwType)
+                                      cls = cls.getSuperClass();
 
-                                                                                         if(cls==null){
-                                                                                           VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
-                                                                                                       +" in method " + currMethodName+ " \n");
-                                                                                           return false;
-                                                                                         }
-                                                                                         currBBStkTop = currBBStkEmpty +1;
-                                                                                         currBBMap[currBBStkTop] = typeId;
-                                                                                         processNextBlock = false;
-                                                                                         break;
+                                    if(cls==null){
+                                      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                                  +" in method " + currMethodName+ " \n");
+                                      return false;
+                                    }
+                                    currBBStkTop = currBBStkEmpty +1;
+                                    currBBMap[currBBStkTop] = typeId;
+                                    processNextBlock = false;
+                                    break;
                                   }
           case JBC_monitorenter:
           case JBC_monitorexit:
@@ -1688,7 +1717,21 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
     return true;
   }
 
-  /* for bytecode like *load* or *const*/
+  /**
+   * process bytecodes like "load", "const" and bipush, sipush, etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param index  the register index, -1 for "const" set bytecodes
+   * @param stackWords  1 for int/float/reference, 2 for double/long
+   * @param checkIndex  whether need to check the validity of index or not
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void load_like(int expectType, int index, int stackWords, boolean checkIndex)
     throws Exception { 
 
@@ -1734,7 +1777,19 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
-  //for ldc* instructions
+  /**
+   * process bytecodes like "ldc", etc.. 
+   *
+   * @param numOfWord  1 for int/float/reference, 2 for double/long
+   * @param cpindex  the constant pool index
+   * @param declaringClass  the deClaring class of the method been verified 
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void ldc_like(int numOfWord, int cpindex, VM_Class declaringClass)
     throws Exception {
       currBBStkTop +=numOfWord;
@@ -1777,7 +1832,21 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
           throw new Exception();
       }
     }
-  //for *2* like i2l instructions
+
+  /**
+   * process type converting bytecodes like "i2l", etc.. 
+   *
+   * @param fromType the type converted from, could be V_INT, V_LONG, V_FLOAT OR V_DOUBLE
+   * @param toType the type converted to, could be V_INT, V_LONG, V_FLOAT OR V_DOUBLE
+   * @param fromWord  1 for int/float, 2 for double/long
+   * @param toWord  1 for int/float, 2 for double/long
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void cast_like(int fromType, int toType, int fromWord, int toWord)
     throws Exception {
       boolean correct = true;
@@ -1813,7 +1882,23 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
-  //for *store instructions
+  /**
+   * process bytecodes like "istore", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param storeWords  1 for int/float/reference, 2 for double/long
+   * @param index  the register index 
+   * @param reachableHandlerBBNums the basic block numbers of all reachable 
+   *                                  exception handlers from this basic block
+   * @param reachableHandlersCount the number of reachable exception handlers from this basic block
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void store_like(int expectType, int storeWord, int index, 
                           int[] reachableHandlerBBNums, int	reachableHandlersCount) throws Exception {
 
@@ -1863,7 +1948,18 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
   }
 
-  //for dup like instructions
+  /**
+   * process bytecodes like "dup", etc.. 
+   *
+   * @param numTodup the number of stack cells to be duplicated
+   * @param numTodown the distance from the stack cells duplicated to stack top  
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void dup_like(int numTodup, int numTodown) throws Exception {
     //check stack overflow
     if(currBBStkTop +numTodup >= currBBMap.length){	
@@ -1888,7 +1984,20 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
     currBBStkTop += numTodup;
   }
 
-  //for all arithmetic instructions and logic instructions
+  /**
+   * process all arithmetic and logic bytecodes like "iadd", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG
+   * @param numOfOpd the number of operands, could be 1 for unary bytecode like ineg 
+   * @param numOfWord 1 for int/float, 2 for double/long  
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void arith_like(int expectType, int numOfOpd, int numOfWord) throws Exception{
     //check stack underflow
     if(currBBStkTop-numOfWord +1 <= currBBStkEmpty){
@@ -1912,7 +2021,20 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
       currBBStkTop = currBBStkTop - numOfWord;
   }
 
-  //for *return instructions
+  /**
+   * process all bytecodes like "return", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param numOfWord 1 for int/float/reference, 2 for double/long  
+   * @param method the method is being processed, used to verify the return type
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void return_like(int expectType, int numOfWord, VM_Method method)
     throws Exception {
       //check stack underflow
@@ -1976,7 +2098,19 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
       processNextBlock = false;
     }
 
-  //for aaload like instructions
+  /**
+   * process all array load bytecodes like "aaload", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param numOfWord 1 for int/float/reference, 2 for double/long  
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void aaload_like(int expectType, int numOfWord) throws Exception{
     //check stack underflow
     if((currBBStkTop-2)  < currBBStkEmpty){
@@ -2021,7 +2155,19 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
   }
 
-  //for aastore like instructions
+  /**
+   * process all array store bytecodes like "aastore", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param numOfWord 1 for int/float/reference, 2 for double/long  
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void aastore_like(int expectType, int numOfWord)
     throws Exception {
       //check stack underflow
@@ -2077,7 +2223,21 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
-  //for cmp_like instructions, both branch or non-branch, just for type check
+  /**
+   * process all comparation based bytecodes, either branch or non-branch, like "ifeq", "fcmpl", etc.. 
+   *
+   * @param expectType the type this bytecode expects. 
+   *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
+   * @param numOfWord 1 for int/float/reference, 2 for double/long  
+   * @param numOfOpd the number of operands
+   * @param pushWord the word number of the result pushed back to the stack by the bytecode 
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void cmp_like(int expectType, int numOfWord, int numOfOpd, int pushWord)
     throws Exception {
       //check stack underflow
@@ -2104,7 +2264,18 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
         currBBMap[++currBBStkTop] = V_INT;
     }
 
-  //for getstatic and getfield
+  /**
+   * process bytecodes getstatic and getfield 
+   *
+   * @param field the field reference that need to get
+   * @param isStatic whether this field is static(true) or not(false)
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void get_like(VM_Field field, boolean isStatic)
     throws Exception {
 
@@ -2156,7 +2327,18 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
-  //for putstatic and putfield
+  /**
+   * process bytecodes putstatic and putfield 
+   *
+   * @param field the field reference that need to get
+   * @param isStatic whether this field is static(true) or not(false)
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void put_like(VM_Field field, boolean isStatic)
     throws Exception {
 
@@ -2216,7 +2398,20 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
-  //merge type information and add new block to work list
+  /**
+   * Merge a new type map to a basic block's old map. 
+   * if the result type map different from the old map, add this block to work list 
+   *
+   * @param brBBNum  the destination basic block number
+   * @param newBBMap the new type map that need to be merged
+   * @param newBBStkTop the new type map's stack height
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void MergeMaps(short brBBNum, int[] newBBMap, int newBBStkTop)  throws Exception {
 
     //if the destination block doesn't already have a map, then use this map as its map
@@ -2286,6 +2481,19 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
   }
 
+  /**
+   * Merge two types. If they are incompatible, return V_UDEF, otherwise return 
+   * the smallest common type.
+   *
+   * @param newType the new type that need to be merged
+   * @param originalType the original type
+   *
+   * @return result type, V_UDEF if incompatible, otherwise the smallest common type 
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private int MergeOneCell(int newType, int originalType) throws Exception{
 
     //exactly the same
@@ -2310,6 +2518,18 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
     return V_UNDEF;
   }
 
+  /**
+   * process branch, merge the type map of destination basic block with current type map   
+   * 
+   *
+   * @param brBBNum the branch destination basic block number 
+   *
+   * @return nothing 
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void processBranchBB(short brBBNum) throws Exception {
 
 
@@ -2321,7 +2541,16 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
   }
 
 
-  //computer maps for the instructions right after "jsr"
+  /**
+   * computer type maps for the instructions right after "jsr" using currPendingJsr.
+   * called when "ret" is processed
+   * 
+   * @return nothing 
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void computeJSRNextMaps() throws Exception {
 
     currPendingJsr.newEndMap(currBBMap, currBBStkTop);
@@ -2346,7 +2575,14 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
     }
   }
 
-  //add a new block number on to the top of the work list
+  /**
+   * add a new block number to the top of the work list
+   *
+   * @param blockNum the id number of the basic block to be added
+   *
+   * @return nothing 
+   *
+   */
   private void addToWorkStk(short blockNum) {
     workStkTop++;
     if (workStkTop >= workStk.length) {
@@ -2361,28 +2597,39 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
     //VM.sysWrite("-----------add " + blockNum + " to worklist\n");
   }
 
-  private void addUniqueToWorkStk(short blockNum) {
+  /*private void addUniqueToWorkStk(short blockNum) {
     if ((workStkTop+1) >= workStk.length) {
-      short[] biggerQ = new short[workStk.length + 20];
-      boolean matchFound = false;
-      for (int i=0; i<workStk.length; i++) {
-        biggerQ[i] = workStk[i];
-        matchFound =  (workStk[i] == blockNum);
-      }
-      workStk = biggerQ;
-      biggerQ = null;
-      if (matchFound) return ;
+    short[] biggerQ = new short[workStk.length + 20];
+    boolean matchFound = false;
+    for (int i=0; i<workStk.length; i++) {
+    biggerQ[i] = workStk[i];
+    matchFound =  (workStk[i] == blockNum);
+    }
+    workStk = biggerQ;
+    biggerQ = null;
+    if (matchFound) return ;
     }
     else {
-      for (int i=0; i<=workStkTop; i++) {
-        if (workStk[i] == blockNum)
-          return;
-      }
+    for (int i=0; i<=workStkTop; i++) {
+    if (workStk[i] == blockNum)
+    return;
+    }
     }
     workStkTop++;
     workStk[workStkTop] = blockNum;
     return;
-  }
+    }
+   */
+
+  /**
+   * get an integer from bytecodes
+   *
+   * @param index the bytecode index of opcode
+   * @param bytecodes the method's bytecodes array
+   *
+   * @return the integer offset
+   *
+   */
   private int getIntOffset(int index, byte[] bytecodes){
     return (int)((((int)bytecodes[index+1])<<24) |
                  ((((int)bytecodes[index+2])&0xFF)<<16) |
@@ -2390,10 +2637,20 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
                  (((int)bytecodes[index+4])&0xFF));
   }
 
-  /*assumption: 
+  /**
+   * find the common super class's dictionary id for two classes
+   *
+   * assumptions: 
    * 1.both id1 and id2 are reference type 
    * 2.they are not the same type
    * 3.none of them is null type
+   *
+   * @param id1 the type dictionary id for the first class
+   * @param id2 the type dictionary id for the second class
+   *
+   * @return the common super class's dictionary id for the input classes
+   *
+   * @exception VM_ResolutionException  if any class can't be loaded or resolved
    */
   private int findCommonSuperClassId(int id1, int id2) 
     throws VM_ResolutionException {
@@ -2464,7 +2721,18 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
       return  best.getDictionaryId();
     }
 
-  //for invoke* instructions
+  /**
+   * process bytecodes invokespecial, invokevirtual, invokestatic and invokeinterface 
+   *
+   * @param calledMethod the called method's reference
+   * @param isStatic whether this method is static(true) or not(false)
+   *
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void processInvoke(VM_Method calledMethod, boolean isStatic)
     throws Exception {
 
@@ -2562,6 +2830,22 @@ public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
 
     }
 
+  /**
+   * used for basic blocks in try...catch... 
+   * The type map of exception handler's must be the result of merging all possible paths to this handler.
+   *
+   * @param newType the new type need to be merged
+   * @param localVariable the index of the register whose type is going to be merged
+   * @param wordCount the new type's word number
+   * @param reachablehandlerBBNums  the basic block id numbers of all handlers reachable from current basic block
+   * @param reachablehandlersCount  the number of all handlers reachable from current basic block
+   * 
+   * @return nothing
+   *
+   * @exception Exception
+   *            If the verifier catch any error during verification or it meets any
+   *            loading/resolving problem, it will throw out an intance of Exception
+   */
   private void setHandlersMaps(int newType, int localVariable, int wordCount, int[] reachableHandlerBBNums, 
                                int reachableHandlersCount)  throws Exception{
 
