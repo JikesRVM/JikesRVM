@@ -483,11 +483,12 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLWZ  (T0,  8, SP);  //  T0 := arrayref
     asm.emitLWZ  (T1,  0, SP);  //  T1 := value
     asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
+    astoreSetup(-1);
     if (MM_Interface.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
       asm.emitADDI (SP, 12, SP);  // complete 3 pops
     } else {
-      astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTWLLE seem redundant and possibly bogus
+      // NOT (dfb): following 4 lines plus emitTWLLE seem redundant and possibly bogus
       asm.emitLWZ  (T1,  8, SP);                    // T1 is array ref
       asm.emitLWZ  (T0,  4, SP);                    // T0 is array index
       asm.emitLWZ  (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
