@@ -1409,6 +1409,14 @@ function emitImageLinker
     print "   print 'Ljava/lang/VMSystem;'        >> $PRIMORDIAL_CLASSES_STR"
    fi
 
+   # reflection support
+   #
+   print "   print 'Ljava/lang/reflect/Field;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Method;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Member;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Constructor;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/AccessibleObject;' >> $PRIMORDIAL_CLASSES_STR"
+
    # hardware runtime errors
    #
    print "   print 'Ljava/lang/ArithmeticException;' >> $PRIMORDIAL_CLASSES_STR"
@@ -1608,9 +1616,8 @@ function emitImageLinker
     print "   print 'Ljava/io/PrintWriter;'        >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/io/OutputStreamWriter;'        >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/io/InputStreamReader;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/io/ByteArrayInputStream;'        >> $PRIMORDIAL_CLASSES_STR"
    fi
-   print "   print 'Ljava/lang/reflect/Constructor;'       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/reflect/AccessibleObject;'       >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_GNU_CLASSPATH )); then
     print "   print 'Lgnu/java/io/EncodingManager;'       >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lgnu/java/io/decode/Decoder8859_1;'       >> $PRIMORDIAL_CLASSES_STR"

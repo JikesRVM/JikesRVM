@@ -28,6 +28,10 @@
 /\/TimeLimit.sanity/ { next }
 /\/TimeLimit.performance/ { next }
 
+/\.properties$/ { next }
+/\.properties\.sample$/ { next }
+/README$/ { next }
+
 #
 # print everything else
 #

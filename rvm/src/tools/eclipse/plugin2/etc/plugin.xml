@@ -6,6 +6,10 @@
  $Revision$
  $Date$
  $Author$
+ $Id$
+
+ @author Jeffrey Palm
+
 -->
 <plugin
    id="com.ibm.jikesrvm.eclipse.jdt.launching"

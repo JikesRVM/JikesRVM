@@ -9,6 +9,11 @@ $Source$
 $Revision$
 $Date$
 $Author$
+$Id$
+
+(C) Copyright IBM Corp. 2002
+
+@author Jeffrey Palm
 
 -->
 <project name="jikesrvmlaunching" basedir="." default="build">

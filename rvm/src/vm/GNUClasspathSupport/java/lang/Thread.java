@@ -1,6 +1,7 @@
 /*
- * Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002
  */
+//$Id$
 package java.lang;
 
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
@@ -191,7 +192,7 @@ public class Thread extends ThreadBase implements Runnable {
     }
     
     public final synchronized void join(long timeoutInMilliseconds, int nanos) throws InterruptedException {
-	if (timeoutInMilliseconds < 0 || nanos < 0 || nanos > NANOS_MAX)
+	if (timeoutInMilliseconds < 0 || nanos < 0)
 	    throw new IllegalArgumentException();
 	
 	if (!started || isDead()) return;

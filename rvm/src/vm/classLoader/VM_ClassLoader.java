@@ -225,6 +225,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
                                   VM_Atom methodName, 
                                   VM_Atom methodDescriptor,
                                   ClassLoader classloader) {
+    if (classDescriptor.isArrayDescriptor())
+	classDescriptor = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;");
     VM_Triplet methodKey = new VM_Triplet(classDescriptor, methodName, 
                                           methodDescriptor);
     int        methodId  = VM_MethodDictionary.findOrCreateId(methodKey, null);

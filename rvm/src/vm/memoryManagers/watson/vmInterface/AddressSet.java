@@ -37,6 +37,7 @@ public class AddressSet {
 
   public void push(VM_Address addr) { 
     if (VM.VerifyAssertions) VM._assert(!addr.isZero());
+    if (VM.VerifyAssertions) VM._assert(cursor < address.length);
     address[cursor++] = addr.toInt(); 
   }
 

@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
 /**
  * Test to ensure that InterruptedException can't
  * be thrown out of thin air (i.e., backedge yieldpoints).

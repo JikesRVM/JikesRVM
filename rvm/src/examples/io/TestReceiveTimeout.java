@@ -1,6 +1,8 @@
 /*
- * Copyright (C) IBM 2002
+ * (C) Copyright IBM 2002
  */
+// $Id$
+
 import java.io.*;
 import java.net.*;
 

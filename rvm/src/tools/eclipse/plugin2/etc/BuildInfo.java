@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Author$
+ * $Id$
  */
 
 package com.ibm.jikesrvm.eclipse.jdt.launching;

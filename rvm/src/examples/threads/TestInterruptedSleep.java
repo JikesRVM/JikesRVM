@@ -1,6 +1,7 @@
 /*
- * Copyright (C) IBM 2002
+ * (C) Copyright IBM 2002
  */
+// $Id$
 
 /**
  * Test that Thread.sleep() can be interrupted.

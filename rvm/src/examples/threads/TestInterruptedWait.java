@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
 /**
  * Test to ensure that monitor waits can be interrupted.
  * @author David Hovemeyer

@@ -1,6 +1,8 @@
 /*
- * (c) Copyright IBM Corp. 2000, 2001.
+ * (C) Copyright IBM Corp. 2002
  */
+// $Id$
+
 package org.eclipse.jdt.internal.launching.jikesrvm;
 
 import java.io.IOException;

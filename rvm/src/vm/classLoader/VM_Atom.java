@@ -89,6 +89,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class descriptor - something like "Ljava/lang/Object;"
    */ 
   public final VM_Atom descriptorFromClassName() {
+    if (val[0] == '[') return this;
     byte sig[] = new byte[1 + val.length + 1];
     sig[0] = (byte)'L';
     for (int i = 0, n = val.length; i < n; ++i)

@@ -275,6 +275,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
   //-#endif
 
+  //-#if RVM_WITH_GNU_CLASSPATH
+  public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+  //-#endif
 
   static void init() {
     //-#if RVM_WITH_GCTk

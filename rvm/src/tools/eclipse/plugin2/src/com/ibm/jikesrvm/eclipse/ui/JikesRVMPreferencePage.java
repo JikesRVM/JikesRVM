@@ -16,6 +16,7 @@
  * $Revision$
  * $Date$
  * $Author$
+ * $Id$
  */
 //package org.eclipse.ui.jikesrvm2;
 package com.ibm.jikesrvm.eclipse.ui;
@@ -43,6 +44,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+/*
+ * @author Jeffrey Palm
+ */
 public class JikesRVMPreferencePage 
   extends PreferencePage 
   implements IWorkbenchPreferencePage {

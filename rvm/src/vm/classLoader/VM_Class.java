@@ -1085,7 +1085,7 @@ public final class VM_Class extends VM_Type
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) resolve " 
                                           + descriptor + "\n");
-    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED, descriptor.toString() );
 
     // load/resolve superclass
     //

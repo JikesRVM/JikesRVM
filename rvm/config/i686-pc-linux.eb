@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2002
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -25,6 +25,8 @@ export RVM_FOR_LINUX=1
 #       to access pthread-local storage.  See discussion in rvm-researchers 
 #       archive and the userguide FAQ.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+export BOOTIMAGE_LOAD_ADDRESS="0x61000000"
 
 ##########
 # PART II: Where to find tools and resources on this target
@@ -54,7 +56,7 @@ export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for jikes.
-export JIKES="/home/dolby/bin/jc-lintel"
+export JIKES="/usr/bin/jikes"
 
 # what C compilers should be used?
 export CC='/usr/bin/gcc -w -O'

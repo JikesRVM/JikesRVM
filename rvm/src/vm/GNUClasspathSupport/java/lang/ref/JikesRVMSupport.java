@@ -1,6 +1,7 @@
 /*
- * Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002
  */
+//$Id$
 package java.lang.ref;
 
 /**

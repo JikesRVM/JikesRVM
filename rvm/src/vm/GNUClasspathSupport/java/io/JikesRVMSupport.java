@@ -1,13 +1,15 @@
 /*
- * Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002
  */
+//$Id$
 package java.io;
 
 /**
  * Library support interface of Jikes RVM
  *
- * @author Julian Dolby
+ * $Id$
  *
+ * @author Julian Dolby
  */
 public class JikesRVMSupport {
 

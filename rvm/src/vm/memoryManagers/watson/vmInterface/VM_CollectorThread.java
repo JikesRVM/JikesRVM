@@ -628,7 +628,7 @@ public class VM_CollectorThread extends VM_Thread
     collectorThreads[processorAffinity.id] = this;
 
     // Should completely come out of immortal heap
-    rootLocations = new AddressSet(1024);
+    rootLocations = new AddressSet(4096);
     rootValues = new AddressSet(1024);
     interiorLocations = new AddressPairSet(1024);
   }

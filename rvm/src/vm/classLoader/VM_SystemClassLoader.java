@@ -9,8 +9,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.zip.*;
+
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.io.*;
 
 /** 
@@ -26,6 +28,17 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   static void boot() {
       zipFileCache = new HashMap();
+      //-#if RVM_WITH_GNU_CLASSPATH
+      // the following idiot reflection hack is because the field is final :(
+      if (VM.runningVM) {
+	  try {
+	      VM_Entrypoints.classLoaderDefinedPackages.setObjectValue(vmClassLoader, new HashMap());
+	  } catch (Exception e) {
+	      VM.sysWriteln("failed to setup system class loader");
+	      VM.sysExit(-1);
+	  }
+      }
+      //-#endif
   }
 
   // prevent other classes from constructing

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+<!-- @author Jeffrey Palm -->
+<!-- (C) Copyright IBM Corp 2001,2002 -->
 <!-- File written by PDE 1.0 -->
 <plugin
    id="org.eclipse.jdt.launching.jikesrvm"
