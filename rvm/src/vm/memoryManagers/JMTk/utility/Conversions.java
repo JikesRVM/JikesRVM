@@ -23,7 +23,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
     if (VMResource.LOG_BLOCK_SIZE <= LOG_MBYTE_SIZE)
       return (megs << (LOG_MBYTE_SIZE - VMResource.LOG_BLOCK_SIZE));
     else
-      return (megs + ((VMResource.BLOCK_SIZE >> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_BLOCK_SIZE - LOG_MBYTE_SIZE);
+      return (megs + ((VMResource.BLOCK_SIZE >>> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_BLOCK_SIZE - LOG_MBYTE_SIZE);
   }
 
   // Round up
@@ -53,13 +53,13 @@ public class Conversions implements Constants, VM_Uninterruptible {
   // Round down
   //
   public static int addressToMmapChunks(VM_Address addr) {
-    return (addr.toInt()) >> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+    return (addr.toInt()) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
   }
 
   // Round down
   //
   public static int addressToBlocks(VM_Address addr) {
-    return (addr.toInt() >> VMResource.LOG_BLOCK_SIZE);
+    return (addr.toInt() >>> VMResource.LOG_BLOCK_SIZE);
   }
 
   // No rounding needed
@@ -77,14 +77,14 @@ public class Conversions implements Constants, VM_Uninterruptible {
   // Round up
   //
   public static int bytesToPages(int bytes) {
-    return (bytes + PAGE_SIZE - 1) >> LOG_PAGE_SIZE;
+    return (bytes + PAGE_SIZE - 1) >>> LOG_PAGE_SIZE;
   }
 
   // Round up
   //
   public static int pagesToBlocks(int pages) {
     int pagesInBlock = 1 << (VMResource.LOG_BLOCK_SIZE - LOG_PAGE_SIZE);
-    return (pages + (pagesInBlock - 1)) >> (VMResource.LOG_BLOCK_SIZE - LOG_PAGE_SIZE);
+    return (pages + (pagesInBlock - 1)) >>> (VMResource.LOG_BLOCK_SIZE - LOG_PAGE_SIZE);
   }
 
   // No rounding needed
