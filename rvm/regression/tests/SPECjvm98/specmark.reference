@@ -1,0 +1,10 @@
+#This file contains the reference execution times for computing SPECmark
+#These were taken from www.spec.org
+#
+compress 		1175
+jess 	 		380
+db 	 		505
+javac			425
+mpegaudio 		1100
+mtrt 			460
+jack 	 		455
