@@ -91,7 +91,7 @@ fi
 if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
 	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
-	echo >&2 "(You should use classpath-0.06 or newer for best results)"
+	echo >&2 "(You should use classpath-0.07 or newer for best results)"
 	exit 1
     fi
     echo "Downloading GNU Classpath"
