@@ -37,7 +37,7 @@ class VM_CompilerDNA implements VM_Constants {
   /*
    *  These numbers were from a shadow on October 20, 2001 on Linux/IA32
    */
-  private static double[] compilationRates = {347.97, 9.36, 5.21, 2.14};
+  private static double[] compilationRates = {484.24, 9.36, 5.21, 2.14};
   //-#endif
 
   /**
