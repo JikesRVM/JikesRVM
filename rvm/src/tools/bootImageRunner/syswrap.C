@@ -103,7 +103,7 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
     return (JNIEnv*) jniEnv;
 }
 
-// Arbitrarily consider anything longer than 1 second a "long" wait.
+// Arbitrarily consider anything longer than 1 millisecond a "long" wait.
 // We may want to adjust this so any non-zero wait is considered long.
 static bool 
 isLongWait(struct timeval *timeout)
