@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_ThreadSwitchProducer;
 
 /**
  * This class provides support for HPM related operations at thread switch time.  
@@ -30,9 +29,51 @@ import com.ibm.JikesRVM.VM_ThreadSwitchProducer;
  * @author Peter F. Sweeney
  * @date 2/6/2003
  */
-public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer 
-                                            implements VM_Uninterruptible
+public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 {
+  /*
+   * My consumer.
+   */
+  protected VM_TraceWriter consumer;
+
+  /**
+   * Consumer associated with this producer.
+   */
+  final public void setConsumer(VM_TraceWriter consumer) {
+    this.consumer = consumer;
+  }
+
+  /**
+   * Wake up the consumer thread (if any) associated with the producer
+   */
+  final public void activateConsumer() {
+    if (consumer != null) {
+      consumer.activate();
+    }
+  }
+
+  /*
+   * The field active (manipulated by consumer) determines when we produce
+   */
+  private boolean active = false;
+
+  /*
+   * Start producing.
+   */
+  public  void   activate() throws VM_PragmaLogicallyUninterruptible
+  { 
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.activate() PID ",vpid);
+    active = true;  
+  }
+  /*
+   * Stop producing.
+   */
+  public  void passivate()  throws VM_PragmaLogicallyUninterruptible
+  { 
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",vpid);
+    active = false; 
+  }
+
   /*
    * record formats
    */
@@ -60,23 +101,6 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   // keep count of number of thread switches
   private int  n_threadSwitches = 0;
   
-  /*
-   * Override VM_ThreadSwitchProducer to start producing.
-   */
-  public  void   activate() throws VM_PragmaLogicallyUninterruptible
-  { 
-    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.activate() PID ",vpid);
-    active = true;  
-  }
-  /*
-   * Override VM_ThreadSwitchProducer to stop producing.
-   */
-  public  void passivate()  throws VM_PragmaLogicallyUninterruptible
-  { 
-    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",vpid);
-    active = false; 
-  }
-
   /*
    * Constructor
    * There is one VM_HardwarePerformanceMonitor object per VM_Processor.
@@ -122,11 +146,14 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * @param previous_thread     thread that is being switched out
    * @param current_thread      thread that is being scheduled
    * @param timerInterrupted   	timer interrupted if true
+   * @param threadSwitch        did a thread switch occur or not?
    */
   public void updateHPMcounters(VM_Thread previous_thread, VM_Thread current_thread, 
-				boolean timerInterrupted)
+				boolean timerInterrupted, boolean threadSwitch)
   {
     //-#if RVM_WITH_HPM
+    if (notifyExitFound) return;	// don't collect any more HPM data after notifyExit!
+
     VM_SysCall.sysHPMstopMyThread();
     long endOfWallTime   = VM_Magic.getTimeBase();
     long startOfWallTime = 0;
@@ -157,7 +184,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
 	tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
 	int tid        = previous_thread.getIndex();
 	int global_tid = (timerInterrupted?previous_thread.getGlobalIndex():-previous_thread.getGlobalIndex());
-	tracing(tid, global_tid, startOfWallTime, endOfWallTime, tmp_counters);
+	tracing(tid, global_tid, startOfWallTime, endOfWallTime, tmp_counters, threadSwitch);
       }
     } else {			 	// always accumulate
       tmp_counters.accumulate(                 vp_counters, n_counters);
@@ -188,7 +215,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * Only at thread switch time are the buffers written to.
    */
   static private byte    ONE   = 1;			// first buffer
-  static private byte    TWO   = 2;			// second buffer
+  static private byte    TWO   = 0;			// second buffer
   private byte    buffer_code = ONE;	// name of buffer to use.
   private byte[]  buffer      = null;	// buffer to use
   private int     index       = 0;	// index into buffer
@@ -202,17 +229,15 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   /**
    * Record HPM counter values.
    * Trace record contains:
-   *   trace_format(int), buffer_code & vpid(int), global_tid(int), tid(int), 
-   *   startOfWallTime(long), endOfWallTime(long), counters(long)*
+   *   (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), 
+   *   global_tid(int), startOfWallTime(long), endOfWallTime(long), counters(long)*
    *
    * CONSTRAINT: only called if VM_HardwarePerformanceMonitors.hpm_trace is true.
    * CONSTRAINT: only write to buffer when a valid buffer is found.
    * CONSTRAINT: only called if active is true
    *
-   * Local tid is only 16 bits, could combine with encoding; however, counter
-   * values would not be quadword aligned (although I don't know if this matters).
-   * An alternative 8-byte encoding that can save 16-bytes is: 
-   *    tid(16), buffer_code(2), vpid(10), format(4) 
+   * To save space, the following 32-bit encoding is used:
+   *    tid(16), buffer_code(1), thread_switch(1), vpid(10), format(4)
    * this allows easy access to format as format & 0x000F.
    *
    * @param tid              thread id (positive if timer interrupted)
@@ -220,9 +245,10 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * @param startOfWallTime  global clock time when thread was scheduled
    * @param endOfWallTime    global clock time when thread was swapped out
    * @param counters         HPM counter values
+   * @param threadSwitch     true if thread switch occuring.
    */
   private void tracing(int tid, int global_tid, long startOfWallTime, 
-		       long endOfWallTime, HPM_counters counters) 
+		       long endOfWallTime, HPM_counters counters, boolean threadSwitch) 
   {
     //-#if RVM_WITH_HPM
     // which buffer to use
@@ -231,11 +257,17 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
 
     // buffer != null only if active==true
 
-    int encoding = (buffer_code << 16) + vpid;
+    int thread_switch = (threadSwitch==true?1:0);
+    int encoding = (tid  << 16) + (buffer_code << 15) + (thread_switch << 14) + 
+                   (vpid <<  4) + TRACE_FORMAT;
+    
     if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
+      if (threadSwitch) VM.sysWrite(" ");
+      else              VM.sysWrite("*");
       VM.sysWrite(index,": ");
-      VM.sysWrite(TRACE_FORMAT," BC ");
-      VM.sysWrite(buffer_code," PID ", vpid);  
+      VM.sysWrite(TRACE_FORMAT);
+      VM.sysWrite(" BC ",buffer_code);
+      VM.sysWrite(" PID ", vpid);  
       //      VM.sysWrite(" ("); VM.sysWriteHex(encoding); VM.sysWrite(")");
       VM.sysWrite(" GTID ", global_tid);
       VM.sysWrite(" TID ", tid);
@@ -245,13 +277,9 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     }
     if (buffer != null) { // write record header
       n_records++;
-      VM_Magic.setIntAtOffset( buffer, index, TRACE_FORMAT);	// format
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      VM_Magic.setIntAtOffset( buffer, index, encoding);	// buffer_code & vpid
+      VM_Magic.setIntAtOffset( buffer, index, encoding);	// encoding
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
       VM_Magic.setIntAtOffset( buffer, index, global_tid);	// globally unique tid  
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      VM_Magic.setIntAtOffset( buffer, index, tid);		// local tid  
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
       VM_Magic.setLongAtOffset(buffer, index, startOfWallTime);	// start of global time
       index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
@@ -285,10 +313,12 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       passivate();
 
       // reset state (not really needed as expect notifyExit occurs only once!)
-      notifyExit = false; notify_exit_value = -1;
+      //      notifyExit = false; notify_exit_value = -1;
+      // Don't collect any more HPM trace records
+      notifyExitFound = true;
 
       // notify consumer to drain buffer and close file
-      ((VM_TraceWriter)consumer).notifyExit = true;
+      consumer.notifyExit = true;
       activateConsumer();
     }
     //-#endif
@@ -357,13 +387,10 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   {
     // reset buffer's index value
     if (buffer != null) {
-      if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWrite("VM_HPM.updateBufferIndex() index = ",index);
       if        (buffer_code == ONE) {
 	index_1 = index;
-	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWriteln(", index_1 = ",index_1);
       } else if (buffer_code == TWO) {
 	index_2 = index;
-	if (VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) VM.sysWriteln(", index_2 = ",index_2);
       }
     }
   }
@@ -383,6 +410,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * NOTE: Need to store application name as an array instead of a String because 
    * String.length() is interruptible!
    */
+  // set after notifyExit set to true
+  private boolean notifyExitFound         = false;
   // notify exit black board
   private boolean notifyExit              = false;
   private int     notify_exit_value       = -1;
@@ -480,7 +509,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       VM.sysWriteln(", missed ",missed_records);
     }
     if (padding != 0) {
-      addPadding(padding);
+      addPadding(4-padding);
     }
   }
 
@@ -500,7 +529,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       VM.sysWriteln(", missed ",missed_records);
     }
     if (padding != 0) {
-      addPadding(padding);
+      addPadding(4-padding);
     }
   }
 
@@ -508,6 +537,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * This method forces additional trace records to force 4 byte alignments.
    *
    * Needed to be able to detect end of file when reading trace file.
+   *
+   * @param padding  amount of padding to add
    */
   private void addPadding(int padding)
   {
