@@ -91,6 +91,7 @@ function showHelp {
   echo '-configuration-list <file>  file listing boot images to test'
   echo '-wait <file>                sync build and run using file'
   echo '-performance <file>         record performance results to file'
+  echo '-measureCompilation         run benchmarks in measure-compilation mode'
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemispace image'
@@ -170,10 +171,16 @@ while [ $# != 0 ]; do
 	shift
    ;;
 
-    ## be verbose
-    # 
-    -verbose)
-	VERBOSE=YES
+   ## be verbose
+   # 
+   -verbose)
+       VERBOSE=YES
+   ;;
+
+   ## measure compilation
+   # 
+   -measureCompilation)
+       MEASURE_COMPILATION=YES
    ;;
 
    ## use multiple opt. levels for running tests?
@@ -375,6 +382,14 @@ function doRun
 	LIMIT_RAW=`cat TimeLimit.sanity`
 	PERFORMANCE_STR=
      fi
+     
+     # run in measure compilation mode
+     if [ x$MEASURE_COMPILATION != x ]; then
+	PERFORMANCE_STR="MODE=MEASURE_COMPILATION"
+	echo "Measure compilation mode"
+     fi
+     
+     #
      # the following was necessary for cpu time limits
      # we now use wall clock time
      # LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`

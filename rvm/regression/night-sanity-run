@@ -75,7 +75,7 @@ echo "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
 mkdir -p $MEASURE_COMPILATION_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
 
 # Fix the permission bits because umask doesn't seem to be working correctly
 echo "fixing permission bits" >> $RUN_LOG
