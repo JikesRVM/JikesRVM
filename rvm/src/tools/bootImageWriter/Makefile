@@ -30,7 +30,7 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 #  > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(UNZIP_CMD) -uoqq $< $(UTIL_KLUDGE_EXTRACT)
 	cd $(SCRATCH_DIR); $(HOST_JAR) -cf $@ $(UTIL_KLUDGE_CLASSES)
-	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR}) "
+	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR})) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
