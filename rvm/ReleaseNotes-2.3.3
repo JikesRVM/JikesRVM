@@ -65,13 +65,14 @@ refactoring of reference processing (java.lang.ref.*).
 *Other notes:
 
 **Compiler DNA updated -- x86 adaptive system now uses Opt level O2 sometimes.
-The compiler DNA (precompute cost & benefit of using various
-compiler/optimization levels has been updated.  Due to improvements
+The compiler DNA (the precomputed cost & benefit of using various
+compiler/optimization levels) has been updated.  Due to improvements
 over the past 10 months, the optimizing compiler's level 2 is now
 better than level 1, on average, on both platforms.  (Previously,
 this was not the case on IA32.)  The result is that the adaptive
 system may now choose to use Opt level 2 on some methods because
-its model can now determine that is will sometimes be beneficial to do so.
+its model can now determine that it will sometimes be beneficial 
+to do so. 
 
 *Bug Fixes:
 ** Calls to the JNI function pair 
