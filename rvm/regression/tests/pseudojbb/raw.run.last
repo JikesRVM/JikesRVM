@@ -36,7 +36,7 @@
 groups="427 428 429 430 431 432 433 434 435 436 437 438 439 440 441 453 454 455 456 457 458 459 460"
 
 # number of times to run a benchmark: should be odd to find median.
-executions="5"
+executions="1 2 3 4 5"
 
 mode=13
 
