@@ -1587,7 +1587,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 
 	  // Consider inlining it. 
-	  if (maybeInlineMethod(shouldInline(s, computedTarget, isExtant), s)) {
+	  if (!unresolved && maybeInlineMethod(shouldInline(s, computedTarget, isExtant), s)) {
 	    return;
           } 
 
@@ -1620,7 +1620,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  Call.setGuard(s, getCurrentGuard());
 
 	  // Consider inlining it. 
-	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
+	  if (!unresolved && maybeInlineMethod(shouldInline(s, null, false), s)) {
 	    return;
 	  }
 	  
@@ -1657,7 +1657,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 
 	  // Consider inlining it. 
-	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
+	  if (!unresolved && maybeInlineMethod(shouldInline(s, null, false), s)) {
 	    return;
 	  }
 	  
@@ -1781,7 +1781,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    // If the type is precise, then we know FOR CERTAIN that
 	    // this call will resolve to meth
 	    VM_Method computedTarget = ref.isPreciseType() ? vmeth : null;
-	    if (maybeInlineMethod(shouldInline(s, computedTarget, ref.isExtant()), s)) {
+	    if (!unresolved && maybeInlineMethod(shouldInline(s, computedTarget, ref.isExtant()), s)) {
 	      return;
 	    }
 	  } else {
