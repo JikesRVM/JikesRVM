@@ -252,7 +252,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitSTAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T3);
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitLI(0, 0);                                        // R0 := 0
+    asm.emitLVAL(0, 0);                                       // R0 := 0
     asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.

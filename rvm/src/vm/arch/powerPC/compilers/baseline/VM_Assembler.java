@@ -759,7 +759,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  final void emitLI (int RT, int D) {
+  private final void emitLI (int RT, int D) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     int mi = ADDItemplate | RT<<21 | (D&0xFFFF);
     mIP++;
@@ -1338,7 +1338,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
 //-#else
     int val = addr.toInt();
 //-#endif         
-      if (!fits(val,16)){
+    if (!fits(val,16)){
       emitADDIS(RT, (int)(val>>>16));
       emitORI(RT, RT, (int)(val&0xFFFF));
     } else {
@@ -1353,15 +1353,6 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitADDIS(RT, val>>>16);
       emitORI(RT, RT, val&0xFFFF);
     }
-    /*if (fits(val, 16)) { 
-      emitLI(RT, val);
-    } else if ((val&0x8000) == 0) {
-      emitLI(RT, val&0xFFFF);
-      emitADDIS(RT, RT,  val>>>16);
-    } else {// top half of RT is 0xFFFF
-      emitLI(RT, val|0xFFFF0000);
-      emitADDIS(RT, RT, (val>>>16)+1);
-    }*/
   }
 
   // Convert generated machine code into final form.
