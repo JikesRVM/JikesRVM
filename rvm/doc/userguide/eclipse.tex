@@ -2,7 +2,7 @@
 \newcommand{\antURL}{http://ant.apache.org}
 
 \index{Eclipse IDE, running under Jikes RVM}
-Since version 2.2.1, Jikes RVM purports to run
+Since version 2.2.1, Jikes RVM runs
 \xlink{Eclipse}{\eclipseURL}.  This is really a technology preview and
 for that reason we start with some caveats, the most obvious being
 that production-mode use of Eclipse with Jikes RVM
@@ -13,9 +13,7 @@ recent --- 7.3 or newer --- version of RedHat Linux for Intel IA32.
 \item Use either *Adaptive* or BaseBase*  Jikes RVM builds when trying
 to run Eclipse.  The *Opt* images will attempt to optimize all
 executed methods, which will result in bad performance.
-\item Use only the *SemiSpace builds of Jikes RVM.  We have seen
-various limitations of the other garbage collectors, such as severe
-fragmentation and implementation-specific resource limits.
+\item Use recommend using the *CopyMS builds of Jikes RVM.
 \item Under Linux, use the Eclipse builds for the GTK windowing
 toolkit.  There are Linux builds for the Motif toolkit, but we never
 test these and work on Eclipse seems to focus on the GTK version.
@@ -76,7 +74,7 @@ that, there are just a few steps:
 support for Eclipse to use Jikes RVM
 \end{enumerate}
 
-\section{{\tt rvmeclipse}}
+\subsection{{\tt rvmeclipse}}
 
 \index{rvmeclipse}
 Once you have done this, you will be able to run Eclipse on Jikes RVM
