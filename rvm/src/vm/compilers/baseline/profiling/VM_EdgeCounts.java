@@ -34,13 +34,6 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   }
 
   public static int findId(VM_Method m) {
-    if (!VM.BuildForAdaptiveSystem && !registered) {
-      // Assumption: If edge counters were enabled in a non-adaptive system
-      //             then the user must want use to dump them when the system
-      //             exits.  Otherwise why would they have enabled them...
-      registered = true;
-      VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
-    }
     VM_Triplet key = m.getDictionaryKey();
     return VM_EdgeCounterDictionary.findId(key);
   }
@@ -130,7 +123,7 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     }
 
     // Enable debug of input by dumping file as we exit the VM.
-    if (true) {
+    if (false) {
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
       VM_BaselineCompiler.processCommandLineArg("-X:base:", "edge_counter_file=DebugEdgeCounters");
     }
