@@ -20,7 +20,6 @@ EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 CFLAGS+=-Wno-unused -Wno-conversion		#for GCC
-CFLAGS+=-std=gnu99
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
