@@ -60,6 +60,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   synchronized VM_Type loadVMClass(String className) throws ClassNotFoundException {
     try {	    
       InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+      if (is == null) throw new ClassNotFoundException(className);
       DataInputStream dataInputStream = new DataInputStream(is);
       VM_Type type = null;
       try {
@@ -72,9 +73,10 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	} catch (IOException e) { }
       }
       return type;
+    } catch (ClassNotFoundException e) {
+      throw e;
     } catch (Throwable e) {
       // We didn't find the class, or it wasn't valid, etc.
-      e.printStackTrace();
       throw new ClassNotFoundException(className);
     }
   }
@@ -119,6 +121,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	  className = className.substring(1, className.length()-2);
 	}
 	InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+	if (is == null) throw new ClassNotFoundException(className);
 	DataInputStream dataInputStream = new DataInputStream(is);
 	Class cls = null;
 	try {
@@ -132,6 +135,8 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	  } catch (IOException e) { }
 	}
 	return cls;
+      } catch (ClassNotFoundException e) {
+	throw e;
       } catch (Throwable e) {
 	// We didn't find the class, or it wasn't valid, etc.
 	throw new ClassNotFoundException(className);
@@ -156,11 +161,11 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	public Object getResult() { return stream; }
 
 	public void process(ZipFile zf, ZipEntry ze) throws Exception {
-	  stream = zf.getInputStream( ze );
+	  stream = zf.getInputStream(ze);
 	}
 
 	public void process(File file) throws Exception {
-	  stream = new FileInputStream( file );
+	  stream = new FileInputStream(file);
 	}
       };
 
@@ -192,11 +197,11 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	public Object getResult() { return urls.elements(); }
 	
 	public void process(ZipFile zf, ZipEntry ze) throws Exception {
-	  urls.addElement( new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name) );
+	  urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
 	}
 
 	public void process(File file) throws Exception {
-	  urls.addElement( new URL("file", null, -1, file.getName()) );
+	  urls.addElement(new URL("file", null, -1, file.getName()));
 	}
       };
 
@@ -214,7 +219,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       try {
 	String path = tok.nextToken();
 	if (path.endsWith(".jar") || path.endsWith(".zip")) {
-	  ZipFile zf = (ZipFile) zipFileCache.get( path );
+	  ZipFile zf = (ZipFile) zipFileCache.get(path);
 	  if (zf == null) {
 	    zf = new ZipFile(path);
 	    if (zf == null) {
@@ -226,13 +231,13 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 		  
 	  ZipEntry ze = zf.getEntry(name);
 	  if (ze == null) continue;
-		
+	  
 	  h.process(zf, ze);
 	  if (!multiple) return h.getResult();
 	} else if (path.endsWith(File.separator)) {
 	  File file = new File(path + name);
 	  if (file.exists()) {
-	    h.process( file );
+	    h.process(file);
 	    if (!multiple) return h.getResult();
 	  } else {
 	    continue;
@@ -240,7 +245,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	} else {
 	  File file = new File(path + File.separator + name);
 	  if (file.exists()) {
-	    h.process( file );
+	    h.process(file);
 	    if (!multiple) return h.getResult();
 	  } else {
 	    continue;
