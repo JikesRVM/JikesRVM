@@ -155,6 +155,13 @@ class GenerateInterfaceDeclarations {
     pln("#ifdef NEED_ASSEMBLER_DECLARATIONS");
     emitAssemblerDeclarations();
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
+
+    pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
+    pln("#define MAXHEAPS " + com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface.getMaxHeaps());
+    pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
+    pln();
+
+
   }
 
   private static class SortableField implements Comparable {
