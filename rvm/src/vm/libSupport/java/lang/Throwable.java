@@ -50,12 +50,18 @@ public class Throwable implements java.io.Serializable {
     
   public Throwable() {
     super();
-    fillInStackTrace();         // fillInStackTrace() catches its own errors.
+    fillInStackTrace();         // fillInStackTrace() catches its own errors,
+                                // and performs reporting.
   }
     
   public Throwable(String detailMessage) {
     this();
     this.detailMessage = detailMessage;
+    if (stackTrace.isVerbose()) {
+      VM.sysWrite("[ Throwable for VM_StackTrace # ", stackTrace.traceIndex);
+      VM.sysWrite(" created w/ message:", detailMessage);
+      VM.sysWriteln("]");
+    }
   }
     
   public Throwable(String message, Throwable cause) {
@@ -355,6 +361,11 @@ public class Throwable implements java.io.Serializable {
   }
 
   void printlnMyClassAndMessage(PrintLN out, int depth) {
+    printMyClassAndMessage(out, depth);
+    out.println();
+  }
+
+  void printMyClassAndMessage(PrintLN out, int depth) {
     // depth is unused.
     out.print(classNameAsVM_Atom(this));
     /* Avoid diving into the contents of detailMessage since a subclass MIGHT
@@ -364,7 +375,6 @@ public class Throwable implements java.io.Serializable {
       out.print(": ");
       out.print(msg);
     }
-    out.println();
   }
   
   public void sysWrite() {
