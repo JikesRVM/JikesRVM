@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.*;
 
 /**
  * @author Julian Dolby

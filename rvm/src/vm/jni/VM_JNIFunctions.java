@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
@@ -55,8 +56,8 @@ import java.lang.reflect.*;
  * @author Steve Smith  
  * @date 2/1/00
  */
-public class VM_JNIFunctions implements VM_NativeBridge, 
-					VM_SizeConstants {
+class VM_JNIFunctions implements VM_NativeBridge, 
+				 VM_SizeConstants {
   // one message for each JNI function called from native
   final static boolean traceJNI = false;
 
@@ -78,7 +79,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int DefineClass(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
 
-    VM_Scheduler.traceback("JNI ERROR: DefineClass not implemented yet.");
+    VM.sysWrite("JNI ERROR: DefineClass not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
     return -1;
   }
@@ -5479,7 +5480,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int RegisterNatives(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
 
-    VM_Scheduler.traceback("JNI ERROR: RegisterNatives not implemented yet.");
+    VM.sysWrite("JNI ERROR: RegisterNatives not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
     return -1; 
   }
@@ -5488,7 +5489,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int UnregisterNatives(int envHandler) {
     if (traceJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
 
-    VM_Scheduler.traceback("JNI ERROR: UnregisterNatives not implemented yet.");
+    VM.sysWrite("JNI ERROR: UnregisterNatives not implemented yet.");
     VM.sysExit(VM.exitStatusUnsupportedInternalOp);
     return -1; 
   }

@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+
 /**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C
@@ -21,20 +23,20 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   // EDI (JTOC) and EBX are nonvolatile registers in RVM
   //
   private static final int SAVED_GPRS = 5; 
-  static final int EDI_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
-  static final int EBX_SAVE_OFFSET = STACKFRAME_BODY_OFFSET - WORDSIZE;
-  static final int EBP_SAVE_OFFSET = EBX_SAVE_OFFSET - WORDSIZE;
-  static final int JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET - WORDSIZE;
-  static final int JNI_PR_OFFSET = JNI_RETURN_ADDRESS_OFFSET - WORDSIZE;
+  public static final int EDI_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
+  public static final int EBX_SAVE_OFFSET = STACKFRAME_BODY_OFFSET - WORDSIZE;
+  public static final int EBP_SAVE_OFFSET = EBX_SAVE_OFFSET - WORDSIZE;
+  public static final int JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET - WORDSIZE;
+  public static final int JNI_PR_OFFSET = JNI_RETURN_ADDRESS_OFFSET - WORDSIZE;
 
   // following used in prolog & epilog for JNIFunctions
   // offset of saved offset to preceeding java frame
-  static final int SAVED_JAVA_FP_OFFSET = STACKFRAME_BODY_OFFSET;
+  public static final int SAVED_JAVA_FP_OFFSET = STACKFRAME_BODY_OFFSET;
 
   // following used in VM_Compiler to compute offset to first local:
   // includes 5 words:
   //   SAVED_JAVA_FP,  PR (ESI), S0 (ECX), EBX, and JTOC (EDI)
-  static final int SAVED_GPRS_FOR_JNI = 5;
+  public static final int SAVED_GPRS_FOR_JNI = 5;
 
   /*****************************************************************
    * Handle the Java to C transition:  native methods
@@ -619,7 +621,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *             low memory                        low memory
    *
    */
-  static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_NormalMethod method, int methodID) {
+  public static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_NormalMethod method, int methodID) {
     VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
 
     // set 2nd word of header = return address already pushed by CALL
@@ -744,7 +746,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitNOP(); // end of prologue marker
   }
 
-  static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
+  public static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
     // assume RVM PR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
     // before return to do whatever needs to be done.  does not assume JTOC is valid,

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -877,7 +878,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
   // Emit code to interface with a call from native code that uses the AIX convention
   // for register and stack to a JNI Function that uses Japapeno conventions.
   //
-  static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method mth) {
+  public static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method mth) {
     int offset;
 
     asm.emitSTAddrU(FP,-JNI_GLUE_FRAME_SIZE,FP);     // buy the glue frame

@@ -539,7 +539,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     SaveVolatileType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
+							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
     AddressType = VM_TypeReference.Address.resolve();

@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.jni.VM_JNICompiler;
 
 /**
  * VM_Compiler is the baseline compiler class for the IA32 architecture.

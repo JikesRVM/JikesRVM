@@ -19,6 +19,7 @@ import java.lang.Thread;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.jni.*;
 import com.ibm.JikesRVM.classloader.*;
 
 /**

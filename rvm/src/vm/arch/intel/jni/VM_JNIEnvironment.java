@@ -2,11 +2,11 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import java.lang.reflect.*;
 
 /**
  * Platform dependent aspects of the JNIEnvironment.

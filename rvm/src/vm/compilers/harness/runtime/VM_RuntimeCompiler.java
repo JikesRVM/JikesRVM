@@ -676,7 +676,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
 
-    VM_CompiledMethod cm = VM_JNICompiler.compile(method);
+    VM_CompiledMethod cm = com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " + 
 		    method.getDeclaringClass() + "." + method.getName() + 

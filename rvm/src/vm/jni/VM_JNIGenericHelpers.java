@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002,2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Platform independent utility functions called from VM_JNIFunctions
@@ -15,7 +17,7 @@ package com.ibm.JikesRVM;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public abstract class VM_JNIGenericHelpers {
+abstract class VM_JNIGenericHelpers {
 
   /**
    * Given an address in C that points to a null-terminated string,

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.jni.*;
+
 /**
  * A place to put hand written machine code typically invoked by VM_Magic 
  * methods.

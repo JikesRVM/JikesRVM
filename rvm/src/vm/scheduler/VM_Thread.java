@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;

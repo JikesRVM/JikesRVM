@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.classloader.*;
  *
  * @author Ton Ngo
  */
-final class VM_JNICompiledMethod extends VM_CompiledMethod {
+public final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
   public VM_JNICompiledMethod(int id, VM_Method m) {
     super(id,m);    

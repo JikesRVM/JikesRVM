@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.*;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002,2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import java.lang.reflect.*;
 
@@ -18,7 +19,7 @@ import java.lang.reflect.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
+abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
@@ -26,7 +27,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
+  static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
 					 boolean isJvalue, boolean isDotDotStyle) 
     throws Exception  {
 
@@ -68,7 +69,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
+  static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
     throws Exception, 
 	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
     VM_Address varargAddress = getVarArgAddress(false);    
@@ -85,7 +86,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
+  static Object invokeWithDotDotVarArg(Object obj, int methodID, 
 					      VM_TypeReference expectReturnType, 
 					      boolean skip4Args)
     throws Exception,
@@ -181,7 +182,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_TypeReference expectReturnType) 
+  static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
   }
@@ -195,7 +196,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
+  static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
@@ -207,7 +208,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithJValue(int methodID, VM_Address argAddress, 
+  static Object invokeWithJValue(int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
@@ -222,7 +223,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
+  static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
@@ -244,7 +245,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
+  static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, boolean skip4Args, 
 					boolean isVarArg) 
     throws Exception,

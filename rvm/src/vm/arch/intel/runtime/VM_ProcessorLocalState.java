@@ -56,7 +56,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param reg number of the register supplying the new value
    */
-  static void emitMoveRegToField(VM_Assembler asm, int offset, byte reg) {
+  public static void emitMoveRegToField(VM_Assembler asm, int offset, byte reg) {
     asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER,offset,reg);
   }
 
@@ -68,7 +68,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param imm immediate value
    */
-  static void emitMoveImmToField(VM_Assembler asm, int offset, int imm) {
+  public static void emitMoveImmToField(VM_Assembler asm, int offset, int imm) {
     asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
   }
 
@@ -80,7 +80,7 @@ extends OPT_IRTools
    * @param dest number of destination register
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  static void emitMoveFieldToReg(VM_Assembler asm, byte dest, int offset) {
+  public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, int offset) {
     asm.emitMOV_Reg_RegDisp(dest,PROCESSOR_REGISTER,offset);
   }
 
@@ -92,7 +92,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param imm immediate value to compare with
    */
-  static void emitCompareFieldWithImm(VM_Assembler asm, int offset, int imm) {
+  public static void emitCompareFieldWithImm(VM_Assembler asm, int offset, int imm) {
     asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
   }
   /**
@@ -102,7 +102,7 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  static void emitDecrementField(VM_Assembler asm, int offset) {
+  public static void emitDecrementField(VM_Assembler asm, int offset) {
     asm.emitDEC_RegDisp(PROCESSOR_REGISTER,offset);
   }
   /**
@@ -112,7 +112,7 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  static void emitPushField(VM_Assembler asm, int offset) {
+  public static void emitPushField(VM_Assembler asm, int offset) {
     asm.emitPUSH_RegDisp(PROCESSOR_REGISTER,offset);
   }
   /**
@@ -122,7 +122,7 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  static void emitPopField(VM_Assembler asm, int offset) {
+  public static void emitPopField(VM_Assembler asm, int offset) {
     asm.emitPOP_RegDisp(PROCESSOR_REGISTER,offset);
   }
 
@@ -137,7 +137,7 @@ extends OPT_IRTools
    * @param base number of base register
    * @param offset offset
    */
-  static void emitSetProcessor(VM_Assembler asm, byte base, int offset) {
+  public static void emitSetProcessor(VM_Assembler asm, byte base, int offset) {
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
   }
 
@@ -147,7 +147,7 @@ extends OPT_IRTools
    *
    * @param asm assembler object
    */
-  static void emitPushProcessor(VM_Assembler asm) {
+  public static void emitPushProcessor(VM_Assembler asm) {
     asm.emitPUSH_Reg(PROCESSOR_REGISTER);
   }
 
@@ -157,7 +157,7 @@ extends OPT_IRTools
    *
    * @param asm assembler object
    */
-  static void emitPopProcessor(VM_Assembler asm) {
+  public static void emitPopProcessor(VM_Assembler asm) {
     asm.emitPOP_Reg(PROCESSOR_REGISTER);
   }
 
@@ -169,7 +169,7 @@ extends OPT_IRTools
    * @param base number of base register
    * @param offset offset
    */
-  static void emitStoreProcessor(VM_Assembler asm, byte base, int offset) {
+  public static void emitStoreProcessor(VM_Assembler asm, byte base, int offset) {
     asm.emitMOV_RegDisp_Reg(base,offset,PROCESSOR_REGISTER);
   }
   /**
@@ -180,7 +180,7 @@ extends OPT_IRTools
    * @param base number of base register
    * @param offset offset
    */
-  static void emitLoadProcessor(VM_Assembler asm, byte base, int offset) {
+  public static void emitLoadProcessor(VM_Assembler asm, byte base, int offset) {
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
   }
 
@@ -189,7 +189,7 @@ extends OPT_IRTools
    * Insert code during BURS to load a pointer to the current processor
    * into a symbolic register, and return the resultant operand
    */
-  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
+  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
     OPT_RegisterOperand result =
       burs.ir.regpool.makeTemp(com.ibm.JikesRVM.classloader.VM_TypeReference.VM_Processor);
     OPT_Register ESI = burs.ir.regpool.getPhysicalRegisterSet().getESI();
@@ -202,7 +202,7 @@ extends OPT_IRTools
    * Insert code before instruction s to load a pointer to the current 
    * processor into a symbolic register, and return the resultant operand
    */
-  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
+  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
                                                        OPT_Instruction s) {
     OPT_RegisterOperand result = 
       ir.regpool.makeTemp(com.ibm.JikesRVM.classloader.VM_TypeReference.VM_Processor);
@@ -215,7 +215,7 @@ extends OPT_IRTools
    * Insert code before instruction s to load a pointer to the current 
    * processor into a particular register operand.
    */
-  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
+  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
                                                        OPT_Instruction s,
                                                        OPT_RegisterOperand rop)
   {
@@ -229,7 +229,7 @@ extends OPT_IRTools
    * Insert code after instruction s to set the current 
    * processor to be the value of a particular register operand.
    */
-  static OPT_RegisterOperand appendSetCurrentProcessor(OPT_IR ir,
+  public static OPT_RegisterOperand appendSetCurrentProcessor(OPT_IR ir,
                                                        OPT_Instruction s,
                                                        OPT_RegisterOperand rop)
   {

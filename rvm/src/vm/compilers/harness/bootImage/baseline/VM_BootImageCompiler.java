@@ -57,6 +57,6 @@ public class VM_BootImageCompiler {
    */
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return VM_JNICompiler.compile(method);
+    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
   }
 }

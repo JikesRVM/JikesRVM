@@ -131,7 +131,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field beingDispatchedField            = getField("Lcom/ibm/JikesRVM/VM_Thread;", "beingDispatched", "Z");
   public static final VM_Field threadSlotField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "threadSlot", "I");
-  public static final VM_Field jniEnvField                     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "jniEnv", "Lcom/ibm/JikesRVM/VM_JNIEnvironment;");
+  public static final VM_Field jniEnvField                     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "jniEnv", "Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;");
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
@@ -184,16 +184,16 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/classloader/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/classloader/VM_Type;");
 
-  public static final VM_Field JNIEnvAddressField  = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "savedTIreg", "I");
-  static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
-  static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefs", "Lcom/ibm/JikesRVM/VM_AddressArray;");
-  static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsTop", "I");
-  static final VM_Field JNIRefsMaxField            = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsMax", "I");
-  static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsSavedFP", "I");
-  static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNITopJavaFP", "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
-  static final VM_Field JNIFunctionPointersField   = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIFunctionPointers",  "Lcom/ibm/JikesRVM/VM_AddressArray;");
+  public static final VM_Field JNIEnvAddressField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "savedTIreg", "I");
+  public static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
+  public static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefs", "Lcom/ibm/JikesRVM/VM_AddressArray;");
+  public static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefsTop", "I");
+  public static final VM_Field JNIRefsMaxField            = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefsMax", "I");
+  public static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefsSavedFP", "I");
+  public static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNITopJavaFP", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
+  public static final VM_Field JNIFunctionPointersField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "JNIFunctionPointers",  "Lcom/ibm/JikesRVM/VM_AddressArray;");
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
   static final VM_Field tiRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tiRegister", "I");

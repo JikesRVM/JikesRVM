@@ -269,7 +269,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * Returned: nothing
    * Assumption: source and destination regions do not overlap
    */
-  static void memcopy(VM_Address dst, VM_Address src, int cnt) {
+  public static void memcopy(VM_Address dst, VM_Address src, int cnt) {
     VM_SysCall.sysCopy(dst, src, cnt);
   }
 
@@ -280,7 +280,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           number of bytes to fill with pattern
    * Returned: nothing
    */
-  static void fill(VM_Address dst, byte pattern, int cnt) {
+  public static void fill(VM_Address dst, byte pattern, int cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
   }
 

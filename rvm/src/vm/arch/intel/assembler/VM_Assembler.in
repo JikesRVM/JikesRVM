@@ -244,7 +244,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @return the end of the generated machine code.
    */
-  final int getMachineCodeIndex () {
+  public final int getMachineCodeIndex () {
       return mi;
   }
     
@@ -788,7 +788,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @param cond the condition code on which to branch
    */
-  final VM_ForwardReference forwardJcc (byte cond) {
+  public final VM_ForwardReference forwardJcc (byte cond) {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
     setMachineCodes(mi++, (byte) (0x70 + cond));

@@ -2,10 +2,11 @@
  * (C) Copyright IBM Corp. 2001,2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.jni;
 
 import java.lang.reflect.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
 /**

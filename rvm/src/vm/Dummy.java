@@ -22,10 +22,9 @@ class Dummy {
   static VM_Runtime                 d;
   static VM_Reflection              e;
   static VM_Process                 f;
-  static BuildJNIFunctionTable      g;
+  static com.ibm.JikesRVM.jni.BuildJNIFunctionTable g;
   static VM_SaveVolatile            i;
   static MM_Interface               l;
-  static VM_JNIFunctions            m;
   static VM_RecompilationManager    o;
   static VM_MultianewarrayHelper    r;
   static VM_Address                 s;
