@@ -4,19 +4,19 @@
 //$Id$
 
 /**
- * Non-collecting version of allocator.
- * <p>
  * Trivial implementation for illustrative purposes, not for production use.
- * Allocates space by moving a freespace pointer sequentially from the 
- * beginning of the heap to the end.  Ignores requests for garbage collection.
- * Produces an OutOfMemeryError message when it reaches the end of the heap.
- *
+ * Allocates all objects out of the immortal heap and exits with an OutOfMemoryError
+ * when the immortal heap is exhausted. 
+ * <p>
+ * Ignores requests for garbage collection.
+ * <p>
+ * Useful for the initial port to a new architecture, otherwise fairly pointless.
+ * <p>
  * @author Derek Lieber
  */
 public class VM_Allocator implements VM_Constants {
-  
-  private static VM_ImmortalSpace     immortalSpace;
-  private static VM_Synchronizer lock;         // lock for serializing heap accesses
+  private static final VM_Heap bootHeap = new VM_Heap("Boot Image Heap");   
+  private static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
 
   static int verbose = 0; // control chattering during progress of GC
   
@@ -24,8 +24,6 @@ public class VM_Allocator implements VM_Constants {
    * Initialize for boot image.
    */
   static void init() {
-    lock = new VM_Synchronizer();
-    immortalSpace = new VM_ImmortalSpace();
     VM_GCWorkQueue.init();
     VM_CollectorThread.init();
   }
@@ -36,19 +34,19 @@ public class VM_Allocator implements VM_Constants {
    * @param bootrecord  reference for the system VM_BootRecord
    */
   static void boot(VM_BootRecord bootrecord) {
+    verbose = bootrecord.verboseGC;
 
-    immortalSpace.attach(bootrecord.smallSpaceSize);
+    // attatch heaps.
+    if (verbose >= 2) VM.sysWriteln("Attaching heaps");
+    VM_Heap.boot(bootHeap, bootrecord);
+    immortalHeap.attach(bootrecord.smallSpaceSize);
 
-    // if collection wants to use the utility methods of VM_GCUtil, ex. scanStack,
-    // scanStatics, scanObjectOrArray, etc. then its boot method must by called.
-    //
     VM_GCUtil.boot();
-
-    VM_Finalizer.setup();   // will allocate a lock object for finalizer lists
+    VM_Finalizer.setup();
     
     // touch memory pages now (instead of during individual allocations, later)
     //
-    VM_Memory.zero(immortalSpace.start, immortalSpace.end);
+    VM_Memory.zero(immortalHeap.start, immortalHeap.end);
   }
   
   /**
@@ -74,7 +72,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the number of bytes
    */
   public static long totalMemory() {
-    return immortalSpace.size;
+    return immortalHeap.size;
   }
   
   /**
@@ -83,7 +81,7 @@ public class VM_Allocator implements VM_Constants {
    * @return number of bytes available
    */
   public static long freeMemory() {
-    return immortalSpace.available();
+    return immortalHeap.freeMemory();
   }
   
   /**
@@ -97,7 +95,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated object
    */
   public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer) throws OutOfMemoryError {
-    VM_Address objAddress = getHeapSpace(size);
+    VM_Address objAddress = immortalHeap.allocateRawMemory(size);
     Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
     if (hasFinalizer) VM_Finalizer.addElement(objRef);
     return objRef;
@@ -119,16 +117,8 @@ public class VM_Allocator implements VM_Constants {
   public static Object cloneScalar (int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
     boolean hasFinalizer =
       VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    VM_Address objAddress = getHeapSpace(size);
-    Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
-
-    // initialize object fields with data from passed in object to clone
-    if (cloneSrc != null) {
-      VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
-    }
-    
-    if (hasFinalizer)  VM_Finalizer.addElement(objRef);
-
+    Object objRef = allocateScalar(size, tib, hasFinalizer);
+    VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
     return objRef;
   }
   
@@ -145,7 +135,7 @@ public class VM_Allocator implements VM_Constants {
    */
   public static Object allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
     size = (size + 3) & ~3; // preserve word alignment
-    VM_Address objAddress = getHeapSpace(size);
+    VM_Address objAddress = immortalHeap.allocateRawMemory(size);
     return VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
   }
   
@@ -165,32 +155,11 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated array object 
    */
   public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
-    size = (size + 3) & ~3; // preserve word alignment
-    VM_Address objAddress = getHeapSpace(size);
-    Object objRef = VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
-
-     // initialize array elements
-     if (cloneSrc != null) {
-       VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
-     }
-
-     return objRef;  // return reference for allocated array
+    Object objRef = allocateArray(numElements, size, tib);
+    VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
+    return objRef; 
   }
 
-
-  /**
-   * Allocate size bytes of heap space.
-   */
-  private static VM_Address getHeapSpace(int size) {
-    
-    VM_Address region;
-    size = ((size + 3) & ~3);
-    synchronized (lock) {
-	region = immortalSpace.allocate(size);
-    }
-    return region;
-  }
-  
   /**
    * Reclaim unreferenced memory (ignored)
    */
