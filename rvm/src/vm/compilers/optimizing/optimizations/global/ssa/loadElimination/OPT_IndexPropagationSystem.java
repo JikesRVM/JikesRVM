@@ -11,6 +11,8 @@ import OPT_IndexPropagation.*;
 /**
  * Represents a set of dataflow equations used to solve the
  * index propagation problem.
+ *
+ * @author Stephen Fink
  */
 class OPT_IndexPropagationSystem extends OPT_DF_System
 implements OPT_Operators {
@@ -456,6 +458,11 @@ implements OPT_Operators {
   class MeetOperator extends OPT_DF_Operator {
 
     /**
+     * @return "MEET"
+     */
+    public String toString() { return "MEET"; }
+
+    /**
      * Evaluate a dataflow equation with the MEET operator
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
@@ -463,10 +470,10 @@ implements OPT_Operators {
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
       OPT_DF_LatticeCell lhs = operands[0];
       if (lhs instanceof ObjectCell) {
-        return  evaluateObjectMeet(operands);
+        return evaluateObjectMeet(operands);
       } 
       else {
-        return  evaluateArrayMeet(operands);
+        return evaluateArrayMeet(operands);
       }
     }
 
@@ -478,10 +485,26 @@ implements OPT_Operators {
      */
     boolean evaluateObjectMeet(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
+
+      // short-circuit if lhs is already bottom
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
+
+      // short-circuit if any rhs is bottom
+      for (int j = 1; j < operands.length; j++) {
+        ObjectCell r = (ObjectCell)operands[j];
+        if (r.isBOTTOM()) {
+          // from the previous short-circuit, we know lhs was not already bottom, so ...
+          lhs.setBOTTOM(); 
+          return true;
+        }
+      }
+
       boolean lhsWasTOP = lhs.isTOP();
       int[] oldNumbers = null;
 
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
 
       lhs.clear();
       // perform the intersections
@@ -503,7 +526,7 @@ implements OPT_Operators {
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).getValueNumbers();
+        int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).copyValueNumbers();
 
         if (rhsNumbers != null) {
           for (int i = 0; i < rhsNumbers.length; i++) {
@@ -520,8 +543,9 @@ implements OPT_Operators {
         }
       }
       // check if anything has changed
-      if (lhsWasTOP) return  true;
-      int[] newNumbers = lhs.getValueNumbers();
+      if (lhsWasTOP) return true;
+      int[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }
@@ -534,9 +558,25 @@ implements OPT_Operators {
      */
     boolean evaluateArrayMeet(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
+
+      // short-circuit if lhs is already bottom
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
+
+      // short-circuit if any rhs is bottom
+      for (int j = 1; j < operands.length; j++) {
+        ArrayCell r = (ArrayCell)operands[j];
+        if (r.isBOTTOM()) {
+          // from the previous short-circuit, we know lhs was not already bottom, so ...
+          lhs.setBOTTOM(); 
+          return true;
+        }
+      }
+
       boolean lhsWasTOP = lhs.isTOP();
       OPT_ValueNumberPair[] oldNumbers = null;
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
 
       lhs.clear();
       // perform the intersections
@@ -558,7 +598,7 @@ implements OPT_Operators {
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[firstNonTopRHS]).getValueNumbers();
+        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[firstNonTopRHS]).copyValueNumbers();
         if (rhsNumbers != null) {
           for (int i = 0; i < rhsNumbers.length; i++) {
             int v1 = rhsNumbers[i].v1;
@@ -576,7 +616,8 @@ implements OPT_Operators {
       }
       // check if anything has changed
       if (lhsWasTOP) return  true;
-      OPT_ValueNumberPair[] newNumbers = lhs.getValueNumbers();
+      OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }
@@ -595,6 +636,11 @@ implements OPT_Operators {
     int valueNumber;
 
     /**
+     * @return a String representation
+     */
+    public String toString() { return "UPDATE-DEF<" + valueNumber + ">"; }
+
+    /**
      * Create an operator with a given value number
      * @param     valueNumber
      */
@@ -609,16 +655,21 @@ implements OPT_Operators {
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
+
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
+
       ObjectCell rhs = (ObjectCell)operands[1];
       boolean lhsWasTOP = lhs.isTOP();
       int[] oldNumbers = null;
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
         throw  new OPT_OptimizingCompilerException(
                                                    "Unexpected lattice operation");
       }
-      int[] numbers = rhs.getValueNumbers();
+      int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers that are DD from valueNumber
       if (numbers != null) {
         for (int i = 0; i < numbers.length; i++) {
@@ -631,7 +682,8 @@ implements OPT_Operators {
       lhs.add(valueNumber);
       // check if anything has changed
       if (lhsWasTOP) return  true;
-      int[] newNumbers = lhs.getValueNumbers();
+      int[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }
@@ -651,6 +703,11 @@ implements OPT_Operators {
     int valueNumber;
 
     /**
+     * @return "UPDATE-USE"
+     */
+    public String toString() { return "UPDATE-USE<" + valueNumber + ">"; }
+
+    /**
      * Create an operator with a given value number
      * @param     valueNumber
      */
@@ -665,15 +722,20 @@ implements OPT_Operators {
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
+
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
+
       ObjectCell rhs = (ObjectCell)operands[1];
       int[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
         throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
-      int[] numbers = rhs.getValueNumbers();
+      int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
       if (numbers != null) {
         for (int i = 0; i < numbers.length; i++) {
@@ -684,7 +746,8 @@ implements OPT_Operators {
       lhs.add(valueNumber);
       // check if anything has changed
       if (lhsWasTOP) return  true;
-      int[] newNumbers = lhs.getValueNumbers();
+      int[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }
@@ -703,6 +766,12 @@ implements OPT_Operators {
     OPT_ValueNumberPair v = new OPT_ValueNumberPair();
 
     /**
+     * @return "UPDATE-DEF"
+     */
+    public String toString() { return "UPDATE-DEF<" + v + ">"; }
+
+
+    /**
      * Create an operator with a given value number pair
      * @param     v1 first value number in the pari
      * @param     v2 first value number in the pari
@@ -719,15 +788,19 @@ implements OPT_Operators {
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
+
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
       ArrayCell rhs = (ArrayCell)operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
         throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
-      OPT_ValueNumberPair[] numbers = rhs.getValueNumbers();
+      OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs pairs that are DD from either v.v1 or v.v2
       if (numbers != null) {
         for (int i = 0; i < numbers.length; i++) {
@@ -744,7 +817,8 @@ implements OPT_Operators {
       // check if anything has changed
       if (lhsWasTOP)
         return  true;
-      OPT_ValueNumberPair[] newNumbers = lhs.getValueNumbers();
+      OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }
@@ -764,6 +838,11 @@ implements OPT_Operators {
     OPT_ValueNumberPair v = new OPT_ValueNumberPair();
 
     /**
+     * @return "UPDATE-USE"
+     */
+    public String toString() { return "UPDATE-USE<" + v + ">"; }
+
+    /**
      * Create an operator with a given value number pair
      * @param     v1 first value number in the pair
      * @param     v2 second value number in the pair
@@ -780,16 +859,20 @@ implements OPT_Operators {
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
+
+      if (lhs.isBOTTOM()) {
+        return false;
+      }
+
       ArrayCell rhs = (ArrayCell)operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
-      OPT_ValueNumberPair[] numbers = rhs.getValueNumbers();
+      OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
       if (numbers != null) {
         for (int i = 0; i < numbers.length; i++) {
@@ -801,7 +884,8 @@ implements OPT_Operators {
       // check if anything has changed
       if (lhsWasTOP)
         return  true;
-      OPT_ValueNumberPair[] newNumbers = lhs.getValueNumbers();
+      OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
+
       boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
     }

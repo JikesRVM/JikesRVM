@@ -132,6 +132,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
+     * Does this cell represent the BOTTOM element in the dataflow lattice?
+     * @return true or false.
+     */
+    boolean isBOTTOM() {
+      return !TOP && (size==0);
+    }
+
+    /**
      * Mark this cell as representing (or not) the TOP element in the 
      * dataflow lattice.
      * @param b should this cell contain TOP?
@@ -219,7 +227,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return a deep copy of the value numbers in this cell, null to
      * represent empty set.
      */
-    int[] getValueNumbers() {
+    int[] copyValueNumbers() {
       if (isTOP()) { 
         throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
@@ -239,11 +247,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     public String toString() {
       StringBuffer s = new StringBuffer(key.toString());
 
-      if (isTOP()) return s.append(" TOP").toString();
+      if (isTOP()) return s.append("{TOP}").toString();
+      if (isBOTTOM()) return s.append("{BOTTOM}").toString();
 
+      s.append("{");
       for (int i = 0; i < size; i++) {
         s.append(" ").append(numbers[i]);
       }
+      s.append("}");
       return s.toString();
     }
 
@@ -355,6 +366,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
+     * Does this cell represent the BOTTOM element in the dataflow lattice?
+     * @return true or false.
+     */
+    boolean isBOTTOM() {
+      return !TOP && (size==0);
+    }
+
+    /**
      * Mark this cell as representing (or not) the TOP element in the 
      * dataflow lattice.
      * @param b should this cell contain TOP?
@@ -448,7 +467,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Return a deep copy of the value numbers in this cell
      * @return a deep copy of the value numbers in this cell 
      */
-    OPT_ValueNumberPair[] getValueNumbers() {
+    OPT_ValueNumberPair[] copyValueNumbers() {
       if (isTOP()) {
         throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
@@ -469,12 +488,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     public String toString() {
       StringBuffer s = new StringBuffer(key.toString());
 
-      if (isTOP()) return  s.append(" TOP").toString();
+      if (isTOP()) return  s.append("{TOP}").toString();
+      if (isBOTTOM()) return s.append("{BOTTOM}").toString();
 
+      s.append("{");
       for (int i = 0; i < size; i++) {
         s.append(" ").append(numbers[i]);
       }
-      return  s.toString();
+      s.append("}");
+      return s.toString();
     }
 
     /**
