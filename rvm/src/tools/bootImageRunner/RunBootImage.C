@@ -305,7 +305,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                         " \"%s\"\n", Me, token);
                 exit(1);
             }
-            if (ret >= bufsiz) {
+            if ((unsigned) ret >= bufsiz) {
                 fprintf(SysTraceFile, "%s: \"%s\": %ld is too big a number"
                         " to process internally\n", Me, token, level);
                 *fastExit = true;
