@@ -25,8 +25,6 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @modified Stephen Fink
  */
 final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
-  // TODO: clean up this field.
-  static int actNum;
 
   /**
    * Makes sure we are in SSA and have global value numbers at hand.
