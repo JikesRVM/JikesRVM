@@ -1624,7 +1624,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     VM_ForwardReference fr1 = asm.emitForwardBC(NE);
     // Normal case: F0 == F0 therefore not a NaN
     asm.emitFCTIWZ(F0, F0);
-    pushLowDoubleAsInt(F0);
+	if (VM.BuildFor64Addr) { 
+      pushLowDoubleAsInt(F0);
+	} else {
+	  asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+	  asm.emitLWZ   (T0, VM_Entrypoints.scratchSecondsField.getOffset() + 4, PROCESSOR_REGISTER);
+	  pushInt       (T0);
+	}
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     // A NaN => 0
