@@ -65,19 +65,19 @@ public abstract class VM_MemberReference {
   /**
    * Find or create the canonical VM_MemberReference instance for
    * the given tuple.
-   * @param cl the type reference
+   * @param tRef the type reference
    * @param mn the name of the member
    * @param md the descriptor of the member
    */
-  public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tref, VM_Atom mn, VM_Atom md) {
+  public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tRef, VM_Atom mn, VM_Atom md) {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
-      if (tref.isArrayType() && !(tref.isWordArrayType() || tref.isCodeArrayType())) {
-	tref = VM_Type.JavaLangObjectType.getTypeRef();
+      if (tRef.isArrayType() && !(tRef.isWordArrayType() || tRef.isCodeArrayType())) {
+	tRef = VM_Type.JavaLangObjectType.getTypeRef();
       }
-      key = new VM_MethodReference(tref, mn, md);
+      key = new VM_MethodReference(tRef, mn, md);
     } else {
-      key = new VM_FieldReference(tref, mn, md);
+      key = new VM_FieldReference(tRef, mn, md);
     }
     VM_MemberReference val = (VM_MemberReference)dictionary.get(key);
     if (val != null)  return val;
@@ -98,12 +98,12 @@ public abstract class VM_MemberReference {
   }
 
   /**
-   * @param tr the type reference
+   * @param tRef the type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
    */
-  protected VM_MemberReference(VM_TypeReference tref, VM_Atom mn, VM_Atom d) {
-    type = tref;
+  protected VM_MemberReference(VM_TypeReference tRef, VM_Atom mn, VM_Atom d) {
+    type = tRef;
     name = mn;
     descriptor = d;
   }
