@@ -220,8 +220,10 @@ public abstract class StopTheWorldGC extends BasePlan
   protected final void prepare() {
     long start = VM_Interface.cycles();
     int order = VM_Interface.rendezvous(4230);
-    if (order == 1)
+    if (order == 1) {
+      setGcStatus(GC_PREPARE);
       baseGlobalPrepare(start);
+    }
     VM_Interface.rendezvous(4240);
     if (order == 1)
       for (int i=0; i<planCount; i++) {
@@ -230,7 +232,10 @@ public abstract class StopTheWorldGC extends BasePlan
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
-    if (order == 1) VM_Interface.resetThreadCounter();
+    if (order == 1) {
+      VM_Interface.resetThreadCounter();
+      setGcStatus(GC_PROPER);    // GC is in progress until after release!
+    }
     VM_Interface.rendezvous(4250);
     if (Plan.MOVES_OBJECTS) {
       VM_Interface.preCopyGCInstances();
@@ -252,7 +257,6 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param start The time that this GC started
    */
   private final void baseGlobalPrepare(long start) {
-    setGcInProgress(true);
     Statistics.gcCount++;
     gcStartTime = start;
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
@@ -332,8 +336,10 @@ public abstract class StopTheWorldGC extends BasePlan
       }
     }
     order = VM_Interface.rendezvous(4280);
-    if (order == 1)
+    if (order == 1) {
       baseGlobalRelease();
+      setGcStatus(NOT_IN_GC);    // GC is in progress until after release!
+    }
     VM_Interface.rendezvous(4290);
   }
 
@@ -348,7 +354,6 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseGlobalRelease() {
     globalRelease();
-    setGcInProgress(false);    // GC is in progress until after release!
     valuePool.reset();
     locationPool.reset();
     rootValuePool.reset();

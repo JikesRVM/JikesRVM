@@ -139,7 +139,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "start","J");
-  public static final VM_Field gcInProgressField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/BasePlan;", "gcInProgress","Z");
+  public static final VM_Field gcStatusField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/BasePlan;", "gcStatus","I");
   public static final VM_Field tailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalSSB;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQCFField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "completionFlag","I");
   public static final VM_Field SQNCField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "numClients","I");

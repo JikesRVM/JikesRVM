@@ -646,8 +646,8 @@ class GenerateInterfaceDeclarations {
 		     + offset + ";\n");
 
     // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
-    offset = VM_Entrypoints.gcInProgressField.getOffset();
-    p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcInProgressOffset = "
+    offset = VM_Entrypoints.gcStatusField.getOffset();
+    p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = "
 		     + offset + ";\n");
   }
 

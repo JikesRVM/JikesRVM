@@ -61,11 +61,15 @@ public abstract class BasePlan
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
+  public static final int NOT_IN_GC = 0;   // this must be zero for C code
+  public static final int GC_PREPARE = 1;  // before setup and obtaining root
+  public static final int GC_PROPER = 2;
+
   // GC state and control variables
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
   protected static int collectionsInitiated = 0;
-  private static boolean gcInProgress = false; // shared variable
+  private static int gcStatus = NOT_IN_GC; // shared variable
   protected static int exceptionReserve = 0;
 
   // Timing variables
@@ -588,7 +592,16 @@ public abstract class BasePlan
    * @return True if a collection is in progress.
    */
   public static boolean gcInProgress() {
-    return gcInProgress;
+    return gcStatus != NOT_IN_GC;
+  }
+
+  /**
+   * Return true if a collection is in progress and past the preparatory stage.
+   *
+   * @return True if a collection is in progress and past the preparatory stage.
+   */
+  public static boolean gcInProgressProper () {
+    return gcStatus == GC_PROPER;
   }
 
   /**
@@ -596,9 +609,9 @@ public abstract class BasePlan
    *
    * @return True if a collection is in progress.
    */
-  protected static void setGcInProgress(boolean v) {
+  protected static void setGcStatus (int s) {
     VM_Magic.isync();
-    gcInProgress = v;
+    gcStatus = s;
     VM_Magic.sync();
   }
 

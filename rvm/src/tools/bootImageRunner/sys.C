@@ -790,8 +790,8 @@ extern "C" void processTimerTick(void) {
      * If it is then simply return (ignore timer tick).
      */
     unsigned VmToc = (unsigned)getJTOC();
-    int gcInProgress = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcInProgressOffset);
-    if (gcInProgress != 0) return;
+    int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
+    if (gcStatus != 0) return;
 
     /*
      * Increment VM_Processor.epoch

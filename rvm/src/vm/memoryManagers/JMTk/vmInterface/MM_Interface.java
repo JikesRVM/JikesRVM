@@ -259,7 +259,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static void modifyCheck(Object obj) {
     /* Make sure we don't GC does not putField on a possible moving
      * object. */
-    if (Plan.gcInProgress()) {
+    if (Plan.gcInProgressProper()) {
 	VM_Address ref = VM_Magic.objectAsAddress(obj);
 	if (VMResource.refIsMovable(ref)) {
 	    VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
