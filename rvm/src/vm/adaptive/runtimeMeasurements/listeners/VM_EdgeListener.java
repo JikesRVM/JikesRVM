@@ -2,8 +2,20 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_StackframeLayoutConstants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Uninterruptible;
 import java.util.*;
 
 /**

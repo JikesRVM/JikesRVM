@@ -2,9 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.opt.*;
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_EdgeCounts;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -171,7 +175,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   static void createControllerThread() {
     Object sentinel = new Object();
     VM_ControllerThread tt = new VM_ControllerThread(sentinel);
-    tt.makeDaemon(true);
     tt.start();
     // wait until controller threads are up and running.
     try {

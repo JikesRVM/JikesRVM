@@ -7,6 +7,12 @@ package com.ibm.JikesRVM;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
+//-#endif
+
 import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
@@ -17,7 +23,7 @@ import com.ibm.JikesRVM.memoryManagers.VM_Collector;
  * @modified Igor Pechtchanski
  *      Arbitrary prefix support
  */
-class VM_CommandLineArgs { 
+public class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;
 
   private static final class Prefix {

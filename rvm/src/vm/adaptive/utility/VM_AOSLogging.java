@@ -2,9 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.opt.*;
 
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.opt.*;
 import java.io.*;
 
 /**
@@ -114,14 +119,14 @@ class VM_AOSLogging {
 		      " ThreadIndex: " + t.getIndex() + " "
 		      + t.getClass().getName() + " "
 		      + " Time: " 
-		      + t.cpuTotalTime
+		      + t.getCPUTotalTime()
 		      + " status("
-		      + (  t.isIdleThread ?     "i"         // idle daemon
-			   : t.isGCThread   ?     "g"       // gc daemon
-			   : t.isDaemon     ?     "d"       // user daemon
+		      + (  t.isIdleThread() ?     "i"         // idle daemon
+			   : t.isGCThread() ?     "g"       // gc daemon
+			   : t.isDaemonThread()  ?     "d"       // user daemon
 			   :                      "" )
-		      + (!t.isAlive     ?     "!" : "")     // dead/alive
-		      + (t.cpuStartTime > 0 ? "+" : "-")    // running/stopped
+		      + (!t.isAlive()     ?     "!" : "")     // dead/alive
+		      + (t.getCPUStartTime() > 0 ? "+" : "-")    // running/stopped
 		      + ")"
 		      );
 	}

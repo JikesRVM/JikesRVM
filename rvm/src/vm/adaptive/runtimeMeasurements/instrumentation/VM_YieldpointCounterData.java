@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.opt.*;
 
 /**

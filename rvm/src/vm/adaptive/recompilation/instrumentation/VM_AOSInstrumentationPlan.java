@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.opt.*;
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM_Method;
 import java.util.Vector;
 import java.util.Enumeration;
 

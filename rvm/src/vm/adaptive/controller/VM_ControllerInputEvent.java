@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
 
 /**
  * Abstract parent class for events from organizers to the controller. 

@@ -59,19 +59,32 @@ public class VM_RuntimeCompilerInfrastructure
     report(true);
   }
 
-  public static void record(byte Compiler, VM_Method m, VM_CompiledMethod cm, Timer timer) {
+  /**
+   * This method records the time and sizes (bytecode and machine code) for
+   * a compilation
+   * @param compiler the compiler used
+   * @param method the resulting VM_Method
+   * @param compiledMethod the resulting compiled method
+   * @param timer the timer hold the time used for compilation
+   */
+  public static void record(byte compiler, VM_Method method, 
+			    VM_CompiledMethod compiledMethod, Timer timer) {
 
     // we don't count native methods.  They don't have any bytecodes
-    if (timer.validTiming() && !m.isNative()) {
-      total_methods[Compiler]++;
-      total_bcodeLen[Compiler] += m.getBytecodes().length;
-      total_mcodeLen[Compiler] += cm.getInstructions().length;
+    if (timer.validTiming() && !method.isNative()) {
+      total_methods[compiler]++;
+      total_bcodeLen[compiler] += method.getBytecodes().length;
+      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
       if (VM.MeasureCompilation) {
-	total_time[Compiler] += timer.elapsedTime();
+	total_time[compiler] += timer.elapsedTime();
       }
     }
   }
 
+  /**
+   * This method produces a summary report of compilation activities
+   * @param explain Explains the metrics used in the report
+   */
   public static void report (boolean explain) { 
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
@@ -112,18 +125,28 @@ public class VM_RuntimeCompilerInfrastructure
   }
    
 
-  // TODO: Move this somewhere else (general profiling utility file).
-  // 
-  // NOTE: Printing a double or float requires a fair amount of work and furthermore
-  // may result in class loading and/or allocation.  We could call Math.round, but 
-  // that might also cause classloading, so instead we do something fairly simple
-  // but slow and ugly that more or less works in most cases.
-  public static void printRatio(int numerator, int denomenator, int places) {
-    if (denomenator == 0) return;
+  /**
+   * Prints the ratio of first two parameters using the number of digits
+   * specified by the 3rd parameter.
+
+   * NOTE: Printing a double or float requires a fair amount of work and
+   * furthermore may result in class loading and/or allocation.  We could
+   * call Math.round, but that might also cause classloading, so instead
+   * we do something fairly simple, but slow and ugly that more or less
+   * works in most cases.
+   *
+   * TODO: Move this somewhere else (general profiling utility file).
+   *
+   * @param numerator the numerator
+   * @param denominator the denominator
+   * @param places the number of decimal places to be used in the result
+   */
+  public static void printRatio(int numerator, int denominator, int places) {
+    if (denominator == 0) return;
     int divide = 10;
     for (int i = 0; i<places; i++)
       divide = divide*10;
-    float value = ((float)numerator)/((float)denomenator) + (5.0f/(float)divide); //Add in fudge to get rounding
+    float value = ((float)numerator)/((float)denominator) + (5.0f/(float)divide); //Add in fudge to get rounding
     int approx = (int)value;
     VM.sysWrite(approx, false);
     if (places > 0) VM.sysWrite(".");
@@ -134,15 +157,23 @@ public class VM_RuntimeCompilerInfrastructure
     }
   }
 
+  /**
+   * Prints the percentage of total time taken by the first parameter.
+   * @param phaseTime the time take by a phase
+   * @param time the total time
+   */
   public static void printPercentage(double phaseTime, double time) {
     printRatio(VM_Time.toMilliSecs(phaseTime)*100,
 	       VM_Time.toMilliSecs(time), 2);
   }
 
 
-  // This method will compile the passed method using our "quicker" compiler.
-  // Currently, this is the baseline compiler.
-  static VM_CompiledMethod baselineCompile(VM_Method method) {
+  /**
+   * This method will compile the passed method using our "quicker" compiler.
+   * Currently, this is the baseline compiler.
+   * @param method the method to compile
+   */
+  public static VM_CompiledMethod baselineCompile(VM_Method method) {
     Timer timer = null; // Only used if VM.MeasureCompilation 
     if (VM.MeasureCompilation) {
       timer = new Timer();
@@ -159,7 +190,9 @@ public class VM_RuntimeCompilerInfrastructure
     return cm;
    }
 
-  // This class is only used when (VM.MeasureCompilation)
+  /**
+   * A class to record compilation times
+   */
   public static class Timer {
     private static final boolean EXCLUDE_GC = true; 
     private double startTime; 

@@ -156,7 +156,7 @@ public abstract class VM_BaselineCompiler {
    * @param prefix
    * @param arg     Command line argument with prefix stripped off
    */
-  static void processCommandLineArg(String prefix, String arg) {
+  public static void processCommandLineArg(String prefix, String arg) {
     if (setUpOptions != null) {
       if (setUpOptions.processAsOption(prefix, arg)) {
 	return;

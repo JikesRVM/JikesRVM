@@ -16,7 +16,11 @@ import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
+//-#else
 import com.ibm.JikesRVM.VM_RuntimeCompiler;
+//-#endif
 import com.ibm.JikesRVM.VM_BootImageCompiler;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;

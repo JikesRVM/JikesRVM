@@ -10,7 +10,8 @@ package com.ibm.JikesRVM;
  *
  * @author Bowen Alpern
  */
-final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_BaselineConstants {
+final public class VM_BaselineCompiledMethod extends VM_CompiledMethod 
+  implements VM_BaselineConstants {
 
   // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
   // This is wasting a lot of space!

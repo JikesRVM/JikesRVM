@@ -2,7 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.opt.*;
 
 /**
@@ -39,6 +43,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     this.listener         = listener;
     this.filterOptLevel   = filterOptLevel;
     listener.setOrganizer(this);
+    makeDaemon(true);
   }
 
   /**

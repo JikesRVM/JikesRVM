@@ -4,6 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+//-#endif
+
 /**
  * Thread in which user's "main" program runs.
  *

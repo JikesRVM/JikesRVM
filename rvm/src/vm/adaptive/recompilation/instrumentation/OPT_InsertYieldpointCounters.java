@@ -3,9 +3,13 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import  com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.adaptive.VM_YieldpointCounterData;
+import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
+import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+import com.ibm.JikesRVM.adaptive.VM_Controller;
 
 /** 
  *

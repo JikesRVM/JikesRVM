@@ -2,8 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BaselineCompiler;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_CommandLineArgs;
+import com.ibm.JikesRVM.VM_Callbacks;
 
 /**
  *
@@ -15,7 +24,7 @@ import com.ibm.JikesRVM.opt.*;
 public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   static OPT_InlineOracle offlineInlineOracle;
 
-  static void boot() { 
+  public static void boot() { 
     VM.sysWrite("VM_RuntimeCompiler: boot (adaptive compilation)\n");
 
     // initialize the OPT compiler, if any operation throws
@@ -27,11 +36,11 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
   }
   
-  static void initializeMeasureCompilation() {
+  public static void initializeMeasureCompilation() {
     VM_RuntimeOptCompilerInfrastructure.initializeMeasureCompilation(); 
   }
   
-  static void processCommandLineArg(String arg) {
+  public static void processCommandLineArg(String arg) {
     if (VM_Controller.options !=null  && VM_Controller.options.optOnly()) {
       if (compilerEnabled) {
 	if (options.processAsOption("-X:aos:irc", arg)) {
@@ -53,7 +62,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   
   // This will be called by the classLoader when we need to compile a method
   // for the first time.
-  static VM_CompiledMethod compile(VM_Method method) {
+  public static VM_CompiledMethod compile(VM_Method method) {
     VM_CompiledMethod cm;
 
     if (!VM_Controller.enabled) {

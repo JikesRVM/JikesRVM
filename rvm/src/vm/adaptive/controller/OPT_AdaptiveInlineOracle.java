@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.adaptive.VM_AdaptiveInlining;
 
 /**
  * Extend the generic OPT_ProfileDirectedInlineOracle

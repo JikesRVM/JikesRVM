@@ -34,7 +34,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     }
   }
 
-  static void initializeMeasureCompilation() {
+  public static void initializeMeasureCompilation() {
     VM_RuntimeOptCompilerInfrastructure.initializeMeasureCompilation(); 
   }
 

@@ -299,12 +299,12 @@ public class VM_Entrypoints implements VM_Constants {
   ////////////////// 
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  static final VM_Field methodListenerNextIndexField      = getField("Lcom/ibm/JikesRVM/VM_MethodListener;", "nextIndex", "I");
-  static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/JikesRVM/VM_MethodListener;", "numSamples", "I");
+  public static final VM_Field methodListenerNextIndexField      = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "nextIndex", "I");
+  public static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "numSamples", "I");
 
-  static final VM_Field edgeListenerNextIndexField        = getField("Lcom/ibm/JikesRVM/VM_EdgeListener;", "nextIndex", "I");
-  static final VM_Field edgeListenerSamplesTakenField     = getField("Lcom/ibm/JikesRVM/VM_EdgeListener;", "samplesTaken", "I");
-  static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/VM_CounterArrayManager;","counterArrays","[[D");
+  public static final VM_Field edgeListenerNextIndexField        = getField("Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;", "nextIndex", "I");
+  public static final VM_Field edgeListenerSamplesTakenField     = getField("Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;", "samplesTaken", "I");
+  public static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
   //-#endif
 
 

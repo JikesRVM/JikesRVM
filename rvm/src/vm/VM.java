@@ -6,6 +6,10 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
+//-#endif
+
 /**
  * A virtual machine.
  * Implements VM_Uninterruptible to suppress thread switching in boot() and

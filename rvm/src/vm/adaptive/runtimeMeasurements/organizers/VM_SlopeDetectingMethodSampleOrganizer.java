@@ -2,7 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.opt.*;
 
 /**
@@ -109,6 +115,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
     if (VM.VerifyAssertions) VM._assert(NOT_MAPPED != FIRST_ENTRY);
     this.history          = new int[128][];
     listener.setOrganizer(this);
+    makeDaemon(true);
   }
 
 

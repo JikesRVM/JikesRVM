@@ -7,6 +7,11 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.*;
 
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+//-#endif
+
 /**
  * This class contains the high level logic for executing an inlining decision.
  *

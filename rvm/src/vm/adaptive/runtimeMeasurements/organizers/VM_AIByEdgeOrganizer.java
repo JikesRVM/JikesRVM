@@ -2,9 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.opt.*;
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_BaselineCompiledMethod;
+import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
 /**
@@ -66,6 +71,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
      if (DEBUG) VM.sysWrite("VM_AIByEdgeOrganizer.<init>(): enter\n");     
      this.edgeListener = edgeListener;
      edgeListener.setOrganizer(this);
+     makeDaemon(true);
   }
 
   /**

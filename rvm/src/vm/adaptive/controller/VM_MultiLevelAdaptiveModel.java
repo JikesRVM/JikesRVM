@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM_CompiledMethod;
 
 /**
  * Implements the multi-level adaptive strategy using an analytic
@@ -73,8 +75,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    */
   protected void createViableOptionLookupTable(int maxCompiler) {
     
-    viableChoices = new 
-      VM_RecompilationChoice[maxCompiler][];
+    viableChoices = new VM_RecompilationChoice[maxCompiler][];
 
     // A temp place to store the list of viable choices
     VM_RecompilationChoice[] temp = new VM_RecompilationChoice[maxCompiler];

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -28,7 +30,10 @@ class VM_ControllerThread extends VM_Thread {
    * constructor
    * @param sentinel: an object to signal when up and running
    */
-  VM_ControllerThread(Object sentinel)  { this.sentinel = sentinel; }
+  VM_ControllerThread(Object sentinel)  { 
+    this.sentinel = sentinel; 
+    makeDaemon(true);
+  }
   private Object sentinel;
 
 
@@ -132,7 +137,6 @@ class VM_ControllerThread extends VM_Thread {
   private void createCompilationThread() {
     VM_CompilationThread ct = new VM_CompilationThread();
     VM_Controller.compilationThread = ct;
-    ct.makeDaemon(true);
     ct.start();
   }
 
@@ -202,7 +206,6 @@ class VM_ControllerThread extends VM_Thread {
     for (Enumeration e = VM_Controller.organizers.elements(); 
 	 e.hasMoreElements(); ) {
       VM_Organizer o = (VM_Organizer)e.nextElement();
-      o.makeDaemon(true);
       o.start();
     }
   }

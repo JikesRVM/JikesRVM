@@ -14,7 +14,8 @@ import com.ibm.JikesRVM.opt.*;
  * @author Michael Hind
  * @author Dave Grove
  */
-class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructure {
+public class VM_RuntimeOptCompilerInfrastructure 
+  extends VM_RuntimeCompilerInfrastructure {
   
 //-#if RVM_WITH_OPT_COMPILER
   
@@ -40,8 +41,10 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   protected static OPT_Options options;
   protected static OPT_OptimizationPlanElement[] optimizationPlan;
 
-  // Perform intitialization for OPT compiler
-  static void boot() throws OPT_OptimizingCompilerException {
+  /**
+   * Perform intitialization for OPT compiler
+   */
+  public static void boot() throws OPT_OptimizingCompilerException {
     options = new OPT_Options();
     setNoCacheFlush(options);
     OPT_Compiler.init(options);
@@ -51,7 +54,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     compilerEnabled = true;
   }
 
-  static void initializeMeasureCompilation() {
+  public static void initializeMeasureCompilation() {
     VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
 
     // send a message to all phases letting them update themselves
@@ -59,11 +62,20 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   }
 
 
-  // attempt to compile the passed method with the OPT_Compiler.
-  // Don't handle OPT_OptimizingCompilerExceptions (leave it up to caller to decide what to do)
-  // Precondition: compilationInProgress "lock" has been acquired
-  private static VM_CompiledMethod optCompile(VM_Method method, OPT_CompilationPlan plan) throws OPT_OptimizingCompilerException {
-    if (VM.VerifyAssertions) VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
+  /**
+   * attempt to compile the passed method with the OPT_Compiler.
+   * Don't handle OPT_OptimizingCompilerExceptions 
+   *   (leave it up to caller to decide what to do)
+   * Precondition: compilationInProgress "lock" has been acquired
+   * @param method the method to compile
+   * @param plan the plan to use for compiling the method
+   */
+  private static VM_CompiledMethod optCompile(VM_Method method, 
+					      OPT_CompilationPlan plan) 
+    throws OPT_OptimizingCompilerException {
+    if (VM.VerifyAssertions) {
+      VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
+    }
     
     Timer timer = null; // Only used if VM.MeasureCompilation 
     if (VM.MeasureCompilation) {
@@ -100,12 +112,17 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   
 
   // These methods are safe to invoke from VM_RuntimeCompiler.compile
-  // tries to compile the passed method with the OPT_Compiler.  If
-  // this fails we will use the quicker compiler (baseline for now)
-  // The following is carefully crafted to avoid (infinte) recursive opt compilation
-  // for all combinations of bootimages & lazy/eager compilation.
-  // Be absolutely sure you know what you're doing before changing it !!!
-  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method) {
+
+  /**
+   * This method tries to compile the passed method with the OPT_Compiler, 
+   * using the default compilation plan.  If
+   * this fails we will use the quicker compiler (baseline for now)
+   * The following is carefully crafted to avoid (infinte) recursive opt
+   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * Be absolutely sure you know what you're doing before changing it !!!
+   * @param method the method to compile
+   */
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -120,7 +137,19 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
       }
     }
   }
-  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_CompilationPlan plan) {
+
+  /**
+   * This method tries to compile the passed method with the OPT_Compiler
+   * with the passed compilation plan.  If
+   * this fails we will use the quicker compiler (baseline for now)
+   * The following is carefully crafted to avoid (infinte) recursive opt
+   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * Be absolutely sure you know what you're doing before changing it !!!
+   * @param method the method to compile
+   * @param plan the compilation plan to use for the compile
+   */
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, 
+OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -132,8 +161,19 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
       }
     }
   }
+
   //-#if RVM_WITH_SPECIALIZATION
-  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
+  /**
+   * This method tries to compile the passed method with the OPT_Compiler
+   * using the specialization context passed.  If
+   * this fails we will use the quicker compiler (baseline for now)
+   * The following is carefully crafted to avoid (infinte) recursive opt
+   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * Be absolutely sure you know what you're doing before changing it !!!
+   * @param method the method to compile
+   * @param context the specialization context to use for the compilation
+   */
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -148,6 +188,12 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     }
   }
   //-#endif
+
+  /**
+   * This real method that performs the opt compilation.  
+   * @param method the method to compile
+   * @param plan the compilation plan to use
+   */
   private static VM_CompiledMethod optCompileWithFallBackInternal(VM_Method method, OPT_CompilationPlan plan) {
     try {
       return optCompile(method, plan);
@@ -168,12 +214,18 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   }
 
 
-  // tries to compile the passed method with the OPT_Compiler.
-  // It will install the new compiled method via replaceCompiledMethod if sucessful.
-  // Returns the CMID of the new method if successful, -1 if the recompilation failed.
-  // NOTE: the recompile method should never be invoked via VM_RuntimeCompiler.compile;
-  // it does not have sufficient guards against recursive recompilation.
-  static synchronized int recompileWithOpt(OPT_CompilationPlan plan) {
+  /**
+   * This method tries to compile the passed method with the OPT_Compiler.
+   * It will install the new compiled method in the VM, if sucessful.
+   * NOTE: the recompile method should never be invoked via 
+   *      VM_RuntimeCompiler.compile;
+   *   it does not have sufficient guards against recursive recompilation.
+   * @param plan the compilation plan to use
+   * @return the CMID of the new method if successful, -1 if the 
+   *    recompilation failed.
+   *
+  **/
+  public static synchronized int recompileWithOpt(OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return -1;
     } else {
@@ -208,35 +260,57 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     }
   }
 
-  // Wrapper class for those callers who don't want to make optimization plans
-  //
+  /**
+   * A wrapper method for those callers who don't want to make
+   * optimization plans
+   * @param method the method to recompile
+   */
   static int recompileWithOpt(VM_Method method) {
-    OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options);
+    OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
+						       optimizationPlan, 
+						       null, 
+						       options);
     return recompileWithOpt(plan);
   }
 
-  // This method is safe to invoke from VM_RuntimeCompiler.compile
+  /**
+   * This method uses the default compiler (baseline) to compile a method
+   * It is typically called when a more aggressive compilation fails.
+   * This method is safe to invoke from VM_RuntimeCompiler.compile
+   */
   protected static VM_CompiledMethod fallback(VM_Method method) {
     // call the inherited method "baselineCompile"
     return baselineCompile(method);
   }
 
+  /**
+   * This method creates a opt-compiler GC Map iterator object that will be
+   * used to report the stack GC roots.
+   */
   public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
 
-  // Detect if we're running on a uniprocessor and optimize accordingly.
-  // One needs to call this method each time a command line argument is changed
-  // and each time an OPT_Options object is created.
-  static void setNoCacheFlush(OPT_Options options) {
+  /**
+   * This method detect if we're running on a uniprocessor and optimizes
+   * accordingly.
+   * One needs to call this method each time a command line argument is changed
+   * and each time an OPT_Options object is created.
+   * @param options the command line options for the opt compiler
+  */
+  public static void setNoCacheFlush(OPT_Options options) {
     if (options.DETECT_UNIPROCESSOR) {
       if (VM.sysCall0(VM_BootRecord.the_boot_record.sysNumProcessorsIP) == 1) {
 	options.NO_CACHE_FLUSH = true;
       }
     }
   }
-  
-  // A hook called from VM_CompilationProfiler to allow in depth compiler subsystem reports
+
+  /**
+   * This method provides a hook to allow in depth compiler subsystem reports.
+   * It was originally (and still?) called from VM_CompilationProfiler.
+   * @param explain should we provide more details
+   */
   static void detailedCompilationReport(boolean explain) {
     // If/when the baseline compiler gets these, invoke them here.
     

@@ -6,6 +6,11 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+//-#endif
+
 /**
  * A java thread's execution context.
  *  
@@ -1347,11 +1352,43 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   
   // Cpu utilization statistics, used if "VM_BuildForCpuMonitoring == true".
   //
-  double         cpuStartTime = -1;  // time at which this thread started running on a cpu (-1: has never run, 0: not currently running)
+  double cpuStartTime = -1;  // time at which this thread started running on a cpu (-1: has never run, 0: not currently running)
   double         cpuTotalTime;       // total cpu time used by this thread so far, in seconds
 
   // Network utilization statistics, used if "VM_BuildForNetworkMonitoring == true".
   //
   public int     netReads;           // number of completed read operations
   public int     netWrites;          // number of completed write operations
+
+  public double getCPUStartTime() {
+    return cpuStartTime;
+  }
+
+  public double getCPUTotalTime() {
+    return cpuTotalTime;
+  }
+
+  public void setCPUStartTime(double time) {
+    cpuStartTime = time;
+  }
+
+  public void setCPUTotalTime(double time) {
+    cpuTotalTime = time;
+  }
+
+  public boolean isIdleThread() {
+    return isIdleThread;
+  }
+
+  public boolean isGCThread() {
+    return isGCThread;
+  }
+
+  public boolean isDaemonThread() {
+    return isDaemon;
+  }
+
+  public boolean isAlive() {
+    return isAlive;
+  }
 }

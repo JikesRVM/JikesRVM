@@ -127,7 +127,7 @@ package com.ibm.JikesRVM;
  * @author David Grove
  * @author Bowen Alpern
  */
-interface VM_StackframeLayoutConstants  {
+public interface VM_StackframeLayoutConstants  {
 
    static final int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4; // offset of caller's return address from FP
    static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame

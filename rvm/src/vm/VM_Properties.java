@@ -90,7 +90,7 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
   public static final boolean TraceStackTrace         = false;
-  public static boolean TraceClassLoading             = false;
+  public static boolean TraceClassLoading             = true;
 
   // Baseline compiler tracing.
   //

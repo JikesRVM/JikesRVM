@@ -2,8 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.adaptive;
+
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)
@@ -18,6 +23,13 @@ import com.ibm.JikesRVM.opt.*;
  *  @author David Grove
  */
 class VM_CompilationThread extends VM_Thread {
+
+  /**
+   * constructor
+   */
+  VM_CompilationThread() {
+    makeDaemon(true);
+  }
 
   /**
    * This is the main loop of the compilation thread. It's job is to 
@@ -58,9 +70,7 @@ class VM_CompilationThread extends VM_Thread {
     // must hold classloader lock while compiling.
     // Update compilation thread timing information to prepare for new run.
     double now = VM_Time.now();
-    cpuTotalTime += (now - cpuStartTime);
-    cpuStartTime = now;
-    double start = cpuTotalTime;
+    double start = updateStartAndTotalTimes(now);
 
     // Compile the method.
     int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
@@ -68,9 +78,7 @@ class VM_CompilationThread extends VM_Thread {
     // Update compilation thread timing information and compute time 
     // taken during this compilation.
     now = VM_Time.now();
-    cpuTotalTime += (now - cpuStartTime);
-    cpuStartTime = now;
-    double end = cpuTotalTime;
+    double end = updateStartAndTotalTimes(now);
     double compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
       
     // transfer the samples from the old CMID to the new CMID.
@@ -104,4 +112,11 @@ class VM_CompilationThread extends VM_Thread {
       }
     }
   }
+
+  private double updateStartAndTotalTimes(double now) {
+    setCPUTotalTime(getCPUTotalTime() + (now - getCPUStartTime()));
+    setCPUStartTime(now);
+    return getCPUTotalTime();
+  }
+
 }

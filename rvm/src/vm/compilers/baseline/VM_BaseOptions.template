@@ -17,7 +17,7 @@ package com.ibm.JikesRVM;
  * @author Janice Shepherd
  * @author Dave Grove
  **/
-class VM_BaseOptions {
+public class VM_BaseOptions {
 
   private String printToStringHeader() {
     return "Current value of options for Baseline compiler:\n";
