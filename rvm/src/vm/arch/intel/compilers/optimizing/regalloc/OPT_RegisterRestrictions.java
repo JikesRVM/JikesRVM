@@ -221,6 +221,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
     OPT_Register EBP = phys.getEBP();        
     OPT_Register ESI = phys.getESI();        
     OPT_Register EDI = phys.getEDI();        
+    noteMustNotSpill(r);
     addRestriction(r,ESP);
     addRestriction(r,EBP);
     addRestriction(r,ESI);
