@@ -22,7 +22,7 @@ DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
     completely rewriten, adding object model info
     DAVE G. will do this.
 
-(6) Section 5 -- optimizing compiler details.  Exisiting text is
+DONE (6) Section 5 -- optimizing compiler details.  Exisiting text is
     mostly fine; Think about adding more stuff?  At least include
     pointer to tutorial slides.
     STEVE
