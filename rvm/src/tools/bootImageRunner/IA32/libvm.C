@@ -50,6 +50,7 @@
 #endif
 
 /* Interface to virtual machine data structures. */
+#define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include <InterfaceDeclarations.h>
@@ -393,7 +394,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         {
             writeErr("invalid vp address (not an address - high nibble %d)\n", 
                      vp_hn);
-            exit(1);
+            signal(signo, SIG_DFL);
+            raise(signo);
+            // We should never get here.
+            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
 
@@ -411,7 +415,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
             writeErr("invalid frame address %x"
             " (not an address - high nibble %d)\n", 
                                  localFrameAddress, fp_hn);
-            exit(1);
+            signal(signo, SIG_DFL);
+            raise(signo);
+            // We should never get here.
+            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
 
@@ -513,7 +520,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
     if ((uintptr_t) sp <= stackLimit - 384) {
         writeErr("sp (0x%08" PRIxPTR ")too far below stackLimit (0x%08" PRIxPTR ")to recover\n", (uintptr_t) sp, stackLimit);
-        exit (2);
+        signal(signo, SIG_DFL);
+        raise(signo);
+        // We should never get here.
+        _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
     sp = (long unsigned int *)stackLimit - 384;
     stackLimit -= VM_Constants_STACK_SIZE_GUARD;
@@ -606,6 +616,8 @@ softwareSignalHandler(int signo,
                       siginfo_t UNUSED *si, 
                       void *context) 
 {
+//    bool croak_with_signo = false;
+    
 #ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     if (signo == SIGALRM) {     /* asynchronous signal used for time slicing */
         processTimerTick();
@@ -634,11 +646,24 @@ softwareSignalHandler(int signo,
         return;
     }
 
+    /** We need to adapt this code so that we run the exit handlers
+        appropriately. */
+    
     if (signo == SIGTERM) {
         // Presumably we received this signal because someone wants us
         // to shut down.  Exit directly (unless the lib_verbose flag is set).
-        if (!lib_verbose)
-            _exit(1);
+        // TODO: Run the shutdown hooks instead.
+        if (!lib_verbose) {
+            /* Now reraise the signal.  We reactivate the signal's
+               default handling, which is to terminate the process.
+               We could just call `exit' or `abort',
+               but reraising the signal sets the return status
+               from the process correctly.
+               TODO: Go run shutdown hooks before we re-raise the signal. */
+            signal(signo, SIG_DFL);
+            raise(signo);
+        }
+        
 
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
