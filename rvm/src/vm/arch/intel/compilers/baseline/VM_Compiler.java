@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * 
@@ -439,7 +439,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
     genParameterRegisterLoad(2);                     // pass 2 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
-    if (VM_Interface.NEEDS_WRITE_BARRIER) 
+    if (MM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
     else {
       asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
@@ -1892,7 +1892,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrier(asm, T0);
 //       emitDynamicLinkingSequence(T0, fieldRef, false);
 //     }
@@ -1912,7 +1912,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
 //     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -1971,7 +1971,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0);
       emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
@@ -2003,7 +2003,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {
@@ -2233,7 +2233,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    int whichAllocator = VM_Interface.pickAllocator(typeRef);
+    int whichAllocator = MM_Interface.pickAllocator(typeRef);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
     asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
@@ -2262,7 +2262,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array, method);
+    int whichAllocator = MM_Interface.pickAllocator(array, method);
     // count is already on stack- nothing required
     asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
     asm.emitSHL_Reg_Imm (T0, width);              // compute array size
