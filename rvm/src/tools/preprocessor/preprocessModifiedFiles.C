@@ -572,7 +572,8 @@ preprocess(const char *srcFile, const char *dstFile)
 	linelen = strlen(line);
 	assert(linelen > 0);	// otherwise we'd have gotten feof().
 	if (line[ linelen - 1 ] != '\n') {
-	    inputErr("Line too long (over %d characters).\n", linelen);
+	    inputErr("Line too long (over %lu characters).\n", 
+		     (unsigned long) linelen);
 	}
 
 	++SourceLine;
@@ -863,7 +864,7 @@ evalReplace(char *cursor)
 	    return i;
 	}
     }
-    inputErr("//-#value used on undefined directive '%*.*s'", len, len, name);
+    inputErr("//-#value used on undefined directive '%*.*s'", (int) len, (int) len, name);
     /* NOTREACHED */
 }
 
@@ -895,7 +896,7 @@ eval(char *cursor)
 			inputErr(
 			    "The directive name %*.*s is a Value directive;\n"
 			    "     preprocessor conditionals require a"
-			    "True/False directive", len, len, dp->Name);
+			    "True/False directive", (int) len, (int) len, dp->Name);
 		    match = 1;
 		} else {
 		    assert(!dp->Value);
@@ -909,7 +910,7 @@ eval(char *cursor)
 	if (match < 0) {
 	    if (! config_undefined_directives_ok_in_conditionals)
 		inputErr("Undefined directive name %*.*s"
-			 " in preprocessor conditional", len, len, name);
+			 " in preprocessor conditional", (int) len, (int) len, name);
 	    match = 0;
 	}
 	
@@ -1022,7 +1023,7 @@ delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *dummy_ar
 static void 
 cleanup_and_die(int signum) 
 {
-    fprintf(stderr, "%s: Dying due to signal # %d; cleaning up.\n", signum);
+    fprintf(stderr, "%s: Dying due to signal # %d; cleaning up.\n", Me, signum);
     delete_on_trouble(0, (void *) NULL);
     signal(signum, SIG_DFL);
     raise(signum);
@@ -1100,15 +1101,15 @@ xsignal_sigaction(int signum, void (*handler)(int))
  		"%s: Trouble trying to set up a handler for signal %d: ",
  		Me, signum);
 	perror((char *) NULL);
-	fprintf(stderr, "%s: ...going on as best we can\n");
+	fprintf(stderr, "%s: ...going on as best we can\n", Me);
     } else if ( ! (oldact.sa_flags | SA_SIGINFO) && (oldact.sa_handler == SIG_IGN)) {
 	/* Don't interfere with shells that turn off the handling of certain
 	   signals; reset it, instead. */
 	r = sigaction(signum, &oldact, (struct sigaction *) NULL);
 	if (r) {
-	    fprintf(stderr, "%s: Trouble resetting signal %d's handler back to SIG_IGN: ");
+	    fprintf(stderr, "%s: Trouble resetting signal %d's handler back to SIG_IGN: ", Me, signum);
 	    perror((char *) NULL);
-	    fprintf(stderr, "%s:  ...going on as best we can.");
+	    fprintf(stderr, "%s:  ...going on as best we can.", Me);
 	}
     }
     /* Ok; all is done!   We're either set up or we aren't. */
