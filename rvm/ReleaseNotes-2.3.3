@@ -1,5 +1,5 @@
 -*-outline-*-
-These are release notes for the future Jikes RVM release 2.3.3
+These are release notes for the future Jikes RVM release 2.3.3.
 
 *Sections of this document:
  *Highlights
@@ -14,6 +14,19 @@ Jikes RVM now includes support for the GCspy tool for visualizing the
 garbage collector's behaviour.  (This item should have been included
 in the 2.3.2 release notes, but was inadvertently omitted.)
 Documentation is in the user's guide.
+
+**Startup time slashed
+The startup time for Jikes RVM to run a simple "Hello World" program
+on Linux/x86 went down by a factor of 8.  This is because we now use
+mmap()'s copy-on-write feature, instead of reading all 30 MB of boot
+image into an area mmap()'d with MAP_ANONYMOUS.
+(There is a long comment in src/tools/bootImageRunner/IA32/libvm.C
+describing this; search for the preprocessor condition #ifdef
+MMAP_COPY_ON_WRITE).  If this creates problems, disable them by
+#undefining MMAP_COPY_ON_WRITE in libvm.C.  
+
+This change should be ported to PowerPC Linux by someone who runs that
+platform.  Please remove this paragraph if you do so.
 
 *Other notes:
 
