@@ -13,6 +13,13 @@
 //
 #include <stdio.h>
 
+#if ! defined __GNUC__ || (__GNUC__ < 3)
+/* Unless we're running GCC 3.0 or greater, just turn off the 'unused',
+   attributes, since GCC 2.96 complains about them, and other compilers will
+   not even parse them.  */ 
+#define __attribute__(args)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif    
