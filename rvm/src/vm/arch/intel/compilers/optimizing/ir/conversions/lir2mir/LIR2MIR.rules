@@ -2425,6 +2425,41 @@ address:	INT_MOVE(address)
 NOFLAGS
 //nothing to do
 
+sload8:	INT_MOVE(sload8)
+0
+NOFLAGS
+//nothing to do
+
+uload8:	INT_MOVE(uload8)
+0
+NOFLAGS
+//nothing to do
+
+load8:	INT_MOVE(load8)
+0
+NOFLAGS
+//nothing to do
+
+sload16: INT_MOVE(sload16)
+0
+NOFLAGS
+//nothing to do
+
+uload16: INT_MOVE(uload16)
+0
+NOFLAGS
+//nothing to do
+
+load16:	INT_MOVE(load16)
+0
+NOFLAGS
+//nothing to do
+
+load32:	INT_MOVE(load32)
+0
+NOFLAGS
+// nothing to do
+
 ######
 # FLOAT_MOVE
 ######
@@ -2462,6 +2497,11 @@ fp0:	FLOAT_MOVE(pfp0)
 18
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, F(getFPR(0)), myFP0()));
+
+fpload:	FLOAT_MOVE(fpload)
+0
+NOFLAGS
+// nothing to do
 
 ######
 # DOUBLE_MOVE
@@ -2501,26 +2541,31 @@ fp0:	DOUBLE_MOVE(pfp0)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
 
+fpload:	DOUBLE_MOVE(fpload)
+0
+NOFLAGS
+// nothing to do
+
 #####
 # LONG_MOVE
 #####
 r:	LONG_MOVE(r)
 23
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;                                  \
-OPT_Register res2 = burs.ir.regpool.getSecondReg(res1);                             \
-OPT_Register val1 = Move.getVal(P(p)).asRegister().register;                        \
-OPT_Register val2 = burs.ir.regpool.getSecondReg(val1);                             \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), R(val1)));                            \
+OPT_Register res1 = Move.getResult(P(p)).register;               \
+OPT_Register res2 = burs.ir.regpool.getSecondReg(res1);          \
+OPT_Register val1 = Move.getVal(P(p)).asRegister().register;     \
+OPT_Register val2 = burs.ir.regpool.getSecondReg(val1);          \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), R(val1)));         \
 EMIT(MIR_Move.create(IA32_MOV, R(res2), R(val2)));
 
 r:	LONG_MOVE(lv)
 21
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;                                  \
-OPT_Register res2 = burs.ir.regpool.getSecondReg(res1);                             \
-OPT_LongConstantOperand val = L(Move.getVal(P(p)));                                 \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), I(val.upper32())));                   \
+OPT_Register res1 = Move.getResult(P(p)).register;                \
+OPT_Register res2 = burs.ir.regpool.getSecondReg(res1);           \
+OPT_LongConstantOperand val = L(Move.getVal(P(p)));               \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), I(val.upper32()))); \
 EMIT(MIR_Move.create(IA32_MOV, R(res2), I(val.lower32())));
 
 ##################################
