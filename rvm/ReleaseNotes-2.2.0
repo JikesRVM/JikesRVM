@@ -15,7 +15,8 @@ Highlights of this release include:
     branch probabilities for conditional and multi-way branches.
   + Introduction of packages in the Jikes RVM source code.
   + A bytecode verifier contributed by L. Zhang (UCSB)
-  + Support for Intel cycle counter contributed by H. Lee and J. Palm (Colorado)
+  + Support for Intel cycle counter contributed by 
+    H. Lee and J. Palm (Colorado)
   + Support for PowerPC hardware performance counters on AIX 5.
 
 Other notes:
@@ -29,7 +30,6 @@ Other notes:
     This may happen as soon as the 2.2.1 release depending on JMTk 
     performance and stability.
 
-To see more details on other miscellaneous bug fixes, see
-the developerWorks bug tracking software tool and CVS 
-history.  The following bugs in version 2.1.1 are 
-fixed in 2.2.0: 
+A large number of other miscellaneous bugs in version 2.1.1 
+are fixed in the 2.2.0 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
