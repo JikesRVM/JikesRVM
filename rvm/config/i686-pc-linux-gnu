@@ -97,10 +97,11 @@ export GNU_MAKE="/usr/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
 # Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.
+# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.  
+# We haven't tested Jikes 1.21 yet. 
 export JIKES=/usr/bin/jikes
 
-# What C compilers should be used?
+# What C/C++ compiler should be used?
 export CC='/usr/bin/gcc -w -g -O'
 
 # what C++ compilers should be used?
@@ -114,7 +115,7 @@ export LDSHARED="${CPLUS} -shared"
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
-#  some Unix commands
+# some Unix commands used in sanity rules and automatic rvmrt retrieval
 export AWK="/usr/bin/awk"
 export BASH="/bin/bash"
 # You need one of Yacc or Bison (one will usually be installed)
