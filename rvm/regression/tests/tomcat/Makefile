@@ -48,12 +48,14 @@ STOP_NAME=org.apache.tomcat.startup.Tomcat
 STOP_ARGS="-home $(WORKING) -stop"
 HEAPSIZE=300
 LHEAPSIZE=200
+HTTP_PORT ?= $(shell $(FREEPORT_SH))
+AJP12_PORT ?= $(shell $(FREEPORT_SH) 1)
 
 ###############################################################################
 # the stress-test client
 #
 CLIENT_NAME=TestClient.Start
-CLIENT_ARGS="-requests $(TOMCAT_TEST_HOME)/requests.xml -clients 10 -count 1000"
+CLIENT_ARGS="-requests $(WORKING)/requests.xml -clients 10 -count 1000"
 
 CLIENT_SOURCES=$(foreach FILE, $(notdir $(wildcard $(JAL_ROOT)/rvm/src/examples/tomcat/TestClient/*.java)), TestClient/$(FILE))
 CLIENT_CLASSES=$(patsubst %.java,%.class,$(CLIENT_SOURCES))
@@ -80,9 +82,24 @@ ifneq ($(WORKING),.)
 	mkdir -p $@
 endif
 
-$(WORKING)/conf/%.xml:	$(TOMCAT_TEST_HOME)/conf/%.xml $(WORKING)/conf
+$(WORKING)/conf/tomcat-users.xml:	$(TOMCAT_TEST_HOME)/conf/tomcat-users.xml $(WORKING)/conf
 ifneq ($(WORKING),.)
 	cp -f $< $@
+endif
+
+$(WORKING)/conf/server.xml:	$(TOMCAT_TEST_HOME)/conf/server.xml $(WORKING)/conf
+ifneq ($(WORKING),.)
+	@echo Generating server.xml
+	@sed -e "s%value=\"8080\"%value=\"$(HTTP_PORT)\"%g" \
+	     -e "s%value=\"8007\"%value=\"$(AJP12_PORT)\"%g" \
+	  < $< \
+	  > $@
+endif
+
+$(WORKING)/requests.xml:	$(TOMCAT_TEST_HOME)/requests.xml $(WORKING)/conf
+ifneq ($(WORKING),.)
+	@echo Generating requests.xml
+	@sed -e "s%localhost:8080%localhost:$(HTTP_PORT)%g" < $< > $@
 endif
 
 $(WORKING)/webapps:
@@ -101,12 +118,12 @@ input:
 
 start:			input $(WAR_FILES) $(WORKING)/conf/server.xml $(WORKING)/conf/tomcat-users.xml
 
-sanity:			input $(WAR_FILES) $(WORKING)/conf/server.xml $(WORKING)/conf/tomcat-users.xml
+sanity:			input $(WAR_FILES) $(WORKING)/conf/server.xml $(WORKING)/conf/tomcat-users.xml $(WORKING)/requests.xml
 	$(MAKE) server-sanity-check-rules
 
 client-check:
-	$(FGREP) -q "Downloaded 7225060 bytes in 10000 requests" $(OUT)
-	$(FGREP) -q "Verified 5430 requests" $(OUT)
+	$(FGREP) -q "Downloaded 6247180 bytes in 10000 requests" $(OUT)
+	$(FGREP) -q "Verified 10000 requests" $(OUT)
 
 server-check:
 	sleep 10
