@@ -190,8 +190,6 @@ editors, Emacs and \texttt{vi}.
 
 \subsubsection{Emacs}\index{Emacs}
 
-
-
 \paragraph{jikes-rvm.el}
 
 Load the contents of the
@@ -203,30 +201,20 @@ The easiest way to enable Emacs to do this automatically is to copy
 of \texttt{RVM\_ROOT/rvm/etc/dot-emacs.el} into the \texttt{.emacs}
 file in your home directory.
 
-\paragraph{Fancy Fonts}
+\texttt{dot-emacs.el} also contains sample customizations for telling
+Emacs to: 
 
-If you want \texttt{emacs} to use fonts and colors to decorate your
-code (this is generally a Good Thing), add the following to
-your \texttt{.emacs} file:
+\begin{itemize} 
+\item \textbf{use fonts and colors} to highlight your
+code syntactically (this is generally a Good Thing).
 
-\begin{example}
-(add-hook 'c-mode-common-hook
-	  #'(lambda ()
-	      (turn-on-font-lock)))
-\end{example}
+\item \textbf{truncate long lines} instead of wrapping them.
 
+\end{itemize}
 
-\paragraph{Truncate Long Lines?}
-
-If you want {\tt emacs} to truncate long lines instead of wrapping them, add
-the following to your \texttt{.emacs} file:
-\begin{verbatim}
-(add-hook 'c-mode-common-hook
-          #'(lambda ()
-             (set (make-local-variable 'truncate-lines) 't)))
-\end{verbatim}
-
-\subsubsection{vi}\label{options:vi/vim}\cindex[vi]{\texttt{vi} and \texttt{vim}}
+\subsubsection{vi}%
+        \label{options:vi/vim}%
+        \cindex[vi]{\texttt{vi} and \texttt{vim}}
 
 If you are more comfortable with {\tt vi}, we recommended that you
 use \xlink{\texttt{vim}, a {\tt vi} clone}[ (\texttt{\VimURL})]{\VimURL}.
@@ -238,40 +226,21 @@ of this subsection}{options:vi}.
 
 \paragraph{vim}\label{options:vim}
 
-If you are using \texttt{vim} version 6.0 or higher, then you can add the
-following to your {\tt .vimrc} for formatting:
 
-\T {\small
-\begin{verbatim}
-set shiftwidth=2           " for indenting and shifting
-set expandtab              " to replace tab characters by spaces
-set smarttab               " to allow the use of <Tab> for indenting
-set formatoptions-=t2croq  " reset formatting
-set formatoptions+=croq    " format comments
-set textwidth=0            " don't wrap text
-set wrapmargin=0           " ditto
-" Java mode setup
-augroup java
-   autocmd!
-   autocmd BufEnter *.java set cindent
-   autocmd BufEnter *.java set cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,ps,ts,c3,+s,\
-(0,u0,)20,*30,gs,hs
-   autocmd BufEnter *.java set cinwords=if,else,while,do,for,switch,\
-static,new
-   autocmd BufLeave *.java set nocindent
-augroup END
-\end{verbatim}
-If you want {\tt vim} to truncate long lines instead of wrapping them, add
-the following to your {\tt .vimrc}:
-\begin{verbatim}
-set formatoptions+=t " to allow autowrap text
-set textwidth=74    " to allow autowrap text at 74th column
-\end{verbatim}
-\T }
+The file \texttt{RVM\_ROOT/rvm/etc/jikes-rvm.vim} contains
+customizations for editing Jikes RVM source code.  It customizes Java
+mode, C++ mode, and C mode.  Since this file will probably improve
+with time, I recommend you load it in indirectly from the source tree
+rather than cutting and pasting its contents into your \texttt{.vimrc} file.
+
+To set yourself up to load it indirectly, add the contents
+of ``\texttt{RVM\_ROOT/rvm/etc/dot-vimrc.vim}'' to a file in your home
+directory named ``\texttt{.vimrc}''.
 
 \paragraph{vi}\label{options:vi}
 
 Standard {\tt vi} options that would approximate Java\TMweb{} formatting are:
+
 \begin{verbatim}
 set shiftwidth=2  " for indenting and shifting
 set autoindent    " automatically indent new lines to the start of previous
