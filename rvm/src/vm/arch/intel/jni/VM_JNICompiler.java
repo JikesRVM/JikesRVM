@@ -341,10 +341,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvOffset);        // S0 <- jniEnv
 
     // save PR in the jniEnv for JNI call from native
-    //    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-    //                                              VM_Entrypoints.JNIEnvSavedPROffset);
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.JNIEnvSavedPROffset,S0);
+    VM_ProcessorLocalState.emitStoreProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPROffset);
 
     // save FP for glue frame in JNI env - used by GC when in C
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPOffset, FP);  // jniEnv.JNITopJavaFP <- FP
@@ -361,12 +358,13 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_RegDisp_Reg (FP, emptyStackOffset, EBX);                   // store as 1st arg
 
     // added 7/05 - check later SES
-    // store current processors status word address in 
-    // word after passed ->JNIFunctions (in EBX)
+    // store current processors status word address in word after 
+    // passed ->JNIFunctions (in EBX). upon return or reentry to java this
+    // word is tested & it is wrong to use the processor object to find its address
+    // since it may have been moved by GC while in native code.
+    //
     // ASSUME T1 (EDX) is available ??? looks like PR still valid
     // COULD use JTOC since it is reloaded immediately below - 
-    // but ? was this necessary ?
-    //
     
     // T1<-addr or processor statusword 
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T1,
