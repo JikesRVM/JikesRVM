@@ -112,6 +112,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       sm.insertSpillCode();
     }
 
+    rewriteFPStack(ir);
+
     // update GC maps again, to account for changes induced by spill code.
     updateGCMaps2(ir);
   }
@@ -119,12 +121,35 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    *  Iterate over the IR and replace each symbolic register with its
    *  allocated physical register.
+   */
+  private void replaceSymbolicRegisters(OPT_IR ir) {
+    for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
+	 inst.hasMoreElements();) {
+      OPT_Instruction s = inst.next();
+      for (OPT_OperandEnumeration ops = s.getOperands(); 
+	   ops.hasMoreElements(); ) {
+	OPT_Operand op = ops.next();
+	if (op.isRegister()) {
+	  OPT_RegisterOperand rop = op.asRegister();
+	  OPT_Register r = rop.register;
+	  if (r.isSymbolic() && !r.isSpilled()) {
+	    OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
+	    if (VM.VerifyAssertions) VM.assert(p!=null);
+	    rop.register = p;
+	  }
+	}
+      }
+    }
+  } 
+
+  /**
+   *  Rewrite floating point registers to reflect changes in stack
+   *  height induced by BURS. 
    * 
    *  Side effect: update the fpStackHeight in MIRInfo
    */
-  private void replaceSymbolicRegisters(OPT_IR ir) {
+  private void rewriteFPStack(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-
     for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
       
@@ -132,16 +157,17 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (Enumeration inst = bb.forwardInstrEnumerator(); 
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
            inst.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)inst.nextElement();
-        for (Enumeration e2 = s.getOperands(); e2.hasMoreElements(); ) {
-          OPT_Operand op = (OPT_Operand)e2.nextElement();
+        OPT_Instruction s = inst.next();
+        for (OPT_OperandEnumeration ops = s.getOperands(); 
+	     ops.hasMoreElements(); ) {
+          OPT_Operand op = ops.next();
           if (op.isRegister()) {
             OPT_RegisterOperand rop = op.asRegister();
             OPT_Register r = rop.register;
 
-            // if we see a physical FPR, update the MIR state.
+            // Update MIR state for every phyiscal FPR we see
             if (r.isPhysical() && r.isFloatingPoint() &&
 		s.operator() != DUMMY_DEF && 
 		s.operator() != DUMMY_USE) {
@@ -150,21 +176,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 		n += fpStackOffset;
 		rop.register = phys.getFPR(n);
 	      }
-              ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
-                                                  n+1);
-            }
-
-            if (r.isSymbolic() && !r.isSpilled()) {
-              OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
-              if (VM.VerifyAssertions) VM.assert(p!=null);
-              // update MIR state if needed
-              if (p.isFloatingPoint()) {
-                int n = phys.getFPRIndex(p) + fpStackOffset;
-                ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
-                                                    n+1);
-                p = phys.getFPR(n);
-              }
-              rop.register = p;
+	      ir.MIRInfo.fpStackHeight = 
+		Math.max(ir.MIRInfo.fpStackHeight, n+1);
             }
           } else if (op instanceof OPT_BURSManagedFPROperand) {
 	    int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
@@ -182,7 +195,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
       }
     }
-  } 
+  }
+
   /**
    *  Iterate over the IR-based GC map collection and for each entry
    *  replace the symbolic reg with the real reg or spill it was allocated
