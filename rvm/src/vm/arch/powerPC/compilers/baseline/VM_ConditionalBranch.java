@@ -27,8 +27,8 @@ class VM_ConditionalBranch extends VM_ForwardReference {
     } else {
       if (VM.VerifyAssertions) VM.assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
       instr ^= 0x01000008; // make skip instruction with opposite sense
-      code.putInstruction(sourceMachinecodeIndex-1, instr); // skip branch
-      code.putInstruction(sourceMachinecodeIndex,   VM_Assembler.B(delta)); 
+      code.putInstruction(sourceMachinecodeIndex-1, instr); // skip unconditional branch to target
+      code.putInstruction(sourceMachinecodeIndex,  18<<26 | (delta&0xFFFFFF)<<2);
     }
   }
 

@@ -68,10 +68,9 @@ public abstract class VM_ForwardReference {
   /**  
    *  Normally, this method will be overridden by the subclass.
    *  Such methods must resolve other references with the same
-   *  target index AFTER handling thiei own update.
+   *  target index AFTER handling thier own update.
    */ 
-  void resolve (VM_MachineCode code, int target) { 
-  }
+  abstract void resolve (VM_MachineCode code, int target);
 
   final VM_ForwardReference checkResolveUpdate 
       (VM_MachineCode code, int btarget, int target) {
@@ -93,19 +92,13 @@ public abstract class VM_ForwardReference {
 
   final VM_ForwardReference add (VM_ForwardReference fr) {
     if (targetBytecodeIndex > fr.targetBytecodeIndex) {
-      // System.out.println("debug: add" + fr);
-      // System.out.println("debug: before" + this);
-      // System.out.println("debug: ");
       fr.next = this;
       return fr;
     } else if (targetBytecodeIndex == fr.targetBytecodeIndex) {
-      // System.out.println("debug: add" + fr);
-      // System.out.println("debug: next to" + this);
-      // System.out.println("debug: ");
       fr.other = this;
       fr.next  = next;
       return fr;
-    } else { // targetBytecodeIndex < fr.targetBytecodeIndex
+    } else { 
       insert(fr);
       return this;
     }
@@ -114,21 +107,16 @@ public abstract class VM_ForwardReference {
   private final void insert (VM_ForwardReference fr) {
     if (VM.VerifyAssertions) VM.assert(targetBytecodeIndex < fr.targetBytecodeIndex);
     VM_ForwardReference a = this;  // fr.targetBytecodeIndex > a.targetBytecodeIndex
-      // System.out.println("debug: after" + a);
     while (a.next != null && a.next.targetBytecodeIndex < fr.targetBytecodeIndex) {
       a = a.next;
-      // System.out.println("debug: after" + a);
-    } // a.next == null || a.next.targetBytecodeIndex >= fr.targetBytecodeIndex > a.targetBytecodeIndex
-      // System.out.println("debug: insert " + fr);
-      // System.out.println("debug: before " + a.next);
-      // System.out.println("debug: ");
+    }
     if (a.next == null) {
       a.next = fr;
     } else if (a.next.targetBytecodeIndex == fr.targetBytecodeIndex) {
       fr.other = a.next;
       fr.next  = a.next.next;
       a.next  = fr;
-    } else { // a.next.targetBytecodeIndex > fr.targetBytecodeIndex > a.targetBytecodeIndex
+    } else { 
       fr.next = a.next;
       a.next  = fr;
     } 

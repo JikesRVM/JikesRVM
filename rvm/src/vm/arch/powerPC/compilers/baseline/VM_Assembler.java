@@ -8,33 +8,17 @@
  *
  * Corresponding to a PowerPC assembler instruction of the form
  *    xx A,B,C
- * there will be the following methods
- *    int XX (int A, int B, int C), and
+ * there will be a method
  *    void emitXX (int A, int B, int C).
  * 
- * The XX method returns the machine code instruction as an integer; the
- * emitXX method appends this instruction to an VM_MachineCode object.
+ * The emitXX method appends this instruction to an VM_MachineCode object.
  * The name of a method for generating assembler instruction with the record
- * bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
+ * bit set (say xx.) will be end in a lower-case r (emitXXr).
  * 
  * mIP will be incremented to point to the next machine instruction.
  * 
  * Machine code generators:
  *
- * Corresponding to a PowerPC assembler instruction of the form
- *    xx A,B,C
- * @modified Dave Grove
- * there will be the following methods
- *    int XX (int A, int B, int C), and
- *    void emitXX (int A, int B, int C).
- * 
- * The XX method returns the machine code instruction as an integer; the
- * emitXX method appends this instruction to an VM_MachineCode object.
- * The name of a method for generating assembler instruction with the record
- * bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
- * 
- * mIP will be incremented to point to the next machine instruction.
- * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
@@ -68,7 +52,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   /* assembler stuff:
 
      labels and comments can be added to the an assembler instruction by
-     calling the label and comment menthods with the appropriate Strings
+     calling the label and comment methods with the appropriate Strings
      BEFORE calling the emit method that generates the instruction.
 
   */
@@ -116,20 +100,9 @@ final class VM_Assembler implements VM_BaselineConstants,
     if (!VM.TraceAssembler) return;
   }
 
-  String comment = null;
-  void comment (String c) {
-    if (!VM.TraceAssembler) return;
-    if (comment == null) comment = "";
-    comment += "# " + c;
-  }
-
   private void asm (int inum, INSTRUCTION mi, String opcode, String args) {
     String instr = right(hex(inum<<2),6) + "| " + right(hex((int)mi),8);
     instr += " " + left(opcode,6) + left(args,20);
-    if (comment != null) {
-      instr += comment;
-      comment = null;
-    }
     System.out.println(instr);
   }
 
@@ -247,10 +220,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Atemplate = 31<<26 | 10<<1;
 
-  static final INSTRUCTION A (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 10<<1;
-  }
-
   final void emitA (int RT, int RA, int RB) {
     INSTRUCTION mi = Atemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -261,10 +230,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int AEtemplate = 31<<26 | 138<<1;
 
-  static final INSTRUCTION AE (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 138<<1;
-  }
-
   final void emitAE (int RT, int RA, int RB) {
     INSTRUCTION mi = AEtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -274,10 +239,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int AIrtemplate = 13<<26;
-
-  static final INSTRUCTION AIr (int RT, int RA, int SI) {
-    return 13<<26 | RT<<21 | RA<<16 | SI;
-  }
 
   final void emitAIr (int RT, int RA, int SI) {
     if (VM.VerifyAssertions) VM.assert(fits(SI, 16));
@@ -290,10 +251,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int ANDtemplate = 31<<26 | 28<<1;
 
-  static final INSTRUCTION AND (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 28<<1;
-  }
-
   final void emitAND (int RA, int RS, int RB) {
     INSTRUCTION mi = ANDtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -303,10 +260,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int ANDItemplate = 28<<26;
-
-  static final INSTRUCTION ANDI (int RA, int RS, int U) {
-    return 28<<26 | RS<<21 | RA<<16 | U;
-  }
 
   final void emitANDI (int RA, int RS, int U) {
     if (VM.VerifyAssertions) VM.assert((U>>>16) == 0);
@@ -319,10 +272,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Btemplate = 18<<26;
 
-  static final INSTRUCTION B (int relative_address) {
-    return 18<<26 | (relative_address&0xFFFFFF)<<2;
-  }
-
   final void emitB (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
     INSTRUCTION mi = Btemplate | (relative_address&0xFFFFFF)<<2;
@@ -334,10 +283,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BLAtemplate = 18<<26 | 3;
 
-  static final INSTRUCTION BLA (int address) {
-    return 18<<26 | (address&0xFFFFFF)<<2 | 3;
-  }
-
   final void emitBLA (int address) {
     if (VM.VerifyAssertions) VM.assert(fits(address,24));
     INSTRUCTION mi = BLAtemplate | (address&0xFFFFFF)<<2;
@@ -348,10 +293,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int BLtemplate = 18<<26 | 1;
-
-  static final INSTRUCTION BL (int relative_address) {
-    return 18<<26 | (relative_address&0xFFFFFF)<<2 | 1;
-  }
 
   final void emitBL (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
@@ -377,10 +318,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     return -1;
   }
 
-  static final INSTRUCTION BC (int cc, int rel) {
-    return BCtemplate | cc | (rel&0x3FFF)<<2;
-  }
-
   final void emitBC (int cc, int relative_address) {
     if (fits(relative_address, 14)) {
       INSTRUCTION mi = BCtemplate | cc | (relative_address&0x3FFF)<<2;
@@ -402,20 +339,8 @@ final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  static final INSTRUCTION BGT (int relative_address) {
-    return BC(GT, relative_address);
-  }
-
   final void emitBGT (int relative_address) {
     emitBC(GT, relative_address);
-  }
-
-  static final INSTRUCTION BEQ (int relative_address) {
-    return BC(EQ, relative_address);
-  }
-
-  static final INSTRUCTION BLT (int relative_address) {
-    return BC(LT, relative_address);
   }
 
   final void emitBLT (int relative_address) {
@@ -426,24 +351,12 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitBC(EQ, relative_address);
   }
 
-  static final INSTRUCTION BLE (int relative_address) {
-    return BC(LE, relative_address);
-  }
-
   final void emitBLE (int relative_address) {
     emitBC(LE, relative_address);
   }
 
-  static final INSTRUCTION BGE (int relative_address) {
-    return BC(GE, relative_address);
-  }
-
   final void emitBGE (int relative_address) {
     emitBC(GE, relative_address);
-  }
-
-  static final INSTRUCTION BNE (int relative_address) {
-    return BC(NE, relative_address);
   }
 
   final void emitBNE (int relative_address) {
@@ -452,13 +365,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BLRtemplate = 19<<26 | 0x14<<21 | 16<<1;
 
-  static final INSTRUCTION BLR () {
-    return 19<<26 | 0x14<<21 | 16<<1;
-  }
-
   final void emitBLR () {
     INSTRUCTION mi = BLRtemplate;
-    // comment("bclr 0x14,0");
     if (VM.TraceAssembler)
       asm(mIP, mi, "blr");
     mIP++;
@@ -467,13 +375,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BLRLtemplate = 19<<26 | 0x14<<21 | 16<<1 | 1;
 
-  static final INSTRUCTION BLRL () {
-    return 19<<26 | 0x14<<21 | 16<<1 | 1;
-  }
-
   final void emitBLRL () {
     INSTRUCTION mi = BLRLtemplate;
-    // comment("bclrl 0x14,0");
     if (VM.TraceAssembler)
       asm(mIP, mi, "blrl");
     mIP++;
@@ -482,13 +385,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
 
-  static final INSTRUCTION BCTR () {
-    return 19<<26 | 0x14<<21 | 528<<1 ;
-  }
-
   final void emitBCTR () {
     INSTRUCTION mi = BCTRtemplate;
-    // comment("bctr 0x14,0");
     if (VM.TraceAssembler)
       asm(mIP, mi, "bctr");
     mIP++;
@@ -497,13 +395,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BCTRLtemplate = 19<<26 | 0x14<<21 | 528<<1 | 1;
 
-  static final INSTRUCTION BCTRL () {
-    return 19<<26 | 0x14<<21 | 528<<1 | 1;
-  }
-
   final void emitBCTRL () {
     INSTRUCTION mi = BCTRLtemplate;
-    // comment("bctrl 0x14,0");
     if (VM.TraceAssembler)
       asm(mIP, mi, "bctrl");
     mIP++;
@@ -511,10 +404,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CALtemplate = 14<<26;
-
-  static final INSTRUCTION CAL (int RT, int D, int RA) {
-    return 14<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitCAL (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -526,10 +415,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CAUtemplate = 15<<26;
-
-  static final INSTRUCTION CAU (int RT, int RA, int UI) {
-    return  15<<26 | RT<<21 | RA<<16 | (UI&0xFFFF);
-  }
 
   final void emitCAU (int RT, int RA, int UI) {
     if (VM.VerifyAssertions) VM.assert(UI == (UI&0xFFFF));
@@ -550,11 +435,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CMPtemplate = 31<<26;
-
-  static final INSTRUCTION CMP (int BF, int RA, int RB) {
-    return 31<<26 | BF<<23 | RA<<16 | RB<<11;
-  }
-
   final void emitCMP (int BF, int RA, int RB) {
     INSTRUCTION mi = CMPtemplate | BF<<23 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -573,10 +453,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int CMPItemplate = 11<<26;
 
-  static final INSTRUCTION CMPI (int BF, int RA, int V) {
-    return 11<<26 | BF<<23 | RA<<16 | (V&0xFFFF);
-  }
-
   final void emitCMPI (int BF, int RA, int V) {
     if (VM.VerifyAssertions) VM.assert(fits(V, 16));
     INSTRUCTION mi = CMPItemplate | BF<<23 | RA<<16 | (V&0xFFFF);
@@ -584,10 +460,6 @@ final class VM_Assembler implements VM_BaselineConstants,
       asm(mIP, mi, "cmpi", BF, RA, signedHex(V));
     mIP++;
     mc.addInstruction(mi);
-  }
-
-  static final INSTRUCTION CMPI (int RA, int V) {
-    return 11<<26 | RA<<16 | (V&0xFFFF);
   }
 
   final void emitCMPI (int RA, int V) {
@@ -600,10 +472,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CMPLtemplate = 31<<26 | 32<<1;
-
-  static final INSTRUCTION CMPL (int BF, int RA, int RB) {
-    return 31<<26 | BF<<23 | RA<<16 | RB<<11 | 32<<1;
-  }
 
   final void emitCMPL (int BF, int RA, int RB) {
     INSTRUCTION mi = CMPLtemplate | BF<<23 | RA<<16 | RB<<11;
@@ -623,10 +491,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int CRANDtemplate = 19<<26 | 257<<1;
 
-  static final INSTRUCTION CRAND (int BT, int BA, int BB) {
-    return  19<<26 | BT<<21 | BA<<16 | BB<<11 | 257<<1;
-  }
-
   final void emitCRAND (int BT, int BA, int BB) {
     INSTRUCTION mi = CRANDtemplate | BT<<21 | BA<<16 | BB<<11;
     if (VM.TraceAssembler)
@@ -636,10 +500,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CRANDCtemplate = 19<<26 | 129<<1;
-
-  static final INSTRUCTION CRANDC (int BT, int BA, int BB) {
-    return  19<<26 | BT<<21 | BA<<16 | BB<<11 | 129<<1;
-  }
 
   final void emitCRANDC (int BT, int BA, int BB) {
     INSTRUCTION mi = CRANDCtemplate | BT<<21 | BA<<16 | BB<<11;
@@ -651,10 +511,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int CRORtemplate = 19<<26 | 449<<1;
 
-  static final INSTRUCTION CROR (int BT, int BA, int BB) {
-    return  19<<26 | BT<<21 | BA<<16 | BB<<11 | 449<<1;
-  }
-
   final void emitCROR (int BT, int BA, int BB) {
     INSTRUCTION mi = CRORtemplate | BT<<21 | BA<<16 | BB<<11;
     if (VM.TraceAssembler)
@@ -664,10 +520,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int CRORCtemplate = 19<<26 | 417<<1;
-
-  static final INSTRUCTION CRORC (int BT, int BA, int BB) {
-    return  19<<26 | BT<<21 | BA<<16 | BB<<11 | 417<<1;
-  }
 
   final void emitCRORC (int BT, int BA, int BB) {
     INSTRUCTION mi = CRORCtemplate | BT<<21 | BA<<16 | BB<<11;
@@ -679,10 +531,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FAtemplate = 63<<26 | 21<<1;
 
-  static final INSTRUCTION FA (int FRT, int FRA, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 21<<1;
-  }
-
   final void emitFA (int FRT, int FRA,int FRB) {
     INSTRUCTION mi = FAtemplate | FRT<<21 | FRA<<16 | FRB<<11;
     if (VM.TraceAssembler)
@@ -692,10 +540,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FAstemplate = 59<<26 | 21<<1; // single-percision add
-
-  static final INSTRUCTION FAs (int FRT, int FRA, int FRB) {
-    return 59<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 21<<1;
-  }
 
   final void emitFAs (int FRT, int FRA,int FRB) {
     INSTRUCTION mi = FAstemplate | FRT<<21 | FRA<<16 | FRB<<11;
@@ -707,10 +551,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FABStemplate = 63<<26 | 264<<1;
 
-  static final INSTRUCTION FABS (int FRT, int FRB) {
-    return 63<<26 | FRT<<21 | FRB<<11 | 264<<1;
-  }
-
   final void emitFABS (int FRT, int FRB) {
     INSTRUCTION mi = FABStemplate | FRT<<21 | FRB<<11;
     if (VM.TraceAssembler)
@@ -720,10 +560,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FCMPUtemplate = 63<<26;
-
-  static final INSTRUCTION FCMPU (int FRA, int FRB) {
-    return 63<<26 | 0<<23 | FRA<<16 | FRB<<11;
-  }
 
   final void emitFCMPU (int FRA,int FRB) {
     INSTRUCTION mi = FCMPUtemplate | FRA<<16 | FRB<<11;
@@ -735,10 +571,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FDtemplate = 63<<26 | 18<<1;
 
-  static final INSTRUCTION FD (int FRT, int FRA, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 18<<1;
-  }
-
   final void emitFD (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FDtemplate | FRT<<21 | FRA<<16 | FRB<<11;
     if (VM.TraceAssembler)
@@ -748,10 +580,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FDstemplate = 59<<26 | 18<<1; // single-precision divide
-
-  static final INSTRUCTION FDs (int FRT, int FRA, int FRB) {
-    return 59<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 18<<1;
-  }
 
   final void emitFDs (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FDstemplate | FRT<<21 | FRA<<16 | FRB<<11;
@@ -763,10 +591,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FMtemplate = 63<<26 | 25<<1;
 
-  static final INSTRUCTION FM (int FRT, int FRA, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<6 | 25<<1;
-  }
-
   final void emitFM (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FMtemplate | FRT<<21 | FRA<<16 | FRB<<6;
     if (VM.TraceAssembler)
@@ -776,10 +600,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FMstemplate = 59<<26 | 25<<1; // single-precision fm
-
-  static final INSTRUCTION FMs (int FRT, int FRA, int FRB) {
-    return 59<<26 | FRT<<21 | FRA<<16 | FRB<<6 | 25<<1;
-  }
 
   final void emitFMs (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FMstemplate | FRT<<21 | FRA<<16 | FRB<<6;
@@ -791,10 +611,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FMAtemplate = 63<<26 | 29<<1;
 
-  static final INSTRUCTION FMA (int FRT, int FRA, int FRC, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6 | 29<<1;
-  }
-
   final void emitFMA (int FRT, int FRA, int FRC, int FRB) {
     INSTRUCTION mi = FMAtemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
     if (VM.TraceAssembler)
@@ -804,10 +620,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FNMStemplate = 63<<26 | 30<<1;
-
-  static final INSTRUCTION FNMS (int FRT, int FRA, int FRC, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6 | 30<<1;
-  }
 
   final void emitFNMS (int FRT, int FRA, int FRC, int FRB) {
     INSTRUCTION mi = FNMStemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
@@ -819,10 +631,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FNEGtemplate = 63<<26 | 40<<1;
 
-  static final INSTRUCTION FNEG (int FRT, int FRB) {
-    return 63<<26 | FRT<<21 | FRB<<11 | 40<<1;
-  }
-
   final void emitFNEG (int FRT, int FRB) {
     INSTRUCTION mi = FNEGtemplate | FRT<<21 | FRB<<11;
     if (VM.TraceAssembler)
@@ -832,10 +640,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FStemplate = 63<<26 | 20<<1;
-
-  static final INSTRUCTION FS (int FRT, int FRA, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 20<<1;
-  }
 
   final void emitFS (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FStemplate | FRT<<21 | FRA<<16 | FRB<<11;
@@ -847,10 +651,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FSstemplate = 59<<26 | 20<<1;
 
-  static final INSTRUCTION FSs (int FRT, int FRA, int FRB) {
-    return 59<<26 | FRT<<21 | FRA<<16 | FRB<<11 | 20<<1;
-  }
-
   final void emitFSs (int FRT, int FRA, int FRB) {
     INSTRUCTION mi = FSstemplate | FRT<<21 | FRA<<16 | FRB<<11;
     if (VM.TraceAssembler)
@@ -860,10 +660,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int FSELtemplate = 63<<26 | 23<<1;
-
-  static final INSTRUCTION FSEL (int FRT, int FRA, int FRC, int FRB) {
-    return 63<<26 | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6 | 20<<1;
-  }
 
   final void emitFSEL (int FRT, int FRA, int FRC, int FRB) {
     INSTRUCTION mi = FSELtemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
@@ -902,10 +698,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Ltemplate = 32<<26;
 
-  static final INSTRUCTION L (int RT, int D, int RA) {
-    return 32<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitL (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = Ltemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
@@ -916,10 +708,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int LBZtemplate = 34<<26;
-
-  static final INSTRUCTION LBZ (int RT, int D, int RA) {
-    return 34<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitLBZ (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -932,10 +720,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LBZXtemplate = 31<<26 | 87<<1;
 
-  static final INSTRUCTION LBZX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 87<<1;
-  }
-
   final void emitLBZX (int RT, int RA, int RB) {
     INSTRUCTION mi = LBZXtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -945,10 +729,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int LHAtemplate = 42<<26;
-
-  static final INSTRUCTION LHA (int RT, int D, int RA) {
-    return 42<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitLHA (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -961,10 +741,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LHZtemplate = 40<<26;
 
-  static final INSTRUCTION LHZ (int RT, int D, int RA) {
-    return 40<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitLHZ (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = LHZtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
@@ -975,10 +751,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int LFDtemplate = 50<<26;
-
-  static final INSTRUCTION LFD (int FRT, int D, int RA) {
-    return 50<<26 | FRT<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitLFD (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -991,10 +763,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFDUtemplate = 51<<26;
 
-  static final INSTRUCTION LFDU (int FRT, int D, int RA) {
-    return 51<<26 | FRT<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitLFDU (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = LFDUtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
@@ -1006,10 +774,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFDXtemplate = 31<<26 | 599<<1;
 
-  static final INSTRUCTION LFDX (int FRT, int RA, int RB) {
-    return 31<<26 | FRT<<21 | RA<<16 | RB<<11 | 599<<1;
-  }
-
   final void emitLFDX (int FRT, int RA, int RB) {
     INSTRUCTION mi = LFDXtemplate | FRT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1019,10 +783,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int LFStemplate = 48<<26;
-
-  static final INSTRUCTION LFS (int FRT, int D, int RA) {
-    return 48<<26 | FRT<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitLFS (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1035,10 +795,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LHAXtemplate = 31<<26 | 343<<1;
 
-  static final INSTRUCTION LHAX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 343<<1;
-  }
-
   final void emitLHAX (int RT, int RA, int RB) {
     INSTRUCTION mi = LHAXtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1049,20 +805,12 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LHZXtemplate = 31<<26 | 279<<1;
 
-  static final INSTRUCTION LHZX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 279<<1;
-  }
-
   final void emitLHZX (int RT, int RA, int RB) {
     INSTRUCTION mi = LHZXtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
       asm(mIP, mi, "lhzx", RT, RA, RB );
     mIP++;
     mc.addInstruction(mi);
-  }
-
-  static final INSTRUCTION LIL(int RT, int D) {
-      return CALtemplate | RT<<21 | (D&0xFFFF);
   }
 
   final void emitLIL (int RT, int D) {
@@ -1076,10 +824,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LUtemplate = 33<<26;
 
-  static final INSTRUCTION LU (int RT, int D, int RA) {
-    return 33<<26 | RT<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitLU (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = LUtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
@@ -1091,10 +835,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LXtemplate = 31<<26 | 23<<1;
 
-  static final INSTRUCTION LX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 23<<1;
-  }
-
   final void emitLX (int RT, int RA, int RB) {
     INSTRUCTION mi = LXtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1104,10 +844,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int LUXtemplate = 31<<26 | 55<<1;
-
-  static final INSTRUCTION LUX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 55<<1;
-  }
 
   final void emitLUX (int RT, int RA, int RB) {
     INSTRUCTION mi = LUXtemplate | RT<<21 | RA<<16 | RB<<11;
@@ -1120,10 +856,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   
   static final int LWARXtemplate = 31<<26 | 20<<1;
 
-  static final INSTRUCTION LWARX (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 20<<1;
-  }
-
   final void emitLWARX (int RT, int RA, int RB) {
     INSTRUCTION mi = LWARXtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1134,12 +866,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MFLRtemplate = 31<<26 | 0x08<<16 | 339<<1;
 
-  static final INSTRUCTION MFLR (int RT) {
-    return MFLRtemplate | RT<<21;
-  }
-
   final void emitMFLR (int RT) {
-    INSTRUCTION mi = MFLR(RT);
+    INSTRUCTION mi = MFLRtemplate | RT<<21;
     if (VM.TraceAssembler)
       asm(mIP, mi, "mflr", RT);
     mIP++;
@@ -1148,12 +876,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MFCRtemplate = 31<<26 | 19<<1;
 
-  static final INSTRUCTION MFCR (int RT) {
-    return MFCRtemplate | RT<<21;
-  }
-
   final void emitMFCR (int RT) {
-    INSTRUCTION mi = MFCR(RT);
+    INSTRUCTION mi = MFCRtemplate | RT<<21;
     if (VM.TraceAssembler)
       asm(mIP, mi, "mfcr", RT);
     mIP++;
@@ -1161,10 +885,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
   
   static final int MFSPRtemplate = 31<<26 | 339<<1;
-
-  static final INSTRUCTION MFSPR (int RT, int SPR) {
-    return 31<<26 | RT<<21 | SPR<<16 | 339<<1;
-  }
 
   final void emitMFSPR (int RT, int SPR) {
     INSTRUCTION mi = MFSPRtemplate | RT<<21 | SPR<<16;
@@ -1176,12 +896,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
-  static final INSTRUCTION MTLR (int RS) {
-    return MTLRtemplate | RS<<21;
-  }
-
   final void emitMTLR (int RS) {
-    INSTRUCTION mi = MTLR(RS);
+    INSTRUCTION mi = MTLRtemplate | RS<<21;
     if (VM.TraceAssembler)
       asm(mIP, mi, "mtlr", RS);
     mIP++;
@@ -1190,12 +906,8 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MTCRFtemplate = 31<<26 | 144<<1;
 
-  static final INSTRUCTION MTCRF (int mask, int RS) {
-    return MTCRFtemplate | mask<<12 | RS<<21;
-  }
-
   final void emitMTCRF (int mask, int RS) {
-    INSTRUCTION mi = MTCRF(mask, RS);
+    INSTRUCTION mi = MTCRFtemplate | mask<<12 | RS<<21;
     if (VM.TraceAssembler)
       asm(mIP, mi, "mtcrf", mask, RS);
     mIP++;
@@ -1204,10 +916,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
 
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
-
-  static final INSTRUCTION MTCTR (int RS) {
-    return 31<<26 | RS<<21 | 0x09<<16 | 467<<1;
-  }
 
   final void emitMTCTR (int RS) {
     INSTRUCTION mi = MTCTRtemplate | RS<<21;
@@ -1219,10 +927,6 @@ final class VM_Assembler implements VM_BaselineConstants,
  
   static final int MULHWUtemplate = 31<<26 | 11<<1;
 
-  static final INSTRUCTION MULHWU (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 11<<1;
-  }
-
   final void emitMULHWU (int RT, int RA, int RB) {
     INSTRUCTION mi = MULHWUtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1232,10 +936,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int DIVtemplate = 31<<26 | 491<<1;
-
-  static final INSTRUCTION DIV (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 491<<1;
-  }
 
   final void emitDIV (int RT, int RA, int RB) {
     INSTRUCTION mi = DIVtemplate | RT<<21 | RA<<16 | RB<<11;
@@ -1247,10 +947,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MULStemplate = 31<<26 | 235<<1;
 
-  static final INSTRUCTION MULS (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 235<<1;
-  }
-
   final void emitMULS (int RT, int RA, int RB) {
     INSTRUCTION mi = MULStemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1260,10 +956,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int NEGtemplate = 31<<26 | 104<<1;
-
-  static final INSTRUCTION NEG (int RT, int RA) {
-    return 31<<26 | RT<<21 | RA<<16 | 104<<1;
-  }
 
   final void emitNEG (int RT, int RA) {
     INSTRUCTION mi = NEGtemplate | RT<<21 | RA<<16;
@@ -1275,10 +967,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int ORtemplate = 31<<26 | 444<<1;
 
-  static final INSTRUCTION OR (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 444<<1;
-  }
-
   final void emitOR (int RA, int RS, int RB) {
     INSTRUCTION mi = ORtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1288,10 +976,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int RLWINM_template = 21<<26;
-
-  static final INSTRUCTION RLWINM (int RA, int RS, int SH, int MB, int ME) {
-    return 21<<26 | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
-  }
 
   final void emitRLWINM (int RA, int RS, int SH, int MB, int ME) {
     INSTRUCTION mi = RLWINM_template | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
@@ -1305,10 +989,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SFrtemplate = 31<<26 | 8<<1 | 1;
 
-  static final INSTRUCTION SFr (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 8<<1 | 1;
-  }
-
   final void emitSFr (int RT, int RA, int RB) {
     INSTRUCTION mi = SFrtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1319,10 +999,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SFtemplate = 31<<26 | 8<<1;
 
-  static final INSTRUCTION SF (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 8<<1;
-  }
-
   final void emitSF (int RT, int RA, int RB) {
     INSTRUCTION mi = SFtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1332,10 +1008,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int SFItemplate = 8<<26;
-
-  static final INSTRUCTION SFI (int RA, int RS, int S) {
-    return 8<<26 | RS<<21 | RA<<16 | S;
-  }
 
   final void emitSFI (int RA, int RS, int S) {
     if (VM.VerifyAssertions) VM.assert(fits(S,16));
@@ -1348,10 +1020,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SFErtemplate = 31<<26 | 136<<1 | 1;
 
-  static final INSTRUCTION SFEr (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 136<<1 | 1;
-  }
-
   final void emitSFEr (int RT, int RA, int RB) {
     INSTRUCTION mi = SFErtemplate | RT<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1361,10 +1029,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int SFEtemplate = 31<<26 | 136<<1;
-
-  static final INSTRUCTION SFE (int RT, int RA, int RB) {
-    return 31<<26 | RT<<21 | RA<<16 | RB<<11 | 136<<1;
-  }
 
   final void emitSFE (int RT, int RA, int RB) {
     INSTRUCTION mi = SFEtemplate | RT<<21 | RA<<16 | RB<<11;
@@ -1376,10 +1040,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SFZEtemplate = 31<<26 | 200<<1;
 
-  static final INSTRUCTION SFZE (int RT, int RA) {
-    return 31<<26 | RT<<21 | RA<<16 | 200<<1;
-  }
-
   final void emitSFZE (int RT, int RA) {
     INSTRUCTION mi = SFZEtemplate | RT<<21 | RA<<16;
     if (VM.TraceAssembler)
@@ -1389,10 +1049,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int SLtemplate = 31<<26 | 24<<1;
-
-  static final INSTRUCTION SL (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 24<<1;
-  }
 
   final void emitSL (int RA, int RS, int RB) {
     INSTRUCTION mi = SLtemplate | RS<<21 | RA<<16 | RB<<11;
@@ -1404,10 +1060,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SLItemplate = 21<<26;
 
-  static final INSTRUCTION SLI (int RA, int RS, int N) {
-    return 21<<26 | RS<<21 | RA<<16 | N<<11 | (31-N)<<1;
-  }
-
   final void emitSLI (int RA, int RS, int N) {
     INSTRUCTION mi = SLItemplate | RS<<21 | RA<<16 | N<<11 | (31-N)<<1;
     if (VM.TraceAssembler)
@@ -1417,10 +1069,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int SRtemplate = 31<<26 | 536<<1;
-
-  static final INSTRUCTION SR (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 536<<1;
-  }
 
   final void emitSR (int RA, int RS, int RB) {
     INSTRUCTION mi = SRtemplate | RS<<21 | RA<<16 | RB<<11;
@@ -1432,10 +1080,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SRAtemplate = 31<<26 | 792<<1;
 
-  static final INSTRUCTION SRA (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 792<<1;
-  }
-
   final void emitSRA (int RA, int RS, int RB) {
     INSTRUCTION mi = SRAtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1445,10 +1089,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int SRAItemplate = 31<<26 | 824<<1;
-
-  static final INSTRUCTION SRAI (int RA, int RS, int SH) {
-    return 31<<26 | RS<<21 | RA<<16 | SH<<11 | 824<<1;
-  }
 
   final void emitSRAI (int RA, int RS, int SH) {
     INSTRUCTION mi = SRAItemplate | RS<<21 | RA<<16 | SH<<11;
@@ -1460,10 +1100,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SRAIrtemplate = 31<<26 | 824<<1 | 1;
 
-  static final INSTRUCTION SRAIr (int RA, int RS, int SH) {
-    return 31<<26 | RS<<21 | RA<<16 | SH<<11 | 824<<1 | 1;
-  }
-
   final void emitSRAIr (int RA, int RS, int SH) {
     INSTRUCTION mi = SRAIrtemplate | RS<<21 | RA<<16 | SH<<11;
     if (VM.TraceAssembler)
@@ -1473,10 +1109,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STtemplate = 36<<26;
-
-  static final INSTRUCTION ST (int RS, int D, int RA) {
-    return 36<<26 | RS<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitST (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1489,10 +1121,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STBtemplate = 38<<26;
 
-  static final INSTRUCTION STB (int RS, int D, int RA) {
-    return 38<<26 | RS<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitSTB (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = STBtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
@@ -1504,10 +1132,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STBXtemplate = 31<<26 | 215<<1;
 
-  static final INSTRUCTION STBX (int RS, int RA, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 215<<1;
-  }
-
   final void emitSTBX (int RS, int RA, int RB) {
     INSTRUCTION mi = STBXtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1517,10 +1141,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STHXtemplate = 31<<26 | 407<<1;
-
-  static final INSTRUCTION STHX (int RS, int RA, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 407<<1;
-  }
 
   final void emitSTHX (int RS, int RA, int RB) {
     INSTRUCTION mi = STHXtemplate | RS<<21 | RA<<16 | RB<<11;
@@ -1532,10 +1152,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STXtemplate = 31<<26 | 151<<1;
 
-  static final INSTRUCTION STX (int RS, int RA, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 151<<1;
-  }
-
   final void emitSTX (int RS, int RA, int RB) {
     INSTRUCTION mi = STXtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1545,10 +1161,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STFDtemplate = 54<<26;
-
-  static final INSTRUCTION STFD (int FRS, int D, int RA) {
-    return 54<<26 | FRS<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitSTFD (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1561,10 +1173,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STFDUtemplate = 55<<26;
 
-  static final INSTRUCTION STFDU (int FRS, int D, int RA) {
-    return 55<<26 | FRS<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitSTFDU (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = STFDUtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
@@ -1576,10 +1184,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STFDXtemplate = 31<<26 | 727<<1;
 
-  static final INSTRUCTION STFDX(int FRS, int RA, int RB) {
-    return 31<<26 | FRS<<21 | RA<<16 | RB<<11 | 727<<1;
-  }
-
   final void emitSTFDX (int FRS, int RA, int RB) {
     INSTRUCTION mi = STFDXtemplate | FRS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1589,10 +1193,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STFStemplate = 52<<26;
-
-  static final INSTRUCTION STFS (int FRS, int D, int RA) {
-    return 52<<26 | FRS<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitSTFS (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1605,10 +1205,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STFSUtemplate = 53<<26;
 
-  static final INSTRUCTION STFSU (int FRS, int D, int RA) {
-    return 53<<26 | FRS<<21 | RA<<16 | (D&0xFFFF);
-  }
-
   final void emitSTFSU (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = STFSUtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
@@ -1619,10 +1215,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STUtemplate = 37<<26;
-
-  static final INSTRUCTION STU (int RS, int D, int RA) {
-    return 37<<26 | RS<<21 | RA<<16 | (D&0xFFFF);
-  }
 
   final void emitSTU (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1635,10 +1227,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int STUXtemplate = 31<<26 | 183<<1;
 
-  static final INSTRUCTION STUX (int RS, int RA, int RB) {
-    return 37<<26 | RS<<21 | RA<<16 | RB<<11 | 183<<1;
-  }
-
   final void emitSTUX (int RS, int RA, int RB) {
     INSTRUCTION mi = STUXtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1648,10 +1236,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int STWCXrtemplate = 31<<26 | 150<<1 | 1;
-
-  static final INSTRUCTION STWCXr (int RS, int RA, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 150<<1 | 1;
-  }
 
   final void emitSTWCXr (int RS, int RA, int RB) {
     INSTRUCTION mi = STWCXrtemplate | RS<<21 | RA<<16 | RB<<11;
@@ -1663,15 +1247,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Ttemplate = 31<<26 | 4<<1;
 
-  static final INSTRUCTION T (int TO, int RA, int RB) {
-    return 31<<26 | TO<<21 | RA<<16 | RB<<11 | 4<<1;
-  }
-
   static final int TItemplate = 3<<26;
-
-  static final INSTRUCTION TI (int TO, int RA, int SI) {
-    return 3<<26 | TO<<21 | RA<<16 | SI&0xFFFF;
-  }
 
   final void emitTI (int TO, int RA, int SI) {
     INSTRUCTION mi = TItemplate | TO<<21 | RA<<16 | SI&0xFFFF;
@@ -1733,10 +1309,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int XORtemplate = 31<<26 | 316<<1;
 
-  static final INSTRUCTION XOR (int RA, int RS, int RB) {
-    return 31<<26 | RS<<21 | RA<<16 | RB<<11 | 316<<1;
-  }
-
   final void emitXOR (int RA, int RS, int RB) {
     INSTRUCTION mi = XORtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1746,10 +1318,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   static final int XORItemplate = 26<<26;
-
-  static final INSTRUCTION XORI (int RA, int RS, int V) {
-    return 26<<26 | RS<<21 | RA<<16  | V&0xFFFF;
-  }
 
   final void emitXORI (int RA, int RS, int V) {
     if (VM.VerifyAssertions) VM.assert(fits(V, 16));
@@ -1763,10 +1331,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   /* macro instructions */
 
   static final int NOPtemplate = 19<<26 | 449<<1;
-
-  static final INSTRUCTION NOP () {
-    return CROR(0, 0, 0);
-  }
 
   final void emitNOP () {
     INSTRUCTION mi = NOPtemplate;
@@ -1904,7 +1468,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final void emitLVAL (int RT, int val) {
-    if (VM.TraceAssembler && (comment == null)) comment("" + val);
     if (fits(val, 16)) { 
       emitLIL(RT, val);
     } else if ((val&0x8000) == 0) {
@@ -1935,16 +1498,20 @@ final class VM_Assembler implements VM_BaselineConstants,
     mc.finish();
     if (shouldPrint) {
       INSTRUCTION[] instructions = mc.getInstructions();
-      VM_BaselineCompiler.options.PRINT_MACHINECODE=false;
-      for (int i = 0; i < instructions.length; i++) {
-	VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
-	VM.sysWrite(" : ");
-	VM.sysWrite(VM_Services.getHexString(instructions[i], false));
-	VM.sysWrite("  ");
-	VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
-	VM.sysWrite("\n");
+      boolean saved = VM_BaselineCompiler.options.PRINT_MACHINECODE;
+      try {
+	VM_BaselineCompiler.options.PRINT_MACHINECODE = false;
+	for (int i = 0; i < instructions.length; i++) {
+	  VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+	  VM.sysWrite(" : ");
+	  VM.sysWrite(VM_Services.getHexString(instructions[i], false));
+	  VM.sysWrite("  ");
+	  VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
+	  VM.sysWrite("\n");
+	}
+      } finally {
+	VM_BaselineCompiler.options.PRINT_MACHINECODE = saved;
       }
-      VM_BaselineCompiler.options.PRINT_MACHINECODE=true;
     }
     return mc;
   }
@@ -1962,10 +1529,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int SYNCtemplate = 31<<26 | 598<<1;
   
-  static final INSTRUCTION SYNC () {
-    return 31<<26 | 598<<1;
-  }
-
   final void emitSYNC () {
     INSTRUCTION mi = SYNCtemplate;
     if (VM.TraceAssembler)
@@ -1976,10 +1539,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int ICBItemplate = 31<<26 | 982<<1;
   
-  static final INSTRUCTION ICBI (int RA, int RB) {
-    return 31<<26 | RA<<16 | RB<<11 | 982<<1;
-  }
-
   final void emitICBI (int RA, int RB) {
     INSTRUCTION mi = ICBItemplate | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -1990,10 +1549,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int ISYNCtemplate = 19<<26 | 150<<1;
   
-  static final INSTRUCTION ISYNC () {
-    return 19<<26 | 150<<1;
-  }
-
   final void emitISYNC () {
     INSTRUCTION mi = ISYNCtemplate;
     if (VM.TraceAssembler)
@@ -2004,10 +1559,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int DCBFtemplate = 31<<26 | 86<<1;
   
-  static final INSTRUCTION DCBF (int RA, int RB) {
-    return 31<<26 | RA<<16 | RB<<11 | 86<<1;
-  }
-
   final void emitDCBF (int RA, int RB) {
     INSTRUCTION mi = DCBFtemplate | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -2018,10 +1569,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int DCBSTtemplate = 31<<26 | 54<<1;
   
-  static final INSTRUCTION DCBST (int RA, int RB) {
-    return 31<<26 | RA<<16 | RB<<11 | 54<<1;
-  }
-
   final void emitDCBST (int RA, int RB) {
     INSTRUCTION mi = DCBSTtemplate | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
@@ -2032,10 +1579,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MFTBtemplate = 31<<26 | 392<<11 | 371<<1;
   
-  static final INSTRUCTION MFTB (int RT) {
-    return 31<<26 | RT<<21 | 392<<11 | 371<<1;
-  }
-
   final void emitMFTB (int RT) {
     INSTRUCTION mi = MFTBtemplate | RT<<21;
     if (VM.TraceAssembler)
@@ -2046,10 +1589,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MFTBUtemplate = 31<<26 | 424<<11 | 371<<1;
   
-  static final INSTRUCTION MFTBU (int RT) {
-    return 31<<26 | RT<<21 | 424<<11 | 371<<1;
-  }
-
   final void emitMFTBU (int RT) {
     INSTRUCTION mi = MFTBUtemplate | RT<<21;
     if (VM.TraceAssembler)
@@ -2060,10 +1599,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int FCTIZtemplate = 63<<26 | 15<<1;
   
-  static final INSTRUCTION FCTIZ (int RA, int RB) {
-    return 63<<26 | RA<<21 | RB<<11 | 15<<1;
-  }
-
   final void emitFCTIZ (int RA, int RB) {
     INSTRUCTION mi = FCTIZtemplate | RA<<21 | RB<<11;
     if (VM.TraceAssembler)
@@ -2160,15 +1695,14 @@ final class VM_Assembler implements VM_BaselineConstants,
   // After:    no registers changed
   //
   void emitSpecializationCall (int spSaveAreaOffset, VM_Method m, int bIP) {
-      int callSiteNumber = 0;
-      if (VM_SpecializationSentry.isValid()) {
-	  callSiteNumber =
-	      VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-      }
-      emitST  (SP, spSaveAreaOffset, FP); // save SP
-      emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-      emitBLRL();
-      emitL   (SP, spSaveAreaOffset, FP); // restore SP
+    int callSiteNumber = 0;
+    if (VM_SpecializationSentry.isValid()) {
+      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
+    }
+    emitST  (SP, spSaveAreaOffset, FP); // save SP
+    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
+    emitBLRL();
+    emitL   (SP, spSaveAreaOffset, FP); // restore SP
   }
 
   // Emit baseline call instruction sequence.
@@ -2182,19 +1716,16 @@ final class VM_Assembler implements VM_BaselineConstants,
   void emitSpecializationCallWithHiddenParameter(int spSaveAreaOffset, 
 						 int hiddenParameter,
 						 VM_Method m,
-						 int bIP) 
-  {
-      int callSiteNumber = 0;
-      if (VM_SpecializationSentry.isValid()) {
-	  callSiteNumber =
-	      VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-      }
-      emitST  (SP, spSaveAreaOffset, FP); // save SP
-      emitLVAL(SP, hiddenParameter);    // pass "hidden" parameter in reg. SP 
-      emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-      emitBLRL();
-      emitL   (SP, spSaveAreaOffset, FP); // restore SP
+						 int bIP) {
+    int callSiteNumber = 0;
+    if (VM_SpecializationSentry.isValid()) {
+      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
+    }
+    emitST  (SP, spSaveAreaOffset, FP); // save SP
+    emitLVAL(SP, hiddenParameter);    // pass "hidden" parameter in reg. SP 
+    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
+    emitBLRL();
+    emitL   (SP, spSaveAreaOffset, FP); // restore SP
   }
-
   //-#endif
 }
