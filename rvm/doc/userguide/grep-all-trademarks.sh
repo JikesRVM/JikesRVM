@@ -1,1 +1,1 @@
-grep -f trademarks.list $( cat inclusions.filenames )
+grep -f sections.list -f trademarks.list $( cat inclusions.filenames )
