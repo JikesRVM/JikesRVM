@@ -4,7 +4,7 @@ virtual machine to boot Jikes RVM under Linux, as an alternative to
 the Sun-derived JDK.  This eliminates the last piece of non-free
 software that used to be required to build Jikes RVM.
 
-You can download Kaffe from \xlink{{\tt \KaffeURL}}{\KaffeURL} or,
+You can \xlink{download Kaffe}[ from {\tt \KaffeURL}]{\KaffeURL} or,
 under SuSE Linux, install the {\tt kaffe} RPM.  
 
 If you want to build under Kaffe, please remember that building Jikes
@@ -14,13 +14,19 @@ There are some caveats here:
 \begin{itemize}
 
 \item As of this writing (March 21, 2004), the only Kaffe version we've
-tested against is 1.1.4.  
+  tested against is 1.1.4.  
 
 \item So far, we have only successfully built {\tt BaseBase}{\it *}
   images.  Building a \texttt{BaseAdaptive}{\it *} image makes an
   image that currently throws an exception even when running a simple
-  ``Hello, World'' program.  This appears to be due to a bug in Kaffe
-  1.1.4, which we are actively working to track down.
+  ``Hello, World'' program.  This appears to be due to a bug how Kaffe
+  1.1.4 runs the template expander, and we are actively working to
+  track it down.  
+
+  The bug is discussed in 
+  \xlink{\htmlonly{this}\texonly{a May, 2004} 
+         message to the \texttt{jikesrvm-core} mailing list}{%
+    http://www-124.ibm.com/pipermail/jikesrvm-core/2004-March/000704.html}.
 
 \item We haven't run the regression test suite through on Kaffe yet.
   Some aspects of it appear to use features of the Sun JDK, and will
