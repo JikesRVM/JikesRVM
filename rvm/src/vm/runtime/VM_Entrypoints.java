@@ -288,7 +288,6 @@ public class VM_Entrypoints implements VM_Constants {
   ////////////////// 
   // Entrypoints that are valid only when the adaptive optimization system is included in the build
   //////////////////
-  public static final VM_Field methodListenerNextIndexField      = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "nextIndex", "I");
   public static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "numSamples", "I");
 
   public static final VM_Field edgeListenerNextIndexField        = getField("Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;", "nextIndex", "I");

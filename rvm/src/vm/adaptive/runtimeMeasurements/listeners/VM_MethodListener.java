@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
  *
  * Samples are collected in a buffer.  
  * When sampleSize samples have been collected they are either processed by 
- * the listener directly or the listener's organizer is activate to process the samples.
+ * the listener directly or the listener's organizer is activated to process them.
  *  
  * Defines update's interface to be a compiled method identifier, CMID.
  * 
@@ -33,11 +33,6 @@ abstract class VM_MethodListener extends VM_Listener
    * Number of samples to be gathered before they are processed 
    */
   protected int sampleSize;  
-  
-  /**
-   * Next available index in the sample array
-   */
-  protected int nextIndex;
   
   /**
    * Number of samples taken so far
@@ -92,13 +87,11 @@ abstract class VM_MethodListener extends VM_Listener
       if (whereFrom == VM_Thread.PROLOGUE) {
 	// Before getting a sample index, make sure we have something to insert
 	if (callerCmid != -1) {
-	  int sampleNumber = recordSample(callerCmid);
-	  checkThresholdReached(sampleNumber);
+	  recordSample(callerCmid);
         } // nothing to insert
       } else { 
         // loop backedge or epilogue.  
-	int sampleNumber = recordSample(cmid);
-	checkThresholdReached(sampleNumber);
+	recordSample(cmid);
       }
     } else {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
@@ -106,17 +99,15 @@ abstract class VM_MethodListener extends VM_Listener
       // and callee.  On backedges, we count the current method twice.
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Increment both for this method and the caller
-	int sampleNumber = recordSample(cmid);
+	recordSample(cmid);
 	if (callerCmid != -1) {
-	  sampleNumber = recordSample(callerCmid);
+	  recordSample(callerCmid);
 	}
-	checkThresholdReached(sampleNumber);
       } else { 
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
-	int sampleNumber = recordSample(cmid);
-	sampleNumber = recordSample(cmid);
-	checkThresholdReached(sampleNumber);
+	recordSample(cmid);
+	recordSample(cmid);
       }
     }
   }
@@ -130,40 +121,19 @@ abstract class VM_MethodListener extends VM_Listener
    *
    * @param CMID compiled method ID to record
    * @return the sample number that was inserted or -1, if we were unlucky
-   *
-   * NOTE: if we are unlucky that we didn't get to insert the sample (because
-   *  there was a slot when we started, but another thread stole it from us)
-   *  we simply don't insert the sample.
    */
-  private int recordSample(int CMID) {  
+  private void recordSample(int CMID) {  
     // reserve the next available slot
-    int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNextIndexField.getOffset(), 1);
+    int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNumSamplesField.getOffset(), 1);
     // make sure it is valid
     if (idx < sampleSize) {
       samples[idx] = CMID;
-
-      // sampleNumber has the value before we incremented, add one to 
-      // determine which sample we were
-      int sampleNumber =  VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNumSamplesField.getOffset(), 1) + 1;
-      return sampleNumber;
-    } else {
-      return -1;
     }
-  }
-
-  /**
-   * This method checks to see if the parameter passed was the last sample
-   * If so, it either notifies the organizer or processes the samples itself.
-   *
-   * @param sampleNumber the sample number was just taken 
-   *      valid samples will be in [1..sampleSize]
-   *      invalid sample will be -1 
-   */
-  private void checkThresholdReached(int sampleNumber) {
-    if (sampleNumber == sampleSize) { 
+    if (idx+1 == sampleSize) {
+      // The last sample. 
       if (notifyOrganizer) {
-	activateOrganizer();
-      } else {
+	activateOrganizer(); // organizer will process
+      } else { // must process them ourself
 	passivate();
 	processSamples();
 	reset();
@@ -182,7 +152,6 @@ abstract class VM_MethodListener extends VM_Listener
    * Reset the buffer to prepare to take more samples.
    */
   public void reset() {
-    nextIndex = 0;
     numSamples = 0;
   }
 
@@ -195,7 +164,6 @@ abstract class VM_MethodListener extends VM_Listener
     sampleSize = newSampleSize; 
     if (sampleSize > samples.length) {
       samples = new int[newSampleSize];
-      nextIndex = 0;
       numSamples = 0;
     }
   }
@@ -203,7 +171,7 @@ abstract class VM_MethodListener extends VM_Listener
   /**
    * @return the current sample size/threshold value
    */
-  public final int getSampleSize() { return numSamples; }
+  public final int getSampleSize() { return sampleSize; }
 
   /**
    * @return the buffer of samples
