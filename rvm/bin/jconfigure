@@ -2092,7 +2092,7 @@ if [[ -e $BUILD_DIRECTORY ]]; then # old directory exists
    if tty -s; then # keyboard is live (ie. this is not an automated build)
       print -n "$ME: $BUILD_DIRECTORY already exists, replace it? (y/n)"
       read response
-      if [[ $response != y ]]; then
+      if [[ $response != y && $response != 'yes' ]]; then
          print "$ME: operation aborted, nothing written"
          exit 0 # to keep make happy
       fi
