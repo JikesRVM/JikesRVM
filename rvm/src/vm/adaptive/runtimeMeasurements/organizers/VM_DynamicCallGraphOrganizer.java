@@ -82,7 +82,11 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
   public void initialize() {
     if (VM.LogAOSEvents) VM_AOSLogging.DCGOrganizerThreadStarted();
 
-    numberOfBufferTriples = VM_Controller.options.DCG_SAMPLE_SIZE;
+    if (VM_Controller.options.cgCBS()) {
+      numberOfBufferTriples = VM_Controller.options.DCG_SAMPLE_SIZE * VM.CBSCallSamplesPerTick;
+    } else {
+      numberOfBufferTriples = VM_Controller.options.DCG_SAMPLE_SIZE;
+    }
     numberOfBufferTriples *= VM_Scheduler.numProcessors;
     bufferSize = numberOfBufferTriples * 3;
     buffer     = new int[bufferSize];
@@ -90,7 +94,13 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
     ((VM_EdgeListener)listener).setBuffer(buffer); 
 
     // Install the edge listener
-    VM_RuntimeMeasurements.installTimerContextListener((VM_EdgeListener)listener);
+    if (VM_Controller.options.cgTimer()) {
+      VM_RuntimeMeasurements.installTimerContextListener((VM_EdgeListener)listener);
+    } else if (VM_Controller.options.cgCBS()) {
+      VM_RuntimeMeasurements.installCBSContextListener((VM_EdgeListener)listener);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of call_graph_listener_trigger");
+    }
   }
 
   /**
