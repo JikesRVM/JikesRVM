@@ -5,11 +5,57 @@
 //$Id$
 
 /**
- *  This class is the low-level assembler for Intel; it contains functionality
- * for encoding specific instructions into an array of bytes.  The methods for 
- * encoding instructions use a stylized naming and signiture convention that 
- * is designed to make the method signiture computable from the opcode and the
- * operand types.  The naming convetion is as follows:
+ *  <P> This class is the low-level assembler for Intel; it contains
+ * functionality for encoding specific instructions into an array of
+ * bytes.  It consists of three parts: </P>
+ * <UL>
+ *  <LI> Some support that handles common operations for generating
+ *       any IA32 instruction, such as encoding the operands into the
+ *       ModRM and SIB bytes
+ *  <LI> Some hand-coded methods that emit instructions with
+ *       distinctive formats or with special consistency requirements,
+ *       such as FXCH or CMOV
+ *  <LI> Machine-generated methods that emit instructions with
+ *       relatively standard formats, such as binary accumulation
+ *       instructions like ADD and SUB.
+ * </UL>
+ *  <P> This assembler provides a direct interface to the IA32 ISA: it
+ * contains emit methods that generate specific IA32 opcodes, and each
+ * emit method specifies the addressing modes and operand sizes that
+ * it expects.  Thus, it has an emit method that generates an ADD of a
+ * register-displacement operand  and an immediate operand.  It is the
+ * job of the client to determine the addressing modes, operand
+ * sizes and exact opcodes that it desires. </P>
+ *
+ *  <P> This assembler does provide support for forward branches.  It
+ * is permitted to specify a branch operand as an arbitrary label, and
+ * later to inform the assembler to which instruction this label
+ * refers.  The assembler, when informed to what the label refers,
+ * will go back and generate the appropriate offsets for all branches
+ * that refer to the given label. </P>
+ *
+ *  <P> The automatically-generated emit methods of this assembler
+ * exploit regularities in the IA32 binary encoding; for example,
+ * several instructions (ADD, ADC, SUB, AND, OR, XOR) can be
+ * classified as binary accumulators that share a common set of
+ * permitted addressing modes and binary encoding all the way down a
+ * special case for enconding operands EAX and an immediate.  A shell
+ * script (genAssembler.sh in the intel assembler source directory)
+ * explots this by specifying a generic way of emtting a binary
+ * accumulation and then calling it for each specific opcode that fits
+ * that format.  These generated methods are combined with the
+ * hand-coded ones (from VM_Assembler.in, also in the assembler 
+ * source directory) as part of the Jikes RVM build process. </P>
+ *
+ *  <P> This assembler is shared by the baseline and optimizing
+ * compilers: it used directly by the baseline compiler, while the
+ * optimizing compiler has an OPT_Assembler that is built on top of
+ * this one to match OPT_Instructions and OPT_Operators to the emit
+ * methods this assembler provides.  The OPT_Assembler is entirely
+ * machine-generated, and this requires that the methods for encoding
+ * instructions use a stylized naming and signiture convention that is
+ * designed to make the method signiture computable from the opcode
+ * and the operand types.  The naming convetion is as follows:
  *
  * <PRE>
  *   final void emit<EM>opcode</EM>\(_<EM>operand code</EM>\)*[_<EM>size</EM>](\(<EM>operand arguments</EM>\)*)
@@ -86,6 +132,9 @@
  *    </UL>
  *  </DL>
  * </DL>
+ *
+ * @see OPT_Assembler
+ * @see VM_Lister
  *
  * @author Julian Dolby
  * @author Bowen Alpern
@@ -403,23 +452,62 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       else
 	  emitRegDisp32RegOperands(reg1, disp, reg2);
   }
-	  
+
+  /**
+   *  Generate the appropriate bytes into the generated machine code
+   * to express a register-indirect--register instruction.  This
+   * method handles low-level encoding issues, specifically the
+   * special cases for register indirect mode on ESP and EBP.  Using
+   * ESP requires an SIB byte, and EBP cannot be used in indirect mode
+   * at all (that encoding is used to express scaled-index-displacement
+   * mode) so this method uses register-displacement with a 0
+   * displacement to fake it.
+   *
+   * @see #emitRegDispRegOperands
+   *
+   * @param reg1 the r/m operand
+   * @param the other register or extended opcode
+   */
   private void emitRegIndirectRegOperands(byte reg1, byte reg2) {
       if (reg1 == EBP) {
-	  setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
-	  setMachineCodes(mi++, (byte) 0);
+	  emitRegDispRegOperands(reg1, 0, reg2);
       } else {
 	  setMachineCodes(mi++, regIndirectRegModRM(reg1, reg2));
 	  if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
       }
   }
 
-    private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
-	setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
-	setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
-	emitImm32(disp);
-    }
+  /**
+   *  Generate the appropriate bytes into the generated code to denote
+   * a scaled-register+displacement--register instruction.  This
+   * expresses the case where the SIB byte is used, but no base
+   * register is desired.  This method handles the somewhat convoluted
+   * special case used to express this mode (both the r/m register and
+   * the base register must be 5).
+   *
+   * @param index the index register for the r/m operand
+   * @param scale the amount to shift the index register
+   * @param disp the displacement for the r/m operand
+   * @param reg2 the other operand or the extended opcode
+   */
+  private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
+      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+      setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
+      emitImm32(disp);
+  }
 
+  /**
+   *  Generate the full glory of scaled-index-base-displacement
+   * addressing to the generated machine code.  This method handles
+   * various special cases, mostly choosing the smallest displacement
+   * possible.
+   *
+   * @param base the base register for the r/m operand
+   * @param index the index register for the r/m operand
+   * @param scale the amount to shift the index register
+   * @param disp the displacement for the r/m operand
+   * @param reg2 the other operand or the extended opcode
+   */
   private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
       if (disp == 0 && base != EBP) {
 	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
@@ -435,24 +523,56 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       }
   }
 
+  /**
+   *  Generate the smallest-byte-first IA32 encoding of 32 bit
+   * immediates into the generated code.
+   *
+   * @param imm the immediate to generate.
+   */
   private void emitImm32(int imm) {
       mi = emitImm32(imm, mi);
   }
     
+  /**
+   *  Generate the smallest-byte-first IA32 encoding of 16 bit
+   * immediates into the generated code.
+   *
+   * @param imm the immediate to generate.
+   */
   private void emitImm16(int imm) {
       mi = emitImm16(imm, mi);
   }
     
+  /**
+   *  Generate the IA32 encoding of an 8 bit immediate into the
+   * generated code. 
+   *
+   * @param imm the immediate to generate.
+   */
   private void emitImm8(int imm) {
       mi = emitImm8(imm, mi);
   }
 
+  /**
+   *  Generate the smallest-byte-first IA32 encoding of 16 bit
+   * immediates into the generated code at the location specified.
+   *
+   * @param imm the immediate to generate.
+   * @param idx the location in the generated code to write.
+   */
   private int emitImm16(int imm, int idx) {
       setMachineCodes(idx++, (byte) ((imm >>  0) & 0xFF));
       setMachineCodes(idx++, (byte) ((imm >>  8) & 0xFF));
       return idx;
   }
 
+  /**
+   *  Generate the smallest-byte-first IA32 encoding of 32 bit
+   * immediates into the generated code at the location specified.
+   *
+   * @param imm the immediate to generate.
+   * @param idx the location in the generated code to write.
+   */
   private int emitImm32(int imm, int idx) {
       setMachineCodes(idx++, (byte) ((imm >>  0) & 0xFF));
       setMachineCodes(idx++, (byte) ((imm >>  8) & 0xFF));
@@ -461,27 +581,51 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       return idx;
   }
     
+  /**
+   *  Generate the IA32 encoding of an 8 bit immediate into the
+   * generated code at the location specified. 
+   *
+   * @param imm the immediate to generate.
+   * @param idx the location in the generated code to write.
+   */
   private int emitImm8(int imm, int idx) {
       setMachineCodes(idx++, (byte) imm);
       return idx;
   }
 
+  /**
+   *  Generate a conditional opcode given the base opcode and the
+   * condition code desired.  The CMOVcc, SETcc and Jcc families of
+   * instructions all have opcodes defined as a base opcode plus some
+   * bits representing the condition code.  (of course, FCMOV does not
+   * this, since that would be too logical).
+   *
+   * @param opCode the base opcode to emit
+   * @param cond the condition code desired
+   */
   private void emitCondOpByte(byte opCode, byte cond) {
       setMachineCodes(mi++, (byte) (opCode | cond));
   }
 
-  /////////////////////////////////////
-  // locking			     //
-  /////////////////////////////////////
+  /**
+   *  Generate a locking prefix word into the generated code.  Locking
+   * operations on IA32 are expressed by writing a locking byte before
+   * the instruction.
+   */
+  final void emitLockNextInstruction() {
+      setMachineCodes(mi++, (byte) 0xF0);
+  }
 
-    final void emitLockNextInstruction() {
-	setMachineCodes(mi++, (byte) 0xF0);
-    }
-
-  ///////////////////////////
-  // branch support	   //
-  ///////////////////////////
-
+  /**
+   *  Generate a forward JMP instruction into the generated code.
+   * This form is used when the compiler wants to hang onto the
+   * forward reference object and call resolve on it directly.  These
+   * forward references are not handled by the mechanism in the
+   * assembler; the client is responsible for calling resolve on the
+   * reference when generating the target instruction.  The baseline
+   * compiler uses this form for jumps within the machine code for a
+   * single bytecode.
+   */
   final VM_ForwardReference forwardJMP () {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
@@ -491,6 +635,18 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     return r;
   }
 
+  /**
+   *  Generate a forward Jcc instruction into the generated code.
+   * This form is used when the compiler wants to hang onto the
+   * forward reference object and call resolve on it directly.  These
+   * forward references are not handled by the mechanism in the
+   * assembler; the client is responsible for calling resolve on the
+   * reference when generating the target instruction.  The baseline
+   * compiler uses this form for jumps within the machine code for a
+   * single bytecode.
+   *
+   * @param cond the condition code on which to branch
+   */
   final VM_ForwardReference forwardJcc (byte cond) {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
@@ -500,17 +656,42 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     return r;
   }
 
-  /////////////////////////////
-  // forward reference stuff //
-  /////////////////////////////
-
+  /**
+   *  The set of outstandin forward references.  This list is used by
+   * the assembler to keep track of all outstanding forward
+   * references.  References are put on this list by the emit methods
+   * for JMP and Jcc when they find a branch that is going forward.
+   * Each reference must understand what instruction it is looking for
+   * and how to patch its source instruction.  Then, when the client
+   * calls resolveForwardBranches, the assembler searches this list to
+   * find branches that match the instruction currently being
+   * generated, and calls the resolve method on each one that does.
+   */
   VM_ForwardReference forwardRefs;
 
+  /**
+   *  Resolve all forward branches that have the given target, and
+   * make them branch to the instruction currently being generated.
+   * Clients of the assembler call this method immediately before they
+   * emit the instruction intended to be the target of the given
+   * label.
+   *
+   * @param label the forward branch label to resolve
+   */
   void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; // premature optimization
     forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
+  /**
+   *  Make the given unconditional branch branch to the current
+   * generated instruction.  It is the client's responsibility to
+   * ensure the given source index really does contain an
+   * unconditional branch.
+   *
+   * @param sourceIndex the machine code offset of the unconditional
+   *                    branch to patch.
+   */
   void patchUnconditionalBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+5);
@@ -518,6 +699,15 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     emitImm32(relOffset, sourceIndex);
   }
 
+  /**
+   *  Make the given conditional branch branch to the current
+   * generated instruction.  It is the client's responsibility to
+   * ensure the given source index really does contain an
+   * conditional branch.
+   *
+   * @param sourceIndex the machine code offset of the conditional
+   *                    branch to patch.
+   */
   void patchConditionalBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+6);
@@ -525,6 +715,16 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     emitImm32(relOffset, sourceIndex);
   }
 
+  /**
+   *  Make the given unconditional branch branch to the current
+   * generated instruction.  It is the client's responsibility to
+   * ensure the given source index really does contain an
+   * unconditional branch.  This instruction requires that the branch
+   * have been generated with an 8 bit offset.
+   *
+   * @param sourceIndex the machine code offset of the unconditional
+   *                    branch to patch.
+   */
   void patchShortBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
@@ -846,9 +1046,52 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     if (lister != null) lister.OP(miStart, "LEAVE");
   }
 
-  /////////////////////////////////
-  // floating point instructions //
-  /////////////////////////////////
+  ////////////////////////////////////////////
+  // hand-coded floating point instructions //
+  ////////////////////////////////////////////
+
+    // floating point conditional moves
+    final void emitFCMOV_Cond_Reg_Reg(byte cond, byte reg1, byte reg2) {
+	int miStart = mi;
+	if (VM.VerifyAssertions) VM.assert(reg1 == FP0);
+	switch (cond) {
+	case LLT:
+	    setMachineCodes(mi++, (byte) 0xDA);
+	    setMachineCodes(mi++, (byte) (0xC0 + reg2));
+	    break;
+	case EQ:
+	    setMachineCodes(mi++, (byte) 0xDA);
+	    setMachineCodes(mi++, (byte) (0xC8 + reg2));
+	    break;
+	case LLE:
+	    setMachineCodes(mi++, (byte) 0xDA);
+	    setMachineCodes(mi++, (byte) (0xD0 + reg2));
+	    break;
+	case U:
+	    setMachineCodes(mi++, (byte) 0xDA);
+	    setMachineCodes(mi++, (byte) (0xD8 + reg2));
+	    break;
+	case LGE:
+	    setMachineCodes(mi++, (byte) 0xDB);
+	    setMachineCodes(mi++, (byte) (0xC0 + reg2));
+	    break;
+	case NE:
+	    setMachineCodes(mi++, (byte) 0xDB);
+	    setMachineCodes(mi++, (byte) (0xC8 + reg2));
+	    break;
+	case LGT:
+	    setMachineCodes(mi++, (byte) 0xDB);
+	    setMachineCodes(mi++, (byte) (0xD0 + reg2));
+	    break;
+	case NU:
+	    setMachineCodes(mi++, (byte) 0xDB);
+	    setMachineCodes(mi++, (byte) (0xD8 + reg2));
+	    break;
+	default:
+	    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	}
+	if (lister != null) lister.RR(miStart, "FCMOV" + CONDITION[cond], reg1, reg2);
+    }
 
     // floating point push of ST(i) into ST(0)
     final void emitFLD_Reg_Reg(byte destReg, byte srcReg) {
