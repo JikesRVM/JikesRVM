@@ -631,8 +631,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_Reg (EBP, SP); 
 
     // set first word of header: method ID
-    asm.emitPUSH_Imm (methodID); 
-    asm.emitSUB_Reg_Imm (SP, WORDSIZE);  // leave room for saved -> preceeding java frame, set later
+    asm.emitPUSH_Imm (methodID);
+    // buy space for the rest of the header (values stored later)
+    asm.emitSUB_Reg_Imm (SP, STACKFRAME_HEADER_SIZE - 2 * WORDSIZE);
 
     // save registers that will be used in RVM, to be restored on return to C
     // TODO: I don't think we need to do this: C has no nonvolatile registers on Linux/x86 --dave
