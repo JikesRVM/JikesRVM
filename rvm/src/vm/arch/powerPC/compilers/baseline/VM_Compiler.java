@@ -2693,8 +2693,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       edgeCounterIdx += 2;
 
       // Load counter array for this method
-      asm.emitLtoc (T0, VM_Entrypoints.edgeCountsArrayField.getOffset());
-      int offset = method.getDictionaryId() << 2;
+      asm.emitLtoc (T0, VM_Entrypoints.edgeCountersField.getOffset());
+      int offset = getEdgeCounterOffset();
       if (asm.fits(offset, 16)) {
 	asm.emitL (T0, offset, T0);
       } else if (0 == (offset&0x8000)) {

@@ -38,7 +38,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   /**
    * The BranchProfile data for method, if available
    */
-  VM_BranchProfile[] branchProfiles;
+  VM_BranchProfiles branchProfiles;
 
   /**
    * The options to control the generation
@@ -588,7 +588,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   ///////////
   public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
     if (branchProfiles != null) {
-      VM_BranchProfile bp = VM_EdgeCounts.getBranchProfile(branchProfiles, bcIndex);
+      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
       return new OPT_BranchProfileOperand(((VM_ConditionalBranchProfile)bp).getTakenProbability());
     } 
     if (backwards) {
@@ -600,7 +600,7 @@ final class OPT_GenerationContext implements OPT_Constants,
 
   public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
     if (branchProfiles != null) {
-      VM_BranchProfile bp = VM_EdgeCounts.getBranchProfile(branchProfiles, bcIndex);
+      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
       return (VM_SwitchBranchProfile)bp;
     } else {
       return null;

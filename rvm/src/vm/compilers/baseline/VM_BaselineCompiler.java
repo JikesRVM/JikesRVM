@@ -21,7 +21,7 @@ abstract class VM_BaselineCompiler {
   /** 
    * Options used during base compiler execution 
    */
-  protected static VM_BaseOptions options;
+  public static VM_BaseOptions options;
 
   /** 
    * Holds the options as the command line is being processed. 
@@ -67,6 +67,11 @@ abstract class VM_BaselineCompiler {
    * Next edge counter entry to allocate
    */
   protected int edgeCounterIdx;
+
+  /**
+   * Edge counter dictionary id
+   */
+  private int edgeCounterId;
 
   /**
    * The compiledMethod assigned to this compilation of method
@@ -206,7 +211,7 @@ abstract class VM_BaselineCompiler {
     compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
-      VM_EdgeCounts.allocateCounters(method.getDictionaryId(), edgeCounterIdx);
+      VM_EdgeCounterDictionary.setValue(edgeCounterId, new int[edgeCounterIdx]);
     }
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
@@ -294,6 +299,13 @@ abstract class VM_BaselineCompiler {
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
     VM.sysWrite(" \n");
+  }
+
+  protected final int getEdgeCounterOffset() {
+    if (edgeCounterId == 0) {
+      edgeCounterId = VM_EdgeCounts.findOrCreateId(method);
+    }
+    return edgeCounterId << 2;
   }
 
 

@@ -13,6 +13,7 @@ MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_FieldDictionary.java \
 			$(GEN_FILES_DIR)/VM_MethodDictionary.java \
 			$(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java \
+			$(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java \
 			$(GEN_FILES_DIR)/VM_IntLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_LongLiteralDictionary.java \
@@ -38,6 +39,9 @@ $(GEN_FILES_DIR)/VM_MethodDictionary.java: VM_Dictionary.template
 
 $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate VM_InterfaceMethodSignatureDictionary VM_InterfaceMethodSignature int VM_InterfaceMethodSignature VM_Dictionary.template $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java
+
+$(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java: VM_DictionaryA.template
+			./InstantiateDictionaryTemplate VM_EdgeCounterDictionary VM_Triplet int VM_Triplet VM_DictionaryA.template $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java
 
 $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate VM_IntLiteralDictionary int int VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java

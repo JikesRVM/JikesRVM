@@ -14,7 +14,7 @@ MakeTemplates:		$(GEN_FILES_DIR)/VM_BaseOptions.java
 			@print -n "(baseline templates expanded) "
 
 BOOLEAN_DAT_FILES = SharedBooleanOptions.dat BooleanOptions.dat
-VALUE_DAT_FILES = SharedValueOptions.dat
+VALUE_DAT_FILES = SharedValueOptions.dat ValueOptions.dat
 
 $(GEN_FILES_DIR)/VM_BaseOptions.java:	VM_BaseOptions.template \
 					../optimizing/driver/MasterOptionsTemplate.template \

@@ -3,204 +3,142 @@
  */
 //$Id$
 
+import java.util.*;
+import java.io.*;
+
 /**
  * A repository of edge counters for bytecode-level edge conditional branches.
  * 
  * @author Dave Grove
  */
-final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor,
-				     VM_BytecodeConstants {
+final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 
   static final int TAKEN     = 0;
   static final int NOT_TAKEN = 1;
-  
-  private static int[][] counts;
 
+  private static boolean registered = false;
+  
   public void notifyExit(int value) { dumpCounts(); }
 
-  /**
-   * Allocate a counter array for the given method with numSlots entries.
-   * Intended to be called only by the baseline compiler.
-   * 
-   * @param mid the method id 
-   * @param numSlots the number of counters required for the method.
-   */
-  static synchronized void allocateCounters(int mid, int numSlots) {
-    if (counts == null) {
-      counts = new int[16000][];
-      if (!VM.BuildForAdaptiveSystem) {
-	// Assumption: If edge counters were enabled in a non-adaptive system
-	//             then the user must want use to dump them when the system
-	//             exits.  Otherwise there is no reason to do this.
-	VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
-      }
+  public static int findOrCreateId(VM_Method m) {
+    if (!VM.BuildForAdaptiveSystem && !registered) {
+      // Assumption: If edge counters were enabled in a non-adaptive system
+      //             then the user must want use to dump them when the system
+      //             exits.  Otherwise why would they have enabled them...
+      registered = true;
+      VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    if (mid >= counts.length) {
-      int size = counts.length*2;
-      if (size <= mid) size = mid + 1000;
-      int[][]tmp = new int[size][];
-      for (int i=0; i<counts.length; i++) {
-	tmp[i] = counts[i];
-      }
-      counts = tmp;
+    VM_Triplet key = m.getDictionaryKey();
+    return VM_EdgeCounterDictionary.findOrCreateId(key, null);
+  }
+
+  public static int findId(VM_Method m) {
+    if (!VM.BuildForAdaptiveSystem && !registered) {
+      // Assumption: If edge counters were enabled in a non-adaptive system
+      //             then the user must want use to dump them when the system
+      //             exits.  Otherwise why would they have enabled them...
+      registered = true;
+      VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    counts[mid] = new int[numSlots];
+    VM_Triplet key = m.getDictionaryKey();
+    return VM_EdgeCounterDictionary.findId(key);
+  }
+
+  public static VM_BranchProfiles getBranchProfiles(VM_Method m) {
+    if (!m.getDeclaringClass().isLoaded() || m.getBytecodes() == null) return null;
+    int id = findId(m);
+    if (id == -1) return null;
+    int[] cs = VM_EdgeCounterDictionary.getValue(id);
+    if (cs == null) return null;
+    return new VM_BranchProfiles(m, id, cs);
   }
 
   /**
-   * Dump all the profile data to stderr
+   * Dump all the profile data to the file VM_BaselineCompiler.options.EDGE_COUNTER_FILE
    */
   public static void dumpCounts() {
-    if (counts == null) return;
-    VM.sysWrite("*** EDGE COUNTERS ***\n");
-    int n = Math.min(counts.length, VM_MethodDictionary.getNumValues());
+    dumpCounts(VM_BaselineCompiler.options.EDGE_COUNTER_FILE);
+  }
+
+  /**
+   * Dump all profile data to the given file
+   * @param fn output file name
+   */
+  public static void dumpCounts(String fn) {
+    PrintStream f;
+    try {
+      f = new PrintStream(new FileOutputStream(fn));
+    } catch (IOException e) {
+      VM.sysWrite("\n\nVM_EdgeCounts.dumpCounts: Error opening output file!!\n\n");
+      return;
+    }
+    int n = VM_EdgeCounterDictionary.getNumValues();
     for (int i=0; i<n; i++) {
-      VM_Method m = VM_MethodDictionary.getValue(i);
-      if (m == null) continue;
-      VM_BranchProfile[] data = getBranchProfiles(m);
-      if (data != null) {
-	System.err.println(m.toString());
-	for (int j=0; j<data.length; j++) {
-	  System.err.println("\t"+data[j]);
+      VM_Triplet key = VM_EdgeCounterDictionary.getKey(i);
+      int mid = VM_MethodDictionary.findId(key);
+      if (mid == -1) continue; // only should happen when we've read in a file of offline data.
+      VM_Method m = VM_MethodDictionary.getValue(mid);
+      if (!m.isLoaded()) continue; // ditto -- came from offline data
+      new VM_BranchProfiles(m, i, VM_EdgeCounterDictionary.getValue(i)).print(f);
+    }
+  }
+
+  public static void readCounts(String fn) {
+    LineNumberReader in = null;
+    try {
+      in = new LineNumberReader(new FileReader(fn));
+    } catch (IOException e) {
+      e.printStackTrace();
+      VM.sysFail("Unable to open input edge counter file "+fn);
+    }
+    try {
+      int[] cur = null;
+      int curIdx = 0;
+      for (String s = in.readLine(); s != null; s = in.readLine()) {
+	StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f:{},");
+	String firstToken = parser.nextToken();
+	if (firstToken.equals("M")) {
+	  int numCounts = Integer.parseInt(parser.nextToken());
+	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+	  VM_Triplet key = new VM_Triplet(dc, mn, md);
+	  int id = VM_EdgeCounterDictionary.findOrCreateId(key, new int[numCounts]);
+	  cur = VM_EdgeCounterDictionary.getValue(id);
+	  curIdx = 0;
+	} else {
+	  String bracket = parser.nextToken(); // discard bytecode index, we don't care.
+	  if (bracket.equals("<")) {
+	    // conditional branch
+	    float freq = (float)Long.parseLong(parser.nextToken());
+	    float takenProb = Float.parseFloat(parser.nextToken());
+	    int yea = (int)(0x000000007fffffffL & (long)(0.5f + freq * takenProb));
+	    int nea = (int)(0x000000007fffffffL & (long)(0.5F + freq * (1.0f - takenProb)));
+	    cur[curIdx + TAKEN] = yea;
+	    cur[curIdx + NOT_TAKEN] = nea;
+	    curIdx += 2;
+	  } else if (bracket.equals("[")) {
+	    float freq = (float)Long.parseLong(parser.nextToken());
+	    for (String nt = parser.nextToken(); !nt.equals("]"); nt = parser.nextToken()) {
+	      float takenProb = Float.parseFloat(nt);
+	      int yea = (int)(0x000000007fffffffL & (long)(0.5f + freq * takenProb));
+	      cur[curIdx++] = yea;
+	    }
+	  } else {
+	    VM.sysFail("Format error in edge counter input file");
+	  }
 	}
       }
-    }
-  }
-
-  /**
-   * Find the BranchProfile for a given bytecode index in the BranchProfile array
-   * @param data the VM_BranchProfile[] to search
-   * @param bcIndex the bytecode index of the branch instruction
-   * @return the desired VM_BranchProfile, or null if it cannot be found.
-   */
-  public static VM_BranchProfile getBranchProfile(VM_BranchProfile[] data, int bcIndex) {
-    int low = 0;
-    int high = data.length-1;
-    while (true) {
-      int mid = (low + high) >> 1;
-      int bci = data[mid].getBytecodeIndex();
-      if (bci == bcIndex) {
-	return data[mid];
-      }
-      if (low >= high) { 
-	// search failed
-	if (VM.VerifyAssertions) { VM.assert(false); }
-	return null;
-      }
-      if (bci > bcIndex) {
-	high = mid-1;
-      } else {
-	low = mid+1;
-      }      
-    }
-  }
-
-  /**
-   * Get the branch profiles for the given VM_Method.
-   * Return null if no profile information is available.
-   */
-  public static VM_BranchProfile[] getBranchProfiles(VM_Method m) {
-    int id = m.getDictionaryId();
-    if (counts == null || counts.length <= id) return null;
-    int[] cs = counts[id];
-    if (cs == null) return null;
-    byte[] bytecodes = m.getBytecodes();
-    VM_BranchProfile[] data = new VM_BranchProfile[cs.length/2];
-    int dataIdx = 0;
-    int countIdx = 0;
-    
-    // We didn't record the bytecode index in the profile data to record space.
-    // Therefore we must now recover that information.
-    // We exploitthe fact that the baseline compiler generates code in 
-    // a linear pass over the bytecodes to do this.
-
-    int bcIndex = 0;
-    while (bcIndex < bytecodes.length) {
-      int code = (int)(bytecodes[bcIndex] & 0xFF);
-      switch (code) {
-	
-      case JBC_ifeq:case JBC_ifne:case JBC_iflt:case JBC_ifge:
-      case JBC_ifgt:case JBC_ifle:case JBC_if_icmpeq:case JBC_if_icmpne:
-      case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
-      case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
-      case JBC_ifnull:case JBC_ifnonnull: {
-	int yea = cs[countIdx + TAKEN];
-	int nea = cs[countIdx + NOT_TAKEN];
-	boolean backwards = ((bytecodes[bcIndex+1] & 0x80) != 0);
-	countIdx += 2;
-	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
-	bcIndex += 3;
-	break;
-      }
-
-      case JBC_tableswitch: {
-	int saved = bcIndex++;
-	bcIndex = alignSwitch(bcIndex);
-	bcIndex += 4;         // skip over default
-	int low = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4;
-	int high = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4;
-	bcIndex += (high - low + 1)*4;        // skip over rest of tableswitch
-	int numPairs = high - low + 1;
-	data[dataIdx++] = new VM_SwitchBranchProfile(saved, cs, countIdx, numPairs+1);
-	countIdx += numPairs + 1;
-	break;
-      }
-
-      case JBC_lookupswitch: { 
-	int saved = bcIndex++;
-	bcIndex = alignSwitch(bcIndex);
-	bcIndex += 4;         // skip over default 
-	int numPairs = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4 + (numPairs*8);          // skip rest of lookupswitch
-	data[dataIdx++] = new VM_SwitchBranchProfile(saved, cs, countIdx, numPairs+1);
-	countIdx += numPairs + 1;
-	break;
-      }
-
-      case JBC_wide: {
-	int w_code = (int)(bytecodes[bcIndex+1] & 0xFF);
-	bcIndex += (w_code == JBC_iinc) ? 6 : 4;
-	break;
-      }
-
-      default: { 
-	int size = JBC_length[code];
-	if (VM.VerifyAssertions) VM.assert(size > 0);
-	bcIndex += size;
-	break;
-      }
-      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      VM.sysFail("Error parsing input edge counter file"+fn);
     }
 
-    // Make sure we are in sync
-    if (VM.VerifyAssertions) VM.assert(countIdx == cs.length); 
-
-    if (dataIdx != data.length) {
-      // We had a switch statment; shrink the array.
-      VM_BranchProfile[] newData = new VM_BranchProfile[dataIdx];
-      for (int i=0; i<dataIdx; i++) {
-	newData[i] = data[i];
-      }
-      return newData;
-    } else {
-      return data;
+    // Enable debug of input by dumping file as we exit the VM.
+    if (true) {
+      VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
+      VM_BaselineCompiler.processCommandLineArg("-X:base:", "edge_counter_file=DebugEdgeCounters");
     }
-  }
-
-
-  private static int alignSwitch(int bcIndex) {
-    int align = bcIndex & 3;
-    if (align != 0) bcIndex += 4 - align;                     // eat padding
-    return bcIndex;
-  }
-
-  private static int getIntOffset(int index, byte[] bytecodes) {
-    return (int)((((int)bytecodes[index]) << 24) 
-		 | ((((int)bytecodes[ index + 1]) & 0xFF) << 16) 
-		 | ((((int)bytecodes[index + 2]) & 0xFF) << 8) 
-		 | (((int)bytecodes[ index + 3]) & 0xFF));
   }
 
 }

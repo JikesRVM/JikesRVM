@@ -72,6 +72,7 @@ class VM_CommandLineArgs {
   public static final int BASE_ARG             = 27;
   public static final int OPT_ARG              = 28;
   public static final int OPT_HELP_ARG         = 29;
+  public static final int PROF_ARG             = 30;
 
   /**
    * A catch-all prefix to find application name.
@@ -134,6 +135,7 @@ class VM_CommandLineArgs {
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
+    new Prefix("-X:prof:",              PROF_ARG),
     app_prefix
   };
 
@@ -308,14 +310,16 @@ class VM_CommandLineArgs {
 	VM_ClassLoader.setApplicationRepositories(arg);
 	break;
       case ENVIRONMENT_ARG: // arguments of the form "-Dx=y"
-	int mid = arg.indexOf('=');
-	if (mid == -1 || mid + 1 == arg.length()) {
-	  VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
-	  VM.sysExit(1);
+	{ 
+	  int mid = arg.indexOf('=');
+	  if (mid == -1 || mid + 1 == arg.length()) {
+	    VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
+	    VM.sysExit(1);
+	  }
+	  String name  = arg.substring(0, mid);
+	  String value = arg.substring(mid + 1);
+	  System.getProperties().put(name, value);
 	}
-	String name  = arg.substring(0, mid);
-	String value = arg.substring(mid + 1);
-	System.getProperties().put(name, value);
 	break;
       case VERBOSE_GC_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
@@ -658,7 +662,24 @@ class VM_CommandLineArgs {
 	}
 	//-#endif
 	break;
-
+      case PROF_ARG: // "-X:prof:arg"; pass 'arg' as an option
+	{ 
+	  int split = arg.indexOf('=');
+	  if (split == -1) {
+	    VM.sysWrite("  Illegal option specification!\n  \""+arg+
+			"\" must be specified as a name-value pair in the form of option=value\n");
+	    VM.sysExit(1);
+	  }
+	  String name = arg.substring(0,split);
+	  String value = arg.substring(split+1);
+	  if (name.equals("edge_counter_file")) {
+	    VM_EdgeCounts.readCounts(value);
+	  } else {
+	    VM.sysWriteln("Unrecognized profile argument "+p.value+arg);
+	    VM.sysExit(1);
+	  }
+	}
+	break;
       }
     }
 

@@ -37,7 +37,7 @@ final class VM_ConditionalBranchProfile extends VM_BranchProfile {
   final public float getTakenProbability() { return probTaken; }
 
   final public String toString() {
-    return bci + ":\t<" + (long)freq + ", " +probTaken + ">" + (backwards ? " backwards":"");
+    return bci + ":\t< " + (long)freq + ", " +probTaken + " >" + (backwards ? " backwards":"");
   }
 
 }

@@ -57,6 +57,15 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    */
   public int hashCode() { return dictionaryId; }
 
+  /**
+   * Get the triplet that is the dictionary key for this VM_Member
+   */
+  public final VM_Triplet getDictionaryKey() {
+    return new VM_Triplet(getDeclaringClass().getDescriptor(),
+			  getName(),
+			  getDescriptor());
+  }
+
 
   //---------------------------------------------------------------------//
   //                           Section 1.                                //

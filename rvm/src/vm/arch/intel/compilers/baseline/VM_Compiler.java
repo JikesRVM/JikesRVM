@@ -1717,8 +1717,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
     if (options.EDGE_COUNTERS) {
       // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T1, T1, method.getDictionaryId() << 2);
+      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T1, T1, getEdgeCounterOffset());
       int firstCounter = edgeCounterIdx;
       edgeCounterIdx += (n + 1);
 
@@ -1759,8 +1759,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     if (options.EDGE_COUNTERS) {
       // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T1, T1, method.getDictionaryId() << 2);
+      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T1, T1, getEdgeCounterOffset());
     }
 
     asm.emitPOP_Reg(T0);
@@ -2561,8 +2561,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       edgeCounterIdx += 2;
 
       // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T0, T0, method.getDictionaryId() << 2);
+      asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
       VM_ForwardReference notTaken = asm.forwardJcc(asm.flipCode(cond));
