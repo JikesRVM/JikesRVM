@@ -13,37 +13,34 @@ package com.ibm.JikesRVM;
  */
 class VM_Barriers implements VM_BaselineConstants {
 
-  //  on entry java stack contains ...|target_array_ref|array_index|ref_to_store|
+  // on entry T0, T1, and T2 already contain the appropriate values
   static void compileArrayStoreBarrier (VM_Compiler comp) {
     VM_Assembler asm = comp.asm;
-    asm.emitLAddrToc(T0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
-    asm.emitMTCTR(T0);
-    comp.peekAddr(T0, 2);  // array base
-    comp.peekInt (T1, 1);  // array index
-    comp.peekAddr(T2, 0);  // value to store
-    asm.emitBCCTRL();  // VM_Interface.arrayStoreWriteBarrier(Object ref, int index, Object value)
+    asm.emitLAddrToc(S0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
+    asm.emitMTCTR(S0);
+    asm.emitBCCTRL();  // MM_Interface.arrayStoreWriteBarrier(Object ref, int index, Object value)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
   // T1 already contains the offset of the field on entry
   static void compilePutfieldBarrier (VM_Compiler comp) {
     VM_Assembler asm = comp.asm;
-    asm.emitLAddrToc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
-    asm.emitMTCTR(T0);
+    asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitMTCTR(S0);
     comp.peekAddr(T0, 1);           // object base
     comp.peekAddr(T2, 0);           // value to store
-    asm.emitBCCTRL(); // VM_Interface.putfieldWriteBarrier(T0,T1,T2)
+    asm.emitBCCTRL(); // MM_Interface.putfieldWriteBarrier(T0,T1,T2)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
   static void compilePutfieldBarrierImm (VM_Compiler comp, int fieldOffset) {
     VM_Assembler asm = comp.asm;
-    asm.emitLAddrToc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
-    asm.emitMTCTR(T0);
+    asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitMTCTR(S0);
     comp.peekAddr(T0, 1);            // object base
     asm.emitLVAL (T1, fieldOffset);  // offset 
     comp.peekAddr(T2, 0);            // value to store
-    asm.emitBCCTRL();  // VM_Interface.putfieldWriteBarrier(T0,T1,T2)
+    asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2)
   }
 
   // currently do not have a "write barrier for putstatic, emit nothing, for now...
