@@ -272,9 +272,12 @@ final class OPT_Simple extends OPT_CompilerPhase
           use = (OPT_RegisterOperand)use.getNext()) {
         // if rhs.type is a supertype of use.type, don't do it
         // because use.type has more detailed information
-        if (OPT_ClassLoaderProxy.proxy.isAssignableWith(rhs.type, use.type)
-            == YES)
+        if (OPT_ClassLoaderProxy.proxy.isAssignableWith(rhs.type, use.type) == YES)
           continue;
+	// If VM_Magic has been employed to convert an int to a reference, 
+	// don't undo the effects!
+	if (rhs.type.isPrimitiveType() && !use.type.isPrimitiveType())
+	  continue;
         use.type = rhs.type;
       }
     }
