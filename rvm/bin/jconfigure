@@ -2242,7 +2242,7 @@ function emitBooterLinker
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
 	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/Jalapeno.image\\\"\
-	     -c -I$ROOT_DIRECTORY_STR/src/lib/include\
+	     -c -I$ROOT_DIRECTORY_STR/src/include\
 	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
       print "cd $SCRATCH_DIRECTORY_STR"
       print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o \$CCLIBS"
