@@ -1778,7 +1778,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	// We can do early resolution of the array type if the element type 
 	// is already initialized.
 	VM_Array array = (VM_Array)arrayRef.peekResolvedType();
-	if (array != null && !(array.isInitialized() || array.isInBootImage())) {
+	if (array != null && !(array.isInitialized() || array.isInBootImage()) &&
+            VM_Type.JavaLangObjectType.isInstantiated()) {
 	  VM_Type elementType = elementTypeRef.peekResolvedType();
 	  if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
 	    array.resolve();

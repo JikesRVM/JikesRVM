@@ -292,7 +292,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operator op = NEWARRAY_UNRESOLVED;
     OPT_TypeOperand arrayOp = makeTypeOperand(array);
     if (arrayType != null) {
-      if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
+      if (!(arrayType.isInitialized() || arrayType.isInBootImage()) &&
+          VM_Type.JavaLangObjectType.isInstantiated()) {
 	VM_Type elementType = elementTypeRef.peekResolvedType();
  	if (elementType != null) {
 	  if (elementType.isInitialized() || elementType.isInBootImage()) {

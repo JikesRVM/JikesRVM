@@ -227,13 +227,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       VM.sysWrite("VM_Array: instantiate " + this + "\n");
     
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
-    Object[] javaLangObjectTIB 
-      = VM_Type.JavaLangObjectType.getTypeInformationBlock();
-    for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX, n = javaLangObjectTIB.length; 
-	 i < n; ++i) 
-    {
+    VM_Type objectType = VM_Type.JavaLangObjectType;
+    if (VM.VerifyAssertions) VM._assert(objectType.isInstantiated());
+    Object[] javaLangObjectTIB = objectType.getTypeInformationBlock();
+    for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX; i<javaLangObjectTIB.length; i++) {
       typeInformationBlock[i] = javaLangObjectTIB[i];
     }
+
     state = CLASS_INITIALIZED; // arrays have no "initialize" phase
   }
 
@@ -285,7 +285,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   //                                     Support for array copy                                       //
   //--------------------------------------------------------------------------------------------------//
 
-  // NOTE: arraycopy for byte[] and boolean[] are identical
+  /**
+   * Perform an array copy for arrays of bytes. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -309,7 +317,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for byte[] and boolean[] are identical
+  /**
+   * Perform an array copy for arrays of booleans. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -333,7 +349,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for short[] and char[] are identical
+  /**
+   * Perform an array copy for arrays of shorts. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -357,7 +381,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for short[] and char[] are identical
+  /**
+   * Perform an array copy for arrays of chars. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -382,7 +414,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }  
 
    
-  // NOTE: arraycopy for int[] and float[] are identical
+  /**
+   * Perform an array copy for arrays of ints. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -408,7 +448,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for int[] and float[] are identical
+  /**
+   * Perform an array copy for arrays of floats. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -434,7 +482,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for long[] and double[] are identical
+  /**
+   * Perform an array copy for arrays of longs. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -460,7 +516,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  // NOTE: arraycopy for long[] and double[] are identical
+  /**
+   * Perform an array copy for arrays of doubles. 
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
   public static void arraycopy(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
