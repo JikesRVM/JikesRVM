@@ -339,6 +339,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
         OPT_Operand o = ee.next();
         if (o instanceof OPT_RegisterOperand) {
           OPT_Register r1 = ((OPT_RegisterOperand)o).register;
+	  if (r1.isValidation()) continue;
           OPT_Operand r2 = s.peek(r1);
           if (r2 != null)
             i.replaceOperand(o, r2);
@@ -369,15 +370,17 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
   public void translateFromSSA (OPT_IR ir) {
     // 0. Deal with guards (validation registers)
     unSSAGuards (ir);
-    
     // 1. re-compute dominator tree in case of control flow changes
     OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
     // 2. compute liveness
     OPT_LiveAnalysis live = 
       new OPT_LiveAnalysis(false,  // don't create GC maps
-			   true);  // skip (final) local propagation step
-                                   // of live analysis
+			   true,   // skip (final) local propagation step
+			           // of live analysis
+			   false,  // don't store information at handlers
+			   false); // dont skip guards
+                                   
     live.perform(ir);
     // 3. initialization
     VariableStacks s = new VariableStacks();
@@ -446,8 +449,16 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
       for (int i = 0;  i < values;  ++i) {
 	OPT_Operand op = Phi.getValue (inst, i);
 	if (! (op instanceof OPT_RegisterOperand)) {
-	  if (! (op instanceof OPT_TrueGuardOperand)) {
-	    VM.sysWrite ("!!! "+op.getClass()+"\n");
+	  if (op instanceof OPT_TrueGuardOperand) {
+	    OPT_BasicBlock bb = Phi.getPred (inst, i).block;
+	    OPT_Instruction move = Move.create (GUARD_MOVE,
+						res.asRegister().copyD2D(),
+						new OPT_TrueGuardOperand());
+	    move.position = ir.gc.inlineSequence;
+	    move.bcIndex = SSA_SYNTH_BCI;
+	    bb.appendInstructionRespectingTerminalBranchOrPEI (move); 
+	  } else {
+	    if (VM.VerifyAssertions) VM.assert (false);
 	  }
 	}
       }
@@ -490,15 +501,16 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     OPT_DefUse.computeDU (ir);
     for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
       if (!r.isValidation()) continue;
+      OPT_Register nreg = guardFind (r);
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses (r);
       while (uses.hasMoreElements()) {
 	OPT_RegisterOperand use = uses.next();
-	use.register = guardFind (use.register);
+	use.register = nreg;
       }
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs (r);
       while (defs.hasMoreElements()) {
 	OPT_RegisterOperand def = defs.next();
-	def.register = guardFind (def.register);
+	def.register = nreg;
       }
     }
     OPT_Instruction inst = guardPhis;
