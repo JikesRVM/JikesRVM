@@ -6,14 +6,16 @@ package com.ibm.JikesRVM;
 
 /** 
  * Methods of a class that implements this interface
- * are treated specially by the machine code compiler:
+ * are treated specially by the  compilers:
  * (1) the normal thread switch test that would be
  *     emitted in the method prologue is omitted.
  * (2) the stack overflow test that would be emitted
  *     in the method prologue is omitted.
  *
- * almost but not quite deprecated: See {@link VM_PragmaUninterruptible} which can be specified
- * per-method rather than for all methods in a class.
+ * You can use {@link VM_PragmaUninterruptible} and
+ * {@link VM_PragmaInterruptible} to control
+ * this property at a per-method granularity.
+ * 
  * @author Bowen Alpern
  * @author Derek Lieber
  */
