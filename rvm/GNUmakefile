@@ -21,22 +21,22 @@ FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -
 .PHONY: FORCE
 TAGS: FORCE
 	$(RM) $@
-	@$(FIND) -print0 | xargs -0 etags --append --output=$@
+	$(FIND) -print0 | xargs -0 etags --append --output=$@
 
 FORCE:
 
 .PHONY: find0 find findall findall0
 find0: FORCE
-	@$(FIND) -print0
+	$(FIND) -print0
 
 find: FORCE
-	@$(FIND) -print
+	$(FIND) -print
 
 findall0: FORCE
-	@$(FINDALL) -print0
+	$(FINDALL) -print0
 
 findall: FORCE
-	@$(FINDALL) -print
+	$(FINDALL) -print
 
 TAGS.ALL: FORCE
 	$(RM) $@
