@@ -430,24 +430,23 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   protected void allPrepare(int id) {
     rc.prepare();
-    processRootBufs();  // decrements from previous collection
+    // decrements from previous collection
+    if (verbose == 2) processRootBufsAndCount(); else processRootBufs(); 
   }
 
   protected void allRelease(int id) {
-    processIncBufs();
-//     VM.sysWrite("processed incs\n");
+    if (verbose == 2) processIncBufsAndCount(); else processIncBufs();
     if (id == 1)
       rcCollector.decrementPhase();
     VM_CollectorThread.gcBarrier.rendezvous();
-    processDecBufs();
+    if (verbose == 2) processDecBufsAndCount(); else processDecBufs();
     if (refCountCycleDetection) {
-      processCycleBufs();
-      processFreeBufs();
-      if (true) {
-	doMarkGreyPhase();
-	doScanPhase();
-	doCollectPhase();
-      }
+      filterCycleBufs();
+      processFreeBufs(false);
+      doMarkGreyPhase();
+      doScanPhase();
+      doCollectPhase();
+      processFreeBufs(true);
     }
     if (GATHER_WRITE_BARRIER_STATS) { 
       // This is printed independantly of the verbosity so that any
@@ -496,70 +495,81 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private final void processIncBufs() {
     VM_Address tgt;
-    if (verbose == 2) {
-      incCounter = 0;
-      while (!(tgt = incBuffer.pop()).isZero()) {
-	rcCollector.incRC(tgt);
-	incCounter++;
-      }
-    } else
-      while (!(tgt = incBuffer.pop()).isZero())
-	rcCollector.incRC(tgt);
- }
+    while (!(tgt = incBuffer.pop()).isZero())
+      rcCollector.increment(tgt);
+  }
+  private final void processIncBufsAndCount() {
+    VM_Address tgt;
+    incCounter = 0;
+    while (!(tgt = incBuffer.pop()).isZero()) {
+      rcCollector.increment(tgt);
+      incCounter++;
+    }
+  }
 
   private final void processDecBufs() {
     VM_Address tgt;
-    if (verbose == 2) {
-      decCounter = 0;
-      while (!(tgt = decBuffer.pop()).isZero()) {
-	rcCollector.decRC(tgt, rc, this);
-	decCounter++;
-      }
-    } else
-      while (!(tgt = decBuffer.pop()).isZero())
-	rcCollector.decRC(tgt, rc, this);
+    while (!(tgt = decBuffer.pop()).isZero())
+      rcCollector.decrement(tgt, rc, this);
+  }
+  private final void processDecBufsAndCount() {
+    VM_Address tgt;
+    decCounter = 0;
+    while (!(tgt = decBuffer.pop()).isZero()) {
+      rcCollector.decrement(tgt, rc, this);
+      decCounter++;
+    }
   }
 
   // FIXME this is inefficient!
   private final void processRootBufs() {
     VM_Address tgt;
-    if (verbose == 2) {
-      rootCounter = 0;
-      while (!(tgt = rootSet.pop()).isZero()) {
-	decBuffer.push(tgt);
-	rootCounter++;
-      }
-    } else
-      while (!(tgt = rootSet.pop()).isZero())
-	decBuffer.push(tgt);
+    while (!(tgt = rootSet.pop()).isZero())
+      decBuffer.push(tgt);
+  }
+  private final void processRootBufsAndCount() {
+    VM_Address tgt;
+    rootCounter = 0;
+    while (!(tgt = rootSet.pop()).isZero()) {
+      decBuffer.push(tgt);
+      rootCounter++;
+    }
   }
 
   public void addToFreeBuf(VM_Address object) 
    throws VM_PragmaInline {
     freeBuffer.push(object);
   }
-  private final void processCycleBufs() {
+  private final void filterCycleBufs() {
     VM_Address obj;
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
     purpleCounter = 0;
     while (!(obj = src.pop()).isZero()) {
       purpleCounter++;
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
-      if (SimpleRCHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
-	if (SimpleRCHeader.isPurple(VM_Magic.addressAsObject(obj)))
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
+      if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isBuffered(obj));
+      if (SimpleRCBaseHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
+	if (SimpleRCBaseHeader.isPurple(VM_Magic.addressAsObject(obj)))
 	  tgt.push(obj);
-	else
-	  SimpleRCHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
-      } else
+	else {
+	  SimpleRCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
+	}
+      } else {
+	SimpleRCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
 	freeBuffer.push(obj);
+      }
     }
     cycleBufferAisOpen = !cycleBufferAisOpen;
   }
-  private final void processFreeBufs() {
+  private final void processFreeBufs(boolean print) {
     VM_Address obj;
-    while (!(obj = freeBuffer.pop()).isZero())
+    while (!(obj = freeBuffer.pop()).isZero()) {
+      if (print) {
+	//	VM.sysWrite(obj); VM.sysWrite(" fr\n");
+      }
       rcCollector.free(obj, rc);
+    }
   }
   private final void doMarkGreyPhase() {
     VM_Address obj;
@@ -567,13 +577,15 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
     rcCollector.markGreyPhase();
     while (!(obj = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
-      if (SimpleRCHeader.isPurple(obj) && SimpleRCHeader.isLiveRC(obj)) {
-	if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGrey(obj));
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
+      if (SimpleRCBaseHeader.isPurple(obj)) {
+	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isLiveRC(obj));
 	rcCollector.markGrey(obj);
 	tgt.push(obj);
-      } else 
- 	SimpleRCHeader.clearBufferedBit(obj);
+      } else {
+ 	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isGrey(obj));
+	SimpleRCBaseHeader.clearBufferedBit(obj);
+      }
     } 
     cycleBufferAisOpen = !cycleBufferAisOpen;
   }
@@ -583,8 +595,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
     rcCollector.scanPhase();
     while (!(obj = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
-
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
       rcCollector.scan(obj);
       tgt.push(obj);
     }
@@ -595,11 +606,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
     rcCollector.collectPhase();
     while (!(obj = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
-      SimpleRCHeader.clearBufferedBit(obj);
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCBaseHeader.isGreen(obj));
+      SimpleRCBaseHeader.clearBufferedBit(obj);
       rcCollector.collectWhite(obj, this);
     }
-    processFreeBufs();
   }
 
   ////////////////////////////////////////////////////////////////////////////

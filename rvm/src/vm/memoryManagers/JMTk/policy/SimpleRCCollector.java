@@ -130,7 +130,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    */
    public boolean isLive(VM_Address obj)
     throws VM_PragmaInline {
-     return SimpleRCHeader.isLiveRC(obj);
+     return SimpleRCBaseHeader.isLiveRC(obj);
    }
 
   /**
@@ -145,7 +145,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (phase) {
     case PROCESS:  
-      incRC(object);
+      increment(object);
       if (root)
 	VM_Interface.getPlan().addToRootSet(object); 
       break;
@@ -153,16 +153,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
       VM_Interface.getPlan().addToDecBuf(object); 
       break;
     case MARK_GREY: 
-      if (VM.VerifyAssertions) VM._assert(SimpleRCHeader.isLiveRC(object));
-      SimpleRCHeader.decRC(object);
-      workQueue.push(object);
+      if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isLiveRC(object));
+      if (!SimpleRCBaseHeader.isGreen(object)) {
+	SimpleRCBaseHeader.decRC(object);
+	workQueue.push(object);
+      }
       break;
     case SCAN: 
       workQueue.push(object);
       break;
     case SCAN_BLACK: 
-      SimpleRCHeader.incRC(object);
-      if (!SimpleRCHeader.isBlack(object))
+      SimpleRCBaseHeader.incRC(object);
+      if (!SimpleRCBaseHeader.isBlack(object))
 	blackQueue.push(object);
       break;
     case COLLECT:  
@@ -184,53 +186,42 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public final int getInitialHeaderValue(int size) 
     throws VM_PragmaInline {
     if (size <= SimpleRCAllocator.MAX_SMALL_SIZE)
-      return SimpleRCHeader.SMALL_OBJECT_MASK;
+      return SimpleRCBaseHeader.SMALL_OBJECT_MASK;
     else
       return 0;
   }
 
-  public final void incRC(VM_Address object) 
+  public final void increment(VM_Address object) 
     throws VM_PragmaInline {
-    SimpleRCHeader.incRC(object);
-    if (Plan.refCountCycleDetection && phase == PROCESS)
-      SimpleRCHeader.makeBlack(object);
+    SimpleRCBaseHeader.incRC(object);
+    if (Plan.refCountCycleDetection && !SimpleRCBaseHeader.isGreen(object))
+      SimpleRCBaseHeader.makeBlack(object);
   }
 
-  public final void decRC(VM_Address object) 
+  public final void decrement(VM_Address object, SimpleRCAllocator allocator,
+			      Plan plan) 
     throws VM_PragmaInline {
-    decRC(object, null, null);
+    if (SimpleRCBaseHeader.decRC(object))
+      release(object, allocator);
+    else if (Plan.refCountCycleDetection)
+      possibleRoot(object, plan);
   }
-  public final void decRC(VM_Address object, SimpleRCAllocator allocator,
-			  Plan plan) 
+
+  public final void release(VM_Address object, SimpleRCAllocator allocator) 
     throws VM_PragmaInline {
-    if (!Plan.refCountCycleDetection) {
-      if (SimpleRCHeader.decRC(object)) {
-	// this object is now dead, scan it for recursive decrement
-	ScanObject.scan(object);
-	if (VM.VerifyAssertions) VM._assert(allocator != null);
-	free(object, allocator);
-      } 
-    } else {
-      if (VM.VerifyAssertions) VM._assert(phase == DECREMENT);
-      if (SimpleRCHeader.decRC(object)) {
-	ScanObject.scan(object);
-	if (VM.VerifyAssertions) VM._assert(allocator != null);
-	if (!SimpleRCHeader.isBuffered(object)) 
-	  free(object, allocator);
-      } else {
-	if (VM.VerifyAssertions) VM._assert(plan != null);
-	if (SimpleRCHeader.makePurple(object))
-	  plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
-      }
-    }
+    // this object is now dead, scan it for recursive decrement
+    ScanObject.scan(object);
+    if (VM.VerifyAssertions) VM._assert(allocator != null);
+    if (!Plan.refCountCycleDetection ||
+	!SimpleRCBaseHeader.isBuffered(object)) 
+      free(object, allocator);
   }
 
   public final void free(VM_Address object, SimpleRCAllocator allocator)
     throws VM_PragmaNoInline {
     VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
-    boolean isSmall = SimpleRCHeader.isSmallObject(VM_Magic.addressAsObject(object));
+    boolean isSmall = SimpleRCBaseHeader.isSmallObject(VM_Magic.addressAsObject(object));
     VM_Address cell = VM_JavaHeader.objectStartRef(object);
-//      VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(cell); VM.sysWrite(" k\n");
     VM_Address sp = SimpleRCAllocator.getSuperPage(cell, isSmall);
     int sizeClass = SimpleRCAllocator.getSizeClass(sp);
     if (allocator == null)
@@ -285,11 +276,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   // following closely mirrors the encoding of the above algorithm
   // that appears in Fig 2 of that paper.
   //
+  public final void possibleRoot(VM_Address object, Plan plan) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(plan != null);
+    if (SimpleRCBaseHeader.makePurple(object))
+      plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
+  }
+
   public final void markGrey(VM_Address object)
     throws VM_PragmaInline {
     while (!object.isZero()) {
-      if (!SimpleRCHeader.isGreyOrGreen(object)) {
-	SimpleRCHeader.makeGrey(object);
+      if (!SimpleRCBaseHeader.isGrey(object)) {
+	SimpleRCBaseHeader.makeGrey(object);
 	ScanObject.scan(object);
       }
       object = workQueue.pop();
@@ -298,13 +296,13 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public final void scan(VM_Address object)
     throws VM_PragmaInline {
     while (!object.isZero()) {
-      if (SimpleRCHeader.isGrey(object)) {
-	if (SimpleRCHeader.isLiveRC(object)) {
+      if (SimpleRCBaseHeader.isGrey(object)) {
+	if (SimpleRCBaseHeader.isLiveRC(object)) {
 	  phase = SCAN_BLACK;
 	  scanBlack(object);
 	  phase = SCAN;
 	} else {
-	  SimpleRCHeader.makeWhite(object);
+	  SimpleRCBaseHeader.makeWhite(object);
 	  ScanObject.scan(object);
 	}
       }
@@ -314,22 +312,24 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public final void scanBlack(VM_Address object) 
     throws VM_PragmaInline {
     while (!object.isZero()) {
-      SimpleRCHeader.makeBlack(object);
-      ScanObject.scan(object);
+      if (!SimpleRCBaseHeader.isGreen(object)) {
+	SimpleRCBaseHeader.makeBlack(object);
+	ScanObject.scan(object);
+      }
       object = blackQueue.pop();
     }
   }
   public final void collectWhite(VM_Address object, Plan plan)
     throws VM_PragmaInline {
     while (!object.isZero()) {
-      if (SimpleRCHeader.isWhite(object) && 
-	  !SimpleRCHeader.isBuffered(object)) {
-	SimpleRCHeader.makeBlack(object);
+      if (SimpleRCBaseHeader.isWhite(object) && 
+	  !SimpleRCBaseHeader.isBuffered(object)) {
+	SimpleRCBaseHeader.makeBlack(object);
 	ScanObject.scan(object);
 	plan.addToFreeBuf(object);
-      } else if (SimpleRCHeader.isGreen(object))
+      } else if (SimpleRCBaseHeader.isGreen(object)) {
 	plan.addToDecBuf(object); 
-
+      }
       object = workQueue.pop();
     }
   }

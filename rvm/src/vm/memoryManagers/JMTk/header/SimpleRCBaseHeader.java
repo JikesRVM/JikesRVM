@@ -170,10 +170,12 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
   }
   public static void makeBlack(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
     changeRCColor(object, BLACK);
   }
   public static void makeWhite(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
     changeRCColor(object, WHITE);
   }
   public static boolean makePurple(Object object)
@@ -195,6 +197,7 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
   }
   public static void makeGrey(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
     changeRCColor(object, GREY);
   }
   private static void changeRCColor(Object object, int color)
