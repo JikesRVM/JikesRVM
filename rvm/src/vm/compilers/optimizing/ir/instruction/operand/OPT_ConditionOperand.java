@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
 
 /**
  * Encodes the condition codes for branches.
@@ -13,39 +16,38 @@
 public final class OPT_ConditionOperand extends OPT_Operand {
 
   /* signed integer arithmetic  & floating-point */
-  static final int EQUAL = 0;
-  static final int NOT_EQUAL = 1;
-  static final int LESS = 2;
-  static final int GREATER_EQUAL = 3;
-  static final int GREATER = 4;
-  static final int LESS_EQUAL = 5;
-  static final int OVERFLOW = 6;
-  static final int NOT_OVERFLOW = 7;
+  public static final int EQUAL = 0;
+  public static final int NOT_EQUAL = 1;
+  public static final int LESS = 2;
+  public static final int GREATER_EQUAL = 3;
+  public static final int GREATER = 4;
+  public static final int LESS_EQUAL = 5;
+  public static final int OVERFLOW = 6;
+  public static final int NOT_OVERFLOW = 7;
 
   /* these should be the same as EQ or NE, provided for REFS */
-  static final int NULL = 8;
-  static final int NONNULL = 9;
+  public static final int NULL = 8;
+  public static final int NONNULL = 9;
 
   /* unsigned integer arithmetic */
-  static final int HIGHER = 10;
-  static final int LOWER = 11;
-  static final int HIGHER_EQUAL = 12;
-  static final int LOWER_EQUAL = 13;
-  static final int CARRY = 14;
-  static final int NOT_CARRY = 15;
-  static final int SAME = 16;
-  static final int NOT_SAME = 17;
+  public static final int HIGHER = 10;
+  public static final int LOWER = 11;
+  public static final int HIGHER_EQUAL = 12;
+  public static final int LOWER_EQUAL = 13;
+  public static final int CARRY = 14;
+  public static final int NOT_CARRY = 15;
+  public static final int SAME = 16;
+  public static final int NOT_SAME = 17;
 
   /* floating-point arithmethic  ?? */
-  static final int UNORDERED = 18;
-  static final int NOT_UNORDERED = 19;
+  public static final int UNORDERED = 18;
+  public static final int NOT_UNORDERED = 19;
 
 
   /**
    * Value of this operand.
    */
-  int value;
-
+  public int value;
 
   /**
    * @param code the condition code
@@ -59,7 +61,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a new condition code operand
    */
-  static OPT_ConditionOperand EQUAL() {
+  public static OPT_ConditionOperand EQUAL() {
     return new OPT_ConditionOperand(EQUAL);
   }
 
@@ -68,7 +70,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand NOT_EQUAL() {
+  public static OPT_ConditionOperand NOT_EQUAL() {
     return new OPT_ConditionOperand(NOT_EQUAL);
   }
 
@@ -77,7 +79,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand LESS() {
+  public static OPT_ConditionOperand LESS() {
     return new OPT_ConditionOperand(LESS);
   }
 
@@ -86,7 +88,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand GREATER_EQUAL() {
+  public static OPT_ConditionOperand GREATER_EQUAL() {
     return new OPT_ConditionOperand(GREATER_EQUAL);
   }
 
@@ -95,7 +97,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand GREATER() {
+  public static OPT_ConditionOperand GREATER() {
     return new OPT_ConditionOperand(GREATER);
   }
 
@@ -104,7 +106,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand LESS_EQUAL() {
+  public static OPT_ConditionOperand LESS_EQUAL() {
     return new OPT_ConditionOperand(LESS_EQUAL);
   }
 
@@ -113,7 +115,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand HIGHER() {
+  public static OPT_ConditionOperand HIGHER() {
     return new OPT_ConditionOperand(HIGHER);
   }
 
@@ -122,7 +124,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand LOWER() {
+  public static OPT_ConditionOperand LOWER() {
     return new OPT_ConditionOperand(LOWER);
   }
 
@@ -131,7 +133,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand HIGHER_EQUAL() {
+  public static OPT_ConditionOperand HIGHER_EQUAL() {
     return new OPT_ConditionOperand(HIGHER_EQUAL);
   }
 
@@ -140,7 +142,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a newly created condition code operand
    */
-  static OPT_ConditionOperand LOWER_EQUAL() {
+  public static OPT_ConditionOperand LOWER_EQUAL() {
     return new OPT_ConditionOperand(LOWER_EQUAL);
   }
 
@@ -149,7 +151,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isEQUAL() {
+  public boolean isEQUAL() {
     return value == EQUAL;
   }
 
@@ -158,7 +160,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isNOT_EQUAL() {
+  public boolean isNOT_EQUAL() {
     return  value == NOT_EQUAL;
   }
 
@@ -167,7 +169,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isLESS_EQUAL() {
+  public boolean isLESS_EQUAL() {
     return  value == LESS_EQUAL;
   }
 
@@ -176,7 +178,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isGREATER_EQUAL() {
+  public boolean isGREATER_EQUAL() {
     return  value == GREATER_EQUAL;
   }
 
@@ -185,7 +187,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isGREATER() {
+  public boolean isGREATER() {
     return  value == GREATER;
   }
 
@@ -194,7 +196,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isLESS() {
+  public boolean isLESS() {
     return  value == LESS;
   }
 
@@ -203,7 +205,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isHIGHER() {
+  public boolean isHIGHER() {
     return  value == HIGHER;
   }
 
@@ -212,7 +214,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isLOWER() {
+  public boolean isLOWER() {
     return  value == LOWER;
   }
 
@@ -221,7 +223,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isHIGHER_EQUAL() {
+  public boolean isHIGHER_EQUAL() {
     return  value == HIGHER_EQUAL;
   }
 
@@ -230,7 +232,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isLOWER_EQUAL() {
+  public boolean isLOWER_EQUAL() {
     return  value == LOWER_EQUAL;
   }
 
@@ -238,7 +240,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * Is the condition code an unsigned comparision?
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
-  boolean isUNSIGNED() {
+  public boolean isUNSIGNED() {
     switch (value) {
     case HIGHER: 
     case LOWER: 
@@ -256,7 +258,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return  new OPT_ConditionOperand(value);
   }
 
@@ -269,22 +271,34 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return  (op instanceof OPT_ConditionOperand) && (((OPT_ConditionOperand)op).value
         == value);
   }
 
+
+  final public static int FALSE = 0;
+  final public static int TRUE = 1;
+  final public static int UNKNOWN = 2;
 
   /**
    * Given two operands, evaluate the condition on them.
    * 
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>true</code> if (v1 cond v2) or 
-   *         <code>false</code> otherwise
+   * @return <code>TRUE</code> if (v1 cond v2) or 
+   *         <code>FALSE</code> if !(v1 cond v2) or 
+   *         <code>UNKNOWN</code>
    */
-  boolean evaluate(OPT_Operand v1, OPT_Operand v2) {
-    if (v1.isIntConstant()) {
+  public int evaluate(OPT_Operand v1, OPT_Operand v2) {
+    if (v1.isAddressConstant()) {
+      if (v2.isAddressConstant()) {
+        return evaluate(v1.asAddressConstant().value.toInt(), 
+			v2.asAddressConstant().value.toInt());
+      } else if (v2.isNullConstant()) {
+	return evaluate(v1.asAddressConstant().value.toInt(), 0); 
+      }
+    } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
         return evaluate(v1.asIntConstant().value, 
 			v2.asIntConstant().value);
@@ -309,16 +323,16 @@ public final class OPT_ConditionOperand extends OPT_Operand {
     } else if (v1.isStringConstant()) {
       if (v2.isStringConstant()) {
 	if (isEQUAL()) {
-          return v1.asStringConstant().value == v2.asStringConstant().value;
+          return (v1.asStringConstant().value == v2.asStringConstant().value) ? TRUE : FALSE;
 	} else if (isNOT_EQUAL()) {
-          return v1.asStringConstant().value != v2.asStringConstant().value;
+          return (v1.asStringConstant().value != v2.asStringConstant().value) ? TRUE : FALSE;
 	}
       } else if (v2.isNullConstant() ||
 		 (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
 	if (isEQUAL()) {
-	  return false;
+	  return FALSE;
 	} else if (isNOT_EQUAL()) {
-	  return true;
+	  return TRUE;
 	}
       }
     } else if (v1.isNullConstant()) {
@@ -326,16 +340,18 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 	return evaluate(0, 0);
       } else if (v2.isIntConstant()) {
 	return evaluate(0, v2.asIntConstant().value);
+      } else if (v2.isAddressConstant()) {
+	return evaluate(0, v2.asAddressConstant().value.toInt());
       } else if (v2.isStringConstant()) {
 	if (isEQUAL()) {
-	  return false;
+	  return FALSE;
 	} else if (isNOT_EQUAL()) {
-	  return true;
+	  return TRUE;
 	}
       }
     }
-    throw new OPT_OptimizingCompilerException("erroneous computation: " + 
-					      v1 + " "+ this +" " + v2);
+    return UNKNOWN;
+    // throw new OPT_OptimizingCompilerException("erroneous computation: " + v1 + " "+ this +" " + v2);
   }
 
 
@@ -344,41 +360,36 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>true</code> if (v1 cond v2) or 
-   *         <code>false</code> otherwise
+   * @return <code>TRUE</code> if (v1 cond v2) or 
+   *         <code>FALSE</code> if !(v1 cond v2) or 
+   *         <code>UNKNOWN</code>
    */
-  boolean evaluate(int v1, int v2) {
+  public int evaluate(int v1, int v2) {
     switch (value) {
-    case EQUAL: 
-      return v1 == v2;
-    case NOT_EQUAL:
-      return v1 != v2;
-    case GREATER:
-      return v1 > v2;
-    case LESS:
-      return v1 < v2;
-    case GREATER_EQUAL:
-      return v1 >= v2;
-    case LESS_EQUAL:
-      return v1 <= v2;
+    case EQUAL: return (v1 == v2) ? TRUE : FALSE;
+    case NOT_EQUAL: return (v1 != v2) ? TRUE : FALSE;
+    case GREATER:   return (v1 > v2)  ? TRUE : FALSE;
+    case LESS:     return (v1 < v2) ? TRUE : FALSE;
+    case GREATER_EQUAL: return (v1 >= v2)  ? TRUE : FALSE;
+    case LESS_EQUAL:    return (v1 <= v2)  ? TRUE : FALSE;
     case LOWER: 
-	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 < v2;
-	if (v1 < 0) return false;
-	return true;
+      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 < v2) ? TRUE : FALSE;
+      if (v1 < 0) return FALSE;
+      return TRUE;
     case LOWER_EQUAL:
-	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 <= v2;
-	if (v1 < 0) return false;
-	return true;
+      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 <= v2) ? TRUE : FALSE;
+      if (v1 < 0) return FALSE;
+      return TRUE;
     case HIGHER: 
-	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 > v2;
-	if (v1 < 0) return true;
-	return false;
+      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 > v2) ? TRUE : FALSE;
+      if (v1 < 0) return TRUE;
+      return FALSE;
     case HIGHER_EQUAL:
-	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 >= v2;
-	if (v1 < 0) return true;
-	return false;
+      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 >= v2) ? TRUE : FALSE;
+      if (v1 < 0) return TRUE;
+      return FALSE;
     }
-    throw  new OPT_OptimizingCompilerException("invalid condition" + this);
+    throw new OPT_OptimizingCompilerException("invalid condition" + this);
   }
 
 
@@ -387,23 +398,18 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * 
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>true</code> if (v1 cond v2) or 
-   *         <code>false</code> otherwise
+   * @return <code>TRUE</code> if (v1 cond v2) or 
+   *         <code>FALSE</code> if !(v1 cond v2) or 
+   *         <code>UNKNOWN</code>
    */
-  boolean evaluate(long v1, long v2) {
+  public int evaluate(long v1, long v2) {
     switch (value) {
-    case EQUAL:
-      return v1 == v2;
-    case NOT_EQUAL:
-      return v1 != v2;
-    case GREATER:
-      return v1 > v2;
-    case LESS:
-      return v1 < v2;
-    case GREATER_EQUAL:
-      return v1 >= v2;
-    case LESS_EQUAL:
-      return v1 <= v2;
+    case EQUAL:      return (v1 == v2) ? TRUE : FALSE;
+    case NOT_EQUAL:      return (v1 != v2) ? TRUE : FALSE;
+    case GREATER:      return (v1 > v2) ? TRUE : FALSE;
+    case LESS:      return (v1 < v2) ? TRUE : FALSE;
+    case GREATER_EQUAL:      return (v1 >= v2) ? TRUE : FALSE;
+    case LESS_EQUAL:      return (v1 <= v2) ? TRUE : FALSE;
     }
     throw  new OPT_OptimizingCompilerException("invalid condition" + this);
   }
@@ -417,20 +423,14 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * @return <code>true</code> if (v1 cond v2) or 
    *         <code>false</code> otherwise
    */
-  boolean evaluate(float v1, float v2) {
+  public int evaluate(float v1, float v2) {
     switch (value) {
-    case EQUAL:
-      return v1 == v2;
-    case NOT_EQUAL:
-      return v1 != v2;
-    case GREATER:
-      return v1 > v2;
-    case LESS:
-      return v1 < v2;
-    case GREATER_EQUAL:
-      return v1 >= v2;
-    case LESS_EQUAL:
-      return v1 <= v2;
+    case EQUAL:      return (v1 == v2) ? TRUE : FALSE;
+    case NOT_EQUAL:      return (v1 != v2) ? TRUE : FALSE;
+    case GREATER:      return (v1 > v2) ? TRUE : FALSE;
+    case LESS:      return (v1 < v2) ? TRUE : FALSE;
+    case GREATER_EQUAL:      return (v1 >= v2) ? TRUE : FALSE;
+    case LESS_EQUAL:      return (v1 <= v2) ? TRUE : FALSE;
     }
     throw  new OPT_OptimizingCompilerException("invalid condition" + this);
   }
@@ -443,20 +443,14 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * @return <code>true</code> if (v1 cond v2) or 
    *         <code>false</code> otherwise
    */
-  boolean evaluate(double v1, double v2) {
+  public int evaluate(double v1, double v2) {
     switch (value) {
-    case EQUAL:
-      return v1 == v2;
-    case NOT_EQUAL:
-      return v1 != v2;
-    case GREATER:
-      return v1 > v2;
-    case LESS:
-      return v1 < v2;
-    case GREATER_EQUAL:
-      return v1 >= v2;
-    case LESS_EQUAL:
-      return v1 <= v2;
+    case EQUAL:      return (v1 == v2) ? TRUE : FALSE;
+    case NOT_EQUAL:      return (v1 != v2) ? TRUE : FALSE;
+    case GREATER:      return (v1 > v2) ? TRUE : FALSE;
+    case LESS:      return (v1 < v2) ? TRUE : FALSE;
+    case GREATER_EQUAL:      return (v1 >= v2) ? TRUE : FALSE;
+    case LESS_EQUAL:      return (v1 <= v2) ? TRUE : FALSE;
     }
     throw  new OPT_OptimizingCompilerException("invalid condition" + this);
   }
@@ -466,7 +460,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * change the direction of a branch.
    * Note that this is not the same as calling {@link #flipOperands}.
    */
-  OPT_ConditionOperand flipCode () {
+  public OPT_ConditionOperand flipCode () {
     switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
@@ -530,7 +524,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * Change the condition code to allow the order of the operands to be flipped.
    * Note that this is not the same as calling {@link #flipCode}.
    */
-  OPT_ConditionOperand flipOperands () {
+  public OPT_ConditionOperand flipOperands () {
     switch (value) {
       case LESS:
         value = GREATER;

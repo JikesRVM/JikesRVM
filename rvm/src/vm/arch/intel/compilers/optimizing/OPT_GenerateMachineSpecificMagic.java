@@ -1,9 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import com.ibm.JikesRVM.opt.OPT_MagicNotImplementedException;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.
@@ -23,7 +26,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  static void generateMagic(OPT_BC2IR bc2ir, 
+  static boolean generateMagic(OPT_BC2IR bc2ir, 
 			    OPT_GenerationContext gc, 
 			    VM_Method meth) 
     throws OPT_MagicNotImplementedException {
@@ -127,21 +130,13 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
 					   null));
-    } else if (methodName == VM_MagicNames.getReturnAddress) {
+    } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
-					  fp,
-					  new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET),
-					  null));
+      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+					    fp,
+					    new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setReturnAddress) {
-      OPT_Operand val = bc2ir.popAddress();
-      OPT_Operand fp = bc2ir.popAddress();
-      bc2ir.appendInstruction(Store.create(INT_STORE, val, 
-					   fp, 
-					   new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET),
-					   null));
     } else if (methodName == VM_MagicNames.sysCall0) {
       OPT_Operand ip = bc2ir.popInt();
       OPT_RegisterOperand op0 = gc.temps.makeTempInt();
@@ -212,8 +207,10 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 	  methodName == VM_MagicNames.pragmaNoOptCompile) {
 	throw OPT_MagicNotImplementedException.EXPECTED(msg);
       } else {
-	throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+	return false;
+	// throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
       }
     }
+    return true;
   }
 }

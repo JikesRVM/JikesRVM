@@ -1,8 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import java.util.StringTokenizer;
 import java.io.*;
 import java.util.zip.ZipFile;
@@ -17,16 +20,18 @@ import java.security.ProtectionDomain;
  * @author Derek Lieber
  */
 public class VM_ClassLoader
-  implements VM_Constants, VM_ClassLoaderConstants {
+implements VM_Constants, VM_ClassLoaderConstants {
 
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param classPath path specification in standard "classpath" format
    */
   public static void setVmRepositories(String classPath) {
-      VM_SystemClassLoader cl = VM_SystemClassLoader.getVMClassLoader();
-      cl.classPath = classPath;
-      cl.parsePath();
+      vmRepositories = classPath;
+  }
+
+  public static String getVmRepositories() {
+      return vmRepositories;
   }
 
   /**
@@ -34,16 +39,8 @@ public class VM_ClassLoader
    * @param classPath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classPath) {
-    VM_StringVector vec = new VM_StringVector();
-
-    if (applicationRepositories != null)
-	for(int i  = 0; i < applicationRepositories.length; i++)
-	    vec.addElement( applicationRepositories[i]);
-
-    for (StringTokenizer st = new StringTokenizer(classPath, System.getProperty("path.separator"), false); st.hasMoreTokens(); )
-      vec.addElement(st.nextToken());
-
-    applicationRepositories = vec.finish();
+      System.setProperty("java.class.path", classPath);
+      applicationRepositories = classPath;
   }
 
   /**
@@ -51,7 +48,7 @@ public class VM_ClassLoader
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */ 
-  public static String[] getApplicationRepositories() {
+  public static String getApplicationRepositories() {
     return applicationRepositories;
   }
 
@@ -63,34 +60,34 @@ public class VM_ClassLoader
    * @return type description
    */ 
   public static VM_Type findOrCreateType(VM_Atom descriptor, ClassLoader cl) {
-      switch ( descriptor.parseForTypeCode() ) {
+    switch ( descriptor.parseForTypeCode() ) {
       case ClassTypeCode: 
       case ArrayTypeCode: 
-	  return VM_TypeDictionary.getValue(findOrCreateTypeId(descriptor, cl));
+        return VM_TypeDictionary.getValue(findOrCreateTypeId(descriptor, cl));
       case BooleanTypeCode:
-	  return VM_Type.BooleanType;
+        return VM_Type.BooleanType;
       case ByteTypeCode:
-	  return VM_Type.ByteType;
+        return VM_Type.ByteType;
       case ShortTypeCode:
-	  return VM_Type.ShortType;
+        return VM_Type.ShortType;
       case IntTypeCode:
-	  return VM_Type.IntType;
+        return VM_Type.IntType;
       case LongTypeCode:
-	  return VM_Type.LongType;
+        return VM_Type.LongType;
       case FloatTypeCode:
-	  return VM_Type.FloatType;
+        return VM_Type.FloatType;
       case DoubleTypeCode:
-	  return VM_Type.DoubleType;
+        return VM_Type.DoubleType;
       case CharTypeCode:
-	  return VM_Type.CharType;
+        return VM_Type.CharType;
 
       case VoidTypeCode:
-	  return VM_Type.VoidType;
+        return VM_Type.VoidType;
 
       default:
-	  VM.assert(NOT_REACHED);
-	  return null;
-      }
+        VM._assert(NOT_REACHED);
+        return null;
+    }
   }
 
   /**
@@ -103,11 +100,10 @@ public class VM_ClassLoader
   static int findOrCreateTypeId(VM_Atom descriptor, ClassLoader classloader) {
     int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
     VM_Type type   = VM_TypeDictionary.getValue(typeId);
-
-    if (type != null)
-      return typeId;
-
-    if (descriptor.isArrayDescriptor()) { // new array type
+    if (type != null) {
+	if (VM.runningVM && ! type.isLoaded()) type.setClassLoader(classloader);
+	return typeId;
+    } else if (descriptor.isArrayDescriptor()) { // new array type
       VM_Array ary = new VM_Array(descriptor, typeId, classloader);
       VM_TypeDictionary.setValue(typeId, ary);
       return typeId;
@@ -126,7 +122,7 @@ public class VM_ClassLoader
    * @param descriptor descriptor for desired type - something like "V"
    * @return type description
    */
-  static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
+  public static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
     int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
     VM_Type type   = VM_TypeDictionary.getValue(typeId);
     if (type == null)
@@ -144,13 +140,13 @@ public class VM_ClassLoader
    * @return field description
    */ 
   static VM_Field findOrCreateField(VM_Atom classDescriptor, 
-				    VM_Atom fieldName, 
-				    VM_Atom fieldDescriptor,
-				    ClassLoader classloader) {
+                                    VM_Atom fieldName, 
+                                    VM_Atom fieldDescriptor,
+                                    ClassLoader classloader) {
     return VM_FieldDictionary.getValue(findOrCreateFieldId(classDescriptor, 
-							   fieldName, 
-							   fieldDescriptor,
-							   classloader));
+                                                           fieldName, 
+                                                           fieldDescriptor,
+                                                           classloader));
   }
 
   /**
@@ -163,9 +159,9 @@ public class VM_ClassLoader
    * @return field dictionary id
    */ 
   static int findOrCreateFieldId(VM_Atom classDescriptor, 
-				 VM_Atom fieldName, 
-				 VM_Atom fieldDescriptor,
-				 ClassLoader classloader) {
+                                 VM_Atom fieldName, 
+                                 VM_Atom fieldDescriptor,
+                                 ClassLoader classloader) {
     VM_Triplet fieldKey = new VM_Triplet(classDescriptor, fieldName, 
                                          fieldDescriptor);
     int        fieldId  = VM_FieldDictionary.findOrCreateId(fieldKey, null);
@@ -193,8 +189,8 @@ public class VM_ClassLoader
    * something like "(I)I"
    * @return interface signature id
    */ 
-  static int findOrCreateInterfaceMethodSignatureId(VM_Atom interfaceMethodName, 
-						    VM_Atom interfaceMethodDescriptor) {
+  public static int findOrCreateInterfaceMethodSignatureId(VM_Atom interfaceMethodName, 
+                                                    VM_Atom interfaceMethodDescriptor) {
     VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(interfaceMethodName, interfaceMethodDescriptor);
     int id = VM_InterfaceMethodSignatureDictionary.findOrCreateId(key, UNRESOLVED_INTERFACE_METHOD_OFFSET);
     return id;
@@ -209,10 +205,10 @@ public class VM_ClassLoader
    * @param methodDescriptor  method descriptor - something like "(I)C"
    * @return method description
    */
-  static VM_Method findOrCreateMethod(VM_Atom classDescriptor, 
-				      VM_Atom methodName, 
-				      VM_Atom methodDescriptor,
-				      ClassLoader classloader) {
+  public static VM_Method findOrCreateMethod(VM_Atom classDescriptor, 
+                                      VM_Atom methodName, 
+                                      VM_Atom methodDescriptor,
+                                      ClassLoader classloader) {
     return VM_MethodDictionary.getValue(findOrCreateMethodId(classDescriptor, methodName, methodDescriptor, classloader));
   }
 
@@ -226,9 +222,11 @@ public class VM_ClassLoader
    * @return method dictionary id
    */
   static int findOrCreateMethodId(VM_Atom classDescriptor, 
-				  VM_Atom methodName, 
-				  VM_Atom methodDescriptor,
-				  ClassLoader classloader) {
+                                  VM_Atom methodName, 
+                                  VM_Atom methodDescriptor,
+                                  ClassLoader classloader) {
+    if (classDescriptor.isArrayDescriptor())
+	classDescriptor = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;");
     VM_Triplet methodKey = new VM_Triplet(classDescriptor, methodName, 
                                           methodDescriptor);
     int        methodId  = VM_MethodDictionary.findOrCreateId(methodKey, null);
@@ -237,8 +235,8 @@ public class VM_ClassLoader
       VM_MethodDictionary.setValue(methodId, 
                                    new VM_Method(cls, methodName, 
                                                  methodDescriptor,
-						 methodId,
-						 classloader));
+                                                 methodId,
+                                                 classloader));
     }
     // keep size of co-indexed array in pace with dictionary
     //
@@ -250,7 +248,7 @@ public class VM_ClassLoader
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
       dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM.assert(dynamicLibraries[currentDynamicLibraryId] == null);
+    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
     // prepend "lib" if there is no path in the name
     // attach the suffix .a to the library name for AIX, .so for Linux
@@ -269,7 +267,7 @@ public class VM_ClassLoader
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
       dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM.assert(dynamicLibraries[currentDynamicLibraryId] == null);
+    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
     dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
   }
@@ -283,12 +281,13 @@ public class VM_ClassLoader
   // implementation //
   //----------------//
 
-   // Places from which to load .class files.
-   //
-  private static String[] applicationRepositories;
+  // Places from which to load .class files.
+  //
+  private static String applicationRepositories;
+  private static String vmRepositories;
 
-   // Names of special methods.
-   //
+  // Names of special methods.
+  //
   static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
   static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
 
@@ -298,8 +297,8 @@ public class VM_ClassLoader
   static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
   static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
 
-   // Names of .class file attributes.
-   //
+  // Names of .class file attributes.
+  //
   static VM_Atom codeAttributeName;                   // "Code"
   static VM_Atom constantValueAttributeName;          // "ConstantValue"
   static VM_Atom lineNumberTableAttributeName;        // "LineNumberTable"
@@ -320,7 +319,7 @@ public class VM_ClassLoader
   /**
    * Index of most recently allocated slot in dynamicLibraries.
    */
-  private static int currentDynamicLibraryId;
+  private static int currentDynamicLibraryId = 0;
 
   /**
    * Initialize for bootimage.
@@ -330,6 +329,7 @@ public class VM_ClassLoader
     //
     setVmRepositories(vmClassPath);
     applicationRepositories = null;
+    VM_SystemClassLoader.boot();
 
     // create special method- and attribute- names
     //
@@ -353,17 +353,14 @@ public class VM_ClassLoader
     syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
     arrayNullCheckAttributeName		= VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
 
-    VM_TypeDictionary.init();
-    VM_FieldDictionary.init();
-    VM_MethodDictionary.init();
-    if (VM.BuildForIMTInterfaceInvocation)
-      VM_InterfaceMethodSignatureDictionary.init();
-
     dynamicLibraries = new VM_DynamicLibrary[0];
 
     VM_Type.init();
 
+    //-#if RVM_WITH_GNU_CLASSPATH
+    //-#else
     com.ibm.oti.vm.AbstractClassLoader.setBootstrapClassLoader( VM_SystemClassLoader.getVMClassLoader() );
+    //-#endif
   }
 
   /**
@@ -375,8 +372,8 @@ public class VM_ClassLoader
    */
   static void boot(String vmClasses) {
     setVmRepositories( vmClasses );
-
-    com.ibm.oti.vm.AbstractClassLoader.resCache.cache.clear();
+    currentDynamicLibraryId = 0;
+    dynamicLibraries = new VM_DynamicLibrary[0];
   }
 
   /**
@@ -384,8 +381,8 @@ public class VM_ClassLoader
    */ 
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
+    if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
+    int[] newarray = VM_Interface.newContiguousIntArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
 
@@ -407,11 +404,11 @@ public class VM_ClassLoader
    */ 
   static int createHardwareTrapCompiledMethodId() {
     VM_Method method = VM_ClassLoader.findOrCreateMethod(VM_Atom.findOrCreateAsciiAtom("L<hardware>;"),
-							 VM_Atom.findOrCreateAsciiAtom("<trap>"),
-							 VM_Atom.findOrCreateAsciiAtom("()V"),
-							 VM_SystemClassLoader.getVMClassLoader());
+                                                         VM_Atom.findOrCreateAsciiAtom("<trap>"),
+                                                         VM_Atom.findOrCreateAsciiAtom("()V"),
+                                                         VM_SystemClassLoader.getVMClassLoader());
     VM_CompiledMethod compiledMethod   = VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.TRAP);
-    INSTRUCTION[]     instructions     = VM_RuntimeStructures.newInstructions(0);
+    INSTRUCTION[]     instructions     = VM_Interface.newInstructions(0);
     compiledMethod.compileComplete(instructions);
     return compiledMethod.getId();
   }
@@ -421,8 +418,8 @@ public class VM_ClassLoader
    * Expand an array.
    */ 
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
-					       int newLength) {
-    VM_DynamicLibrary[] newarray = VM_RuntimeStructures.newContiguousDynamicLibraryArray(newLength);
+                                               int newLength) {
+    VM_DynamicLibrary[] newarray = VM_Interface.newContiguousDynamicLibraryArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
 
@@ -432,7 +429,7 @@ public class VM_ClassLoader
 
 
   public static final void resolveClassInternal(Class clazz) {
-    VM_Type cls = clazz.getVMType();
+    VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass( clazz );
     try {
       cls.resolve();
     } catch (VM_ResolutionException e) { 
@@ -443,58 +440,49 @@ public class VM_ClassLoader
   }
 
   public static final Class defineClassInternal(String className, 
-						byte[] classRep, 
-						int offset, 
-						int length, 
-						ClassLoader classloader, 
-						ProtectionDomain pd) throws ClassFormatError {
+                                                byte[] classRep, 
+                                                int offset, 
+                                                int length, 
+                                                ClassLoader classloader, 
+                                                ProtectionDomain pd) throws ClassFormatError {
     Class c = defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
-    c.pd = pd;
+    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
     return c;
   }
 
   public static final Class defineClassInternal(String className, 
-						byte[] classRep, 
-						int offset, 
-						int length, 
-						ClassLoader classloader) throws ClassFormatError {
+                                                byte[] classRep, 
+                                                int offset, 
+                                                int length, 
+                                                ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
   public static final Class defineClassInternal(String className, 
-						InputStream is, 
-						ClassLoader classloader, 
-						ProtectionDomain pd) throws ClassFormatError {
+                                                InputStream is, 
+                                                ClassLoader classloader, 
+                                                ProtectionDomain pd) throws ClassFormatError {
     Class c = defineClassInternal(className, is, classloader);
-    c.pd = pd;
+    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
     return c;
   }
 
-  
   public static final Class defineClassInternal(String className, 
-						InputStream is, 
-						ClassLoader classloader) throws ClassFormatError {
-    if (className == null) {
-      VM.sysFail("ClassLoader.defineClass class name == null not implemented"); //!!TODO
-      return null;
-    }
+                                                InputStream is, 
+                                                ClassLoader classloader) throws ClassFormatError {
 
-    VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
+    VM_Atom classDescriptor = null;
+    if (className != null)
+	classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
 
-    if (!cls.isLoaded()) {
-      if (VM.TraceClassLoading  && VM.runningVM)
-	VM.sysWrite("loading " + cls + " with " + classloader);
+    if (VM.TraceClassLoading  && VM.runningVM)
+	VM.sysWrite("loading " + classDescriptor + " with " + classloader);
       
-      cls.classloader = classloader;
-      try {
-	cls.load(new DataInputStream(is));
-      } catch (IOException e) {
-	throw new ClassFormatError(e.getMessage());
-      }
+    try {
+	return VM_Class.load(new DataInputStream(is), classloader, classDescriptor).getClassForType();
+    } catch (IOException e) {
+        throw new ClassFormatError(e.getMessage());
     }
-
-    return cls.getClassForType();
   }
 
   /**
@@ -544,13 +532,14 @@ public class VM_ClassLoader
     while ((c = c.getSuperClass()) != null) {
       VM_Method [] dm = c.getDeclaredMethods();
       for (int i=0; i<dm.length; i++ ) {
-	VM_Method n = dm[i];
-	if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-	  VM_MethodDictionary.setValue(m.getDictionaryId(), n);
-	  return n;
-	}
+        VM_Method n = dm[i];
+        if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
+          VM_MethodDictionary.setValue(m.getDictionaryId(), n);
+          return n;
+        }
       }
     }
+    VM.sysWrite(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
     throw new NoSuchMethodError(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
   }
 
@@ -560,17 +549,40 @@ public class VM_ClassLoader
     VM_Class c = f.getDeclaringClass();
     VM_Atom name = f.getName();
     VM_Atom desc = f.getDescriptor();
+
+    // Search the inheritance hierarchy
     while ((c = c.getSuperClass()) != null) {
-      VM_Field [] df = c.getDeclaredFields();
-      for (int i=0; i<df.length; i++ ) {
-	VM_Field n = df[i];
-	if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-	  VM_FieldDictionary.setValue(f.getDictionaryId(), n);
-	  return n;
+      VM_Field it = c.findDeclaredField(name, desc);
+      if (it != null) {
+	VM_FieldDictionary.setValue(f.getDictionaryId(), it);
+	return it;
+      }
+    }
+
+    // Now search the interface hierarchy
+    for (c= f.getDeclaringClass(); c != null; c = c.getSuperClass()) {
+      VM_Class[] interfaces = c.getDeclaredInterfaces();
+      for (int i=0; i<interfaces.length; i++) {
+	VM_Field it = searchInterfaceHierarchy(interfaces[i], name, desc);
+	if (it != null) {
+	  VM_FieldDictionary.setValue(f.getDictionaryId(), it);
+	  return it;
 	}
       }
     }
+    
     throw new NoSuchFieldError(f.getDeclaringClass()+": "+name+" "+desc+" no such field found");
+  }
+  
+  private static VM_Field searchInterfaceHierarchy(VM_Class c, VM_Atom name, VM_Atom desc) {
+    VM_Field it = c.findDeclaredField(name, desc);
+    if (it != null) return it;
+    VM_Class[] interfaces = c.getDeclaredInterfaces();
+    for (int i=0; i<interfaces.length; i++) {
+      it = searchInterfaceHierarchy(interfaces[i], name, desc);
+      if (it != null) return it;
+    }
+    return null;
   }
 
   /**
@@ -583,53 +595,53 @@ public class VM_ClassLoader
    */
   static VM_Method repairInterfaceMethod(VM_Method m, boolean canLoad) 
     throws VM_ResolutionException {
-    VM_Method newm = VM_MethodDictionary.getValue(m.getDictionaryId());
-    if (newm != m) return newm;  // already done!
-    newm = repairInterfaceMethodHelper(m, canLoad, m.getDeclaringClass(), 
-                                       m.getName(), m.getDescriptor());
-    if (canLoad && newm == null) {
-      throw new VM_ResolutionException(m.getDeclaringClass().getDescriptor(), 
-                                       new IncompatibleClassChangeError());
+      VM_Method newm = VM_MethodDictionary.getValue(m.getDictionaryId());
+      if (newm != m) return newm;  // already done!
+      newm = repairInterfaceMethodHelper(m, canLoad, m.getDeclaringClass(), 
+                                         m.getName(), m.getDescriptor());
+      if (canLoad && newm == null) {
+        throw new VM_ResolutionException(m.getDeclaringClass().getDescriptor(), 
+                                         new IncompatibleClassChangeError());
+      }
+      return newm;
     }
-    return newm;
-  }
 
   private static VM_Method repairInterfaceMethodHelper(VM_Method m, 
                                                        boolean canLoad,
-						       VM_Class I, 
+                                                       VM_Class I, 
                                                        VM_Atom name, 
                                                        VM_Atom desc) 
     throws VM_ResolutionException {
-    if (!I.isLoaded()) {
-      if (canLoad) {
-	VM_Runtime.initializeClassForDynamicLink(I);
-	if (!I.isInterface()) 
-          throw new VM_ResolutionException(I.getDescriptor(), 
-                                           new IncompatibleClassChangeError());
-      } else {
-	return null;
+      if (!I.isLoaded()) {
+        if (canLoad) {
+          VM_Runtime.initializeClassForDynamicLink(I);
+          if (!I.isInterface()) 
+            throw new VM_ResolutionException(I.getDescriptor(), 
+                                             new IncompatibleClassChangeError());
+        } else {
+          return null;
+        }
       }
-    }
 
-    VM_Method [] dm = I.getDeclaredMethods();
-    for (int i=0; i<dm.length; i++ ) {
-      VM_Method n = dm[i];
-      if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-	VM_MethodDictionary.setValue(m.getDictionaryId(), n);
-	return n;
+      VM_Method [] dm = I.getDeclaredMethods();
+      for (int i=0; i<dm.length; i++ ) {
+        VM_Method n = dm[i];
+        if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
+          VM_MethodDictionary.setValue(m.getDictionaryId(), n);
+          return n;
+        }
       }
-    }
 
-    VM_Class [] superInterfaces = I.getDeclaredInterfaces();
-    for (int i=0; i<superInterfaces.length; i++) {
-      VM_Class superInterface = superInterfaces[i];
-      VM_Method n = repairInterfaceMethodHelper(m, canLoad, 
-                                                superInterface, name, desc);
-      if (n != null) return n;
-    }
+      VM_Class [] superInterfaces = I.getDeclaredInterfaces();
+      for (int i=0; i<superInterfaces.length; i++) {
+        VM_Class superInterface = superInterfaces[i];
+        VM_Method n = repairInterfaceMethodHelper(m, canLoad, 
+                                                  superInterface, name, desc);
+        if (n != null) return n;
+      }
 
-    return null;
-  }
+      return null;
+    }
 
   /**
    *  Is dynamic linking code required to access one member when 
@@ -640,8 +652,8 @@ public class VM_ClassLoader
    */
   static public boolean needsDynamicLink(VM_Member referent, VM_Class referrer)
   {
-      VM_Class referentClass = referent.getDeclaringClass();
-    
+    VM_Class referentClass = referent.getDeclaringClass();
+
     if (referentClass.isInitialized()) {
       // No dynamic linking code is required to access this field or call this method
       // because its size and offset are known and its class's static initializer
@@ -649,9 +661,9 @@ public class VM_ClassLoader
       //
       return false;
     }
-        
+
     if (referent instanceof VM_Field && referentClass.isResolved() && 
-	referentClass.getClassInitializerMethod() == null) {
+        referentClass.getClassInitializerMethod() == null) {
       // No dynamic linking code is required to access this field
       // because its size and offset is known and its class has no static
       // initializer, therefore its value need not be specially initialized
@@ -659,14 +671,14 @@ public class VM_ClassLoader
       //
       return false;
     }
-        
+
     if (VM.writingBootImage && referentClass.isInBootImage()) {
       // Loads, stores, and calls within boot image are compiled without dynamic
       // linking code because all boot image classes are explicitly loaded/resolved/compiled
       // and have had their static initializers run by the boot image writer.
       //
       if (!referentClass.isResolved()) VM.sysWrite("unresolved: \"" + referent + "\" referenced from \"" + referrer + "\"\n");
-      if (VM.VerifyAssertions) VM.assert(referentClass.isResolved());
+      if (VM.VerifyAssertions) VM._assert(referentClass.isResolved());
       return false;
     }
 
@@ -676,7 +688,7 @@ public class VM_ClassLoader
       //
       return false;
     }
-  
+
     // This member needs size and offset to be computed, or its class's static
     // initializer needs to be run when the member is first "touched", so
     // dynamic linking code is required to access the member.

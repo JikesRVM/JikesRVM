@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * @author Anthony Cocchi
@@ -15,7 +16,8 @@
  */
 final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
 
-  VM_ReferenceMaps(VM_Method method, int[] stackHeights) {
+  VM_ReferenceMaps(VM_BaselineCompiledMethod cm, int[] stackHeights) {
+    VM_Method method = cm.getMethod();
     // save input information and compute related data
     this.bitsPerMap   = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
     this.bytesPerMap  = ((this.bitsPerMap + 7)/8)+1 ; // calc size of individul maps
@@ -39,6 +41,13 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     // define the basic blocks
     VM_BuildBB buildBB = new VM_BuildBB();
     buildBB.determineTheBasicBlocks(method);
+
+    // determine if we are going to insert edge counters for this method
+    if (buildBB.basicBlocks.length > 2 &&
+	VM_BaselineCompiler.options.EDGE_COUNTERS && 
+	!method.getDeclaringClass().isBridgeFromNative()) {
+      cm.setHasCounterArray(); // yes, we will inject counters for this method.
+    }
     VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
 
@@ -425,7 +434,7 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     return bytesPerMap;
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   int size() {
     int size = TYPE.getInstanceSize();
     if (MCSites != null) size += VM_Array.arrayOfIntType.getInstanceSize(MCSites.length);
@@ -926,7 +935,7 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
 
     // from the invoker address and the code base address - get the machine code offset
     //
-    int machineCodeOffset = callerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
+    int machineCodeOffset = callerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
 
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_ReferenceMaps-setupJSRMap- inputMapid = ");
@@ -983,7 +992,7 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
       VM_UnusualMaps thisMap = unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
       VM_Address nextCallerAddress = VM_Magic.getMemoryAddress(frameAddress.add(thisJsrAddressOffset));
-      int nextMachineCodeOffset = nextCallerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
+      int nextMachineCodeOffset = nextCallerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
       if (VM.TraceStkMaps) {

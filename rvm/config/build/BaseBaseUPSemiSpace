@@ -1,0 +1,2 @@
+. $1/BaseBaseSemiSpace
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1

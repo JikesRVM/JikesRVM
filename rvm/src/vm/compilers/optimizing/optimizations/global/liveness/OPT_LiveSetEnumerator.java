@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
@@ -11,18 +12,18 @@ import  java.util.NoSuchElementException;
  *
  * @author Michael Hind
  */
-class OPT_LiveSetEnumerator implements Enumeration {
+public class OPT_LiveSetEnumerator implements Enumeration {
 
   /**
    *  the current element on this list
    */
-
   private OPT_LiveSetElement current;
+
   /**
    * The constructor
    * @param   OPT_LiveSetElement list
    */
-  OPT_LiveSetEnumerator(OPT_LiveSetElement list) {
+  public OPT_LiveSetEnumerator(OPT_LiveSetElement list) {
     current = list;
   }
 

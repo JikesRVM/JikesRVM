@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * An instance of this class provides a mapping from symbolic register to

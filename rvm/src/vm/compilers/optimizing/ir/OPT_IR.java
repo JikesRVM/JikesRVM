@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
-import instructionFormats.*;
 
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)
@@ -86,7 +88,7 @@ public final class OPT_IR implements OPT_Operators {
    * the IR during compilation, so method really only represents the 
    * primary or outermost method being compiled.
    */
-  VM_Method getMethod() { 
+  public VM_Method getMethod() { 
     return method;
   }
 
@@ -105,7 +107,7 @@ public final class OPT_IR implements OPT_Operators {
    * {@link OPT_SSAOptions Options} that define the SSA properties
    * desired the next time we enter SSA form.
    */
-  OPT_SSAOptions desiredSSAOptions; 
+  public OPT_SSAOptions desiredSSAOptions; 
 
   /** 
    * {@link OPT_SSAOptions Options} that define the SSA properties
@@ -113,13 +115,13 @@ public final class OPT_IR implements OPT_Operators {
    * on SSA form should update this object to reflect transformations
    * on SSA form.
    */
-  OPT_SSAOptions actualSSAOptions; 
+  public OPT_SSAOptions actualSSAOptions; 
 
   /**
    * The root {@link OPT_GenerationContext generation context}
    * for the current compilation.
    */
-  OPT_GenerationContext gc;
+  public OPT_GenerationContext gc;
 
   /**
    * The {@link OPT_InlineOracle inlining oracle} to be used for the 
@@ -141,7 +143,7 @@ public final class OPT_IR implements OPT_Operators {
    * TODO: It's plausible that this field also really belongs on
    * the generation context instead of the IR.
    */
-    public OPT_SpecializationHandler special;
+  public OPT_SpecializationHandler special;
   //-#endif
     
   /**
@@ -151,18 +153,12 @@ public final class OPT_IR implements OPT_Operators {
   public OPT_InstrumentationPlan instrumentationPlan;
 
   /**
-   * Used to make edge counts available to all opt phases.
-   */
-  public OPT_EdgeCounts edgeCounts;
-
-  /**
    * The {@link OPT_ControlFlowGraph FCFG} (Factored Control Flow Graph)
    */
   public OPT_ControlFlowGraph cfg;
 
   /**
    * The {@link OPT_RegisterPool Register pool}
-   * TODO: remove this by replacing uses with gc.regpool
    */
   public OPT_RegisterPool regpool;
 
@@ -237,9 +233,7 @@ public final class OPT_IR implements OPT_Operators {
     //-#if RVM_WITH_SPECIALIZATION
     special = cp.special;
     //-#endif
-
     instrumentationPlan = cp.instrumentationPlan;
-    edgeCounts = cp.edgeCounts; 
   }
 
   
@@ -247,22 +241,15 @@ public final class OPT_IR implements OPT_Operators {
    * Print the instructions in this IR to System.out.
    */
   public void printInstructions() {
-    // If counts are available, include them in the printed IR
-    if (this.basicBlockFrequenciesAvailable()) {
-      // Update the counts to be sure they are valid.
-      this.updateCFGFrequencies();
-    }
-
     for (OPT_InstructionEnumeration e = forwardInstrEnumerator(); 
 	 e.hasMoreElements(); ) {
       OPT_Instruction i = e.next();
       System.out.print(i.bcIndex+"\t"+i);
 
       // Print block frequency with the label instruction
-      if (basicBlockFrequenciesAvailable() &&
-	  i.operator() == LABEL) {
+      if (i.operator() == LABEL) {
 	OPT_BasicBlock bb = i.getBasicBlock();
-	System.out.print("   Frequency:  " + this.getBasicBlockFrequency(bb));
+	System.out.print("   Frequency:  " + bb.getExecutionFrequency());
       }
 
       System.out.println();
@@ -438,7 +425,7 @@ public final class OPT_IR implements OPT_Operators {
    * @return that requested block
    */
   public OPT_BasicBlock getBasicBlock(int number){
-    if (VM.VerifyAssertions) VM.assert(basicBlockMap != null);
+    if (VM.VerifyAssertions) VM._assert(basicBlockMap != null);
     return basicBlockMap[number];
   }
 
@@ -607,88 +594,13 @@ public final class OPT_IR implements OPT_Operators {
    * does not matter (at least for intraprocedural analyses).
    * For more information {@link OPT_BasicBlock see}.
    */
-  void unfactor() {
+  public void unfactor() {
     OPT_BasicBlockEnumeration e = getBasicBlocks();
     while  (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
       b.unfactor(this);
     }
   }
-
-
-  /**
-   * Are basic block frequencies available?
-   *
-   * @return Whether basic block frequencies are available
-   */
-  public boolean basicBlockFrequenciesAvailable() {
-    if (edgeCounts == null)
-      return false;
-
-    return edgeCounts.basicBlockFrequenciesAvailable();
-  }
-
-  /**
-   * Are intraprocedural edge frequencies available?
-   *
-   * @return Whether edge frequencies are available
-   */
-  public boolean edgeFrequenciesAvailable() {
-    if (edgeCounts == null)
-      return false;
-
-    return edgeCounts.edgeFrequenciesAvailable();
-  }
-
-
-  /**
-   * Return the execution frequency of this basic block
-   *
-   * @param bb the basic block
-   * @return the count
-   */
-  public double getBasicBlockFrequency(OPT_BasicBlock bb) {
-    if (edgeCounts != null)
-      return edgeCounts.getBasicBlockFrequency(bb);
-    return -1;
-  }
-
-  /**
-   * Return the execution frequency of an edge
-   *
-   * @param source The source (basic block) of the edge
-   * @param target The target (basic block) of the edge
-   * @return the count
-   */
-  public double getEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target) {
-    if (edgeCounts != null)
-      return edgeCounts.getEdgeFrequency(source,target);
-    return -1.0;
-  }
-
-  /**
-   * Set the execution frequency of an edge
-   *
-   * @param source The source (basic block) of the edge
-   * @param target The target (basic block) of the edge
-   * @param the count
-   */
-  public void setEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target,
-                               double frequency) {
-    if (edgeCounts != null) 
-      edgeCounts.setEdgeFrequency(source,target,frequency);
-  }
-
-  /**
-   * Bring the edge counts up-to-date.  Call this in each phase prior
-   * to using the edge counts.
-   *
-   * @see OPT_EdgeCounts#updateCFGFrequencies
-   */
-   public void updateCFGFrequencies() {
-     if (edgeCounts != null)
-       edgeCounts.updateCFGFrequencies(this);
-   }
 
   /**
    * States whether liveness for handlers is available
@@ -834,7 +746,7 @@ public final class OPT_IR implements OPT_Operators {
 	cur.scratch = 0;
 
 	prev = cur;
-	cur = (OPT_BasicBlock)cur.next;
+	cur = (OPT_BasicBlock)cur.getNext();
       }
     }
 

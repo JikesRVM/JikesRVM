@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
 /**
  * Test miscellaneous query functions:
  *     GetSuperClass
@@ -14,9 +15,6 @@
  * @author Ton Ngo, Steve Smith 
  * @date   3/21/00
  */
-import MethodInvocation;
-import MethodInvocationSub;
-
 class ClassQuery extends ClassQuerySuper {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;

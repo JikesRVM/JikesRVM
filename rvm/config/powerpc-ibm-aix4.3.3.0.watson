@@ -22,6 +22,8 @@ export RVM_FOR_AIX=1
 # SMP support is always ok on AIX.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
+export BOOTIMAGE_LOAD_ADDRESS="0x30000000"
+
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 
@@ -50,11 +52,11 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES="/homes/fury5/jalapeno/bin/jikes-1.13"
+export JIKES="/homes/meriadoc/jalapeno/bin/power/jikes-1.18 -nowarn"
 
 # what C/C++ compilers should be used?
-export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
-export CPLUS="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
+export CC="/usr/gnu/bin/gcc-2.95.3 -w -O -Wa,-mppc"
+export CPLUS="/usr/gnu/bin/gcc-2.95.3 -w -O -Wa,-mppc"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared"
@@ -69,6 +71,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
 export AWK="/usr/gnu/bin/gawk"
 export BASH="/usr/gnu/bin/bash"
+export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
 export DIFF="/usr/gnu/bin/diff"
 export FGREP="/usr/gnu/bin/fgrep"
 export FIND="/usr/gnu/bin/find"
@@ -77,12 +80,6 @@ export GREP="/usr/gnu/bin/grep"
 export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
-export WGET="/homes/fury5/jalapeno/bin/wget-aix"
+export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
-export UNZIP="/usr/contrib/bin/unzip"
-
-# The following is optional; only needed for fancy CVS scripts
-export CVS="/homes/fury5/jalapeno/bin/cvs"
-
-# where to find Jazzlib
-export JAZZLIBJAR="/homes/fury5/jalapeno/contrib/jazzlib.jar"
+export UNZIP_CMD="/usr/contrib/bin/unzip"

@@ -2,9 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
+import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
 
 /**
  * This class implements the redundant load elimination by
@@ -21,9 +24,11 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   OPT_LoadElimination(int round) {
     super("Load Elimination", new OPT_OptimizationPlanElement[] {
-          new OPT_OptimizationPlanAtomicElement(new LoadEliminationPreparation(round)),
+          new OPT_OptimizationPlanAtomicElement(new GVNPreparation(round)),
           new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
           new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
+          new OPT_OptimizationPlanAtomicElement(new LoadEliminationPreparation(round)),
+          new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
           new OPT_OptimizationPlanAtomicElement(new OPT_IndexPropagation()),
           new OPT_OptimizationPlanAtomicElement(new LoadEliminator())
           });
@@ -32,16 +37,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
   static final boolean DEBUG = false;
 
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.LOAD_ELIMINATION;  
   }
 
-  final String getName () {
+  public final String getName() {
     return  "Array SSA Load Elimination";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -50,17 +51,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
   private int round;
 
   final static class LoadEliminator extends OPT_CompilerPhase implements OPT_Operators{
-
-    final boolean shouldPerform (OPT_Options options) {
-      return true;
-    }
-
-    final String getName () {
+    public final String getName() {
       return  "Load Eliminator";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /** 
@@ -68,15 +60,19 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
-    final public void perform (OPT_IR ir) {
+    final public void perform(OPT_IR ir) {
 
       if (ir.desiredSSAOptions.getAbort()) return;
+
       boolean didSomething = eliminateLoads(ir, ir.HIRInfo.indexPropagationSolution);
       // Note that SSA is no longer valid!!!
       // This will force construction of SSA next time we call EnterSSA
       ir.actualSSAOptions.setScalarValid(false);
       ir.actualSSAOptions.setHeapValid(false);
       ir.HIRInfo.loadEliminationDidSomething = didSomething;
+
+      // clear the following field to avoid excess memory retention
+      ir.HIRInfo.indexPropagationSolution = null;
     }
   }
 
@@ -86,7 +82,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    *
    * @return true if any load is eliminated.
    */
-  final static boolean eliminateLoads (OPT_IR ir, OPT_DF_Solution available) {
+  final static boolean eliminateLoads(OPT_IR ir, OPT_DF_Solution available) {
     // maintain a mapping from value number to temporary register
     HashMap registers = new HashMap();
     UseRecordSet UseRepSet = replaceLoads(ir, available, registers);
@@ -106,8 +102,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
    */
-  final static UseRecordSet replaceLoads (OPT_IR ir, OPT_DF_Solution available, 
-                                   HashMap registers) {
+  final static UseRecordSet replaceLoads(OPT_IR ir, OPT_DF_Solution available, 
+                                          HashMap registers) {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
@@ -131,8 +127,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         continue;
       }
       if (H.length != 1)
-        throw  new OPT_OptimizingCompilerException(
-                                                   "OPT_LoadElimination: load with wrong number of heap uses");
+        throw  new OPT_OptimizingCompilerException("OPT_LoadElimination: load with wrong number of heap uses");
       if (GetField.conforms(s) || GetStatic.conforms(s)) {
         int valueNumber = -1;
         if (GetField.conforms(s)) {
@@ -143,8 +138,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
           // for getStatic, always use the value number 0
           valueNumber = 0;
         }
-        OPT_IPObjectCell cell = (OPT_IPObjectCell)available.lookup(
-                                                                   H[0].getHeapVariable());
+        ObjectCell cell = (ObjectCell)available.lookup(H[0].getHeapVariable());
         if (cell == null)
           continue;           // nothing available
         // .. if H{valueNumber} is available ...
@@ -161,8 +155,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       else {                  // ALoad.conforms(s)
         Object array = ALoad.getArray(s);
         Object index = ALoad.getIndex(s);
-        OPT_IPArrayCell cell = (OPT_IPArrayCell)available.lookup(
-                                                                 H[0].getHeapVariable());
+        ArrayCell cell = (ArrayCell)available.lookup(H[0].getHeapVariable());
         if (cell == null)
           continue;           // nothing available
         int v1 = valueNumbers.getValueNumber(array);
@@ -187,7 +180,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Replace a Load instruction s with a load from a scalar register r
    * TODO: factor this functionality out elsewhere
    */
-  static void replaceLoadWithMove (OPT_Register r, OPT_Instruction load) {
+  static void replaceLoadWithMove(OPT_Register r, OPT_Instruction load) {
     OPT_RegisterOperand dest = ResultCarrier.getResult(load);
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, dest.type);
     load.replace(Move.create(OPT_IRTools.getMoveOp(dest.type), 
@@ -201,8 +194,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param UseRepSet stores the uses(loads) that have been eliminated
    * @param registers mapping from valueNumber -> temporary register
    */
-  final static void replaceDefs (OPT_IR ir, UseRecordSet UseRepSet, 
-                          HashMap registers) {
+  final static void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet, 
+                                 HashMap registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -219,8 +212,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       // Check if UseRepSet needs the scalar assigned by this def
       OPT_HeapOperand H[] = ssa.getHeapDefs(s);
       if (H.length != 1)
-        throw  new OPT_OptimizingCompilerException(
-                                                   "OPT_LoadElimination: encountered a store with more than one def? "
+        throw  new OPT_OptimizingCompilerException("OPT_LoadElimination: encountered a store with more than one def? "
                                                    + s);
       int valueNumber = -1;
       Object index = null;
@@ -250,8 +242,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       }
       if (index == null) {
         // Load/Store
-        if (UseRepSet.containsMatchingUse(
-                                          H[0].getHeapVariable(), valueNumber)) {
+        if (UseRepSet.containsMatchingUse(H[0].getHeapVariable(), valueNumber)) {
           OPT_Operand value = null;
           if (PutField.conforms(s))
             value = PutField.getValue(s); 
@@ -269,8 +260,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         // ALoad / AStore
         int v1 = valueNumber;
         int v2 = ir.HIRInfo.valueNumbers.getValueNumber(index);
-        if (UseRepSet.containsMatchingUse(H[0].getHeapVariable(), v1, 
-                                          v2)) {
+        if (UseRepSet.containsMatchingUse(H[0].getHeapVariable(), v1, v2)) {
           OPT_Operand value = null;
           if (AStore.conforms(s))
             value = AStore.getValue(s); 
@@ -289,7 +279,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Append an instruction after a store instruction that caches
    * value in register r.
    */
-  static void appendMove (OPT_Register r, OPT_Operand src, OPT_Instruction store) {
+  static void appendMove(OPT_Register r, OPT_Operand src, OPT_Instruction store) {
     VM_Type type = src.getType();
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, type);
     store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type), 
@@ -307,9 +297,9 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
    */
-  static OPT_Register findOrCreateRegister (Object heapType, int valueNumber, 
-                                     HashMap registers, 
-                                     OPT_RegisterPool pool, VM_Type type) {
+  static OPT_Register findOrCreateRegister(Object heapType, int valueNumber, 
+                                            HashMap registers, 
+                                            OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -331,8 +321,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
    */
-  static OPT_Register findOrCreateRegister (Object heapType, int v1, int v2, 
-                                     HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+  static OPT_Register findOrCreateRegister(Object heapType, int v1, int v2, 
+                                            HashMap registers, OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -350,24 +340,24 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     int v2;                   // second value number (array index)
     final static int NONE = -2;
 
-    UseRecord (Object type, int valueNumber) {
+    UseRecord(Object type, int valueNumber) {
       this.type = type;
       this.v1 = valueNumber;
       this.v2 = NONE;
     }
 
-    UseRecord (Object type, int v1, int v2) {
+    UseRecord(Object type, int v1, int v2) {
       this.type = type;
       this.v1 = v1;
       this.v2 = v2;
     }
 
-    public boolean equals (Object o) {
+    public boolean equals(Object o) {
       UseRecord u = (UseRecord)o;
       return  ((u.type == type) && (u.v1 == v1) && (u.v2 == v2));
     }
 
-    public int hashCode () {
+    public int hashCode() {
       return  type.hashCode() + v1 + v2;
     }
   }
@@ -377,7 +367,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
     // Does this set contain a use that has the same type as H and
     // the given value number?
-    boolean containsMatchingUse (OPT_HeapVariable H, int valueNumber) {
+    boolean containsMatchingUse(OPT_HeapVariable H, int valueNumber) {
       Object type = H.getHeapType();
       UseRecord u = new UseRecord(type, valueNumber);
       return  (set.contains(u));
@@ -385,19 +375,19 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
     // Does this set contain a use that has the same type as H and
     // the given value number pair <v1,v2>?
-    boolean containsMatchingUse (OPT_HeapVariable H, int v1, int v2) {
+    boolean containsMatchingUse(OPT_HeapVariable H, int v1, int v2) {
       Object type = H.getHeapType();
       UseRecord u = new UseRecord(type, v1, v2);
       return  (set.contains(u));
     }
 
     // add a USE to the set
-    void add (OPT_HeapVariable H, int valueNumber) {
+    void add(OPT_HeapVariable H, int valueNumber) {
       UseRecord u = new UseRecord(H.getHeapType(), valueNumber);
       set.add(u);
     }
 
-    void add (OPT_HeapVariable H, int v1, int v2) {
+    void add(OPT_HeapVariable H, int v1, int v2) {
       UseRecord u = new UseRecord(H.getHeapType(), v1, v2);
       set.add(u);
     }
@@ -406,80 +396,153 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
   }
 
   /**
+   * @param map a mapping from key to HashSet
+   * @param key a key into the map
+   * @return the set map(key).  create one if none exists.
+   */
+  private final static HashSet findOrCreateIndexSet(HashMap map, Object key) {
+    HashSet result = (HashSet)map.get(key);
+    if (result == null) {
+      result = new HashSet(5);
+      map.put(key,result);
+    }
+    return result;
+  }
+  /**
    * Do a quick pass over the IR, and return types that are candidates
    * for redundant load elimination.
    * Algorithm: return those types T where
-   *	1) there's a load L of type T	
-   *	2) there's another load or store M of type T, M!=L 
+   *	1) there's a load L(i) of type T 
+   *	2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
    */
-  final public static Set getCandidates (OPT_IR ir) {
+  final public static Set getCandidates(OPT_IR ir) {
+    OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
+    // which types have we seen loads for?
     HashSet seenLoad = new HashSet(10);
+    // which static fields have we seen stores for?
     HashSet seenStore = new HashSet(10);
     HashSet resultSet = new HashSet(10);
-    // walk the instructions.  Store whether we've seen a load and/or a
-    // store for each type. Then, when we see a second appearance,
-    // if we've previously seen a load, then add this type to the
-    // result set.
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-         e.hasMoreElements();) {
-      OPT_Instruction s = e.next();
-      switch (s.operator().opcode) {
-        case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-          OPT_LocationOperand loc = GetField.getLocation(s);
-          VM_Field f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          if (seenStore.contains(f))
-            resultSet.add(f);
-          seenLoad.add(f);
-          break;
-        case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
-          loc = PutField.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          seenStore.add(f);
-          break;
-        case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
-          loc = GetStatic.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          if (seenStore.contains(f))
-            resultSet.add(f);
-          seenLoad.add(f);
-          break;
-        case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
-          loc = PutStatic.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          seenStore.add(f);
-          break;
-        case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
-        case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
-        case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
-          VM_Type type = ALoad.getArray(s).getType();
-          if (!type.asArray().getElementType().isPrimitiveType())
-            type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-          if (seenLoad.contains(type))
-            resultSet.add(type);
-          if (seenStore.contains(type))
-            resultSet.add(type);
-          seenLoad.add(type);
-          break;
-        case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
-        case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
-        case REF_ASTORE_opcode:case BYTE_ASTORE_opcode:
-        case SHORT_ASTORE_opcode:
-          type = AStore.getArray(s).getType();
-          if (!type.asArray().getElementType().isPrimitiveType())
-            type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-          if (seenLoad.contains(type))
-            resultSet.add(type);
-          seenStore.add(type);
-        default:
-          break;
+    // for each type T, indices(T) gives the set of value number (pairs)
+    // that identify the indices seen in memory accesses to type T.
+    HashMap indices = new HashMap(10);
+
+    for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)be.nextElement();
+      if (!ir.options.FREQ_FOCUS_EFFORT || !bb.getInfrequent()) {
+        for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+          OPT_Instruction s = e.next();
+          switch (s.operator().opcode) {
+            case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+              {
+                OPT_Operand ref = GetField.getRef(s);
+                VM_Field f = GetField.getLocation(s).field;
+                HashSet numbers = findOrCreateIndexSet(indices,f);
+                int v = valueNumbers.getValueNumber(ref);
+                Integer V = new Integer(v);
+                if (numbers.contains(V)) {
+                  resultSet.add(f);
+                } else {
+                  numbers.add(V);
+                }
+                seenLoad.add(f);
+              }
+              break;
+            case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+              {
+                OPT_Operand ref = PutField.getRef(s);
+                VM_Field f = PutField.getLocation(s).field;
+                HashSet numbers = findOrCreateIndexSet(indices,f);
+                int v = valueNumbers.getValueNumber(ref);
+                Integer V = new Integer(v);
+                if (numbers.contains(V)) {
+                  if (seenLoad.contains(f)) {
+                    resultSet.add(f);
+                  }
+                } else {
+                  numbers.add(V);
+                }
+              }
+              break;
+            case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+              {
+                VM_Field f = GetStatic.getLocation(s).field;
+                if (seenLoad.contains(f) || seenStore.contains(f)) {
+                  resultSet.add(f);
+                }
+                seenLoad.add(f);
+              }
+              break;
+            case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+              {
+                VM_Field f = PutStatic.getLocation(s).field;
+                if (seenLoad.contains(f)) {
+                  resultSet.add(f);
+                }
+                seenStore.add(f);
+              }
+              break;
+            case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
+            case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
+            case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
+
+              {
+                OPT_Operand ref = ALoad.getArray(s);
+                VM_Type type = ref.getType();
+                if (type.isArrayType()) {
+                  if (!type.asArray().getElementType().isPrimitiveType()) {
+                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  }
+                }
+                OPT_Operand index = ALoad.getIndex(s);
+
+                HashSet numbers = findOrCreateIndexSet(indices,type);
+                int v1 = valueNumbers.getValueNumber(ref);
+                int v2 = valueNumbers.getValueNumber(index);
+                OPT_ValueNumberPair V = new OPT_ValueNumberPair(v1,v2);
+                if (numbers.contains(V)) {
+                  resultSet.add(type);
+                } else {
+                  numbers.add(V);
+                }
+                seenLoad.add(type);
+              }
+
+              break;
+
+            case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
+            case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
+            case REF_ASTORE_opcode:case BYTE_ASTORE_opcode:
+            case SHORT_ASTORE_opcode:
+
+              {
+                OPT_Operand ref = AStore.getArray(s);
+                VM_Type type = ref.getType();
+                if (type.isArrayType()) {
+                  if (!type.asArray().getElementType().isPrimitiveType()) {
+                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  }
+                }
+                OPT_Operand index = AStore.getIndex(s);
+
+                HashSet numbers = findOrCreateIndexSet(indices,type);
+                int v1 = valueNumbers.getValueNumber(ref);
+                int v2 = valueNumbers.getValueNumber(index);
+                OPT_ValueNumberPair V = new OPT_ValueNumberPair(v1,v2);
+
+                if (numbers.contains(V)) {
+                  if (seenLoad.contains(type)) {
+                    resultSet.add(type);
+                  }
+                } else {
+                  numbers.add(V);
+                }
+              }
+              break;
+
+            default:
+              break;
+          }
+        }
       }
     }
     return  resultSet;
@@ -491,16 +554,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   private static class LoadEliminationPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return  options.LOAD_ELIMINATION;
     }
 
-    final String getName () {
+    public final String getName() {
       return  "Load Elimination Preparation";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return  false;
     }
 
     private final int round;
@@ -509,7 +568,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       this.round = round;
     }
 
-    final public void perform (OPT_IR ir) {
+    final public void perform(OPT_IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination
       ir.desiredSSAOptions = new OPT_SSAOptions();
@@ -517,6 +576,36 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(true);
       ir.desiredSSAOptions.setHeapTypes(OPT_LoadElimination.getCandidates(ir));
+      ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS) 
+                                    || (ir.HIRInfo.loadEliminationDidSomething == false));
+    }
+  }
+  /**
+   * This class sets up the IR state prior to entering SSA for GVN.
+   */
+  private static class GVNPreparation extends OPT_CompilerPhase {
+
+    public final boolean shouldPerform(OPT_Options options) {
+      return  options.LOAD_ELIMINATION;
+    }
+
+    public final String getName() {
+      return  "GVN Preparation";
+    }
+
+    private final int round;
+
+    GVNPreparation(int round) {
+      this.round = round;
+    }
+
+    final public void perform(OPT_IR ir) {
+      // register in the IR the SSA properties we need for load
+      // elimination
+      ir.desiredSSAOptions = new OPT_SSAOptions();
+      ir.desiredSSAOptions.setScalarsOnly(true);
+      ir.desiredSSAOptions.setBackwards(false);
+      ir.desiredSSAOptions.setInsertUsePhis(false);
       ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS) 
                                     || (ir.HIRInfo.loadEliminationDidSomething == false));
     }

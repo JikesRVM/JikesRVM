@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Register Usage Conventions
@@ -9,7 +10,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_RegisterConstants {
+public interface VM_RegisterConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Register usage conventions.                                   //
   //--------------------------------------------------------------------------------------------//

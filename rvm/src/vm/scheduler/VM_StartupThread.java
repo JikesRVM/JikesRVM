@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Thread in which a processor ("virtual cpu") begins its work.
@@ -60,6 +61,12 @@ class VM_StartupThread extends VM_Thread
       //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
       //-#else
       VM.sysWaitForMultithreadingStart();
+      //-#endif
+
+      //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+      //-#else
+      // Store VM_Processor in pthread
+      VM_Processor.getCurrentProcessor().stashProcessorInPthread();
       //-#endif
       
       // we've done our job

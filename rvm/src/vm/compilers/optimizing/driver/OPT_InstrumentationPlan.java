@@ -3,7 +3,9 @@
  */
 /* $Id$
  */
- /*
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
+/*
  * OPT_InstrumentationPlan.java
  *
  * @author Dave Grove
@@ -18,7 +20,7 @@
  * Currently empty, but will gradually add function here 
  * as the Adaptive Optimization Subsystem evolves.
  */
-abstract class OPT_InstrumentationPlan {
+public abstract class OPT_InstrumentationPlan {
   /**
    * Should the compiler insert basic block instrumentation 
    **/
@@ -31,10 +33,10 @@ abstract class OPT_InstrumentationPlan {
   /**
    * Called before at the beginning of compilation
    */
-  abstract void initInstrumentation (VM_Method method);
+  public abstract void initInstrumentation (VM_Method method);
 
   /**
    * Called after compilation completes, but before method is executed
    */
-  abstract void finalizeInstrumentation (VM_Method method);
+  public abstract void finalizeInstrumentation (VM_Method method);
 }

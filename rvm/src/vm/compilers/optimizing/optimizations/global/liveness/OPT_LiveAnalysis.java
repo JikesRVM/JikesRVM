@@ -2,10 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Stack;
 import  java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
@@ -80,20 +82,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   private static final boolean verbose = false;
   // End debugging information
 
-  /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
-   */
-  final boolean shouldPerform(OPT_Options options) {
-    return true;
-  }
-
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
-  }
-
-  final String getName() {
+  public final String getName() {
     return  "Live Analysis";
   }
 
@@ -164,9 +153,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * range info and (optionally) GC map info as we go.
    *
    * @param ir the ir
-   * @return the IR-based GC Map for this method
    */
-  void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
 
     // make sure IR info is up-to-date
     OPT_DefUse.recomputeSpansBasicBlock(ir);
@@ -221,7 +209,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // created, so we can't print them.
     if (!skipLocal) {
       performLocalPropagation(ir, createGCMaps);
+
       if (createGCMaps && dumpFinalMaps) {
+        System.out.println("**** START OF IR for method: " + ir.method.getName()
+          + " in class: " + ir.method.getDeclaringClass().getName());
+        ir.printInstructions();
+        System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
+	
         printFinalMaps(ir);
       }
       if (dumpFinalLiveIntervals) {
@@ -412,8 +406,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     
     OPT_Instruction firstPEI = null;
     if (bblock.canThrowExceptions()) {
-      for (OPT_Instruction inst = bblock.start; 
-          inst != bblock.end; inst = inst.getNext()) {
+      for (OPT_Instruction inst = bblock.firstInstruction(); 
+          inst != bblock.lastInstruction(); inst = inst.nextInstructionInCodeOrder()) {
         if (inst.isPEI() && 
             bblock.getApplicableExceptionalOut(inst).hasMoreElements()) {
           firstPEI = inst;
@@ -430,8 +424,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
 
 
     // Traverse instructions in reverse order within the basic block.
-    for (OPT_Instruction inst = bblock.end; inst != bblock.start; 
-        inst = inst.getPrev()) {
+    for (OPT_Instruction inst = bblock.lastInstruction(); inst != bblock.firstInstruction(); 
+	 inst = inst.prevInstructionInCodeOrder()) {
 
       // traverse from defs to uses becauses uses happen after 
       // (in a backward sense) defs
@@ -738,8 +732,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       OPT_LiveInterval.createEndLiveRange(local, block, null);
 
       // Process the block, an instruction at a time.
-      for (OPT_Instruction inst = block.end; inst != block.start; 
-          inst = inst.getPrev()) {
+      for (OPT_Instruction inst = block.lastInstruction(); inst != block.firstInstruction(); 
+          inst = inst.prevInstructionInCodeOrder()) {
         if (verbose) {
           System.out.println("Processing: " + inst);
         }
@@ -960,7 +954,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   public void dumpMap() {
     if (VM.VerifyAssertions)
-      VM.assert(map != null);
+      VM._assert(map != null);
     map.dump();
   }
 

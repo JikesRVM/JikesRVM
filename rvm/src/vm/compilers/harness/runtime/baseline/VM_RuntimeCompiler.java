@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Use baseline compiler to compile methods at runtime. 
@@ -9,14 +12,11 @@
  * @author Stephen Fink
  * @author David Grove
  */
-class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
-  public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
-
+public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   static void boot() {
-  }
-
-  static void initializeMeasureCompilation() {
-    VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
+    if (VM.MeasureCompilation) {
+      VM_Callbacks.addExitMonitor(new VM_RuntimeCompilerInfrastructure());
+    }
   }
 
   static void processCommandLineArg(String arg) {
@@ -24,14 +24,13 @@ class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   }
 
   static VM_CompiledMethod compile(VM_Method method) {
-    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    return baselineCompile(method);
+    return method.isNative() ? jniCompile(method) : baselineCompile(method);
   }
   
   static void detailedCompilationReport(boolean explain) {
   }
   
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

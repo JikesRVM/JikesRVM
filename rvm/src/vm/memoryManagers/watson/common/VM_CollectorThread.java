@@ -3,6 +3,38 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Registers;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_RuntimeStructures;
+
 /**
  * System thread used to preform garbage collections.
  *
@@ -33,8 +65,8 @@
  * @author Bowen Alpern 
  * @author Stephen Smith
  */ 
-class VM_CollectorThread extends VM_Thread
-  implements VM_Uninterruptible, VM_GCConstants {
+public class VM_CollectorThread extends VM_Thread
+  implements VM_GCConstants {
 
   private final static boolean debug_native = false;
   
@@ -60,11 +92,11 @@ class VM_CollectorThread extends VM_Thread
   final static boolean MEASURE_RENDEZVOUS_TIMES = false;
   final static boolean SHOW_RENDEZVOUS_TIMES = false;
   
-  static int[]  participantCount;    // array of size 1 to count arriving collector threads
+  public static int[]  participantCount;    // array of size 1 to count arriving collector threads
 
-  static VM_CollectorThread[] collectorThreads;   // maps processor id to assoicated collector thread
+  public static VM_CollectorThread[] collectorThreads;   // maps processor id to assoicated collector thread
   
-  static int collectionCount;             // number of collections
+  public static int collectionCount;             // number of collections
   
   /**
    * The VM_Handshake object that contains the state of the next or current
@@ -78,12 +110,7 @@ class VM_CollectorThread extends VM_Thread
   static VM_GCSynchronizationBarrier gcBarrier;
   
   static {
-    //-#if RVM_WITH_CONCURRENT_GC
-    collect = new VM_RCHandshake();
-    //-#else
     collect = new VM_Handshake();
-    //-#endif
-
     participantCount = new int[1];  // counter for threads starting a collection
   } 
   
@@ -126,18 +153,18 @@ class VM_CollectorThread extends VM_Thread
   //
   // Use this to access all instance variables:
   //
-  private static VM_CollectorThread  getThis() {
+  private static VM_CollectorThread  getThis() throws VM_PragmaUninterruptible {
     return VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
   }
   
   // overrides VM_Thread.toString
-  public String toString() {
+  public String toString() throws VM_PragmaUninterruptible {
     return "VM_CollectorThread";
   }
 
   // returns number of collector threads participating in a collection
   //
-  static int numCollectors() {
+  static int numCollectors() throws VM_PragmaUninterruptible {
     return( participantCount[0] );
   }
 
@@ -148,7 +175,7 @@ class VM_CollectorThread extends VM_Thread
    *
    * @return The GC ordinal
    */
-  public final int getGCOrdinal() {
+  public final int getGCOrdinal() throws VM_PragmaUninterruptible {
     return gcOrdinal;
   }
 
@@ -296,7 +323,7 @@ class VM_CollectorThread extends VM_Thread
 	//
 	for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
 	  VM_Processor vp = VM_Processor.nativeProcessors[i];
-	  if (VM.VerifyAssertions) VM.assert(vp != null);
+	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
 	    if (debug_native)
@@ -310,7 +337,7 @@ class VM_CollectorThread extends VM_Thread
 	//
 	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
 	  VM_Processor vp = VM_Scheduler.processors[i];
-	  if (VM.VerifyAssertions) VM.assert(vp != null);
+	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
 	    if (debug_native)
@@ -350,8 +377,8 @@ class VM_CollectorThread extends VM_Thread
   }  // run
 
 
-  static void
-  quiesceAttachedProcessors() {
+  static void quiesceAttachedProcessors() throws VM_PragmaUninterruptible {
+
     // if there are any attached processors (for user pthreads that entered the VM
     // via an AttachJVM) we may be briefly IN_JAVA during transitions to a RVM
     // processor. Ususally they are either IN_NATIVE (having returned to the users 
@@ -414,8 +441,8 @@ class VM_CollectorThread extends VM_Thread
   }  // quiesceAttachedProcessors
 
 
-  static void
-  resumeAttachedProcessors() {
+  static void resumeAttachedProcessors() throws VM_PragmaUninterruptible {
+
     // any attached processors were quiesced in either BLOCKED_IN_SIGWAIT
     // or BLOCKED_IN_NATIVE.  Unblock them.
 
@@ -446,7 +473,7 @@ class VM_CollectorThread extends VM_Thread
       // should not reach here: system error:
       VM_Scheduler.trace("ERROR", "resumeAttachedProcessors: VP not BLOCKED", i);
       VM_Scheduler.trace("   ", "vpstatus =",VM_Processor.vpStatus[vp.vpStatusIndex]);
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 
     }  // end loop over attachedProcessors[]
   }  // resumeAttachedProcessors
@@ -458,13 +485,9 @@ class VM_CollectorThread extends VM_Thread
   // Returned: collector
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
-  static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
+  public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     int[] stack =  VM_RuntimeStructures.newImmortalStack(STACK_SIZE_COLLECTOR>>2);
-    //-#if RVM_WITH_CONCURRENT_GC
-    return new VM_RCCollectorThread(stack, true, processorAffinity);
-    //-#else
     return new VM_CollectorThread(stack, true, processorAffinity);
-    //-#endif
   }
   
   // Make a collector thread that will not participate in gc.
@@ -479,16 +502,16 @@ class VM_CollectorThread extends VM_Thread
     return new VM_CollectorThread(stack, false,  processorAffinity);
   }
 
-  void rendezvous() {
+  void rendezvous() throws VM_PragmaUninterruptible {
       rendezvousWaitTime += gcBarrier.rendezvous(MEASURE_WAIT_TIMES);
   }
   
-  void rendezvousRecord(double start, double end) {
+  void rendezvousRecord(double start, double end) throws VM_PragmaUninterruptible {
       if (MEASURE_RENDEZVOUS_TIMES)
 	  rendezvousWaitTime += gcBarrier.rendezvousRecord(start, end);
   }
 
-  static void printRendezvousTime() {
+  static void printRendezvousTime() throws VM_PragmaUninterruptible {
       if (SHOW_RENDEZVOUS_TIMES)
 	  gcBarrier.printRendezvousTimes();
   }
@@ -572,7 +595,7 @@ class VM_CollectorThread extends VM_Thread
 
   // constructor
   //
-  VM_CollectorThread(int[] stack, boolean isActive, VM_Processor processorAffinity) {
+  VM_CollectorThread(int[] stack, boolean isActive, VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     super(stack);
     makeDaemon(true); // this is redundant, but harmless
     this.isActive          = isActive;
@@ -586,20 +609,19 @@ class VM_CollectorThread extends VM_Thread
   
   // Record number of processors that will be participating in gc synchronization.
   //
-  static void boot(int numProcessors) {
+  public static void boot(int numProcessors) throws VM_PragmaInterruptible {
     VM_Allocator.gcSetup(numProcessors);
   }
   
 
 
-  void incrementWaitTimeTotals() {
+  void incrementWaitTimeTotals() throws VM_PragmaUninterruptible {
     totalBufferWait += bufferWaitTime + bufferWaitTime1;
     totalFinishWait += finishWaitTime + finishWaitTime1;
     totalRendezvousWait += rendezvousWaitTime;
   }
 
-  void
-  resetWaitTimers() {
+  void resetWaitTimers() throws VM_PragmaUninterruptible {
     bufferWaitTime = 0.0;
     bufferWaitTime1 = 0.0;
     finishWaitTime = 0.0;
@@ -607,8 +629,7 @@ class VM_CollectorThread extends VM_Thread
     rendezvousWaitTime = 0.0;
   }
 
-  static void
-  printThreadWaitTimes() {
+  static void printThreadWaitTimes() throws VM_PragmaUninterruptible {
     VM_CollectorThread ct;
 
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");

@@ -2,7 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_BaselineCompiledMethod;
+import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
 /**
@@ -52,18 +59,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
    *	Representation of call graph.
    */
   private VM_PartialCallGraph callGraph;
-  /*
-   *  The edge listener
-   */
-  VM_EdgeListener edgeListener;
 
   /**
    * Constructor
    */
   VM_AIByEdgeOrganizer(VM_EdgeListener edgeListener) {
      if (DEBUG) VM.sysWrite("VM_AIByEdgeOrganizer.<init>(): enter\n");     
-     this.edgeListener = edgeListener;
+     this.listener = edgeListener;
      edgeListener.setOrganizer(this);
+     makeDaemon(true);
   }
 
   /**
@@ -85,14 +89,13 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     bufferSize = numberOfBufferTriples * 3;
     buffer     = new int[bufferSize];
 
-    edgeListener.setBuffer(buffer); 
+    ((VM_EdgeListener)listener).setBuffer(buffer); 
 
     // allocate internal data structures.
     callGraph   = VM_AdaptiveInlining.getPartialCallGraph();
 
-    // Install and activate the edge listener
-    VM_RuntimeMeasurements.installContextListener(edgeListener);
-    edgeListener.activate();
+    // Install the edge listener
+    VM_RuntimeMeasurements.installContextListener((VM_EdgeListener)listener);
 
     // register as decayable
     VM_RuntimeMeasurements.registerDecayableObject(this);
@@ -109,8 +112,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     if(DEBUG)
       VM.sysWrite("VM_AIByEdgeOrganizer.thresholdReached(): enter and reregister.\n");
 
-    VM_AdaptiveInlining.incrementNumYieldPoints(edgeListener.
-                getTimesUpdateCalled());
+    VM_AdaptiveInlining.incrementNumYieldPoints(((VM_EdgeListener)listener).getTimesUpdateCalled());
     for (int i=0; i<bufferSize; i=i+3) {
       int calleeCMID = buffer[i+0];
       VM_CompiledMethod compiledMethod   = VM_CompiledMethods.getCompiledMethod(calleeCMID);
@@ -222,10 +224,6 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     }
     if(DEBUG) callGraph.dump();
 
-    // Clear listener and activate it again.
-    edgeListener.reset();
-    edgeListener.activate();
-
     if(DEBUG)VM.sysWrite("VM_AIByEdgeOrganizer.thresholdReached(): exit\n");
   }  
 
@@ -258,6 +256,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 
        if (DEBUG) VM.sysWrite(" Process hot method: "+
 			      hotMethod.getMethod()+" with "+numSamples+"\n");
+       
+       if (!hotMethod.getMethod().isInterruptible()) {
+	 // This is required because a very small subset of uninterruptible methods
+	 // need to have their code in a non-moving heap. 
+	 // For now, we use this simple, but conservative test to avoid trouble.
+	 if (DEBUG) VM.sysWrite("Not selecting uninterruptible method for recompilation "+hotMethod.getMethod());
+	 continue;
+       }
+
        // For each edge, see if the callsite is present, 
        // but the callee is absent in hotMethod.
        for (Enumeration triples = vectorOfTriples.elements(); 

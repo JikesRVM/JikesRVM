@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /** 
  * OPT_BitSet.java
@@ -26,7 +28,7 @@ public final class OPT_BitSet {
   /**
    * Constructor: create an empty set corresponding to a given mapping
    */
-  OPT_BitSet(OPT_BitSetMapping map) {
+  public OPT_BitSet(OPT_BitSetMapping map) {
     int length = map.getMappingSize();
     vector = new OPT_BitVector(length);
     this.map = map;
@@ -37,7 +39,7 @@ public final class OPT_BitSet {
    */
   public void addAll(OPT_BitSet B) {
     if (VM.VerifyAssertions) {
-      VM.assert(map == B.map);
+      VM._assert(map == B.map);
     }
     vector.or(B.vector);
   }

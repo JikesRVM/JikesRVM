@@ -3,6 +3,7 @@
  */
 
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  *--------------------------------------------------------------------------
@@ -76,7 +77,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_StackframeLayoutConstants  {
+public interface VM_StackframeLayoutConstants  {
 
    static final int STACKFRAME_HEADER_SIZE             = 12; // size of frame header, in bytes
    static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  8; // spot for this frame's callee to put return address

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
   * This class implements the OPT_InlineOracle interface with a
@@ -11,7 +15,7 @@
   * @author Dave Grove
   * @modified Michael Hind
   */
-class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
+public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 
   // So much for sharing code with the generic guy.
   // The issue is that the callee extracted from the state may not
@@ -189,6 +193,13 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     return null; // placate jikes.
   }
 
+  protected OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller, 
+								  VM_Method callee, 
+								  OPT_CompilationState state) {
+    OPT_OptimizingCompilerException.UNREACHABLE();
+    return null; // placate jikes.
+  }
+
   protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
     // by default; nothing to do
   }
@@ -201,7 +212,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   /** 
    * construct an oracle that interfaces to a plan 
    */
-  OPT_ProfileDirectedInlineOracle(OPT_InlinePlan plan) {
+  public OPT_ProfileDirectedInlineOracle(OPT_InlinePlan plan) {
     this.plan = plan;
   }
 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -64,7 +65,7 @@ public class VM_StackTrace implements VM_Constants {
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
 	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	 stackTrace[i].compiledMethod = compiledMethod;
-	 stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
+	 stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
 	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	   // skip native frames, stopping at last native frame preceeding the
 	   // Java To C transition frame
@@ -76,10 +77,12 @@ public class VM_StackTrace implements VM_Constants {
      }
      VM.enableGC();
       
-     if (VM.TraceStackTrace) {
-	 VM.disableGC();
-	 VM_Scheduler.dumpStack();
-	 VM.enableGC();
+     if (verboseTracePeriod > 0) {
+	 if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
+	     VM.disableGC();
+	     VM_Scheduler.dumpStack();
+	     VM.enableGC();
+	 }
      }
 
      return stackTrace;
@@ -146,6 +149,9 @@ public class VM_StackTrace implements VM_Constants {
   // implementation //
   //----------------//
 
+  static int verboseTracePeriod = 0;
+  static int verboseTraceIndex = 0;
+
   VM_CompiledMethod compiledMethod;
-  int               instructionOffset;
+  public int               instructionOffset;
 }

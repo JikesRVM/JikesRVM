@@ -2,8 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
+
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+//-#endif
 
 /**
  * This class contains the high level logic for executing an inlining decision.
@@ -14,7 +21,8 @@ import instructionFormats.*;
  * @see OPT_InlineDecision
  * @see OPT_GenerationContext
  */
-class OPT_Inliner implements OPT_Operators, OPT_Constants {
+public class OPT_Inliner implements OPT_Operators, 
+				    com.ibm.JikesRVM.opt.OPT_Constants {
 
   // The following flag requires an adaptive boot image and flag
   // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation
@@ -289,7 +297,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 			       new OPT_IntConstantOperand(0),
 			       OPT_ConditionOperand.EQUAL(),
 			       testFailed.makeJumpTarget(),
-			       new OPT_BranchProfileOperand());
+			       OPT_BranchProfileOperand.unlikely());
 	    tmp.copyPosition(callSite);
 	    firstIfBlock.appendInstruction(tmp);
 
@@ -337,7 +345,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
       container.cfg.linkInCodeOrder(container.prologue, testFailed);
       return  container;
     } else {
-      if (VM.VerifyAssertions) VM.assert(inlDec.getNumberOfTargets() == 1);
+      if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       VM_Method callee = inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee 

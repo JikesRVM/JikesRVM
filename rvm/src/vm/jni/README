@@ -5,7 +5,7 @@ $Id$
 
 Current status of the JNI implementation
 
-Last updated:  9/6/2001
+Last updated:  12/9/2002
 @author Ton Ngo 
 @author Steve Smith
 
@@ -29,12 +29,8 @@ o These JNI functions are not implemented yet.  Calling them
   will cause the VM to dump the VM state and exit.
 
 	DefineClass         
-	NewGlobalRef        
-	DeleteGlobalRef     
-	DeleteLocalRef      
 	RegisterNatives     
 	UnregisterNatives   
-	GetJavaVM           
 
 
 o These new JNI library functions were added in Java 2 and are
@@ -69,14 +65,13 @@ o Mangled name for native method: we haven't implemented the complete
 o Enforce the type rule in the reflection code for invoking private method,
   i.e. a subclass cannot invoke the private method of its superclass.
 
-
 ---------------------------------------------------------------------
 
 Tips:
 -----
 
-o To get a message for each JNI function, set the verboseJNI flag in 
-  VM_JNIFunctions.java
+o To get a message each time a JNI function is invoked, 
+  set the traceJNI flag in VM_JNIFunctions.java
 
 o The unit tests for JNI functions are in the directory src/examples//jni.  
   To run them, go to the directory regression/tests/jni and type 'make'.

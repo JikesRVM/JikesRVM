@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the
@@ -15,7 +16,7 @@
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-class VM_MultianewarrayHelper {
+public class VM_MultianewarrayHelper {
 
   /**
    * Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",

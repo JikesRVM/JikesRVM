@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Convert an IR object from LIR to MIR via BURS
@@ -46,15 +48,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class ReduceOperators extends OPT_CompilerPhase
     implements VM_Constants, OPT_Operators, OPT_Constants {
 
-    final String getName () {
+    public final String getName () {
       return "Reduce Operators";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != 
 	     null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
@@ -287,15 +289,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class NormalizeConstants extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Normalize Constants";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_NormalizeConstants.perform(ir);
     }
   }
@@ -304,15 +306,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class DoLiveness extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Live Handlers";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       if (ir.options.HANDLER_LIVENESS) {	
 	new OPT_LiveAnalysis(false, false, true).perform(ir);
       }
@@ -325,51 +327,73 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class DoBURS extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "DepGraph & BURS";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
+    }
+
+    public void reportAdditionalStats() {
+      VM.sysWrite("  ");
+      VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						       container.counter2);
+      VM.sysWrite("% Infrequent BBs");
     }
 
     // IR is inconsistent state between DoBURS and ComplexOperators.
     // It isn't verifiable again until after ComplexOperators completes.
     public void verify(OPT_IR ir) { }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
-      // Ensure that spans basic block is set correctly 
-      // (required for BURS correctness).
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      OPT_BURS burs = new OPT_BURS(ir);
-      
+      OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
+      OPT_NormalBURS burs = new OPT_NormalBURS(ir);
       for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	   bb != null; 
 	   bb = bb.nextBasicBlockInCodeOrder()) {
-        burs.prepareForBlock(bb);
-        if (!bb.isEmpty()) {
-          // I. Build Dependence graph for the basic block
-          OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
-						 bb.firstRealInstruction(), 
-						 bb.lastRealInstruction(),
-						 bb);
-          if (options.PRINT_DG_BURS) {
-            // print dependence graph.
-            OPT_Compiler.header("DepGraph", ir.method);
-            dgraph.printDepGraph();
-            OPT_Compiler.bottom("DepGraph", ir.method);
-          }
-          if (options.VCG_DG_BURS) {
-            // output dependence graph in VCG format.
-            // CAUTION: creates A LOT of files (one per BB)
-            OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
-			     ".vcg", dgraph);
-          }
-          // II. Invoke BURS and rewrite block from LIR to MIR
-          burs.invoke(dgraph);
-          burs.finalizeBlock(bb);
-        }
+	if (bb.isEmpty()) continue;
+	container.counter2++;
+	if (bb.getInfrequent()) {
+	  container.counter1++;
+	  if (options.FREQ_FOCUS_EFFORT) {
+	    // Basic block is infrequent -- use quick and dirty instruction selection
+	    mburs.prepareForBlock(bb);
+	    mburs.invoke(bb);
+	    mburs.finalizeBlock(bb);
+	    continue;
+	  }
+	}
+	// Use Normal instruction selection.
+	burs.prepareForBlock(bb);
+	// I. Build Dependence graph for the basic block
+	OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
+					       bb.firstRealInstruction(), 
+					       bb.lastRealInstruction(),
+					       bb);
+	if (options.PRINT_DG_BURS) {
+	  // print dependence graph.
+	  OPT_Compiler.header("DepGraph", ir.method);
+	  dgraph.printDepGraph();
+	  OPT_Compiler.bottom("DepGraph", ir.method);
+	}
+	if (options.VCG_DG_BURS) {
+	  // output dependence graph in VCG format.
+	  // CAUTION: creates A LOT of files (one per BB)
+	  OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
+			   ".vcg", dgraph);
+	}
+	// II. Invoke BURS and rewrite block from LIR to MIR
+	try { 
+	  burs.invoke(dgraph);
+	}
+	catch (OPT_OptimizingCompilerException e) {
+	  ir.printInstructions();
+	  throw e;
+	}
+	burs.finalizeBlock(bb);
       }
     }
   }
@@ -380,15 +404,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
    */
   private static final class ComplexOperators extends OPT_CompilerPhase {
 
-    final String getName () {
+    public final String getName () {
       return "Complex Operators";
     }
 
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_ComplexLIR2MIRExpansion.convert(ir);
       // ir now contains well formed MIR.
       ir.IRStage = OPT_IR.MIR;

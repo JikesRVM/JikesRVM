@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Implement lazy compilation.
@@ -11,7 +12,7 @@
  * @author Derek Lieber
  * @date 17 Sep 1999  
  */
-class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
+public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 
   /**
    * Resolve, compile if necessary, and invoke a method.
@@ -24,7 +25,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     DL_Helper.compileMethod(dl, targMethod);
     INSTRUCTION[] code = targMethod.getCurrentInstructions();
     VM_Magic.dynamicBridgeTo(code);                   // restore parameters and invoke
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);  // does not return here
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);  // does not return here
   }
 
 
@@ -38,7 +39,6 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString());
   }
-
 
   /**
    * Helper class that does the real work of resolving method references
@@ -54,6 +54,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Returned:    VM_DynamicLink that describes call site.
      */
     static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException, VM_PragmaNoInline {
+
       // find call site 
       //
       VM.disableGC();
@@ -62,13 +63,14 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
       int callingCompiledMethodId  = VM_Magic.getCompiledMethodID(callingFrame);
       VM_CompiledMethod callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      int callingInstructionOffset = returnAddress.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
+      int callingInstructionOffset = returnAddress.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
       VM.enableGC();     
 
       // obtain symbolic method reference
       //
       VM_DynamicLink dynamicLink = new VM_DynamicLink();
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
+
       return dynamicLink;
     }
 
@@ -94,9 +96,43 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	VM.enableGC();
 	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
 	targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
-	if (targetMethod == null)
+	if (targetMethod == null) {
+	  VM.sysWrite("Could not find method ");
+	  VM.sysWrite(VM_Magic.objectAsAddress(methodRef.getName()));  	     VM.sysWrite("  ");
+	  VM.sysWrite(methodRef.getName());	                             VM.sysWrite("  ");
+	  VM.sysWrite(VM_Magic.objectAsAddress(methodRef.getDescriptor()));  VM.sysWrite("  ");
+	  VM.sysWrite(methodRef.getDescriptor());                            VM.sysWrite("  ");
+	  VM.sysWrite(" in class ");
+	  VM.sysWrite(targetClass.getName());
+	  VM.sysWrite(" of object at ");
+	  VM.sysWrite(VM_Magic.objectAsAddress(targetObject));
+	  VM.sysWriteln();
+	  VM_Method methods[] = targetClass.getVirtualMethods();
+	  VM.sysWriteln("targetClass = ", VM_Magic.objectAsAddress(targetClass));
+	  VM.sysWriteln("methods = ", VM_Magic.objectAsAddress(methods));
+	  for (int i = 0, n = methods.length; i < n; ++i) {
+	    VM_Method method = methods[i];
+	    boolean same = (method.getName() == methodRef.getName() && 
+			    method.getDescriptor() == methodRef.getDescriptor());
+	    VM.sysWrite(same ? "HIT  " : "MISS ");
+	    VM.sysWrite("Method ", i); VM.sysWrite(":   "); 
+	    VM.sysWrite(VM_Magic.objectAsAddress(method.getName()));  	    VM.sysWrite("   ");  
+	    VM.sysWrite(method.getName());  	    VM.sysWrite("   ");  
+	    VM.sysWrite(VM_Magic.objectAsAddress(method.getDescriptor()));  	    VM.sysWrite("   ");  
+	    VM.sysWrite(method.getDescriptor());  	    VM.sysWrite("   ");  
+	    VM.sysWriteln();
+	  }
+	  VM_Type types[] = VM_TypeDictionary.getValuesPointer();
+	  for (int i=0; i<types.length; i++) {
+	    VM_Type t = types[i];
+	    if (t == null) continue;
+	    VM.sysWrite("Type at ", VM_Magic.objectAsAddress(t));
+	    VM.sysWrite(t.getName());
+	    VM.sysWriteln();
+	  }
 	  throw new VM_ResolutionException(targetClass.getDescriptor(), 
 					   new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor()));
+	}
       }
       targetMethod = targetMethod.resolve();
 
@@ -136,12 +172,6 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	VM.enableGC();
 	VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
 	recvClass.updateTIBEntry(targetMethod);
-      }
-
-      // check to see if we need to breakpoint for jdp
-      if (VM_BaselineCompiler.options.hasMETHOD_TO_BREAK() &&
-	  VM_BaselineCompiler.options.fuzzyMatchMETHOD_TO_BREAK(targetMethod.toString())) {
-	VM_Services.breakStub();  // invoke stub used for breaking in jdp
       }
     }
   }

@@ -13,15 +13,21 @@
 # (The results of the fullshadow are stored in the file defined in
 #  the VERBOSE_LOG variable.)
 
+# Pick up defs of platform tools
+. $RVM_HOST_CONFIG
+
 # How often to look to see if the builds are done
 SLEEP_DURATION="120"
 
-export JALAPENO_HOME=/homes/fury5/jalapeno
-
-export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:/usr/contrib/bin:.
+export PATH=$PATH:.
 
 # the resulting message
 MSG=$RVM_ROOT/MSG
+
+# Note: The following comment assumes that NightSanityDriver will continue to 
+# look in rvm/regression/config for config files.  If this ever changes, 
+# update this statement.
+CONFIG_DIR=rvm/regression/config
 
 # The directory where the archive lives
 export ARCHIVE=~/archive
@@ -58,14 +64,12 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
+echo "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$1 \n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
-. $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
-
 # performance runs
-echo "\n\nRunning the performance tests\n" >> $RUN_LOG
+echo "\n\nRunning the performance tests as specified in $CONFIG_DIR/$2\n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
@@ -73,11 +77,9 @@ $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -re
 echo "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 
 export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
-export  MEASURE_COMPILATION_LOG=$MEASURE_COMPILATION_DIR/measureCompilation.performance.log
-
 mkdir -p $MEASURE_COMPILATION_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2' -performance $MEASURE_COMPILATION_LOG" -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
 
 # Fix the permission bits because umask doesn't seem to be working correctly
 echo "fixing permission bits" >> $RUN_LOG
@@ -85,7 +87,21 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-(cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs $GNU_TAR czvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
+(find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+
+echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+cd $RVM_ROOT/sanityResults
+transfer=`uname`.tar.gz
+cp $tarfile $transfer
+$CVS add $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+$CVS commit -m "night sanity" $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+rm -f $transfer
+mv CVS/Entries CVS/tmp
+grep -v $transfer < CVS/tmp > CVS/Entries
+rm -f CVS/tmp
+cd $RVM_ROOT
+
 
 # determine how many ran, failed, and passed, then build a summary line
 numran=`grep "sane" $RUN_LOG | wc -l`
@@ -101,12 +117,19 @@ else
   echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
 fi
 
+# Also report the number of javadoc errors
+numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc -l`
+if [[ $numjavadocErrors -eq 0 ]] then 
+  echo "There were no javadoc errors." >> $MSG
+else 
+  echo "There were $numjavadocErrors javadoc errors." >> $MSG
+fi
+
 # Print some details on the failures
 if [[ $numfailed -gt 0 ]] then
   echo >> $MSG
   echo Failure Details >> $MSG
   echo --------------- >> $MSG
-  echo >> $MSG
   fgrep "You are NOT sane" $RUN_LOG  \
     | sed -e "s/RunSanityTests://"   \
     | sed -e "s/\/.*tests\///"   \
@@ -114,14 +137,21 @@ if [[ $numfailed -gt 0 ]] then
     >> $MSG
 fi
 
+if [[ $numjavadocErrors -gt 0 && $numjavadocErrors -lt 50 ]] then 
+  echo >> $MSG
+  echo Javadoc Errors >> $MSG
+  echo -------------- >> $MSG
+  grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq >> $MSG
+fi
 
-# Removed at Mike Hind's request
 # Describe where the information can be found
-# echo "Further details of this run can be found in\n" >> $MSG
-# echo "     run details: $RUN_LOG\n " >> $MSG
-# echo "     build details: $BUILD_LOG\n " >> $MSG
-# echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
-# echo "     performance details: $PERF_LOG" >> $MSG
+if [[ $ARCH = 'Linux' ]] then
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/Linux.tar.gz" >> $MSG
+else
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
+fi
+echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
+echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
 
 # Grab the bottom line performance and place it in a more visible place
 echo >> $MSG
@@ -137,14 +167,13 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 
 # gather measure compilation results
 echo "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O0.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O0.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O1.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O1.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O2.?proc.raw >> $MSG
-
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O2.?proc.raw >> $MSG
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
@@ -158,27 +187,30 @@ fi
 
 #
 # Check that files contain an @author tag, a CVS Id tag, and a Copyright notice.
+# Only run on one machine: currently AIX
 #
-export CHECK_DIR=$RVM_ROOT/results
+if [[ $ARCH = 'AIX' ]] then
+  export CHECK_DIR=$RVM_ROOT/results
 
-# Check files
-$RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
+  # Check files
+  $RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
  
-# Email results 
-# Only email to pfs at the moment
-if [[ -s $CHECK_DIR/noAuthor.rvm ]] then
- cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     pfs 
-else
- echo " " | mail -s "no files without an @author tag"     pfs 
-fi
-if [[ -s $CHECK_DIR/noId.rvm ]] then
-  cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       pfs 
-else
-  echo " " | mail -s "no files without a CVS Id tag"       pfs 
-fi
-if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
-  cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" pfs 
-else
-  echo " " | mail -s "no files without a Copyright notice" pfs 
+  # Email results 
+  # Only email to volations to $RESULT_MAILING_LIST
+  if [[ -s $CHECK_DIR/noAuthor.rvm ]] then
+   cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     $RESULT_MAILING_LIST
+#  else
+#   echo " " | mail -s "no files without an @author tag"     pfs 
+  fi
+  if [[ -s $CHECK_DIR/noId.rvm ]] then
+    cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       $RESULT_MAILING_LIST
+#  else
+#    echo " " | mail -s "no files without a CVS Id tag"       pfs 
+  fi
+  if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
+    cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
+#  else
+#    echo " " | mail -s "no files without a Copyright notice" pfs 
+  fi
 fi
 

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 
@@ -98,8 +100,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
       OPT_BasicBlock sizeTestBB = s.getBasicBlock();
       OPT_BasicBlock nextBB = sizeTestBB.splitNodeAt(s, ir);
-      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
+      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
       sizeTestBB.insertOut(gt32BB);
       sizeTestBB.insertOut(lt32BB);
       gt32BB.insertOut(nextBB);
@@ -162,8 +164,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
       OPT_BasicBlock sizeTestBB = s.getBasicBlock();
       OPT_BasicBlock nextBB = sizeTestBB.splitNodeAt(s, ir);
-      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
+      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
       sizeTestBB.insertOut(gt32BB);
       sizeTestBB.insertOut(lt32BB);
       gt32BB.insertOut(nextBB);
@@ -226,8 +228,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
       OPT_BasicBlock sizeTestBB = s.getBasicBlock();
       OPT_BasicBlock nextBB = sizeTestBB.splitNodeAt(s, ir);
-      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock gt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
+      OPT_BasicBlock lt32BB = sizeTestBB.createSubBlock(s.bcIndex, ir, 0.5f);
       sizeTestBB.insertOut(gt32BB);
       sizeTestBB.insertOut(lt32BB);
       gt32BB.insertOut(nextBB);
@@ -437,7 +439,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       }
 
       OPT_BasicBlock myBlock = s.getBasicBlock();
-      OPT_BasicBlock test2Block = myBlock.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock test2Block = myBlock.createSubBlock(s.bcIndex, ir, 0.25f);
       OPT_BasicBlock falseBlock = myBlock.splitNodeAt(s, ir);
       OPT_BasicBlock trueBlock = IfCmp.getTarget(s).target.getBasicBlock();
       
@@ -474,7 +476,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Instruction lastInstr = bb.lastRealInstruction();
     if (lastInstr.operator() == IA32_JMP) {
       // We're in trouble if there is another instruction between s and lastInstr!
-      if (VM.VerifyAssertions) VM.assert(s.nextInstructionInCodeOrder() == lastInstr);
+      if (VM.VerifyAssertions) VM._assert(s.nextInstructionInCodeOrder() == lastInstr);
       // Set testFailed to target of GOTO
       testFailed = MIR_Branch.getTarget(lastInstr);
       nextInstr = lastInstr.nextInstructionInCodeOrder();
@@ -593,9 +595,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB6 = BB1.splitNodeAt(s, ir);
     s.remove();
-    OPT_BasicBlock oneBlock = BB1.createSubBlock(0, ir);
-    OPT_BasicBlock zeroBlock = BB1.createSubBlock(0, ir);
-    OPT_BasicBlock minusOneBlock = BB1.createSubBlock(0, ir);
+    OPT_BasicBlock oneBlock = BB1.createSubBlock(0, ir, .33f);
+    OPT_BasicBlock zeroBlock = BB1.createSubBlock(0, ir, .34f);
+    OPT_BasicBlock minusOneBlock = BB1.createSubBlock(0, ir, .33f);
     OPT_BasicBlock unorderedBlock = oneBlock;
     if ((s.operator == DOUBLE_CMPL) || (s.operator == FLOAT_CMPL)) {
       unorderedBlock = minusOneBlock;
@@ -607,14 +609,14 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     BB1.appendInstruction(MIR_CondBranch2.create(IA32_JCC2,
 						 OPT_IA32ConditionOperand.PE(),  // PF == 1	
 						 unorderedBlock.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.01),
+						 new OPT_BranchProfileOperand(0.01f),
 						 OPT_IA32ConditionOperand.EQ(),  // ZF == 1
 						 zeroBlock.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.33)));
+						 new OPT_BranchProfileOperand(0.33f)));
     BB1.appendInstruction(MIR_CondBranch.create(IA32_JCC,
 						OPT_IA32ConditionOperand.LLT(), // CF == 1
 						minusOneBlock.makeJumpTarget(),
-						new OPT_BranchProfileOperand(0.33)));
+						new OPT_BranchProfileOperand(0.33f)));
     
     oneBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(1)));
     oneBlock.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
@@ -672,18 +674,18 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     BB1.appendInstruction(MIR_CondBranch2.create(IA32_JCC2, 
 						 OPT_IA32ConditionOperand.LT(),
 						 BB4.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.49),
+						 new OPT_BranchProfileOperand(0.49f),
 						 OPT_IA32ConditionOperand.GT(),
 						 BB5.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.49)));
+						 new OPT_BranchProfileOperand(0.49f)));
     BB2.appendInstruction(MIR_Compare.create(IA32_CMP, lone, ltwo));
     BB2.appendInstruction(MIR_CondBranch2.create(IA32_JCC2, 
 						 OPT_IA32ConditionOperand.LLT(),
 						 BB4.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.49),
+						 new OPT_BranchProfileOperand(0.49f),
 						 OPT_IA32ConditionOperand.LGT(),
 						 BB5.makeJumpTarget(),
-						 new OPT_BranchProfileOperand(0.49)));
+						 new OPT_BranchProfileOperand(0.49f)));
     BB3.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(0)));
     BB3.appendInstruction(MIR_Branch.create(IA32_JMP, BB6.makeJumpTarget()));
     BB4.appendInstruction(MIR_Move.create(IA32_MOV, R(res), I(-1)));
@@ -741,7 +743,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
     
     // create a basic block at the end of the IR to hold the yieldpoint   
-    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir, .00001f);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);

@@ -3,6 +3,35 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+
 /**
  * This class provides a generic interface to collector calls.  All
  * calls by the VM runtime and compilers to the collector should be
@@ -13,7 +42,7 @@
  * 
  * @see VM_Allocator
  */
-public class VM_Collector implements VM_Constants, VM_Uninterruptible {
+public class VM_Collector implements VM_Constants {
 
   /**
    * Initialization that occurs at <i>build</i> time.  The value of
@@ -42,7 +71,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * options (this is called as soon as options have been parsed,
    * which is necessarily after the basic allocator boot).
    */
-  public static void postBoot() {
+  public static void postBoot() throws VM_PragmaInterruptible {
   }
 
   /** 
@@ -58,7 +87,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return True if GC is in progress.
    */
-  public static final boolean gcInProgress() {
+  public static final boolean gcInProgress() throws VM_PragmaUninterruptible {
     return VM_Allocator.gcInProgress;
   }
 
@@ -67,7 +96,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The number of collections that have occured.
    */
-  public static final int collectionCount() {
+  public static final int collectionCount() throws VM_PragmaUninterruptible {
     return VM_CollectorThread.collectionCount;
   }
   
@@ -76,7 +105,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The amount of free memory.
    */
-  public static final long freeMemory() {
+  public static final long freeMemory() throws VM_PragmaInterruptible {
     return VM_Allocator.freeMemory();
   }
 
@@ -85,14 +114,14 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The amount of total memory.
    */
-  public static final long totalMemory() {
+  public static final long totalMemory() throws VM_PragmaInterruptible {
     return VM_Allocator.totalMemory();
   }
 
   /**
    * Forces a garbage collection.
    */
-  public static final void gc() {
+  public static final void gc() throws VM_PragmaInterruptible {
     VM_Allocator.gc();
   }
 
@@ -112,8 +141,8 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
     VM_Allocator.setupProcessor(p);
   }
 
-  static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
-  static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
-  static boolean useMemoryController = false;
+  public static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
+  public static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
+  public static boolean useMemoryController = false;
 
 }

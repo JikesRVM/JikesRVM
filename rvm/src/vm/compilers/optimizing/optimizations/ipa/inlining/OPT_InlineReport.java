@@ -2,9 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
-import  java.io.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
+import java.io.*;
 
 /**
  * OPT_InlineReport.java
@@ -16,7 +19,7 @@ import  java.io.*;
  *
  * @see OPT_InlineReportElement
  */
-class OPT_InlineReport {
+public class OPT_InlineReport {
   /*
    * The PrintStream object to which the report is written.
    */
@@ -43,7 +46,7 @@ class OPT_InlineReport {
       try {
         report = new PrintStream((OutputStream)new FileOutputStream(
             "InlineReport.txt"));
-      } catch (FileNotFoundException e) {
+      } catch (IOException e) {
         System.err.println("Can't open file: InlineReport.txt");
       }
     }

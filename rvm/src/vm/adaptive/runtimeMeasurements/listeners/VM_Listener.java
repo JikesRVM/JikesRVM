@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
 /**
  * A VM_Listener object is invoked when online measurement information 
@@ -21,7 +25,7 @@
  * must do a minimal amount of work.
  *
  * @author Peter Sweeney
- * @modified Dave Grove
+ * @author Dave Grove
  */
 abstract class VM_Listener implements VM_Uninterruptible {
 
@@ -46,6 +50,11 @@ abstract class VM_Listener implements VM_Uninterruptible {
   public final void passivate() { active = false; }
 
   /**
+   * reset the listeners data structures
+   */
+  abstract public void reset();
+
+  /**
    * Organizer associated with this listener.
    */
   public final void setOrganizer(VM_Organizer organizer) {
@@ -55,15 +64,9 @@ abstract class VM_Listener implements VM_Uninterruptible {
   /**
    * Wake up the organizer thread (if any) associated with the listener
    */
-  public final void notifyOrganizer() {
+  public final void activateOrganizer() {
     if (organizer != null) {
-      synchronized(organizer) {
-	try {
-	  organizer.notify();
-	} catch (Exception e) {
-	  e.printStackTrace();
-	}
-      }
+      organizer.activate();
     }
   }
 

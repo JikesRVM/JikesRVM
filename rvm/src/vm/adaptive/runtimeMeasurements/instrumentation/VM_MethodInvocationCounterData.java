@@ -3,6 +3,11 @@
  */
 // $Id$
 
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.opt.*;
+
 /**
  * VM_MethodInvocationCounterData.java
  *
@@ -48,7 +53,7 @@ final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
    **/
   public void reset()  
   { 
-    VM.assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase"); 
+    VM._assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase"); 
   }
 
 } // end of class

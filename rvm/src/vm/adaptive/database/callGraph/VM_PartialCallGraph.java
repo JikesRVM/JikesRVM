@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
 
 /**
  * A partial call graph (PCG) is implemented as a set of edges and each
@@ -42,7 +46,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
   public void decay() { 
     if (DEBUG) {VM.sysWrite(" Before decay\n");  dump(); }
     
-    double rate = VM_Controller.options.AI_DECAY_RATE;
+    double rate = VM_Controller.options.DECAY_RATE;
     
     synchronized(findTriples) {
       for (java.util.Iterator iterator = getEdges(); iterator.hasNext();) {

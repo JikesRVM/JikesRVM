@@ -2,6 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 
 /**
  * Manage pool of compiled methods. <p>
@@ -33,7 +39,7 @@ public class VM_CompiledMethods {
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {
-      if (VM.VerifyAssertions) VM.assert(false, "Unexpected compiler type!");
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected compiler type!");
     }
     compiledMethods[id] = cm;
     return cm;
@@ -41,12 +47,15 @@ public class VM_CompiledMethods {
 
   // Fetch a previously compiled method.
   //
-  static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-      VM.assert(0 < compiledMethodId);
-      VM.assert(compiledMethodId <= currentCompiledMethodId);
+	if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
+	    VM.sysWrite(compiledMethodId, true);
+	    VM.sysWrite("\n");
+	    VM._assert(false);
+	}
     }
 
     return compiledMethods[compiledMethodId];
@@ -54,13 +63,13 @@ public class VM_CompiledMethods {
 
   // Get number of methods compiled so far.
   //
-  static int numCompiledMethods() throws VM_PragmaUninterruptible {
+  public static int numCompiledMethods() throws VM_PragmaUninterruptible {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
     return compiledMethods;
   }
 
@@ -87,7 +96,7 @@ public class VM_CompiledMethods {
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
+  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) throws VM_PragmaUninterruptible {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
@@ -127,7 +136,7 @@ public class VM_CompiledMethods {
     if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
       return;
 
-    if (VM.VerifyAssertions) VM.assert(compiledMethods[cmid] != null);
+    if (VM.VerifyAssertions) VM._assert(compiledMethods[cmid] != null);
 
     if (obsoleteMethods == null) {
       // This should tend not to get too big as it gets compressed as we
@@ -152,7 +161,7 @@ public class VM_CompiledMethods {
   // marking it NOT obsolete. Keep such reference until a future GC.
   // NOTE: It's expected that this is processed during GC, after scanning
   //	stacks to determine which methods are currently executing.
-  static void snipObsoleteCompiledMethods() {
+  public static void snipObsoleteCompiledMethods() {
     if (obsoleteMethods == null) return;
     
     int oldCount = obsoleteMethodCount;
@@ -172,7 +181,7 @@ public class VM_CompiledMethods {
   /**
    * Report on the space used by compiled code and associated mapping information
    */
-  static void spaceReport() {
+  public static void spaceReport() {
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];
@@ -232,7 +241,7 @@ public class VM_CompiledMethods {
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
-    VM_CompiledMethod[] newarray = VM_RuntimeStructures.newContiguousCompiledMethodArray(newLength);
+    VM_CompiledMethod[] newarray = VM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();
     return newarray;

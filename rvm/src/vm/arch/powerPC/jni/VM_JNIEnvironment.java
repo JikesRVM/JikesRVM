@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import java.lang.reflect.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  *   This class implements the JNI environment, it includes:
@@ -11,9 +15,6 @@
  * @author Ton Ngo 
  * @author Steve Smith
  */
-import java.lang.reflect.*;
-
-
 public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants
 {
   private static boolean initialized = false;
@@ -47,11 +48,11 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Processor savedPRreg;         // for saving processor register on entry to native, to be restored on JNI call from native
   boolean      alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  int[]       JNIRefs;          // references passed to native code
+  public int[]       JNIRefs;          // references passed to native code
   int         JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int         JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int         JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  VM_Address  JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
+  public VM_Address  JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
 
   Throwable pendingException = null;
 
@@ -97,7 +98,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
     // fill in the IP entries for each AIX linkage triplet
     try {
-      VM_Class cls = VM_Class.forName("VM_JNIFunctions");
+      VM_Class cls = VM_Class.forName("com.ibm.JikesRVM.VM_JNIFunctions");
       VM_Method[] mths = cls.getDeclaredMethods();
       // VM.sysWrite("VM_JNIEnvironment:  scanning " + mths.length + " methods\n");
       for (int i=0; i<mths.length; i++) {
@@ -1108,7 +1109,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_GCUtil.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
+      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

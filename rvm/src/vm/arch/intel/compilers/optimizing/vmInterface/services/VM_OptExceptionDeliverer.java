@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * Handle exception delivery and stack unwinding for methods 
@@ -17,7 +19,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /** 
    * Pass control to a catch block.
    */
-  void deliverException(VM_CompiledMethod compiledMethod,
+  public void deliverException(VM_CompiledMethod compiledMethod,
 			VM_Address catchBlockInstructionAddress,
 			Throwable exceptionObject,
 			VM_Registers registers)  {
@@ -78,7 +80,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
 
-    if (VM.VerifyAssertions) VM.assert(registers.inuse == true);
+    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
     registers.inuse = false;
 
     // 'give back' the portion of the stack we borrowed to run 
@@ -93,14 +95,14 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // "branches" to catchBlockInstructionAddress
     VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
   
 
   /**
    * Unwind a stackframe.
    */
-  void unwindStackFrame(VM_CompiledMethod compiledMethod, 
+  public void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 			VM_Registers registers) {
     VM_Address fp = registers.getInnermostFramePointer();
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
@@ -124,7 +126,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 	 i++, frameOffset += 4) {
       registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp.sub(frameOffset));
     }
-    if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0);
+    if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     
     registers.unwindStackFrame();
 

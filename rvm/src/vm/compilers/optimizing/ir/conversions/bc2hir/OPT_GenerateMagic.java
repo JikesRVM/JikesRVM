@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import com.ibm.JikesRVM.opt.OPT_MagicNotImplementedException;
 
 /**
  * This class implements the non-machine-specific magics for the opt compiler.
@@ -27,7 +30,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
    * @param gc must be bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  static void generateMagic(OPT_BC2IR bc2ir, 
+  static boolean generateMagic(OPT_BC2IR bc2ir, 
 			    OPT_GenerationContext gc, 
 			    VM_Method meth) throws OPT_MagicNotImplementedException {
 
@@ -79,6 +82,12 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(LONG_STORE, val, object, offset, 
 					   null));
+    } else if (methodName == VM_MagicNames.setDoubleAtOffset) {
+      OPT_Operand val = bc2ir.popDouble();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      bc2ir.appendInstruction(Store.create(DOUBLE_STORE, val, object, offset, 
+					   null));
     } else if (methodName == VM_MagicNames.getObjectAtOffset) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
@@ -125,7 +134,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  memAddr, 
-					  new OPT_IntConstantOperand(0), 
+					  new OPT_IntConstantOperand(0),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setMemoryWord) {
@@ -144,16 +153,9 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   null));
     } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_CollectorThread;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_CollectorThread;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-//-#if RVM_WITH_CONCURRENT_GC
-    } else if (methodName == VM_MagicNames.threadAsRCCollectorThread) {
-      OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_RCCollectorThread;"));
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
-//-#endif
     } else if (methodName == VM_MagicNames.objectAsType) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_Type_type);
@@ -161,7 +163,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsThread) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_Thread;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_Thread;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsProcessor) {
@@ -188,23 +190,23 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
     } else if (methodName == VM_MagicNames.addressAsBlockControl) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_BlockControl;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_BlockControl;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsSizeControl) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_SizeControl;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_SizeControl;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
       //-#endif
     } else if (methodName == VM_MagicNames.addressAsThread) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_Thread;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_Thread;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsRegisters) {
       OPT_RegisterOperand reg = 
-	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("LVM_Registers;", VM_SystemClassLoader.getVMClassLoader()));
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.findOrCreateType("Lcom/ibm/JikesRVM/VM_Registers;", VM_SystemClassLoader.getVMClassLoader()));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsByteArray) {
@@ -371,110 +373,156 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.appendInstruction(Attempt.create(ATTEMPT, test, base, offset, oldVal, 
 					     newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.pragmaNoInline) {
-      // This also may imply that the method relies on a stack frame 
-      // being constructed, so don't take any chances.
-      gc.allocFrame = true;
-    } else if (methodName == VM_MagicNames.pragmaInline) {
-      // Do nothing (this pragma is meaningless to IR generation....)
-    } else if (methodName == VM_MagicNames.addressFromInt) {
-      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Type.AddressType);
+    } else if (generatePolymorphicMagic(bc2ir, gc, meth, methodName)) {
+      return true;
+    } else if (methodName == VM_MagicNames.getTimeBase) {
+      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
+      bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
+      bc2ir.pushDual(op0.copyD2U());
+    } else {
+      // Wasn't machine-independent, so try the machine-dependent magics next.
+      boolean generated = OPT_GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
+      // if (!generated) VM.sysWriteln("Magic method not implemented: " + meth);
+      return generated;
+    }
+    return true;
+  } // generateMagic
+
+  
+  // Generate magic where the untype operational semantics is identified by name.
+  // The operands' types are determnied from the method signature.
+  //
+  static boolean generatePolymorphicMagic(OPT_BC2IR bc2ir, 
+					  OPT_GenerationContext gc, 
+					  VM_Method meth, VM_Atom methodName) {
+    VM_Type [] paramTypes = meth.getParameterTypes();
+    VM_Type resultType = meth.getReturnType();
+    if (methodName == VM_MagicNames.wordFromInt) { 
+      OPT_RegisterOperand reg = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressToInt) {
+    } else if (methodName == VM_MagicNames.wordToInt) {
       // a no-op without even a type-conversion
       OPT_RegisterOperand reg = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Move.create(INT_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToWord) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Type.WordType);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToAddress) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Type.AddressType);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
+      bc2ir.push(reg.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressAdd) {
-      OPT_Operand o2 = bc2ir.popInt();
-      OPT_Operand o1 = bc2ir.popAddress();
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
+    else if (methodName == VM_MagicNames.wordAdd) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(INT_ADD, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressSub) {
-      OPT_Operand o2 = bc2ir.popInt();
-      OPT_Operand o1 = bc2ir.popAddress();
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
+    else if (methodName == VM_MagicNames.wordSub) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(INT_SUB, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressDiff) {
-      OPT_Operand o2 = bc2ir.popAddress();
-      OPT_Operand o1 = bc2ir.popAddress();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
+    else if (methodName == VM_MagicNames.wordDiff) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(INT_SUB, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressZero) {
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0)));
+    else if (methodName == VM_MagicNames.wordAnd) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Binary.create(INT_AND, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressMax) {
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1)));
+    else if (methodName == VM_MagicNames.wordOr) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Binary.create(INT_OR, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressIsZero) {
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0)));
-      OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      addressCmpHelper(bc2ir,gc,cond, op0);
+    else if (methodName == VM_MagicNames.wordXor) {
+      OPT_Operand o2 = bc2ir.pop();
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Binary.create(INT_XOR, op0, o1, o2));
+      bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressIsMax) {
-      OPT_RegisterOperand op0 = gc.temps.makeTemp(VM_Type.AddressType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1)));
-      OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      addressCmpHelper(bc2ir,gc,cond, op0);
+    else if (methodName == VM_MagicNames.wordNot) {
+      OPT_Operand o1 = bc2ir.pop();
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Unary.create(INT_NOT, op0, o1));
+      bc2ir.push(op0.copyD2U());
     }
-    else if (methodName == VM_MagicNames.addressLT) {
+    else if (methodName == VM_MagicNames.wordZero) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
+      bc2ir.push(op0.copyD2U());
+    }
+    else if (methodName == VM_MagicNames.wordMax) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
+      bc2ir.push(op0.copyD2U());
+    }
+    else if (methodName == VM_MagicNames.wordIsZero) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
+      OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
+      cmpHelper(bc2ir,gc,cond, op0);
+    }
+    else if (methodName == VM_MagicNames.wordIsMax) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
+      OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
+      cmpHelper(bc2ir,gc,cond, op0);
+    }
+    else if (methodName == VM_MagicNames.wordLT) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else if (methodName == VM_MagicNames.addressLE) {
+    else if (methodName == VM_MagicNames.wordLE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.LOWER_EQUAL();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else if (methodName == VM_MagicNames.addressEQ) {
+    else if (methodName == VM_MagicNames.wordEQ) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else if (methodName == VM_MagicNames.addressNE) {
+    else if (methodName == VM_MagicNames.wordNE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.NOT_EQUAL();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else if (methodName == VM_MagicNames.addressGT) {
+    else if (methodName == VM_MagicNames.wordGT) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.HIGHER();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else if (methodName == VM_MagicNames.addressGE) {
+    else if (methodName == VM_MagicNames.wordGE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.HIGHER_EQUAL();
-      addressCmpHelper(bc2ir,gc,cond,null);
+      cmpHelper(bc2ir,gc,cond,null);
     }
-    else {
-      // Wasn't machine-independent, so try the machine-dependent magics next.
-      OPT_GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
-    }
-  } // generateMagic
+    else 
+      return false;
+    return true;
+  }
 
-  private static void addressCmpHelper(OPT_BC2IR bc2ir, 
-				       OPT_GenerationContext gc, 
-				       OPT_ConditionOperand cond,
-				       OPT_Operand given_o2) {
-      OPT_Operand o2 = given_o2 == null ? bc2ir.popAddress() : given_o2;
-      OPT_Operand o1 = bc2ir.popAddress();
+  private static void cmpHelper(OPT_BC2IR bc2ir, 
+				OPT_GenerationContext gc, 
+				OPT_ConditionOperand cond,
+				OPT_Operand given_o2) {
+      OPT_Operand o2 = given_o2 == null ? bc2ir.pop() : given_o2;
+      OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand res = gc.temps.makeTempInt();
       bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP, res.copyRO(), o1, o2, cond, new OPT_BranchProfileOperand()));
       bc2ir.push(res.copyD2U());
-      /*
-      bc2ir.appendInstruction(Move.create(INT_MOVE, res.copyRO(), new OPT_IntConstantOperand(1)));
-      bc2ir.appendInstruction(IfCmp.create(INT_IFCMP, guard, o1, o2, cond,
-					   generateTarget(0), new OPT_BranchProfileOperand()));
-      bc2ir.appendInstruction(Move.create(INT_MOVE, res.copyRO(), new OPT_IntConstantOperand(0)));
-      */
   }
 
 }

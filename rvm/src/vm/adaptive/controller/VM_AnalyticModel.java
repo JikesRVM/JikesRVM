@@ -3,6 +3,12 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_Method;
+
 /**
  * This class encapsulates the analytic model used by the controller
  * to guide multi-level recompilation decisions.  An early version of
@@ -55,7 +61,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    *  command line options are available.  
    */
   void init() {
-
     // Do the common initialization first
     super.init();
 
@@ -88,13 +93,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     }
     
     VM_ControllerPlan plan = VM_ControllerMemory.findMatchingPlan(cmpMethod);
-    double prevCompileTime = 
-      getPreviousCompilationTime(hme, plan, prevCompiler);
-    if (prevCompileTime < 0.0) {
-      // For one of a number of reasons, we've decided that this method is
-      // not a candidate for recompilation at this time.
-      return null;
-    }
+    if (!considerForRecompilation(hme, plan)) return null;
+    double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
     
     // Now we know the compiler that generated the method (prevCompiler).
     // the compile time it took to generate it (prevCompileTime), and that 
@@ -103,7 +103,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     // We consider doing nothing (ie leaving the method at the current 
     // opt level, which incurs no  compilation cost), and recompiling the 
     // method at each greater compilation level.
-    
     double futureTimeForMethod = futureTimeForMethod(hme);
     
     // initialize bestAction as doing nothing, which means we'll 
@@ -158,7 +157,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   }
 
 
-
   /**
    * This function defines how the analytic model handles a
    * VM_AINewHotEdgeEvent.  The basic idea is to use the model to
@@ -176,13 +174,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     }
 
     VM_ControllerPlan plan = VM_ControllerMemory.findMatchingPlan(cmpMethod);
-    double prevCompileTime = 
-      getPreviousCompilationTime(event, plan, prevCompiler);
-    if (prevCompileTime < 0.0) {
-      // For one of a number of reasons, we've decided that this method is
-      // not a candidate for recompilation at this time.
-      return;
-    }
+    if (!considerForRecompilation(event, plan)) return;
+    double prevCompileTime = cmpMethod.getCompilationTime();
 
     // Use the model to caclulate expected cost of (1) doing nothing
     // and (2) recompiling at the same opt level with the FDO boost
@@ -209,7 +202,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 				  cmpMethod.getId(), 
 				  event.getBoostFactor(),
 				  priority);
-      
       plan.execute();
     }
   }
@@ -225,7 +217,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * @param hme The VM_HotMethodEvent in question
    * @return estimate of future execution time to be spent in this method
    */
-   double futureTimeForMethod(VM_HotMethodEvent hme) {
+  double futureTimeForMethod(VM_HotMethodEvent hme) {
     VM_AOSOptions opts = VM_Controller.options;
     double numSamples = hme.getNumSamples();
     double timePerSample;
@@ -233,17 +225,14 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
       // as it actually deserves).
-      timePerSample = (opts.SAMPLE_FREQ_MILLIS / 2.0) * (1.0 - opts.DARK_MATTER);
+      timePerSample = opts.SAMPLE_FREQ_MILLIS / 2.0;
     } else {
       // If we use epilogue yield points, we only have 1 sample per interrupt
       //  prologue => calling method
       //  backedge/epilogue => current method
-      timePerSample = opts.SAMPLE_FREQ_MILLIS * (1.0 - opts.DARK_MATTER);
+      timePerSample = opts.SAMPLE_FREQ_MILLIS;
     }
-
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;
   }
-
-
 }

@@ -3,6 +3,21 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * Class that supports scanning thread stacks for references during
  * collections. References are located using GCMapIterators and are
@@ -10,7 +25,7 @@
  *
  * @author Stephen Smith
  */  
-public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+public class VM_ScanStack implements VM_Constants, VM_GCConstants {
 
   // quietly validates each ref reported by map iterators
   static final boolean VALIDATE_STACK_REFS = true;
@@ -44,7 +59,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterrup
    * @param top_frame      address of stack frame at which to begin the scan
    * @param relocate_code  if true, relocate code & update return addresses
    */
-  static void scanStack(VM_Thread t, VM_Address top_frame, boolean relocate_code)  {
+  static void scanStack(VM_Thread t, VM_Address top_frame, boolean relocate_code)  throws VM_PragmaUninterruptible {
     VM_Address       ip, fp, code, newip, newcode, refaddr, prevFp;
     int                    delta;
     VM_Method              method;
@@ -61,7 +76,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterrup
 	t.hardwareExceptionRegisters.inuse) {
       ip = t.hardwareExceptionRegisters.ip;
       compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
-      if (VM.VerifyAssertions) VM.assert(compiledMethod != null);
+      if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete( false );
       code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
       newcode = VM_Allocator.processPtrValue( code );
@@ -331,7 +346,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterrup
   // dump contents of a stack frame. attempts to interpret each
   // word a an object reference
   //
-  static void dumpStackFrame(VM_Address fp, VM_Address prevFp ) {
+  static void dumpStackFrame(VM_Address fp, VM_Address prevFp ) throws VM_PragmaUninterruptible {
     VM_Address start,end;
 //-#if RVM_FOR_IA32
     if (prevFp.isZero()) {

@@ -3,14 +3,46 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_JavaHeader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_Synchronizer;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM_Statistic;
+import com.ibm.JikesRVM.VM_TimeStatistic;
+import com.ibm.JikesRVM.VM_TypeDictionary;
+
 /**
- * Reshuffled GC files.
+ * Contains common statistic, profiling, and debugging code
+ * for the watson memory managers.
  *
  * @author Dave Grove
- * @date May 30, 2002
+ * @author Perry Cheng
  */
-
-class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
+public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
 
 
   // Number and types of GC
@@ -19,20 +51,20 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   static int gcMajorCount = 0;      // number of major collections
 
   // accumulated times & counts for sysExit callback printout
-  static VM_Statistic bytesCopied = new VM_Statistic();
-  static VM_Statistic minorBytesCopied = new VM_Statistic();     
-  static VM_Statistic majorBytesCopied = bytesCopied;
+  static final VM_Statistic bytesCopied = new VM_Statistic();
+  static final VM_Statistic minorBytesCopied = new VM_Statistic();     
+  static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
-  static VM_TimeStatistic startTime = new VM_TimeStatistic();
-  static VM_TimeStatistic initTime = new VM_TimeStatistic();
-  static VM_TimeStatistic rootTime = new VM_TimeStatistic();
-  static VM_TimeStatistic scanTime = new VM_TimeStatistic();
-  static VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
-  static VM_TimeStatistic finishTime = new VM_TimeStatistic();
-  static VM_TimeStatistic GCTime = new VM_TimeStatistic();
-  static VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
-  static VM_TimeStatistic majorGCTime = GCTime;
+  static final VM_TimeStatistic startTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic initTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic finishTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic majorGCTime = GCTime;
 
   // collisions in obtaining object ownership to copy
   static final boolean COUNT_COLLISIONS = false;
@@ -54,7 +86,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
 
   private static final VM_Atom TOTALAtom = VM_Atom.findOrCreateAsciiAtom("TOTAL");
 
-  static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_GCStatistics());
     VM_Callbacks.addAppRunStartMonitor(new VM_GCStatistics());
   }
@@ -71,23 +103,23 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
    * To be called when the application starts a run
    * @param value the exit value
    */
-  public void notifyAppRunStart(int value) {
+  public void notifyAppRunStart(String app, int value) throws VM_PragmaUninterruptible {
     if (VM_Allocator.verbose >= 1) VM.sysWrite("Clearing VM_Allocator statistics\n");
     clearSummaryStatistics();
   }
 
-  static void updateGCStats(int GCType, int copied) {
+  static void updateGCStats(int GCType, int copied) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) 
-      VM.assert(copied >= 0);
+      VM._assert(copied >= 0);
     if (GCType == DEFAULT || GCType == MAJOR)
       bytesCopied.addSample(copied);
     else if (GCType == MINOR)
       minorBytesCopied.addSample(copied);
     else
-      VM.assert(false);
+      VM._assert(false);
   }
 
-  static void printGCStats(int GCType) {
+  static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
 
     if (VM_Allocator.verbose >= 2)
       printGCPhaseTimes();  	
@@ -121,20 +153,20 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     }
   }
 
-  private static void printGCPhaseTimes () {
+  private static void printGCPhaseTimes () throws VM_PragmaUninterruptible {
 
     // if invoked with -verbose:gc print output line for this last GC
     VM.sysWrite("<GC ", gcCount, "> ");
-    VM.sysWrite("startTime ", (int)(startTime.last*1000000.0), "(us) ");
-    VM.sysWrite("init ", (int)(initTime.last*1000000.0), "(us) ");
-    VM.sysWrite("stacks & statics ", (int)(rootTime.last*1000000.0), "(us) ");
-    VM.sysWrite("scanning ", (int)(scanTime.last*1000.0), "(ms) ");
-    VM.sysWrite("finalize ", (int)(finalizeTime.last*1000000.0), "(us) ");
-    VM.sysWriteln("finish ",  (int)(finishTime.last*1000000.0), "(us) ");
+    VM.sysWrite("startTime ", (int)(startTime.last()*1000000.0), "(us) ");
+    VM.sysWrite("init ", (int)(initTime.last()*1000000.0), "(us) ");
+    VM.sysWrite("stacks & statics ", (int)(rootTime.last()*1000000.0), "(us) ");
+    VM.sysWrite("scanning ", (int)(scanTime.last()*1000.0), "(ms) ");
+    VM.sysWrite("finalize ", (int)(finalizeTime.last()*1000000.0), "(us) ");
+    VM.sysWriteln("finish ",  (int)(finishTime.last()*1000000.0), "(us) ");
   }
 
 
-  private static void printVerboseOutputLine (int GCType) {
+  private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
 
     int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
     int free = (int) VM_Allocator.allSmallFreeMemory();
@@ -148,9 +180,12 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     VM.sysWrite(free / 1024, " Kb free (");
                 VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
     VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); VM.sysWriteln("(Mb/s)      ");
+
+    if (COUNT_BY_TYPE)	printCountsByType();
+
   }
 
-  static void clearSummaryStatistics () {
+  static void clearSummaryStatistics () throws VM_PragmaUninterruptible {
     VM_ObjectModel.hashRequests = 0;
     VM_ObjectModel.hashTransition1 = 0;
     VM_ObjectModel.hashTransition2 = 0;
@@ -164,7 +199,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     }
   }
 
-  static void printSummaryStatistics () {
+  static void printSummaryStatistics () throws VM_PragmaUninterruptible {
 
     if (VM_ObjectModel.HASH_STATS) {
       VM.sysWriteln("Hash operations:    ", VM_ObjectModel.hashRequests);
@@ -263,7 +298,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
 
   } // printSummaryStatistics
 
-  private static void printBytes(int fieldWidth, int bytes) {
+  private static void printBytes(int fieldWidth, int bytes) throws VM_PragmaUninterruptible {
     if (bytes > 10000) {
       VM.sysWriteField(fieldWidth - 3, bytes / 1024); 
       VM.sysWrite(" Kb");
@@ -275,7 +310,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   private static void printCountsLine(VM_Atom descriptor, 
                                       int allocCount, int allocBytes,
                                       int copyCount, int copyBytes,
-                                      int scanCount, int scanBytes) {
+                                      int scanCount, int scanBytes) throws VM_PragmaUninterruptible {
     VM.sysWriteField(10, allocCount);
     VM.sysWrite(" ("); printBytes(9, allocBytes); VM.sysWrite(")");
     VM.sysWriteField(10, copyCount);
@@ -287,7 +322,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     VM.sysWriteln();
   }
 
-  static void printCountsByType()  {
+  static void printCountsByType()  throws VM_PragmaUninterruptible {
 
     VM.sysWriteln("  Object Demographics by type (Grouped by allocBytes: >=1Mb, >=10K, <10K)");
     VM.sysWriteln("          Alloc                  Copy                  Scan            Class     ");
@@ -338,13 +373,13 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   }
 
 
-  public static void printclass(VM_Address ref) {
+  public static void printclass(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
     VM.sysWrite(type.getDescriptor());
   }
 
 
-  static void profileCopy(Object obj, int size, Object[] tib) throws VM_PragmaInline {
+  static void profileCopy(Object obj, int size, Object[] tib) throws VM_PragmaInline, VM_PragmaUninterruptible { 
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.copyCount++;
@@ -352,7 +387,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     }
   }
 
-  static void profileScan(Object obj, int size, Object[] tib) throws VM_PragmaInline {
+  static void profileScan(Object obj, int size, Object[] tib) throws VM_PragmaInline, VM_PragmaUninterruptible {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.scanCount++;
@@ -360,16 +395,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
     }
   }
 
-  static void profileAlloc (VM_Address addr, int size, Object[] tib) {
-    if (!(COUNT_BY_TYPE || 
-          COUNT_ALLOCATIONS ||
-          VERIFY_ALIGNMENT ||
-          VERIFY_ZEROED_ALLOCATIONS)) {
-      // only force inlining when this method is empty.
-      // otherwise the code space impact is too large --dave.
-      VM_Magic.pragmaInline();
-    }
-
+  static void profileAlloc (VM_Address addr, int size, Object[] tib) throws VM_PragmaUninterruptible {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.allocCount++;

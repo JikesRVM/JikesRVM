@@ -3,6 +3,20 @@
  */
 //$Id$
 
+
+///TODO: remove Alloc1, Alloc2, and byte[] alloc.
+//
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+
 /**
  * Used by noncopying memory managers: There is 1 VM_BlockControl
  * for each GC_BLOCKSIZE (see VM_GCConstants.java in this directory)
@@ -24,10 +38,7 @@
  * @author Dick Attanasio
  */
 
-///TODO: remove Alloc1, Alloc2, and byte[] alloc.
-//
-final class VM_BlockControl {
-
+public final class VM_BlockControl {
   VM_Address baseAddr;
   int slotsize;	  // slotsize
   byte[] mark;
@@ -38,8 +49,7 @@ final class VM_BlockControl {
   boolean live;
   boolean sticky;
   int alloc_size; // allocated length of mark and alloc arrays
-  int allocCount; // RCGC number of allocated slots in the block
   
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();
 }

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
  *
  * <p> Alternative (to Java monitors) light-weight synchronization
@@ -118,7 +119,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
       handleMicrocontention(attempts++);
     } while (true);
     // i owns the lock
-    if (VM.VerifyAssertions && !MCS_Locking) VM_Scheduler.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions && !MCS_Locking) VM_Scheduler._assert(VM.NOT_REACHED);
     i.awaitingProcessorLock = this;
     if (p.awaitingProcessorLock != this) { // make i first (and only) waiter on the contender chain
       i.contenderLink = i;
@@ -200,7 +201,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
    * A synonym for unlock.
    * @depricated (was to avoid the "sync" of unlock)
    */
-  void release () { unlock(); }
+  public void release () { unlock(); }
 
   /**
    * An attempt to lock or unlock a processor lock has failed,

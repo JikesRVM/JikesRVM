@@ -1,8 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 /**
  * Description of a java "primitive" type (int, float, etc.)
  * 
@@ -72,12 +74,12 @@ public final class VM_Primitive extends VM_Type
 
   // these should never be called.
   public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
   }
       
   public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
 
@@ -85,8 +87,12 @@ public final class VM_Primitive extends VM_Type
       return VM_SystemClassLoader.getVMClassLoader();
   }
 
+  public final void setClassLoader(ClassLoader cl) {
+    throw new InternalError("Cannot set a primitive's ClassLoader!");
+  }
+
   //----------------//
-  // Implementation //
+  // implementation //
   //----------------//
    
   private VM_Atom name;
@@ -99,9 +105,9 @@ public final class VM_Primitive extends VM_Type
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.dimension    = -1;
     this.depth        = 0;
-    if (VM.BuildForConcurrentGC)
-      this.acyclic  = true;	// All primitives are inherently acyclic
-      
+    if (VM_Interface.RC_CYCLE_DETECTION)
+      this.acyclic  = true;	// RCGC: All primitives are inherently acyclic
+
     // install type information block (no method dispatch table) 
     // for use in type checking.
     //
@@ -120,7 +126,7 @@ public final class VM_Primitive extends VM_Type
       case FloatTypeCode:   this.stackWords = 1; break;
       case DoubleTypeCode:  this.stackWords = 2; break;
       case CharTypeCode:    this.stackWords = 1; break;
-      default:              if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
 
     state = CLASS_INITIALIZED; // primitives have no "load, resolve, instantiate, initialize" phases

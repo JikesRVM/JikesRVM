@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Class that performs scalar replacement of aggregates for non-array

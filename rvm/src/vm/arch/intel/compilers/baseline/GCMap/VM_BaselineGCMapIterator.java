@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler
@@ -14,7 +17,7 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
 	     VM_Uninterruptible {
   private static final boolean TRACE_ALL = false;
@@ -32,7 +35,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // The locations are kept as addresses within the stack.
   //
   
-  VM_BaselineGCMapIterator(int registerLocations[]) {
+  public VM_BaselineGCMapIterator(int registerLocations[]) {
     this.registerLocations = registerLocations; // (in superclass)
     dynamicLink  = new VM_DynamicLink();
   }
@@ -53,8 +56,8 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
-  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
-    currentMethod = compiledMethod.getMethod();
+  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
+    currentMethod = (VM_BaselineCompiledMethod)compiledMethod;
       
     // setup superclass
     //
@@ -63,7 +66,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     // setup stackframe mapping
     //
     maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
-    mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
+    mapId     = maps.locateGCPoint(instructionOffset, currentMethod.getMethod());
     mapOffset = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
@@ -87,12 +90,12 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeRegisterLocation         = VM_Address.zero();
     bridgeSpilledParamLocation     = VM_Address.zero();
     
-    if (currentMethod.getDeclaringClass().isDynamicBridge()) {
+    if (currentMethod.getMethod().getDeclaringClass().isDynamicBridge()) {
       VM_Address        ip                       = VM_Magic.getReturnAddress(fp);
                         fp                       = VM_Magic.getCallerFramePointer(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
+      int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
       bridgeTarget                    = dynamicLink.methodRef();
@@ -118,8 +121,11 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Reset iteration to initial state.
   // This allows a map to be scanned multiple times
   //
-  void reset() {
+  public void reset() {
     mapOffset = 0;
+
+    // setup map to report EBX if this method is holding the base of counter array in it.
+    counterArrayBase                 = currentMethod.hasCounterArray();
 
     if (bridgeTarget != null) {
       bridgeParameterMappingRequired = true;
@@ -133,7 +139,11 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Get location of next reference.
   // A zero return indicates that no more references exist.
   //
-  VM_Address getNextReferenceAddress() {
+  public VM_Address getNextReferenceAddress() {
+    if (counterArrayBase) {
+      counterArrayBase = false;
+      return VM_Address.fromInt(registerLocations[EBX]);
+    }
     if (mapId < 0) {
       mapOffset = maps.getNextJSRRef(mapOffset);
     } else {
@@ -237,6 +247,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       // point registerLocations[] to our callers stackframe
       //
       registerLocations[JTOC] = framePtr.add(JTOC_SAVE_OFFSET).toInt();
+      registerLocations[EBX] = framePtr.add(EBX_SAVE_OFFSET).toInt();
     }
     
     return VM_Address.zero();
@@ -247,7 +258,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // after the current position.
   //  a zero return indicates that no more references exist
   //
-  VM_Address getNextReturnAddressAddress() {
+  public VM_Address getNextReturnAddressAddress() {
     if (mapId >= 0) {
       if (VM.TraceStkMaps || TRACE_ALL) {
 	VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
@@ -269,7 +280,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //    early ... they may be in temporary storage ie storage only used
   //    during garbage collection
   //
-  void cleanupPointers() {
+  public void cleanupPointers() {
     maps.cleanupPointers();
     maps = null;
     if (mapId < 0)   
@@ -278,27 +289,28 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeParameterTypes = null;
   }
 
-  int getType() {
+  public int getType() {
     return VM_CompiledMethod.BASELINE;
   }
 
   // For debugging (used with checkRefMap)
   //
-  int getStackDepth() {
+  public int getStackDepth() {
     return maps.getStackDepth(mapId);
   }
 
   // Iterator state for mapping any stackframe.
   //
-  private   int              mapOffset; // current offset in current map
-  private   int              mapId;     // id of current map out of all maps
-  private   VM_ReferenceMaps maps;      // set of maps for this method
+  private VM_BaselineCompiledMethod  currentMethod;      // compiled method for the frame
+  private int              mapOffset; // current offset in current map
+  private int              mapId;     // id of current map out of all maps
+  private VM_ReferenceMaps maps;      // set of maps for this method
+  private boolean counterArrayBase;   // have we reported the base ptr of the edge counter array?
 
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Method      currentMethod;                  // method for the frame
   private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)

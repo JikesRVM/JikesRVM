@@ -1,3 +1,4 @@
+gctest
 bytecodeTests
 opttests
 reflect
@@ -8,5 +9,8 @@ jni
 CaffeineMark
 jBYTEmark
 javalex 
+xerces
+xalan
+soot
 SPECjvm98 
 SPECjbb2000 

@@ -2,17 +2,18 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * Reverse the order of an enumeration.
  * 
  * @author Stephen Fink
  */
-import  java.util.Enumeration;
-import  java.util.Vector;
-import  java.util.NoSuchElementException;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.NoSuchElementException;
 
-final class OPT_ReverseEnumerator implements Enumeration {
+public final class OPT_ReverseEnumerator implements Enumeration {
 
   private Vector vec = new Vector();
   private int index;

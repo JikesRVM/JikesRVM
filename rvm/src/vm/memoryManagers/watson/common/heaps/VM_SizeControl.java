@@ -3,6 +3,20 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+
 /**
  * An array of VM_SizeControls - one for each slotsize (see VM_GCConstants.java)
  * is associated with each Virtual Processor. This object supports
@@ -19,8 +33,8 @@
  * @author Dick Attanasio
  *
  */
-final class VM_SizeControl implements VM_Constants {
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+public final class VM_SizeControl implements VM_Constants {
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 
   int first_block;
   int current_block;

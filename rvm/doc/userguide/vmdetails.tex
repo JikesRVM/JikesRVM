@@ -51,7 +51,7 @@ The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generate a NullPointerException.  In the Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\AIXTMFootnote operating system permits loads from low memory,
+The AIX\AIXTMFootnote\ operating system permits loads from low memory,
 but accesses 
 to very high memory (at small {\em negative} offsets from a null
 pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
@@ -227,8 +227,9 @@ For more details, see
 \subsection{VM Conventions}
 
 %% footnotes not allowed in section headings, so we specialize
-\htmlonly{\subsubsection{AIX\trademark VM Conventions}} \label{aix-conventions}
-\texonly{\subsubsection{AIX\trademark VM Conventions}} \label{aix-conventions}
+\htmlonly{\subsubsection{AIX\trademark VM Conventions}} 
+\texonly{\subsubsection{AIX\trademark VM Conventions}} 
+\label{aix-conventions}
 
 \index{stack conventions}
 \index{register conventions}
@@ -265,8 +266,8 @@ categorized into four types:
 
 \item [TI - Thread (locking) Id]
         Used to set (and test) the locking field of light weight object
-        locks.  Can also be shifted to get the index of an object
-        representing the current thread in into a global array.
+        locks.  Can also be shifted to get the index into a global
+        array of an object representing the current thread.
 
 \item [PR - Processor register]
         An object representing the current virtual processor (the one
@@ -351,7 +352,8 @@ The layout of the stackframe appears in a block comment in
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
-\item [Method epilogue responsibilities]
+\item [Method epilogue responsibilities] (some of these can be
+ommitted for leaf methods):
 
 \begin{enumerate}
 \item Restore FP to point to caller's stack frame.

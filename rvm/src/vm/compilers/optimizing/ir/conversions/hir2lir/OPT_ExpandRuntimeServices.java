@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase
@@ -23,54 +26,19 @@ import instructionFormats.*;
 public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
-  boolean shouldPerform (OPT_Options options) { 
+  public boolean shouldPerform (OPT_Options options) { 
     return true; 
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Expand Runtime Services";
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
-  }
-
-  class OPT_RedirectResult {
-      OPT_Instruction next;
-      OPT_RegisterOperand newValue;
-      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
-	  next = i;
-	  newValue = ro;
-      }
-  }
-
-  // Insert basic blocks AFTER the given instructions that will check the contents of
-  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
-  // of the original register value.  
-  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
-  // and returned along with the first instruction after the added code is returned.
-  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
-	
-      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
-	                                                : ir.gc.temps.makeTemp(value);
-      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
-      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-      beforeBB.insertOut(afterBB);   // unusual path
-      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
-      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
-					    new OPT_IntConstantOperand(0),  // NULL is 0
-					    OPT_ConditionOperand.EQUAL(),
-					    afterBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely());
-      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
-      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-      beforeBB.appendInstruction(moveInst);
-      beforeBB.appendInstruction(ifInst);
-      redirectBB.appendInstruction(redirectInst);
-      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent RS calls");
   }
 
   /** 
@@ -81,12 +49,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
    * @param OPT_IR HIR to expand
    */
   public void perform (OPT_IR ir) {
-    
-    // resync gc
+    // resync generation context
     ir.gc.resync();
     
-    // String name = ir.method.getDeclaringClass() + "." + ir.method.getName() + ir.method.getDescriptor();
-
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
 	 inst != null; 
@@ -100,43 +65,20 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{ 
 	  OPT_TypeOperand Type = New.getClearType(inst);
 	  VM_Class cls = (VM_Class)Type.type;
-	  OPT_IntConstantOperand hasFinalizer;
-	  if (cls.hasFinalizer()) {
-	    hasFinalizer = new OPT_IntConstantOperand(1);      // true;
-	  } else {
-	    hasFinalizer = new OPT_IntConstantOperand(0);      // false
-	  }
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  // check if we are at a alloc advice site
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (aadvice != null) {
-	      // change to alloc advice call
-	      int allocNum = aadvice.getAllocator();
-	      Call.mutate3(inst, CALL, New.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewScalarMethod),
-			   new OPT_IntConstantOperand(cls.getInstanceSize()),
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type),
-			   new OPT_IntConstantOperand(allocNum));
-	      // FIXME: the above doesn't use the finalizer
-	    } else
-	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
+	  OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
+	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
+	  Call.mutate4(inst, CALL, New.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewScalarMethod), 
 		       new OPT_IntConstantOperand(cls.getInstanceSize()),
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		       hasFinalizer);
-	  } else {
-	  //-#endif
-	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
-		       new OPT_IntConstantOperand(cls.getInstanceSize()),
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		       hasFinalizer);
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
+		       hasFinalizer,
+		       allocator);
 	  if (ir.options.INLINE_NEW) {
-	    inline(inst, ir);
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  }
 	}
 	break;
@@ -145,25 +87,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{
 	  int typeRefId = New.getType(inst).type.getDictionaryId();
 	  Call.mutate1(inst, CALL, New.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.newScalarMethod), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewScalarMethod), 
 		       new OPT_IntConstantOperand(typeRefId));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    // overwrite the call with alloc advice version
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (debug_alloc_advice)
-	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", inst.position.getMethod(), inst.getBytecodeIndex(), aadvice);
-	    
-	    if (aadvice != null) {
-	      int allocNum = aadvice.getAllocator();
-	      // change to alloc advice call
-	      Call.mutate2(inst, CALL, New.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceNewScalarMethod),
-			   new OPT_IntConstantOperand(typeRefId), 
-			   new OPT_IntConstantOperand(allocNum));
-	    }
-	  }
-	  //-#endif
 	}
 	break;
 
@@ -171,15 +96,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{
 	  OPT_TypeOperand Array = NewArray.getClearType(inst);
 	  VM_Array array = (VM_Array)Array.type;
-	  // TODO: Forcing early class loading is probably legal, but gets
-	  // into some delicate areas of the JVM spec.  We really need a 
-	  // NEWARRAY_UNRESOLVED operator & runtime method to deal with those
-	  // cases in which we get an error while Array.load is attempting to
-	  // load the element type.
-	  // See VM_Array.load/resolve/instantiate.
-	  array.load();
-	  array.resolve();
-	  array.instantiate();
 	  OPT_Operand numberElements = NewArray.getClearSize(inst);
 	  OPT_Operand size = null;
 	  if (numberElements instanceof OPT_RegisterOperand) {
@@ -197,71 +113,42 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  } else { 
 	    size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	  }
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    // check if we are at a alloc advice site
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (aadvice != null) {
-	      // change to alloc advice call
-	      int allocNum = aadvice.getAllocator();
-	      Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewArrayMethod),
-			   numberElements.copy(), size, 
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
-			   new OPT_IntConstantOperand(allocNum));
-	    } else
-	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod),
-			   numberElements.copy(), size, 
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
-	  } else {
-	  //-#endif
-	  Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod), 
-		       numberElements.copy(), size, 
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
+	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(array));
+	  Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewArrayMethod), 
+		       numberElements.copy(), 
+		       size, 
+		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
+		       allocator);
 	  if (ir.options.INLINE_NEW) {
-	    inline(inst, ir);
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  } 
+	}
+	break;
+
+
+      case NEWARRAY_UNRESOLVED_opcode:
+	{
+	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
+	  OPT_Operand numberElements = NewArray.getClearSize(inst);
+	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewArrayMethod), 
+		       numberElements, 
+		       new OPT_IntConstantOperand(typeRefId));
 	}
 	break;
 
       case NEWOBJMULTIARRAY_opcode:
 	{
 	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (debug_alloc_advice)
-	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", 
-					inst.position.getMethod(),
-					inst.getBytecodeIndex(), aadvice);
-	    
-	    if (aadvice != null) {
-	      int allocNum = aadvice.getAllocator();
-	      // change to alloc advice call
-	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.optAllocAdviceNewArrayArrayMethod), 
-			   NewArray.getClearSize(inst), 
-			   new OPT_IntConstantOperand(typeRefId), 
-			   new OPT_IntConstantOperand(allocNum));
-	    } else
-	      Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod),
-			   NewArray.getClearSize(inst), 
-			   new OPT_IntConstantOperand(typeRefId));
-	  } else {
-	  //-#endif
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod), 
 		       NewArray.getClearSize(inst),
 		       new OPT_IntConstantOperand(typeRefId));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
 	}
 	break;
 	
@@ -288,7 +175,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
 			 new OPT_IntConstantOperand(refType.thinLockOffset));
-	    inline(inst, ir);
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  } else {
 	    Call.mutate1(inst, CALL, null, null, 
 			 OPT_MethodOperand.STATIC(VM_Entrypoints.lockMethod),
@@ -310,7 +201,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			     MonitorOp.getClearGuard(inst), 
 			     ref,
 			     new OPT_IntConstantOperand(refType.thinLockOffset));
-		inline(inst, ir);
+		if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+		container.counter2++;
+                if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+                  inline(inst, ir);
+                }
 	    } else {
 		Call.mutate1(inst, CALL, null, null, 
 			     OPT_MethodOperand.STATIC(VM_Entrypoints.unlockMethod),
@@ -336,7 +231,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (VM_Configuration.BuildWithLazyRedirect) {
 		// This barrier completely replaces all access instruction.
 		OPT_Operand origArray = AStore.getClearArray(inst);
-		OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(origArray);
+		OPT_RegisterOperand newArray = ir.regpool.makeTemp(origArray);
 		OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
 		redirectInst.bcIndex = inst.bcIndex;
 		inst.insertBefore(redirectInst);
@@ -373,7 +268,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      // (2) Get real object for value to put if field is a reference type
 	      // (3) It is safe to use the real version for the lazy barrier
 	      OPT_Operand array = AStore.getClearArray(inst);
-	      OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(array);
+	      OPT_RegisterOperand newArray = ir.regpool.makeTemp(array);
 	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray,
 								  array, OPT_IRTools.TG());
 	      redirectInst.bcIndex = inst.bcIndex;
@@ -396,17 +291,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      // no modifications needed for eager version on stores
 	  }
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  if (opcode == REF_ASTORE_opcode) {
-	      Call.mutate3(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_aastoreMethod), 
-			   AStore.getClearArray(inst), 
-			   AStore.getClearIndex(inst), 
-			   AStore.getClearValue(inst));
-	      inline(inst, ir);
-	  }
-          //-#endif
-	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	      if (opcode == REF_ASTORE_opcode) {
 		  OPT_Instruction wb =
 		      Call.create3(CALL, null, null, 
@@ -428,7 +313,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  // Leave the opcode of the final GetField so we don't have to handle UNRESOLVED stuff
 	  if (VM_Configuration.BuildWithLazyRedirect) {
 	      OPT_Operand object = GetField.getClearRef(inst);
-	      OPT_RegisterOperand newObject = ir.gc.temps.makeTemp(object);
+	      OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
 	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newObject, object, 
 								 GetField.getGuard(inst).copy());
 	      redirectInst.bcIndex = inst.bcIndex;
@@ -440,7 +325,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      VM_Field dataField = dataLoc.field;
 	      OPT_Operand origObject = GetField.getClearRef(inst);
 	      if (VM_Configuration.BuildWithLazyRedirect) {
-		  OPT_RegisterOperand realObject = ir.gc.temps.makeTemp(origObject);
+		  OPT_RegisterOperand realObject = ir.regpool.makeTemp(origObject);
 		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
 								     GetField.getGuard(inst).copy());
 		  redirectInst.bcIndex = inst.bcIndex;
@@ -450,10 +335,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      else {  // VM_Configuration.BuildWithEagerRedirect
 		  if (!dataField.getType().isPrimitiveType()) {
 		      OPT_RegisterOperand result = GetField.getClearResult(inst);
-		      OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		      OPT_RegisterOperand temp = ir.regpool.makeTemp(result);
 		      GetField.setResult(inst,temp);
 		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
 		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
 		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
 		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
@@ -508,7 +393,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                 // (2) Get real object for value to put if field is a reference type
                 // (3) It is safe to use the real version for the lazy barrier
 		OPT_Operand object = PutField.getClearRef(inst);
-		OPT_RegisterOperand newObject = ir.gc.temps.makeTemp(object);
+		OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
 		OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, newObject, object,
 								    PutField.getGuard(inst).copy());
 		redirectInst1.bcIndex = inst.bcIndex;
@@ -524,30 +409,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (VM_Configuration.BuildWithEagerRedirect) {
 		// No modification needed
 	    }
-	    //-#if RVM_WITH_CONCURRENT_GC
-	    if (!field.getType().isPrimitiveType()) {
-		    String className = 
-			field.getDeclaringClass().getDescriptor().toString();
-		    if (VM_RCBarriers.shouldOmitBarrier(method,field)) {
-			// shouldOmitBarrier already prints Omitting message
-		    } else {
-			if (opcode == PUTFIELD_opcode)
-			    Call.mutate3(inst, CALL, null, null, 
-				     OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_resolvedPutfieldMethod), 
-				     PutField.getClearRef(inst), 
-				     new OPT_IntConstantOperand(field.getOffset()), 
-				     PutField.getClearValue(inst));
-			else // opcode == PUTFIELD_UNRESOLVED_opcode
-			    Call.mutate3(inst, CALL, null, null, 
-					 OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_unresolvedPutfieldMethod), 
-					 PutField.getClearRef(inst), 
-					 new OPT_IntConstantOperand(field.getDictionaryId()), 
-					 PutField.getClearValue(inst));
-			inline(inst, ir);
-		    }
-	    }
-	      //-#endif
-	    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	    if (VM_Interface.NEEDS_WRITE_BARRIER) {
 		if (!field.getType().isPrimitiveType()) {
 		    boolean isResolved = (opcode == PUTFIELD_opcode);
 		    OPT_Instruction wb = 
@@ -586,27 +448,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      }
 	  }
 	  break;
-
-      case PUTSTATIC_opcode:
-      case PUTSTATIC_UNRESOLVED_opcode:
-	{
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  OPT_LocationOperand loc = PutStatic.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if (!field.getType().isPrimitiveType()) {
-	      boolean isResolved = (opcode == PUTSTATIC_opcode);
-	      Call.mutate2(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(isResolved ?
-						    VM_Entrypoints.RCGC_resolvedPutstaticMethod :
-						    VM_Entrypoints.RCGC_unresolvedPutstaticMethod),
-			   new OPT_IntConstantOperand(isResolved ? field.getOffset() : field.getDictionaryId()),
-			   PutStatic.getClearValue(inst));
-	      inline(inst, ir);
-	  }
-	  //-#endif
-	}
-	break;
-
+	  
       default:
           break;
       }
@@ -654,10 +496,49 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   }
 
   private OPT_Simple _os = new OPT_Simple(false, false);
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
   static private final boolean debug_alloc_advice = false;
   //-#endif
+
+  private static final class OPT_RedirectResult {
+      OPT_Instruction next;
+      OPT_RegisterOperand newValue;
+      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
+	  next = i;
+	  newValue = ro;
+      }
+  }
+
+  // Insert basic blocks AFTER the given instructions that will check the contents of
+  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
+  // of the original register value.  
+  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
+  // and returned along with the first instruction after the added code is returned.
+  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
+	
+      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
+	                                                : ir.regpool.makeTemp(value);
+      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
+      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+      beforeBB.insertOut(afterBB);   // unusual path
+      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
+      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
+					    new OPT_IntConstantOperand(0),  // NULL is 0
+					    OPT_ConditionOperand.EQUAL(),
+					    afterBB.makeJumpTarget(),
+					    OPT_BranchProfileOperand.unlikely());
+      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
+      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+      beforeBB.appendInstruction(moveInst);
+      beforeBB.appendInstruction(ifInst);
+      redirectBB.appendInstruction(redirectInst);
+      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
+  }
+
 }

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id: 
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 /**
  * The register allocator currently caches a bunch of state in the IR;
@@ -41,7 +42,7 @@ class OPT_RegisterAllocatorState {
   /*
   static void putPhysicalRegResurrectList(OPT_Register r, 
 					  OPT_LinearScanLiveInterval li) {
-    if (VM.VerifyAssertions) VM.assert(r.isPhysical());
+    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
     r.scratchObject = li;
   }
   */
@@ -53,7 +54,7 @@ class OPT_RegisterAllocatorState {
    */
   /*
   static OPT_LinearScanLiveInterval getPhysicalRegResurrectList(OPT_Register r) {
-    if (VM.VerifyAssertions) VM.assert(r.isPhysical());
+    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
     return (OPT_LinearScanLiveInterval) r.scratchObject;
   }
   */

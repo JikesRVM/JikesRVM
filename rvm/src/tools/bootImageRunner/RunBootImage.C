@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 /*
@@ -25,39 +25,29 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __CYGWIN__
-#include <libgen.h> // basename()
-#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/signal.h>
 #include <strings.h> /* bzero */
+#include <libgen.h>     /* basename */
 #ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
 #include <signal.h>
-//#define NGPRS 32 // wrong on IA32 -- dave
-//#define NFPRS  0
-#elif __CYGWIN__
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
 extern "C" char *sys_siglist[];
 #endif
 #include "RunBootImage.h"
+#include "cmdLine.h"
 
 // Interface to VM data structures.
 //
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
-
-// for DejaVu
-#define NO_DEJAVU 0
-#define RECORD 1
-#define REPLAY 2
-
 
 #if IBM_AIX
 #include <AixLinkageLayout.h>
@@ -92,12 +82,10 @@ extern unsigned smallHeapSize;  // megs
 extern unsigned largeHeapSize;  // megs
 extern unsigned nurserySize;    // megs
 extern unsigned permanentHeapSize;
-extern int verboseGC;
 
-int dejaVuMode;
-char * dejaVuClassName = "DejaVu";
-char * dejaVuRecordString = "-record";
-char * dejaVuReplayString = "-replay";
+extern unsigned traceClassLoading;
+
+extern int verboseGC;
 
 extern "C" int createJVM(int);
 
@@ -109,7 +97,7 @@ char * emptyString = "";
  */
 void usage() 
 {
-  fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n",me);
+  fprintf(SysTraceFile,"Usage: rvm [-options] class [args...]\n");
   fprintf(SysTraceFile,"          (to execute a class)\n");
   //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",me);
   //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
@@ -142,36 +130,10 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",me);
   fprintf(SysTraceFile,"          (to execute a class)\n");
   fprintf(SysTraceFile,"where options include\n");
-  fprintf(SysTraceFile,"    -X:h=<number>   allocate <number> megabytes of small object heap (default=%d)\n",small_heap_default_size);
-  fprintf(SysTraceFile,"    -Xmx<number>    allocate <number> megabytes of small object heap (default=%d)\n",small_heap_default_size);
-  fprintf(SysTraceFile,"    -X:lh=<number>  allocate <number> megabytes of large object heap (default=10)\n");
-  fprintf(SysTraceFile,"    -X:nh=<number>  allocate <number> megabytes of nursery object heap (default=10)\n");
-  fprintf(SysTraceFile,"    -X:ph=<number>  allocate <number> megabytes of permanent object heap (default=0)\n");
-  fprintf(SysTraceFile,"    -X:i=<filename> read boot image from <filename>\n");
-  fprintf(SysTraceFile,"    -X:sysLogfile=<filename>\n");
-  fprintf(SysTraceFile,"                    writes standard error message to <filename>\n");
-  fprintf(SysTraceFile,"    -X:vmClasses=<filename>\n");
-  fprintf(SysTraceFile,"                    load classes from <filename>\n");
-  fprintf(SysTraceFile,"    -X:cpuAffinity=<number>\n");
-  fprintf(SysTraceFile,"                    physical cpu to which first virtual processor is bound\n");
-  fprintf(SysTraceFile,"    -X:processors=<number|\"all\">\n");
-  fprintf(SysTraceFile,"                    number of processors to use on a multiprocessor or use all\n");
-  fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
-  fprintf(SysTraceFile,"                    produce a report on compilation time\n");
-  fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
-  fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by the initial runtime compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:base[:help]  print options supported by the baseline compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:base:<option> pass <option> on to the baseline compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt[:help]   print options supported by the optimizing compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
-  fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
-  fprintf(SysTraceFile,"    -X:record  run under DejaVu control and produce a trace file for replay\n");
-  fprintf(SysTraceFile,"    -X:replay  replay the application under DejaVu control using a previous trace file\n");
-  fprintf(SysTraceFile,"\n");
+  for (int i=0; i<numNonStandardUsageLines; i++) {
+     fprintf(SysTraceFile,nonStandardUsage[i]);
+     fprintf(SysTraceFile,"\n");
+  }
 }
 
 /**
@@ -277,8 +239,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
   char *subtoken;
   int i;
 
-  dejaVuMode = NO_DEJAVU;
-
   if ( n_CLAs > maxTokens )
     JCLAs = new char*[n_CLAs];
   else
@@ -301,14 +261,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     // pass on all command line arguments that do not start with a dash, '-'.
     if (token[0] != '-') {
-      // insert DejaVu class if running with DejaVu
-      if (dejaVuMode==RECORD || dejaVuMode==REPLAY)  {
-        JCLAs[n_JCLAs++]=dejaVuClassName;
-        if (dejaVuMode==RECORD)
-          JCLAs[n_JCLAs++]=dejaVuRecordString;
-        else
-          JCLAs[n_JCLAs++]=dejaVuReplayString;
-      }
       JCLAs[n_JCLAs++]=token;
       startApplicationOptions = 1;
       continue;
@@ -320,11 +272,11 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       *fastExit = 1;
       break;
     }
-    if (!strcmp(token, "-X")) {
+    if (!strcmp(token, nonStandardArgs[HELP_INDEX])) {
       nonstandard_usage();
       *fastExit = 1; break;
     }
-    if (!strcmp(token, "-X:verbose")) {
+    if (!strcmp(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++lib_verbose;
       //      JCLAs[n_JCLAs++]=token;
       continue;
@@ -345,47 +297,56 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       continue;
     }
-    if (!strcmp(token, "-verbose:gc")) {
-      verboseGC = 1;
-      continue;
-    }
-    if (!strncmp(token, "-verbose:gc=",12)) {
-      subtoken = token + 12;
-      verboseGC = atoi(subtoken);
-      if (verboseGC < 0) {
-	fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
-	*fastExit = 1; break;
+    if (!strncmp(token, "-verbose:gc", 11)) {
+      int level;
+      if (token[11] == 0) 
+	level = 1;
+      else {
+	level = atoi(token+12); // skip the "=" in "-verbose:gc=<num?"
+	if (level < 0) {
+	  fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
+	  *fastExit = 1; break;
+	}
+      }
+      verboseGC = level; // only for watson
+      {
+	char *buf = (char *) malloc(20);
+	sprintf(buf, "-X:gc:verbose=%d", level);
+	JCLAs[n_JCLAs++]=buf;
       }
       continue;
     }
-    if (!strncmp(token, "-X:h=", 5)) {
+    if (!strncmp(token, nonStandardArgs[SMALL_HEAP_INDEX], 5)) {
       subtoken = token + 5;
       smallHeapSize = atoi(subtoken) * 1024 * 1024;
       if (smallHeapSize <= 0) {
 	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-Xmx", 4)) {
+    if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
       subtoken = token + 4;
       smallHeapSize = atoi(subtoken) * 1024 * 1024;
       if (smallHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
+	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-X:lh=", 6)) {
+    if (!strncmp(token, nonStandardArgs[LARGE_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       largeHeapSize = atoi(subtoken) * 1024 * 1024;
       if (largeHeapSize <= 0) {
 	fprintf(SysTraceFile, "%s: please specify large object heap size (in megabytes) using \"-X:lh=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-X:nh=", 6)) {
+    if (!strncmp(token, nonStandardArgs[NURSERY_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       nurserySize = atoi(subtoken) * 1024 * 1024;
       if (nurserySize <= 0) {
@@ -394,7 +355,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }
       continue;
     }
-    if (!strncmp(token, "-X:ph=", 6)) {
+    if (!strncmp(token, nonStandardArgs[PERM_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       permanentHeapSize = atoi(subtoken) * 1024 * 1024;
       if (permanentHeapSize <= 0) {
@@ -402,8 +363,9 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	*fastExit = 1; break;
       }
       continue;
-    }       
-    if (!strncmp(token, "-X:sysLogfile=",14)) {
+    } 
+      
+    if (!strncmp(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
       subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
@@ -419,28 +381,20 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }	
       continue;
     }
-    if (!strncmp(token, "-X:i=", 5)) {
+    if (!strncmp(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
       bootFilename = token + 5;
       continue;
     }
-    if (!strncmp(token, "-X:record", 9)) {
-      dejaVuMode = RECORD;
+
+    if (!strncmp(token, nonStandardArgs[TCL_INDEX], 10)) {
+      traceClassLoading = 1;
       continue;
-    }
-    if (!strncmp(token, "-X:replay", 9)) {
-      dejaVuMode = REPLAY;
-      continue;
-    }
-    
+    } 
     
     /*
      * JDK 1.3 standard command line arguments that are not supported.
      * TO DO: provide support
      */
-    if (!strcmp(token, "-verbose:jni")) {
-      fprintf(SysTraceFile, "%s: -verbose:jni is not supported\n", me);
-      continue;
-    }
     if (!strcmp(token, "-jar")) {
       fprintf(SysTraceFile, "%s: -jar is not supported\n", me);
       continue;
@@ -452,16 +406,21 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     //
 
     // All VM directives that take one token
-    if (!strncmp(token, "-D", 2) || !strncmp(token, "-X:gc", 5) ||
-	!strncmp(token, "-X:aos",6)   || !strncmp(token, "-X:irc", 6) ||
-	!strncmp(token, "-X:base",7)  || !strncmp(token, "-X:opt", 6) ||
+    if (!strncmp(token, "-D", 2) || !strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
+	!strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
+        !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
+	!strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
+        !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
+	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
-	!strcmp(token, "-verbose:gc") ||
-	!strncmp(token, "-X:vmClasses=", 13)  || 
-	!strncmp(token, "-X:cpuAffinity=", 15) ||
-	!strncmp(token, "-X:processors=", 14)  ||
-	!strncmp(token, "-X:wbsize=", 10)      ||
-	!strncmp(token, "-X:measureCompilation=", 22)      
+	!strcmp(token, "-verbose:gc") || !strcmp(token, "-verbose:jni") || 
+	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
+	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
+	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||
+	!strncmp(token, nonStandardArgs[WBSIZE_INDEX], 10)      ||
+	!strncmp(token, nonStandardArgs[MEASURE_COMPILATION_INDEX], 22) ||  
+	!strncmp(token, nonStandardArgs[MEASURE_CLASS_LOADING_INDEX], 23) ||     
+	!strncmp(token, nonStandardArgs[VERIFY_INDEX], 10)  
        ) {
       JCLAs[n_JCLAs++]=token;
       continue;
@@ -474,15 +433,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
 
-    // unrecognized flag: assume start of application options
-    // insert DejaVu class if running with DejaVu
-    if (dejaVuMode==RECORD || dejaVuMode==REPLAY)  {
-      JCLAs[n_JCLAs++]=dejaVuClassName;
-      if (dejaVuMode==RECORD)
-        JCLAs[n_JCLAs++]=dejaVuRecordString;
-      else
-        JCLAs[n_JCLAs++]=dejaVuReplayString;
-    }
     JCLAs[n_JCLAs++]=token;
     startApplicationOptions = 1;
   }
@@ -501,18 +451,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 
   return Arguments;
 }
-
-#ifdef __CYGWIN__
-// is a shell builtin, but doesn't seem to be in C lib.
-static char*
-basename (char* name) {
-  char* base = name;
-  while (*name) 
-    if ((*name++ == '/')||(name[-1] == '\\')||(name[-1] == ':'))
-      base = name;
-  return base;
-}
-#endif
 
 /*
  * Parse command line arguments to find those arguments that 

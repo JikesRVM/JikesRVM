@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * See VM_Proxy
@@ -9,7 +10,7 @@
  * @author Susan Flynn Hummel
  * @author Bowen Alpern
  */
-class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   private VM_Proxy tail;
   private VM_Proxy head;

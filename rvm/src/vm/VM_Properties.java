@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Flags that control the behavior of our virtual machine.
@@ -55,15 +56,19 @@ public class VM_Properties extends VM_Configuration {
 	//-#endif
 	//-#endif
 
-  // suppress code gen when system is running on remote interpreter portion of jdp.
-  public static boolean runningAsJDPRemoteInterpreter;
-
   /**
    * The following is set on by -verbose:class command line arg.
    * When true, it generates messages to the sysWrite stream summarizing
    * class loading activities
    */
   public static boolean verboseClassLoading = false;
+
+  /**
+   * The following is set on by -verbose:jni command line arg.
+   * When true, it generates messages to the sysWrite stream summarizing
+   * jni activities
+   */
+  public static boolean verboseJNI = false;
 
   // Symbolic info to support debugger.
   //
@@ -73,21 +78,44 @@ public class VM_Properties extends VM_Configuration {
    * The following is set on by -X:measureCompilation=true command line arg.
    * When true, it times compilations and generates a report at VM exit.
    */
-  public static boolean MeasureCompilation      = false;  
+  public static boolean MeasureCompilation = false;  
+
+  /**
+   * The following is set on by -X:measureClassLoading=<integer> command line arg.
+   * The following are valid values for integer:
+   *   
+   *  1 : Dump at the end of a run
+   *  2 : Dump after each class load
+   */
+  public static int MeasureClassLoading     = 0;  
+
+  /**
+   * Returns whether we should measure class loading or not.
+   */
+  public final static boolean MeasureClassLoading() {
+    return MeasureClassLoading == 1 || MeasureClassLoading == 2;
+  }
+
+  /**
+   * Accumulate per java thread CPU time.
+   * Used by AOS and MeasureCompilation to get accurate compilation times.
+   */
+  public static boolean EnableCPUMonitoring = VM_Configuration.BuildForAdaptiveSystem;
+
+  /**
+   * The following is set on by -X:verify=true command line arg.
+   * When true, it invokes the bytecode verifier
+   */
+  public static boolean VerifyBytecode = false;  
 
   // Runtime subsystem tracing.
   //
   public static final boolean TraceDictionaries       = false;
   public static final boolean TraceStatics            = false;
-  public static final boolean TraceClassLoading       = false;
-  public static final boolean TraceDynamicLinking     = false;
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
   public static final boolean TraceStackTrace         = false;
-
-  // Baseline compiler tracing.
-  //
-  public static final boolean TraceAssembler         = false; // PPC only
+  public static boolean TraceClassLoading             = true;
 
   // Baseline compiler reference map tracing.
   //

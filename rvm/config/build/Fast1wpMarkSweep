@@ -1,2 +1,0 @@
-   . $1/FastMarkSweep
-   export RVM_WITH_ONE_WORD_PTR_OBJECT_MODEL=1   

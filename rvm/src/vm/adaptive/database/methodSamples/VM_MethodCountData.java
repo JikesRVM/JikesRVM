@@ -2,7 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
 import java.util.Vector;
 
 /**
@@ -12,20 +18,14 @@ import java.util.Vector;
  * @author Michael Hind
  * @modified Peter Sweeney
  */
-public final class VM_MethodCountData 
-  implements VM_Decayable, VM_Reportable {
+public final class VM_MethodCountData implements VM_Reportable {
 
   private static final boolean DEBUG = false;
   
   /**
-   * Sum of values in count array that are decayed over time.
+   * Sum of values in count array.
    */
   private double totalCountsTaken;
-
-  /**
-   * How many counts have really been taken (ignoring decay).
-   */
-  private double undecayedTotalCountsTaken;
 
   /**
    * Count array: counts how many times a method is executed.
@@ -64,7 +64,6 @@ public final class VM_MethodCountData
     cmids = new int[256];
     nextIndex = 1;
     totalCountsTaken = 0;
-    undecayedTotalCountsTaken = 0;
   }
 
   /** 
@@ -81,7 +80,6 @@ public final class VM_MethodCountData
       heapifyUp(index);     // Fix up the heap
     }
     totalCountsTaken += numCounts;
-    undecayedTotalCountsTaken += numCounts;
     if (DEBUG) validityCheck();
   }
 
@@ -96,29 +94,15 @@ public final class VM_MethodCountData
     counts[index] += numCounts;       // Record counts
     heapifyUp(index);                 // Fix up the heap
     totalCountsTaken += numCounts;
-    undecayedTotalCountsTaken += numCounts;
     if (DEBUG) validityCheck();
   }
-
-  /**
-   * Decay the method counts.
-   */
-  public final synchronized void decay() {
-    double rate = VM_Controller.options.DECAY_RATE;
-    for (int i=1; i<nextIndex; i++) {
-      counts[i] /= rate;
-    }
-    totalCountsTaken /= rate;
-  }
-
 
   /** 
    *  Print the counted (nonzero) methods.
    *  To get a sorted list, pipe the output through sort -n -r.
    */
   public final synchronized void report() {
-    VM.sysWrite("Method counts: A total of "+totalCountsTaken+
-		" times counted (undecayed  "+undecayedTotalCountsTaken+")\n");
+    VM.sysWrite("Method counts: A total of "+totalCountsTaken+" times counted \n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
@@ -190,23 +174,19 @@ public final class VM_MethodCountData
   }
 
   /**
-   * Set the raw data for a given cmid to the specified value
+   * Augment the data associated with a given cmid by the specified number of samples
    *
    * @param cmid compiled method id
-   * @param newVal new value for compiled method id count
+   * @param addVal samples to add
    */
-  public final synchronized void setData(int cmid, double newVal) {
-    if (newVal == 0.0) {
-      reset(cmid); // Prefer reset, since it frees up a slot in the heap.
+  public final synchronized void augmentData(int cmid, double addVal) {
+    if (addVal == 0) return; // nothing to do
+    int index = findOrCreateHeapIdx(cmid);
+    counts[index] += addVal;
+    if (addVal > 0) {
+      heapifyUp(index);
     } else {
-      int index = findOrCreateHeapIdx(cmid);
-      double oldVal = counts[index];
-      counts[index] = newVal;
-      if (newVal > oldVal) {
-	heapifyUp(index);
-      } else {
-	heapifyDown(index);
-      }
+      heapifyDown(index);
     }
     if (DEBUG) validityCheck();
   }
@@ -272,20 +252,8 @@ public final class VM_MethodCountData
    * @return a value [0.0...1.0]
    */
   private double countsToHotness(double numCounts) {
-    if (VM.VerifyAssertions) VM.assert(numCounts <= totalCountsTaken);
+    if (VM.VerifyAssertions) VM._assert(numCounts <= totalCountsTaken);
     return numCounts / totalCountsTaken;
-  }
-
-  /**
-   * Convert a possibly decayed numCounts into an
-   * "undecayed" count value for use in model calculations of the 
-   * time spent executing in this method so far.
-   *
-   * @param numCounts number of decayed counts
-   * @return number of undecayed counts
-   */
-  private double numCountsForModel(double numCounts) {
-    return undecayedTotalCountsTaken * countsToHotness(numCounts);
   }
 
   /**
@@ -316,7 +284,7 @@ public final class VM_MethodCountData
 	  if (!(compilerType == VM_CompiledMethod.TRAP ||
 		(compilerType == VM_CompiledMethod.OPT && 
 		 (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-	    double ns = numCountsForModel(counts[index]);
+	    double ns = counts[index];
 	    VM_HotMethodRecompilationEvent event = 
 	      new VM_HotMethodRecompilationEvent(cm, ns);
 	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
@@ -363,7 +331,7 @@ public final class VM_MethodCountData
 	  int compilerType = cm.getCompilerType();
 	  if (compilerType == VM_CompiledMethod.OPT && 
 	      ((VM_OptCompiledMethod)cm).getOptLevel() == optLevel) {
-	    double ns = numCountsForModel(counts[index]);
+	    double ns = counts[index];
 	    collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
 	  }
 	
@@ -505,15 +473,15 @@ public final class VM_MethodCountData
     if (DEBUG && VM.VerifyAssertions) {
       // (1) Verify map and cmids are in synch
       for (int i=0; i<map.length; i++) {
-	VM.assert(map[i] == 0 || cmids[map[i]] == i);
+	VM._assert(map[i] == 0 || cmids[map[i]] == i);
       }
       for (int i=1; i<nextIndex; i++) {
-	VM.assert(map[cmids[i]] == i);
+	VM._assert(map[cmids[i]] == i);
       }
 
       // Verify that heap property holds on data.
       for (int i=2; i<nextIndex; i++) {
-	VM.assert(counts[i] <= counts[i/2]);
+	VM._assert(counts[i] <= counts[i/2]);
       }
     }
   }

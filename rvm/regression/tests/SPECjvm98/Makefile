@@ -50,10 +50,16 @@ check:
 ifeq ($(MODE),PERFORMANCE)
 
 sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
-	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m5 -M5 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
+	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m20 -M20 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 do-gather-performance:
 	$(JAL_ROOT)/rvm/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
+
+else
+ifeq ($(MODE),MEASURE_COMPILATION)
+
+sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
+	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m1 -M1 -s10 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 else
 
@@ -63,5 +69,6 @@ $(TESTS): %: $(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
 sanity:	$(TESTS)
 	@$(MAKE) START_NAME="SPECjvm98" do-sanity-finish
 
+endif
 endif
 

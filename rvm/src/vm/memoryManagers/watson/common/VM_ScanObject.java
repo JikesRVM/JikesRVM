@@ -3,13 +3,39 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+
 /**
  * Class that supports scanning Objects or Arrays for references
  * during Collection and processing those references
  *
  * @author Stephen Smith
  */  
-public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+public class VM_ScanObject implements VM_Constants, VM_GCConstants {
 
   /**
    * Scans an object or array for internal object references and
@@ -17,7 +43,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  static void scanObjectOrArray(VM_Address objRef ) {
+  static void scanObjectOrArray(VM_Address objRef ) throws VM_PragmaUninterruptible {
 
     // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
@@ -48,7 +74,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
         VM.sysWrite("\nVM_ScanObject: objRef = ");
         VM.sysWrite(VM_Magic.objectAsAddress(type));
         VM.sysWrite("\n");
-        VM.assert(type != null);
+        VM._assert(type != null);
       }
     }
     if ( type.isClassType() ) {
@@ -59,7 +85,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
       VM_GCStatistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
     else {
-      if (VM.VerifyAssertions) VM.assert(type.isArrayType());
+      if (VM.VerifyAssertions) VM._assert(type.isArrayType());
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
         int num_elements = VM_Magic.getArrayLength(obj);
@@ -75,11 +101,11 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
     }
   } 
 
-  static void scanObjectOrArray( Object objRef ) {
+  static void scanObjectOrArray( Object objRef ) throws VM_PragmaUninterruptible {
     scanObjectOrArray( VM_Magic.objectAsAddress(objRef) );
   }
 
-  public static boolean validateRefs( VM_Address ref, int depth ) {
+  public static boolean validateRefs( VM_Address ref, int depth ) throws VM_PragmaUninterruptible {
 
     VM_Type    type;
 

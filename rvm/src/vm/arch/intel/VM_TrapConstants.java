@@ -2,13 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  *
  * @author Bowen Alpern
  * @author David Grove
  */
-interface VM_TrapConstants
+public interface VM_TrapConstants
    {
 
        /** 

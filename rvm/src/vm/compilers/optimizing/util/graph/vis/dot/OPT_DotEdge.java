@@ -3,6 +3,7 @@
  */
 //OPT_DotEdge.java
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_DotEdge provides the minimum set of routines for printing a graph
@@ -63,7 +64,7 @@ public interface OPT_DotEdge extends OPT_VisEdge {
     /**
      * Returns the color of the edge.
      * Should be one of color constants or an RGB color.
-     * @see OPT_DotUtils.RGB()
+     * @see OPT_DotUtils#RGB
      * @return edge color
      */
     public String getColor() { return null; }
@@ -104,7 +105,7 @@ public interface OPT_DotEdge extends OPT_VisEdge {
     /**
      * Returns the line style of the edge.
      * Should be one of style constants or a combination.
-     * @see OPT_DotUtils.combine()
+     * @see OPT_DotUtils#combine
      * @return edge line style
      */
     public String getStyle() { return null; }

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Trap Conventions
@@ -9,7 +10,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_TrapConstants {
+public interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Trap Conventions.                                             //
   //--------------------------------------------------------------------------------------------//

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+
 /**
  * Use baseline compiler to build virtual machine boot image.
  * 
@@ -9,10 +13,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_BootImageCompiler {
-  /** Identity. */
-  public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
-
+public class VM_BootImageCompiler {
   /** 
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
@@ -33,15 +34,33 @@ class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  static VM_CompiledMethod compile(VM_Method method) {
-    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    return VM_BaselineCompiler.compile(method);
+  public static VM_CompiledMethod compile(VM_Method method) {
+    VM_CompiledMethod cm;
+    if (method.isNative()) {
+      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+      cm = VM_JNICompiler.compile(method);
+    } else { 
+      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+      cm = VM_BaselineCompiler.compile(method);
+    }
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Must estimate compilation time by using offline ratios.
+    // It is tempting to time via System.currentTimeMillis()
+    // but 1 millisecond granularity isn't good enough because the 
+    // the baseline compiler is just too fast.
+    if (!method.isNative()) {
+      double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+      cm.setCompilationTime(compileTime);
+    }
+    //-#endif
+    return cm;
   }
   
   /**
    * Create stackframe mapper appropriate for this compiler.
    */
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

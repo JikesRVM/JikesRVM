@@ -3,6 +3,7 @@
  */
 
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
@@ -10,7 +11,7 @@
  * @author Janice Shepherd
  * @date 28 Nov 2001
  */
-class VM_Services {
+public class VM_Services {
 
   /**
    * Utility printing function.

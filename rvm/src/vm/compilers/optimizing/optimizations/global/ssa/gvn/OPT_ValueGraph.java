@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class implements the value graph used in global value numbering
@@ -53,7 +55,7 @@ class OPT_ValueGraph implements OPT_Operators {
               if (v2.name instanceof OPT_Register && 
                   v2.label instanceof OPT_Register &&
                   v2.label != v2.name) {
-                VM.assert(false);
+                VM._assert(false);
               }
             } 
             v.copyVertex(v2);
@@ -155,6 +157,8 @@ class OPT_ValueGraph implements OPT_Operators {
       processGuardedUnary(s); 
     else if (NullCheck.conforms(s))
       processNullCheck(s); 
+    else if (ZeroCheck.conforms(s))
+      processZeroCheck(s); 
     else if (Binary.conforms(s))
       processBinary(s); 
     else if (GuardedBinary.conforms(s))
@@ -384,6 +388,25 @@ class OPT_ValueGraph implements OPT_Operators {
   }
 
   /** 
+   * Update the value graph to account for a given NullCheck instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> ZeroCheck.conforms(s); </code>
+   *
+   * @param s the instruction in question
+   */
+  private void processZeroCheck(OPT_Instruction s) {
+    // label the vertex corresponding to the result with the operator
+    OPT_RegisterOperand result = ZeroCheck.getGuardResult(s);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    v.setLabel(s.operator(), 1);
+    // link node v to the operand it uses
+    OPT_Operand val = ZeroCheck.getValue(s);
+    // bypass Move instructions
+    val = bypassMoves(val);
+    link(v, findOrCreateVertex(val), 0);
+  }
+
+  /** 
    * Update the value graph to account for a given Binary instruction.
    * 
    * <p><b>PRECONDITION:</b> <code> Binary.conforms(s); </code>
@@ -577,7 +600,9 @@ class OPT_ValueGraph implements OPT_Operators {
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
-    if (op.isIntConstant()) {
+    if (op.isAddressConstant()) {
+      name = new Integer(op.asAddressConstant().value.toInt());
+    } else if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
     } else if (op.isFloatConstant()) {
       name = new Float(op.asFloatConstant().value);
@@ -590,6 +615,8 @@ class OPT_ValueGraph implements OPT_Operators {
     } else if (op.isNullConstant()) {
       name = op;
     } else if (op instanceof OPT_TrueGuardOperand) {
+      name = op;
+    } else if (op instanceof OPT_UnreachableOperand) {
       name = op;
     } else {
       throw  new OPT_OptimizingCompilerException(

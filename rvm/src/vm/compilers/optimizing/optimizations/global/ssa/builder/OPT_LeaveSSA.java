@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 
 /**
@@ -35,7 +37,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private OPT_IR ir;
 
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   private boolean splitSomeBlock = false;
 
@@ -43,7 +45,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * Should we perform this phase?
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.SSA;
   }
 
@@ -51,17 +53,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * Return a string name for this phase.
    * @return "Leave SSA"
    */
-  final String getName() {
+  public final String getName() {
     return  "Leave SSA";
-  }
-
-  /**
-   * Should we print the IR before or after performing this phase?
-   * @param options controlling compiler options
-   * @param before query before if true, after if false.
-   */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -339,7 +332,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           ((out.contains(r) && SplitBlockToAvoidRenaming) || (rr!=null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive));
 
         if (SplitBlockIntoInfrequent) {
-          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()) 
+          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()
+              && !c.phi.getBasicBlock().isExceptionHandlerBasicBlock()) 
             shouldSplitBlock = true;
         }
         
@@ -370,7 +364,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           }
         } 
         else if (c.source instanceof OPT_ConstantOperand) {
-          ci = OPT_SSA.makeMoveInstruction(ir, r, (OPT_ConstantOperand)c.source);
+          if (c.source instanceof OPT_UnreachableOperand) {
+            ci = null;
+          } else {
+            ci = OPT_SSA.makeMoveInstruction(ir, r, (OPT_ConstantOperand)c.source);
+          }
         } 
         else if (c.source instanceof OPT_RegisterOperand) {
           if (shouldSplitBlock) {
@@ -415,10 +413,22 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         }
         if (ci != null)
           if (shouldSplitBlock) {
-            OPT_BasicBlock criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+            if (DEBUG) VM.sysWriteln("splitting edge: " + bb + "->" + c.phi.getBasicBlock());
+            OPT_BasicBlock criticalBlock = (OPT_BasicBlock)criticalBlocks.get(c.phi.getBasicBlock());
+            if (criticalBlock == null) {
+              criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+              if (c.phi.getBasicBlock().getInfrequent()) {
+                criticalBlock.setInfrequent();
+              }
+              splitSomeBlock = true;
+              criticalBlocks.put(c.phi.getBasicBlock(),criticalBlock);
+              HashMap newNames = new HashMap(4);
+              currentNames.put(criticalBlock,newNames);
+            }
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);
-          } else
+          } else {
             OPT_SSA.addAtEnd(ir, bb, ci, c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
+          }
           
           // source has been copied and so can now be overwritten
           // safely.  so now add any copies _to_ the source of the
@@ -578,25 +588,26 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
       int values = Phi.getNumberOfValues (inst);
       for (int i = 0;  i < values;  ++i) {
         OPT_Operand op = Phi.getValue (inst, i);
-        if (! (op instanceof OPT_RegisterOperand)) {
+        if (!(op instanceof OPT_RegisterOperand)) {
           if (op instanceof OPT_TrueGuardOperand) {
-            OPT_BasicBlock bb = Phi.getPred (inst, i).block;
+            OPT_BasicBlock bb = Phi.getPred(inst,i).block;
             OPT_Instruction move = Move.create (GUARD_MOVE,
                                                 res.asRegister().copyD2D(),
                                                 new OPT_TrueGuardOperand());
             move.position = ir.gc.inlineSequence;
             move.bcIndex = SSA_SYNTH_BCI;
-            bb.appendInstructionRespectingTerminalBranchOrPEI (move); 
+            bb.appendInstructionRespectingTerminalBranchOrPEI(move); 
+          } else if (op instanceof OPT_UnreachableOperand) {
+            // do nothing
           } else {
-            if (VM.VerifyAssertions) VM.assert (false);
+            if (VM.VerifyAssertions) VM._assert(false);
           }
         }
       }
     }
 
     // visit all guard registers, init union/find
-
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       r.scratch = 1;
       r.scratchObject = r;
@@ -609,18 +620,20 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   private void unSSAGuardsDetermineReg(OPT_IR ir) {
     OPT_Instruction inst = guardPhis;
     while (inst != null) {
-      OPT_Register r = Phi.getResult (inst).asRegister().register;
-      int values = Phi.getNumberOfValues (inst);
-      for (int i = 0;  i < values;  ++i) {
-        OPT_Operand op = Phi.getValue (inst, i);
+      OPT_Register r = Phi.getResult(inst).asRegister().register;
+      int values = Phi.getNumberOfValues(inst);
+      for (int i = 0;  i < values; ++i) {
+        OPT_Operand op = Phi.getValue(inst, i);
         if (op instanceof OPT_RegisterOperand) {
-          guardUnion (op.asRegister().register, r);
+          guardUnion(op.asRegister().register, r);
         } else {
-          if (VM.VerifyAssertions)
-            VM.assert (op instanceof OPT_TrueGuardOperand);
+          if (VM.VerifyAssertions) {
+            VM._assert(op instanceof OPT_TrueGuardOperand ||
+                      op instanceof OPT_UnreachableOperand);
+          }
         }
       }
-      inst = (OPT_Instruction) inst.scratchObject;
+      inst = (OPT_Instruction)inst.scratchObject;
     }
   }
 
@@ -629,7 +642,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private void unSSAGuardsFinalize(OPT_IR ir) {
     OPT_DefUse.computeDU(ir);
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.next) {
+    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       OPT_Register nreg = guardFind(r);
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(r);
@@ -677,7 +690,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   private OPT_Register guardFind(OPT_Register r)
   {
     OPT_Register start = r;
-    if (VM.VerifyAssertions) VM.assert (r.scratchObject != null);
+    if (VM.VerifyAssertions) VM._assert (r.scratchObject != null);
     while (r.scratchObject != r) r = (OPT_Register) r.scratchObject;
     while (start.scratchObject != r) {
       start.scratchObject = r;

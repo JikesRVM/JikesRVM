@@ -2,7 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM_Method;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -23,22 +26,20 @@ import java.util.Enumeration;
  *
  **/
 
-class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan
-{
+public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
 
   
   /**
    * Construct empty plan, must setup manually
    **/ 
-  VM_AOSInstrumentationPlan(VM_Method method) {
+  public VM_AOSInstrumentationPlan(VM_Method method) {
     this.method = method;
   }
 
   /**
    * Construct based on options
    **/ 
-  VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_Method method)
-  {
+  public VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_Method method) {
     // If we want to collect method invocation counts.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
     }
@@ -48,7 +49,7 @@ class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan
    * Initialize instrumentation by the opt compiler immediately before
    * compilation begins.
    **/
-  void initInstrumentation(VM_Method method)
+  public void initInstrumentation(VM_Method method)
   {
   }
 
@@ -57,7 +58,7 @@ class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan
    * occured, perform some cleanup/finalization
    **/
 
-  void finalizeInstrumentation(VM_Method method)
+  public void finalizeInstrumentation(VM_Method method)
   {
 
   }

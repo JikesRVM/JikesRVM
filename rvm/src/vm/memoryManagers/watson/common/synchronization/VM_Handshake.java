@@ -3,6 +3,7 @@
  */
 //$Id$
 
+
 /**
  * VM_Handshake handles mutator requests to initiate a collection, 
  * and wait for a collection to complete.  It implements the process
@@ -20,7 +21,36 @@
  * @author Bowen Alpern
  * @author Stephen Smith
  */
-class VM_Handshake implements VM_Uninterruptible {
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Thread;
+
+public class VM_Handshake {
   
   private static final boolean trace = false;
   private static final boolean debug_native = false;   // temporary debugging of new threads
@@ -55,7 +85,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * for the collection. They reside in the thread dispatch queues of their
    * processors, until the collector threads re-enable thread switching.
    */
-  private void initiateCollection() {
+  private void initiateCollection() throws VM_PragmaUninterruptible {
     int maxCollectorThreads;
 
     // check that scheduler initialization is complete
@@ -127,7 +157,7 @@ class VM_Handshake implements VM_Uninterruptible {
     // (see VM_CollectorThread.run)
     //
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
-      if (VM.VerifyAssertions) VM.assert(VM_Processor.nativeProcessors[i] != null);
+      if (VM.VerifyAssertions) VM._assert(VM_Processor.nativeProcessors[i] != null);
       VM_Processor.nativeProcessors[i].lockInCIfInC();
       if (trace) {
         int newStatus =  VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex];
@@ -166,7 +196,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * switching on the processor until it has completed the
    * collection.
    */
-  void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
+  public void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
     synchronized (this) {
       if (completionFlag) {
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
@@ -196,7 +226,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * since they are in VM_Processor thread queues, waiting
    * for the collector thread to re-enable thread switching.
    *
-   * @see VM_CollectorThread
+   * @see com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread
    */
   synchronized void notifyCompletion() throws VM_PragmaInterruptible {
     if (trace) VM_Scheduler.trace("VM_Handshake", "collector: completed");
@@ -213,7 +243,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * @param value    Value to store into lockoutlock word
    * @param spinwait flag to cause spinning (if true) or yielding
    */
-  static void acquireLockoutLock(int value, boolean spinwait) {
+  public static void acquireLockoutLock(int value, boolean spinwait) throws VM_PragmaUninterruptible {
     if (spinwait) {
       while (true) {
 	int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
@@ -256,12 +286,12 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @param value    Value that should currently be in the lockoutlock word
    */
-  static void releaseLockoutLock(int value) {
+  public static void releaseLockoutLock(int value) throws VM_PragmaUninterruptible {
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
       // check that current value is as expected
-      if (VM.VerifyAssertions && (value!=0)) VM.assert( lockoutVal == value );
+      if (VM.VerifyAssertions && (value!=0)) VM._assert( lockoutVal == value );
       // OK, reset to zero
       if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
 			  VM_Entrypoints.lockoutProcessorField.offset,
@@ -276,17 +306,15 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @return  current lockoutLock word
    */
-  static int queryLockoutLock() {
-    int lockoutVal;
+  public static int queryLockoutLock() throws VM_PragmaUninterruptible {
     while (true) {
-      lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 				    VM_Entrypoints.lockoutProcessorField.offset);
       if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
 			   VM_Entrypoints.lockoutProcessorField.offset,
 			   lockoutVal, lockoutVal))
-	break;
+	  return lockoutVal;
     }
-    return lockoutVal;
   }
 
 }

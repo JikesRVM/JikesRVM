@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class is a phase that inserts prologues and epilogues
@@ -12,14 +13,9 @@ import instructionFormats.*;
  */
 final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
 
-  OPT_PrologueEpilogueCreator() {
-  }
+  OPT_PrologueEpilogueCreator() { }
 
-  final boolean shouldPerform(OPT_Options options) { return true; }
-  final String getName() { return "Insert Prologue/Epilogue"; }
-  final boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
-  }
+  public final String getName() { return "Insert Prologue/Epilogue"; }
 
   /**
    *  Insert the prologue and epilogue

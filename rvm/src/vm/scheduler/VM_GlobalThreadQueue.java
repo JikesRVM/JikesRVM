@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * A global queue of VM_Threads.
@@ -11,27 +12,27 @@
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uninterruptible {
+public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uninterruptible {
 
   private VM_ProcessorLock mutex; // TODO check that mutex is heald when manipulating this queue.
   private int length;
   
-  VM_GlobalThreadQueue(int id, VM_ProcessorLock mutex) {
+  public VM_GlobalThreadQueue(int id, VM_ProcessorLock mutex) {
     super(id);
     this.mutex = mutex;
   }
   
-  void enqueueHighPriority (VM_Thread t) {
+  public void enqueueHighPriority (VM_Thread t) {
     length++;
     super.enqueueHighPriority(t);
   }
   
-  void enqueue (VM_Thread t) {
+  public void enqueue (VM_Thread t) {
     length++;
     super.enqueue(t);
   }
   
-  VM_Thread dequeue () {
+  public VM_Thread dequeue () {
     if (length == 0) return null;
     VM_Thread t = super.dequeue();
     if (t == null) return null;
@@ -39,15 +40,7 @@ final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uninterrup
     return t;
   }
   
-  VM_Thread dequeue (int processorID) {
-    if (length == 0) return null;
-    VM_Thread t = super.dequeue(processorID);
-    if (t == null) return null;
-    length--;
-    return t;
-  }
-  
-  VM_Thread dequeueGCThread (VM_ProcessorLock qlock) {
+  public VM_Thread dequeueGCThread (VM_ProcessorLock qlock) {
     if (length == 0) return null;
     VM_Thread t = super.dequeueGCThread(qlock);
     if (t == null) return null;
@@ -57,7 +50,7 @@ final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uninterrup
 
   // Number of items on queue .
   //
-  int length() {
+  public int length() {
     return length;
   }
 

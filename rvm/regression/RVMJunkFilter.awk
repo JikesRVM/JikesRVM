@@ -14,6 +14,7 @@ BEGIN {
     kill_next = no
     boot_image_junk = no
     verbose_trap = no
+    memory_crap = no
 }
 
 #
@@ -75,6 +76,16 @@ gc_mess==yes { gc_mess = no }
 report_crap==yes { next }
 
 #
+# memory usage report
+#
+/Object Demographics by type/ { memory_crap=yes; next }
+
+/^[0-9() KMb]*TOTAL$/ { memory_crap=no; next }
+
+memory_crap==yes { next }
+
+
+#
 # scheduler messages
 #
 /VM_Scheduler.boot: NativeDaemonProcessor NOT CREATED/ { next }
@@ -109,6 +120,11 @@ verbose_trap==yes { next }
 /Set vmr_fp to 0x[0-9a-f]*/ && verbose_trap==normal { 
   verbose_trap = no; next 
 }
+
+#
+# GNU Classpath debugging verbosity
+#
+/java.lang.Double.initIDs/ { next }
 
 #
 # print everything else

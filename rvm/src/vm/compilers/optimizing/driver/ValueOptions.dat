@@ -45,7 +45,7 @@ V MAX_DEADSTORE_SYSTEM_SIZE int 100
 Maximum number of dataflow equations for dead store elimination
 
 
-E INLINING_GUARD byte VM.BuildForIA32?IG_CODE_PATCH:IG_METHOD_TEST
+E INLINING_GUARD byte IG_CODE_PATCH
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \
 "IG_CLASS_TEST guardWithClassTest ig_class_test" \
@@ -77,12 +77,32 @@ V ALLOC_ADVICE_SITES String null
 Read allocation advice attributes for all classes from this file
  
  
-E SPILL_COST_ESTIMATE byte SIMPLE_SPILL_COST
+E FREQUENCY_STRATEGY byte COUNTERS_FREQ
+How to compute block and edge frequencies?
+"COUNTERS_FREQ frequencyCounters counters" \
+"STATIC_FREQ staticFrequencyEstimates static" \
+"DUMB_FREQ dumbFrequency dumb" \
+"INVERSE_COUNTERS_FREQ inverseFrequencyCounters inverse"
+
+E SPILL_COST_ESTIMATE byte BLOCK_COUNT_SPILL_COST
 Selection of spilling heuristic
 "SIMPLE_SPILL_COST simpleSpillCost simple" \
 "BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
-"LOOPDEPTH_SPILL_COST loopDepthSpillCost loopDepth"
+"BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
 
 S METHOD_TO_WRITE String
 Write class file from HIR for this method
+
+
+V INFREQUENT_THRESHOLD float 0.01f
+Cumulative threshold which defines the set of infrequent basic blocks
+
+
+V CBS_HOTNESS double 0.98
+Threshold at which a conditional branch is considered to be skewed
+
+
+V IR_PRINT_LEVEL int 0
+Only print IR compiled above this level
+
 

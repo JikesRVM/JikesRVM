@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Constants describing vm object, stack, and register characteristics.
@@ -12,7 +13,7 @@
  * @author Stephen Fink
  * @author David Grove
  */
-interface VM_Constants
+public interface VM_Constants
 extends   VM_ThinLockConstants,         // architecture-neutral
           VM_TIBLayoutConstants,        // architecture-neutral
           VM_StackframeLayoutConstants, // architecture-neutral

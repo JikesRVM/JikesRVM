@@ -3,10 +3,11 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM_FloatingPoint;
-import VM_Math;
-import VM_Magic;
+import com.ibm.JikesRVM.VM_FloatingPoint;
+import com.ibm.JikesRVM.VM_Math;
+import com.ibm.JikesRVM.VM_Magic;
 
 /**
  * This class provides a set of static method entrypoints used in the

@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$ 
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -43,28 +45,24 @@ import instructionFormats.*;
  */
 
 final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
-implements OPT_Operators{
+  implements OPT_Operators{
 
   // The number of FPRs available for allocation.
   // Normally 7: we reserve one for final MIR expansion.
   int NUM_ALLOCATABLE_FPR = 7;
 
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return  options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
-  final boolean shouldPerform(OPT_Options options) { 
-    return true; 
-  }
-
-  final String getName() { 
+  public final String getName() { 
     return "Expand Calling Convention"; 
   }
 
   /**
    * Insert the needed dummy defs and uses.
    */
-  final void perform(OPT_IR ir)  {
+  public final void perform(OPT_IR ir)  {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
@@ -98,8 +96,8 @@ implements OPT_Operators{
           OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);
           s.insertBefore(MIR_Nullary.create(DUMMY_DEF,OPT_IRTools.D(fpr)));
         }
-        if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
-        if (VM.VerifyAssertions) VM.assert(fpStackOffset <
+        if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
+        if (VM.VerifyAssertions) VM._assert(fpStackOffset <
                                            NUM_ALLOCATABLE_FPR);
       }
     }

@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
 
 /**
  * This class implements a priority queue using the standard
@@ -217,7 +220,7 @@ class VM_PriorityQueue {
    *  @return the priority of the front object
    */
   synchronized final public double rootValue() {
-    if (VM.VerifyAssertions) VM.assert(!isEmpty());
+    if (VM.VerifyAssertions) VM._assert(!isEmpty());
 
     return queue[1].priority;
   }

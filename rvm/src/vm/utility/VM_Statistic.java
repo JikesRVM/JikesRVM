@@ -2,32 +2,32 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
- * Abstraction for a statistic 
+ * Abstraction for a statistic.
  *
  * @author Perry Cheng
- * 
  */
-class VM_Statistic implements VM_Uninterruptible {
+public class VM_Statistic implements VM_Uninterruptible {
 
-    protected int    count = 0;
-    protected double last;
-    protected double sum;
-    protected double max;
+  protected int    count;
+  protected double last;
+  protected double sum;
+  protected double max;
     
-    void addSample(double x) {
-	last = x;
-	if (count == 0) max = x;
-	if (x > max) max = x;
-	sum += x;
-	count++;
-    }
+  public void addSample(double x) {
+    last = x;
+    if (count == 0) max = x;
+    if (x > max) max = x;
+    sum += x;
+    count++;
+  }
 
-    int count() { return count; }
-    double last() { if (VM.VerifyAssertions) VM.assert(count > 0); return last; }
-    double sum()  { return sum; }
-    double max()  { if (VM.VerifyAssertions) VM.assert(count > 0); return max; }
-    double avg()  { if (VM.VerifyAssertions) VM.assert(count > 0); return sum / count; }
+  public final int count() { return count; }
+  public final double last() { if (VM.VerifyAssertions) VM._assert(count > 0); return last; }
+  public final double sum()  { return sum; }
+  public final double max()  { if (VM.VerifyAssertions) VM._assert(count > 0); return max; }
+  public final double avg()  { if (VM.VerifyAssertions) VM._assert(count > 0); return sum / count; }
 
 }

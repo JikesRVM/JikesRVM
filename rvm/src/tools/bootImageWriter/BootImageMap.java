@@ -6,6 +6,7 @@
 
 import java.util.Hashtable;
 import java.util.Vector;
+import com.ibm.JikesRVM.*;
 
 /**
  * Correlate objects in host jdk with corresponding objects in target rvm

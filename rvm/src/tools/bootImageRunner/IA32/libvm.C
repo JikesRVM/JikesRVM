@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+
 /**
  * C runtime support for virtual machine.
  *
@@ -19,7 +20,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sys/mman.h>		/* mmap */
+#include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
 #include <asm/ucontext.h>
@@ -28,9 +29,7 @@
 #include <pthread.h>
 #endif
 
-#ifdef __CYGWIN__
-#include <w32api/windows.h>
-#endif
+extern pthread_key_t VmProcessorKey;
 
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -64,6 +63,8 @@ int ProcessorsOffset;
 /* TOC offset of VM_Scheduler.debugRequested */
 int DebugRequestedOffset;
 
+unsigned traceClassLoading = 0;
+
 /* name of program that will load and run RVM */
 char *me;
 
@@ -86,8 +87,6 @@ boot (int ip, int jtoc, int pr, int sp)
   return bootThread (ip, jtoc, pr, sp);
 }
 
-
-#ifdef __linux__
 #include <ihnpdsm.h>
 extern "C" PARLIST *Disassemble(
   char *pHexBuffer,                /* output: hex dump of instruction bytes  */
@@ -278,7 +277,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
       write (SysErrorFd, buf,
              sprintf (buf,
                    "invalid vp address (not an address - high nibble %d)\n", vp_hn) );
-      exit (1);
+      exit(-1);
     }
   }
 
@@ -295,7 +294,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     {
       write (SysErrorFd, buf,
              sprintf (buf,
-                   "invalid frame address (not an address - high nibble %d)\n", fp_hn) );
+                   "invalid frame address %x (not an address - high nibble %d)\n", localFrameAddress, fp_hn) );
       exit (1);
     }
   }
@@ -397,7 +396,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   if ((long unsigned)sp <= stackLimit - 384) {
     write (SysErrorFd, buf,
 	   sprintf (buf,
-		    "sp too far below stackLimit to recover. SP = %x, limit = %x\n", sp, stackLimit));
+		    "sp too far below stackLimit to recover\n"));
       exit (2);
   }
   sp = (long unsigned int *)stackLimit - 384;
@@ -483,7 +482,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   pthread_mutex_unlock( &exceptionLock );
 
 }
-#endif
 
 
 
@@ -492,84 +490,81 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
    #define ANNOUNCE(message)
    #define ANNOUNCE_TICK(message)
 
-void 
-#ifdef __CYGWIN__
-softwareSignalHandler (int signo)
-#else
-softwareSignalHandler (int signo, siginfo_t * si, void *context)
-#endif
-{
+extern "C" void processTimerTick() {
+  void *bootRegion = (void *) bootImageAddress;
+  VM_BootRecord *bootRecord = (VM_BootRecord *) bootRegion;
 
-  if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
+  /*
+   * Turn on thread-switch flag in each virtual processor.
+   * Note that "jtoc" is not necessairly valid, because we might have interrupted
+   * C-library code, so we use boot image jtoc address (== VmToc) instead.
+   * !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+   * For now, we assume table is fixed in boot image and never moves.
+   */
+  unsigned *processors = *(unsigned **) ((char *) VmToc + ProcessorsOffset);
+  unsigned cnt = processors[-1];
 
-    if (!VM_Configuration_BuildForThreadSwitchUsingControlRegisterBit) {
-      /*
-       * Turn on thread-switch flag in each virtual processor.
-       * Note that "jtoc" is not necessairly valid, because we might have interrupted
-       * C-library code, so we use boot image jtoc address (== VmToc) instead.
-       * !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-       * For now, we assume table is fixed in boot image and never moves.
-       */
-      unsigned *processors = *(unsigned **) ((char *) VmToc + ProcessorsOffset);
-      unsigned cnt = processors[-1];
+  int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+  *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
 
-      int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-      *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+  /* with new (7/2001) threading the last processor entry is for 
+   * the NativeDaemonThread
+   * and may be null (IA32 without pthreads or if compiled for 
+   * a single processor),
+   * so allow for possibility of a null entry in the processors array
+   */
+  int     i;
 
-      /* with new (7/2001) threading the last processor entry is for 
-       * the NativeDaemonThread
-       * and may be null (IA32 without pthreads or if compiled for 
-       * a single processor),
-       * so allow for possibility of a null entry in the processors array
-       */
-         int     i;
 #ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// line added here - ndp is now the last processor - and cnt includes it
-         cnt = cnt - 1;
-   // check for gc in progress: if so, return
-   //
-         if (bootRecord -> lockoutProcessor == 0x0CCCCCCC) return;
-
-         int       val;
-         int       sendit = 0;
-         int       MISSES = -2;     // tuning parameter
-         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
-         {
-           val = *(int *)((char *)processors[i] + 
-                 VM_Processor_threadSwitchRequested_offset);
-           if (val <= MISSES) sendit++;
-           *(int *)((char *)processors[i] + 
-                  VM_Processor_threadSwitchRequested_offset) = val - 1;
-         }
-         if (sendit != 0) // some processor "stuck in native"
-         {
-           if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon 
-                                                // Processor (the last one)
-             ANNOUNCE(" got NDprocessor value\n ");
-             int pthread_id = *(int *)((char *)processors[i] 
-                 + VM_Processor_pthread_id_offset) ;
-             ANNOUNCE(" got pthread_id  value\n ");
-#ifdef __linuxsmp__
-             pthread_t thread = (pthread_t)pthread_id;
-             int i_thread = (int)thread;
-             pthread_kill(thread, SIGCONT);
-#else
-             ANNOUNCE(" Cannot send signal without pthread library");
-#endif
-           }
-         }
-#else
-      for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-	if (processors[i] != 0 /*null*/)
-	  *(int *) ((char *) processors[i] + VM_Processor_threadSwitchRequested_offset) = -1;
-									/* -1: all bits on */
-
-      ANNOUNCE_TICK ("[tick]\n");
-#endif
+  // line added here - ndp is now the last processor - and cnt includes it
+  cnt = cnt - 1;
+  // check for gc in progress: if so, return
+  //
+  if (bootRecord -> lockoutProcessor == 0x0CCCCCCC) return;
+  
+  int       val;
+  int       sendit = 0;
+  int       MISSES = -2;     // tuning parameter
+  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
+    {
+      val = *(int *)((char *)processors[i] + 
+		     VM_Processor_threadSwitchRequested_offset);
+      if (val <= MISSES) sendit++;
+      *(int *)((char *)processors[i] + 
+	       VM_Processor_threadSwitchRequested_offset) = val - 1;
     }
-  }
+  if (sendit != 0) // some processor "stuck in native"
+    {
+      if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon 
+	// Processor (the last one)
+	int pthread_id = *(int *)((char *)processors[i] 
+				  + VM_Processor_pthread_id_offset) ;
+#ifdef __linuxsmp__
+	pthread_t thread = (pthread_t)pthread_id;
+	int i_thread = (int)thread;
+	pthread_kill(thread, SIGCONT);
+#endif
+      }
+    }
+#else
+  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
+    if (processors[i] != 0 /*null*/)
+      *(int *) ((char *) processors[i] + VM_Processor_threadSwitchRequested_offset) = -1;
+  /* -1: all bits on */
+#endif
+}
 
-  else if (signo == SIGQUIT)
+
+void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
+
+#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+  if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
+    processTimerTick();
+  }
+  else
+#endif
+
+  if (signo == SIGQUIT)
       { // asynchronous signal used to awaken internal debugger
       
       // Turn on debug-request flag.
@@ -593,6 +588,13 @@ softwareSignalHandler (int signo, siginfo_t * si, void *context)
       }
 
   else if (signo == SIGTERM) {
+      // Presumably we received this signal because someone wants us
+      // to shut down.  Exit directly (unless the lib_verbose flag is set).
+      if (!lib_verbose)
+	_exit(1);
+
+      DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
+
       unsigned int localJTOC = VmToc;
       sigcontext *sc = &((ucontext *) context)->uc_mcontext;
       int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
@@ -648,16 +650,12 @@ createJVM (int vmInSeparateThread)
 
   if (lib_verbose)
   {
-    #if (defined __linux__)
-       fprintf(SysTraceFile, "IA32 linux build");
-       #if (defined __linuxsmp__)
-         fprintf(SysTraceFile, " for SMP\n");
-       #else
-         fprintf(SysTraceFile, "\n");
-       #endif
-    #elif (defined __CYGWIN__)
-       fprintf(SysTraceFile, "IA32 CYGWIN build\n");
-    #endif
+  fprintf(SysTraceFile, "IA32 linux build");
+  #if (defined __linuxsmp__)
+    fprintf(SysTraceFile, " for SMP\n");
+  #else
+    fprintf(SysTraceFile, "\n");
+  #endif
   }
 
   /* open and mmap the image file. 
@@ -679,9 +677,7 @@ createJVM (int vmInSeparateThread)
 
 
   void *bootRegion = 0;
-
   // allocate region 1 and 2
-#ifdef __linux__  
   bootRegion = mmap ((void *) bootImageAddress, roundedImageSize,
 		     PROT_READ | PROT_WRITE | PROT_EXEC,
 		     MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
@@ -690,16 +686,6 @@ createJVM (int vmInSeparateThread)
     fprintf (SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
     return 1;
   }
-#else
-  /* cygwin mmap doesn't appear to really work, so use win32 VirtualAlloc */
-  void *bootRegion = VirtualAlloc(bootImageAddress, roundedImageSize,
-			       MEM_RESERVE | MEM_COMMIT,
-			       PAGE_EXECUTE_READWRITE);
-  if (bootRegion != bootImageAddress) {
-    fprintf (SysTraceFile, "%s: error allocating boot image region\n", me);
-    return 1;
-  }
-#endif
 
   /* read image into memory segment */
   int cnt = fread (bootRegion, 1, actualImageSize, fin);
@@ -765,6 +751,8 @@ createJVM (int vmInSeparateThread)
    bootRecord->largeSpaceSize   = largeHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;
    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
+  
+   bootRecord->traceClassLoading = traceClassLoading;
 
   /* write sys.C linkage information into boot record */
   bootRecord->setLinkage ();
@@ -784,7 +772,6 @@ createJVM (int vmInSeparateThread)
   }
 
   /* install a stack for hardwareTrapHandler() to run on */
-#ifdef __linux__
   stack_t stack;
    
   memset (&stack, 0, sizeof stack);
@@ -846,22 +833,16 @@ createJVM (int vmInSeparateThread)
     return 1;
   }
 
-#else
-  struct sigaction action;
-  
-  fprintf (SysErrorFile, "%s: Warning, no hardware trap handler is installed\n", me);
-
-  if (true) {
-    fprintf (SysErrorFile, "%s: Warning, no timer tick handler is installed\n", me);
-  } else {
-    /* install software trap handler */
-    action.sa_handler = &softwareSignalHandler;
-    if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
-      fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
-      return 1;
-    }
-  }
-#endif
+  // Ignore "write (on a socket) with nobody to read it" signals so
+  // that sysWriteBytes() will get an EPIPE return code instead of trapping.
+  //
+  memset (&action, 0, sizeof action);
+  action.sa_handler = SIG_IGN;
+  if (sigaction(SIGPIPE, &action, 0))
+     {
+     fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+     return 1;
+     }
 
   /* set up initial stack frame */
   int ip   = bootRecord->ipRegister;
@@ -892,4 +873,15 @@ createJVM (int vmInSeparateThread)
 
   fprintf (SysTraceFile, "%s: we're back! rc=%d. bye.\n", me, rc);
   return 1;
+}
+
+
+// Get address of JTOC.
+extern "C" void *getJTOC() {
+  return (void*) VmToc;
+}
+
+// Get offset of VM_Scheduler.processors in JTOC.
+extern "C" int getProcessorsOffset() {
+  return ProcessorsOffset;
 }

@@ -1,2 +1,0 @@
-   . $1/OptOptCopyGenVariable
-   export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1   

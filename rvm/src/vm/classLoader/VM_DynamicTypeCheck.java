@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Data structures and code for fast dynamic type checking.
@@ -60,7 +61,7 @@
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
  *
- * @see OPT_DynamicTypeCheckExpansion
+ * @see com.ibm.JikesRVM.opt.OPT_DynamicTypeCheckExpansion
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array
@@ -68,21 +69,21 @@
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
+public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
   /**
    * Minimum length of the superclassIds array in TIB.
    * Note: this array is padded to save a index out of
    * bounds test for classes with shallow class depth.
    */
-  static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short[], so multiple of 2.
+  public static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short[], so multiple of 2.
 
   /**
    * Minimum length of the doesImplements array in TIB.
    * Note: this array is padded to save a index out of
    * bounds test for the first 32 * MIN_DOES_IMPLEMENT_SIZE interfaces loaded.
    */
-  static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
+  public static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
 
   /**
    * Create the superclass Id vector for a VM_Type.
@@ -97,16 +98,16 @@ class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     VM_Type p;                          
     if (depth == 0) {        // t is Object (or eventually some interfaces TODO!!)
       int id = t.getDictionaryId();
-      if (VM.VerifyAssertions) VM.assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
+      if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
       tsi[0] = (short) id;
       return tsi;
     } else if (depth == 1) { // t is array or top level class
-      if (VM.VerifyAssertions) VM.assert(t.isArrayType() || t.asClass().getSuperClass() == VM_Type.JavaLangObjectType);
+      if (VM.VerifyAssertions) VM._assert(t.isArrayType() || t.asClass().getSuperClass() == VM_Type.JavaLangObjectType);
       p = VM_Type.JavaLangObjectType; //  TODO!! handle interfaces better
     } else if (1 < depth) {  // t is a non Object, non top level class
       p = t.asClass().getSuperClass();
     } else {                 // t is a primitive
-      VM.assert(VM.NOT_REACHED);
+      VM._assert(VM.NOT_REACHED);
       p = null;
     }
     short[] psi = p.getSuperclassIds();
@@ -114,7 +115,7 @@ class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       tsi[i] = psi[i];
     }
     int id = t.getDictionaryId();
-    if (VM.VerifyAssertions) VM.assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
+    if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
     tsi[depth] = (short) id;
     return tsi;
   }
@@ -334,8 +335,7 @@ class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   }
   
   /**
-   * RHSType is resolved.
-   *   Can we store an object of type RHSType in a variable of type LHSType?
+   * Can we store an object of type RHSType in a variable of type LHSType?
    * 
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
@@ -349,6 +349,10 @@ class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     if (!LHSType.isResolved()) {
       LHSType.load();
       LHSType.resolve();
+    }
+    if (!RHSType.isResolved()) {
+      RHSType.load();
+      RHSType.resolve();
     }
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();

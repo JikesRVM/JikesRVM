@@ -3,14 +3,26 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * Provide a side-array of mark bits for the garbage collector, for cases
  * when it is not possible or desirable to store them directly in the objects.
  *
  * @author David Bacon
  */
-final class VM_SideMarkVector implements VM_Constants, 
-					 VM_Uninterruptible {
+final class VM_SideMarkVector implements VM_Constants {
+
   private VM_Address baseAddress;
   private VM_Address highAddress;
   private int[] marks;
@@ -24,23 +36,23 @@ final class VM_SideMarkVector implements VM_Constants,
 
   public void boot(VM_MallocHeap mh,
 		   VM_Address base,
-		   VM_Address high) {
+		   VM_Address high) throws VM_PragmaUninterruptible {
     baseAddress = base;
     highAddress = high;
-    int bytes   = high.diff(base);
+    int bytes   = high.diff(base).toInt();
     int quanta  = bytes / ALIGNMENT;
     marks       = (int[])mh.allocateArray(VM_Array.arrayOfIntType, quanta / BITS_PER_INT + 1);
   }
 
-  private int wordIndex (Object object) {
-    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) / BITS_PER_INT;
-    if (VM.VerifyAssertions) VM.assert(index >= 0 && index < marks.length);
+  private int wordIndex (Object object) throws VM_PragmaUninterruptible {
+    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress).toInt()) / ALIGNMENT) / BITS_PER_INT;
+    if (VM.VerifyAssertions) VM._assert(index >= 0 && index < marks.length);
     return index;
   }
 
 
-  private int bitIndex (Object object, int wordIndex) {
-    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) % BITS_PER_INT;
+  private int bitIndex (Object object, int wordIndex) throws VM_PragmaUninterruptible {
+    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress).toInt()) / ALIGNMENT) % BITS_PER_INT;
     if (DEBUG) {
       VM.sysWrite(" {Length ", marks.length);
       VM.sysWrite(" base ", baseAddress);
@@ -49,17 +61,17 @@ final class VM_SideMarkVector implements VM_Constants,
       VM.sysWrite(" word ", wordIndex);
       VM.sysWrite(" bit ", index, "} ");
     }
-    if (VM.VerifyAssertions) VM.assert(index >= 0 && index < BITS_PER_INT);
+    if (VM.VerifyAssertions) VM._assert(index >= 0 && index < BITS_PER_INT);
     return index;
   }
 
 
-  private int mask (int bitIndex) {
+  private int mask (int bitIndex) throws VM_PragmaUninterruptible {
     return ~(1 << bitIndex);
   }
 
 
-  private int getBit (int word, int bitIndex) {
+  private int getBit (int word, int bitIndex) throws VM_PragmaUninterruptible {
     return (word >>> bitIndex) & 0x1;
   }
 
@@ -67,7 +79,7 @@ final class VM_SideMarkVector implements VM_Constants,
   /**
    * Test to see if the mark bit has the given value
    */
-  boolean testMarkBit (Object object, int value) {
+  boolean testMarkBit (Object object, int value) throws VM_PragmaUninterruptible {
     if (DEBUG) VM.sysWriteln("testMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int bitnum = bitIndex(object, word);
@@ -79,8 +91,8 @@ final class VM_SideMarkVector implements VM_Constants,
   /**
    * Write the given value in the mark bit.
    */
-  void writeMarkBit (Object object, int b) {
-    if (VM.VerifyAssertions) VM.assert((b & ~0x1) == 0);
+  void writeMarkBit (Object object, int b) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert((b & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("writeMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int bitnum = bitIndex(object, word);
@@ -93,8 +105,8 @@ final class VM_SideMarkVector implements VM_Constants,
   /**
    * Atomically write the given value in the mark bit.
    */
-  void atomicWriteMarkBit(Object object, int value) {
-    if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
+  void atomicWriteMarkBit(Object object, int value) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("atomicWriteMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int offset = word << LOG_WORDSIZE;
@@ -114,8 +126,8 @@ final class VM_SideMarkVector implements VM_Constants,
   /**
    * Used to mark objects during a parallel scan of objects during GC.
    */
-  boolean testAndMark(Object object, int value) {
-    if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
+  boolean testAndMark(Object object, int value) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWrite("testAndMark ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int offset = word << LOG_WORDSIZE;

@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Global code placement comes in two flavours. The first is loop
@@ -40,9 +41,11 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
       // 3. Perform global CSE
       new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
-      // 4. Perform loop invariant code motion
+      // 4. Repair SSA
+      new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+      // 5. Perform Loop Invariant Code Motion
       new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
-      // 5. Finalize GCP
+      // 6. Finalize GCP
       new OPT_OptimizationPlanAtomicElement(new GCPFinalization())
     });
   }
@@ -51,7 +54,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     if (options.getOptLevel() < 2)
       return  false;
     return  options.GCP || options.VERBOSE_GCP || options.GCSE;
@@ -76,14 +79,14 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    final String getName () {
+    public final String getName () {
       return  "GCP Preparation";
     }
 
@@ -120,7 +123,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
-	ir.desiredSSAOptions.setInsertPEIDeps(true);
+	ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
         ir.desiredSSAOptions.setHeapTypes(null);
       }
     }
@@ -136,14 +139,14 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    final String getName () {
+    public final String getName () {
       return  "GCP Finalization";
     }
 

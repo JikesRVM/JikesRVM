@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Convert an IR object from MIR to final Machinecode
@@ -27,20 +32,20 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
    * A compiler phase that drives final MIR expansion.
    */
   private static final class FinalMIRExpansionDriver extends OPT_CompilerPhase {
-    final String getName () {
+    public final String getName () {
       return "Final MIR Expansion";
     }
   
-    final boolean printingEnabled (OPT_Options options, boolean before) {
+    public final boolean printingEnabled (OPT_Options options, boolean before) {
       return !before && options.PRINT_FINAL_MIR;
     }
   
     // this class has no instance fields.
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       VM_Method method = ir.method;
 
@@ -49,7 +54,7 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       }
 
       int approxMachinecodeSize = OPT_FinalMIRExpansion.expand(ir);
-      ir.MIRInfo.machinecode = VM_RuntimeStructures.newInstructions(approxMachinecodeSize);
+      ir.MIRInfo.machinecode = VM_Interface.newInstructions(approxMachinecodeSize);
     }
   }
   /**
@@ -58,21 +63,21 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
   private static final class AssemblerDriver extends OPT_CompilerPhase
     implements VM_Constants {
 
-    final String getName () {
+    public final String getName () {
       return "Assembler Driver";
     }
   
-    final boolean printingEnabled (OPT_Options options, boolean before) {
+    public final boolean printingEnabled (OPT_Options options, boolean before) {
       //don't bother printing afterwards, PRINT_MACHINECODE handles that
       return before && options.DEBUG_CODEGEN;
     }
   
     // this class has no instance fields.
-    final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
   
-    final void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       VM_Method method = ir.method;
   
@@ -101,12 +106,10 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       ir.compiledMethod.createFinalExceptionTable(ir);
       // 3b: Create the primary machine code map
       ir.compiledMethod.createFinalMCMap(ir, codeLength);
-      //-#if RVM_FOR_IA32
       // 3c: Create code patching maps
       if (ir.options.guardWithCodePatch()) {
 	ir.compiledMethod.createCodePatchMaps(ir);
       }
-      //-#endif
 
       if (shouldPrint) {
         // print exception tables (if any)

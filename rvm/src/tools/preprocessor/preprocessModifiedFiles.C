@@ -30,13 +30,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>     /* strcmp */
-#ifndef __CYGWIN__
 #include <libgen.h>     /* basename */
-#endif
 #include <unistd.h>     /* unlink */
 #include <stdlib.h>     /* exit */
 #include <sys/stat.h>   /* stat */
-#if (defined __linux__) || (defined __CYGWIN__)
+#if (defined __linux__) 
 #include <limits.h> /* xxx_MAX */
 #else
 #include <sys/limits.h> /* xxx_MAX */
@@ -55,11 +53,13 @@ char *Me; // name to appear in error messages
 
 // Preprocessor directives that have been set via "-D<name>".
 //
-char *DirectiveName[MAXDIRECTIVES];  // <name>'s
+char *DirectiveName[MAXDIRECTIVES];   // <name>'s
+char *DirectiveValue[MAXDIRECTIVES];  // values
 int   Directives;                    // number thereof
 
 // Source file currently being processed.
 //
+char package[MAXLINE];       // package name if it exists
 char *SourceName;            // file name
 int   SourceLine;            // current line number therein
 int   Nesting;               // number of unclosed #if's
@@ -75,11 +75,9 @@ char *PutIntoPackage = NULL;
 int  preprocess(char *srcFile, char *destinationFile);
 void reviseState();
 void printState(FILE *fout, char *directive, char *line);
-int  scan(char *line, int *value);
+int  scan(char *srcFile, char *line, int *value);
 int  eval(char *p);
-#ifdef __CYGWIN__
-static char* basename (char* name);
-#endif
+int evalReplace(char *cursor);
 
 // Types of tokens returned by scan().
 //
@@ -88,10 +86,11 @@ static char* basename (char* name);
 #define TT_ELIF         2
 #define TT_ELSE         3
 #define TT_ENDIF        4
-#define TT_UNRECOGNIZED 5
+#define TT_REPLACE      5
+#define TT_UNRECOGNIZED 6
 
 // Values of tokens returned by scan().
-//
+// For some cases, an index into DirectiveValue is returned.
 #define VV_FALSE 0
 #define VV_TRUE  1
 
@@ -111,13 +110,13 @@ main(int argc, char **argv)
    for (; **argv == '-'; ++argv, --argc)
       {
       char *arg   = *argv;
-      if (!strcmp(arg, "-trace"))
-         {
+      if (!strcmp(arg, "-trace")) {
          trace = 1;
          continue;
-         }
-      if (!strncmp(arg, "-D", 2))
-         {
+      }
+
+      if (!strncmp(arg, "-D", 2)) {
+
          char *name = new char[strlen(arg) + 1];
          char *src, *dst = name;
 	 
@@ -126,29 +125,38 @@ main(int argc, char **argv)
          *dst = 0;
              
          // ignore "-D<name>=0"
-         //
-         if (*src && strcmp(src, "=0") == 0)
-            {
+         // accept "-D<name>" as "-D<name>=1"
+         // accept "-D<name>=<str>" for any othre string
+	 //
+         if (*src) {
+	   if (strcmp(src, "=0") == 0) 
 	     continue;
-            }
-            
-         // accept "-D<name>" or "-D<name>=1"
-         //
-         if (*src && strcmp(src, "=1") != 0)
-            {
-            fprintf(stderr, "%s: expected `=1' instead of `%s' in argument: %s\n", Me, src, arg);
-            exit(2);
-            }
+	   else if (strcmp(src, "=1") == 0) {
+	     DirectiveName[Directives] = name;
+	     DirectiveValue[Directives] = NULL;
+	     Directives++;
+	     continue;
+	   }
+	   else if (*src == '=') {
+	     DirectiveName[Directives] = name;
+	     DirectiveValue[Directives] = src+1;
+	     Directives++;
+	     continue;
+	   }
+	 }
+
+         if (*src && strcmp(src, "=1") != 0) {
+	   fprintf(stderr, "%s: expected `=1' instead of `%s' in argument: %s\n", Me, src, arg);
+	   exit(2);
+	 }
         
-         if (!*name)
-            {
-            fprintf(stderr, "%s: <name> expected in argument: %s\n", Me, arg);
-            exit(2);
-            }
+         if (!*name) {
+	   fprintf(stderr, "%s: <name> expected in argument: %s\n", Me, arg);
+	   exit(2);
+	 }
             
-         DirectiveName[Directives++] = name;
          continue;
-         }
+      }
          
       if (strncmp(arg, "-package", 8) == 0) {
 	PutIntoPackage = strdup( (arg[8]=='=')? (char*)arg+9: (char*)++argv );
@@ -198,12 +206,34 @@ main(int argc, char **argv)
       // if (destinationTime != 0)
       //    chmod(destination, S_IREAD | S_IWRITE);
          
-         if (!preprocess(source, destination))
-            { // trouble
-            unlink(destination); // remove (partially generated) output file
-            exit(2);             // treat as fatal error
-            }
-           
+      if (!preprocess(source, destination)) {
+	// trouble
+	unlink(destination); // remove (partially generated) output file
+	exit(2);             // treat as fatal error
+      }
+
+      // Move file to the right subdirectory if it is part of a package
+      //
+      if (*package != 0) {
+	// Should do error-checking of package
+	char command[PATH_MAX + 100];
+	char finalDir[PATH_MAX + 1];
+	char finalDstFile[PATH_MAX + 1];
+	// Convert "." in package to "/"
+	char *cur = package;
+	while ((cur = strchr(cur, '.')) != NULL) {
+	    *cur = '/';
+	}
+	sprintf(finalDir, "%s/%s", outputDirectory, package);
+	sprintf(finalDstFile, "%s/%s", finalDir, basename(source));
+	sprintf(command, "mkdir -p %s", finalDir);
+	//fprintf(stderr, "%s\n", command);
+	system(command);
+	sprintf(command, "mv %s %s", destination, finalDstFile);
+	//fprintf(stderr, "%s\n", command);
+	system(command);
+      }
+
       // // make output file non-writable to discourage editing that will get clobbered by future preprocessing runs
       // chmod(destination, S_IREAD);
          
@@ -225,24 +255,24 @@ main(int argc, char **argv)
 // Preprocess a file.
 // Taken:    name of file to be read
 //           name of file to be written
+//           place to store real file name in case this is not in unnamed package
 // Returned: 1 --> success
 //           0 --> failure
 int
 preprocess(char *srcFile, char *dstFile)
    {
+   *package = 0;
    FILE *fin = fopen(srcFile, "r");
-   if (!fin) 
-      {
-      fprintf(stderr, "%s: can't find `%s'\n", Me, srcFile);
-      return 0;
-      }
+   if (!fin) {
+     fprintf(stderr, "%s: can't find `%s'\n", Me, srcFile);
+     return 0;
+   }
 
    FILE *fout = fopen(dstFile, "w");
-   if (!fout) 
-      {
-      fprintf(stderr, "%s: can't create `%s'\n", Me, dstFile);
-      return 0;
-      }
+   if (!fout) {
+     fprintf(stderr, "%s: can't create `%s'\n", Me, dstFile);
+     return 0;
+   }
 
    #if DEBUG
    for (int i = 0; i < Directives; ++i)
@@ -274,7 +304,7 @@ preprocess(char *srcFile, char *dstFile)
       SourceLine += 1;
 
       int value;
-      switch (scan(line, &value))
+      switch (scan(srcFile, line, &value))
          {
          case TT_TEXT:
          #if DEBUG
@@ -282,6 +312,10 @@ preprocess(char *srcFile, char *dstFile)
          #else
          fputs(PassLines ? line : "\n", fout);
          #endif
+         continue;
+
+         case TT_REPLACE:
+         fputs(PassLines ? DirectiveValue[value] : "\n", fout);
          continue;
 
          case TT_IF:
@@ -363,13 +397,12 @@ preprocess(char *srcFile, char *dstFile)
 //           Nesting
 // Returned: PassLines
 //
-void
-reviseState()
-   {
+void reviseState() {
+
    PassLines = VV_TRUE;
    for (int i = 0; i < Nesting; ++i)
       PassLines &= Value[i];
-   }
+}
 
 // Print preprocessor state (for debugging).
 // Taken:    output file
@@ -400,11 +433,12 @@ printState(FILE *fout, char *directive, char *line)
 //           TT_ELIF         --> found `//-#elif <name>' directive
 //           TT_ELSE         --> found `//-#else'        directive
 //           TT_ENDIF        --> found `//-#endif'       directive
+//           TT_REPLACE      --> found `//-#value <name>' directive
 //           TT_UNRECOGNIZED --> found unrecognized      directive
+// In some cases, value is modified.
 //
-int
-scan(char *line, int *value)
-   {
+int scan(char *srcFile, char *line, int *value) {
+
    // skip whitespace
    //
    char *p;
@@ -415,13 +449,38 @@ scan(char *line, int *value)
       if (*p == '\t') continue;
       break;
       }
-   
+
+   // look for "package [c.]*;"
+   //
+   if (strncmp(p, "package ", 8) == 0) {
+     if (PutIntoPackage)
+       fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
+     if (*package != 0)
+       fprintf(stderr, "WARNING: multiple package declaration in file %s", srcFile);
+     p += 8;
+     char *tmp = package;
+     while (*p != ';') {
+       if (*p == '\n') fprintf(stderr, "%s: Ill-formed package declaration: %s", srcFile, line);
+       *(tmp++) = *(p++);
+     }
+     *tmp = 0;
+     return TT_TEXT;
+   }
+
    // look for "//-#"
    //
    if (p[0] != '/') return TT_TEXT;
    if (p[1] != '/') return TT_TEXT;
    if (p[2] != '-') return TT_TEXT;
    if (p[3] != '#') return TT_TEXT;
+
+   // look for "value "
+   //
+   if (p[4] == 'v' && p[5] == 'a' && p[6] == 'l' && p[7] == 'u' && p[8] == 'e' && p[9] == ' ')
+      {
+      *value = evalReplace(&p[10]);
+      return TT_REPLACE;
+      }
 
    // look for "if "
    //
@@ -478,9 +537,8 @@ getToken(char **c)
    return start;
    }
 
-int
-getBoolean(char **c)
-   {
+int getBoolean(char **c) {
+
    char *cursor;
    cursor = *c;
    while (*cursor == ' ' || *cursor == '\t')	// skip white space
@@ -488,57 +546,62 @@ getBoolean(char **c)
    *c = cursor;
    return (cursor[0] == '|' && cursor[1] == '|') ||
 	  (cursor[0] == '&' && cursor[1] == '&');
-   }
+}
 
-int 
-eval(char *cursor)
-   {
-   int match;
-   while ( 1 ) {
+int evalReplace(char *cursor) {
+  char *origCursor = cursor;
+  char *name = getToken( &cursor );
+  int len = cursor - name;
+  for (int i = 0; i < Directives; ++i) {
+    char *directiveName = DirectiveName[i];
+    if (strlen(directiveName) == len &&
+	strncmp(name, directiveName, len) == 0) {
+      if (DirectiveValue[i] == NULL)
+	fprintf(stderr, "%s: value used on non-value directive '%s' at line %d of `%s'\n", 
+		Me, directiveName, SourceLine, SourceName);
+      return i;
+    }
+  }
+  fprintf(stderr, "%s: Unknown value directive '%s' at line %d of `%s'\n", 
+	  Me, name, SourceLine, SourceName);
+  exit(1);
+}
+
+int eval(char *cursor) {
+
+  int match;
+  while ( 1 ) {
       match = 0;
       char *name = getToken( &cursor );
       int toggle = 0;
       if ( name[0] == '!' ) {
-         toggle = 1;
-         name++;
+	toggle = 1;
+	name++;
       }
       int len = cursor - name;
       if (len == 0)
-         {
-         fprintf(stderr, "%s: missing <name> in preprocessor directive at line %d of `%s'\n", Me, SourceLine, SourceName);
+	{
+         fprintf(stderr, "%s: missing <name> in preprocessor directive at line %d of `%s'\n", 
+		 Me, SourceLine, SourceName);
          exit(1);
-         }
+	}
       for (int i = 0; i < Directives; ++i)
-         {
-         char *directiveName = DirectiveName[i];
-         if (strlen(directiveName) == len &&
-		memcmp(directiveName, name, len) == 0)
-	   {
-              match = 1;
-	      break;
-	   }
-      }
+	{
+	  char *directiveName = DirectiveName[i];
+	  if (strlen(directiveName) == len &&
+	      memcmp(directiveName, name, len) == 0) {
+	    match = 1;
+	    break;
+	  }
+	}
       if ( toggle ) match = !match;
       if ( !getBoolean( &cursor ) ) break;
       if ( cursor[0] == '|' ) {
-	 if ( match ) return VV_TRUE;
+	if ( match ) return VV_TRUE;
       } else {
-	 if ( !match ) return VV_FALSE;
+	if ( !match ) return VV_FALSE;
       }
       cursor += 2;
-   }
-   return match ? VV_TRUE : VV_FALSE;
-   }
-
-
-#ifdef __CYGWIN__
-// is a shell builtin, but doesn't seem to be in C lib.
-static char*
-basename (char* name) {
-  char* base = name;
-  while (*name) 
-    if ((*name++ == '/')||(name[-1] == '\\')||(name[-1] == ':'))
-      base = name;
-  return base;
+  }
+  return match ? VV_TRUE : VV_FALSE;
 }
-#endif

@@ -1,9 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.lang.reflect.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  *   This class implements the JNI environment, it includes:
@@ -46,11 +48,11 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   VM_Processor savedPRreg; // for saving processor register on entry to native, to be restored on JNI call from native
   boolean alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  int[] JNIRefs;          // references passed to native code
+  public int[] JNIRefs;          // references passed to native code
   int   JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int   JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int   JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
+  public VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
 
   Throwable pendingException = null;
 
@@ -98,7 +100,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // fill in the IP entries for each AIX linkage triplet
     try {
-      VM_Class cls = VM_Class.forName("VM_JNIFunctions");
+      VM_Class cls = VM_Class.forName("com.ibm.JikesRVM.VM_JNIFunctions");
       VM_Method[] mths = cls.getDeclaredMethods();
       for (int i=0; i<mths.length; i++) {
 	String methodName = mths[i].getName().toString();
@@ -150,7 +152,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // 
   public int pushJNIRef( Object ref ) {
     if (ref == null) return 0;
-    if (VM.VerifyAssertions) VM.assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(ref) ) );
+    if (VM.VerifyAssertions) VM._assert( VM_Interface.validRef( VM_Magic.objectAsAddress(ref) ) );
     JNIRefsTop += 4;
     if (JNIRefsTop >> 2 >= JNIRefs.length) {
 	int[] newrefs = new int[ JNIRefs.length * 2 ];
@@ -760,9 +762,14 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     targetMethod = VM_MethodDictionary.getValue(methodID);
     VM_Type returnType = targetMethod.getReturnType();
 
-    // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +
-    //		"." + targetMethod.getName().toString() + "\n");
-
+    if (VM_JNIFunctions.traceJNI) 
+	VM.sysWrite("JNI CallXXXMethod:  (mid " + 
+		    methodID + 
+		    ") " +
+		    targetMethod.getDeclaringClass().toString() + 
+		    "." + 
+		    targetMethod.getName().toString() + "\n");
+    
     if (expectReturnType==null) {   // for reference return type 
       if (!returnType.isReferenceType())
 	throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);      
@@ -1018,7 +1025,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_GCUtil.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
+      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

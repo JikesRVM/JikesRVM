@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 #include <jni.h>
@@ -39,7 +39,7 @@
  * Signature: (Ljava/lang/String;)[Ljava/net/InetAddress;
  */
 JNIEXPORT jobjectArray JNICALL 
-Java_VM_1InetAddress_getAliasesByNameImpl(
+Java_com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
 		    JNIEnv *env, 
 		    jclass type, 
 		    jstring hostname) 
@@ -67,15 +67,17 @@ Java_VM_1InetAddress_getAliasesByNameImpl(
   int rc = gethostbyname_r(bytes, results, &data);
   if (rc != 0) {
 #endif
-    jclass ex = env->FindClass("Ljava/net/UnknownHostException;");
+    jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, strerror( errno ));
+    return (jobjectArray)0;
   }
 
   // verify 4-byte-address assumption
   //
   if (results->h_addrtype != AF_INET || results->h_length != 4) {
-    jclass ex = env->FindClass("Ljava/net/UnknownHostException;");
+    jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, "Cannot understand result of gethostbyname");
+    return (jobjectArray)0;
   }
   
   // get addresses (which is all we care about)
@@ -85,15 +87,14 @@ Java_VM_1InetAddress_getAliasesByNameImpl(
   for(i = 0; addresses[i] != 0; i++);
 
   // allocate an object array to hold the byte arrays
-  jclass inetArr = env->FindClass("java.net.InetAddress");
+  jclass inetArr = env->FindClass("java/net/InetAddress");
   jobjectArray addrs = env->NewObjectArray(i, inetArr, NULL);
 
   // allocate objects for addresses
-  jclass jinet = env->FindClass("java.net.InetAddress");
-  jmethodID ctor = env->GetMethodID(jinet, "<init>", "(ILjava/lang/String;)V");
+  jclass jinet = env->FindClass("java/net/JikesRVMSupport");
+  jmethodID ctor = env->GetStaticMethodID(jinet, "createInetAddress", "(ILjava/lang/String;)Ljava/net/InetAddress;");
   for(i = 0; addresses[i] != 0; i++) {
-    env->SetObjectArrayElement(addrs, i, 
-     env->NewObject(jinet, ctor, MANGLE32(*(addresses[i])), hostname));
+    env->SetObjectArrayElement(addrs, i, env->CallStaticObjectMethod(jinet, ctor, MANGLE32(*(addresses[i])), hostname));
   }
 
   // return array of addresses
@@ -106,12 +107,15 @@ Java_VM_1InetAddress_getAliasesByNameImpl(
  * Signature: (I)Ljava/net/InetAddress;
  */
 JNIEXPORT jobject JNICALL 
-Java_VM_1InetAddress_getHostByAddrImpl(
+Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
 	       JNIEnv *env, 
 	       jclass type, 
 	       jint inetAddress)
 {
   // get address based on internet address
+
+  inetAddress = MANGLE32(inetAddress); // little endian crap :(
+
 #ifdef __linux__
   hostent *resultAddress = gethostbyaddr((char *)&inetAddress,
 				sizeof(inetAddress),
@@ -134,7 +138,7 @@ Java_VM_1InetAddress_getHostByAddrImpl(
     jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, strerror( errno ));
   }
-
+  else {
   // create java string of hostname
   char *name = resultAddress->h_name;
   jchar *jchars = new jchar[ strlen(name) + 1 ];
@@ -143,9 +147,11 @@ Java_VM_1InetAddress_getHostByAddrImpl(
   jstring jname = env->NewString( jchars, strlen(name) );
 
   // return new InetAddress object
-  jclass jaddrt = env->FindClass("java/net/InetAddress");
-  jmethodID ctor = env->GetMethodID(jaddrt,"<init>","(ILjava/lang/String;)V");
-  return env->NewObject(jaddrt, ctor, inetAddress, jname);
+  jclass jaddrt = env->FindClass("java/net/JikesRVMSupport");
+  jmethodID ctor = env->GetStaticMethodID(jaddrt, "createInetAddress", "(ILjava/lang/String;)Ljava/net/InetAddress;");
+  return env->CallStaticObjectMethod(jaddrt, ctor, inetAddress, jname);
+ 
+  }
 }
 
 
@@ -155,7 +161,7 @@ Java_VM_1InetAddress_getHostByAddrImpl(
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL 
-Java_VM_1InetAddress_getHostNameImpl(JNIEnv *env, jclass type) {
+Java_com_ibm_JikesRVM_VM_1InetAddress_getHostNameImpl(JNIEnv *env, jclass type) {
   char buf[ MAXHOSTNAMELEN ];
   int rc = gethostname(buf, MAXHOSTNAMELEN);
 

@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+
 /**
  * Use optimizing compiler to build virtual machine boot image.
  * 
@@ -9,11 +14,23 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_BootImageCompiler {
 
-  // Identity.
+public class VM_BootImageCompiler {
+
+  // If excludePattern is null, all methods are opt-compiled (or attempted).
+  // Otherwise, methods that match the pattern are not opt-compiled.
+  // In any case, the class VM_OptSaveVolatile is always opt-compiled.
   //
-  public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
+  private static String excludePattern; 
+  private static boolean match(VM_Method method) {
+    if (excludePattern == null) return true;
+    VM_Class cls = method.getDeclaringClass();
+    String clsName = cls.getName();
+    if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
+    String methodName = method.getName().toString();
+    String fullName = clsName + "." + methodName;
+    return (fullName.indexOf(excludePattern)) < 0;
+  }
 
   /** 
    * Initialize boot image compiler.
@@ -37,7 +54,10 @@ class VM_BootImageCompiler {
       for (int i = 0, n = args.length; i < n; i++) {
 	String arg = args[i];
 	if (!options.processAsOption("-X:bc:", arg)) {
-	  VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
+	  if (arg.startsWith("exclude=")) 
+	    excludePattern = arg.substring(8);
+	  else
+	    VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
 	}
       }
 
@@ -45,22 +65,6 @@ class VM_BootImageCompiler {
 
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
 
-      // Kludge:  The opt complier gets into all sorts of trouble when 
-      // inlining is enabled if java.lang.Object isn't fully instantiated 
-      // (in particular, instantiating Arrays which requires a clone of 
-      // java.lang.Object's TIB and SI leads to recursive baseline compilation).
-      // Therefore, we force java.lang.Object to be instantiated early by 
-      // calling VM_Class.forName.
-      // TODO:  We really want to be be able to replace the baseline compiled
-      // version of the methods with an opt compiled method, but doing that is
-      // tricky! Several obvious hacks didn't work, so I'm leaving this for 
-      // now under the assumption that any important methods of 
-      // java.lang.Object will be inlined, and thus opt compiled. --dave
-      VM_Class object = VM_Class.forName("java.lang.Object");
-      //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-      GCTk_AllocAdvice.buildInit(options.ALLOC_ADVICE_FILE);
-      //-#endif
-      compilerEnabled = true;
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
@@ -69,10 +73,6 @@ class VM_BootImageCompiler {
       } else {
 	VM.sysWrite(msg);
       }
-    } catch (VM_ResolutionException e) {
-      String msg = "VM_BootImageCompiler: Failure during initialization: "+e+"\n";
-      e.printStackTrace();
-      System.exit(101);
     }
   }
 
@@ -83,38 +83,71 @@ class VM_BootImageCompiler {
    * @return the compiled method
    */
   public static VM_CompiledMethod compile(VM_Method method) {
-
-    VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    if (!compilerEnabled) return VM_BaselineCompiler.compile(method); // Other half of kludge for java.lang.Object (see above)
-    try {
-      OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-      return OPT_Compiler.compile(cp);
-    }
-    catch (OPT_OptimizingCompilerException e) {
-      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
-      if (e.isFatal && options.ERRORS_FATAL) {
-	e.printStackTrace();
-	System.exit(101);
-      } else {
-	boolean printMsg = true;
-	if (e instanceof OPT_MagicNotImplementedException) {
-	  printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+    if (method.isNative()) {
+      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+      return VM_JNICompiler.compile(method);
+    } else {
+      VM_CompiledMethod cm = null;
+      OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
+      try {
+	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
+	boolean include = match(method);
+	// VM.sysWrite("Method ", method.getDeclaringClass().getName());
+	// VM.sysWrite(".", method.getName().toString());
+	// VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
+	if (!include)
+	  throw escape;
+	long start = System.currentTimeMillis();
+	OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
+	cm = OPT_Compiler.compile(cp);
+	if (VM.BuildForAdaptiveSystem) {
+	  long stop = System.currentTimeMillis();
+	  long compileTime = stop - start;
+	  cm.setCompilationTime((float)compileTime);
 	}
-	if (printMsg) VM.sysWrite(msg);
+	return cm;
+      } catch (OPT_OptimizingCompilerException e) {
+	if (e.isFatal && options.ERRORS_FATAL) {
+	  e.printStackTrace();
+	  System.exit(101);
+	} else {
+	  boolean printMsg = true;
+	  if (e instanceof OPT_MagicNotImplementedException) 
+	    printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+	  if (e == escape) 
+	    printMsg = false;
+	  if (printMsg) {
+	    if (e.toString().indexOf("method excluded") >= 0) {
+	      String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
+	      VM.sysWrite(msg);
+	    }
+	    else {
+	      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
+	      VM.sysWrite(msg);
+	    }
+	  }
+	}
+	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+	cm = VM_BaselineCompiler.compile(method);
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	// Must estimate compilation time by using offline ratios.
+	// It is tempting to time via System.currentTimeMillis()
+	// but 1 millisecond granularity isn't good enough because the 
+	// the baseline compiler is just too fast.
+	double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+	cm.setCompilationTime(compileTime);
+	//-#endif
+	return cm;
       }
-      return VM_BaselineCompiler.compile(method);
     }
   }
 
   /**
    * Create stackframe mapper appropriate for this compiler.
    */
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
-
-  // only used for java.lang.Object kludge
-  private static boolean compilerEnabled; 
 
   // Cache objects needed to cons up compilation plans
   private static OPT_OptimizationPlanElement[] optimizationPlan;

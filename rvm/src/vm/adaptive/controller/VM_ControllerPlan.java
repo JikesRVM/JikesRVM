@@ -2,7 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -66,11 +69,6 @@ final class VM_ControllerPlan {
    *  The time compilation end
    */
   private int timeCompleted = -1;
-
-  /**
-   *  The CPU time it took for the compilation
-   */
-  private double compilationCPUTime;
 
   /**
    *  The speedup we were expecting
@@ -192,14 +190,6 @@ final class VM_ControllerPlan {
 
 
   /**
-   * The CPU time in milliseconds actually consumed by the compilation
-   * thread to execute this plan. 
-   */
-  public double getCompilationCPUTime() { return compilationCPUTime; }
-  public void setCompilationCPUTime(double t) { compilationCPUTime = t; }
-
-
-  /**
    * CMID (compiled method id) associated with the code produced 
    * by executing this plan
    */
@@ -268,7 +258,6 @@ final class VM_ControllerPlan {
 	       +"\n\tCreated at "+ timeCreated
 	       +"\n\tInitiated at "+ timeInitiated
 	       +"\n\tCompleted at "+ timeCompleted
-	       +"\n\tCPU Time Consumed: "+ compilationCPUTime
 	       +"\n\tExpected Speedup: "+ expectedSpeedup
 	       +"\n\tPriority: "+ priority
 	       +"\n\tStatus: "+ getStatusString()

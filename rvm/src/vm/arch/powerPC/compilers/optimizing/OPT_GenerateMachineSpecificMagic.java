@@ -1,9 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * This class implements the machine-specific magics for the opt compiler. 
@@ -26,7 +28,7 @@ class OPT_GenerateMachineSpecificMagic
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  static void generateMagic (OPT_BC2IR bc2ir, 
+  static boolean generateMagic (OPT_BC2IR bc2ir, 
 			     OPT_GenerationContext gc, 
 			     VM_Method meth) 
     throws OPT_MagicNotImplementedException {
@@ -94,7 +96,7 @@ class OPT_GenerateMachineSpecificMagic
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET),
 					   null));
-    } else if (methodName == VM_MagicNames.getReturnAddress) {
+    } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand callerFP = gc.temps.makeTemp(VM_Type.AddressType);
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
@@ -102,23 +104,10 @@ class OPT_GenerateMachineSpecificMagic
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
 					  null));
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
-					  callerFP,
-					  new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET),
-					  null));
+      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+					    callerFP,
+					    new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setReturnAddress) {
-      OPT_Operand val = bc2ir.popAddress();
-      OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand callerFP = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(Load.create(INT_LOAD, callerFP, 
-					  fp,
-					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
-					  null));
-      bc2ir.appendInstruction(Store.create(INT_STORE, val, 
-					   callerFP, 
-					   new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET),
-					   null));
     } else if (methodName == VM_MagicNames.getTime) {
       OPT_RegisterOperand val = gc.temps.makeTempDouble();
       OPT_MethodOperand mo = 
@@ -194,10 +183,6 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.appendInstruction(CallSpecial.create4(SYSCALL, op0, ip, 
 						  toc, p1, p2, p3, p4));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.getTimeBase) {
-      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
-      bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
-      bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       if (!gc.options.NO_CACHE_FLUSH)
         bc2ir.appendInstruction(Empty.create(READ_CEILING));
@@ -217,9 +202,11 @@ class OPT_GenerateMachineSpecificMagic
 	  methodName == VM_MagicNames.pragmaNoOptCompile) {
 	throw OPT_MagicNotImplementedException.EXPECTED(msg);
       } else {
-	throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+	return false;
+	// throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
       }
     }
+    return true;
   }
 }
 

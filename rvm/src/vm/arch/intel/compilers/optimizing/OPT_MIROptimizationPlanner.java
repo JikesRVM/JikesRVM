@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import  java.util.Vector;
 
@@ -37,7 +38,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
       new OPT_SplitBasicBlock(), 
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -47,7 +48,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // For now, always print the Initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }

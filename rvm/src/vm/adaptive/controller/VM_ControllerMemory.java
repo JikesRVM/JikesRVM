@@ -2,7 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -18,7 +23,7 @@ import java.io.PrintStream;
  *  @author Michael Hind
  *  @author Stephen Fink
  */
-final class VM_ControllerMemory implements VM_Constants {
+public final class VM_ControllerMemory implements VM_Constants {
 
   /**
    *  This is a hashtable of controller plans indexed on the method ID.  
@@ -63,7 +68,7 @@ final class VM_ControllerMemory implements VM_Constants {
   static void incrementNumMethodsConsidered()   { numMethodsConsidered++; }
   static void incrementNumMethodsScheduledForRecomp()  
     { numMethodsScheduledForRecomp++; }
-  static void incrementNumBase()                { numBase++; }
+  public static void incrementNumBase()                { numBase++; }
   static void incrementNumOpt0()                { numOpt0++; }
   static void incrementNumOpt1()                { numOpt1++; }
   static void incrementNumOpt2()                { numOpt2++; }
@@ -92,7 +97,7 @@ final class VM_ControllerMemory implements VM_Constants {
       case 3:  numOpt3++; break;
       case 4:  numOpt4++; break; 
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown Opt Level");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
       }
     }
 

@@ -2,10 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
 
 import java.util.Enumeration;
 import java.util.Vector;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /** 
  *  OPT_LowerInstrumentation
@@ -24,7 +28,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
 
    static final boolean DEBUG = false;
 
-   final boolean shouldPerform(OPT_Options options) {
+   public final boolean shouldPerform(OPT_Options options) {
      if (options.INSERT_INSTRUCTION_COUNTERS ||
 	 options.INSERT_METHOD_COUNTERS_OPT ||
 	 options.INSERT_DEBUGGING_COUNTERS ||
@@ -33,7 +37,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     return false;
    }
 
-   final String getName() { return "LowerInstrumentation"; }
+   public final String getName() { return "LowerInstrumentation"; }
 
    /**
     * Finds all instrumented instructions and calls the appropriate code to 

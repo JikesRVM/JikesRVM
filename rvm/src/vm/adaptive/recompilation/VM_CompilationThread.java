@@ -2,6 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)
@@ -16,6 +23,13 @@
  *  @author David Grove
  */
 class VM_CompilationThread extends VM_Thread {
+
+  /**
+   * constructor
+   */
+  VM_CompilationThread() {
+    makeDaemon(true);
+  }
 
   /**
    * This is the main loop of the compilation thread. It's job is to 
@@ -53,24 +67,9 @@ class VM_CompilationThread extends VM_Thread {
       VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
     }
     
-    // must hold classloader lock while compiling.
-    // Update compilation thread timing information to prepare for new run.
-    double now = VM_Time.now();
-    cpuTotalTime += (now - cpuStartTime);
-    cpuStartTime = now;
-    double start = cpuTotalTime;
-
     // Compile the method.
     int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
 
-    // Update compilation thread timing information and compute time 
-    // taken during this compilation.
-    now = VM_Time.now();
-    cpuTotalTime += (now - cpuStartTime);
-    cpuStartTime = now;
-    double end = cpuTotalTime;
-    double compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
-      
     // transfer the samples from the old CMID to the new CMID.
     // scale the number of samples down by the expected speedup 
     // in the newly compiled method.
@@ -80,7 +79,7 @@ class VM_CompilationThread extends VM_Thread {
     double newNumSamples = oldNumSamples / expectedSpeedup;
     VM_Controller.methodSamples.reset(prevCMID);
     if (newCMID > -1) {
-      VM_Controller.methodSamples.setData(newCMID, newNumSamples);
+      VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
     }
 
     // set the status of the plan accordingly
@@ -92,7 +91,6 @@ class VM_CompilationThread extends VM_Thread {
     }
 
     plan.setCMID(newCMID);
-    plan.setCompilationCPUTime(compileTime);
     plan.setTimeCompleted(VM_Controller.controllerClock);
     if (VM.LogAOSEvents) {
       if (newCMID == -1) {
@@ -102,4 +100,5 @@ class VM_CompilationThread extends VM_Thread {
       }
     }
   }
+
 }

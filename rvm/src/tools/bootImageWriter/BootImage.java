@@ -5,6 +5,7 @@
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import com.ibm.JikesRVM.*;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later

@@ -2,8 +2,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM.adaptive;
+import com.ibm.JikesRVM.opt.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * VM_CounterArrayManager.java
@@ -140,7 +148,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
 					       OPT_IR ir) {
     if (VM.VerifyAssertions)
-      VM.assert(InstrumentedCounter.conforms(counterInst));
+      VM._assert(InstrumentedCounter.conforms(counterInst));
 
     OPT_IntConstantOperand intOp =
       InstrumentedCounter.getData(counterInst);

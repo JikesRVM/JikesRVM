@@ -24,8 +24,8 @@
 #include <strings.h> // bzero ()
 #include <assert.h>
 
-#ifdef __linux__
 #include <pthread.h>
+#ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
 #include <signal.h>
@@ -34,6 +34,7 @@
 #define NGPRS 32
 #define NFPRS  0
 #define GETCONTEXT_IMPLEMENTED 0
+#define INCORRECT_SI_ADDR_ON_SEGV 0
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
@@ -42,6 +43,7 @@ extern "C" char *sys_siglist[];
 
 
 extern "C" int createJVM(int);
+extern "C" void processTimerTick(void);
 
 // There are several ways to allocate large areas of virtual memory:
 // 1. malloc() is simplest, but doesn't allow a choice of address and so requires address relocation for references appearing in boot image
@@ -140,17 +142,15 @@ static int inRVMAddressSpace(unsigned int addr) {
 
    /* get the boot record */
    VM_Address *heapRanges = theBootRecord->heapRanges;
-   int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
+   int MaxHeaps = 20;  // update to match (VM_BootRecord.heapRange.length / 2)
 
-   for (int which = 0; ; which++) {
-       assert(which <= (MaxHeaps + 1));
-       VM_Address start = heapRanges[2 * which];
-       VM_Address end = heapRanges[2 * which + 1];
-       if (start == ~0 && end == ~0) break;
-       if (start <= addr  && addr  < end)
-	 return true;
+   for (int which = 0; which < MaxHeaps; which++) {
+     VM_Address start = heapRanges[2 * which];
+     VM_Address end = heapRanges[2 * which + 1];
+     if (start <= addr  && addr < end) {
+       return true;
+     }
    }
-	
    return false;
 }
 
@@ -224,75 +224,10 @@ void cSignalHandler(int signum, int zero, sigcontext *context)
    #define ANNOUNCE(message) 
    #define ANNOUNCE_TICK(message)
 
-   if (signum == SIGALRM)
-      { // asynchronous signal used for time slicing
-      if (!VM_Configuration_BuildForThreadSwitchUsingControlRegisterBit)
-         { 
-         // Turn on thread-switch flag in each virtual processor.
-         // Note that "jtoc" is not necessairly valid, because we might have interrupted
-         // C-library code, so we use boot image jtoc address (== VmToc) instead.
-         // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-         // For now, we assume table is fixed in boot image and never moves.
-         //
-         unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
-         unsigned  cnt        =  processors[-1];
-         int	   i;
-	 int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-	 *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
-
-#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// line added here - ndp is now the last processor = and cnt includes it
-				 cnt = cnt - 1;
-	 // check for gc in progress: if so, return
-	 // 
-	 if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;
-
-	 int       val;
-	 int       sendit = 0;
-	 int       MISSES = -2;			// tuning parameter
-         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
-	     {
-             val = *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
-	     if (val <= MISSES) sendit++;
-	     *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = val - 1;
-             }
-	 if (sendit != 0) // some processor "stuck in native"
-	 { 
-	   if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon Processor (the last one)
-	   ANNOUNCE(" got NDprocessor value\n ");
-	   int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
-	   ANNOUNCE(" got pthread_id  value\n ");
-	   pthread_t thread = (pthread_t)pthread_id;
-	   pthread_kill(thread, SIGCONT);
-	 }
-	 }
-#else
-         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-           *(unsigned *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = (unsigned) -1; // -1: all bits on
-#endif
-         }
-      else
-         { 
-         // Turn on thread-switch bit in condition register of current virtual processor.
-         // Note that we do this only if we've interrupted vm code (ie. if we've interrupted
-         // C-library code, we cannot touch the condition registers).
-         //
-         if (isVmSignal(iar, jtoc))
-            {
-#ifdef __linux__
-            save->ccr |= (0x80000000 >> VM_Constants_THREAD_SWITCH_BIT);
-#else
-            save->cr |= (0x80000000 >> VM_Constants_THREAD_SWITCH_BIT);
-#endif
-            ANNOUNCE_TICK("[tick]\n");
-            }
-         else
-            {
-            ANNOUNCE_TICK("[miss]\n");
-            }
-         }
-      return;
-      }
+   if (signum == SIGALRM) {     
+     processTimerTick();
+     return;
+   }
 
    if (signum == SIGHUP)
       { // asynchronous signal used to awaken external debugger
@@ -347,8 +282,61 @@ void cSignalHandler(int signum, int zero, sigcontext *context)
 #endif
       return;
       }
-
    }
+ 
+extern "C" void processTimerTick() {
+  void *bootRegion = (void *) bootImageAddress;
+  VM_BootRecord *bootRecord = (VM_BootRecord *) bootRegion;
+
+   // Turn on thread-switch flag in each virtual processor.
+   // Note that "jtoc" is not necessairly valid, because we might have interrupted
+   // C-library code, so we use boot image jtoc address (== VmToc) instead.
+   // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+   // For now, we assume table is fixed in boot image and never moves.
+   //
+   unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
+   unsigned  cnt        =  processors[-1];
+   int	   i;
+   int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+   *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+   
+#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
+// line added here - ndp is now the last processor = and cnt includes it
+   cnt = cnt - 1;
+   // check for gc in progress: if so, return
+   // 
+   if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;
+   
+   int       val;
+   int       sendit = 0;
+   int       MISSES = -2;			// tuning parameter
+   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
+     {
+       val = *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
+       if (val <= MISSES) sendit++;
+       *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = val - 1;
+     }
+   if (sendit != 0) // some processor "stuck in native"
+     { 
+       if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon Processor (the last one)
+#if (defined __linux__) && (!defined __linuxsmp__)
+	 // we're hosed because we don't support pthreads
+	 fprintf(stderr, "vm: Unsupported operation (no linux pthreads)\n");
+	 exit(-1);
+#else
+	 ANNOUNCE(" got NDprocessor value\n ");
+	 int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
+	 ANNOUNCE(" got pthread_id  value\n ");
+	 pthread_t thread = (pthread_t)pthread_id;
+	 pthread_kill(thread, SIGCONT);
+#endif
+       }
+     }
+#else
+   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
+     *(unsigned *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = (unsigned) -1; // -1: all bits on
+#endif
+}
 
 // Handle hardware traps.
 // Note: this code runs in a small "signal stack" allocated by "sigstack()" (see later).
@@ -396,7 +384,11 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
    if (isVmSignal(iar, jtoc))
       {
 #if __linux__
-      if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
+#if INCORRECT_SI_ADDR_ON_SEGV
+	if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
+#else
+	if (signum == SIGSEGV && ((unsigned)(siginfo->si_addr) & 0xffff0000) == 0xffff0000)
+#endif	  
 #else
       if (signum == SIGSEGV && ((save->o_vaddr & 0xffff0000) == 0xffff0000))
 #endif
@@ -413,8 +405,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 #ifdef __linux__
       fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
       fprintf(SysTraceFile,"            mem=0x%08x\n", siginfo->si_addr);
-      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)(save->nip));
       fprintf(SysTraceFile,"             ip=0x%08x\n", save->nip);
+      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)(save->nip));
       fprintf(SysTraceFile,"             lr=0x%08x\n", save->link);
       fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
       fprintf(SysTraceFile,"            tid=0x%08x\n", save->gpr[TID]);
@@ -423,7 +415,6 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 #else
       fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
       fprintf(SysTraceFile,"            mem=0x%08x\n", save->o_vaddr);
-      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)save->iar);
       fprintf(SysTraceFile,"             ip=0x%08x\n", save->iar);
       fprintf(SysTraceFile,"             lr=0x%08x\n", save->lr);
       fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
@@ -431,6 +422,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       fprintf(SysTraceFile,"           jtoc=0x%08x\n", save->gpr[VM_Constants_JTOC_POINTER]);
       fprintf(SysTraceFile,"             pr=0x%08x\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
       fprintf(SysTraceFile,"        handler=0x%08x\n", javaExceptionHandlerAddress);
+      fprintf(SysTraceFile,"   pthread_self=0x%08x\n", pthread_self());
+      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)save->iar);
 #endif
       if (isRecoverable)
          {
@@ -531,7 +524,11 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       {
       case SIGSEGV:
 #ifdef __linux__
-      if ((unsigned)(siginfo->si_addr) == 0) 
+#if INCORRECT_SI_ADDR_ON_SEGV
+	if ((unsigned)(siginfo->si_addr) == 0) 
+#else
+	if (((unsigned)(siginfo->si_addr) & 0xffff0000) == 0xffff0000) 
+#endif
          { // touched top segment of memory, presumably by wrapping negatively off 0
          ANNOUNCE_TRAP("vm: null pointer trap\n");
          trapCode = VM_Runtime_TRAP_NULL_POINTER;
@@ -717,6 +714,8 @@ unsigned largeHeapSize = 0;                // megs
 unsigned nurserySize   = 10 * 1024 * 1024; // megs
 unsigned permanentHeapSize = 0;
 
+unsigned traceClassLoading = 0;
+ 
 // name of program that will load and run RVM
 char *me;
 
@@ -861,7 +860,9 @@ int createJVM(int vmInSeparateThread) {
    bootRecord.largeSpaceSize   = largeHeapSize;
    bootRecord.bootImageStart   = (int) bootRegion;
    bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
-   
+  
+   bootRecord.traceClassLoading = traceClassLoading;
+
    // set host o/s linkage information into boot record
    //
    bootRecord.setLinkage();
@@ -1103,7 +1104,22 @@ void *bootThreadCaller(void *dummy) {
 }
 
 
+// Get address of JTOC.
+extern "C" void *getJTOC() {
+  return (void*) VmToc;
+}
 
+// Get offset of VM_Scheduler.processors in JTOC.
+extern "C" int getProcessorsOffset() {
+  return ProcessorsOffset;
+}
+
+
+// we do not have this yet of PowerPC
+extern int createJavaVM() {
+  fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
+  return -1;
+}
 
 /******* UNSUPPORTED RELOCATION CODE NOT CURRENTLY IN USE
 

@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
+//-#endif
 
 /**
  * This class enables an external driver to block recompile all

@@ -1,8 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //VM_BuildReferenceMaps.java
 //$Id$
+package com.ibm.JikesRVM;
+
 /** 
  * This class builds the reference and non-reference maps for a given method.
  * The maps are recorded with VM_ReferenceMaps. This class works with the baseline
@@ -54,8 +56,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
  //-#endif
 
  public void
- buildReferenceMaps(VM_Method method, int[] stackHeights,
-		    VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
+ buildReferenceMaps(VM_Method method, 
+		    int[] stackHeights,
+		    VM_ReferenceMaps referenceMaps, 
+		    VM_BuildBB buildBB) {
 
   //****************************************************************//
   //                                                                //
@@ -1534,8 +1538,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
        break;
      }  // case JBC_wide : {
      default : {
-       System.out.println("Unknown opcode:" + opcode);
-       System.exit(10);
+       VM.sysWriteln("Unknown opcode:" + opcode);
+       VM.sysExit(10);
      }
 
      }  // end switch (opcode)
@@ -1571,26 +1575,34 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
        else 
          break;
      }
-     if (i == tryHandlerLength)
-       handlersAllDone = true;
-     else {
+     if (i == tryHandlerLength) {
+	 handlersAllDone = true;
+     } else {
        int considerIndex = i;
 
        while (i != tryHandlerLength) {
-
          int tryStart = tryStartPC[considerIndex];
          int tryEnd   = tryEndPC[considerIndex];
 
-         for (i=0; i<tryHandlerLength; i++)
+         for (i=0; i<tryHandlerLength; i++) {
+	   // If the handler handles itself, then make the wild assumption
+	   // that the local variables will be the same......is this reasonable??
+	   // This is a patch to deal with defect 3046.
+	   // I'm not entirely convinced this is right, but don't know what else we can do. --dave
+	   if (i == considerIndex) continue;
+
 	   // For every handler that has not yet been processed, 
 	   // but already has a known starting map,
 	   // make sure it is not in the try block part of the handler
 	   // we are considering working on. 
 	   if (!handlerProcessed[i] &&
-	      tryStart <= tryHandlerPC[i] &&
-	      tryHandlerPC[i] < tryEnd &&
-	      bbMaps[byteToBlockMap[tryHandlerPC[i]]] != null)
+	       tryStart <= tryHandlerPC[i] &&
+	       tryHandlerPC[i] < tryEnd &&
+	       bbMaps[byteToBlockMap[tryHandlerPC[i]]] != null) {
 	     break;
+	   }
+	 }
+
 	 if (i != tryHandlerLength)
 	   considerIndex = i;
        }
@@ -1715,7 +1727,7 @@ processInvoke(VM_Method calledMethod, int byteindex, int currBBStkTop,
  int stkDepth = currBBStkTop;
 
  if (calledMethod.getDeclaringClass().isMagicType() ||
-     calledMethod.getDeclaringClass().isAddressType()) {
+     calledMethod.getDeclaringClass().isWordType()) {
    boolean producesCall = VM_MagicCompiler.checkForActualCall(calledMethod);
    if (producesCall) {
      stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 

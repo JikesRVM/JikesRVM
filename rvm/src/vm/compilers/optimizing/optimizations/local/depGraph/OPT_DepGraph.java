@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Dependence Graph for a single basic block in the program.
@@ -37,7 +38,9 @@ import instructionFormats.*;
  * @author Harini Srinivasan
  */
 final class OPT_DepGraph extends OPT_SpaceEffGraph 
-  implements OPT_Operators, OPT_DepGraphConstants {
+  implements OPT_Operators, 
+	     OPT_DepGraphConstants {
+
   /**
    * Set of variables that are live on entry to at least one catch block that
    * is reachable via a PEI in currentBlock.
@@ -99,7 +102,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * Create the dependency graph nodes for instructions start to end
    */
   private void createNodes(OPT_Instruction start, OPT_Instruction end) {
-    for (OPT_Instruction p = start; ; p = p.getNext()) {
+    for (OPT_Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
       OPT_DepGraphNode pnode = new OPT_DepGraphNode(p);
       addGraphNode(pnode);
       if (p == end) {
@@ -550,7 +553,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * @param end   the last opt instruction in the region
    */
   private void clearRegisters(OPT_Instruction start, OPT_Instruction end) {
-    for (OPT_Instruction p = start; ; p = p.getNext()) {
+    for (OPT_Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
       for (OPT_OperandEnumeration ops = p.getOperands();
            ops.hasMoreElements(); ) {
         OPT_Operand op = ops.next();
@@ -582,7 +585,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * @return graph descriptor
    * @see OPT_VCGGraph#getVCGDescriptor
    */
-  public GraphDesc getVCGDescriptor() {
+  public OPT_VCGGraph.GraphDesc getVCGDescriptor() {
     return new GraphDesc() {
       public String getTitle() { return "Dependence Graph"; }
     };

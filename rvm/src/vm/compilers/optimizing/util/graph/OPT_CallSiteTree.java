@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.*;
+import java.util.*;
 
 /**
  *  This class represents the set of inlined method calls that are
@@ -22,9 +24,8 @@ import  java.util.*;
  * @see OPT_CallSiteTreeNode
  * @see VM_OptEncodedCallSiteTree
  * @see VM_OptMachineCodeMap
- *
  */
-class OPT_CallSiteTree extends OPT_Tree {
+public class OPT_CallSiteTree extends OPT_Tree {
 
   /**
    * Given an existing call site tree representing a method, add a new
@@ -32,7 +33,7 @@ class OPT_CallSiteTree extends OPT_Tree {
    * @param seq a call to add to the call site tree
    * @return the call site tree node corresponding to the new call site
    */
-  OPT_CallSiteTreeNode addLocation (OPT_InlineSequence seq) {
+  public OPT_CallSiteTreeNode addLocation (OPT_InlineSequence seq) {
     if (seq.caller == null) {
       OPT_CallSiteTreeNode x = (OPT_CallSiteTreeNode)getRoot();
       if (x == null) {
@@ -40,8 +41,7 @@ class OPT_CallSiteTree extends OPT_Tree {
         setRoot(x);
       }
       return  x;
-    } 
-    else {
+    } else {
       OPT_CallSiteTreeNode node = addLocation(seq.caller);
       OPT_CallSiteTreeNode x = (OPT_CallSiteTreeNode)node.getLeftChild();
       while (x != null) {
@@ -61,10 +61,10 @@ class OPT_CallSiteTree extends OPT_Tree {
    * @param seq an inlined call site
    * @return the corresponding call site tree node
    */
-  OPT_CallSiteTreeNode find (OPT_InlineSequence seq) {
-    if (seq.caller == null)
+  public OPT_CallSiteTreeNode find (OPT_InlineSequence seq) {
+    if (seq.caller == null) {
       return  (OPT_CallSiteTreeNode)getRoot(); 
-    else {
+    } else {
       OPT_CallSiteTreeNode parent = find(seq.caller);
       OPT_CallSiteTreeNode x = (OPT_CallSiteTreeNode)parent.getLeftChild();
       while (x != null) {

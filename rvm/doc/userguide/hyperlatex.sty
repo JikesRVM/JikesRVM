@@ -1,0 +1,251 @@
+%%
+%% LaTeX style to handle hyperlatex files, version 2.4
+%%
+%% This code has GNU copyleft, 1994-2000 Otfried Cheong
+%%
+\NeedsTeXFormat{LaTeX2e}
+
+\ProvidesPackage{hyperlatex}
+[2000/03/29 v2.5 LaTeX2e package for Hyperlatex mode]
+
+\typeout{Package: 'hyperlatex' v2.5  Otfried Cheong}
+
+\RequirePackage{verbatim}
+\chardef\other=12
+
+%%
+%% Comments,  
+%%
+{\obeylines\gdef\Hlx@W#1^^M{\endgroup\ignorespaces}}
+\def\W{\begingroup\obeylines\catcode`\{=\other\catcode`\}=\other\Hlx@W}
+
+\newcommand{\htmlonly}[1]{}
+\newcommand{\texorhtml}[2]{#1}
+\newenvironment{iftex}{}{}
+\newenvironment{latexonly}{}{}
+\newcommand{\texonly}[1]{#1}
+\newcommand{\T}{}
+
+%%
+%% Treatment of special characters
+%%
+
+\def\Hlx@nonspecials{}
+\def\NotSpecial{\def\Hlx@nonspecials}
+\def\Hlx@turnon{\let\do=\@makeother\Hlx@nonspecials}
+\AtBeginDocument{\Hlx@turnon}
+
+\let\htmltab=&
+
+%%
+%% \begin{tex} ... \end{tex}    escapes into raw Tex temporarily.
+%% you can write {\tex .....} as well, if already escaped from Html
+%%
+\newenvironment{tex}{\catcode `\$=3 \catcode `\&=4 \catcode `\#=6
+\catcode `\^=7 \catcode `\_=8 \catcode `\%=14}{}
+
+%%
+%% \back
+%% 
+
+\newcommand{\back}{{\tt\char`\\}}
+
+%%
+%% \math
+%%
+
+\def\math{\@ifnextchar [{\@math}{\@math[]}}
+\def\@math[#1]{\begingroup\tex\@@math}
+\def\@@math#1{$#1$\endgroup}
+
+%%
+%% Commands that don't do anything interesting in Latex
+%%
+
+\def\Hlx@pass{\begingroup\let\protect\@unexpandable@noexpand\@sanitize}
+
+\def\Hlx@directory{.}
+
+\newcommand{\htmldirectory}[1]{\gdef\Hlx@directory{#1}}
+\newcommand{\htmlname}[1]{}
+\newcommand{\htmldepth}[1]{}
+\newcommand{\htmltopname}[1]{}
+\newcounter{htmldepth}
+\newcommand{\htmltitle}[1]{}
+\newcommand{\htmladdress}[1]{}
+\newcommand{\xml}{\Hlx@pass\@html}
+\def\@html#1{\endgroup}
+\let\html\xml
+
+\newcommand{\xmlsym}[1]{}
+\def\htmlrule{\@ifnextchar [{\@htmlrule}{\@htmlrule[]}}
+\def\@htmlrule{\Hlx@pass\@@htmlrule}
+\def\@@htmlrule[#1]{\endgroup}
+
+\newcommand{\htmlmenu}[1]{}
+\newcommand{\htmlautomenu}[1]{}
+\newcounter{htmlautomenu}
+\newcommand{\htmlprintindex}{}
+\newcommand{\htmlfootnotes}{}
+\newcommand{\htmlmathitalic}[1]{}
+\newcommand{\htmlpanelfield}[2]{}
+\newcommand{\htmlcharset}[1]{}
+\newcommand{\htmlcss}[1]{}
+
+\def\htmlimage{\@ifnextchar [{\@htmlimage}{\@htmlimage[]}}
+\def\@htmlimage{\Hlx@pass\@@htmlimage}
+\def\@@htmlimage[#1]#2{\endgroup}
+
+\newcommand{\xname}{\Hlx@pass\Hlx@ignore}
+\def\Hlx@ignore#1{\endgroup}
+
+\newcommand{\htmlpanel}[1]{}
+\newcommand{\htmlheading}{\@ifnextchar[{\@htmlheading}{\@htmlheading[]}}
+\def\@htmlheading[#1]#2{}
+
+\newcommand{\htmlcaption}[1]{}
+
+\def\xmlattributes{\@ifstar{\@xmlattributes}{\@xmlattributes}}
+\def\@xmlattributes{\Hlx@pass\@@xmlattributes}
+\def\@@xmlattributes#1#2{\endgroup}
+\let\htmlattributes\xmlattributes
+
+%%
+%% GIF environment,
+%%  will generate bitmaps when `\makegifs' is defined
+%%
+
+\newif\if@makegifs
+\@ifundefined{makegifs}{\@makegifsfalse}{\@makegifstrue}
+
+\def\gif{\@ifnextchar[{\@gif}{\@gif[b]}}
+\def\@gif[#1]{\@ifnextchar[{\@@gif}{\@@gif[100]}}
+\def\@@gif[#1]{\gdef\gif@resolution{#1}\@ifnextchar[{\@@@gif}{\@@@gif[300]}}
+\def\@@@gif[#1]#2{\gdef\gif@dpi{#1}\gdef\gif@name{#2}\@@@@gif}
+
+\if@makegifs
+\typeout{**********************************************}
+\typeout{* Making GIF bitmaps from Hyperlatex source! *}
+\typeout{**********************************************}
+\newwrite\@makegifcmds
+\immediate\openout\@makegifcmds=\jobname.makegif
+\newbox\@gifbox
+\newcount\@gifcount\@gifcount=10000
+\def\@@@@gif{\setbox\@gifbox=\vbox\bgroup\tex}
+\def\endgif{\egroup
+  {\global\advance\@gifcount by 1\count0=\@gifcount
+    \immediate\write\@makegifcmds{dvips\space -f\space -p\space
+      \the\@gifcount\space -n\space 1\space -E\space -D\space \gif@dpi\space
+      \jobname.dvi\space>\space\gif@name.ps^^J%
+      ps2gif\space -res\space \gif@resolution\space \gif@name.ps^^J%
+      mv\space \gif@name.gif\space \Hlx@directory^^J}
+    \shipout\copy\@gifbox}\unvbox\@gifbox}
+\else
+\def\@@@@gif{\tex}
+\def\endgif{}
+\fi
+%%
+%% Font style definitions
+%%
+
+\let\cit=\textit
+\let\code=\texttt
+\let\kbd=\texttt
+\let\samp=\texttt
+\let\strong=\textbf
+\let\var=\textsl
+\let\dfn=\textit
+\let\file=\textit
+
+%%
+%% \begin{example} ... \end{example} obeys spaces and lines
+%%
+\def\Hlx@example{\do\$\do\&\do\#\do\^\do\_\do\~}
+{\obeyspaces
+  \gdef\turnon@spaces{\let =\ \obeyspaces\catcode``=\active\@noligs}}
+{\obeylines%
+  \gdef\turnon@lines{\obeylines\def^^M{\par\def^^M{\leavevmode\par}}}}
+
+\def\example{\list{}{\leftmargin\z@
+    \itemindent\z@ \rightmargin\z@ \parsep \z@ plus\p@}\item[]\tt
+  \turnon@spaces\turnon@lines\let\do\@makeother\Hlx@example}
+\let\endexample=\endlist
+
+%%
+%% font problem:  math in example environment seems to need this:
+%%
+\DeclareFontFamily{OMS}{cmtt}{}
+\DeclareFontShape{OMS}{cmtt}{m}{n}{ <-> ssub * cmsy/m/n }{}
+
+\newenvironment{menu}{\list{$\bullet$}{\itemsep0pt\parsep0pt}}{\endlist}
+\newenvironment{ifhtml}{\comment}{\endcomment}
+\newenvironment{rawxml}{\comment}{\endcomment}
+
+\def\xmlinclude#1{}
+
+\newcommand{\Hlx@empty}{}
+\newcommand{\Hlx@zero}{0}
+\newif\if@Hlx
+
+\def\Hlx@setclear#1{\@ifundefined{#1}{\@Hlxfalse}{%
+    \expandafter\ifx\csname#1\endcsname\Hlx@empty\@Hlxfalse
+    \else\expandafter\ifx\csname#1\endcsname\Hlx@zero\@Hlxfalse
+    \else\@Hlxtrue\fi\fi}}
+
+\def\ifclear#1{\Hlx@setclear{#1}
+  \if@Hlx
+  %% arg true -> skip
+  \let\endifset\endcomment\let\Hlx@comment\comment
+  \else
+  %% arg false -> ignore begin and end
+  \let\endifset\relax\let\Hlx@comment\relax
+  \fi\Hlx@comment}
+
+\def\ifset#1{\Hlx@setclear{#1}
+  \if@Hlx
+  % arg true -> ignore begin and end
+  \let\endifclear\relax\let\Hlx@comment\relax
+  \else
+  % arg false -> skip environment
+  \let\endifclear\endcomment\let\Hlx@comment\comment
+  \fi\Hlx@comment}
+
+%%
+%% Define \link and \xlink macros
+%%
+\newcommand{\Hlx@label}{}
+
+\newcommand{\Ref}{\ref{\Hlx@label}}
+\newcommand{\Pageref}{\pageref{\Hlx@label}}
+\newcommand{\Cite}{\cite{\Hlx@label}}
+
+\newenvironment{Label}[1]{\def\Hlx@Label@label{\label{#1}}\ignorespaces}%
+{\Hlx@Label@label\ignorespaces}
+
+\newcommand{\htmlcite}[1]{\cite{#1}}
+
+\def\link{\@ifstar{\@star@link}{\@@link}}
+\def\@@link#1{#1\@@@link}
+\def\@star@link#1{\@@@link}
+\def\@@@link{\@ifnextchar [{\@link}% ] balance
+  {\@link[]}}
+\def\@link[#1]#2{\gdef\Hlx@label{#2}#1}
+
+\def\xlink{\@ifstar{\@star@xlink}{\@@xlink}}
+\def\@@xlink#1{\@@@xlink{#1}}
+\def\@star@xlink#1{\@@@xlink{}}
+\def\@@@xlink#1{\@ifnextchar [{\@xlink{#1}}{\@xlink{#1}[]}}
+\def\@xlink#1[#2]#3{\formatxlink{#1#2}{#3}}
+\newcommand{\formatxlink}[2]{#1}
+
+%
+% index from latex.tex, and changed to include optional argument
+%
+\def\cindex{\@bsphack\begingroup
+  \let\protect\@unexpandable@noexpand
+  \@sanitize
+  \@ifnextchar [{\Hlx@argwrindex}% balance ]
+  {\@wrindex}}
+\def\Hlx@argwrindex[#1]#2{\@wrindex{#1@#2}}
+
+%% end of hyperlatex.sty

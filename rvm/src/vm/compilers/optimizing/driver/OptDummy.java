@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -16,8 +18,5 @@ class OptDummy {
   static OPT_Compiler a;
   static OPT_StaticInlineOracle f;
   VM_OptSaveVolatile g;
-  //-#if RVM_WITH_CONCURRENT_GC
-  VM_OptRCWriteBarrier i;
-  //-#endif
   static OPT_SpecializedMethodPool q;
 }

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  *
@@ -28,11 +30,11 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
    static final boolean DEBUG = false;
 
-   final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
      return options.INSERT_METHOD_COUNTERS_OPT;
    }
 
-   final String getName() { return "InsertMethodInvocationCounters"; }
+  public    final String getName() { return "InsertMethodInvocationCounters"; }
 
    /**
     * Insert basic block counters

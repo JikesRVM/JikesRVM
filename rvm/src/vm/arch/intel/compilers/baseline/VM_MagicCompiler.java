@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Generate inline machine instructions for special methods that cannot be implemented
@@ -35,7 +36,7 @@ class VM_MagicCompiler implements VM_BaselineConstants
        {
        //!!TODO
        VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + "\n");
-       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
        }
 
      // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.

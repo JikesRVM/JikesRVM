@@ -3,11 +3,18 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_JavaHeader;
+
 /**
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-interface VM_GCConstants {
+public interface VM_GCConstants {
 
   static final int WORDSIZE = 4;
   static final int LG_WORDSIZE = 2;

@@ -12,8 +12,8 @@ MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/ins
 default:  $(GEN_FILES_DIR)/OPT_OperatorClass.java
 
 $(GEN_FILES_DIR)/OPT_OperatorClass.java:	OPT_OperatorClass.template $(MIR_IR_DIR)/ResourceList.dat $(MIR_IR_DIR)/OperatorClassList.dat
-	$(HOST_JAVA) -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` \
+	$(HOST_JAVA) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_OperatorClass.template  \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_OperatorClass.java` \
-	ARCHITECTURE_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(MIR_IR_DIR)`
+	$(GEN_FILES_DIR)/OPT_OperatorClass.java \
+	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR)
 

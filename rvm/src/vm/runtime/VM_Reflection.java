@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Arch-independent portion of reflective method invoker.
@@ -155,7 +156,7 @@ public class VM_Reflection implements VM_Constants {
       return new Double(x);
     }
 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
 

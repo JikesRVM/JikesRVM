@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * Use this exception when the opt compiler attempts to 
@@ -17,10 +18,10 @@
  *
  * @author Dave Grove
  */
-class OPT_OperationNotImplementedException extends 
+public class OPT_OperationNotImplementedException extends 
     OPT_OptimizingCompilerException {
 
-  OPT_OperationNotImplementedException (String s) {
+  public OPT_OperationNotImplementedException (String s) {
     super(s, false);
   }
 }

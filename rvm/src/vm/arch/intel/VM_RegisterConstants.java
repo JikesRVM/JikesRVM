@@ -2,13 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * @author Bowen Alpern
  * @author Stephen Fink
  * @author Dave Grove
  */
-interface VM_RegisterConstants {
+public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
   //               RVM register usage conventions - Intel version.                         //
   //---------------------------------------------------------------------------------------//

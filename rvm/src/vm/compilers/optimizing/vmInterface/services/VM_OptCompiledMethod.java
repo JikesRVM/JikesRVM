@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
-import instructionFormats.*;
+//$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /** 
  * An implementation of VM_CompiledMethod for the OPT compiler.
@@ -16,17 +19,17 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-final class VM_OptCompiledMethod extends VM_CompiledMethod
+public final class VM_OptCompiledMethod extends VM_CompiledMethod
   implements OPT_Operators, VM_Uninterruptible  {
 
-  VM_OptCompiledMethod(int id, VM_Method m) {
+  public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    
   }
 
   /**
    * Get compiler that generated this method's machine code.
    */ 
-  final int getCompilerType() {
+  public final int getCompilerType() {
     return VM_CompiledMethod.OPT;
   }
 
@@ -34,15 +37,15 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Get handler to deal with stack unwinding and exception delivery 
    * for this method's stackframes.
    */
-  final VM_ExceptionDeliverer getExceptionDeliverer() {
+  public final VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
   /**
    * Find "catch" block for a machine instruction of this method.
    */ 
-  final int findCatchBlockForInstruction(int instructionOffset, 
-					 VM_Type exceptionType) throws VM_PragmaInterruptible {
+  public final int findCatchBlockForInstruction(int instructionOffset, 
+						VM_Type exceptionType) throws VM_PragmaInterruptible {
     if (eTable == null) {
       return -1;
     } else {
@@ -57,7 +60,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param instructionOffset offset of machine instruction that issued 
    *                          the call
    */ 
-  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
@@ -72,7 +75,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Find source line number corresponding to one of this method's 
    * machine instructions.
    */
-  final int findLineNumberForInstruction(int instructionOffset) {
+  public final int findLineNumberForInstruction(int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
@@ -85,7 +88,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
+  public final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -103,15 +106,15 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
 	  VM.sysWrite( browser.getBytecodeIndex() );
 	  VM.sysWrite("\n");
       }
-    } else {
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    } else {	
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
+  public final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -143,7 +146,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
+  public final void printStackTrace(int instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -185,7 +188,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param instructionOffset offset of machine instruction from start of method
    * @param out               the PrintWriter to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
+  public final void printStackTrace(int instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -221,21 +224,19 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-  final int size() throws VM_PragmaInterruptible {
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  public final int size() throws VM_PragmaInterruptible {
     int size = TYPE.getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
-    //-#if RVM_FOR_IA32
     if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
-    //-#endif
     return size;
   }
 
   /**
    * Get the offset for the end of the prologue
    */
-  final int getEndPrologueOffset() {
+  public final int getEndPrologueOffset() {
     return bitField1 & AVAIL_BITS;
   }
 
@@ -261,9 +262,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   private VM_OptMachineCodeMap _mcMap;
   /** The encoded exception tables (null if there are none) */
   private int[] eTable;
-  //-#if RVM_FOR_IA32
   private int[] patchMap;
-  //-#endif
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -295,76 +294,76 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
   private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
 
-  final int getUnsignedNonVolatileOffset() {
+  public final int getUnsignedNonVolatileOffset() {
     return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
   }
-  final int getUnsignedExceptionOffset() {
+  public final int getUnsignedExceptionOffset() {
     return (int)((_bits & EXCEPTION_OBJ_MASK) >>> EXCEPTION_OBJ_SHIFT);
   }
-  final int getFirstNonVolatileGPR() {
+  public final int getFirstNonVolatileGPR() {
     int t = (int)((_bits & INTEGER_MASK) >>> INTEGER_SHIFT);
     return (t == NO_INTEGER_ENTRY) ? -1 : t;
   }
-  final int getFirstNonVolatileFPR() {
+  public final int getFirstNonVolatileFPR() {
     int t = (int)((_bits & FLOAT_MASK) >>> FLOAT_SHIFT);
     return (t == NO_FLOAT_ENTRY) ? -1 : t;
   }
-  final int getOptLevel() {
+  public final int getOptLevel() {
     return (int)((_bits & OPT_LEVEL_MASK) >>> OPT_LEVEL_SHIFT);
   }
-  final boolean isSaveVolatile() {
+  public final boolean isSaveVolatile() {
     return (_bits & SAVE_VOLATILE_MASK) != 0L;
   }
-  final boolean isInstrumentedMethod() {
+  public final boolean isInstrumentedMethod() {
     return (_bits & INSTRU_METHOD_MASK) != 0L;
   }
-  final int getFrameFixedSize() {
+  public final int getFrameFixedSize() {
     return (int)((_bits & FIXED_SIZE_MASK) >>> FIXED_SIZE_SHIFT);
   }
 
 
-  final void setUnsignedNonVolatileOffset(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
+  public final void setUnsignedNonVolatileOffset(int x) {
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
     _bits = (_bits & ~NONVOLATILE_MASK) | (((long)x) << NONVOLATILE_SHIFT);
   }
-  final void setUnsignedExceptionOffset(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
+  public final void setUnsignedExceptionOffset(int x) {
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
     _bits = (_bits & ~EXCEPTION_OBJ_MASK) | (((long)x) << EXCEPTION_OBJ_SHIFT);
   }
-  final void setFirstNonVolatileGPR(int x) {
+  public final void setFirstNonVolatileGPR(int x) {
     if (x == -1) {
       _bits |= INTEGER_MASK;
     } else {
-      if (VM.VerifyAssertions) VM.assert(x >= 0 && x < NO_INTEGER_ENTRY);
+      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_INTEGER_ENTRY);
       _bits = (_bits & ~INTEGER_MASK) | (((long)x) << INTEGER_SHIFT);
     }
   }
-  final void setFirstNonVolatileFPR(int x) {
+  public final void setFirstNonVolatileFPR(int x) {
     if (x == -1) {
       _bits |= FLOAT_MASK;
     } else {
-      if (VM.VerifyAssertions) VM.assert(x >= 0 && x < NO_FLOAT_ENTRY);
+      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_FLOAT_ENTRY);
       _bits = (_bits & ~FLOAT_MASK) | (((long)x) << FLOAT_SHIFT);
     }
   }
-  final void setOptLevel(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
+  public final void setOptLevel(int x) {
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
     _bits = (_bits & ~OPT_LEVEL_MASK) | (((long)x) << OPT_LEVEL_SHIFT);
   }
-  final void setSaveVolatile(boolean sv) {
+  public final void setSaveVolatile(boolean sv) {
     if (sv) 
       _bits |= SAVE_VOLATILE_MASK;
     else 
       _bits &= ~SAVE_VOLATILE_MASK;
   }
-  final void setInstrumentedMethod(boolean sv) {
+  public final void setInstrumentedMethod(boolean sv) {
     if (sv) 
       _bits |= INSTRU_METHOD_MASK;
     else 
       _bits &= ~INSTRU_METHOD_MASK;
   }
-  final void setFrameFixedSize(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
+  public final void setFrameFixedSize(int x) {
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
     _bits = (_bits & ~FIXED_SIZE_MASK) | (((long)x) << FIXED_SIZE_SHIFT);
   }
   
@@ -412,7 +411,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Print the eTable
    */
-  public final void printExceptionTable() {
+  public final void printExceptionTable() throws VM_PragmaInterruptible {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
@@ -425,7 +424,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
 
   /**
    * Create the final machine code map for the compiled method.
-   * Remember the offset for the end of prologue too for jdp
+   * Remember the offset for the end of prologue too for debugger.
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
@@ -444,7 +443,6 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  //-#if RVM_FOR_IA32
   /**
    * Create the code patching maps from the IR for the method
    * @param ir the ir 
@@ -471,8 +469,21 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
 	  int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
 	  // A patch map is the offset of the last byte of the patch point
 	  // and the new branch immediate to lay down if the code is ever patched.
+          //-#if RVM_FOR_IA32
 	  patchMap[idx++] = patchPoint-1;
 	  patchMap[idx++] = newTarget - patchPoint;
+          //-#endif
+          
+          // otherwise, it must be RVM_FOR_POWERPC
+          //-#if RVM_FOR_POWERPC
+          /* since currently we use only one NOP scheme, the offset 
+           * is adjusted for one word
+           */ 
+          patchMap[idx++] = 
+	    (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
+          patchMap[idx++] = (newTarget - patchPoint 
+                            + (1<<VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
+          //-#endif
 	}
       }
     }
@@ -485,10 +496,64 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     if (patchMap != null) {
       INSTRUCTION[] code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {
+        //-#if RVM_FOR_IA32  
 	VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        //-#endif
+        //
+        //-#if RVM_FOR_POWERPC
+        OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        //-#endif
       }
+
+      //-#if RVM_FOR_POWERPC
+      /* we need synchronization on PPC to handle the weak memory model.
+       * before the class loading finish, other processor should get 
+       * synchronized.
+       */
+
+      boolean DEBUG_CODE_PATCH = false;
+
+      // let other processors see changes; although really physical processors
+      // need synchronization, we set each virtual processor to execute
+      // isync at thread switch point.
+      VM_Magic.sync();
+
+      if (VM_Scheduler.syncObj == null) {
+	VM_Scheduler.syncObj = new Object();
+      }
+
+      // how may processors to be synchronized
+      // no current process, no the first dummy processor
+      VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
+
+      synchronized(VM_Scheduler.syncObj) {
+	
+	for (int i=0; i<VM_Scheduler.numProcessors; i++) {
+	  VM_Processor proc = VM_Scheduler.processors[i+1];
+	  // do not sync the current processor
+	  if (proc != VM_Processor.getCurrentProcessor()) {
+	    proc.needsSync = true;
+	  }
+	}
+      }
+
+      if (DEBUG_CODE_PATCH) {
+	VM.sysWrite("processors to be synchronized : ");
+	VM.sysWrite(VM_Scheduler.toSyncProcessors, false);
+	VM.sysWrite("\n");
+      }
+
+      // do sync only when necessary 
+      while (VM_Scheduler.toSyncProcessors > 0) {
+	VM_Thread.getCurrentThread().yield();
+      }
+      
+      if (DEBUG_CODE_PATCH) {
+	VM.sysWrite("all processors get synchronized!\n");
+      }
+      //-#endif
+
     }
   }
-  //-#endif
 
 }

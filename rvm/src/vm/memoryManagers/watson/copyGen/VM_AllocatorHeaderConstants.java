@@ -3,6 +3,11 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM_JavaHeaderConstants;
+
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader. <p>
  * 

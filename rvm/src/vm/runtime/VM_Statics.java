@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * The static fields and methods comprising a running virtual machine image.
@@ -96,7 +97,7 @@
      * @return    slot number that was allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateIntLiteral(int literal) {
+    public static int findOrCreateIntLiteral(int literal) {
       int id   = VM_IntLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_IntLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -113,7 +114,7 @@
      * @return    slot number that was allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateFloatLiteral(int literal) {
+    public static int findOrCreateFloatLiteral(int literal) {
       int id   = VM_FloatLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_FloatLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -130,7 +131,7 @@
      * @return    slot number of first of two slots that were allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateLongLiteral(long literal) {
+    public static int findOrCreateLongLiteral(long literal) {
       int id   = VM_LongLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_LongLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -147,7 +148,7 @@
      * @return    slot number of first of two slots that were allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateDoubleLiteral(long literal) {
+    public static int findOrCreateDoubleLiteral(long literal) {
       int id   = VM_DoubleLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_DoubleLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -172,12 +173,6 @@
         allocateSlot(STRING_LITERAL);
 	VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
         slots[slot] = slotContent.toInt();
-        if (VM.BuildForConcurrentGC && VM.runningVM) // enque increment for new ptr stored into jtoc (no decrement since a new entry)
-        {
-          //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-          VM_RCBuffers.addIncrement(slotContent, VM_Processor.getCurrentProcessor());
-          //-#endif
-        }
       }
       return slot;
     }
@@ -214,14 +209,14 @@
     /**
      * Fetch number of jtoc slots currently allocated.
      */ 
-    static int getNumberOfSlots() throws VM_PragmaUninterruptible {
+    public static int getNumberOfSlots() throws VM_PragmaUninterruptible {
       return nextSlot;
     }
 
     /**
      * Fetch total number of slots comprising the jtoc.
      */ 
-    static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
+    public static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
       return slots.length;
     }
 
@@ -230,7 +225,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return true --> slot contains a reference
      */ 
-    static boolean isReference(int slot) throws VM_PragmaUninterruptible {
+    public static boolean isReference(int slot) throws VM_PragmaUninterruptible {
       return (descriptions[slot] & VM_Statics.REFERENCE_TAG) != 0;
     }
 
@@ -239,7 +234,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return description of slot contents (see "kinds", above)
      */
-    static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
+    public static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
       return descriptions[slot];
     }
 
@@ -248,7 +243,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return description of slot contents (see "kinds", above)
      */ 
-    static String getSlotDescriptionAsString(int slot) {
+    public static String getSlotDescriptionAsString(int slot) {
       String kind = null;
       switch (getSlotDescription(slot))
       {
@@ -314,12 +309,6 @@
      */
     public static void setSlotContents(int slot, int value) throws VM_PragmaUninterruptible {
       slots[slot] = value;
-      if (VM.BuildForConcurrentGC && VM.runningVM && isReference(slot)) 
-      {
-        VM.sysWrite("WARNING - setSlotContents of int for reference slot, value = ");
-        VM.sysWrite(value);
-        VM.sysWrite("\n");
-      }
     }
 
     /**
@@ -340,16 +329,7 @@
      */ 
     static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
       VM_Address newContent = VM_Magic.objectAsAddress(object);
-      if (VM.BuildForConcurrentGC && VM.runningVM) 
-      {
-	VM_Address oldContent = VM_Address.fromInt(slots[slot]);
-        slots[slot] = newContent.toInt();
-        //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-        VM_RCBuffers.addIncrementAndDecrement(newContent, oldContent, VM_Processor.getCurrentProcessor());
-        //-#endif
-      }
-      else
-        slots[slot] = newContent.toInt();
+      slots[slot] = newContent.toInt();
     }
 
     /**
@@ -367,24 +347,12 @@
     /**
      * initial size of slots[] and descriptions[]
      */
-    private static final int INITIAL_SLOTS = 32768; 
+    private static final int INITIAL_SLOTS = 65536; 
 
     static void init() {
       slots        = new int[INITIAL_SLOTS];
       descriptions = new byte[INITIAL_SLOTS];
       nextSlot     = 1; // slot 0 unused
-
-      // The following dictionaries map a literal value to a slot in the jtoc.
-      // We do this to ensure that literals appear only once in the vm image.
-      // In particular, this ensures that identity of string literals is 
-      // preserved across constant pools (ie. so that "abc" == "abc" 
-      // always yields "true").
-      VM_IntLiteralDictionary.init();
-      VM_FloatLiteralDictionary.init();
-      VM_LongLiteralDictionary.init();
-      VM_DoubleLiteralDictionary.init();
-      VM_StringLiteralDictionary.init();
-
     }
 
     /**

@@ -1,12 +1,14 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
+
 
 /**
  * An interactive debugger that runs inside the virtual machine.
@@ -31,7 +33,8 @@ class DebuggerThread extends VM_Thread {
     for (;;) {
       try {
 	VM.sysWrite("debug> ");
-	eval(readTokens());
+	String [] tokens = readTokens();
+	eval(tokens);
       } catch (Exception e) { 
 	VM.sysWrite("oops: " + e + "\n"); 
       }
@@ -44,10 +47,10 @@ class DebuggerThread extends VM_Thread {
   // Evaluate an expression.
   //
   private static void eval(String[] tokens) throws Exception {
+
     char command = tokens        == null ? EOF  // end of file
       : tokens.length == 0    ? ' '  // empty line
       : tokens[0].charAt(0);         // first letter of first token
-
     switch (command)      {
     case ' ': // repeat previous command once
       if (previousTokens != null)
@@ -55,13 +58,14 @@ class DebuggerThread extends VM_Thread {
       return;
          
     case '*': // repeat previous command once per second, until SIGQUIT is received
-      if (previousTokens != null)
-	for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; ) {
-	  VM.sysWrite("\033[H\033[2J");
-	  eval(previousTokens);
-	  sleep(1000);
-	}
-      return;
+	if (previousTokens != null)
+            for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; )
+		{
+		    VM.sysWrite("\033[H\033[2J");
+		    eval(previousTokens);
+		    VM_Wait.sleep(1000);
+		}
+	return;
     }
          
     previousTokens = tokens;
@@ -207,32 +211,34 @@ class DebuggerThread extends VM_Thread {
 
    // Figure out what a thread is doing.
    //
-   private static String getThreadState(VM_Thread t) {
-     // scan per-processor queues
-     //
-     for (int i = 0; i < VM_Scheduler.processors.length; ++i) {
-       VM_Processor p = VM_Scheduler.processors[i];
-       if (p == null) continue;
-       if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
-       if (p.readyQueue.contains(t))    return "runnable on processor " + i;
-       if (p.ioQueue.contains(t))       return "waitingForIO (fd=" + t.waitFdRead + " ready=" + t.waitFdReady + ") on processor " + i;
-       if (p.idleQueue.contains(t))     return "waitingForIdleWork on processor " + i;
-     }
+   private static String
+   getThreadState(VM_Thread t)
+      {
+      // scan per-processor queues
+      //
+      for (int i = 0; i < VM_Scheduler.processors.length; ++i)
+         {
+         VM_Processor p = VM_Scheduler.processors[i];
+         if (p == null) continue;
+         if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
+         if (p.readyQueue.contains(t))    return "runnable on processor " + i;
+         if (p.ioQueue.contains(t))       return "waitingForIO (" + p.ioQueue.getWaitDescription(t) + ") on processor " + i;
+	 if (p.processWaitQueue.contains(t)) return "waitingForProcess (" + p.processWaitQueue.getWaitDescription(t) + ") on processor " + i;
+         if (p.idleQueue.contains(t))     return "waitingForIdleWork on processor " + i;
+         }
          
      // scan global queues
      //
      if (VM_Scheduler.wakeupQueue.contains(t))    return "sleeping";
      if (VM_Scheduler.debuggerQueue.contains(t))  return "waitingForDebuggerWork";
-     if (VM_Scheduler.gcWaitQueue.contains(t))    return "waitingForCollectorWork";
      if (VM_Scheduler.collectorQueue.contains(t)) return "waitingForCollectorWork";
-     if (VM_Scheduler.deadQueue.contains(t))      return "waitingToBeReaped";
       
      // scan lock queues
      //
      for (int i = 0; i < VM_Scheduler.locks.length; ++i) {
        VM_Lock l = VM_Scheduler.locks[i];
        if (l == null || !l.active) continue;
-       if (l.entering.contains(t)) return "waitingForLock";
+       if (l.entering.contains(t)) return ("waitingForLock" + i);
        if (l.waiting.contains(t))  return "waitingForNotification";
      }
 
@@ -257,8 +263,9 @@ class DebuggerThread extends VM_Thread {
   //
   private static String[] readTokens() {
     String line = new String();
+VM.sysWriteln("newed string in DebuggerThread.readTokens");
     int    bb = VM_FileSystem.readByte(STDIN);
-      
+
     if (bb < 0)
       return null;
     

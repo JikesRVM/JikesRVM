@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Baseline compiler - platform independent code.
@@ -16,18 +17,17 @@
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-abstract class VM_BaselineCompiler {
+public abstract class VM_BaselineCompiler {
 
   /** 
    * Options used during base compiler execution 
    */
-  protected static VM_BaseOptions options;
+  public static VM_BaselineOptions options;
 
   /** 
    * Holds the options as the command line is being processed. 
    */
-  protected static VM_BaseOptions setUpOptions;
-
+  protected static VM_BaselineOptions setUpOptions;
 
   /**
    * The method being compiled
@@ -65,6 +65,16 @@ abstract class VM_BaselineCompiler {
   protected int biStart; 
 
   /**
+   * Next edge counter entry to allocate
+   */
+  protected int edgeCounterIdx;
+
+  /**
+   * Edge counter dictionary id
+   */
+  private int edgeCounterId;
+
+  /**
    * The compiledMethod assigned to this compilation of method
    */
   protected VM_BaselineCompiledMethod compiledMethod;
@@ -97,13 +107,14 @@ abstract class VM_BaselineCompiler {
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     compiledMethod = cm;
     method = cm.getMethod();
-    shouldPrint  = ((options.PRINT_MACHINECODE) &&
+    shouldPrint  = (!VM.runningTool &&
+		    (options.PRINT_MACHINECODE) &&
 		    (!options.hasMETHOD_TO_PRINT() ||
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
     klass = method.getDeclaringClass();
     bytecodes = method.getBytecodes();
-    bytecodeMap = new int [bytecodes.length];
+    bytecodeMap = new int [bytecodes.length+1];
     asm = new VM_Assembler(bytecodes.length, shouldPrint);
     isInterruptible = method.isInterruptible();
   }
@@ -113,8 +124,8 @@ abstract class VM_BaselineCompiler {
    * Clear out crud from bootimage writing
    */
   static void initOptions() {
-    options = new VM_BaseOptions();
-    setUpOptions = new VM_BaseOptions();
+    options = new VM_BaselineOptions();
+    setUpOptions = new VM_BaselineOptions();
   }
 
   /**
@@ -126,8 +137,7 @@ abstract class VM_BaselineCompiler {
     // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
     // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
     // for the check.
-    if ((setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) || 
-	(setUpOptions.hasMETHOD_TO_BREAK() && setUpOptions.fuzzyMatchMETHOD_TO_BREAK("???"))) {
+    if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
     //-#if !RVM_WITH_ADAPTIVE_SYSTEM
@@ -146,7 +156,7 @@ abstract class VM_BaselineCompiler {
    * @param prefix
    * @param arg     Command line argument with prefix stripped off
    */
-  static void processCommandLineArg(String prefix, String arg) {
+  public static void processCommandLineArg(String prefix, String arg) {
     if (setUpOptions != null) {
       if (setUpOptions.processAsOption(prefix, arg)) {
 	return;
@@ -167,21 +177,9 @@ abstract class VM_BaselineCompiler {
    * @return the generated VM_CompiledMethod for said VM_Method.
    */
   public static synchronized VM_CompiledMethod compile (VM_Method method) {
-    if (method.isNative()) {
-      VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
-      VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(cm);
-      cm.compileComplete(machineCode.getInstructions());
-      return cm;
-    } else {
-      VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
-      if (VM.runningAsJDPRemoteInterpreter) {
-	// "fake" compilation
-	cm.compileComplete(null);
-      } else {
-	new VM_Compiler(cm).compile();
-      }
-      return cm;
-    }
+    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
+    new VM_Compiler(cm).compile();
+    return cm;
   }
 
 
@@ -189,9 +187,9 @@ abstract class VM_BaselineCompiler {
    * Top level driver for baseline compilation of a method.
    */
   protected void compile() {
-    if (options.PRINT_METHOD) printMethodMessage();
+    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
-    VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, stackHeights);
+    VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(compiledMethod, stackHeights);
     VM_MachineCode  machineCode  = genCode();
 
     INSTRUCTION[]   instructions = machineCode.getInstructions();
@@ -201,6 +199,9 @@ abstract class VM_BaselineCompiler {
     }
     compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     compiledMethod.compileComplete(instructions);
+    if (edgeCounterIdx > 0) {
+      VM_EdgeCounterDictionary.setValue(edgeCounterId, new int[edgeCounterIdx]);
+    }
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
       printEndHeader(method);
@@ -287,6 +288,13 @@ abstract class VM_BaselineCompiler {
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
     VM.sysWrite(" \n");
+  }
+
+  protected final int getEdgeCounterOffset() {
+    if (edgeCounterId == 0) {
+      edgeCounterId = VM_EdgeCounts.findOrCreateId(method);
+    }
+    return edgeCounterId << 2;
   }
 
 
@@ -1454,27 +1462,8 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + constantPoolIndex  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
-	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
@@ -1488,27 +1477,8 @@ abstract class VM_BaselineCompiler {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + constantPoolIndex + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
-	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
@@ -1521,20 +1491,8 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + constantPoolIndex  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
@@ -1548,19 +1506,8 @@ abstract class VM_BaselineCompiler {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + constantPoolIndex + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
@@ -1573,22 +1520,12 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + constantPoolIndex + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isAddressType()) {
-	  emit_Magic(methodRef);
-	  break;
+	if (methodRef.getDeclaringClass().isWordType()) {
+	  if (emit_Magic(methodRef))
+	    break;
 	} 
-	boolean classPreresolved = false;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
@@ -1605,14 +1542,6 @@ abstract class VM_BaselineCompiler {
 	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + constantPoolIndex + " (" + methodRef + ")");
 	VM_Method target;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (!methodRef.getDeclaringClass().isResolved() && VM.BuildForPrematureClassResolution && false) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
 	if (methodRef.getDeclaringClass().isResolved() && (target = VM_Class.findSpecialMethod(methodRef)) != null) {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
 	  emit_resolved_invokespecial(methodRef, target);
@@ -1627,30 +1556,12 @@ abstract class VM_BaselineCompiler {
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + constantPoolIndex + " (" + methodRef + ")");
 	if (methodRef.getDeclaringClass().isMagicType() ||
-	    methodRef.getDeclaringClass().isAddressType()) {
-	  emit_Magic(methodRef);
-	  break;
+	    methodRef.getDeclaringClass().isWordType()) {
+	  if (emit_Magic(methodRef))
+	    break;
 	}
-	boolean classPreresolved = false;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !methodRefClass.isInitialized() &&
-	    !(methodRefClass == klass) &&
-	    !(methodRefClass.isInBootImage() && VM.writingBootImage)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
-	  emit_initializeClassIfNeccessary(methodRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
@@ -1674,7 +1585,7 @@ abstract class VM_BaselineCompiler {
 
       case 0xba: /* unused */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "unused");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	break;
       }
 
@@ -1694,11 +1605,15 @@ abstract class VM_BaselineCompiler {
       case 0xbc: /* newarray */ {
 	int atype = fetch1ByteSigned();
 	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	array.resolve();
-	array.instantiate();
+	try {
+	  array.resolve();
+	} catch (VM_ResolutionException e) {
+	  // Cannot be raised with arrays of primitives
+	  if (VM.VerifyAssertions) VM._assert(false);
+	}
 	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + atype + "(" + array + ")");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
-	emit_newarray(array);
+	emit_resolved_newarray(array);
 	break;
       }
 
@@ -1706,13 +1621,28 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type elementTypeRef = klass.getTypeRef(constantPoolIndex);
 	VM_Array array = elementTypeRef.getArrayTypeForElementType();
-	// TODO!! Forcing early class loading may violate language spec.  FIX ME!!
-	array.load();
-	array.resolve();
-	array.instantiate();
+	
+	// We can do early resolution of the array type if the element type 
+	// is already initialized.
+	if (!(array.isInitialized() || array.isInBootImage())) {
+	  if (elementTypeRef.isInitialized() || elementTypeRef.isInBootImage()) {
+	    try {
+	      array.load();
+	      array.resolve();
+	      array.instantiate();
+	    } catch (VM_ResolutionException e) {
+	      // can't raise any errors if the element type is already initialized/or in boot image
+	      if (VM.VerifyAssertions) VM._assert(false); 
+	    }
+	  }
+	}
 	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + constantPoolIndex + " (" + array + ")");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
-	emit_newarray(array);
+	if (array.isInitialized() || array.isInBootImage()) {
+	  emit_resolved_newarray(array);
+	} else {
+	  emit_unresolved_newarray(array.getDictionaryId());
+	}
 	break;
       }
 
@@ -1848,7 +1778,7 @@ abstract class VM_BaselineCompiler {
 	  break;
 	}
 	default:
-	  if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	}
 	break;
       }
@@ -1901,9 +1831,10 @@ abstract class VM_BaselineCompiler {
 
       default:
 	VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
+    bytecodeMap[bytecodes.length] = asm.getMachineCodeIndex();
     return asm.finalizeMachineCode(bytecodeMap);
   }
 
@@ -1950,13 +1881,6 @@ abstract class VM_BaselineCompiler {
   protected abstract void emit_prologue();
 
   /**
-   * Emit code to complete the dynamic linking of a
-   * prematurely resolved VM_Type.
-   * @param dictionaryId of type to link (if necessary)
-   */
-  protected abstract void emit_initializeClassIfNeccessary(int dictionaryId);
-
-  /**
    * Emit the code for a threadswitch tests (aka a yieldpoint).
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
@@ -1966,7 +1890,7 @@ abstract class VM_BaselineCompiler {
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
-  protected abstract void emit_Magic(VM_Method magicMethod);
+  protected abstract boolean emit_Magic(VM_Method magicMethod);
 
 
   /*
@@ -2868,7 +2792,13 @@ abstract class VM_BaselineCompiler {
    * Emit code to allocate an array
    * @param array the VM_Array to instantiate
    */
-  protected abstract void emit_newarray(VM_Array array);
+  protected abstract void emit_resolved_newarray(VM_Array array);
+
+  /**
+   * Emit code to dynamically link the element class and allocate an array
+   * @param array the VM_Array to instantiate
+   */
+  protected abstract void emit_unresolved_newarray(int dictionaryId);
 
   /**
    * Emit code to allocate a multi-dimensional array

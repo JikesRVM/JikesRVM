@@ -3,6 +3,42 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_JavaHeader;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_ProcessorLocalState;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Registers;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_Synchronizer;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_Callbacks;
+
 /**
  * Copying Generational Collector/Allocator.
  * <p>
@@ -46,9 +82,8 @@
  *
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */  
-public class VM_Allocator
-  extends VM_GCStatistics
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+public class VM_Allocator extends VM_GCStatistics
+  implements VM_Constants, VM_GCConstants {
 
   /**
    * When true (the default), VM_Processors acquire chunks of space from
@@ -157,7 +192,7 @@ public class VM_Allocator
     if (verbose >= 1) showParameter();
   }
 
-  static void showParameter() {
+  static void showParameter() throws VM_PragmaUninterruptible {
 
       if (variableNursery)
 	  VM.sysWriteln("\nGenerational Copying Collector with Variable Sized Nursery");
@@ -185,7 +220,7 @@ public class VM_Allocator
    * Force a garbage collection. Supports System.gc() called from
    * application programs.
    */
-  public static void gc () {
+  public static void gc () throws VM_PragmaUninterruptible {
 
     forceMajorCollection = true;    // to force a major collection
     gc1("External Trigger ", 0);
@@ -194,7 +229,7 @@ public class VM_Allocator
   /**
    * VM internal method to initiate a collection
    */
-  static void gc1 (String why, int size) {
+  static void gc1 (String why, int size) throws VM_PragmaUninterruptible {
     if (verbose >= 1)
       VM.sysWriteln("Garbage collection: ", why, size);
     // if here and in a GC thread doing GC then it is a system error,
@@ -206,7 +241,7 @@ public class VM_Allocator
     VM_CollectorThread.collect(VM_CollectorThread.collect);
   }  // gc1
   
-  public static boolean gcInProgress() {
+  public static boolean gcInProgress() throws VM_PragmaUninterruptible {
     return gcInProgress;
   }
 
@@ -216,7 +251,7 @@ public class VM_Allocator
    *
    * @return the number of bytes
    */
-  public static long totalMemory () {
+  public static long totalMemory () throws VM_PragmaUninterruptible {
     return (smallHeapSize + largeHeap.size + nurseryHeap.size);
   }
   
@@ -227,7 +262,7 @@ public class VM_Allocator
    *
    * @return number of bytes available
    */
-  public static long freeMemory () {
+  public static long freeMemory () throws VM_PragmaUninterruptible {
     // remaining space in nursery & in current mature semi-space  ???????
     return (nurseryHeap.freeMemory() + fromHeap.freeMemory());
   }
@@ -235,11 +270,11 @@ public class VM_Allocator
   /*
    *  Includes freeMemory and per-processor local storage
    */
-  public static long allSmallFreeMemory () {
+  public static long allSmallFreeMemory () throws VM_PragmaUninterruptible {
       return freeMemory() + VM_Chunk.freeMemoryChunk1();
   }
 
-  public static long allSmallUsableMemory () {
+  public static long allSmallUsableMemory () throws VM_PragmaUninterruptible {
       return nurseryHeap.getSize() + fromHeap.getSize();
   }
 
@@ -254,7 +289,7 @@ public class VM_Allocator
    * @return the reference for the allocated object
    */
   public static Object allocateScalar(int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaInline  {
+    throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
 
     if (size >= SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
@@ -279,7 +314,7 @@ public class VM_Allocator
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaInline {
+    throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     
     
     // note: array size might not be a word multiple,
@@ -302,22 +337,25 @@ public class VM_Allocator
    * @param size number of bytes to allocate
    * @return the address of the first byte of the allocated zero-filled region
    */
-  private static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
+  private static VM_Address allocateRawMemory(int size) 
+      throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     if (PROCESSOR_LOCAL_ALLOCATE) {
-      VM_Magic.pragmaInline();
       VM_Address addr = VM_Chunk.allocateChunk1(size);
-      if (VM.VerifyAssertions && variableNursery) VM.assert(appelHeap.addrInHeap(addr));
+      if (VM.VerifyAssertions && variableNursery) VM._assert(appelHeap.addrInHeap(addr));
       return addr;
     } else {
-      for (int count = 0; true; count++) {
-	VM_Address addr = nurseryHeap.allocateZeroedMemory(size);
-	if (!addr.isZero()) {
-	  if (VM.VerifyAssertions && variableNursery) VM.assert(appelHeap.addrInHeap(addr));
-	  if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
-	  return addr;
-	} 
-	heapExhausted(nurseryHeap, size, count);
-      }
+      return globalAllocateRawMemory(size);
+    }
+  }
+  private static VM_Address globalAllocateRawMemory(int size) 
+      throws VM_PragmaNoInline, VM_PragmaUninterruptible  {
+    for (int count = 0; true; count++) {
+      VM_Address addr = fromHeap.allocateZeroedMemory(size);
+      if (!addr.isZero()) {
+	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+	return addr;
+      } 
+      heapExhausted(fromHeap, size, count);
     }
   }
 
@@ -328,7 +366,7 @@ public class VM_Allocator
    * @param size number of bytes requested in the failing allocation
    * @param count the retry count for the failing allocation.
    */
-  public static void heapExhausted(VM_Heap heap, int size, int count) {
+  public static void heapExhausted(VM_Heap heap, int size, int count) throws VM_PragmaUninterruptible {
     if (heap == nurseryHeap) {
       if (count>3) VM_GCUtil.outOfMemory("nursery space", smallHeapSize, "-X:nh=nnn");
       gc1("GC triggered by object request of ", size);
@@ -389,7 +427,7 @@ public class VM_Allocator
   private static VM_ContiguousHeap fromHeap = new VM_ContiguousHeap("Mature Small Object Heap 1");
   private static VM_ContiguousHeap toHeap   = new VM_ContiguousHeap("Mature Small Object Heap 2");
   private static VM_ContiguousHeap nurseryHeap = new VM_ContiguousHeap("Nursery Heap");
-          static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+  public  static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap = new VM_LargeHeap(immortalHeap);
   private static VM_AppelHeap appelHeap = new VM_AppelHeap("Appel-style container heap");
   //-#if RVM_WITH_VARIABLE_NURSERY
@@ -411,11 +449,11 @@ public class VM_Allocator
   
   // ------- End of Statics --------
   
-  static void gcSetup ( int numSysThreads ) {
+  static void gcSetup ( int numSysThreads ) throws VM_PragmaUninterruptible {
     VM_GCWorkQueue.workQueue.initialSetup(numSysThreads);
   }
   
-  private static void prepareNonParticipatingVPsForGC() {
+  private static void prepareNonParticipatingVPsForGC() throws VM_PragmaUninterruptible {
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -453,13 +491,13 @@ public class VM_Allocator
 	  VM_Scheduler.trace("prepareNonParticipatingVPsForGC:",
 			     "native processor with non-zero allocation ptr, id =",vp.id);
 	  vp.dumpProcessorState();
-	  VM.assert(false);
+	  VM._assert(false);
 	}
       }
     }
   }
 
-  private static void prepareNonParticipatingVPsForAllocation() {
+  private static void prepareNonParticipatingVPsForAllocation() throws VM_PragmaUninterruptible {
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -483,7 +521,7 @@ public class VM_Allocator
    * Perform a garbage collection.  Called from VM_CollectorThread run
    * method by each collector thread participating in a collection.
    */
-  static void collect () {
+  static void collect () throws VM_PragmaUninterruptible {
 
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logGarbageCollectionEvent();
@@ -516,7 +554,7 @@ public class VM_Allocator
 	minorGCTime.start(initTime.lastStart);
     
       
-      if (VM.VerifyAssertions) VM.assert( initGCDone == false );  
+      if (VM.VerifyAssertions) VM._assert( initGCDone == false );  
       
       gcCount++;
 
@@ -1025,7 +1063,7 @@ public class VM_Allocator
 	// is no zeroing of nursery during gc, each block is zeroed by the
 	// processor that allocates it...and we must be doing processor
 	// local allocates
-	if (VM.VerifyAssertions) VM.assert(PROCESSOR_LOCAL_ALLOCATE == true);
+	if (VM.VerifyAssertions) VM._assert(PROCESSOR_LOCAL_ALLOCATE == true);
     }
     
     if (majorCollection) {
@@ -1067,7 +1105,7 @@ public class VM_Allocator
    * otherwise space is obtained directly from ToSpace using 
    * atomic compare and swap instructions.
    */
-  static VM_Address gc_getMatureSpace ( int size ) {
+  static VM_Address gc_getMatureSpace ( int size ) throws VM_PragmaUninterruptible {
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
       return VM_Chunk.allocateChunk2(size);
     } else {
@@ -1091,8 +1129,8 @@ public class VM_Allocator
    * @param scan should the object be scanned?
    * @return the address of the Object in ToSpace (as a reference)
    */
-  private static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) {
-    if (VM.VerifyAssertions) VM.assert(validFromRef(fromRef));
+  private static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(validFromRef(fromRef));
     return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
@@ -1106,14 +1144,14 @@ public class VM_Allocator
   // Process writeBuffer attached to the executing processor. Executed by
   // each collector thread during Minor Collections.
   //
-  static void gc_processWriteBuffers () {
+  static void gc_processWriteBuffers () throws VM_PragmaUninterruptible {
     VM_WriteBuffer.processWriteBuffer(VM_Processor.getCurrentProcessor());
   }
   
   // For Debugging - Checks that writeBuffer attached to the running GC threads
   // current processor is empty, if not print diagnostics & reset
   //
-  static void gc_checkWriteBuffers () {
+  static void gc_checkWriteBuffers () throws VM_PragmaUninterruptible {
     VM_WriteBuffer.checkForEmpty(VM_Processor.getCurrentProcessor());
   }
   
@@ -1121,7 +1159,7 @@ public class VM_Allocator
   // called by ONE gc/collector thread to copy and "new" thread objects
   // copies but does NOT enqueue for scanning
   //
-  static void gc_copyThreads ()  {
+  static void gc_copyThreads ()  throws VM_PragmaUninterruptible {
     for (int i=0; i<VM_Scheduler.threads.length; i++ ) {
       Object t = VM_Scheduler.threads[i];
       if ( t == null ) continue;
@@ -1140,14 +1178,14 @@ public class VM_Allocator
   // processor it is running on, and reset it processor register, and update its
   // entry in the scheduler processors array and reset its local allocation pointers
   //
-  static void gc_initProcessor ()  {
+  static void gc_initProcessor ()  throws VM_PragmaUninterruptible {
 
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_Address   sta = VM_Magic.objectAsAddress(st);
     VM_Thread    activeThread = st.activeThread;
     int          tid = activeThread.getIndex();
     
-    if (VM.VerifyAssertions) VM.assert(tid == VM_Thread.getCurrentThread().getIndex());
+    if (VM.VerifyAssertions) VM._assert(tid == VM_Thread.getCurrentThread().getIndex());
     
     // if compiled for processor local chunking of "mature space" reset processor local 
     // pointers, to cause first request to get a block (only reset on major collection
@@ -1206,7 +1244,7 @@ public class VM_Allocator
   // and queued for later scanning. adjusts write barrier pointers, if
   // write buffer is moved.
   //
-  static void gc_scanProcessor ()  {
+  static void gc_scanProcessor () throws VM_PragmaUninterruptible  {
 
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_Address sta = VM_Magic.objectAsAddress(st);
@@ -1214,14 +1252,14 @@ public class VM_Allocator
     
     if (PROCESSOR_LOCAL_ALLOCATE) {
       // local heap pointer set in initProcessor, should still be 0, ie no allocates yet
-      if (VM.VerifyAssertions) VM.assert(VM_Chunk.unusedChunk1(st));
+      if (VM.VerifyAssertions) VM._assert(VM_Chunk.unusedChunk1(st));
     }
     
     if (VM.VerifyAssertions) {
       // processor should already be copied, ie NOT in FromSpace
-      VM.assert(!nurseryHeap.refInHeap(sta));
+      VM._assert(!nurseryHeap.refInHeap(sta));
       // and its processor array entry updated
-      VM.assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
+      VM._assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
     }
     
     oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
@@ -1238,7 +1276,7 @@ public class VM_Allocator
   /**
    * Process references in work queue buffers until empty.
    */
-  static void gc_emptyWorkQueue() {
+  static void gc_emptyWorkQueue() throws VM_PragmaUninterruptible {
 
       VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
       
@@ -1256,12 +1294,12 @@ public class VM_Allocator
   
     
 
-  static boolean validFromRef ( VM_Address ref ) {
+  static boolean validFromRef ( VM_Address ref ) throws VM_PragmaUninterruptible {
     return ( nurseryHeap.refInHeap(ref) ||
 	     (fromHeap.refInHeap(ref) && majorCollection));
   }
 
-  static boolean validForwardingPtr ( VM_Address ref ) {
+  static boolean validForwardingPtr ( VM_Address ref ) throws VM_PragmaUninterruptible {
     if ( majorCollection ) 
 	return toHeap.refInHeap(ref);
     else
@@ -1269,7 +1307,7 @@ public class VM_Allocator
   }
 
   
-  static boolean validWorkQueuePtr ( VM_Address ref ) {
+  static boolean validWorkQueuePtr ( VM_Address ref ) throws VM_PragmaUninterruptible {
     if ( bootHeap.refInHeap(ref) ) return true;
     if ( immortalHeap.refInHeap(ref) ) return true;
     if ( largeHeap.refInHeap(ref) ) return true;
@@ -1287,7 +1325,7 @@ public class VM_Allocator
   }
   
   // following referenced by refcountGC methods (but not called)
-  static void gc_scanStacks () { VM.assert(false); }
+  static void gc_scanStacks () throws VM_PragmaUninterruptible { VM._assert(false); }
   
   // Check if the "integer" pointer points to a dead or live object.
   // If live, and in the FromSpace (ie has been marked and forwarded),
@@ -1303,7 +1341,7 @@ public class VM_Allocator
   // Called by ONE GC collector thread at the end of collection, after
   // all reachable object are marked and forwarded
   //
-  static boolean processFinalizerListElement (VM_FinalizerListElement le) {
+  static boolean processFinalizerListElement (VM_FinalizerListElement le) throws VM_PragmaUninterruptible {
 
     VM_Address ref = le.value;
 
@@ -1338,7 +1376,7 @@ public class VM_Allocator
     if (immortalHeap.refInHeap(ref)) return true;
 
     VM.sysWriteln("Bad finalizer element in unknown heap: address = ", ref);
-    VM.assert(false);
+    VM._assert(false);
 
     return false;
 
@@ -1348,7 +1386,7 @@ public class VM_Allocator
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned
   //
-  static void processWriteBufferEntry (VM_Address ref) {
+  static void processWriteBufferEntry (VM_Address ref) throws VM_PragmaUninterruptible {
     VM_ScanObject.scanObjectOrArray(ref);
   }
   
@@ -1357,7 +1395,7 @@ public class VM_Allocator
    *
    * @param location  address of a reference field
    */
-  static void processPtrField ( VM_Address location ) {
+  public static void processPtrField ( VM_Address location ) throws VM_PragmaUninterruptible {
     VM_Magic.setMemoryAddress(location, processPtrValue(VM_Magic.getMemoryAddress(location)));
 
   } // processPtrField
@@ -1367,7 +1405,7 @@ public class VM_Allocator
    *
    * @param location  address of a reference field
    */
-  static VM_Address processPtrValue ( VM_Address ref ) {
+  static VM_Address processPtrValue ( VM_Address ref ) throws VM_PragmaUninterruptible {
     
     if (ref.isZero()) return ref;
     
@@ -1402,7 +1440,7 @@ public class VM_Allocator
     if (toHeap.refInHeap (ref)) return ref;
 
     VM.sysWriteln("processPtrValue encountered bad reference = ", ref);
-    VM.assert(false);
+    VM._assert(false);
     return null;
   }
 

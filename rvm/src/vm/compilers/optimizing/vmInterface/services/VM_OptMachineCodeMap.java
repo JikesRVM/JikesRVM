@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
@@ -68,7 +70,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); 
 	   i != null; 
 	   i = i.nextInstructionInCodeOrder())
-        System.out.println(i.getmcOffset() + "\t" + i);
+        VM.sysWrite(i.getmcOffset() + "\t" + i);
     }
   }
 
@@ -211,7 +213,8 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
         return middle;
       } else if (MCOffset > offset) {
         // middle is too small, shift interval to the right
-        left = middle + 1; 
+	left = middle + 1; 
+	if (left >= MCInformation.length) return -1;
 	while ((MCInformation[left] & START_OF_ENTRY) != START_OF_ENTRY) {
 	  // if necessary, step forward to find next entry, but not passed end
 	  // Need to do this to avoid finding middle again
@@ -278,9 +281,9 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       // retrieve the machine code offset (in bytes) from the instruction,
       int mco= instr.getmcOffset();
       if (mco < 0) {
-        System.out.println("Negative machine code MCOffset found:" + mco);
+        VM.sysWrite("Negative machine code MCOffset found:" + mco);
         OPT_Instruction i = irMapElem.getInstruction();
-        System.out.println(i.bcIndex+", "+i+", "+i.getmcOffset()+"\n");
+        VM.sysWrite(i.bcIndex+", "+i+", "+i.getmcOffset()+"\n");
 	throw new OPT_OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI
@@ -319,11 +322,11 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 	if (iei == -1) iei = INVALID_IEI;
 	if (gci == -1) gci = INVALID_GCI;
 	if (VM.VerifyAssertions) {
-	  VM.assert((cm  & (CALL_MASK>>>CALL_SHIFT)) == cm);
-	  VM.assert((bci & (BCI_MASK>>>BCI_SHIFT)) == bci);
-	  VM.assert((iei & (IEI_MASK>>>IEI_SHIFT)) == iei);
-	  VM.assert((gci & (GCI_MASK>>>GCI_SHIFT)) == gci);
-	  VM.assert((mco & (OFFSET_MASK>>>OFFSET_SHIFT)) == mco);
+	  VM._assert((cm  & (CALL_MASK>>>CALL_SHIFT)) == cm);
+	  VM._assert((bci & (BCI_MASK>>>BCI_SHIFT)) == bci);
+	  VM._assert((iei & (IEI_MASK>>>IEI_SHIFT)) == iei);
+	  VM._assert((gci & (GCI_MASK>>>GCI_SHIFT)) == gci);
+	  VM._assert((mco & (OFFSET_MASK>>>OFFSET_SHIFT)) == mco);
 	}
 	long t = START_OF_ENTRY;
 	t |= (((long)cm) << CALL_SHIFT);
@@ -341,16 +344,16 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 	if (iei == -1) iei = BIG_INVALID_IEI;
 	if (gci == -1) gci = BIG_INVALID_GCI;
 	if (VM.VerifyAssertions) {
-	  VM.assert(BIG_CALL_IDX_ADJ == 0 &&
+	  VM._assert(BIG_CALL_IDX_ADJ == 0 &&
 		    BIG_BCI_IDX_ADJ == 0 &&
 		    BIG_OFFSET_IDX_ADJ == 0);
-	  VM.assert(BIG_GCI_IDX_ADJ == 1 &&
+	  VM._assert(BIG_GCI_IDX_ADJ == 1 &&
 		    BIG_IEI_IDX_ADJ == 1);
-	  VM.assert((cm  & (BIG_CALL_MASK>>>BIG_CALL_SHIFT)) == cm);
-	  VM.assert((bci & (BIG_BCI_MASK>>>BIG_BCI_SHIFT)) == bci);
-	  VM.assert((iei & (BIG_IEI_MASK>>>BIG_IEI_SHIFT)) == iei);
-	  VM.assert((gci & (BIG_GCI_MASK>>>BIG_GCI_SHIFT)) == gci);
-	  VM.assert((mco & (BIG_OFFSET_MASK>>>BIG_OFFSET_SHIFT)) == mco);
+	  VM._assert((cm  & (BIG_CALL_MASK>>>BIG_CALL_SHIFT)) == cm);
+	  VM._assert((bci & (BIG_BCI_MASK>>>BIG_BCI_SHIFT)) == bci);
+	  VM._assert((iei & (BIG_IEI_MASK>>>BIG_IEI_SHIFT)) == iei);
+	  VM._assert((gci & (BIG_GCI_MASK>>>BIG_GCI_SHIFT)) == gci);
+	  VM._assert((mco & (BIG_OFFSET_MASK>>>BIG_OFFSET_SHIFT)) == mco);
 	}
 	// long 1
 	long t = START_OF_BIG_ENTRY;
@@ -465,7 +468,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    */
   private final boolean isBigEntry(int entry) {
     if (VM.VerifyAssertions) {
-      VM.assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
+      VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
     }
     return (MCInformation[entry] & START_OF_BIG_ENTRY) == START_OF_BIG_ENTRY;
   }
@@ -635,7 +638,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   /**
    * encoded data as defined by VM_OptEncodedCallSiteTree.
    */
-  int[] inlineEncoding;
+  public int[] inlineEncoding;
   /**
    * Dump maps as methods are compiled. 
    */
@@ -650,5 +653,5 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 }

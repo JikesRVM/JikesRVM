@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
 /*
  * OPT_CompilationPlan.java
@@ -14,13 +18,13 @@
  * compiler how to compile the specified method.
  *
  */
-final class OPT_CompilationPlan {
+public final class OPT_CompilationPlan {
   /**
    * The method to be compiled.
    */
   public VM_Method method;
 
-  VM_Method getMethod () {
+  public VM_Method getMethod () {
     return method;
   }
   /**
@@ -31,10 +35,6 @@ final class OPT_CompilationPlan {
    * The instrumentation plan for the method.
    */
   public OPT_InstrumentationPlan instrumentationPlan;
-  /**
-   * Used to make edge counts available to all opt phases.
-   */
-  public OPT_EdgeCounts edgeCounts;
   /**
    * The oracle to be consulted for all inlining decisions.
    */
@@ -166,12 +166,6 @@ final class OPT_CompilationPlan {
     if (instrumentationPlan != null) {
       instrumentationPlan.finalizeInstrumentation(method);
     }
-
-    // Give the edge counts a chance to clear their data structures to
-    // prevent memory leaks.  This would be unnecessary if we had weak
-    // references.
-    if (ir.edgeCounts != null)
-      ir.edgeCounts.compilationFinished();
 
     return ir;
   }

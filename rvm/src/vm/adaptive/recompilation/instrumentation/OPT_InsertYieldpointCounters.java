@@ -2,8 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.adaptive.VM_YieldpointCounterData;
+import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
+import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+import com.ibm.JikesRVM.adaptive.VM_Controller;
 
 /** 
  *
@@ -23,11 +29,11 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
 
    static final boolean DEBUG = false;
 
-   final boolean shouldPerform(OPT_Options options) {
+   public final boolean shouldPerform(OPT_Options options) {
      return options.INSERT_YIELDPOINT_COUNTERS;
    }
 
-   final String getName() { return "InsertYieldpointCounters"; }
+   public final String getName() { return "InsertYieldpointCounters"; }
 
    /**
     * counters after all yieldpoint instructions

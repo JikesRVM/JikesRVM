@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
@@ -22,7 +24,7 @@ import instructionFormats.*;
  *
  * @author Dave Grove
  */
-abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
+public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
   // NOTE: The convention is that constant folding is controlled based
   // on the type of the result of the operator, not the type of its inputs.
   /** 
@@ -111,15 +113,15 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
     case TRAP_IF_opcode:
       { 
 	OPT_Operand op1 = TrapIf.getVal1(s);
+	OPT_Operand op2 = TrapIf.getVal2(s);
 	if (op1.isIntConstant()) {
-	  OPT_Operand op2 = TrapIf.getVal2(s);
 	  if (op2.isIntConstant()) {
-	    boolean willTrap = TrapIf.getCond(s).evaluate(op1, op2);
-	    if (willTrap) {
+	    int willTrap = TrapIf.getCond(s).evaluate(op1, op2);
+	    if (willTrap == OPT_ConditionOperand.TRUE) {
 	      Trap.mutate(s, TRAP, TrapIf.getClearGuardResult(s), 
 			  TrapIf.getClearTCode(s));
 	      return TRAP_REDUCED;
-	    } else {
+	    } else if (willTrap == OPT_ConditionOperand.FALSE) {
 	      Move.mutate(s, GUARD_MOVE, TrapIf.getClearGuardResult(s), TG());
 	      return MOVE_FOLDED;
 	    }
@@ -185,23 +187,74 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	if (ref.isNullConstant()) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
+	} else if (ref.isStringConstant()) {
+	  s.operator = CHECKCAST_NOTNULL;
+	  return simplify(s);
 	} else {
-	  VM_Type rType = ref.getType();
-	  OPT_TypeOperand op1 = TypeCheck.getType(s);
-	  if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	  VM_Type lhsType = TypeCheck.getType(s).type;
+	  VM_Type rhsType = ref.getType();
+	  byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	  if (ans == OPT_Constants.YES) {
 	    Empty.mutate(s, NOP);
 	    return REDUCED;
 	  }
+	  // NOTE: OPT_Constants.NO can't help us because (T)null always succeeds
 	}
       }
       return UNCHANGED;
     case CHECKCAST_NOTNULL_opcode:
       { 
-	VM_Type rType = TypeCheck.getRef(s).getType();
-	OPT_TypeOperand op1 = TypeCheck.getType(s);
-	if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	OPT_Operand ref = TypeCheck.getRef(s);
+	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	if (ans == OPT_Constants.YES) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
+	} else if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+		   rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.CheckCast());
+	  return TRAP_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case INSTANCEOF_opcode:
+      {
+	OPT_Operand ref = InstanceOf.getRef(s);
+	if (ref.isNullConstant()) {
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
+	} else if (ref.isStringConstant()) {
+	  s.operator = INSTANCEOF_NOTNULL;
+	  return simplify(s);
+	}
+	VM_Type lhsType = InstanceOf.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	// NOTE: OPT_Constants.YES doesn't help because ref may be null and null instanceof T is false
+	if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+	    rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
+	}
+      }
+      return UNCHANGED;
+    case INSTANCEOF_NOTNULL_opcode:
+      {
+	OPT_Operand ref = InstanceOf.getRef(s);
+	VM_Type lhsType = InstanceOf.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	if (ans == OPT_Constants.YES) {
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(1));
+	  return MOVE_FOLDED;
+	} else if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+		   rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
 	}
       }
       return UNCHANGED;
@@ -211,15 +264,18 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
     case INT_COND_MOVE_opcode:
       {
 	OPT_Operand val1 = CondMove.getVal1(s);
+	OPT_Operand val2 = CondMove.getVal2(s);
 	if (val1.isConstant()) {
-	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -259,11 +315,14 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -286,11 +345,14 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -313,11 +375,14 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -340,11 +405,14 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+                                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -367,11 +435,14 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond == OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+                                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -408,13 +479,16 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
     case BOOLEAN_CMP_opcode:
       if (CF_INT) {
 	OPT_Operand op1 = BooleanCmp.getVal1(s);
+	OPT_Operand op2 = BooleanCmp.getVal2(s);
 	if (op1.isConstant()) {
-	  OPT_Operand op2 = BooleanCmp.getVal2(s);
 	  if (op2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
-			BooleanCmp.getCond(s).evaluate(op1, op2) ? I(1):I(0));
-	    return MOVE_FOLDED;
+	    int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
+			  (cond == OPT_ConditionOperand.TRUE) ? I(1):I(0));
+	      return MOVE_FOLDED;
+	    }
 	  } else {
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = BooleanCmp.getClearVal1(s);

@@ -1,7 +1,14 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_EdgeCounts;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -13,7 +20,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-class VM_Controller implements VM_Callbacks.ExitMonitor,
+public class VM_Controller implements VM_Callbacks.ExitMonitor,
 			       VM_Callbacks.AppRunCompleteMonitor {
 
   /**
@@ -117,18 +124,10 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
 				       void doneWaiting() { controllerThread.doneWaiting(); }
 				     });
 
-    compilationQueue = 
-      new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
+    compilationQueue = new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
 
     // Create the analytic model used to make cost/benefit decisions.
-    if (options.ADAPTIVE_RECOMPILATION) {
-      // Multi-level adaptive, ala OOPSLA 2000
-      recompilationStrategy = new VM_MultiLevelAdaptiveModel();
-    } 
-    else {
-      // SLA, ala OOPSLA 2000
-      recompilationStrategy = new VM_SingleLevelAdaptive();
-    }
+    recompilationStrategy = new VM_MultiLevelAdaptiveModel();
 
     // boot the runtime measurement systems
     VM_RuntimeMeasurements.boot();
@@ -161,15 +160,21 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
   /**
    * To be called when the application completes one of its run
    */
-  public void notifyAppRunComplete(int i) {
-    if (VM.LogAOSEvents) VM_AOSLogging.appRunComplete();
+  public void notifyAppRunStart(String app, int run) {
+    if (VM.LogAOSEvents) VM_AOSLogging.appRunStart(app, run);
+  }
+
+  /**
+   * To be called when the application completes one of its run
+   */
+  public void notifyAppRunComplete(String app, int run) {
+    if (VM.LogAOSEvents) VM_AOSLogging.appRunComplete(app, run);
   }
 
   // Create the ControllerThread
   static void createControllerThread() {
     Object sentinel = new Object();
     VM_ControllerThread tt = new VM_ControllerThread(sentinel);
-    tt.makeDaemon(true);
     tt.start();
     // wait until controller threads are up and running.
     try {
@@ -231,6 +236,10 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_OptStaticProgramStats.report();
     }
 
+    if (options.FINAL_REPORT_LEVEL >= 2) {
+      VM_EdgeCounts.dumpCounts();
+    }
+
     if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
   }
 
@@ -243,13 +252,14 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public static void stop() {
     if (!booted) return;
+    
     VM.sysWrite("\nAOS: Killing all adaptive system threads\n");
     for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
       VM_Organizer organizer = (VM_Organizer)e.nextElement();
-      organizer.kill(new ThreadDeath());
+      organizer.kill(new ThreadDeath(), true);
     }
-    compilationThread.kill(new ThreadDeath());
-    controllerThread.kill(new ThreadDeath());
+    compilationThread.kill(new ThreadDeath(), true);
+    controllerThread.kill(new ThreadDeath(), true);
     VM_RuntimeMeasurements.stop();
     report();
   }

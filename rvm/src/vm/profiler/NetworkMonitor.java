@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Display per-thread network utilization information in real time.
@@ -9,7 +10,7 @@
  * @author Derek Lieber
  * @date 10 Nov 1999 
  */
-class NetworkMonitor extends VM_Thread
+class NetworkMonitor extends Thread
    {
    // Invoked by VM_Debugger.
    //

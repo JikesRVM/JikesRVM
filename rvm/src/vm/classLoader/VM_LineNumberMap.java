@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_LineNumberMap implements VM_Uninterruptible {
+public class VM_LineNumberMap implements VM_Uninterruptible {
    
   // Note that line mappings for a method appear in order of increasing bytecode offset.
   // The same line number can appear more than once (each with a different bytecode offset).
@@ -21,14 +22,14 @@ class VM_LineNumberMap implements VM_Uninterruptible {
    * bytecode offset at which each instruction sequence begins
    * 0-indexed from start of method's bytecodes[]     
    */
-  int[] startPCs;    
+  final int[] startPCs;    
 
   /** 
    * line number at which each instruction sequence begins
    * 1-indexed from start of method's source file
    */
-  int[] lineNumbers;
-   
+  final int[] lineNumbers;
+
   VM_LineNumberMap(int n) {
     startPCs    = new int[n];
     lineNumbers = new int[n];
@@ -45,7 +46,7 @@ class VM_LineNumberMap implements VM_Uninterruptible {
   /**
    * Return the line number information for the argument bytecode index.
    */
-  final int getLineNumberForBCIndex(int bci) {
+  public final int getLineNumberForBCIndex(int bci) {
     int idx;
     for (idx = 0; idx < startPCs.length; idx++) {
       if (bci < startPCs[idx]) {

@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-/*
+import com.ibm.JikesRVM.opt.ir.*;
+
+/**
  * This file provides a sorted set (of registers) ADT with the 
  *  following public operations:
  * 
@@ -15,10 +18,11 @@
  *    remove(set2) - removes the contents of set2 from the set
  *    enumerator() - returns an enumeration of the set
  *    toString() - returns a string version of the set
+ *    isEmpty() - returns true, iff the set is empty
  *
  * @author Michael Hind 
  */
-class OPT_LiveSet {
+public class OPT_LiveSet {
 
   /**
    *  The beginning of the list
@@ -292,6 +296,14 @@ class OPT_LiveSet {
     }
   }
 
+  /**
+   * Is the current set empty?
+   * @return true iff the set is empty
+   */
+  public boolean isEmpty() {
+    return first == null;
+  }
+  
   /**
    * String-i-fy the current list
    * @return the string-i-fied version

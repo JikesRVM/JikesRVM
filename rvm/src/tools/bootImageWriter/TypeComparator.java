@@ -1,4 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
 
+import com.ibm.JikesRVM.*;
+
+/**
+ * @author Perry Cheng
+ */
 
 class TypeComparator implements java.util.Comparator {
     

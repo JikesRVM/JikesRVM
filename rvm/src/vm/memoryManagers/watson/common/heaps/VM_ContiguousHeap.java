@@ -3,6 +3,19 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_ProcessorLock;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * A heap that allocates in contiguous free
  * memory by bumping a pointer on each allocation.
@@ -20,10 +33,10 @@
  * @author Stephen Smith
  * 
  * @see VM_Chunk
- * @see VM_Processor
+ * @see com.ibm.JikesRVM.VM_Processor
  */
-final class VM_ContiguousHeap extends VM_Heap
-  implements VM_Uninterruptible, VM_GCConstants {
+public final class VM_ContiguousHeap extends VM_Heap
+  implements VM_GCConstants {
 
 
   final static int FORWARD = 0;
@@ -37,12 +50,12 @@ final class VM_ContiguousHeap extends VM_Heap
   private VM_Address saved;
   private int sense;
 
-  VM_ContiguousHeap(String s) {
+  VM_ContiguousHeap(String s) throws VM_PragmaUninterruptible {
     super(s);
     sense = FORWARD;
   }
 
-  int sense() { return sense; }
+  int sense() throws VM_PragmaUninterruptible { return sense; }
 
   /**
    * Allocate size bytes of raw memory.
@@ -51,7 +64,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     // The issue is that this doesn't make much sense because
     // VM_Heap requires that this returns valid memory and if this
     // heap instance is full what allocateRawMemory is going to do is 
@@ -68,7 +81,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap
   }
 
@@ -81,24 +94,24 @@ final class VM_ContiguousHeap extends VM_Heap
    * @param size the number of bytes to allocate
    * @return the allocate memory or VM_Address.zero() if space is exhausted.
    */
-  public VM_Address allocateRawMemory(int size) {
+  public VM_Address allocateRawMemory(int size) throws VM_PragmaUninterruptible {
     int offset = VM_Entrypoints.contiguousHeapCurrentField.getOffset();
     if (sense == FORWARD) {
 	VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);
-	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (VM.VerifyAssertions) VM._assert(start.LE(current) && current.LE(end));
 	if (!addr.isMax()) return addr;
     }
     else {
 	VM_Address addr = VM_Synchronization.fetchAndSubAddressWithBound(this, offset, size, start);
-	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (VM.VerifyAssertions) VM._assert(start.LE(current) && current.LE(end));
 	if (!addr.isMax()) return addr.sub(size);
     }
     return VM_Address.zero();
   }    
 
-  VM_Address current() { return current; }
+  VM_Address current() throws VM_PragmaUninterruptible { return current; }
 
-  public void show(boolean newline) {
+  public void show(boolean newline) throws VM_PragmaUninterruptible {
       super.show(false);
       VM.sysWrite("   cur = ");
       VM.sysWrite(current);
@@ -110,7 +123,7 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * All space in the heap is available for allocation again.
    */
-  public void reset() {
+  public void reset() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
       saved = current = start;
     else
@@ -120,25 +133,25 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * All space in the heap is available for allocation again.
    */
-  public void setRegion(VM_Address s, VM_Address e) {
+  public void setRegion(VM_Address s, VM_Address e) throws VM_PragmaUninterruptible {
       super.setRegion(s, e);
       reset();
   }
 
-  public void setRegion(VM_Address s, VM_Address e, int se) {
-      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+  public void setRegion(VM_Address s, VM_Address e, int se) throws VM_PragmaUninterruptible {
+      if (VM.VerifyAssertions) VM._assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
   }
 
-  public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) {
-      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+  public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) throws VM_PragmaUninterruptible {
+      if (VM.VerifyAssertions) VM._assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
       current = c;
   }
 
-  public void contractRegion() {
+  public void contractRegion() throws VM_PragmaUninterruptible {
       if (sense == FORWARD) {
 	  end = current;
 	  setAuxiliary();
@@ -149,14 +162,14 @@ final class VM_ContiguousHeap extends VM_Heap
       }
   }
 
-  public void extendRegion(VM_Address newBoundary) {
+  public void extendRegion(VM_Address newBoundary) throws VM_PragmaUninterruptible {
       if (sense == FORWARD) {
-	  if (VM.VerifyAssertions) VM.assert(newBoundary.GE(end));
+	  if (VM.VerifyAssertions) VM._assert(newBoundary.GE(end));
 	  end = newBoundary;
 	  setAuxiliary();
       }
       else {
-	  if (VM.VerifyAssertions) VM.assert(newBoundary.LE(start));
+	  if (VM.VerifyAssertions) VM._assert(newBoundary.LE(start));
 	  start = newBoundary;
 	  setAuxiliary();
       }
@@ -165,41 +178,41 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * Heap is reset at attachment and detachment.
    */
-  public void attach(int size) {
+  public void attach(int size) throws VM_PragmaUninterruptible {
     super.attach(size);
     reset();
   }
 
-  public void detach(int size) {
+  public void detach(int size) throws VM_PragmaUninterruptible {
     super.detach();
     reset();
   }
 
-  public int allocatedFromSaved() {
+  public int allocatedFromSaved() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
-	  return current.diff(saved);
+	  return current.diff(saved).toInt();
       else
-	  return saved.diff(current);
+	  return saved.diff(current).toInt();
   }
 
-  public void recordSaved() {
+  public void recordSaved() throws VM_PragmaUninterruptible {
     saved = current;
   }
 
   /**
    * Zero the remaining free space in the heap.
    */
-  public void zeroFreeSpace() {
+  public void zeroFreeSpace() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
-	  VM_Memory.zeroPages(current, end.diff(current));
+	  VM_Memory.zeroPages(current, end.diff(current).toInt());
       else
-	  VM_Memory.zeroPages(start, current.diff(start));
+	  VM_Memory.zeroPages(start, current.diff(start).toInt());
   }
 
   /**
    * Zero the remaining free space in the heap.
    */
-  public void zeroFreeSpaceParallel() {
+  public void zeroFreeSpaceParallel() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
 	zeroParallel(current, end);
     else
@@ -210,27 +223,27 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * Round up to page boundary
    */
-  public void roundUpPage() {
+  public void roundUpPage() throws VM_PragmaUninterruptible {
     current = VM_Memory.roundUpPage(current);
   }
 
   /**
    * How much free memory is left in the heap?
    */
-  public int freeMemory() {
+  public int freeMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
-	return end.diff(current);
+	return end.diff(current).toInt();
     else
-	return current.diff(start);
+	return current.diff(start).toInt();
   }
 
   /**
    * How much memory is used in the heap?
    */
-  public int usedMemory() {
+  public int usedMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
-	return current.diff(start);
+	return current.diff(start).toInt();
     else
-	return end.diff(current);
+	return end.diff(current).toInt();
   }
 }

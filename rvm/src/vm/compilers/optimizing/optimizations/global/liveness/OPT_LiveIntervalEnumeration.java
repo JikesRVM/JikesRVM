@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
 
@@ -14,14 +15,13 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-
-class OPT_LiveIntervalEnumeration implements Enumeration {
+public class OPT_LiveIntervalEnumeration implements Enumeration {
   private OPT_LiveIntervalElement currentElement;
 
   /**
    * @param the first live interval in a list to be enumerated
    */
-  OPT_LiveIntervalEnumeration(OPT_LiveIntervalElement first) {
+  public OPT_LiveIntervalEnumeration(OPT_LiveIntervalElement first) {
     this.currentElement = first;
   }
 

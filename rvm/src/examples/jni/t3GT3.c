@@ -3,6 +3,9 @@
  */
 //$Id$
 
+/*
+ * @author Dick Anttanasio
+ */
 #include <stdio.h>
 #include <unistd.h>
 #include "t3GT3.h"

@@ -21,9 +21,7 @@ be a pain in the butt and since it currently isn't required, we don't do it.
 
 package INSTRFMTPKG;
 
-import RVMPKGOPT_OptimizingCompilerException;
-import RVMPKGOPT_Instruction;
-import RVMPKGOPT_Operator;
+import RVMPKGopt.OPT_OptimizingCompilerException;
 import RVMPKGVM;
 
 /**
@@ -147,38 +145,6 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
  */
 
 package INSTRFMTPKG;
-
-import RVMPKGOPT_Instruction;
-import RVMPKGOPT_Operator;
-import RVMPKGOPT_BasicBlockOperand;
-import RVMPKGOPT_BranchOperand;
-import RVMPKGOPT_BranchProfileOperand;
-import RVMPKGOPT_ConditionOperand;
-import RVMPKGOPT_ConstantOperand;
-import RVMPKGOPT_DoubleConstantOperand;
-import RVMPKGOPT_FloatConstantOperand;
-import RVMPKGOPT_IntConstantOperand;
-import RVMPKGOPT_LocationOperand;
-import RVMPKGOPT_LongConstantOperand;
-import RVMPKGOPT_MemoryOperand;
-import RVMPKGOPT_MethodOperand;
-import RVMPKGOPT_NullConstantOperand;
-import RVMPKGOPT_Operand;
-import RVMPKGOPT_RegisterOperand;
-import RVMPKGOPT_StringConstantOperand;
-  $$$$ IF ARCHITECTURE != "NONE"
-import RVMPKGOPT_SysMethodOperand;
-  $$$$ END IF
-import RVMPKGOPT_TrapCodeOperand;
-import RVMPKGOPT_TrueGuardOperand;
-import RVMPKGOPT_TypeOperand;
-  $$$$ IF ARCHITECTURE == "powerPC"
-import RVMPKGOPT_PowerPCConditionOperand;
-import RVMPKGOPT_PowerPCTrapOperand;
-  $$$$ END IF
-  $$$$ IF ARCHITECTURE == "intel"
-import RVMPKGOPT_IA32ConditionOperand;
-  $$$$ END IF
 
 /**
  * The OPTYPE.NAME InstructionFormat class.
@@ -826,38 +792,6 @@ $$$$ FOREACH CSIG CommonOperands.dat
  */
 
 package INSTRFMTPKG;
-
-import RVMPKGOPT_Instruction;
-import RVMPKGOPT_Operator;
-import RVMPKGOPT_BasicBlockOperand;
-import RVMPKGOPT_BranchOperand;
-import RVMPKGOPT_BranchProfileOperand;
-import RVMPKGOPT_ConditionOperand;
-import RVMPKGOPT_ConstantOperand;
-import RVMPKGOPT_DoubleConstantOperand;
-import RVMPKGOPT_FloatConstantOperand;
-import RVMPKGOPT_IntConstantOperand;
-import RVMPKGOPT_LocationOperand;
-import RVMPKGOPT_LongConstantOperand;
-import RVMPKGOPT_MethodOperand;
-  $$$$ IF ARCHITECTURE != "NONE"
-import RVMPKGOPT_SysMethodOperand;
-  $$$$ END IF
-import RVMPKGOPT_NullConstantOperand;
-import RVMPKGOPT_Operand;
-import RVMPKGOPT_RegisterOperand;
-import RVMPKGOPT_StringConstantOperand;
-import RVMPKGOPT_TrapCodeOperand;
-import RVMPKGOPT_TrueGuardOperand;
-import RVMPKGOPT_TypeOperand;
-  $$$$ IF ARCHITECTURE == "powerPC"
-import RVMPKGOPT_PowerPCConditionOperand;
-import RVMPKGOPT_PowerPCTrapOperand;
-  $$$$ END IF
-  $$$$ IF ARCHITECTURE == "intel"
-import RVMPKGOPT_IA32ConditionOperand;
-  $$$$ END IF
-
 
 /**
  * InstructionFormats that have a CNAME (which is CTYPE)

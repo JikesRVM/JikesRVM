@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Method names that are treated specially by compiler.
@@ -10,288 +11,141 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_MagicNames {
-  //-----------//
-  // interface //
-  //-----------//
-   
-  static VM_Atom sysCall0;                 
-  static VM_Atom sysCall1;                 
-  static VM_Atom sysCall2;
-  static VM_Atom sysCall3;
-  static VM_Atom sysCall4;
-  static VM_Atom sysCall_L_0;                 
-  static VM_Atom sysCall_L_I;                 
-  static VM_Atom sysCallAD;
-  static VM_Atom sysCallSigWait;
-                 
-  static VM_Atom invokeMain;
-  static VM_Atom invokeClassInitializer;
-  static VM_Atom invokeMethodReturningVoid;
-  static VM_Atom invokeMethodReturningInt;
-  static VM_Atom invokeMethodReturningLong;
-  static VM_Atom invokeMethodReturningFloat;
-  static VM_Atom invokeMethodReturningDouble;
-  static VM_Atom invokeMethodReturningObject;
+public class VM_MagicNames {
 
-  static VM_Atom getFramePointer;          
-  static VM_Atom getTocPointer;            
-  static VM_Atom getJTOC;
-  static VM_Atom getThreadId;
-  static VM_Atom setThreadId;
+  public static final VM_Atom sysCall0                      = VM_Atom.findOrCreateAsciiAtom("sysCall0");
+  public static final VM_Atom sysCall1                      = VM_Atom.findOrCreateAsciiAtom("sysCall1");
+  public static final VM_Atom sysCall2                      = VM_Atom.findOrCreateAsciiAtom("sysCall2");
+  public static final VM_Atom sysCall3                      = VM_Atom.findOrCreateAsciiAtom("sysCall3");
+  public static final VM_Atom sysCall4                      = VM_Atom.findOrCreateAsciiAtom("sysCall4");
+  public static final VM_Atom sysCall_L_0                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_0");
+  public static final VM_Atom sysCall_L_I                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_I");
+  public static final VM_Atom sysCallAD  		    = VM_Atom.findOrCreateAsciiAtom("sysCallAD");
+  public static final VM_Atom sysCallSigWait		    = VM_Atom.findOrCreateAsciiAtom("sysCallSigWait");
 
-  static VM_Atom getProcessorRegister;
-  static VM_Atom setProcessorRegister;
- 
+  public static final VM_Atom invokeMain                    = VM_Atom.findOrCreateAsciiAtom("invokeMain");
+  public static final VM_Atom invokeClassInitializer        = VM_Atom.findOrCreateAsciiAtom("invokeClassInitializer");
+  public static final VM_Atom invokeMethodReturningVoid     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningVoid");
+  public static final VM_Atom invokeMethodReturningInt      = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningInt");
+  public static final VM_Atom invokeMethodReturningLong     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningLong");
+  public static final VM_Atom invokeMethodReturningFloat    = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningFloat");
+  public static final VM_Atom invokeMethodReturningDouble   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningDouble");
+  public static final VM_Atom invokeMethodReturningObject   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningObject");
+
+  public static final VM_Atom getFramePointer               = VM_Atom.findOrCreateAsciiAtom("getFramePointer");
+  public static final VM_Atom getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
+  public static final VM_Atom setTocPointer                 = VM_Atom.findOrCreateAsciiAtom("setTocPointer");
+  public static final VM_Atom getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
+  public static final VM_Atom getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");
+  public static final VM_Atom setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");
+  public static final VM_Atom getProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("getProcessorRegister");
+  public static final VM_Atom setProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("setProcessorRegister");
   //-#if RVM_FOR_IA32
-  static VM_Atom getESIAsProcessor;
-  static VM_Atom setESIAsProcessor;
-  //-#endif
-    
-  static VM_Atom getTime;
-  static VM_Atom getTimeBase;
-
-  static VM_Atom getCallerFramePointer;
-  static VM_Atom setCallerFramePointer;
-  static VM_Atom getCompiledMethodID;
-  static VM_Atom setCompiledMethodID;
-  static VM_Atom getNextInstructionAddress;
-  static VM_Atom setNextInstructionAddress;
-  static VM_Atom getReturnAddress;
-  static VM_Atom setReturnAddress;
-
-  static VM_Atom getByteAtOffset;
-  static VM_Atom getIntAtOffset;
-  static VM_Atom getObjectAtOffset;
-  static VM_Atom getObjectArrayAtOffset;
-  static VM_Atom getLongAtOffset;
-  static VM_Atom setByteAtOffset;
-  static VM_Atom setIntAtOffset;
-  static VM_Atom setObjectAtOffset;
-  static VM_Atom setLongAtOffset;
-
-  static VM_Atom getMemoryWord;            
-  static VM_Atom setMemoryWord;            
-  static VM_Atom getMemoryAddress;
-  static VM_Atom setMemoryAddress;
-
-  static VM_Atom prepare;
-  static VM_Atom attempt;
-    
-  static VM_Atom setThreadSwitchBit;
-  static VM_Atom clearThreadSwitchBit;
-    
-  static VM_Atom saveThreadState;
-  static VM_Atom threadSwitch;
-  static VM_Atom restoreHardwareExceptionState;
-  static VM_Atom returnToNewStack;
-  static VM_Atom dynamicBridgeTo;
-    
-  static VM_Atom objectAsAddress;          
-  static VM_Atom addressAsObject;          
-  static VM_Atom addressAsObjectArray;          
-  static VM_Atom addressAsType;
-  static VM_Atom objectAsType;
-  static VM_Atom addressAsByteArray;
-  static VM_Atom addressAsIntArray;
-  static VM_Atom objectAsByteArray;
-  static VM_Atom objectAsShortArray;
-  static VM_Atom objectAsIntArray;
-  static VM_Atom addressAsThread;
-  static VM_Atom objectAsThread;
-  static VM_Atom objectAsProcessor;
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static VM_Atom addressAsBlockControl;
-  static VM_Atom addressAsSizeControl;
-  static VM_Atom addressAsSizeControlArray;
-//-#if RVM_WITH_CONCURRENT_GC
-  static VM_Atom threadAsRCCollectorThread;
-//-#endif
-//-#endif
-  static VM_Atom threadAsCollectorThread;
-  static VM_Atom addressAsRegisters;
-  static VM_Atom addressAsStack;
-  static VM_Atom floatAsIntBits;           
-  static VM_Atom intBitsAsFloat;           
-  static VM_Atom doubleAsLongBits;         
-  static VM_Atom longBitsAsDouble;
-             
-  static VM_Atom getObjectType;            
-  static VM_Atom getArrayLength;           
-   
-  static VM_Atom sync;
-  static VM_Atom isync;
-  //-#if RVM_FOR_POWERPC
-  static VM_Atom dcbst;
-  static VM_Atom icbi;
-  //-#endif
-  //-#if RVM_FOR_IA32
-  static VM_Atom roundToZero;
-  static VM_Atom clearFloatingPointState;
+  public static final VM_Atom getESIAsProcessor             = VM_Atom.findOrCreateAsciiAtom("getESIAsProcessor");
+  public static final VM_Atom setESIAsProcessor             = VM_Atom.findOrCreateAsciiAtom("setESIAsProcessor");
   //-#endif
 
-  static VM_Atom pragmaNoInline;
-  static VM_Atom pragmaInline;
-  static VM_Atom pragmaNoOptCompile;
+  public static final VM_Atom getTime                       = VM_Atom.findOrCreateAsciiAtom("getTime");
+  public static final VM_Atom getTimeBase                   = VM_Atom.findOrCreateAsciiAtom("getTimeBase");
 
-  // Names associated with class VM_Address
-  //
-  static VM_Atom addressFromInt;
-  static VM_Atom addressToInt;
-  static VM_Atom addressAdd;
-  static VM_Atom addressSub;
-  static VM_Atom addressDiff;
-  static VM_Atom addressLT;
-  static VM_Atom addressLE;
-  static VM_Atom addressEQ;
-  static VM_Atom addressNE;
-  static VM_Atom addressGT;
-  static VM_Atom addressGE;
-  static VM_Atom addressZero;
-  static VM_Atom addressMax;
-  static VM_Atom addressIsZero;
-  static VM_Atom addressIsMax;
+  public static final VM_Atom getCallerFramePointer         = VM_Atom.findOrCreateAsciiAtom("getCallerFramePointer");
+  public static final VM_Atom setCallerFramePointer         = VM_Atom.findOrCreateAsciiAtom("setCallerFramePointer");
+  public static final VM_Atom getCompiledMethodID           = VM_Atom.findOrCreateAsciiAtom("getCompiledMethodID");
+  public static final VM_Atom setCompiledMethodID           = VM_Atom.findOrCreateAsciiAtom("setCompiledMethodID");
+  public static final VM_Atom getNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("getNextInstructionAddress");
+  public static final VM_Atom setNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("setNextInstructionAddress");
+  public static final VM_Atom getReturnAddressLocation      = VM_Atom.findOrCreateAsciiAtom("getReturnAddressLocation");
 
-   //----------------//
-   // implementation //
-   //----------------//
-   
-  static void init() {
-    sysCall0                      = VM_Atom.findOrCreateAsciiAtom("sysCall0");
-    sysCall1                      = VM_Atom.findOrCreateAsciiAtom("sysCall1");
-    sysCall2                      = VM_Atom.findOrCreateAsciiAtom("sysCall2");
-    sysCall3                      = VM_Atom.findOrCreateAsciiAtom("sysCall3");
-    sysCall4                      = VM_Atom.findOrCreateAsciiAtom("sysCall4");
-    sysCall_L_0                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_0");
-    sysCall_L_I                   = VM_Atom.findOrCreateAsciiAtom("sysCall_L_I");
-    sysCallAD  		          = VM_Atom.findOrCreateAsciiAtom("sysCallAD");
-    sysCallSigWait		  = VM_Atom.findOrCreateAsciiAtom("sysCallSigWait");
+  public static final VM_Atom getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
+  public static final VM_Atom getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
+  public static final VM_Atom getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
+  public static final VM_Atom getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
+  public static final VM_Atom getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
+  public static final VM_Atom setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
+  public static final VM_Atom setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
+  public static final VM_Atom setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
+  public static final VM_Atom setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
+  public static final VM_Atom setDoubleAtOffset             = VM_Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
 
-    invokeMain                    = VM_Atom.findOrCreateAsciiAtom("invokeMain");
-    invokeClassInitializer        = VM_Atom.findOrCreateAsciiAtom("invokeClassInitializer");
-    invokeMethodReturningVoid     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningVoid");
-    invokeMethodReturningInt      = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningInt");
-    invokeMethodReturningLong     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningLong");
-    invokeMethodReturningFloat    = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningFloat");
-    invokeMethodReturningDouble   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningDouble");
-    invokeMethodReturningObject   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningObject");
+  public static final VM_Atom getMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("getMemoryWord");
+  public static final VM_Atom setMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("setMemoryWord");
+  public static final VM_Atom getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
+  public static final VM_Atom setMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("setMemoryAddress");
 
-    getFramePointer               = VM_Atom.findOrCreateAsciiAtom("getFramePointer");
-    getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
-    getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
-    getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");
-    setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");
-    getProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("getProcessorRegister");
-    setProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("setProcessorRegister");
+  public static final VM_Atom prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
+  public static final VM_Atom attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
+
+  public static final VM_Atom setThreadSwitchBit            = VM_Atom.findOrCreateAsciiAtom("setThreadSwitchBit");
+  public static final VM_Atom clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
     
-    //-#if RVM_FOR_IA32
-    getESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("getESIAsProcessor");
-    setESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("setESIAsProcessor");
-    //-#endif
-
-    getTime                       = VM_Atom.findOrCreateAsciiAtom("getTime");
-    getTimeBase                   = VM_Atom.findOrCreateAsciiAtom("getTimeBase");
-
-    getCallerFramePointer         = VM_Atom.findOrCreateAsciiAtom("getCallerFramePointer");
-    setCallerFramePointer         = VM_Atom.findOrCreateAsciiAtom("setCallerFramePointer");
-    getCompiledMethodID           = VM_Atom.findOrCreateAsciiAtom("getCompiledMethodID");
-    setCompiledMethodID           = VM_Atom.findOrCreateAsciiAtom("setCompiledMethodID");
-    getNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("getNextInstructionAddress");
-    setNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("setNextInstructionAddress");
-    getReturnAddress              = VM_Atom.findOrCreateAsciiAtom("getReturnAddress");
-    setReturnAddress              = VM_Atom.findOrCreateAsciiAtom("setReturnAddress");
-
-    getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
-    getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
-    getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
-    getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
-    getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
-    setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
-    setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
-    setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
-    setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
-
-    getMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("getMemoryWord");
-    setMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("setMemoryWord");
-    getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
-    setMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("setMemoryAddress");
-
-    prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
-    attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
-
-    setThreadSwitchBit            = VM_Atom.findOrCreateAsciiAtom("setThreadSwitchBit");
-    clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
-    
-    saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
-    threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
-    restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");
-    returnToNewStack              = VM_Atom.findOrCreateAsciiAtom("returnToNewStack");
-    dynamicBridgeTo               = VM_Atom.findOrCreateAsciiAtom("dynamicBridgeTo");
+  public static final VM_Atom saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
+  public static final VM_Atom threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
+  public static final VM_Atom restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");
+  public static final VM_Atom returnToNewStack              = VM_Atom.findOrCreateAsciiAtom("returnToNewStack");
+  public static final VM_Atom dynamicBridgeTo               = VM_Atom.findOrCreateAsciiAtom("dynamicBridgeTo");
       
-    objectAsAddress               = VM_Atom.findOrCreateAsciiAtom("objectAsAddress");
-    addressAsObject               = VM_Atom.findOrCreateAsciiAtom("addressAsObject");
-    addressAsObjectArray          = VM_Atom.findOrCreateAsciiAtom("addressAsObjectArray");
-    addressAsType                 = VM_Atom.findOrCreateAsciiAtom("addressAsType");
-    objectAsType                  = VM_Atom.findOrCreateAsciiAtom("objectAsType");
-    addressAsByteArray            = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
-    addressAsIntArray             = VM_Atom.findOrCreateAsciiAtom("addressAsIntArray");
-    objectAsByteArray             = VM_Atom.findOrCreateAsciiAtom("objectAsByteArray");
-    objectAsShortArray            = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
-    objectAsIntArray              = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
+  public static final VM_Atom objectAsAddress               = VM_Atom.findOrCreateAsciiAtom("objectAsAddress");
+  public static final VM_Atom addressAsObject               = VM_Atom.findOrCreateAsciiAtom("addressAsObject");
+  public static final VM_Atom addressAsObjectArray          = VM_Atom.findOrCreateAsciiAtom("addressAsObjectArray");
+  public static final VM_Atom addressAsType                 = VM_Atom.findOrCreateAsciiAtom("addressAsType");
+  public static final VM_Atom objectAsType                  = VM_Atom.findOrCreateAsciiAtom("objectAsType");
+  public static final VM_Atom addressAsByteArray            = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
+  public static final VM_Atom addressAsIntArray             = VM_Atom.findOrCreateAsciiAtom("addressAsIntArray");
+  public static final VM_Atom objectAsByteArray             = VM_Atom.findOrCreateAsciiAtom("objectAsByteArray");
+  public static final VM_Atom objectAsShortArray            = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
+  public static final VM_Atom objectAsIntArray              = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
 
-    addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
-    objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
-    objectAsProcessor             = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
+  public static final VM_Atom addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
+  public static final VM_Atom objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
+  public static final VM_Atom objectAsProcessor             = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-    addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
-    addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
-    addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");
-  //-#if RVM_WITH_CONCURRENT_GC
-    threadAsRCCollectorThread     = VM_Atom.findOrCreateAsciiAtom("threadAsRCCollectorThread");
+  public static final VM_Atom addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
+  public static final VM_Atom addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
+  public static final VM_Atom addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");
   //-#endif
-  //-#endif
-    threadAsCollectorThread       = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
-    addressAsRegisters            = VM_Atom.findOrCreateAsciiAtom("addressAsRegisters");
-    addressAsStack                = VM_Atom.findOrCreateAsciiAtom("addressAsStack");
-    floatAsIntBits                = VM_Atom.findOrCreateAsciiAtom("floatAsIntBits");
-    intBitsAsFloat                = VM_Atom.findOrCreateAsciiAtom("intBitsAsFloat");
-    doubleAsLongBits              = VM_Atom.findOrCreateAsciiAtom("doubleAsLongBits");
-    longBitsAsDouble              = VM_Atom.findOrCreateAsciiAtom("longBitsAsDouble");
+  public static final VM_Atom threadAsCollectorThread       = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
+  public static final VM_Atom addressAsRegisters            = VM_Atom.findOrCreateAsciiAtom("addressAsRegisters");
+  public static final VM_Atom addressAsStack                = VM_Atom.findOrCreateAsciiAtom("addressAsStack");
+  public static final VM_Atom floatAsIntBits                = VM_Atom.findOrCreateAsciiAtom("floatAsIntBits");
+  public static final VM_Atom intBitsAsFloat                = VM_Atom.findOrCreateAsciiAtom("intBitsAsFloat");
+  public static final VM_Atom doubleAsLongBits              = VM_Atom.findOrCreateAsciiAtom("doubleAsLongBits");
+  public static final VM_Atom longBitsAsDouble              = VM_Atom.findOrCreateAsciiAtom("longBitsAsDouble");
       
-    getObjectType                 = VM_Atom.findOrCreateAsciiAtom("getObjectType");
-    getArrayLength                = VM_Atom.findOrCreateAsciiAtom("getArrayLength");
+  public static final VM_Atom getObjectType                 = VM_Atom.findOrCreateAsciiAtom("getObjectType");
+  public static final VM_Atom getArrayLength                = VM_Atom.findOrCreateAsciiAtom("getArrayLength");
 
-    sync                          = VM_Atom.findOrCreateAsciiAtom("sync");
-    isync                         = VM_Atom.findOrCreateAsciiAtom("isync");
-    //-#if RVM_FOR_POWERPC
-    dcbst                         = VM_Atom.findOrCreateAsciiAtom("dcbst");
-    icbi                          = VM_Atom.findOrCreateAsciiAtom("icbi");
-    //-#endif
-    //-#if RVM_FOR_IA32
-    roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
-    clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
-    //-#endif
+  public static final VM_Atom sync                          = VM_Atom.findOrCreateAsciiAtom("sync");
+  public static final VM_Atom isync                         = VM_Atom.findOrCreateAsciiAtom("isync");
+  //-#if RVM_FOR_POWERPC
+  public static final VM_Atom dcbst                         = VM_Atom.findOrCreateAsciiAtom("dcbst");
+  public static final VM_Atom icbi                          = VM_Atom.findOrCreateAsciiAtom("icbi");
+  //-#endif
+  //-#if RVM_FOR_IA32
+  public static final VM_Atom roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
+  public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
+  //-#endif
 
-    pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");
-    pragmaInline                  = VM_Atom.findOrCreateAsciiAtom("pragmaInline");
-    pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
+  public static final VM_Atom pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
 
-    addressFromInt                = VM_Atom.findOrCreateAsciiAtom("fromInt");
-    addressToInt                  = VM_Atom.findOrCreateAsciiAtom("toInt");
-    addressAdd                    = VM_Atom.findOrCreateAsciiAtom("add");
-    addressSub                    = VM_Atom.findOrCreateAsciiAtom("sub");
-    addressDiff                   = VM_Atom.findOrCreateAsciiAtom("diff");
-    addressLT                     = VM_Atom.findOrCreateAsciiAtom("LT");
-    addressLE                     = VM_Atom.findOrCreateAsciiAtom("LE");
-    addressEQ                     = VM_Atom.findOrCreateAsciiAtom("EQ");
-    addressNE                     = VM_Atom.findOrCreateAsciiAtom("NE");
-    addressGT                     = VM_Atom.findOrCreateAsciiAtom("GT");
-    addressGE                     = VM_Atom.findOrCreateAsciiAtom("GE");
-    addressZero                   = VM_Atom.findOrCreateAsciiAtom("zero");
-    addressMax                    = VM_Atom.findOrCreateAsciiAtom("max");
-    addressIsZero                 = VM_Atom.findOrCreateAsciiAtom("isZero");
-    addressIsMax                  = VM_Atom.findOrCreateAsciiAtom("isMax");
-  }
+  public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
+  public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");
+  public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");
+  public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
+  public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");
+  public static final VM_Atom wordSub                       = VM_Atom.findOrCreateAsciiAtom("sub");
+  public static final VM_Atom wordDiff                      = VM_Atom.findOrCreateAsciiAtom("diff");
+  public static final VM_Atom wordLT                        = VM_Atom.findOrCreateAsciiAtom("LT");
+  public static final VM_Atom wordLE                        = VM_Atom.findOrCreateAsciiAtom("LE");
+  public static final VM_Atom wordEQ                        = VM_Atom.findOrCreateAsciiAtom("EQ");
+  public static final VM_Atom wordNE                        = VM_Atom.findOrCreateAsciiAtom("NE");
+  public static final VM_Atom wordGT                        = VM_Atom.findOrCreateAsciiAtom("GT");
+  public static final VM_Atom wordGE                        = VM_Atom.findOrCreateAsciiAtom("GE");
+  public static final VM_Atom wordZero                      = VM_Atom.findOrCreateAsciiAtom("zero");
+  public static final VM_Atom wordMax                       = VM_Atom.findOrCreateAsciiAtom("max");
+  public static final VM_Atom wordIsZero                    = VM_Atom.findOrCreateAsciiAtom("isZero");
+  public static final VM_Atom wordIsMax                     = VM_Atom.findOrCreateAsciiAtom("isMax");
+  public static final VM_Atom wordAnd                       = VM_Atom.findOrCreateAsciiAtom("and");
+  public static final VM_Atom wordOr                        = VM_Atom.findOrCreateAsciiAtom("or");
+  public static final VM_Atom wordNot                       = VM_Atom.findOrCreateAsciiAtom("not");
+  public static final VM_Atom wordXor                       = VM_Atom.findOrCreateAsciiAtom("xor");
 }
-
-

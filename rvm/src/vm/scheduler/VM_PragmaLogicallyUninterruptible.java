@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * A pragma that can be used to declare that a 
@@ -24,7 +25,7 @@
  * Extreme care must be exercised when using this pragma since it supresses 
  * the checking of uninterruptibility.
  * 
- * @Dave Grove
+ * @author Dave Grove
  */
 public class VM_PragmaLogicallyUninterruptible extends VM_PragmaException {
   private static final VM_Class vmClass = getVMClass(VM_PragmaLogicallyUninterruptible.class);

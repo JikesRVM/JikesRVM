@@ -251,12 +251,8 @@ HOST_SHLD_STR="\$$HOST_SHLD_STR1"
 integer GENERATE_MAP=1
 export GENERATE_MAP=1
 
-# Address at which the boot image will be linked and loaded
-#
-BOOTIMAGE_LOAD_ADDRESS="0x30000000"
-
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.1.1"
+JIKESRVM_VERSION="Jikes Research VM for Java 2.2.0"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -274,7 +270,6 @@ integer RVM_FOR_IA32=0     # also implies linux
 #
 integer RVM_FOR_AIX=0	   # also implies ppc
 integer RVM_FOR_LINUX=0	   # 
-integer RVM_FOR_CYGWIN=0   # 
 
 # Here are the choices for compiler components and extensions.
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
@@ -286,37 +281,24 @@ integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTe
 # The following must be set if using any of the RVM memory managers
 #
 integer RVM_WITH_JIKESRVM_MEMORY_MANAGERS=0
+integer RVM_WITH_JMTK=0
 
 # Here are the choices for RVM memory managers
 #
+integer RVM_WITH_SEMISPACE=0
 integer RVM_WITH_COPYING_GC=0
 integer RVM_WITH_HYBRID_GC=0
 integer RVM_WITH_NONCOPYING_GC=0
 integer RVM_WITH_GENERATIONAL_GC=0
-integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
 integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
 
 integer RVM_WITH_BOOT_HEAP_ONLY=0
+integer RVM_WITH_HPM=0
 
+# Use the GNU CLASSPATH library?
 #
-# GCTk Options
-#
-integer RVM_WITH_GCTk=0
-integer RVM_WITH_GCTk_COPY=0
-integer RVM_WITH_GCTk_BLOCK_INDIRECT=0
-integer RVM_WITH_GCTk_NULL=0
-integer RVM_WITH_GCTk_SEMISPACE=0
-integer RVM_WITH_GCTk_GEN=0
-integer RVM_WITH_GCTk_GEN_APPEL=0
-integer RVM_WITH_GCTk_DETAIL_STATS=0
-integer RVM_WITH_GCTk_PAUSE_STATS=0
-integer RVM_WITH_GCTk_WB_STATS=0
-integer RVM_WITH_GCTk_WRITEBARRIER=0
-integer RVM_WITH_GCTk_BOOTIMAGE_SCAN=0
-integer RVM_WITH_GCTk_ALLOC_ADVICE=0
-integer RVM_WITH_GCTk_GCTRACE=0
-
+integer RVM_WITH_GNU_CLASSPATH=0
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
@@ -347,11 +329,13 @@ integer RVM_WITHOUT_LAZY_COMPILATION=0 # force method compilation on class loadi
 integer RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 integer RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 integer RVM_WITH_SPECIALIZATION=0 # support for method cloning
+integer RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 
-# support for strong semantics for Java volatile fields
-# also to avoid dynamic linking
-integer RVM_WITH_STRONG_VOLATILE_SEMANTICS=0 # synchronize on each access
-integer RVM_WITH_PREMATURE_CLASS_RESOLUTION=0 # resolve classes referred to by method being compiled
+#
+# intercept blocking system calls (currently Linux-only)
+#
+export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+integer RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
 
 # The following flags tweak the memory model used by the optimizing compiler
 # to constrain optimization
@@ -423,23 +407,18 @@ else
 fi
 
 
-
-if (( RVM_FOR_LINUX && RVM_FOR_POWERPC )); then
-   BOOTIMAGE_LOAD_ADDRESS="0x31000000"
+if (( RVM_FOR_AIX )); then
+  RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
-if (( RVM_FOR_LINUX && RVM_FOR_IA32 )); then
-   BOOTIMAGE_LOAD_ADDRESS="0x41000000"
-fi
-
-
 
 # Convert configuration choices into preprocessor definitions.
 #    RVM_FOR_xxx  --> -DRVM_FOR_xxx
 #    RVM_ON_xxx --> -DRVM_ON_xxx
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
 #
-PREPROCESSOR_DEFINITIONS=""
+PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=$BOOTIMAGE_LOAD_ADDRESS"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITH' | sed 's@RVM@-DRVM@'`"
+PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITHOUT' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_ON' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_FOR'  | sed 's@RVM@-DRVM@'`"
 
@@ -469,6 +448,23 @@ BOOTIMAGE_WRITER_DIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageWriter"
 # SECTION 5 - DEFINITIONS OF FUNCTIONS #
 #--------------------------------------#
 
+# Print an error message.
+function printErrorMessage
+   {
+   print "$ME: error: $1"
+   }
+
+# Check configuration options for sanity.
+function checkConfigurationOptions
+   {
+   if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
+      if (( RVM_WITH_NATIVE_DAEMON_PROCESSOR )); then
+          printErrorMessage "If RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS is not specified, then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified"
+      exit 1
+     fi
+   fi
+   }
+
 # Emit list of source tree directories whose java files comprise the current configuration.
 #
 function emitSourceList
@@ -492,14 +488,17 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/scheduler
    print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_EventLogger references
    print $RVM_ROOT/rvm/src/vm/utility
+   print $RVM_ROOT/rvm/src/vm/verifier
    print $RVM_ROOT/rvm/src/vm/compilers/compiledCode
-   
+   print $RVM_ROOT/rvm/src/vm/libSupport
+
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
    # Baseline compiler components (always part of bootimage).
    #
    print $RVM_ROOT/rvm/src/vm/compilers/baseline           # architecture independent
    print $RVM_ROOT/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
+   print $RVM_ROOT/rvm/src/vm/compilers/baseline/profiling # architecture independent
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline    # architecture dependent
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/GCMap
    if [[ -e $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler ]]; then
@@ -563,6 +562,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/list
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/dotgraph
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/set
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader/jikesrvm
@@ -596,83 +596,10 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/adaptive/utility
    fi
 
-   # Memory manager components.
-   #
-   #
-   # Start GCTk components
-   #
-   if (( $RVM_WITH_GCTk )); then
-      GCTk_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/GCTk
-      if (( $RVM_WITH_GCTk_GEN )); then
-	GCTk_COL=Gen
-      elif (( $RVM_WITH_GCTk_SEMISPACE )); then
-	GCTk_COL=SemiSpace
-      else
-	GCTk_COL=Null
-      fi
-      if (( $RVM_WITH_GCTk_BLOCK_INDIRECT )); then
-        suff=BlockIndirect
-        GCTk_COL=$GCTk_COL$suff
-      fi
-      # architecture specific writebarrier support for baseline compilers
-      #
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
-
-      print $GCTk_ROOT
-      print $GCTk_ROOT/allocators
-      print $GCTk_ROOT/collectors
-      print $GCTk_ROOT/collectors/$GCTk_COL
-      print $GCTk_ROOT/util
-      print $GCTk_ROOT/vm
-
-      if (( $RVM_WITH_GCTk_EXPERIMENTAL )); then
-      print $GCTk_ROOT/experimental
-      print $GCTk_ROOT/experimental/allocators
-      print $GCTk_ROOT/experimental/collectors
-      print $GCTk_ROOT/experimental/collectors/$GCTk_COL
-      print $GCTk_ROOT/experimental/util
-      print $GCTk_ROOT/experimental/vm
-      fi
-   else 
-   #
-   # End GCTk components
-   #
-
-   # common allocator and collector classes for RVM memory managers
-   #
-   if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/barriers
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/finalization
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/heaps
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
-   fi
-
    # architecture specific writebarrier support for baseline compilers
    #
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
 
-   # collector specific classes
-   #
-   if (( $RVM_WITH_COPYING_GC )); then
-      if (( $RVM_WITH_GENERATIONAL_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGen
-      else
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
-      fi
-   elif (( $RVM_WITH_HYBRID_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/hybrid
-   elif (( $RVM_WITH_NONCOPYING_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
-   elif (( $RVM_WITH_CONCURRENT_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/concurrent
-   elif (( $RVM_WITH_REALTIME_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/realtime
-   elif (( $RVM_WITH_NO_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
-   fi
-   fi
 
    # Bootimage compiler components.
    #
@@ -699,12 +626,93 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
    fi
 
+
+   # Memory manager components.
+   #
+   #
+
+   # common allocator and collector classes for RVM memory managers
+   #
+   if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/vmInterface
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/barriers
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/finalization
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/heaps
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
+      # collector specific classes
+      #
+   if (( $RVM_WITH_COPYING_GC )); then
+      if (( $RVM_WITH_GENERATIONAL_GC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGen
+      else
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
+      fi
+   elif (( $RVM_WITH_HYBRID_GC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/hybrid
+   elif (( $RVM_WITH_NONCOPYING_GC )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
+   elif (( $RVM_WITH_REALTIME_GC )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/realtime
+   elif (( $RVM_WITH_NO_GC )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
+   fi
+   fi
+
+   # standard library support
+   #
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/ref
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/reflect
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/net
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/io
+   else
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang/reflect
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/net
+      print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/io
+   fi
+
+   if (( $RVM_WITH_JMTK )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+      # collector specific classes
+      #
+      if (( $RVM_WITH_SEMI_SPACE )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
+      elif (( $RVM_WITH_MARK_SWEEP )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
+      elif (( $RVM_WITH_GEN_COPY )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
+      elif (( $RVM_WITH_GEN_MS )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
+      elif (( $RVM_WITH_COPY_MS )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
+      elif (( $RVM_WITH_SIMPLE_RC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+      elif (( $RVM_WITH_NO_GC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
+      fi
+   fi
+
+   # Add support for hardware performance monitors on PowerPC
+   #
+   if (( $RVM_WITH_HPM )); then
+      print $RVM_ROOT/rvm/src/tools/hardwarePerformanceMonitors
+      print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
+   fi
+
    # Add the configuration specific directories
    #
    for dir in `echo "$CONF_SPECIFIC_SOURCES_LIST"`; do
      print $RVM_ROOT/$dir
    done
-
    }
 
 
@@ -732,7 +740,7 @@ function emitEnvironmentKsh
    print "export $BUILD_DIRECTORY_STR1=$RVM_BUILD"
    print "export $ROOT_DIRECTORY_STR1=$RVM_ROOT"
    print ""
-   print "export $HOST_JIKES_STR1=$JIKES"
+   print "export $HOST_JIKES_STR1=\"$JIKES\""
    print "export $HOST_JAVA_STR1=\"$HOST_JAVA\""
    print "export $HOST_JAVA_HOME_STR1=\"$HOST_JAVA_HOME\""
    print "export $HOST_JAVADOC_STR1=\"$HOST_JAVADOC\""
@@ -749,18 +757,25 @@ function emitEnvironmentKsh
    print "export $HOST_CPP_STR1='$CPP'"
    print "export $HOST_SHLD_STR1='$LDSHARED'"
    print ""
-   print "export GREP='$GREP'"
-   print "export FIND='$FIND'"
-   print "export FGREP='$FGREP'"
-   print "export PS='$PS'"  
    print "export AWK='$AWK'"  
    print "export BASH='$BASH'"  
+   print "export CVS='$CVS'"  
+   print "export DIFF='$DIFF'"  
+   print "export FGREP='$FGREP'"
+   print "export FIND='$FIND'"
+   print "export GNU_TAR='$GNU_TAR'"  
+   print "export GREP='$GREP'"
+   print "export MD5SUM='$MD5SUM'"  
+   print "export PS='$PS'"  
    print "export SED='$SED'"
    print "export WGET='$WGET'"
-   print "export DIFF='$DIFF'"  
-   print "export TAR='$TAR'"  
-   print "export GNU_TAR='$GNU_TAR'"  
-   print "export MD5SUM='$MD5SUM'"  
+   print "export XARGS='$XARGS'"
+   print "export UNZIP_CMD='$UNZIP_CMD'"
+   print ""
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+       print "export CLASSPATH_SRC='$CLASSPATH_SRC'"
+   fi
+   print ""
    }
 
 #
@@ -803,19 +818,27 @@ function emitEnvironmentPerl
    print "\$ENV{HOST_CPP_STR1} = '$CPP';"
    print "\$ENV{HOST_SHLD_STR1} = '$LDSHARED';"
    print ""
-   print "\$ENV{REP} = '$GREP';"
-   print "\$ENV{IND} = '$FIND';"
-   print "\$ENV{GREP} = '$FGREP';"
-   print "\$ENV{S} = '$PS';"  
    print "\$ENV{WK} = '$AWK';"  
    print "\$ENV{ASH} = '$BASH';"  
+   print "\$ENV{VS} = '$CVS';"  
+   print "\$ENV{IFF} = '$DIFF';"  
+   print "\$ENV{IND} = '$FIND';"
+   print "\$ENV{GREP} = '$FGREP';"
+   print "\$ENV{NU_TAR} = '$GNU_TAR';"  
+   print "\$ENV{REP} = '$GREP';"
+   print "\$ENV{D5SUM} = '$MD5SUM';"  
+   print "\$ENV{S} = '$PS';"  
    print "\$ENV{ED} = '$SED';"
    print "\$ENV{GET} = '$WGET';"
-   print "\$ENV{IFF} = '$DIFF';"  
-   print "\$ENV{AR} = '$TAR';"  
-   print "\$ENV{NU_TAR} = '$GNU_TAR';"  
-   print "\$ENV{D5SUM} = '$MD5SUM';"  
+   print "\$ENV{ARGS} = '$XARGS';"
+   print "\$ENV{NZIP_CMD} = '$UNZIP_CMD';"
+   print ""
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+       print "\$ENV{LASSPATH_SRC} = '$CLASSPATH_SRC';"
+   fi
+   print ""
 }
+
 
 #
 # Emit Make file
@@ -839,12 +862,6 @@ function emitMakefile
    print ""
    print "$HOST_JIKES_STR1 = $JIKES"
    print ""
-   if ((RVM_FOR_CYGWIN)); then 
-     print "HOST_JAVA_PATH_ADJUST = cygpath -p -w"
-   else
-     print "HOST_JAVA_PATH_ADJUST = echo"
-   fi
-   print ""
    print "HOST_JAVA_HOME = $HOST_JAVA_HOME"
    print "HOST_JAVA = $HOST_JAVA"
    print "HOST_JAVAC = $HOST_JAVAC"
@@ -863,17 +880,25 @@ function emitMakefile
    print "LDSHARED = $LDSHARED"
    print "JNI_NATIVE_LIBS_LD = $JNI_NATIVE_LIBS_LD"
    print ""
-   print "GREP = $GREP"
-   print "FIND = $FIND"
-   print "FGREP = $FGREP"
-   print "PS= $PS"  
    print "AWK= $AWK"  
    print "BASH = $BASH"
+   print "CVS = $CVS"
+   print "DIFF= $DIFF"  
+   print "FGREP = $FGREP"
+   print "FIND = $FIND"
+   print "GNU_TAR = $GNU_TAR"
+   print "GREP = $GREP"
+   print "MD5SUM = $MD5SUM"
+   print "PS= $PS"  
    print "SED = $SED"
    print "WGET = $WGET"
-   print "DIFF= $DIFF"  
-   print "TAR= $TAR"  
+   print "XARGS = $XARGS"
+   print "UNZIP_CMD = $UNZIP_CMD"
    print ""
+   print ""
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+       print "CLASSPATH_SRC = $CLASSPATH_SRC"
+   fi
    }
 
 
@@ -913,15 +938,22 @@ function emitController
    print '. ./jbuild.environment'
    print ''
    print '# do we still have the right version of rvmrt.jar?'
-   print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f)'
+   if (( ! RVM_WITH_GNU_CLASSPATH )); then
+    print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
+   fi
    print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   exit 0'
    print 'fi'
 
@@ -932,14 +964,21 @@ function emitController
    print 'if [[ -e' $CLEANSE_STATUS_STR ']]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   rm -f' $CLEANSE_STATUS_STR
    print 'elif [[ $NOLINK_FLAG != -nolink ]]; then'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print 'fi'
 
 #
@@ -959,14 +998,19 @@ function emitController
    print '   fi'
    print 'else'
    print '   ./jbuild.expand     $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   if [[ $NOLINK_FLAG != -nolink ]]; then'
    print '      ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG'
+   print '       print " $SECONDS s "'
    print '      if [[ X"$RVM_BUILD_COPY" != X ]]; then'
    print '          $RVM_BUILD_COPY'
    print '      elif [[ $NOBOOTER_FLAG != -nobooter ]]; then'
    print '          ./jbuild.linkBooter $TRACE_FLAG'
+   print '          print " $SECONDS s "'
    print '      fi'
    print '   fi'
    print 'fi'
@@ -997,14 +1041,14 @@ function emitExpander
    
    print 'if [[ $1 = -clean ]]; then'
    print "   rm -rf $SCRATCH_DIRECTORY_STR"
-   print "   mkdir -p $SCRATCH_DIRECTORY_STR"
+   print "   mkdir -p $SCRATCH_DIRECTORY_STR/com/ibm/JikesRVM"
    print "   cd $GENERATED_FILES_DIRECTORY_STR"
    print '   echo *.* | xargs rm -f'
    if (( RVM_WITH_OPT_COMPILER )); then
    print "   cd $GENERATED_FILES_DIRECTORY_STR/instructionFormats"
    print '   echo *.* | xargs rm -f'
    fi
-   print '   print "(templates cleaned)"'
+   print '   print -n "(templates cleaned)"'
    print '   exit 0'
    print 'fi'
 
@@ -1037,9 +1081,6 @@ function emitExpander
    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
    fi
-   if (( RVM_WITH_GCTk )); then
-   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/memoryManagers/GCTk && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
@@ -1071,21 +1112,17 @@ function emitCopier
    print 'if [[ $1 = -clean ]]; then'
    print '   print -n "$ME: "'
    print '   cd' $CLASSES_DIRECTORY_STR
-   print '   echo *.java | xargs rm -f'
+   print '   find . -name "*.java" -exec rm {} \;'
    print '   touch' $CLASSES_INVALID_STR
-   print '   print "(sources cleaned)"'
+   print '   print -n "(sources cleaned)"'
    print '   exit 0'
    print 'fi'
    print ''
    
    # Make the preprocessor
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-if ((RVM_FOR_CYGWIN)); then 
-   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles.exe $BUILD_DIRECTORY_STR/jbuild.prep"
-else
    print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles $BUILD_DIRECTORY_STR/jbuild.prep"
    print ''
-fi
 
    print 'FILES_HAVE_CHANGED=0'
 
@@ -1097,9 +1134,6 @@ fi
    print '   fi'
    print '   if [ X"`/bin/ls $d/*.java 2>/dev/null`" != X ]; then'
    print '     FILES=`/bin/ls $d/*.java`'
-   print '   fi'
-   print '   if [ X"`/bin/ls $d/*.pizza 2>/dev/null`" != X ]; then'
-   print '     FILES2=`/bin/ls $d/*.pizza`'
    print '   fi'
    print '   set +e'
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
@@ -1117,6 +1151,7 @@ fi
    print '   FILES2='
    print 'done'
 
+
    # Update from directories containing machine generated source files
    # Do this after we copy the "normal" files to allow us to
    # overwrite any dummy versions of the files we have sitting
@@ -1124,7 +1159,8 @@ fi
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR/'"'
    print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
+   print 'FILES=`$FIND '$GENERATED_FILES_DIRECTORY_STR' -name "*.java"`'
+#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
    print 'set +e'
    print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
    print 'RC=$?'
@@ -1137,44 +1173,26 @@ fi
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
    print 'fi'
-if (( RVM_WITH_OPT_COMPILER )); then
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/instructionFormats $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '  print ""'
-   print 'fi'
-   print ''
-fi
+#if (( RVM_WITH_OPT_COMPILER )); then
+#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+#   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
+#   print 'fi'
+#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
+#   print 'set +e'
+#   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
+#   print 'RC=$?'
+#   print 'if [[ $RC = 1 ]]; then'
+#   print '   FILES_HAVE_CHANGED=1'
+#   print 'elif [[ $RC != 0 ]]; then'
+#   print '   exit 1'
+#   print 'fi'
+#   print 'set -e'
+#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+#   print '  print ""'
+#   print 'fi'
+#   print ''
+#fi
 
-   # copy library support package
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$RVM_ROOT'/rvm/src/vm/libSupport"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $RVM_ROOT'/rvm/src/vm/libSupport/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/com/ibm/JikesRVM/librarySupport $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '  print ""'
-   print 'fi'
-   print ''
 
    # script to preprocess GenerateInterfaceDeclarations.java
    #
@@ -1190,15 +1208,26 @@ fi
    print 'fi'
    print ''
 
-   # preprocess the necessary interpreter file for the debugger jdp
-   print 'FILES=`/bin/ls ' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/interpreter/mapVM.java' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/'$ARCH_DIR'/BootMapExternal.java`'
-   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
-
-   if (( ! BUILD_RVMRT_JAR )); then
-     print "cp -f $ROOT_DIRECTORY_STR/support/lib/rvmrt.jar $CLASSES_DIRECTORY_STR"
-     print "\nprint -n '(rvmrt.jar copied) \n'"
+   if test $RVM_WITH_GNU_CLASSPATH -eq 1 -a -d $CLASSPATH_SRC/; then
+     print "cp -f $CLASSPATH_SRC/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
+     print "\nprint -n '(classpath native libraries copied) '"
+     print "cp -f $CLASSPATH_SRC/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+   else
+     print "cp -f $ROOT_DIRECTORY_STR/support/lib/classpath.jar $CLASSES_DIRECTORY_STR/rvmrt.jar"
    fi
-
+   print "\nprint -n '(classpath.jar copied) '"
+   if (( ! RVM_WITH_GNU_CLASSPATH )); then
+     if (( ! BUILD_RVMRT_JAR )); then
+       print "mkdir $SCRATCH_DIRECTORY_STR/tempLib"
+       print "cd $SCRATCH_DIRECTORY_STR/tempLib"
+       print "\$HOST_JAR -xf $ROOT_DIRECTORY_STR/support/lib/rvmrt.jar"
+       print "\$HOST_JAR -uf $CLASSES_DIRECTORY_STR/rvmrt.jar java com"
+       print "cd $BUILD_DIRECTORY_STR"
+       print "rm -rf $SCRATCH_DIRECTORY_STR/tempLib"
+       print "\nprint -n '(rvmrt.jar copied) '"
+     fi
+   fi
+  
    # Remember if any new (or modified) source files were discovered.
    #
    print 'if [[ $FILES_HAVE_CHANGED = 1 ]]; then'
@@ -1233,7 +1262,7 @@ function emitCompiler
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   echo *.class | xargs rm -f'
    print '   touch' $CLASSES_INVALID_STR
-   print '   print "(classes cleaned) "'
+   print '   print -n "(classes cleaned) "'
    print '   exit 0'
    print 'fi'
    
@@ -1247,7 +1276,7 @@ function emitCompiler
       TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java OptTestHarness.java"
    fi
    TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES $CONF_SPECIFIC_TOP_LEVEL_SOURCES"
-   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES|sed 's@\.java@.class@g'`
+   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES| sed 's@\.java@.class@g'`
 
    if (( RVM_FOR_POWERPC )); then
       INSTRUCTION_TYPE="int"
@@ -1258,21 +1287,23 @@ function emitCompiler
    fi
    
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
    print "   rm -f $TOP_LEVEL_CLASSES"
-   if (( BUILD_RVMRT_JAR )); then
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $TOP_LEVEL_SOURCES"
-   else 
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
-   fi
+   print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
    print '   print -n "(classes compiled) "'
    print ""
    print "   rm -f jksvm.jar"
-   print "   $HOST_JAR cvf0 jksvm.jar Dummy.class > /dev/null 2>&1"
-   print "   $FIND . -name '*.class' | xargs $HOST_JAR uvf0 jksvm.jar > /dev/null 2>&1"
+   print "   $HOST_JAR_STR cvf0 jksvm.jar Dummy.class > /dev/null 2>&1"
+   print "   $FIND . -name '*.class' | xargs $HOST_JAR_STR uvf0 jksvm.jar > /dev/null 2>&1"
    print '   print -n "(jksvm.jar built) "'
+   print ""
+   print "   rm -f jksvmsrc.jar"
+   print "   $HOST_JAR_STR cvf jksvmsrc.jar Dummy.java > /dev/null 2>&1"
+   print "   $FIND . -name '*.java' | xargs $HOST_JAR_STR uvf jksvmsrc.jar > /dev/null 2>&1"
+   print '   print -n "(jksvmsrc.jar built) "'
    print ""
    print 'else'
    print '   if [[ $TRACE_FLAG = -trace ]]; then'
@@ -1326,7 +1357,6 @@ function emitImageLinker
    print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.class"
    print "   rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
    print '   print -n "(bootimage cleaned) "'
-   print '   print ""'
    print '   exit 0'
    print 'fi'
    print ''
@@ -1337,27 +1367,28 @@ function emitImageLinker
 
    # Generate list of classes comprising bootimage.
    #
+
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
+
    
    # skip: needed to build bootimage, but not to run it
-   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
+#   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
+   print "   print BootImageInterface               > $EXCLUDED_CLASSES_STR"
    print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
    print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
 
    # skip: java.lang.Thread jdk<->RVM interoperability problems
-   print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
+   print "   print MainThread                       >> $EXCLUDED_CLASSES_STR"
    print "   print JNIServiceThread.class           >> $EXCLUDED_CLASSES_STR"
 
    # skip: InetAddress and Process load native library; so don't load unless needed
    print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
    print "   print VM_Process.class                 >> $EXCLUDED_CLASSES_STR"
+   print "   print JikesRVMSocketImpl               >> $EXCLUDED_CLASSES_STR"
 
-   print "   print VM_ZipFile.class               >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_ZipFile\$ZipHash.class      >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_ZipFile\$ZipMapEntry.class  >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip.class            >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip\$ZipBucket.class >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_InflateZip\$Huft.class      >> $EXCLUDED_CLASSES_STR"
+   # skip: don't put application class loader in, due to static data issues
+   #
+   print "   print ApplicationClassLoader.class     >> $EXCLUDED_CLASSES_STR"
 
    # Add the configuration specific exclusions
    #
@@ -1365,82 +1396,176 @@ function emitImageLinker
       print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
    done
 
-   if (( RVM_WITH_ALL_CLASSES )); then
-      # Put (almost) all vm classes into bootimage.
-
-      # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
-      print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
-
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-      print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-   else
-      # Put minimum number of vm classes into boot image (just sufficient to
-      # dynamically load remaining portions of the system).
+   # Put minimum number of vm classes into boot image (just sufficient to
+   # dynamically load remaining portions of the system).
       
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
+   print "   cd $CLASSES_DIRECTORY_STR"
+   if (( RVM_WITH_ALL_CLASSES )); then
+     print "   \$FIND . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+   else
+     print "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+     print "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+     print "   \$FIND ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+     print "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
    fi
-      print "   print $CLASSES_DIRECTORY_STR/com/ibm/JikesRVM/librarySupport/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@Lcom\/ibm\/JikesRVM\/librarySupport/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-
-
-
-   if (( RVM_WITH_GCTk )); then
-      print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
-   fi
+   print "   \$FGREP -v -f $EXCLUDED_CLASSES_STR $PRIMORDIAL_CLASSES_STR.1 > $PRIMORDIAL_CLASSES_STR.2"
+   print "   \$SED 's@./\(.*\)\.class@L\1;@' $PRIMORDIAL_CLASSES_STR.2 > $PRIMORDIAL_CLASSES_STR"
+   print "   rm $PRIMORDIAL_CLASSES_STR.1"
+   print "   rm $PRIMORDIAL_CLASSES_STR.2"
 
    # Now add classes sufficient to start up the vm and to dynamically load anything that's not
    # in the bootimage (including application programs). This list is discovered by trial and error.
 
+   #
+   # non 'VM_' system classes
+   print "   print 'Lcom/ibm/JikesRVM/FinalizerThread;' >> $PRIMORDIAL_CLASSES_STR"
+
    # fundamental java classes
    #
+   print "   print 'Ljava/lang/Class;'           >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/Object;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Runtime;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/String;'          >> $PRIMORDIAL_CLASSES_STR"
+
    print "   print 'Ljava/lang/StringBuffer;'    >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/StringTokenizer;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/System;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Thread;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ThreadGroup;'     >> $PRIMORDIAL_CLASSES_STR"
+
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Ljava/lang/Cloneable;'       >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/String\$CaseInsensitiveComparator;'          >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/VMObject;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/VMSystem;'        >> $PRIMORDIAL_CLASSES_STR"
+   fi
+
+   # reflection support
+   #
+   print "   print 'Ljava/lang/reflect/Field;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Method;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Member;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Constructor;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/AccessibleObject;' >> $PRIMORDIAL_CLASSES_STR"
 
    # hardware runtime errors
    #
-   print "   print 'Ljava/lang/NullPointerException;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ArithmeticException;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/ArrayIndexOutOfBoundsException;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/ArithmeticException;'            >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/StackOverflowError;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/UnknownError;'                   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Exception;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/IndexOutOfBoundsException;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/LinkageError;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/NullPointerException;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/RuntimeException;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/SecurityException;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/StackOverflowError;'  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Throwable;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/UnknownError;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/VirtualMachineError;' >> $PRIMORDIAL_CLASSES_STR"
 
    # software runtime errors
    #
    print "   print 'Ljava/lang/IncompatibleClassChangeError;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/ClassCastException;'           >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/IndexOutOfBoundsException;'    >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/ArrayStoreException;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/NegativeArraySizeException;'   >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/AbstractMethodError;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/StringIndexOutOfBoundsException;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/UnsatisfiedLinkError;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/InternalError;'                >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/IllegalMonitorStateException;' >> $PRIMORDIAL_CLASSES_STR"
 
+
+   # primitive wrapper types
+   #
+   print "   print 'Ljava/lang/Boolean;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Byte;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Character;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Double;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Float;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Integer;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Long;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Number;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Short;'     >> $PRIMORDIAL_CLASSES_STR"
+
+
    # class loading errors
    #
-   print "   print 'Ljava/io/IOException;'            >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/FileNotFoundException;'  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/ClassNotFoundException;'  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/ClassFormatError;'     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/NoClassDefFoundError;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/IOException;'              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/EOFException;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/FileNotFoundException;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ClassNotFoundException;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ClassFormatError;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/NoClassDefFoundError;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipException;'       >> $PRIMORDIAL_CLASSES_STR"
+
+   # util datastructures (needed by compilers, classloaders, etc)
+   #
+   print "   print 'Ljava/util/AbstractList;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/AbstractMap;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/AbstractSet;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/util/AbstractSet;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/ArrayList;'    	   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Arrays;'    	   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/HashMap;'    	   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/HashSet;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/util/HashSet;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Hashtable;'         >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/List;'              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/ListResourceBundle;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/PropertyResourceBundle;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/MissingResourceException;'  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Properties;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/ResourceBundle;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Vector;'            >> $PRIMORDIAL_CLASSES_STR"
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Ljava/util/AbstractCollection;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMap\$HashEntry;'   	    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print '[Ljava/util/HashMap\$HashEntry;'  	    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMap\$HashIterator;'     >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMap\$1;'    	    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMap\$2;'    	    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMap\$3;'    	    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Hashtable\$HashEntry;'      >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$Security;'  >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$1;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Stack;'		            >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/WeakHashMap;'               >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/WeakHashMap\$WeakBucket;'   >> $PRIMORDIAL_CLASSES_STR"
+    print "   print '[Ljava/util/WeakHashMap\$WeakBucket;'  >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet;' >> $PRIMORDIAL_CLASSES_STR"
+   else 
+    print "   print 'Ljava/util/AbstractList\$SimpleListIterator;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ArrayList;'                        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/HashMapEntry;'                     >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/MapEntry;'                         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print '[Ljava/util/HashMapEntry;'                    >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Map;'                               >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Map\$Entry;'                        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$Hash;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$MissingBundle;'     >> $PRIMORDIAL_CLASSES_STR"
+   fi
+
+   print "   print 'Lcom/ibm/JikesRVM/DebuggerThread;' >> $PRIMORDIAL_CLASSES_STR"
 
    # class loaders
    #
-   print "   print 'Lcom/ibm/oti/vm/AppClassLoader;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Lcom/ibm/oti/vm/AbstractClassLoader;'               >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Lcom/ibm/oti/vm/AbstractClassLoader\$ResourceCache;'>> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/lang/ClassLoader;'   	                        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/AbstractMap;'   	                        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Arrays;'    	                        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/HashMap;'    	                        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/HashMapEntry;'                           >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/MapEntry;'                               >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/OutputStream;'                             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/ByteArrayOutputStream;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Ljava/util/HashMapEntry;'                          >> $PRIMORDIAL_CLASSES_STR"
+
+   # (GNU classloader)
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Ljava/lang/VMClassLoader;'                         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/VMSecurityManager;'                     >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/PlatformHelper;'                      >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/security/CodeSource;'                        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/security/Policy;'                            >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/security/PermissionCollection;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/security/Permissions;'                       >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/locale/Calendar;'		        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/ref/SoftReference;'			>> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/reflect/InvocationTargetException;'     >> $PRIMORDIAL_CLASSES_STR"
+   fi
 
    # class loading from regular files
    #
@@ -1450,120 +1575,124 @@ function emitImageLinker
    print "   print 'Ljava/io/InputStream;'       >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/FileInputStream;'   >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/FileDescriptor;'    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/System;'          >> $PRIMORDIAL_CLASSES_STR" # for getProperties() called by java.io.File.<clinit>
 
-   # class loading from zip files (lots of stuff needed for jazzlib)
+   # class loading from zip files
    #
-     print "   print 'Ljava/util/zip/ZipFile;'      >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/ZipEntry;'     >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/Inflater;'     >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/InflaterInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/ZipException;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/ZipFile\$PartialInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/Adler32;'      >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/StreamManipulator;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/OutputWindow;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/InflaterHuffmanTree;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/DeflaterHuffman;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/DeflaterHuffman\$Tree;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/zip/InflaterDynHeader;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/Attributes\$Name;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarException;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/Attributes;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarFile\$JarEnumeration;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarEntry;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/JarFile;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/jar/Manifest;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/io/InputStreamReader;'  >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/io/BufferedReader;'     >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/io/Reader;'             >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/lang/Math;'             >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/HashSet;'          >> $PRIMORDIAL_CLASSES_STR"
-     print "   print '[Ljava/util/HashSet;'         >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/AbstractSet;'      >> $PRIMORDIAL_CLASSES_STR"
-     print "   print '[Ljava/util/AbstractSet;'     >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/io/Serializable;'       >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/Calendar;'         >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/GregorianCalendar;'>> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/Locale;'           >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/Date;'             >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/TimeZone;'         >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/TimeZone\$1;'      >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/SimpleTimeZone;'   >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/StringTokenizer;'  >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/lang/Cloneable;'        >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/security/AccessController;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/security/PrivilegedAction;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/PropertyPermission;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/security/BasicPermission;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/security/Permission;'   >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Lcom/ibm/oti/locale/Locale_en_US;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Lcom/ibm/oti/locale/Locale_en;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Lcom/ibm/oti/locale/Locale;'  >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/ResourceBundle;'   >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/util/ListResourceBundle;' >> $PRIMORDIAL_CLASSES_STR"
-     print "   print 'Ljava/lang/RuntimePermission;' >> $PRIMORDIAL_CLASSES_STR"
-     
-   print "   print 'Ljava/lang/Boolean;'          >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Byte;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Integer;'          >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Character;'        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Short;'            >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Long;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Runtime;'          >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/ByteArrayInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/FileOutputStream;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipFile;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipFile;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipEntry;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/util/zip/ZipEntry;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/Inflater;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/InflaterInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/Deflater;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/DeflaterOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipException;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/ZipFile\$PartialInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/Adler32;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/StreamManipulator;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/OutputWindow;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/InflaterHuffmanTree;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/DeflaterHuffman;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/DeflaterHuffman\$Tree;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/zip/InflaterDynHeader;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/InputStreamReader;'  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/BufferedReader;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/Reader;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Math;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/Serializable;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Calendar;'         >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/GregorianCalendar;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Locale;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Date;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/TimeZone;'         >> $PRIMORDIAL_CLASSES_STR"
+   if (( ! RVM_WITH_GNU_CLASSPATH )); then
+       print "   print 'Ljava/util/TimeZone\$1;'     >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Lcom/ibm/oti/locale/Locale_en_US;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Lcom/ibm/oti/locale/Locale_en;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Lcom/ibm/oti/locale/Locale;' >> $PRIMORDIAL_CLASSES_STR"
+   fi
+   print "   print 'Ljava/util/SimpleTimeZone;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Cloneable;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/AccessController;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/PrivilegedAction;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/PropertyPermission;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/BasicPermission;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/Permission;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/AllPermission;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/security/AllPermissionCollection;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/RuntimePermission;' >> $PRIMORDIAL_CLASSES_STR"
+   
+   # the application class loader uses jar classes (which can be loaded or not)
+   if (( RVM_WITH_ALL_CLASSES )); then
+       print "   print 'Ljava/util/jar/Attributes\$Name;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarException;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/Attributes;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarFile\$JarEnumeration;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarEntry;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/JarFile;' >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Ljava/util/jar/Manifest;' >> $PRIMORDIAL_CLASSES_STR"
+   fi
+
    print "   print 'Ljava/io/BufferedOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/BufferedInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/RandomAccessFile;'   >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/PrintStream;'        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Properties;'       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Hashtable;'        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/List;'              >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/AbstractList;'     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/AbstractList\$SimpleListIterator;'     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/ArrayList;'     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Map;'              >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Map\$Entry;'       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/reflect/Constructor;'       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/reflect/AccessibleObject;'       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Lcom/ibm/oti/io/CharacterConverter;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Lcom/ibm/oti/io/CharacterConverter_8859_1;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Lcom/ibm/oti/io/CharacterConverter_UTF8;' >> $PRIMORDIAL_CLASSES_STR"
-
-   # baseline compiler
-   #
-   print "   print 'Ljava/util/Vector;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Number;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Double;' >> $PRIMORDIAL_CLASSES_STR" # for doubleToLongBits()
-   print "   print 'Ljava/lang/Float;'  >> $PRIMORDIAL_CLASSES_STR" # for intToFloatBits()
-   print "   print 'Ljava/lang/Class;'  >> $PRIMORDIAL_CLASSES_STR" # for Double.TYPE and Float.TYPE
-   print "   print 'Ljava/lang/Character;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Integer;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Boolean;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Long;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Byte;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/lang/Short;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/BufferedInputStream;'  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/ByteArrayInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/FileOutputStream;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/PrintStream;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/RandomAccessFile;'     >> $PRIMORDIAL_CLASSES_STR"
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Ljava/io/PrintWriter;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/io/OutputStreamWriter;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/io/InputStreamReader;'  >> $PRIMORDIAL_CLASSES_STR"
+   fi
+   if (( RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Lgnu/java/io/EncodingManager;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_1;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_2;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_3;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_4;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_5;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/DecoderEightBitLookup;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/DecoderUTF8;'           >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_1;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_2;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_3;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_4;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_5;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/EncoderEightBitLookup;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/EncoderUTF8;'           >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/ref/Reference;'                  >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/ref/ReferenceQueue;'             >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/security/provider/DefaultPolicy;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/locale/Calendar_en;'              >> $PRIMORDIAL_CLASSES_STR"
+   else
+    print "   print 'Lcom/ibm/oti/io/CharacterConverter;'      >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/io/CharacterConverter_8859_1;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/io/CharacterConverter_UTF8;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/util/Msg;'                   >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/util/Msg\$1;'                >> $PRIMORDIAL_CLASSES_STR"
+   fi
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
-   print "   print '[LVM_Address;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[Lcom/ibm/JikesRVM/VM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-   print "   print '[LVM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_Heap;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   fi
+   if (( RVM_WITH_JMTK )); then
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1571,33 +1700,40 @@ function emitImageLinker
    print "   print '[Ljava/lang/Class;'               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Field;'       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Method;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/lang/reflect/Member;'      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Constructor;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/io/ObjectStreamField;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/security/ProtectionDomain;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/lang/Package;'             >> $PRIMORDIAL_CLASSES_STR"
+
    print "   print '[B'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[C'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[I'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[F'                               >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[J'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[S'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Z'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[I'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
 
-   print "   print '[LVM_Class;'                      >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Thread;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Class;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Thread;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
 
-   print "   print '[LVM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
+   print "   print '[Lcom/ibm/JikesRVM/VM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
 
-   print "   print '[LVM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
+   print "   print '[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
 
-   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
-      print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[LVM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+
+   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_REALTIME_GC )); then
+      print "   print '[Lcom/ibm/JikesRVM/VM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
@@ -1607,9 +1743,6 @@ function emitImageLinker
 
    if (( RVM_WITH_OPT_COMPILER )); then
       print "   print '[[C'                       >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/util/HashMapEntry;'  >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/util/MapEntry;'      >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[Ljava/util/HashMapEntry;' >> $PRIMORDIAL_CLASSES_STR"
       print "   print 'Ljava/util/HashSet;'       >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[Ljava/util/HashSet;'      >> $PRIMORDIAL_CLASSES_STR"
 
@@ -1624,58 +1757,58 @@ function emitImageLinker
          print "   print 'Ljava/util/HashMap\$HashIterator;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/HashMap\$1;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeMap;'          >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/util/TreeMap\$TreeMapIterator;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeMap\$3;'          >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/util/TreeMap\$4;'          >> $PRIMORDIAL_CLASSES_STR"
+#         print "   print 'Ljava/util/TreeMap\$4;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeSet;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Stack;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Vector\$1;'          >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/lang/RuntimeException;'    >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/lang/VirtualMachineError;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/lang/LinkageError;'        >> $PRIMORDIAL_CLASSES_STR"
 
-         print "   print 'LOPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/opt/OPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
+	 if (( RVM_WITH_GNU_CLASSPATH )); then
+	     print "   print 'Ljava/util/TreeMap\$Node;'          >> $PRIMORDIAL_CLASSES_STR"
+             print "   print 'Ljava/util/TreeMap\$TreeIterator;'          >> $PRIMORDIAL_CLASSES_STR"
+         else
+	     print "   print 'Ljava/util/TreeMap\$TreeMapIterator;'          >> $PRIMORDIAL_CLASSES_STR"
+	 fi
       fi
 
       if (( RVM_WITH_ALL_CLASSES )); then
-          print "   print '[LOPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
           print "   print '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          print "   print 'LOPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
+          print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
    fi
-  if (( RVM_WITH_GCTk )); then
-      print "   print '[LGCTk_CounterLong;'         >> $PRIMORDIAL_CLASSES_STR"
-  fi
 
    # For performance testing, a full opt base boot image should have all classes
-   # that would be in FullOpt, except for the OPT compiler-related ones.
+   # that would be in FulLcom/ibm/JikesRVM/OPT, except for the OPT compiler-related ones.
    # Here we include such classes that do not have the VM prefix.
-   if [[ $CONFIGURATION_NAME = FastOptBaseSemispace ]]; then
-       print "   print 'LFinalizerThread;'              >> $PRIMORDIAL_CLASSES_STR"
-   fi
 
    # Add the configuration specific primordials
    #
@@ -1700,14 +1833,13 @@ function emitImageLinker
    fi
    
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
    BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
 
-   if (( RVM_FOR_CYGWIN )); then
-      BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m \\\`cygpath -p -w $BOOTIMAGE_MAP_STR\\\`"
-   elif (( GENERATE_MAP )); then
+   if (( GENERATE_MAP )); then
       BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m $BOOTIMAGE_MAP_STR"
    fi
    
@@ -1721,7 +1853,7 @@ function emitImageLinker
    if (( RVM_WITH_NOFLUSH )); then
       print ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
    fi
-   
+
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '   OPT_ARGS="$OPT_ARGS -X:bc:verbose=true"'
    print '   VERBOSE_STR="VERBOSE_ARG=-verbose:gc"'
@@ -1738,24 +1870,17 @@ function emitImageLinker
    # script to generate InterfaceDeclaration.h
    #
    print "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-    if (( RVM_FOR_CYGWIN)); then
-       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR\
-             -classpath \`cygpath -p -w .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\`\
-             GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
-		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-     else
-       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
-             -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-             GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
-		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-   fi
+   print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
+          -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+          GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
+	  $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    print ""
 
    print "cd $BOOTIMAGE_WRITER_DIR_STR"
 
    print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
           RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
-          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$RVM_ROOT/support/lib/jazzlib.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
           RVM_BOOTIMAGE=$BOOTIMAGE_STR\
           RVM_BOOTIMAGE_COMPILER_ARGS=\"\$OPT_ARGS\"\
@@ -1812,7 +1937,7 @@ function emitBooterLinker
    print "rm -f libjni.a"
    print "cd $SCRATCH_DIRECTORY_STR"
    print "rm -f $BOOTER_STR RunBootImage.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
-   print 'print "(booter cleaned)"'
+   print 'print -n "(booter cleaned) "'
    print 'if [[ $1 = -clean ]]; then'
 
    print '   exit 0'
@@ -1850,11 +1975,6 @@ function emitBooterLinker
 		print '   exit 1'
 		print 'fi'
 	fi
-   elif (( RVM_FOR_CYGWIN )); then
-	print 'if [[ `uname` != CYGWIN_NT-5.0 ]]; then'
-	print '   print "please run me on CYGWIN"'
-	print '   exit 1'
-	print 'fi'
    fi
    print""
 
@@ -1863,12 +1983,16 @@ function emitBooterLinker
    if (( RVM_FOR_AIX )); then
       print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a $JAL_BUILD/libjpninet.a'
       print '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
-   elif (( RVM_FOR_CYGWIN )); then
-      # skip this step
-      print
    else
-      print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so'
-      print '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so'
+#jleuner 2002/06/08
+#trying to pass GNU_CLASSPATH to the compiler didn't work
+     if (( RVM_WITH_GNU_CLASSPATH )); then 
+      print 'RVM_WITH_GNU_CLASSPATH=1 $GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so '
+      print 'RVM_WITH_GNU_CLASSPATH=1 $GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so '
+     else
+      print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so '
+      print '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so '
+     fi
    fi
 
    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1877,13 +2001,27 @@ function emitBooterLinker
     SMP_STR="-URVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
    fi
 
+   if (( RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
+     SMP_STR="$SMP_STR -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
+   fi
+
+   # Build the blocking system call wrapper library, if requested
+   if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
+      if (( RVM_FOR_AIX )); then
+        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.a CXXFLAGS="'"$SMP_STR"'" $JAL_BUILD/libsyswrap.a'
+      else
+        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$SMP_STR"'" $JAL_BUILD/libsyswrap.so'
+      fi
+      print 'EXTRA_CCLIBS="-L$JAL_BUILD -lsyswrap"'
+   fi
+
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
 	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
 
-	 print 'CCLIBS="-lpthread -lm"'
+	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -lm"'
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1901,18 +2039,18 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
 
-	 print 'CCLIBS="-lpthread -ldl -lm"'
+	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
 
-	 print 'CCLIBS="-lpthread -ldl"'
+	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
 
-	 print 'CCLIBS="-ldl"'
+	 print 'CCLIBS="$EXTRA_CCLIBS -ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
@@ -1922,24 +2060,11 @@ function emitBooterLinker
    fi
    print ""
 
-   if (( RVM_WITH_BOOT_HEAP_ONLY || RVM_WITH_GCTk )); then
+   if (( RVM_WITH_BOOT_HEAP_ONLY )); then
       print 'BootHeapOnly="-DBootImageOnly"'
    else
       print 'BootHeapOnly='
    fi
-
-   if ((RVM_WITH_GCTk)); then
-      print 'GCTk="-DGCTk"'
-   else
-      print 'GCTk='
-   fi
-
-   if ((RVM_WITH_GCTk_GCTRACE)); then
-      print 'GCTkTrace="-DGCTkTrace"'
-   else
-      print 'GCTkTrace='
-   fi
-
 
    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -1955,28 +2080,28 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$GCTk \$GCTkTrace \$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
+		\$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
+      if (( $RVM_WITH_HPM )); then
+        print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
+  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
+ 		-DRVM_WITH_HPM=1 -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
+
+        print "\$BOOTER_CC -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o\
+                $ROOT_DIRECTORY_STR/rvm/src/tools/hardwarePerformanceMonitors/hpm.c"
+        print "cd $SCRATCH_DIRECTORY_STR &&\
+                \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS\
+                hpm.o -L$RVM_HPM_DIR -lpmapi"
+      else
+        print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
+  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
-      print "cd $SCRATCH_DIRECTORY_STR &&\
+        print "cd $SCRATCH_DIRECTORY_STR &&\
 		\$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS"
+
+      fi
       print 'print -n "(booter linked)"'
-      print ""
-
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
-	     -c -I$ROOT_DIRECTORY_STR/rvm/src/include\
-	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
-      print "cd $SCRATCH_DIRECTORY_STR"
-      print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o \$CCLIBS"
-      print "ar r libjni.a libjni.so"
-      print "cp -p $SCRATCH_DIRECTORY_STR/libjni.a $BUILD_DIRECTORY_STR"
-      print 'print "(JNI libraries linked)"'
-      print ""
-
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -2002,26 +2127,6 @@ function emitBooterLinker
       print "cd $SCRATCH_DIRECTORY_STR &&\
 	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o sys.o bootThread.o libvm.o\
                                    disasm.o ihnpdsm.o \$CCLIBS"
-      print 'print "(booter linked)"'
-      print ""
-
-
-   elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BOOTIMAGE_STR\\\"\
-		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C"
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
-      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/bootThread.o bootThread.S"
-      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
-      print "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER RunBootImage.o sys.o bootThread.o libvm.o \$CCLIBS"
       print 'print "(booter linked)"'
       print ""
 
@@ -2057,6 +2162,7 @@ function emitToolCompiler
    fi
 
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    print 'if [[ '$BUILD_DIRECTORY_STR' = "" ]]; then'
    print '   print "$ME: please set your' $BUILD_DIRECTORY_STR1 'environment variable (eg. $HOME/rvmBuild)"'
@@ -2068,11 +2174,7 @@ function emitToolCompiler
    print '   exit 1'
    print 'fi'
 
-   if (( BUILD_RVMRT_JAR )); then 
-     print "CPATH=$BUILD_DIRECTORY_STR/RVM.classes"
-   else
-     print "CPATH=$BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar"
-   fi
+   print "CPATH=$BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar"
    print 'if [[ $1 = -classpath ]]; then'
    print '   CPATH=$2:$CPATH'
    print '   shift'
@@ -2083,48 +2185,10 @@ function emitToolCompiler
 
    print 'set -x'
    if (( BUILD_RVMRT_JAR )); then 
-     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    else
-     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    fi
-   }
-#
-# Emit script to build jdp when it is invoked
-#
-function emitJDPBuilder
-   {
-   print '#!/bin/ksh'
-   print '# Build jdp the first time it is invoked'
-   print '. $RVM_BUILD/environment'
-   print 'set -e'
-   print 'CURRENT_DIR=`pwd`'
-   print 'if [[ ! -a $RVM_BUILD/RVM.tools/jdp.class ]];'
-   print 'then'
-   print ' '
-   print ' echo "JDP classes are not compiled yet, compiling now ..."'
-   print ' '
-   print ' if [[ ! -a $RVM_BUILD/RVM.tools ]];'
-   print '   then'
-   print '   cd $RVM_BUILD'
-   print '   mkdir RVM.tools'
-   print ' fi'
-   print ' '
-   print ' cd $RVM_ROOT/rvm/src/tools/jdp'
-   print ' $GNU_MAKE copy_$ARCH OBJECT_MODEL_PATH='$OBJECT_MODEL_PATH_STR
-   print ' if [[ $? != 0 ]]'
-   print '  then'
-   print '   echo "Could not copy jdp files."'
-   print '   exit 1'
-   print ' fi'
-   print ' cd $RVM_BUILD/RVM.tools'
-   print ' $GNU_MAKE compile'
-   print ' if [[ $? != 0 ]]'
-   print '   then'
-   print '    echo "Could not compile jdp."'
-   print '    exit 1'
-   print ' fi'
-   print ' cd $CURRENT_DIR'
-   print 'fi' 
    }
   
 #----------------------#
@@ -2134,10 +2198,15 @@ function emitJDPBuilder
 # Do we have the correct libraries?
 #
 if (( ! BUILD_RVMRT_JAR )); then
+ if (( ! RVM_WITH_GNU_CLASSPATH )); then
   $RVM_ROOT/rvm/bin/jCheckLibs
+ fi
 fi
 
 print "$ME: setting up $BUILD_DIRECTORY for $CONFIGURATION_NAME"
+
+# Ensure configuration options are sensible.
+checkConfigurationOptions
 
 # Make a fresh start.
 #
@@ -2160,8 +2229,6 @@ mkdir -p $GENERATED_FILES_DIRECTORY
 mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
-mkdir -p $CLASSES_DIRECTORY/instructionFormats
-mkdir -p $CLASSES_DIRECTORY/com/ibm/JikesRVM/librarySupport
 
 print -n "(directories created) "
 
@@ -2200,9 +2267,6 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
 emitToolCompiler              >$BUILD_DIRECTORY/jbuild.tool
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
 
-emitJDPBuilder                >$BUILD_DIRECTORY/jbuild.buildJDP
-chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.buildJDP
-
 # write the environment specific configuration files
 #
 
@@ -2226,23 +2290,7 @@ emitEnvironmentPerl	      >$BUILD_DIRECTORY/environment.pl
 chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
 
 
-print -n "(control files and scripts installed) "
-
-# this option works around our (non)implementation of java.math.*
-if (( RVM_WITH_HOST_JAVA_MATH )); then
-  . $RVM_HOST_CONFIG
-
-  rm -rf $BUILD_DIRECTORY/tmp
-  mkdir -p $BUILD_DIRECTORY/tmp
-  cd $BUILD_DIRECTORY/tmp
-  $HOST_JAR xf $HOST_REPOSITORIES java/math
-  $HOST_JAR c0f $BUILD_DIRECTORY/javamath.jar java/math/*.class 
-  rm -rf $BUILD_DIRECTORY/tmp
-
-  print -n "(javamath.jar created) "
-fi
-
-print ""
+print "(control files and scripts installed) "
 
 if [[ $quiet != 1 ]]; then
   if tty -s; then # keyboard is live (ie. this is not an automated build)
@@ -2254,4 +2302,3 @@ if [[ $quiet != 1 ]]; then
     print "$ME:    rvm <vm-args> classname <application-args>"
   fi
 fi
-

@@ -21,27 +21,6 @@ none
 
 
 ####################
-MINUS_ONE
-Unassigned
-none
-
-
-
-####################
-ZERO
-Unassigned
-none
-
-
-
-####################
-ONE
-Unassigned
-none
-
-
-
-####################
 LONG_CONSTANT
 Unassigned
 none
@@ -1147,6 +1126,13 @@ IA32_XOR
 MIR_BinaryAcc
 none
 AF_CF_OF_PF_SF_ZF
+
+
+####################
+IA32_RDTSC
+MIR_RDTSC
+none
+CF_OF
 
 
 ####################

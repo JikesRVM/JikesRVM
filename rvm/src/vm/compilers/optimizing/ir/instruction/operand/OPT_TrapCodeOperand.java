@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Encode the semantic reason for a trap instruction.

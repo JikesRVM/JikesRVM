@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * database to hold field-level information
@@ -86,7 +88,7 @@ final class OPT_FieldDatabase extends java.util.HashMap {
       // create a new FieldDatabaseEntry, with a FieldWriterInfo
       // for each method that may write this field
       FieldDatabaseEntry(VM_Field f) {
-         if (VM.VerifyAssertions) VM.assert(f.isPrivate());
+         if (VM.VerifyAssertions) VM._assert(f.isPrivate());
 
          VM_Class klass = f.getDeclaringClass();
 	 summaries = new java.util.HashMap(1);

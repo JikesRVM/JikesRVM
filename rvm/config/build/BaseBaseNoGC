@@ -1,4 +1,2 @@
-   export RVM_WITH_JIKESRVM_MEMORY_MANAGERS=1
-   export RVM_WITH_BASE_BOOTIMAGE_COMPILER=1
-   export RVM_WITH_BASE_RUNTIME_COMPILER=1
-   export RVM_WITH_NO_GC=1
+. $1/gc/NoGC
+. $1/compilers/BaseBase

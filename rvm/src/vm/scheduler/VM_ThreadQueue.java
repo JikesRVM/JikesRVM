@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * A queue of VM_Threads
@@ -9,19 +10,19 @@
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   protected int       id;     // id of this queue, for event logging
   protected VM_Thread head;   // first thread on list
   protected VM_Thread tail;   // last thread on list
   
-  VM_ThreadQueue(int id) {
+  public VM_ThreadQueue(int id) {
     this.id = id;
   }
 
   // Are any threads on the queue?
   //
-  boolean isEmpty () {
+  public boolean isEmpty () {
     return head == null;
   }
 
@@ -40,9 +41,9 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Add a thread to head of queue.
   //
-  void enqueueHighPriority (VM_Thread t) {
+  public void enqueueHighPriority (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
     t.next = head;
     head = t;
     if (tail == null)
@@ -51,9 +52,9 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Add a thread to tail of queue.
   //
-  void enqueue (VM_Thread t) {
+  public void enqueue (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
     if (head == null)
       head = t;
     else
@@ -64,7 +65,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
   // Remove thread from head of queue.
   // Returned: the thread (null --> queue is empty)
   //
-  VM_Thread dequeue () {
+  public VM_Thread dequeue () {
     VM_Thread t = head;
     if (t == null)
        return null;
@@ -76,41 +77,6 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDequeue(t, id);
     return t;
   }
-
-  // Remove a thread from the queue using processor ID
-  // Used by RCGC to dequeue collectorThread by processor ID
-  //
-  VM_Thread dequeue (int processorID) {
-    if (VM.VerifyAssertions) VM_Scheduler.assert(processorID != 0);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(head != null);
-
-    VM_Thread currentThread = head;
-    VM_Thread nextThread = head.next;
-    
-    if (currentThread.processorAffinity.id == processorID) {
-      head = nextThread;
-      if (head == null)
-	  tail = null;
-      currentThread.next = null;
-      return currentThread;
-    }
-
-    while (nextThread != null) {
-      if (nextThread.processorAffinity.id == processorID) {
-	  currentThread.next = nextThread.next;
-	  if (nextThread == tail)
-	      tail = currentThread;
-	  nextThread.next = null;
-	  return nextThread;
-      }
-      currentThread = nextThread;
-      nextThread = nextThread.next;
-    }
-
-    if (VM.VerifyAssertions) VM_Scheduler.assert(VM.NOT_REACHED);
-    return null;
-  }
-
 
   // Dequeue the CollectorThread, if any, from this queue
   // if qlock != null protect by lock
@@ -153,7 +119,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Number of items on queue (an estimate: queue is not locked during the scan).
   //
-  int length() {
+  public int length() {
   int length = 0;
   for (VM_Thread t = head; t != null; t = t.next)
      length += 1;
@@ -162,14 +128,14 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Debugging.
   //
-  boolean contains(VM_Thread x)
+  public boolean contains(VM_Thread x)
      {
      for (VM_Thread t = head; t != null; t = t.next)
         if (t == x) return true;
      return false;
      }
      
-  void dump()
+  public void dump()
      {
      for (VM_Thread t = head; t != null; t = t.next)
         t.dump();

@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.Vector;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.Vector;
 
 /**
  * OPT_OptimizationPlanner.java
@@ -18,7 +21,7 @@ import  java.util.Vector;
  * @author Dave Grove
  * @author Michael Hind
  */
-class OPT_OptimizationPlanner {
+public class OPT_OptimizationPlanner {
 
   /** 
    * The master optimization plan.
@@ -114,7 +117,7 @@ class OPT_OptimizationPlanner {
    */
   private static void initializeMasterPlan() {
     Vector temp = new Vector();
-    BC2HIR(temp);
+    BC2HIR(temp);    
     HIROptimizations(temp);
     HIR2LIR(temp);
     LIROptimizations(temp);
@@ -146,20 +149,22 @@ class OPT_OptimizationPlanner {
   private static void BC2HIR(Vector p) {
     composeComponents(p, "Convert Bytecodes to HIR", new Object[] {
       // Generate HIR from bytecodes
-      new OPT_ConvertBCtoHIR(), 
+      new OPT_ConvertBCtoHIR(),
+
       // Always do initial wave of peephole branch optimizations
-      new OPT_BranchOptimizations(0,
-				  true),  // Restrict branch optimizations
+      new OPT_BranchOptimizations(0, true, false),  
+
+      // Adjust static branch probabilites to account for infrequent blocks
+      new OPT_AdjustBranchProbabilities(),
 
       // Optional printing of initial HIR 
       // Do this after branch optmization, since without merging
       // FallThroughOuts, the IR is quite ugly. 
       new OPT_IRPrinter("Initial HIR") {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.PRINT_HIGH;
 	  }
-	}, 
-
+	}
     });
   }
 
@@ -170,10 +175,15 @@ class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void HIROptimizations(Vector p) {
-
     addComponent(p, new  OPT_TailRecursionElimination());
-    // Insert yield points on back edges
-    addComponent(p, new OPT_YieldPoints());
+
+    // Use the LST to insert yieldpoints and estimate basic block frequency from branch probabilities
+    composeComponents(p, "CFG Structural Analysis", new Object[] {
+      new OPT_BuildLST(),
+      new OPT_YieldPoints(),
+      new OPT_EstimateBlockFrequencies()
+    });
+
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(true, true));
 
@@ -181,7 +191,7 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_EscapeTransformations());
 
     // Perform peephole branch optimizations to clean-up before SSA stuff
-    addComponent(p, new OPT_BranchOptimizations(1));
+    addComponent(p, new OPT_BranchOptimizations(1, true, true));
     // CFG spliting
     addComponent(p, new OPT_StaticSplitting());
     // restructure loops
@@ -190,8 +200,10 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_Simple(true, true));
     // Loop unrolling
     addComponent(p, new OPT_LoopUnrolling());
+
     // SSA meta-phase
     SSAinHIR(p);
+
     // Perform local copy propagation for a factored basic block.
     addComponent(p, new OPT_LocalCopyProp());
     // Perform local constant propagation for a factored basic block.
@@ -203,7 +215,6 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_FieldAnalysis());
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Insert counter on each method prologue
-    addComponent(p, new OPT_InsertMethodInvocationCounter());
     // Insert yieldpoint counters
     addComponent(p,new OPT_InsertYieldpointCounters());
     // Insert counter on each HIR instruction
@@ -220,7 +231,17 @@ class OPT_OptimizationPlanner {
   private static void SSAinHIR(Vector p) {
     composeComponents
       (p, "SSA", new Object[] { 
-       new OPT_OptimizationPlanCompositeElement 
+	// Use the LST to estimate basic block frequency from branch probabilities
+	new OPT_OptimizationPlanCompositeElement
+	  ("Basic Block Frequency Estimation", new Object[] {
+	    new OPT_BuildLST(),
+	    new OPT_EstimateBlockFrequencies()
+	      }) {
+          public boolean shouldPerform(OPT_Options options) {
+            return options.getOptLevel() >= 2;
+          }},
+
+	new OPT_OptimizationPlanCompositeElement 
       ("HIR SSA transformations", 
         new Object[] {
         // Local copy propagation
@@ -229,10 +250,12 @@ class OPT_OptimizationPlanner {
         new OPT_LocalConstantProp(),
         // Insert PI Nodes
         new OPT_PiNodes(true), 
+	// branch optimization
+	new OPT_BranchOptimizations(0, true, true),
         // Compute dominators
         new OPT_DominatorsPhase(true), 
         // compute dominance frontier
-        new OPT_DominanceFrontier(), 
+        new OPT_DominanceFrontier(),
         // load elimination
         new OPT_LoadElimination(1), 
         // load elimination
@@ -259,12 +282,12 @@ class OPT_OptimizationPlanner {
         new OPT_GCP(), 
         // Leave SSA 
         new OPT_LeaveSSA() })     {
-          boolean shouldPerform(OPT_Options options) {
+          public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
         },
         // Coalesce moves
-        new OPT_CoalesceMoves(), 
+	new OPT_CoalesceMoves(), 
 
         // SSA reveals new opportunites for the following
         new OPT_OptimizationPlanCompositeElement
@@ -273,9 +296,9 @@ class OPT_OptimizationPlanner {
            new OPT_LocalConstantProp(),
            new OPT_Simple(true, true),
            new OPT_EscapeTransformations(),
-           new OPT_BranchOptimizations(2) 
+           new OPT_BranchOptimizations(2, true, true) 
            }) {
-            boolean shouldPerform(OPT_Options options) {
+            public boolean shouldPerform(OPT_Options options) {
               return options.getOptLevel() >= 2;
             }
           }
@@ -291,20 +314,33 @@ class OPT_OptimizationPlanner {
    */
   private static void SSAinLIR(Vector p) {
     composeComponents(p, "SSA", new Object[] {
-       new OPT_OptimizationPlanCompositeElement 
+	// Use the LST to estimate basic block frequency from branch probabilities
+	new OPT_OptimizationPlanCompositeElement
+	  ("Basic Block Frequency Estimation", new Object[] {
+	    new OPT_BuildLST(),
+	    new OPT_EstimateBlockFrequencies()
+	      }){
+          public boolean shouldPerform(OPT_Options options) {
+            return options.getOptLevel() >= 2;
+          }
+        },
+      
+	new OPT_OptimizationPlanCompositeElement 
 	 ("LIR SSA transformations", 
 	  new Object[] {
+	    // restructure loops
+	    new OPT_CFGTransformations(),
 	    // Compute dominators
 	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier
-            new OPT_DominanceFrontier(), 
+            new OPT_DominanceFrontier(),
             // Global Code Placement,
             new OPT_GCP(), 
             // Leave SSA 
 	    new OPT_LeaveSSA()  
 	      }
 	  ) {
-	   boolean shouldPerform(OPT_Options options) {
+	   public boolean shouldPerform(OPT_Options options) {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
@@ -321,9 +357,9 @@ class OPT_OptimizationPlanner {
 	   new OPT_LocalCopyProp(),
 	   new OPT_LocalConstantProp(),
 	   new OPT_Simple(true, true),
-	   new OPT_BranchOptimizations(2) 
+	   new OPT_BranchOptimizations(2, true, true) 
 	     }) {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.getOptLevel() >= 2;
 	  }
 	}
@@ -340,23 +376,27 @@ class OPT_OptimizationPlanner {
     composeComponents(p, "Convert HIR to LIR", new Object[] {
       // Optional printing of final HIR
       new OPT_IRPrinter("Final HIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_HIR;
         }
       }, 
+
       // Inlining "runtime service" methods
       new OPT_ExpandRuntimeServices(), 
       // Peephole branch optimizations
-      new OPT_BranchOptimizations(1), 
+      new OPT_BranchOptimizations(1, true, true), 
       // Local optimizations of checkcasts
       new OPT_LocalCastOptimization(), 
       // Massive operator expansion
       new OPT_ConvertHIRtoLIR(), 
       // Peephole branch optimizations 
-      new OPT_BranchOptimizations(0), 
+      new OPT_BranchOptimizations(0, true, true), 
+      // Adjust static branch probabilites to account for infrequent blocks
+      // introduced by the inlining of runtime services.
+      new OPT_AdjustBranchProbabilities(),
       // Optional printing of initial LIR
       new OPT_IRPrinter("Initial LIR") {
-	  boolean shouldPerform(OPT_Options options) {
+	  public boolean shouldPerform(OPT_Options options) {
 	    return options.PRINT_LOW;
 	  }
 	}
@@ -370,7 +410,6 @@ class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void LIROptimizations(Vector p) {
-
     // SSA meta-phase
     SSAinLIR(p);
     // Perform local copy propagation for a factored basic block.
@@ -383,10 +422,17 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_Simple(false, false));
     // Late expansion of counter-based yieldpoints
     addComponent(p, new OPT_DeterministicYieldpoints());
+
+    // Use the LST to estimate basic block frequency
+    addComponent(p, new OPT_OptimizationPlanCompositeElement
+      ("Basic Block Frequency Estimation", new Object[] {
+	new OPT_BuildLST(),
+	new OPT_EstimateBlockFrequencies() }));
+
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
     // Perform peephole branch optimizations
-    addComponent(p, new OPT_BranchOptimizations(1));
+    addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Convert high level place holder instructions into actual instrumenation
@@ -410,7 +456,7 @@ class OPT_OptimizationPlanner {
       new OPT_SplitBasicBlock(), 
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -422,7 +468,7 @@ class OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // For now, always print the Initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }
@@ -483,7 +529,7 @@ class OPT_OptimizationPlanner {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_FINAL_LIR;
         }
       }, 
@@ -495,7 +541,7 @@ class OPT_OptimizationPlanner {
       new OPT_ConvertLIRtoMIR(), 
       // Optional printing of initial MIR
       new OPT_IRPrinter("Initial MIR") {
-        boolean shouldPerform(OPT_Options options) {
+        public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
         }
       }
@@ -554,7 +600,7 @@ class OPT_OptimizationPlanner {
   private static void MIR2MC(Vector p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
-	boolean shouldPerform(OPT_Options options) {
+	public boolean shouldPerform(OPT_Options options) {
 	  return options.PRINT_FINAL_MIR; } 
       });
     addComponent(p, new OPT_ConvertMIRtoMC());

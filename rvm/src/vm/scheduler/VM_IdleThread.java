@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Low priority thread to run when there's nothing else to do.
@@ -46,19 +47,27 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) VM.assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
+    if (VM.VerifyAssertions) VM._assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
    main: while (true) {
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
       if (VM_Scheduler.terminated) VM_Thread.terminate();
-      for (double t=VM_Time.now()+SPIN_TIME; VM_Time.now()<t;) {
-	if (!VM.BuildForConcurrentGC) VM_Processor.idleProcessor = myProcessor;
+      double t=VM_Time.now()+SPIN_TIME;
+
+      if (VM_Scheduler.debugRequested) {
+	  System.err.println("debug requested in idle thread");
+	  VM_Scheduler.debugRequested = false;
+      }
+      
+      do {
+	VM_Processor.idleProcessor = myProcessor;
 	if (availableWork(myProcessor)) {
 	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
 	  continue main;
 	}
-      }
+      } while (VM_Time.now()<t);
+      
       VM.sysVirtualProcessorYield();
-    }
+   }
   }
 
   /*

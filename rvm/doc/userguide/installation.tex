@@ -11,14 +11,15 @@ To build on any platform you will need the following:
 \item The Jikes\trademark Java\trademark compiler 
 You can download this from
 \xlink{{\tt \jikesURL}} {\jikesURL}.
-You can use any of the pre-compiled binaries, or build it yourself from the
-source. We recommend version 1.13; users have reported difficulties with 
-version 1.14.  We have not yet tried version 1.15.
+You can use any of the pre-compiled binaries, or build it yourself
+from the source. We recommend either version 1.13 or version 1.18.  
+We have seen problems with version 1.14 through 1.17.  For releases of
+Jikes RVM before version 2.2.0, you must use jikes 1.13. 
 
 \item GNU tar is needed to extract the distribution tar file.  
 You can download this from
 \xlink{{\tt \gnuTarURL}} {\gnuTarURL}.
-We have experienced problems with the AIX\AIXTMFootnote tar program
+We have experienced problems with the AIX\AIXTMFootnote\ tar program
 truncating file names. 
 
 \item unzip. 
@@ -52,61 +53,18 @@ run the Jikes RVM on a Linux Intel\copyright environment, you will need
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
 \item The system has run in 386MB; we have not established a lower bound.
-\item the IBM Developer Kit (at least version 2.1.3).  You can
+\item a JDK.  We currently recommend the Blackdown VM, v1.3.1. You can
 download this from 
-\xlink{{\tt \LinuxJdkURL}} {\LinuxJdkURL}.  We did have problems on
-bleeding edge 2.4 kernels running on SMP machines with versions of the IBM
-Developer Kit built prior to May 2001.  We are currently using IBM
-build cx130-20010502.  We have seen problems using the IBM 1.3.1 JDK;
-avoid it until further notice.
-\item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
-\end{itemize}
-
-\subsubsection{Win32 and Cygwin/IA32}
-Currently this option for running the Jikes RVM is barely, if at all,
-functional. 
-It is not currently being maintained or tested. You are encouraged to 
-skip this section and don't even think about running the Jike RVM on
-Win32 with  
-cygwin.
-
-If you're still reading, you are probably an enterprising hacker that is
-interested in getting this configuration up an running.  More power to
-you! We'd like to hear your progress.
-
-In addition to the software mentioned above, to install, build, and
-run the Jikes RVM on a Win32/Cygwin Intel environment, you will need 
-\begin{itemize}
-\item an Intel Architecture 32 bit processor
-\item a Win32 operating system (we have only tried it on
-Microsoft\copyright\ Windows\copyright\ 2000).
-\item Cygwin. You can download this from 
-\xlink{{\tt \CygwinURL}} {\CygwinURL}. (We used dll version 1.1.8).
-\item The system has run in 256MB on Windows 2000; we have not established
-a lower bound.
-\item The IBM Developer Kit (at least version 2.1.3).  You can download this from
-\xlink{{\tt \WinJdkURL}} {\WinJdkURL}.
-\item {\tt ksh}.  One alternative is {\tt pdksh} from 
-\xlink{{\tt \pdkshURL}} {\pdkshURL}.
-\end{itemize}
-
-Some issues with this platform include:
-
-\begin{itemize}
-\item We haven't managed to successfully install a handler for hardware traps,
-so the first hardware exception (e.g., a {\tt NullPointerException}) will cause
-an ugly core dump.
-\item Spaces in directory names aren't handled by jconfigure and the
-other scripts.  Use cygwin's mount command to avoid them (in
-particular the config file assumes that
-C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
+\xlink{{\tt \BlackdownURL}} {\BlackdownURL}. 
+We have seen problems using the IBM 1.3.1 DK; avoid it until these problems
+can be resolved.
+\item {\tt ksh}. This must be installed in {\tt /bin/ksh}. If you
+don't already have a ksh, we recommend {\tt pdksh}.
 \end{itemize}
 
 \AIXPPCJikesTMFooter
 
 \JavaTMFooter
-
-\WindowsTMFooter
 
 \subsection{Installation Overview}
 
@@ -120,20 +78,18 @@ contents of this repository with CVS from the
 \item The Jikes RVM standard libraries. This is a jar file {\tt \LibTarFile}.
 
 \item The 
-\xlink{Classpath}{\classpathURL} jazzlib library ({\tt
-\jazzlibjarfile}), which 
-implements java.util.zip and java.util.jar. 
+\xlink{Classpath}{\classpathURL} libraries. 
 \end{itemize}
 
 Each item is distributed under a different license.  The licenses for
 the first two items are provided in Appendix~\ref{appendix:licenses}.  The GNU
-Classpath jazzlib license is available at
+Classpath license is available at
 \xlink{{\tt \classpathURL}}{\classpathURL}.
 
 The first and second items are available  from the Jikes RVM
 \xlink{download}{\RVMDownloadURL} page. The third item is available at
-\xlink{jazzlib}{\jazzlibURL} page.  
-You do not always need to explicitly download
+\xlink{{\tt \classpathURL}}{\classpathURL}.
+You do not always need to explicitly download the
 second and third items; the Jikes RVM build process will automatically
 check that these two items are present. If they are not present, and if
 the build process can confirm that you have viewed the appropriate license
@@ -198,13 +154,6 @@ standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 % zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-If you explicitly downloaded the jazzlib library, place it also in 
-{\tt \$RVM\_ROOT/support/lib}.  You must rename the jar file 
-to be called {\tt jazzlib.jar}.
-If you did not download the library,
-it will also be automatically retrieved when you try to build a Jikes RVM
-configuration. 
-
 \index{environment variables}
 \index{RVM\_ROOT}
 \index{RVM\_BUILD}
@@ -255,18 +204,10 @@ setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 \end{verbatim}
 
-For a Cygwin-Intel environment, the  exports
-would be replaced with the following:
-
-\begin{verbatim}
-setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
-setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
-\end{verbatim}
-
 These two variables point to the same file when the type of system  
 doing the build is the same as where  you are going 
 the execute the Jikes RVM. To cross build a system
-e.g., build on AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote for a
+e.g., build on AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote\ for a
 Linux/IA32 platform, see the section on Cross 
 Platform Building.
 
@@ -285,8 +226,8 @@ variables in this file will be picked up by the installation scripts.
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
 whether or not the platform will support SMP-builds of Jikes RVM. 
-For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_AIX, or
-RVM\_FOR\_CYGWIN to be 1.  For architecture define either
+For operating system, define one of RVM\_FOR\_LINUX or RVM\_FOR\_AIX
+to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for
@@ -301,12 +242,9 @@ segment register to access pthread-specific state.
 The second section in the configuration file is used to define how to
 find tools that Jikes RVM needs. You must set the following variables:
 \begin{description}
-\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
-\item {\tt HOST\_JAVA} the executable command for the JDK JVM
-\item {\tt HOST\_JAVAC} the {\tt javac} executable for the JDK  
-\item {\tt HOST\_JAR} the {\tt jar} executable for the JDK  
-\item {\tt HOST\_REPOSITORIES} the {\tt rt.jar} archive for the JDK  
-\item {\tt HOST\_TOOLS} the {\tt tools.jar} archive for the JDK  
+\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM. If you
+have a nonstandard JDK, you may have to define a number of variables
+that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
 \item {\tt JIKES} the Jikes\trademark compiler executable ({\tt jikes}).
 \item {\tt CC} how to invoke the C compiler.
@@ -315,8 +253,7 @@ find tools that Jikes RVM needs. You must set the following variables:
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
 The remaining variables in the config file are not required for basic
-Jikes RVM
-builds.
+Jikes RVM builds.
 
 Someday we should consider setting up an autoconf to automate this
 step.
@@ -324,28 +261,27 @@ step.
 \index{configurations}
 \index{jconfigure script}
 \item {\bf Choose configuration and populate your build directory.}
-
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
 
-For novice users performing application performance runs, two
-configurations are recommended.  (A discussion 
+For quick turnaround time while modifying Jikes RVM, you will usually
+want to use the baseline compiler to build the Jikes RVM bootimage.
+A typical configuration that builds very quickly (but performs poorly)
+is {\tt BaseBaseSemiSpace}: a non-adaptive system that uses the
+baseline compiler everywhere, with the semispace copying collector. 
+
+To obtain reasonable performance from Jikes RVM, you will need to use
+the optimizing compiler to build the bootimage.  This takes longer,
+but generates a Jikes RVM image with reasonable runtime performance.
+We recommend either the {\tt FullAdaptiveSemiSpace} or {\tt
+FastAdaptiveSemiSpace} images depending on whether or not you want
+VM assertion checking enabled. (A discussion 
 of Jikes RVM configurations appears in Section~\ref{configs}.)
 
-\begin{itemize}
-\item {\tt BaseBaseSemispace}: a non-adaptive system that uses the
-baseline compiler everywhere, with the semispace copying collector
-\item {\tt OptOptSemispace}: a non-adaptive system that uses the
-optimizing compiler everywhere, with the semispace copying collector
-\end{itemize}
-
-Depending on your purposes (See Section~\ref{ssec:choosinggc}.) you
-may want to choose another configuration, e.g.,
-\begin{itemize}
-\item {\tt OptOptMarkSweep}: a non-adaptive system that uses the
-optimizing  compiler everywhere, with the mark-sweep (noncopying) collector
-\end{itemize}
+Depending on your purposes you may want to choose another
+configuration that uses a different memory manager (See
+Section~\ref{ssec:choosinggc}.).
 
 Run the {\tt jconfigure} script to set up the {\tt \$RVM\_BUILD}
 directory for the configuration you desire.  This step creates
@@ -359,11 +295,11 @@ configuration desired:
 \end{verbatim}
 
 For example, to configure a build 
-directory for the {\tt OptOptSemispace} configuration, type
+directory for the {\tt OptOptSemiSpace} configuration, type
 the following command:
 
 \begin{verbatim}
-% jconfigure OptOptSemispace
+% jconfigure OptOptSemiSpace
 \end{verbatim}
 
 \index{jbuild script}
@@ -434,22 +370,24 @@ A garbage collector may have any of the following types:
 
 \begin{description}
 \item[NoGC] no garbage collection is performed
-\item[Semispace] a copying semi-space collector
+\item[SemiSpace] a copying semi-space collector
 \item[MarkSweep] a mark-and-sweep (non copying) collector
-\item[CopyGen] a copying generational collector with a
-fixed-size nursery
-\item[CopyGenVariable] a copying generational collector with a
-variable-size nursery
-\item[Hybrid] a hybrid generational collector, semi-space for the
-nursery and mark-and-sweep for the mature space
-\item[Concurrent] a concurrent reference counting collector
+\item[GenCopy] a classic copying generational collector with a copying
+  higher generation
+\item[GenMS] a copying generational collector with a non-copying
+  mark-and-sweep mature space
+\item[CopyMS] a hybrid non-generational collector with a copying space
+  (into which all allocation goes), and a non-copying space into which
+  survivors go
+\item[WatsonSemispace] the original ``watson'' copying semi-space collector 
+\item[WatsonMarkSweep] the original ``watson'' mark-and-sweep collector
 \end{description}
 
 For example, to specify a compiler with a baseline-compiled boot image
 that will 
 compile classes loaded at runtime using the optimizing compiler and that uses
 a non-generational semi-space copying garbage collector use the name 
-{\em BaseOptSemispace}.
+{\em BaseOptSemiSpace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
@@ -464,8 +402,7 @@ configuration where all assertion checking has been turned off.
 \end{itemize}
 A boot image with
 either of these modifications is likely to run faster than without
-(the opt compiler will be opt compiled),
-but take longer to build.  
+(the opt compiler will be opt compiled), but take longer to build.  
 
 \subsubsection{Adaptive Configurations} \label{adaptive-configs}
 \index{adaptive configurations}
@@ -506,7 +443,7 @@ and assertions are turned on), and the semi-space garbage collector is
 used, use the following command:
 
 \begin{verbatim}
-% jconfigure OptAdaptiveSemispace
+% jconfigure OptAdaptiveSemiSpace
 \end{verbatim}
 
 Section~\ref{section:running} describes how this image can be used in
@@ -535,7 +472,7 @@ than the target platform.  To cross build, simply set your
 RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
 be different files.
 
-For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote
+For example, to build a BaseBaseSemiSpace system for AIX\AIXTMFootnote\
 {\em on a Linux host}:
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
@@ -543,7 +480,7 @@ For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote
 % setenv PATH $RVM_ROOT/rvm/bin:$PATH
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
-% jconfigure BaseBaseSemispace
+% jconfigure BaseBaseSemiSpace
 % cd $RVM_BUILD
 % jbuild
 \end{verbatim}

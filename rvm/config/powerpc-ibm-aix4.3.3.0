@@ -22,6 +22,8 @@ export RVM_FOR_AIX=1
 # SMP support is always ok on AIX.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
+export BOOTIMAGE_LOAD_ADDRESS="0x30000000"
+
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 
@@ -69,6 +71,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 export AWK="/usr/bin/awk"
 export BASH="/bin/bash"
+export CVS="/usr/bin/cvs"
 export DIFF=/usr/bin/diff
 export FGREP="/usr/bin/fgrep"
 export FIND="/usr/bin/find"
@@ -79,4 +82,4 @@ export PS="/usr/bin/ps"
 export SED=/usr/bin/sed
 export WGET=wget
 export XARGS="/usr/bin/xargs"
-export UNZIP="/usr/contrib/bin/unzip"
+export UNZIP_CMD="/usr/contrib/bin/unzip"

@@ -1,0 +1,2 @@
+. $1/gc/NoGC
+. $1/compilers/FastAdaptive

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
 
 /**
  * Represents a branch target.
@@ -16,14 +17,16 @@ public final class OPT_BranchOperand extends OPT_Operand {
   /**
    * Target of this branch.
    */
-  OPT_Instruction target;
+  public OPT_Instruction target;
 
   /**
    * Construct a new branch operand with the given target.
+   * <STRONG> Precondition: </STRONG> targ must be a Label instruction.
    * 
    * @param targ target of branch
    */
-  OPT_BranchOperand(OPT_Instruction targ) {
+  public OPT_BranchOperand(OPT_Instruction targ) {
+    if (VM.VerifyAssertions) VM._assert(Label.conforms(targ));
     target = targ;
   }
 
@@ -32,7 +35,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    * 
    * @return a copy of this operand
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_BranchOperand(target);
   }
 
@@ -44,7 +47,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BranchOperand) &&
            (target == ((OPT_BranchOperand)op).target);
   }

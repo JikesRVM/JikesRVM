@@ -49,8 +49,11 @@ Eagerly compute method summaries for flow-insensitive field analysis
 SCALAR_REPLACE_AGGREGATES 1 true
 Perform scalar replacement of aggregates
 
-REORDER_CODE 1 true
+REORDER_CODE 0 true
 Reorder basic blocks for improved locality and branch prediction
+
+REORDER_CODE_PH 1 true
+Reorder basic blocks using Pettis and Hansen Algo2
 
 INLINE_NEW 1 true 
 Inline allocation of scalars and arrays
@@ -114,6 +117,9 @@ Perform global code placement
 VERBOSE_GCP -1 false verbose_gcp
 Perform noisy global code placement
 
+LICM_IGNORE_PEI -1 false licm_ignore_pei
+Asume PEIs do not throw or state is not observable
+
 VALUE_PROP_VERBOSE -1 false value_prop_verbose
 Perform noisy value propagation
 
@@ -168,6 +174,9 @@ Use loop depth to approximate edge counts
 FIXED_JTOC -1 VM.BuildForIA32
 Exploit knowledge that the value of JTOC is a constant?
 
+CODE_PATCH_NOP -1 false
+Should all patch point be (unsafely) eliminated (at initial HIR)?
+
 CW_REFERENCED_CLASSES -1 true
 Apply Class Writer to referenced classes
 
@@ -176,6 +185,12 @@ Leave guards in before BURS
 
 CW_STACK -1 true
 Process Stack to eliminate Loads/Stores
+
+##########
+# Options for feedback-directed optimizations
+#
+FREQ_FOCUS_EFFORT -1 false focusEffort
+Focus compilation effort based on frequency profile data
 
 ##########
 # Next, declare all the printing options
@@ -282,3 +297,11 @@ Enable debugging support for final assembly
 DEBUG_ABCD -1 false
 Enable debugging support for ABCD (Array Bound Check elimination on Demand)
 
+###########
+# Profiling options
+###########
+PRINT_MC_SIZE -1 false
+Report generated machine code size
+
+SKIP_UNKNOWN_MAGIC -1 false
+Skip generation of unknown magic calls

@@ -14,18 +14,23 @@ ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.dat \
 			   ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
 ADAPT_DAT_FILES         := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
 
+COMPILER_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/utility
+COMPILER_BOOLEAN_DAT_FILES := $(COMPILER_OPTION_DIR)/SharedBooleanOptions.dat
+COMPILER_VALUE_DAT_FILES   := $(COMPILER_OPTION_DIR)/SharedValueOptions.dat
+COMPILER_DAT_FILES         := $(COMPILER_BOOLEAN_DAT_FILES) $(COMPILER_VALUE_DAT_FILES)
+
 BASE_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
-BASE_BOOLEAN_DAT_FILES := $(BASE_OPTION_DIR)/SharedBooleanOptions.dat
-BASE_VALUE_DAT_FILES   := $(BASE_OPTION_DIR)/SharedValueOptions.dat
+BASE_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) $(BASE_OPTION_DIR)/BooleanOptions.dat
+BASE_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) $(BASE_OPTION_DIR)/ValueOptions.dat
 BASE_DAT_FILES         := $(BASE_BOOLEAN_DAT_FILES) $(BASE_VALUE_DAT_FILES)
 
 OPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
-OPT_BOOLEAN_DAT_FILES := ${OPT_OPTION_DIR}/BooleanOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat \
-                         ${BASE_OPTION_DIR}/SharedBooleanOptions.dat
-OPT_VALUE_DAT_FILES   := ${OPT_OPTION_DIR}/ValueOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat \
-                         ${BASE_OPTION_DIR}/SharedValueOptions.dat 
+OPT_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) \
+			 ${OPT_OPTION_DIR}/BooleanOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
+OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
+			 ${OPT_OPTION_DIR}/ValueOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 include $(config_file)
@@ -38,21 +43,28 @@ PS2GIF ?= ps2gif
 
 INPUT_FILES = 	userguide.tex \
 		ack.tex \
+		aosdetails.tex \
+		basedetails.tex \
 		cmdline.tex \
 		codingstyle.tex \
+		componentOverview.tex \
+		debugging.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
-		jdp.tex \
+		JMTk.tex \
+		jni.tex \
+		libraries.tex \
 		mmdetails.tex \
+		mmwatson.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \
+		runEclipse.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \
-		vmdetails.tex \
-		aosdetails.tex
+		vmdetails.tex
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex
 
@@ -66,7 +78,7 @@ TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguid
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
 # do not add more white spaces to the following line
-NAV_GIFS=blank.gif next.gif previous.gif up.gif
+NAV_GIFS=blank.gif next.gif previous.gif up.gif right.gif left.gif
 
 HTML_DIR = HTML
 

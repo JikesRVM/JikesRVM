@@ -3,16 +3,22 @@
  */
 //$Id$
 
-/**
-  * Extend the generic OPT_ProfileDirectedInlineOracle
-  * with a few minor hooks back into the adaptive system.
-  *
-  * @author Stephen Fink
-  * @author Dave Grove
-  */
-final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
+package com.ibm.JikesRVM.opt;
 
-  OPT_AdaptiveInlineOracle(OPT_InlinePlan plan) {
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.adaptive.VM_AdaptiveInlining;
+
+/**
+ * Extend the generic OPT_ProfileDirectedInlineOracle
+ * with a few minor hooks back into the adaptive system.
+ *
+ * @author Stephen Fink
+ * @author Dave Grove
+ */
+
+public final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
+
+  public OPT_AdaptiveInlineOracle(OPT_InlinePlan plan) {
     super(plan);
   }
 
@@ -24,5 +30,4 @@ final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
   protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
     VM_AdaptiveInlining.recordRefusalToInlineHotEdge(cm.getId(), caller, bcX, callee);
   }
-  
 }

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Compiler-specific information associated with a method's machine 
@@ -9,11 +10,15 @@
  *
  * @author Bowen Alpern
  */
-final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_BaselineConstants {
+final public class VM_BaselineCompiledMethod extends VM_CompiledMethod 
+  implements VM_BaselineConstants {
 
   // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
   // This is wasting a lot of space!
   private static final boolean saveBytecodeMap = true;
+  
+  private static final int HAS_COUNTERS = 0x08000000;
+  private static final int LOCK_OFFSET  = 0x00000fff;
 
   /**
    * Baseline exception deliverer object
@@ -48,19 +53,19 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   private int[] localEndInstructionOffsets;             // ...i-th table entry is in scope (inclusive)
 
 
-  VM_BaselineCompiledMethod(int id, VM_Method m) {
+  public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
   }
 
-  final int getCompilerType () throws VM_PragmaUninterruptible {
+  public final int getCompilerType () throws VM_PragmaUninterruptible {
     return BASELINE;
   }
 
-  final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
+  public final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
     return exceptionDeliverer;
   }
 
-  final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -68,7 +73,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
   }
 
-  final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     int bytecodeIndex = -1;
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {
@@ -84,7 +89,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     dynamicLink.set(method.getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
-  final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
+  public final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
     if (lineInstructionOffsets == null)
       return 0;                // method has no line information
     // since "instructionOffset" points just beyond the desired instruction,
@@ -117,7 +122,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
    * @returns the bytecode index for the machine instruction, -1 if
    *		not available or not found.
    */
-  final int findBytecodeIndexForInstruction (int instructionIndex) {
+  public final int findBytecodeIndexForInstruction (int instructionIndex) {
     if (_bytecodeMap == null)
       return -1;               // method has no bytecode information
     // since "instructionIndex" points just beyond the desired instruction,
@@ -152,7 +157,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
 
   // Find (earliest) machine instruction corresponding one of this method's source line numbers.
   //
-  final int findInstructionForLineNumber (int lineNumber) {
+  public final int findInstructionForLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
       return -1;               // method has no line information
     int[] lineNumbers = method.getLineNumberMap().lineNumbers;
@@ -166,7 +171,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // Find (earliest) machine instruction corresponding to the next valid source code line
   // following this method's source line numbers.
   // Return -1 if there is no more valid source code in this method
-  final int findInstructionForNextLineNumber (int lineNumber) {
+  public final int findInstructionForNextLineNumber (int lineNumber) {
     if (lineInstructionOffsets == null)
       return -1;               // method has no line information
     int[] lineNumbers = method.getLineNumberMap().lineNumbers;
@@ -203,7 +208,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  final void set(VM_StackBrowser browser, int instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     browser.setMethod(method);
     browser.setCompiledMethod(this);
     browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH));
@@ -219,14 +224,14 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  final boolean up(VM_StackBrowser browser) {
+  public final boolean up(VM_StackBrowser browser) {
       return false;
   }
 
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintStream to print the stack trace to.
-  final void printStackTrace (int instructionOffset, java.io.PrintStream out) {
+  public final void printStackTrace (int instructionOffset, java.io.PrintStream out) {
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset)
@@ -241,7 +246,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintWriter to print the stack trace to.
-  final void printStackTrace (int instructionOffset, java.io.PrintWriter out) {
+  public final void printStackTrace (int instructionOffset, java.io.PrintWriter out) {
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset)
@@ -267,19 +272,28 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // not own the lock.  Used by deliverException to determine whether the lock
   // needs to be released.  Note: for this scheme to work, VM_Lock must not
   // allow a yield after it has been obtained.
-  void setLockAcquisitionOffset(int off) {
-    bitField1 |= (off & AVAIL_BITS);
+  public void setLockAcquisitionOffset(int off) {
+    if (VM.VerifyAssertions) VM._assert((off & LOCK_OFFSET) == off);
+    bitField1 |= (off & LOCK_OFFSET);
   }
 
-  int getLockAcquisitionOffset() {
-    return bitField1 & AVAIL_BITS;
+  public int getLockAcquisitionOffset() {
+    return bitField1 & LOCK_OFFSET;
+  }
+
+  void setHasCounterArray() {
+    bitField1 |= HAS_COUNTERS;
+  }
+
+  boolean hasCounterArray() {
+    return (bitField1 & HAS_COUNTERS) != 0;
   }
 
   // Taken: method that was compiled
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
-  void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
+  public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
 			 int[] bytecodeMap, int numInstructions) {
     if (saveBytecodeMap)
       _bytecodeMap = bytecodeMap;
@@ -324,7 +338,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   public int size() {
     VM_Array intArray = VM_Array.arrayOfIntType;
     int size = TYPE.getInstanceSize();

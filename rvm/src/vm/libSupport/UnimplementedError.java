@@ -3,8 +3,9 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM_UnimplementedError;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 
 /**
  * This class provides an entrypoint and type used in the

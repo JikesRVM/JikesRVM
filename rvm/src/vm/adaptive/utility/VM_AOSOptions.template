@@ -1,12 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
+
 /**
  * Class to handle command-line arguments and options for the 
  * adaptive system.
  * <p>
  * Note: This file is mechanically generated from VM_AOSOptions.template
- *       and MasterOptionsTemplate.template
+ *       and MasterOptions.template
  * <p>
  * Note: Boolean options are defined in BOOLEAN_DAT_FILES
  *       All other options are defined in VALUE_DAT_FILES
@@ -14,22 +19,21 @@
  *
  * @author Dave Grove
  **/
-class VM_AOSOptions implements Cloneable {
+public class VM_AOSExternalOptions implements Cloneable {
 
   private String printToStringHeader() {
     return "Current value of options:\n";
   }
 
 $$$$ LET USE_OPT_LEVELS "NO"
-// BEGIN CODE GENERATED FROM MasterOptionsTemplate.template
-    $$$$ INCLUDE ../../compilers/optimizing/driver/MasterOptionsTemplate.template
-// END CODE GENERATED FROM MasterOptionsTemplate.template
+// BEGIN CODE GENERATED FROM MasterOptions.template
+    $$$$ INCLUDE ../../compilers/utility/MasterOptions.template
+// END CODE GENERATED FROM MasterOptions.template
 $$$$ END LET USE_OPT_LEVELS
 
   private boolean instanceProcessAsOption(String arg) {
     return false;
   }    
-
 
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");

@@ -3,6 +3,9 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader. <p>
  * Since we never do a GC, we don't need any header bits/bytes.

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * Use this exception when the opt compiler attempts to 
@@ -10,14 +11,14 @@
  *
  * @author Dave Grove
  */
-class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
+public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
 
   /**
    * A very few magics, we have no intention of ever implementing 
    * in the opt compiler.  Supress warning messages for them
    * to avoid confusing users with "expected" error messages
    */
-  boolean isExpected = false;
+  public boolean isExpected = false;
 
   private OPT_MagicNotImplementedException (String s, boolean isExpected) {
     super(s);
@@ -31,7 +32,7 @@ class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedExcept
    * @param  String s
    * @return the newly created exception object
    */
-  static OPT_MagicNotImplementedException EXPECTED(String s) {
+  public static OPT_MagicNotImplementedException EXPECTED(String s) {
     return new OPT_MagicNotImplementedException(s, true);
   }
     
@@ -42,10 +43,9 @@ class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedExcept
    * @param  String s
    * @return the newly created exception object
    */
-  static OPT_MagicNotImplementedException UNEXPECTED(String s) {
+  public static OPT_MagicNotImplementedException UNEXPECTED(String s) {
     return new OPT_MagicNotImplementedException(s, false);
   }
-    
 }
 
 

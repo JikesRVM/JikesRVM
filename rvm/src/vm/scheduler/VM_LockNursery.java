@@ -1,7 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  *   VM_LockNursery provides RVM support for synchronization on objects that
@@ -113,8 +116,8 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
       b.lock.lockedObject = o;
       // Want to say: buckets[h] = b but the array store check is a potential thread switch point!
       // WARNING: Because we are using magic here, we are going to miss a write barrier update in
-      //          a generational GC so assert that the collector isn't using one!!!
-      if (VM.VerifyAssertions) VM.assert(!VM_Collector.NEEDS_WRITE_BARRIER);
+      //          a generational GC so._assert that the collector isn't using one!!!
+      if (VM.VerifyAssertions) VM._assert(!VM_Interface.NEEDS_WRITE_BARRIER);
       VM_Magic.setObjectAtOffset(buckets, h<<2, b); // TODO for 64 bits -- use constant instead of 2!
       myLock.unlock();
       return b.lock;
@@ -139,7 +142,7 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
     return b;
   }
 
-  static void notifyAppRunStart(int value) {
+  static void notifyAppRunStart(String app, int value) {
     if (!STATS) return;
     lockNumber = 0;
     lockOperations = 0;

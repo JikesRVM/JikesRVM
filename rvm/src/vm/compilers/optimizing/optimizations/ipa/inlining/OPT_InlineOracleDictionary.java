@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
 import  java.io.*;
@@ -12,7 +14,7 @@ import  java.io.*;
  *
  * @author Stephen Fink
  */
-class OPT_InlineOracleDictionary {
+public class OPT_InlineOracleDictionary {
 
   /** 
    * Returns the OPT_InlineOracle associated with a VM_Method.
@@ -42,7 +44,7 @@ class OPT_InlineOracleDictionary {
    * <em> all </em> methods.
    * @param oracle the default oracle
    */
-  static void registerDefault (OPT_InlineOracle oracle) {
+  public static void registerDefault (OPT_InlineOracle oracle) {
     defaultOracle = oracle;
   }
 

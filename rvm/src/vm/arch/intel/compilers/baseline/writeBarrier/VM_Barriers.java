@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Class called from baseline compiler to generate architecture specific
@@ -66,7 +67,7 @@ class VM_Barriers implements VM_BaselineConstants {
    * @param params number of parameter words (including "this" if any).
    */
   private final static void genParameterRegisterLoad (VM_Assembler asm, int params){
-    if (VM.VerifyAssertions) VM.assert(0 < params);
+    if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, (params-1) << LG_WORDSIZE);
     }

@@ -3,6 +3,7 @@
  */
 //OPT_DotNode.java
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_DotNode provides the minimum set of routines for printing a graph
@@ -63,7 +64,7 @@ public interface OPT_DotNode extends OPT_VisNode {
     /**
      * Returns the color of the node.
      * Should be one of color constants or an RGB color.
-     * @see OPT_DotUtils.RGB()
+     * @see OPT_DotUtils#RGB
      * @return node color
      */
     public String getColor() { return null; }
@@ -157,7 +158,7 @@ public interface OPT_DotNode extends OPT_VisNode {
     /**
      * Returns the line style of the node.
      * Should be one of style constants or a combination.
-     * @see OPT_DotUtils.combine()
+     * @see OPT_DotUtils#combine
      * @return node line style
      */
     public String getStyle() { return null; }

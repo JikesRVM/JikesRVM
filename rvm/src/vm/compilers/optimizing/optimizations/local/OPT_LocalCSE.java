@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
-import instructionFormats.*;
 
 /**
  * Perform local common-subexpression elimination for a factored basic
@@ -31,18 +33,22 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     this.isLIR = isLIR;
   }
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     // only perform when the following options are set.
     return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Local CSE";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent BBs");
   }
+
   static final boolean debug = false;
 
   /**
@@ -54,11 +60,15 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     // iterate over each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 
         bb = bb.nextBasicBlockInCodeOrder()) {
-      if (!bb.isEmpty())
-        optimizeBasicBlock(ir, bb, ir.options);
+      if (bb.isEmpty()) continue;
+      container.counter2++;
+      if (bb.getInfrequent()) {
+	container.counter1++;
+	if (ir.options.FREQ_FOCUS_EFFORT) continue;
+      }
+      optimizeBasicBlock(ir, bb, ir.options);
     }
-    if (debug)
-      OPT_Compiler.printInstructions(ir, "CSE");
+    if (debug) OPT_Compiler.printInstructions(ir, "CSE");
   }
 
   /**

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * IR level independent driver for 
@@ -25,16 +27,6 @@ public abstract class OPT_BranchOptimizationDriver
    */
   private int _level;
 
-  /**
-   * Slightly restrict the branch optimizations to ensure that
-   * conditional branches are not duplicated.  This is necessary only
-   * for the very first branch optimizations performed after BC2IR.
-   * If conditional branches are duplicated, it creates multiple
-   * branches with the same bytecode offset which interferes with the 
-   * mapping used for edge count profiling.
-   */
-  protected boolean _restrictCondBranchOpts = false;
-
   protected OPT_BranchOptimizationDriver() {}
 
   /** 
@@ -45,35 +37,23 @@ public abstract class OPT_BranchOptimizationDriver
     _level = level;
   }
 
-  /** 
-   * @param level the minimum optimization level at which the branch 
-   *              optimizations should be performed.
-   * @param restrictCondBranchOpts Should optimization on conditional
-   *              branches be restricted 
-   */
-  OPT_BranchOptimizationDriver(int level,boolean restrictCondBranchOpts) {
-    this(level);
-    _restrictCondBranchOpts = restrictCondBranchOpts;
-  }
-
-  
   /** Interface */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return  options.getOptLevel() >= _level;
   }
 
-  final String getName() {
+  public final String getName() {
     return  "Branch Optimizations";
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   } 
 
   /**
    * This phase contains no per-compilation instance fields.
    */
-  final OPT_CompilerPhase newExecution(OPT_IR ir) {
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) {
     return  this;
   }
 
@@ -96,7 +76,7 @@ public abstract class OPT_BranchOptimizationDriver
     boolean didSomething = false;
     boolean didSomethingThisTime = true;
     while (didSomethingThisTime) {
-      applyPeepholeBranchOpts(ir);
+      didSomething |= applyPeepholeBranchOpts(ir);
       didSomethingThisTime = removeUnreachableCode(ir);
       didSomething |= didSomethingThisTime;
     }
@@ -116,7 +96,8 @@ public abstract class OPT_BranchOptimizationDriver
    *
    * @param ir the IR to optimize
    */
-  protected void applyPeepholeBranchOpts(OPT_IR ir) {
+  protected boolean applyPeepholeBranchOpts(OPT_IR ir) {
+    boolean didSomething = false;
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
 	 e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
@@ -125,12 +106,14 @@ public abstract class OPT_BranchOptimizationDriver
 	     ie.hasMoreElements();) {
 	  OPT_Instruction s = ie.next();
 	  if (optimizeBranchInstruction(ir, s, bb)) {
+	    didSomething = true;
 	    // hack: we may have modified the instructions; start over
 	    ie = bb.enumerateBranchInstructions();
 	  }
 	}
       }
     }
+    return didSomething;
   }
 
   /**
@@ -237,22 +220,5 @@ public abstract class OPT_BranchOptimizationDriver
       }
     }
     return  s;
-  }
-
-
-  /**
-   * Get the next basic block if all conditional branches in bb are
-   * <em> not </em> taken
-   *
-   * @param bb the basic block in question
-   * @return basic block
-   */
-  protected final OPT_BasicBlock getNotTakenNextBlock(OPT_BasicBlock bb) {
-    OPT_Instruction last = bb.lastRealInstruction();
-    if (Goto.conforms(last) || MIR_Branch.conforms(last)) {
-      return  last.getBranchTarget();
-    } else {
-      return  bb.nextBasicBlockInCodeOrder();
-    }
   }
 }

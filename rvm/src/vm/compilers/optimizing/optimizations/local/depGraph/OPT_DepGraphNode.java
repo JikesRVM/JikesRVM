@@ -2,13 +2,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
  * @author Harini Srinivasan
  * @author Igor Pechtchanski
  */
-final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode 
+public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode 
   implements OPT_DepGraphConstants {
 
   /**
@@ -46,8 +49,8 @@ final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
    * @return node descriptor
    * @see OPT_VCGNode#getVCGDescriptor
    */
-  public NodeDesc getVCGDescriptor() {
-    return new NodeDesc() {
+  public OPT_VCGNode.NodeDesc getVCGDescriptor() {
+    return new OPT_VCGNode.NodeDesc() {
       public String getLabel() { return _instr.toString(); }
     };
   }

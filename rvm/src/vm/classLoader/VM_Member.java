@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
+public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
   //-----------//
   // Interface //
   //-----------//
@@ -57,6 +58,15 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    */
   public int hashCode() { return dictionaryId; }
 
+  /**
+   * Get the triplet that is the dictionary key for this VM_Member
+   */
+  public final VM_Triplet getDictionaryKey() {
+    return new VM_Triplet(getDeclaringClass().getDescriptor(),
+			  getName(),
+			  getDescriptor());
+  }
+
 
   //---------------------------------------------------------------------//
   //                           Section 1.                                //
@@ -79,8 +89,8 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * Usable from classes outside this package?
    */ 
   public final boolean isPublic() {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
@@ -88,8 +98,8 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * Usable only from this class?
    */ 
   public final boolean isPrivate() { 
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PRIVATE) != 0; 
   }
    
@@ -97,8 +107,8 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * Usable from subclasses?
    */ 
   public final boolean isProtected() { 
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PROTECTED) != 0; 
   } 
 
@@ -137,7 +147,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
       // and have had their static initializers run by the boot image writer.
       //
       if (!thisClass.isResolved()) VM.sysWrite("unresolved: \"" + this + "\" referenced from \"" + that + "\"\n");
-      if (VM.VerifyAssertions) VM.assert(thisClass.isResolved());
+      if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
       return false;
     }
 
@@ -174,7 +184,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * @see VM_Class#getLiteralOffset
    * to obtain offset of constant from start of jtoc
    */ 
-  abstract int getOffset() throws VM_PragmaUninterruptible ;
+  public abstract int getOffset() throws VM_PragmaUninterruptible ;
    
   //----------------//
   // Implementation //
@@ -182,11 +192,11 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
 
   protected final static int UNINITIALIZED_OFFSET = -1;
 
-  protected VM_Class declaringClass;
-  protected VM_Atom  name;
-  protected VM_Atom  descriptor;
+  protected final VM_Class declaringClass;
+  protected final VM_Atom  name;
+  protected final VM_Atom  descriptor;
   protected int      modifiers;
-  protected int      dictionaryId;
+  protected final int      dictionaryId;
 
   /**
    * To guarantee uniqueness, only the VM_ClassLoader class may construct 
@@ -194,7 +204,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * All VM_Member creation should be performed by calling 
    * "VM_ClassLoader.findOrCreate" methods.
    */ 
-  protected VM_Member() { }
+  protected VM_Member() { this(null, null, null, -1); }
 
   protected VM_Member(VM_Class declaringClass, VM_Atom name, 
 		      VM_Atom descriptor, int dictionaryId) {
@@ -206,12 +216,8 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    
   /**
    * Access the member's modifier flags.
-   * @return 32 bits of modifier flags exactly like they come out of 
-   * the class file.
-   * @author John J. Barton
-   * @date 5/98
    */
-  public final int getModifiers() {
+  public int getModifiers() {
     return modifiers;
   }
 

@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * VM_Instrumentation.java
@@ -13,7 +15,7 @@
  *
 */
 
-final class VM_Instrumentation
+public final class VM_Instrumentation
 {
 
   /**
@@ -129,7 +131,7 @@ final class VM_Instrumentation
   /**
    * Is it currently O.K. to compile a method and insert instrumentation?
    */
-  static boolean instrumentationEnabled() {
+  public static boolean instrumentationEnabled() {
     return instrumentationEnabled;
   }
   static private boolean instrumentationEnabled=true;

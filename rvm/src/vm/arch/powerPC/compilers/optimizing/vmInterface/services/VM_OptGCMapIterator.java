@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 /**
  * An instance of this class provides iteration across the references 
@@ -13,11 +15,11 @@
  *
  * @author Michael Hind
  */
-final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
+public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
   private final static boolean DEBUG = false;
 
-  VM_OptGCMapIterator(int[] registerLocations) {
+  public VM_OptGCMapIterator(int[] registerLocations) {
     super(registerLocations);
   }
 

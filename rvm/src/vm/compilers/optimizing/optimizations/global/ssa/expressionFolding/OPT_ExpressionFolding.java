@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -66,7 +68,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
         if (VM.VerifyAssertions) { 
           if (!val1.isRegister()) 
             VM.sysWrite("Expression folding trouble AAA" + s);
-          VM.assert(val1.isRegister());
+          VM._assert(val1.isRegister());
         }
         if (candidates.contains(val1.asRegister().register)) {
           OPT_Instruction def = val1.asRegister().register.getFirstDef();
@@ -74,13 +76,13 @@ class OPT_ExpressionFolding implements OPT_Operators {
           if (VM.VerifyAssertions) {
             if (!def1.isRegister()) 
               VM.sysWrite("Expression folding trouble BBB" + def);
-            VM.assert(def1.isRegister());
+            VM._assert(def1.isRegister());
           }
           OPT_Operand def2 = Binary.getVal2(def);
           if (VM.VerifyAssertions) {
             if (!def2.isConstant()) 
               VM.sysWrite("Expression folding trouble CCC" + def);
-            VM.assert(def2.isConstant());
+            VM._assert(def2.isConstant());
           }
 
           OPT_Instruction newS = transform(s,def);
@@ -130,6 +132,17 @@ class OPT_ExpressionFolding implements OPT_Operators {
       return transformForLong(s,def);
     }
   }
+
+  private static int getIntValue(OPT_Operand op) {
+    if (op instanceof OPT_NullConstantOperand) 
+      return 0;
+    if (op instanceof OPT_IntConstantOperand)
+      return op.asIntConstant().value;
+    if (op instanceof OPT_AddressConstantOperand)
+      return op.asAddressConstant().value.toInt();  // not portable
+    throw new OPT_OptimizingCompilerException("Cannot getIntValue from this operand " + op);
+  }
+
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
@@ -140,12 +153,12 @@ class OPT_ExpressionFolding implements OPT_Operators {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
     OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
-    int c = Binary.getVal2(s).asIntConstant().value;
+    int c = getIntValue(Binary.getVal2(s));
     if (s.operator == INT_SUB) c = -c;
 
     // A = B + d
     OPT_RegisterOperand B = Binary.getVal1(def).asRegister();
-    int d = Binary.getVal2(def).asIntConstant().value;
+    int d = getIntValue(Binary.getVal2(def));
     if (def.operator == INT_SUB) d = -d;
 
     // rewrite so y = B + (c+d)  

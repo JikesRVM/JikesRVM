@@ -198,3 +198,8 @@ MIR_FSave
 "U Destination OPT_Operand"
 
 
+MIR_RDTSC
+2 0 0
+"D Dest1 OPT_RegisterOperand" "D Dest2 OPT_RegisterOperand"
+
+

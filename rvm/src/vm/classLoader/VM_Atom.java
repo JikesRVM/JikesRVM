@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /** 
  * A utf8-encoded byte string.
@@ -88,6 +89,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class descriptor - something like "Ljava/lang/Object;"
    */ 
   public final VM_Atom descriptorFromClassName() {
+    if (val[0] == '[') return this;
     byte sig[] = new byte[1 + val.length + 1];
     sig[0] = (byte)'L';
     for (int i = 0, n = val.length; i < n; ++i)
@@ -101,8 +103,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class name       - something like "java.lang.String"
    */ 
-  final String classNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM.assert(val[0] == 'L'); // !!TODO: should we also handle "array" type descriptors?
+  public final String classNameFromDescriptor() {
+    if (VM.VerifyAssertions) VM._assert(val[0] == 'L'); // !!TODO: should we also handle "array" type descriptors?
     // return new String(val,    1, val.length - 2).replace('/','.');  // preferred (unicode)
     return new String(val, 0, 1, val.length - 2).replace('/','.');  // deprecated (ascii)
   }
@@ -112,8 +114,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class file name  - something like "java/lang/String.class"
    */ 
-  final String classFileNameFromDescriptor() {
-    if (VM.VerifyAssertions && val[0] != 'L') VM.assert(false, toString());
+  public final String classFileNameFromDescriptor() {
+    if (VM.VerifyAssertions && val[0] != 'L') VM._assert(false, toString());
     // return new String(val,    1, val.length - 2) + ".class"; // preferred (unicode)
     return new String(val, 0, 1, val.length - 2) + ".class"; // deprecated (ascii)
   }
@@ -163,7 +165,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return type description
    */
   final VM_Type parseForReturnType(ClassLoader classloader) {
-    if (VM.VerifyAssertions) VM.assert(val[0] == '(');
+    if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
     int i = 0;
     while (val[i++] != ')');
@@ -180,7 +182,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
       case CharTypeCode:    return VM_Type.CharType;
       case ClassTypeCode:   // fall through
       case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, i, val.length - i), classloader);
-      default:              if (VM.VerifyAssertions) VM.assert(NOT_REACHED); return null;
+      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED); return null;
       }
   }
       
@@ -190,8 +192,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
-    if (VM.VerifyAssertions) VM.assert(val[0] == '(');
+  public final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
+    if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
     VM_TypeVector sigs = new VM_TypeVector();
     for (int i = 1;;)
@@ -222,7 +224,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 	case (byte)')': // end of parameter list
 	  return sigs.finish();
             
-	default: if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	default: if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	}
   }
 
@@ -262,7 +264,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return dimensionality - something like "1" or "2"
    */ 
   final int parseForArrayDimensionality() {
-    if (VM.VerifyAssertions) VM.assert(val[0] == '[');
+    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     for (int i = 0; ; ++i)
       if (val[i] != '[')
 	return i;
@@ -275,7 +277,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * The type code will be one of the constants appearing in the table above.
    */ 
   final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(val[0] == '[');
+    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return val[1];
   }
 
@@ -286,7 +288,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return array element descriptor - something like "I"
    */
   final VM_Atom parseForArrayElementDescriptor() {
-    if (VM.VerifyAssertions) VM.assert(val[0] == '[');
+    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return findOrCreateAtom(val, 1, val.length - 1);
   }
 
@@ -307,7 +309,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * Access internal representation.
    * (Note: this is intended for the debugger only)
    */ 
-  final byte[] getBytes() {
+  public final byte[] getBytes() {
     return val;
   }
 

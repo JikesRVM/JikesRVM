@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Keep a log of interesting virtual machine activity.
@@ -139,6 +140,7 @@ public class VM_EventLogger implements VM_Uninterruptible {
                                                         // run on native "purple" processors 
    public static final int DEAD_VP_QUEUE   =  13; // global queue for dead VPs i.e. waiting for new callToNatives
    public static final int FINALIZER_QUEUE =  14; // global queue for FinalizerThread when idle
+   public static final int PROCESS_WAIT_QUEUE=15; // per-processor queue for threads waiting for processes to die
 
    private static String[] eventDataNames = {
                                             "ENTERING_QUEUE    ",
@@ -155,6 +157,8 @@ public class VM_EventLogger implements VM_Uninterruptible {
                                             "ATTACHTHREAD_QUEUE",
 					    "NATIVE_COLLECTOR_QUEUE",
 					    "DEAD_VP_QUEUE",
+					    "FINALIZER_QUEUE",
+					    "PROCESS_WAIT_QUEUE"
                                             };
    //-----------//
    // interface //
@@ -332,7 +336,7 @@ public class VM_EventLogger implements VM_Uninterruptible {
          }
       else
          { // end of event
-         if (VM.VerifyAssertions) VM.assert(eventIndex > 0 && eventLogger.eventId[eventIndex - 1] == NETWORK_SELECT);
+         if (VM.VerifyAssertions) VM._assert(eventIndex > 0 && eventLogger.eventId[eventIndex - 1] == NETWORK_SELECT);
          eventIndex -= 1;
          eventLogger.eventData1[eventIndex] = nready; // number of sockets ready
          eventLogger.eventData2[eventIndex] += 1;     // number of event repetitions

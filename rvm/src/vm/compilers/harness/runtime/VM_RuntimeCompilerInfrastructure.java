@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * A place to put code common to all runtime compilers.
@@ -33,21 +34,20 @@
  * @author Dave Grove
  * @author Mike Hind
  */
-
-class VM_RuntimeCompilerInfrastructure
-  implements VM_Constants, VM_Callbacks.ExitMonitor
-{
+public class VM_RuntimeCompilerInfrastructure
+  implements VM_Constants, VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
-  public static final byte BASELINE_COMPILER = 0;
+  public static final byte JNI_COMPILER      = 0;
+  public static final byte BASELINE_COMPILER = 1;
   public static final byte OPT_COMPILER      = 2;
 
   // Data accumulators
-  private static final String name[]         = {"Base\t","\t","Opt\t"};   // Output names
-  private static int total_methods[]         = {0,0,0};                        // (1)
-  private static double total_time[]         = {0.0,0.0,0.0};                  // (2)
-  private static int total_bcodeLen[]        = {0,0,0};                        // (3)
-  private static int total_mcodeLen[]        = {0,0,0};                        // (4)
+  private static final String name[]         = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int total_methods[]         = {0,0,0};                // (1)
+  private static double total_time[]         = {0.0, 0.0,0.0};         // (2)
+  private static int total_bcodeLen[]        = {0, 0,0};               // (3)
+  private static int total_mcodeLen[]        = {0, 0,0};               // (4)
 
   /**
    * To be called when the VM is about to exit.
@@ -57,33 +57,52 @@ class VM_RuntimeCompilerInfrastructure
     report(true);
   }
 
-  public static void record(byte Compiler, VM_Method m, VM_CompiledMethod cm, Timer timer) {
-
-    // we don't count native methods.  They don't have any bytecodes
-    if (timer.validTiming() && !m.isNative()) {
-      total_methods[Compiler]++;
-      total_bcodeLen[Compiler] += m.getBytecodes().length;
-      total_mcodeLen[Compiler] += cm.getInstructions().length;
+  /**
+   * This method records the time and sizes (bytecode and machine code) for
+   * a compilation
+   * @param compiler the compiler used
+   * @param method the resulting VM_Method
+   * @param compiledMethod the resulting compiled method
+   * @param timer the timer hold the time used for compilation
+   */
+  public static void record(byte compiler, VM_Method method, 
+			    VM_CompiledMethod compiledMethod) {
+    
+    if (method.isNative()) {
+      total_methods[compiler]++;
+      total_bcodeLen[compiler] += 1; // lie!
+      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
       if (VM.MeasureCompilation) {
-	total_time[Compiler] += timer.elapsedTime();
+	total_time[compiler] += compiledMethod.getCompilationTime();
+      }
+    } else {
+      total_methods[compiler]++;
+      total_bcodeLen[compiler] += method.getBytecodes().length;
+      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+      if (VM.MeasureCompilation) {
+	total_time[compiler] += compiledMethod.getCompilationTime();
       }
     }
   }
 
+  /**
+   * This method produces a summary report of compilation activities
+   * @param explain Explains the metrics used in the report
+   */
   public static void report (boolean explain) { 
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
-    for (int i=0; i<3; i++) {
+    for (int i=JNI_COMPILER; i<=OPT_COMPILER; i++) {
       if (total_methods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods
 	VM.sysWrite(total_methods[i], false);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite(VM_Time.toMilliSecs(total_time[i]), false);
+	VM.sysWrite((int)total_time[i], false);
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
-	printRatio(total_bcodeLen[i], VM_Time.toMilliSecs(total_time[i]), 2);
+	printRatio(total_bcodeLen[i], (int)total_time[i], 2);
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
 	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, total_bcodeLen[i], 2);
@@ -110,18 +129,28 @@ class VM_RuntimeCompilerInfrastructure
   }
    
 
-  // TODO: Move this somewhere else (general profiling utility file).
-  // 
-  // NOTE: Printing a double or float requires a fair amount of work and furthermore
-  // may result in class loading and/or allocation.  We could call Math.round, but 
-  // that might also cause classloading, so instead we do something fairly simple
-  // but slow and ugly that more or less works in most cases.
-  public static void printRatio(int numerator, int denomenator, int places) {
-    if (denomenator == 0) return;
+  /**
+   * Prints the ratio of first two parameters using the number of digits
+   * specified by the 3rd parameter.
+
+   * NOTE: Printing a double or float requires a fair amount of work and
+   * furthermore may result in class loading and/or allocation.  We could
+   * call Math.round, but that might also cause classloading, so instead
+   * we do something fairly simple, but slow and ugly that more or less
+   * works in most cases.
+   *
+   * TODO: Move this somewhere else (general profiling utility file).
+   *
+   * @param numerator the numerator
+   * @param denominator the denominator
+   * @param places the number of decimal places to be used in the result
+   */
+  public static void printRatio(int numerator, int denominator, int places) {
+    if (denominator == 0) return;
     int divide = 10;
     for (int i = 0; i<places; i++)
       divide = divide*10;
-    float value = ((float)numerator)/((float)denomenator) + (5.0f/(float)divide); //Add in fudge to get rounding
+    float value = ((float)numerator)/((float)denominator) + (5.0f/(float)divide); //Add in fudge to get rounding
     int approx = (int)value;
     VM.sysWrite(approx, false);
     if (places > 0) VM.sysWrite(".");
@@ -132,64 +161,77 @@ class VM_RuntimeCompilerInfrastructure
     }
   }
 
+  /**
+   * Prints the percentage of total time taken by the first parameter.
+   * @param phaseTime the time take by a phase
+   * @param time the total time
+   */
   public static void printPercentage(double phaseTime, double time) {
-    printRatio(VM_Time.toMilliSecs(phaseTime)*100,
-	       VM_Time.toMilliSecs(time), 2);
+    printRatio((int)(phaseTime*100), (int)time, 2);
   }
 
-
-  // This method will compile the passed method using our "quicker" compiler.
-  // Currently, this is the baseline compiler.
-  static VM_CompiledMethod baselineCompile(VM_Method method) {
-    Timer timer = null; // Only used if VM.MeasureCompilation 
-    if (VM.MeasureCompilation) {
-      timer = new Timer();
-      timer.start();
+  /**
+   * This method will compile the passed method using the baseline compiler.
+   * @param method the method to compile
+   */
+  public static VM_CompiledMethod baselineCompile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+    double start = 0;
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      start = updateStartAndTotalTimes(now);
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
-    if (VM.MeasureCompilation) {
-      timer.finish();
-      record(BASELINE_COMPILER, method, cm, timer);
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      double end = updateStartAndTotalTimes(now);
+      double compileTime = (end - start) * 1000; // convert to milliseconds
+      cm.setCompilationTime(compileTime);
+      record(BASELINE_COMPILER, method, cm);
     }
     
     return cm;
-   }
+  }
 
-  // This class is only used when (VM.MeasureCompilation)
-  public static class Timer {
-    private static final boolean EXCLUDE_GC = true; 
-    private double startTime; 
-    private double endTime;   
-    private int gc_epoch;     
-    private long startTick;   
-    private long endTick;     
-
-    public double elapsedTime() { return endTime - startTime; }
-    public long elapsedTicks() { return endTick - startTick; }
-    public boolean validTiming() { return !EXCLUDE_GC || gc_epoch != -1; }
-    
-    Timer() { }
-    
-    public void start() {
-      if (EXCLUDE_GC) {
-	gc_epoch = VM_CollectorThread.collectionCount;
-      }
-      if (VM.MeasureCompilation) {
-	startTime = VM_Time.now();
-      }
+  /**
+   * This method will compile the passed method using the baseline compiler.
+   * @param method the method to compile
+   */
+  public static VM_CompiledMethod jniCompile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+    double start = 0;
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      start = updateStartAndTotalTimes(now);
     }
 
-    public void finish() {
-      if (EXCLUDE_GC && gc_epoch != VM_CollectorThread.collectionCount) {
-	VM.sysWrite("Not timing compilation due to intervening GC");
-	gc_epoch = -1; // 
-      } else {
-	if (VM.MeasureCompilation) {
-	  endTime = VM_Time.now();
-	}
-      }
+    VM_CompiledMethod cm = VM_JNICompiler.compile(method);
+    if (VM.verboseJNI) {
+      VM.sysWriteln("[Dynamic-linking native method " + 
+		    method.getDeclaringClass().getName() + "." + method.getName() + 
+		    " ... JNI]");
     }
+
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      double end = updateStartAndTotalTimes(now);
+      double compileTime = (end - start) * 1000; // convert to milliseconds
+      cm.setCompilationTime(compileTime);
+      record(JNI_COMPILER, method, cm);
+    }
+    
+    return cm;
+  }
+
+  /**
+   * Support for timing compilation accurately by accumulating CPU on the Java thread.
+   */
+  protected static double updateStartAndTotalTimes(double now) {
+    VM_Thread t = VM_Thread.getCurrentThread();
+    t.setCPUTotalTime(t.getCPUTotalTime() + (now - t.getCPUStartTime()));
+    t.setCPUStartTime(now);
+    return t.getCPUTotalTime();
   }
 }

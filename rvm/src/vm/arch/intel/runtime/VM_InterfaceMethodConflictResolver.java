@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$ 
+package com.ibm.JikesRVM;
 
 /**
  * An interface conflict resolution stub uses a hidden parameter to
@@ -30,7 +31,7 @@ class VM_InterfaceMethodConflictResolver implements VM_Constants {
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
       for (int i=1; i<sigIds.length; i++) {
-	VM.assert(sigIds[i-1] < sigIds[i]);
+	VM._assert(sigIds[i-1] < sigIds[i]);
       }
     }
 

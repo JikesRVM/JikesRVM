@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * Registers used by baseline compiler implementation of virtual machine.
@@ -10,7 +11,7 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-interface VM_BaselineConstants extends VM_Constants {
+public interface VM_BaselineConstants extends VM_Constants {
   
   static final int    WORDSIZE = 4; // bytes
   static final int LG_WORDSIZE = 2; 
@@ -20,7 +21,7 @@ interface VM_BaselineConstants extends VM_Constants {
   static final byte JTOC = EDI;
   static final byte SP   = ESP;
   static final byte PR   = PROCESSOR_REGISTER;
-  
+
   // Volatile (parameter) registers.
   //
   static final byte T0   =  EAX;  // DO NOT CHANGE THIS ASSIGNMENT
@@ -47,9 +48,9 @@ interface VM_BaselineConstants extends VM_Constants {
 					// dynamic bridge frames.
   static final int STACKFRAME_FIRST_PARAMETER_OFFSET  = STACKFRAME_REG_SAVE_OFFSET -8;
   // bridge frames save 3 additional GPRs
-  static final int BRIDGE_FRAME_EXTRA_SIZE	       = FPU_STATE_SIZE + 12;
+  static final int BRIDGE_FRAME_EXTRA_SIZE	       = FPU_STATE_SIZE + 8;
 
-  static final int SAVED_GPRS       = 1; // JTOC is a nonvolatile registers used by baseline compiler
+  static final int SAVED_GPRS       = 2; // EDI(JTOC) and EBX are nonvolatile registers used by baseline compiler
   static final int JTOC_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET;
   static final int EBX_SAVE_OFFSET  = STACKFRAME_REG_SAVE_OFFSET - 4;
   static final int T0_SAVE_OFFSET   = STACKFRAME_FIRST_PARAMETER_OFFSET ;

@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Dynamic linking via indirection tables. <p>
@@ -39,8 +42,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * or class initializer hasn't been run. <p>
    * NOTE: these fields are private, but are accessed directly from compiled code!
    */ 
-  private static int[] methodOffsets = VM_RuntimeStructures.newContiguousIntArray(4096);
-  private static int[] fieldOffsets  = VM_RuntimeStructures.newContiguousIntArray(4096);
+  private static int[] methodOffsets = VM_Interface.newContiguousIntArray(4096);
+  private static int[] fieldOffsets  = VM_Interface.newContiguousIntArray(4096);
 
   /*
    * Methods invoked from compiled code to cause 
@@ -55,7 +58,13 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */
   public static void resolveMethod(int methodId) throws VM_ResolutionException {
     VM_Method target = VM_MethodDictionary.getValue(methodId);
-    resolve(target);
+    VM_Class declaringClass = target.getDeclaringClass();
+    VM_Runtime.initializeClassForDynamicLink(declaringClass);
+    VM_Method rt = target.resolve();
+    if (rt.getDictionaryId() != methodId) {
+      // ghost reference hack
+      methodOffsets[methodId] = rt.getOffset();
+    }
   }
       
   /**
@@ -65,57 +74,19 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */
   public static void resolveField(int fieldId) throws VM_ResolutionException {
     VM_Field target = VM_FieldDictionary.getValue(fieldId);
-    resolve(target);
-  }
-
-  /**
-   * Perform the dynamic linking required to access the
-   * argument VM_Method. Will raise linking errors as necessary.
-   * The indirection tables are updated as a side-effect of calling 
-   * initializeClassForDynamicLink.
-   * 
-   * @param target the VM_Method to link.
-   */
-  public static void resolve(VM_Method target) throws VM_ResolutionException {
     VM_Class declaringClass = target.getDeclaringClass();
     VM_Runtime.initializeClassForDynamicLink(declaringClass);
-
-    // Check for a ghost reference and patch the extra table entry if necessary.
-    // The call to resolve is also responsible for raising linking errors
-    // such as NoSuchField/MethodError.
-    VM_Method rt = target.resolve();
-    if (rt != target) {
-      setMethodOffset(target, rt.getOffset());
-    }
-  }
-
-  /**
-   * Perform the dynamic linking required to access the
-   * argument VM_Field. Will raise linking errors as necessary.
-   * The indirection tables are updated as a side-effect of calling 
-   * initializeClassForDynamicLink.
-   * 
-   * @param target the VM_Field to link.
-   */
-  public static void resolve(VM_Field target) throws VM_ResolutionException {
-    VM_Class declaringClass = target.getDeclaringClass();
-    VM_Runtime.initializeClassForDynamicLink(declaringClass);
-
-    // Check for a ghost reference and patch the extra table entry if necessary.
-    // The call to resolve is also responsible for raising linking errors
-    // such as NoSuchField/MethodError.
     VM_Field rt = target.resolve();
-    if (rt != target) {
-      setFieldOffset(target, rt.getOffset());
+    if (rt.getDictionaryId() != fieldId) {
+      // ghost reference hack
+      fieldOffsets[fieldId] = rt.getOffset();
     }
   }
-
 
 
   /*
    * Methods invoked from VM_ClassLoader to maintain and update 
    * offset tables
-   * 
    */
 
   /**
@@ -145,8 +116,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */ 
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
+    if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
+    int[] newarray = VM_Interface.newContiguousIntArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync(); // be sure array initialization is visible before we publish the reference!
     return newarray;
@@ -171,7 +142,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * could be read/used by any thread.
    */
   static void setMethodOffset(VM_Method method, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+    if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     methodOffsets[method.getDictionaryId()] = offset;
   }
 
@@ -192,7 +163,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * that field no longer require any class loading action to be performed.
    */ 
   static void setFieldOffset(VM_Field field, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+    if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     fieldOffsets[field.getDictionaryId()] = offset;
   }
 }

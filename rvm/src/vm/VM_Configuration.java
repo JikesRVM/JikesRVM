@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Flags that specify the configuration of our virtual machine.
@@ -50,7 +51,7 @@ public abstract class VM_Configuration {
   //  true  --> execute assertion checks at runtime
   //
   // Note: code your assertion checks as 
-  // "if (VM.VerifyAssertions) VM.assert(xxx);"
+  // "if (VM.VerifyAssertions) VM._assert(xxx);"
   //
   public static final boolean VerifyAssertions = 
         //-#if RVM_WITHOUT_ASSERTIONS
@@ -60,8 +61,17 @@ public abstract class VM_Configuration {
         //-#endif
 
   // Verify that Uninterruptible methods actually cannot be interrupted.
-  // Disabled for just a little longer since we get too many false positives
+  // Disabled generally for just a little longer since we get too many false positives
+  // Enabled for BaseBase configurations.
+  //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
+  //-#if RVM_WITH_BASE_RUNTIME_COMPILER
   public static final boolean VerifyUnint = false && VerifyAssertions;
+  //-#else
+  public static final boolean VerifyUnint = false && VerifyAssertions;
+  //-#endif
+  //-#else
+  public static final boolean VerifyUnint = false && VerifyAssertions;
+  //-#endif
 
   // Ignore supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;
@@ -110,6 +120,14 @@ public abstract class VM_Configuration {
           false;
 	//-#endif
 
+  // Does this build include support for Hardware Performance Monitors
+  public static final boolean BuildForHPM = 
+    //-#if RVM_WITH_HPM
+      true;
+    //-#else 
+      false;
+    //-#endif
+
   // Is this an adaptive build?
   public static final boolean BuildForAdaptiveSystem =
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -118,45 +136,23 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  // Dynamic type checking implementations.
-  // We have two:
-  //  (1) FastDynamicTypeCheck as described in Alpern, Cocchi, & Grove JVM'01
-  //  (2) otherwise do an inline type equality check and an inline
-  //      cache lookup for the last successful type comparison
-  //      falling back to an out of line lookup routine.  This is 
-  //      approximately what is done by the IBM product DK (see Ishizaki et al)
-  public static final boolean BuildForFastDynamicTypeCheck = true;
-
   // Interface method invocation.
   // We have five mechanisms:
   //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber). 
   //    - embedded directly in the TIB
   //    - indirectly accessed off the TIB
-  //    both IMT schemes require BuildForFastDynamicTypeCheck.
   //   ITable-based
   //    - directly indexed (by interface id) iTables. 
-  //       requires BuildForFastDynamicTypeCheck.
-  //    - searched (at dispatch time); does not require FastDTC
+  //    - searched (at dispatch time); 
   //   Naive, class object is searched for matching method on every dispatch.
-  public static final boolean BuildForIMTInterfaceInvocation = true && 
-                                              BuildForFastDynamicTypeCheck;
+  public static final boolean BuildForIMTInterfaceInvocation = true;
   public static final boolean BuildForIndirectIMT = true && 
                                               BuildForIMTInterfaceInvocation;
   public static final boolean BuildForEmbeddedIMT = !BuildForIndirectIMT && 
                                               BuildForIMTInterfaceInvocation;
   public static final boolean BuildForITableInterfaceInvocation = true && 
                                               !BuildForIMTInterfaceInvocation;
-  public static final boolean DirectlyIndexedITables = false && 
-                                              BuildForFastDynamicTypeCheck;
-
-  // Compiler support for garbage collection and stack management.
-  //
-  public static final boolean BuildForConcurrentGC =
-      //-#if RVM_WITH_CONCURRENT_GC
-        true;
-      //-#else
-        false;
-      //-#endif
+  public static final boolean DirectlyIndexedITables = false;
 
   // Compiler support for real-time garbage collection
   //
@@ -200,17 +196,6 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  // Operating system resource monitoring.
-  //
-  // Getting accurate compilation time information is critical for
-  // good adaptive system performance.
-  public static final boolean BuildForCpuMonitoring = 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        true;
-      //-#else
-        false;
-      //-#endif
-
   // Adaptive compilation.
   //
   public static final boolean LogAOSEvents =
@@ -218,36 +203,6 @@ public abstract class VM_Configuration {
         false;
       //-#else
         true;
-      //-#endif
-
-  // Use synchronization on PowerPC to access one word fields declared volatile and
-  // on all platforms to access two word fields declared volatile.
-  //
-  // If this control is not set, volatile fields will not be kept in registers but stale
-  // values may still be visible in processor caches.
-  //
-  // Note: for best results the following controls should also be set:
-  //     BuildForPrematureClassResolution - so that volatile fields can be recognized as such at compilation time
-  //     BuildForLazyCompilation - to avoid sucking in the whole world with premature class resolution.
-  //
-  public static final boolean BuildForStrongVolatileSemantics = 
-      //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
-        true;
-      //-#else
-        false;
-      //-#endif
-  
-  // Resolve classes when a compiler encounters a reference to a not yet loaded class.
-  // 
-  // Note: setting BuildForLazyCompilation will prevent a cascade effect from sucking in too much irrelevant stuff.
-  //
-  public static final boolean BuildForPrematureClassResolution = 
-      //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
-        true;
-      //-#else
-        false
-        || BuildForStrongVolatileSemantics // TEMP!! remove this clause when dynamic linking for strong volatiles is implemented
-        ;
       //-#endif
 
   // Lazy vs. eager method compilation during class loading.
@@ -264,12 +219,11 @@ public abstract class VM_Configuration {
   // new pThreads to run the old virtual processors.
   //
   public static final boolean BuildWithNativeDaemonProcessor = 
-	//-#if RVM_WITHOUT_NATIVE_DAEMON_PROCESSOR
-	  false;
-	//-#else
-	  !BuildForSingleVirtualProcessor
-	    && !BuildForConcurrentGC;
-	//-#endif
+    //-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
+    !BuildForSingleVirtualProcessor;
+    //-#else
+    false;
+    //-#endif
 
   // The following configuration objects are final when disabled, but
   // non-final when enabled.
@@ -278,8 +232,8 @@ public abstract class VM_Configuration {
   public static boolean ParanoidGCCheck       = true;
   public static boolean ForceFrequentGC       = true;
   //-#else
-  public final static boolean ParanoidGCCheck  = false;
-  public final static boolean ForceFrequentGC  = false;
+  public final static boolean ParanoidGCCheck = false;
+  public final static boolean ForceFrequentGC = false;
   //-#endif
 
   public final static boolean CompileForGCTracing =

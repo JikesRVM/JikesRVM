@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader. <p>
  * 
@@ -16,7 +18,7 @@
  * used to indicate whether the forwarding is still in progress
  * or completed. 
  *
- * @see VM_ObjectModel
+ * @see com.ibm.JikesRVM.VM_ObjectModel
  * @see VM_AllocatorHeader
  * @see VM_CommonAllocatorHeader
  * 

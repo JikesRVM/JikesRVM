@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
 
@@ -14,7 +15,7 @@ import  java.util.*;
  * @author Stephen Fink
  * @author Martin Trapp
  */
-class OPT_SSAOptions {
+public class OPT_SSAOptions {
   /**
    * options for SSA construction
    */

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform simple peephole optimizations for MIR branches.
@@ -91,8 +92,8 @@ public final class OPT_MIRBranchOptimizations
     if (MIR_Branch.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
-      if (top.similar(MIR_Branch.getTarget(g))) {
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
 	// Avoid an infinite recursion in the following bizarre scenario:
 	// g: goto L
 	// ...
@@ -100,6 +101,7 @@ public final class OPT_MIRBranchOptimizations
 	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
 	return false;
       }
+      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
       MIR_Branch.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
@@ -152,7 +154,7 @@ public final class OPT_MIRBranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
       if (targetLabel == nextLabel) {
@@ -171,6 +173,15 @@ public final class OPT_MIRBranchOptimizations
     if (MIR_Branch.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
+	// Avoid an infinite recursion in the following scenario:
+	// g: if (...) goto L
+	// ...
+	// L: goto L
+	// This happens in VM_GCUtil in some systems due to a while(true) {} 
+	return false;
+      }
       MIR_CondBranch.setTarget(cb, MIR_Branch.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
@@ -221,7 +232,7 @@ public final class OPT_MIRBranchOptimizations
     OPT_Instruction target1Label = MIR_CondBranch2.getTarget1(cb).target; 
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (target1Inst != null && target1Inst != cb) {
       if (MIR_Branch.conforms(target1Inst)) {
 	// conditional branch to unconditional branch.

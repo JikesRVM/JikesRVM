@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
 import java.io.FileOutputStream;
@@ -18,9 +19,9 @@ import java.io.IOException;
  * @author Harini Srinivasan
  * @author Igor Pechtchanski
  */
-
-public class OPT_SpaceEffGraph
-  implements OPT_Graph, OPT_VCGGraph, OPT_TopSortInterface {
+public class OPT_SpaceEffGraph implements OPT_Graph, 
+					  OPT_VCGGraph, 
+					  OPT_TopSortInterface {
   /**
    * First node
    */
@@ -41,7 +42,7 @@ public class OPT_SpaceEffGraph
   /**
    * Number of nodes
    */
-  int numberOfNodes;
+  protected int numberOfNodes;
 
   /**
    * Get number of nodes
@@ -52,7 +53,13 @@ public class OPT_SpaceEffGraph
    * Set number of nodes
    * @param n new number of nodes
    */
-  final void setNumberOfNodes(int n) { numberOfNodes = n; }
+  public final void setNumberOfNodes(int n) { numberOfNodes = n; }
+
+  /**
+   * Get the next node number
+   * @return the node number
+   */
+  public final int allocateNodeNumber() { return numberOfNodes++; }
 
   /**
    * Renumber the nodes densely from 0...numberOfNodes-1.
@@ -358,7 +365,7 @@ public class OPT_SpaceEffGraph
   /**
    * Print, to System.out, the basic blocks in depth first order.
    */
-  void printDepthFirst() {
+  public void printDepthFirst() {
     markNumber = getNewMark();
     print(new OPT_DepthFirstEnumerator(_firstNode, markNumber));
   }
@@ -366,7 +373,7 @@ public class OPT_SpaceEffGraph
   /**
    * Print, to System.out, the basic blocks in breadth first order.
    */
-  void printBreadthFirst() {
+  public void printBreadthFirst() {
     markNumber = getNewMark();
     print(new OPT_BreadthFirstEnumerator(_firstNode, markNumber));
   }
@@ -410,6 +417,6 @@ public class OPT_SpaceEffGraph
    * @return graph descriptor
    * @see OPT_VCGGraph#getVCGDescriptor
    */
-  public GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
+  public OPT_VCGGraph.GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
 }
 

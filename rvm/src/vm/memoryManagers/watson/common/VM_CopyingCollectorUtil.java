@@ -3,6 +3,23 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import  com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * Shared utility code for copying collectors.
  * Code originally written by Steve Smith;
@@ -12,9 +29,11 @@
  * @author Steve Smith
  */
 class VM_CopyingCollectorUtil implements VM_Constants, 
-					 VM_GCConstants, 
-					 VM_Uninterruptible {
+					 VM_GCConstants {
 
+
+//-#if RVM_WITH_NONCOPYING_GC
+//-#else
   /**
    * Processes live objects that need to be marked, copied and
    * forwarded during collection.  Returns the new address of the object
@@ -26,7 +45,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
    * @param scan should the object be scanned?
    * @return the address of the Object in mature space
    */
-  static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) {
+  static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
     Object fromObj = VM_Magic.addressAsObject(fromRef);
     VM_Address toRef;
     Object toObj;
@@ -47,7 +66,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
       toObj = VM_Magic.addressAsObject(toRef);
       if (VM.VerifyAssertions && !(VM_AllocatorHeader.stateIsForwarded(forwardingPtr) && VM_GCUtil.validRef(toRef))) {
 	VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",forwardingPtr);
-	VM.assert(false);  
+	VM._assert(false);  
       }
       return toRef;
     }
@@ -58,7 +77,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
     if (VM_Allocator.writeBarrier) {
       forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;
     }
-    if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
+    if (VM.VerifyAssertions) VM._assert(VM_GCUtil.validObject(type));
     int numBytes;
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
@@ -94,7 +113,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
     if (scan) VM_GCWorkQueue.putToWorkBuffer(toRef);
     return toRef;
   }
-
+//-#endif
 
   /**
    * Scans all threads in the VM_Scheduler threads array.  A threads stack
@@ -108,7 +127,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
    * 
    * @param fromHeap the heap that we are copying objects out of.
    */
-  static void scanThreads (VM_Heap fromHeap)  {
+  static void scanThreads (VM_Heap fromHeap)  throws VM_PragmaUninterruptible {
     // get ID of running GC thread
     int myThreadId = VM_Thread.getCurrentThread().getIndex();
     int[] oldstack;
@@ -124,14 +143,14 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 
 	// GC threads are assumed not to have native processors.  if this proves
 	// false, then we will have to deal with its write buffers
-	if (VM.VerifyAssertions) VM.assert(t.nativeAffinity == null);
+	if (VM.VerifyAssertions) VM._assert(t.nativeAffinity == null);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert(!fromHeap.refInHeap(ta));
+	if (VM.VerifyAssertions) VM._assert(fromHeap == null || !fromHeap.refInHeap(ta));
 	
 	if (VM.VerifyAssertions) oldstack = t.stack;    // for verifying gc stacks not moved
 	VM_ScanObject.scanObjectOrArray(t);
-	if (VM.VerifyAssertions) VM.assert(oldstack == t.stack);
+	if (VM.VerifyAssertions) VM._assert(oldstack == t.stack);
 	
 	if (t.jniEnv != null) VM_ScanObject.scanObjectOrArray(t.jniEnv);
 
@@ -139,8 +158,9 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 
 	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
 
-	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
-	
+	ScanStack.scanThreadStack(t, VM_Address.zero(), true);
+	ScanStack.processRoots();
+
       } else if (t.isGCThread && (VM_Magic.threadAsCollectorThread(t).gcOrdinal > 0)) {
 	// skip other collector threads participating (have ordinal number) in this GC
       } else if (VM_GCLocks.testAndSetThreadLock(i)) {
@@ -149,7 +169,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Processing mutator thread ",i);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert(!(fromHeap.refInHeap(ta)));
+	if (VM.VerifyAssertions) VM._assert(fromHeap == null || !fromHeap.refInHeap(ta));
 	
 	// scan thread object to force "interior" objects to be copied, marked, and
 	// queued for later scanning.
@@ -159,7 +179,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	// if stack moved, adjust interior stack pointers
 	if (oldstack != t.stack) {
 	  if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Adjusting mutator stack ",i);
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
+	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
 	}
 	
 	// the above scanThread(t) will have marked and copied the threads JNIEnvironment object,
@@ -188,16 +208,12 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	// have been given references which now reside in the JNIEnv sidestack
 
 	if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Scanning stack for thread ",i);
-	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
+	ScanStack.scanThreadStack(t, VM_Address.zero(), true);
+	ScanStack.processRoots();
       } 
     } 
   }
   
-
-
-
-
-
 
 }
 

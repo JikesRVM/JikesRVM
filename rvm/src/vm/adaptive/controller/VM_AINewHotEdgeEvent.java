@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_CompiledMethod;
 
 /**
  * Event used by the Adaptive Inlining Organizer
@@ -40,7 +44,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    */
   VM_AINewHotEdgeEvent(VM_CompiledMethod _cm, double _numSamples, double _boostFactor) {
     super(_cm, _numSamples);
-    if (VM.VerifyAssertions) VM.assert(_boostFactor >= 1.0);
+    if (VM.VerifyAssertions) VM._assert(_boostFactor >= 1.0);
     boostFactor = _boostFactor;
   }
 

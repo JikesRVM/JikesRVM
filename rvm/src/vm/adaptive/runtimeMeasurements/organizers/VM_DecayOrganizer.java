@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
 /**
  * An organizer that periodically decays runtime counters
@@ -19,6 +20,7 @@ final class VM_DecayOrganizer extends VM_Organizer {
   VM_DecayOrganizer(VM_YieldCounterListener listener) {
     this.listener   = listener;
     listener.setOrganizer(this);
+    makeDaemon(true);
   }
 
   /**
@@ -26,7 +28,6 @@ final class VM_DecayOrganizer extends VM_Organizer {
    */
   public void initialize() {
     VM_RuntimeMeasurements.installNullListener(listener);
-    listener.activate();
   }
 
   /**
@@ -35,7 +36,6 @@ final class VM_DecayOrganizer extends VM_Organizer {
    */
   void thresholdReached() {
     VM_RuntimeMeasurements.decayDecayableObjects();
-    listener.activate();
   }  
 }
 

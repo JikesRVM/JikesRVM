@@ -1,0 +1,2 @@
+   . $1/compilers/FullAdaptive
+   export RVM_WITHOUT_ASSERTIONS=1 

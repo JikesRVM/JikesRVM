@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * This class provides the abstraction of a dominator tree 
@@ -13,7 +15,7 @@ import  java.util.*;
  * @author Stephen Fink
  * @author Michael Hind
  */
-class OPT_DominatorTree extends OPT_Tree {
+public class OPT_DominatorTree extends OPT_Tree {
   /**
    * control for debugging messages.
    */

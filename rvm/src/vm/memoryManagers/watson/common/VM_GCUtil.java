@@ -3,13 +3,46 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_ProcessorLock;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+
 /**
  * Common utility functions used by various garbage collectors
  *
  * @author Stephen Smith
  */  
 public class VM_GCUtil
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+  implements VM_Constants, VM_GCConstants {
 
   private final static boolean TRACE = false;
 
@@ -20,7 +53,7 @@ public class VM_GCUtil
   private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
   private static boolean outOfMemoryReported = false;
 
-  static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws VM_PragmaInterruptible {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
     tibForArrayType = VM_ObjectModel.getTIB(t);
@@ -39,42 +72,45 @@ public class VM_GCUtil
 
 
 
-  static boolean refInVM(VM_Address ref) {
+  public static boolean refInVM(VM_Address ref) throws VM_PragmaUninterruptible {
       return VM_Heap.refInAnyHeap(ref);
   }
 
-  static boolean addrInVM(VM_Address address) {
+  public static boolean addrInVM(VM_Address address) throws VM_PragmaUninterruptible {
       return VM_Heap.addrInAnyHeap(address);
   }
 
-  static boolean refInBootImage(VM_Address ref) {
+  public static boolean refInBootImage(VM_Address ref) throws VM_PragmaUninterruptible {
       return VM_Heap.bootHeap.refInHeap(ref);
   }
 
-  static boolean refInHeap(VM_Address ref) {
+  public static boolean refInHeap(VM_Address ref) throws VM_PragmaUninterruptible {
       return (refInVM(ref) && (!refInBootImage(ref)));
   }
 
-  static boolean addrInBootImage(VM_Address address) {
+  public static boolean addrInBootImage(VM_Address address) throws VM_PragmaUninterruptible {
     return VM_Heap.bootHeap.addrInHeap(address);
   }
 
   // check if an address appears to point to an instance of VM_Type
-  static boolean validType(VM_Address typeAddress) {
-    if (!refInVM(typeAddress))
+  public static boolean validType(VM_Address typeAddress) throws VM_PragmaUninterruptible {
+    if (!refInVM(typeAddress)) {
       return false;  // type address is outside of heap
+    }
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
-	     (typeTib == tibForPrimitiveType));
+    boolean tibValid = ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
+			 (typeTib == tibForPrimitiveType));
+    if (!tibValid) VM.sysWriteln("tib is invalid: typeTIB = ", VM_Magic.objectAsAddress(typeTib));
+    return tibValid;
   }
 
   /**
    * dump all threads & their stacks starting at the frame identified
    * by the threads saved contextRegisters (ip & fp fields).
    */
-  static void dumpAllThreadStacks() {
+  public static void dumpAllThreadStacks() throws VM_PragmaUninterruptible {
       VM_Address ip, fp;
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks","dumping stacks for all threads");
@@ -93,11 +129,11 @@ public class VM_GCUtil
   /**
    * check if a ref, its tib pointer & type pointer are all in the heap
    */
-  static boolean validObject(Object ref) {
+  public static boolean validObject(Object ref) throws VM_PragmaUninterruptible {
       return validRef(VM_Magic.objectAsAddress(ref));
   }
 
-  static boolean validRef(VM_Address ref) {
+  public static boolean validRef(VM_Address ref) throws VM_PragmaUninterruptible {
 
     if (ref.isZero()) return true;
     if (!refInVM(ref)) {
@@ -105,7 +141,7 @@ public class VM_GCUtil
       VM_Heap.showAllHeaps();
       return false;
     }
-    if (VM_Collector.MOVES_OBJECTS) {
+    if (VM_Interface.MOVES_OBJECTS) {
       if (VM_AllocatorHeader.isForwarded(VM_Magic.addressAsObject(ref)) ||
 	  VM_AllocatorHeader.isBeingForwarded(VM_Magic.addressAsObject(ref))) {
 	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
@@ -144,7 +180,7 @@ public class VM_GCUtil
   }  // validRef
 
 
-   public static void dumpRef(VM_Address ref) {
+   public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
      VM.sysWrite("REF=");
      if (ref.isZero()) {
        VM.sysWrite("NULL\n");
@@ -175,7 +211,7 @@ public class VM_GCUtil
    }
 
 
-  public static void printclass(VM_Address ref) {
+  public static void printclass(VM_Address ref) throws VM_PragmaUninterruptible {
     if (validRef(ref)) {
       VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
       if (validRef(VM_Magic.objectAsAddress(type)))
@@ -184,7 +220,7 @@ public class VM_GCUtil
   }
 
 
-  static void dumpProcessorsArray() {
+  static void dumpProcessorsArray() throws VM_PragmaUninterruptible {
     VM_Processor st;
     VM.sysWrite("VM_Scheduler.processors[]:\n");
     for (int i = 0; ++i <= VM_Scheduler.numProcessors;) {
@@ -212,7 +248,7 @@ public class VM_GCUtil
    * TODO: make it possible to throw an exception, but this will have
    * to be done without doing further allocations (or by using temp space)
    */
-  public static void outOfMemory(String heapName, int heapSize, String commandLine) {
+  public static void outOfMemory(String heapName, int heapSize, String commandLine) throws VM_PragmaUninterruptible {
     outOfMemoryLock.lock();
     if (!outOfMemoryReported) {
       outOfMemoryReported = true;

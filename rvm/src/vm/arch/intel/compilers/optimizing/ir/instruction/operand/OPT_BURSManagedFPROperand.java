@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * An FPR register that BURS is managing.
@@ -11,16 +12,16 @@
  * @author Dave Grove
  */
 public final class OPT_BURSManagedFPROperand extends OPT_Operand {
-  int regNum;
+  public int regNum;
 
-  OPT_BURSManagedFPROperand(int r) {
+  public OPT_BURSManagedFPROperand(int r) {
     regNum = r;
   }
 
   /**
    * Returns a copy of the current operand.
    */
-  OPT_Operand copy() { 
+  public OPT_Operand copy() { 
     return new OPT_BURSManagedFPROperand(regNum);
   }
 
@@ -29,7 +30,7 @@ public final class OPT_BURSManagedFPROperand extends OPT_Operand {
    *
    * @param op other operand
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BURSManagedFPROperand) && 
       ((OPT_BURSManagedFPROperand)op).regNum == regNum;
   }

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * VM_YieldpointCounterData.java
@@ -19,7 +23,7 @@
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-final class VM_YieldpointCounterData extends VM_StringEventCounterData
+public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   implements VM_Reportable 
 {
 

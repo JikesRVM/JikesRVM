@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Dependence graph edges: connect operands of different instructions
@@ -238,8 +241,8 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * information for the edge.
    * @return edge descriptor
    */
-  public EdgeDesc getVCGDescriptor() {
-    return new EdgeDesc() {
+  public OPT_VCGEdge.EdgeDesc getVCGDescriptor() {
+    return new OPT_VCGEdge.EdgeDesc() {
       public String getLabel() { return getTypeString(); }
       };
   }

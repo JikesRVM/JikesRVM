@@ -2,9 +2,18 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
+//-#endif
 //-#if RVM_WITH_OPT_COMPILER
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.opt.ir.*;
 //-#endif
 
 /**
@@ -53,7 +62,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 					    //-#endif
 {
 
-  private static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
   // TIB + STATUS + OTHER_HEADER_BYTES
   private static final int SCALAR_HEADER_SIZE = 8 + OTHER_HEADER_BYTES;
   // SCALAR_HEADER + ARRAY LENGTH;
@@ -75,18 +83,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   private static final int HASH_CODE_SHIFT = 2;
   private static int hashCodeGenerator; // seed for generating hash codes with copying collectors.
 
-  /*
-   * Stuff for address based hashing
-   */
-  private static final int HASH_STATE_UNHASHED         = 0x00000000;
-  private static final int HASH_STATE_HASHED           = 0x00000100;
-  private static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
-  private static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
-  private static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
-  private static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
-  private static final int HASHCODE_BYTES              = 4;
-
-  
   /** How many bits are allocated to a thin lock? */
   public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
   /** How many bits to shift to get the thin lock? */
@@ -100,7 +96,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   static {
     if (VM.VerifyAssertions) {
-      VM.assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 
@@ -146,7 +142,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Process the TIB field during copyingGC
    */
   public static void gcProcessTIB(VM_Address ref) {
-    VM_Allocator.processPtrField(ref.add(TIB_OFFSET));
+    VM_Interface.processPtrField(ref.add(TIB_OFFSET));
+  }
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    VM_Interface.processPtrField(ref.add(TIB_OFFSET), root);
   }
 
   /**
@@ -175,6 +174,25 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       }
     }
     return size;
+  }
+
+  public static VM_Address objectStartRef(VM_Address obj)
+    throws VM_PragmaInline {
+    Object[] tib = VM_ObjectModel.getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+//     VM.sysWrite("obj: "); VM.sysWrite(obj); 
+    VM_Address rtn;
+    if (type.isClassType()) {
+//       VM.sysWrite(", scalar cell: ");
+      VM_Class classType = type.asClass();
+      int bytes = VM_ObjectModel.bytesRequiredWhenCopied(obj, classType);
+      rtn = obj.sub(VM_JavaHeader.SCALAR_PADDING_BYTES + bytes);
+    } else {
+//       VM.sysWrite(", array cell: ");
+      rtn = obj.add(VM_ObjectModel.getHeaderEndOffset(null));
+    }
+//     VM.sysWrite(rtn); VM.sysWrite(" m\n");
+    return rtn;
   }
 
   /**
@@ -256,21 +274,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get a reference to the TIB for an object.
-   *
-   * @param jdpService
-   * @param address address of the object
-   */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) throws VM_PragmaInterruptible {
-    return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
-  }
-
-  /**
    * Get the hash code of an object.
    */
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
-      if (VM_Collector.MOVES_OBJECTS) {
+      if (VM_Interface.MOVES_OBJECTS) {
 	int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
 	if (hashState == HASH_STATE_HASHED) {
 	  return VM_Magic.objectAsAddress(o).toInt() >>> 2;
@@ -488,7 +496,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + size + SCALAR_PADDING_BYTES;
     // (TIB set by BootImageWriter2)
 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+    //    if (VM_Interface.NEEDS_WRITE_BARRIER) {
+    if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
 	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
@@ -532,7 +541,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+    //    if (VM_Interface.NEEDS_WRITE_BARRIER) {
+    if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
 	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
@@ -600,4 +610,16 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
                 null, GuardedUnary.getClearGuard(s));
   }
   //-#endif
+
+  /*
+    static public void showConstants() {
+    VM.sysWriteln("NUM_AVAILABLE_BITS = ", NUM_AVAILABLE_BITS);
+    VM.sysWriteln("AVAILABLE_BITS_OFFSET = ", AVAILABLE_BITS_OFFSET);
+    VM.sysWriteln("NUM_THIN_LOCK_BITS = ", NUM_THIN_LOCK_BITS);
+    VM.sysWriteln("THIN_LOCK_SHIFT = ", THIN_LOCK_SHIFT);
+    VM.sysWriteln("VM_MiscHeader.REQUESTED_BITS = ", VM_MiscHeader.REQUESTED_BITS);
+    VM.sysWriteln("VM_AllocatorHeader.REQUESTED_BITS  = ", VM_AllocatorHeader.REQUESTED_BITS);
+  }
+  */
+
 }

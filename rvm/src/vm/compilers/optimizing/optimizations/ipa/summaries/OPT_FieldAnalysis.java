@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Flow-insensitive, context-insensitive, interprocedural analysis
@@ -19,20 +21,15 @@ import instructionFormats.*;
  *
  * @author Stephen Fink
  */
-
-final class OPT_FieldAnalysis extends OPT_CompilerPhase {
+public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   final static private boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.FIELD_ANALYSIS;
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Field Analysis";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
   }
 
   /** 
@@ -51,7 +48,7 @@ final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) {
       if (t.isClassType() && !t.asClass().isLoaded()) {
         VM.sysWrite("NOT LOADED: " + t + "\n");
-        VM.assert(false);
+        VM._assert(false);
       }
     }
     if (t.isPrimitiveType())
@@ -177,7 +174,7 @@ final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) {
       if (info == null)
         VM.sysWrite("ERROR recordBottom: method " + m + " field " + f);
-      VM.assert(info != null);
+      VM._assert(info != null);
     }
     info.setBottom();
     info.setAnalyzed();

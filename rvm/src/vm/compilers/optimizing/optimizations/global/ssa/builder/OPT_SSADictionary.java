@@ -2,16 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import  java.util.*;
+
+/*
  * This module tracks heap variables needed for Array SSA form.
  *
  * @author Stephen Fink
  */
-
-
-import  java.util.*;
-import instructionFormats.*;
-
 
 /**
  * An <code> OPT_SSADictionary </code> structure holds lookaside
@@ -27,7 +28,7 @@ import instructionFormats.*;
  *
  * @see OPT_SSA
  */
-final class OPT_SSADictionary implements OPT_Operators {
+public final class OPT_SSADictionary implements OPT_Operators {
 
   /**
    * Flag to turn on debugging
@@ -110,7 +111,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @return an array of the heap operands this instruction defs
    */
   public OPT_HeapOperand[] getHeapDefs (OPT_Instruction s) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     return  (OPT_HeapOperand[])defs.get(s);
   }
 
@@ -405,19 +406,45 @@ final class OPT_SSADictionary implements OPT_Operators {
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       for (Enumeration hp = getHeapPhiInstructions(bb); hp.hasMoreElements() ; ) {
-        OPT_Instruction phi = (OPT_Instruction)hp.nextElement(); 
+        OPT_Instruction phi = (OPT_Instruction)hp.nextElement();
         OPT_HeapOperand H = (OPT_HeapOperand)Phi.getResult(phi);
         OPT_HeapVariable v = H.getHeapVariable();
         DefChain.put(v,H);
         for (int i = 0; i < Phi.getNumberOfValues(phi); i++) {
           OPT_HeapOperand Hu = (OPT_HeapOperand)Phi.getValue(phi,i);
-          OPT_HeapVariable vu = H.getHeapVariable();
+          OPT_HeapVariable vu = Hu.getHeapVariable();
           HashSet u = (HashSet)UseChain.get(vu);
           u.add(Hu);
         }
       }
     }
   }
+
+
+  /** 
+   * Delete an HeapOperand from the use chain of its heap variable
+   *
+   * @param op the heap operand to be deleted 
+   */
+  public void deleteFromUseChain (OPT_HeapOperand op)
+  {
+    OPT_HeapVariable hv = op.getHeapVariable();
+    HashSet u = (HashSet)UseChain.get(hv);
+    u.remove (op);
+  }
+  
+  /** 
+   * Add an HeapOperand to the use chain of its heap variable
+   *
+   * @param op the heap operand to be added 
+   */
+  public void addToUseChain (OPT_HeapOperand op)
+  {
+    OPT_HeapVariable hv = op.getHeapVariable();
+    HashSet u = (HashSet)UseChain.get(hv);
+    u.add (op);
+  }
+
 
   /** 
    * Create a heap control phi instruction, and store it at the
@@ -450,7 +477,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param H the set of heap operands which s uses
    */
   public void replaceUses (OPT_Instruction s, OPT_HeapOperand[] H) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     uses.put(s, H);
     for (int i = 0; i < H.length; i++) {
       H[i].setInstruction(s);
@@ -501,7 +528,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param b the basic block containing s
    */
   public void registerUnknown (OPT_Instruction s, OPT_BasicBlock b) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all' 
     Iterator vars = heapVariables.values().iterator();
@@ -547,6 +574,7 @@ final class OPT_SSADictionary implements OPT_Operators {
 	break;
       case UNINT_BEGIN_opcode: // only reached if insertPEIDeps
       case UNINT_END_opcode: // only reached if insertPEIDeps
+	registerUse (s, exceptionState);
 	registerDef (s, b, exceptionState);
 	break;
       case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
@@ -564,7 +592,7 @@ final class OPT_SSADictionary implements OPT_Operators {
       case NEW_opcode:case NEW_UNRESOLVED_opcode:
         newHelper(s, b);
         break;
-      case NEWARRAY_opcode:
+      case NEWARRAY_opcode:case NEWARRAY_UNRESOLVED_opcode:
         newArrayHelper(s, b);
         break;
       case NEWOBJMULTIARRAY_opcode:
@@ -605,7 +633,7 @@ final class OPT_SSADictionary implements OPT_Operators {
         // !!TODO: how to handle this special case?
         break;
       case BYTE_STORE_opcode: case SHORT_STORE_opcode:
-      case INT_STORE_opcode: case LONG_STORE_opcode:
+      case INT_STORE_opcode: case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // !!TODO: how to handle this special case?
         break;
       case PHI_opcode:
@@ -851,11 +879,16 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void aloadHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = ALoad.getArray(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
-    if (uphi)
-      registerDef(s, b, type);
+
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) { 
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+      if (uphi)
+	registerDef(s, b, type);
+    }
   }
 
   /** 
@@ -869,10 +902,15 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void astoreHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = AStore.getArray(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
-    registerDef(s, b, type);
+
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) {
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+      registerDef(s, b, type);
+    }
   }
 
   /** 
@@ -885,9 +923,14 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void arraylengthHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = GuardedUnary.getVal(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
+    
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) {
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+    }
   }
 
   /** 
@@ -1003,7 +1046,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the type of the heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Type t) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1027,7 +1070,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, VM_Field f) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1051,7 +1094,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Field f) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1075,7 +1118,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, String a) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1099,7 +1142,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, String a) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1141,8 +1184,8 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param b s's basic block
    */
-  private void addExceptionStateToDefs (OPT_Instruction s, OPT_BasicBlock b) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+  public void addExceptionStateToDefs (OPT_Instruction s, OPT_BasicBlock b) {
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
     OPT_HeapOperand[] Hprime = extendHArray ((OPT_HeapOperand[]) defs.get(s));
@@ -1157,8 +1200,8 @@ final class OPT_SSADictionary implements OPT_Operators {
    *
    * @param s the instruction in question
    */
-  private void addExceptionStateToUses (OPT_Instruction s) {
-    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
+  public void addExceptionStateToUses (OPT_Instruction s) {
+    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     OPT_HeapOperand[] Hprime = extendHArray ((OPT_HeapOperand[]) uses.get(s));
     Hprime[0] = new OPT_HeapOperand(H);

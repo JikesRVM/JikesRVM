@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -20,22 +22,36 @@ import java.util.HashSet;
 public final class OPT_BranchOptimizations
   extends OPT_BranchOptimizationDriver {
 
+  /**
+   * Is branch optimizations allowed to change the code order to
+   * create fallthrough edges (and thus merge basic blocks)?
+   * After we run code reordering, we disallow this transformation to avoid
+   * destroying the desired code order.
+   */
+  private boolean mayReorderCode;
+
+  /**
+   * Are we allowed to duplication conditional branches?
+   * Restricted until backedge yieldpoints are inserted to 
+   * avoid creating irreducible control flow by duplicating
+   * a conditional branch in a loop header into a block outside the
+   * loop, thus creating two loop entry blocks.
+   */
+  private boolean mayDuplicateCondBranches;
+   
+
   private OPT_BranchOptimizations () { }
 
   /** 
    * @param level the minimum optimization level at which the branch 
-   * optimizations should be performed.
+   *              optimizations should be performed.
+   * @param mayReorderCode are we allowed to change the code order?
+   * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    */
-  OPT_BranchOptimizations (int level) {
+  public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
     super(level);
-  }
-
-  /** 
-   * @param level the minimum optimization level at which the branch 
-   * optimizations should be performed.
-   */
-  OPT_BranchOptimizations (int level, boolean restrictCondBranchOpts) {
-    super(level,restrictCondBranchOpts);
+    mayReorderCode = mayReorderCode;
+    mayDuplicateCondBranches = mayDuplicateCondBranches;
   }
   
   /**
@@ -94,6 +110,10 @@ public final class OPT_BranchOptimizations
   private boolean processGoto(OPT_IR ir, OPT_Instruction g, 
 			      OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
+
+    // don't optimize jumps to a code motion landing pad 
+    if (targetBlock.getLandingPad()) return false;
+    
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the g target
     // NOTE: this instruction is not necessarily in targetBlock,
@@ -111,8 +131,8 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      OPT_BranchOperand top = Goto.getTarget(targetInst);
-      if (top.similar(Goto.getTarget(g))) {
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
 	// Avoid an infinite recursion in the following bizarre scenario:
 	// g: goto L
 	// ...
@@ -120,7 +140,7 @@ public final class OPT_BranchOptimizations
 	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
 	return false;
       }
-      Goto.setTarget(g, top);
+      Goto.setTarget(g, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -132,7 +152,7 @@ public final class OPT_BranchOptimizations
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
-    if (!_restrictCondBranchOpts && IfCmp.conforms(targetInst)) {
+    if (mayDuplicateCondBranches && IfCmp.conforms(targetInst)) {
       // unconditional branch to a conditional branch.
       // If the Goto is the only branch instruction in its basic block
       // and the IfCmp is the only non-GOTO branch instruction
@@ -141,21 +161,13 @@ public final class OPT_BranchOptimizations
       // target of targetInst's block.
       // We impose these additional restrictions to avoid getting 
       // multiple conditional branches in a single basic block.
-      // The LIR does allow this, but some MIR instruction sets don't deal
-      // with it very well (without multiple condition registers, one is
-      // forced to either violate the definition of a basic block or break
-      // the instructions into multiple basic blocks anyways, which requires
-      // care to avoid separating the actual conditional branch from the
-      // computation of its input values). 
-      // Also, HIR to LIR translation doesn't handle multiple conditional
-      // branches in a single basic block correctly either.
       if (!g.prevInstructionInCodeOrder().isBranch() && 
 	  (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
 	   targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
 	OPT_Instruction copy = targetInst.copyWithoutLinks();
 	g.replace(copy);
 	OPT_Instruction newGoto = 
-	  getNotTakenNextBlock(targetInst.getBasicBlock()).makeGOTO();
+	  targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
 	copy.insertAfter(newGoto);
 	bb.recomputeNormalOut(ir); // fix the CFG 
 	return true;
@@ -163,7 +175,7 @@ public final class OPT_BranchOptimizations
     }
 
     // try to create a fallthrough
-    if (targetBlock.getNumberOfIn() == 1) {
+    if (mayReorderCode && targetBlock.getNumberOfIn() == 1) {
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();
@@ -210,6 +222,10 @@ public final class OPT_BranchOptimizations
 					   OPT_Instruction cb, 
 					   OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
+
+    // don't optimize jumps to a code motion landing pad 
+    if (targetBlock.getLandingPad()) return false;
+    
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the branch target
     // NOTE: this instruction is not necessarily in targetBlock,
@@ -218,9 +234,10 @@ public final class OPT_BranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
+
       if (targetLabel == nextLabel) {
 	// found a conditional branch to the next instruction.  just remove it.
 	cb.remove();
@@ -261,6 +278,15 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
+	// Avoid an infinite recursion in the following scenario:
+	// g: if (...) goto L
+	// ...
+	// L: goto L
+	// This happens in VM_GCUtil in some systems due to a while(true) {} 
+	return false;
+      }
       IfCmp.setTarget(cb, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
@@ -302,7 +328,7 @@ public final class OPT_BranchOptimizations
     if (targetInst == null || targetInst == cb) {
       return false;
     }
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
       if (targetLabel == nextLabel) {
@@ -366,7 +392,7 @@ public final class OPT_BranchOptimizations
     OPT_Instruction target1Label = IfCmp2.getTarget1(cb).target; 
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
-    boolean endsBlock = cb.getNext().operator() == BBEND;
+    boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (target1Inst != null && target1Inst != cb) {
       if (Goto.conforms(target1Inst)) {
 	// conditional branch to unconditional branch.
@@ -398,7 +424,7 @@ public final class OPT_BranchOptimizations
       }
       if ((target2Label == nextLabel) && endsBlock) {
 	// found a conditional branch to the next instruction. Reduce to IfCmp
-	if (VM.VerifyAssertions) VM.assert(cb.operator() == INT_IFCMP2);
+	if (VM.VerifyAssertions) VM._assert(cb.operator() == INT_IFCMP2);
 	IfCmp.mutate(cb, INT_IFCMP,
 		     IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
 		     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
@@ -507,15 +533,17 @@ public final class OPT_BranchOptimizations
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
         throw  new OPT_OptimizingCompilerException("Invalid boolean value");
-      if (cond.evaluate(value, 0)) {
+      int c = cond.evaluate(value, 0);
+      if (c == OPT_ConditionOperand.TRUE) {
         Unary.mutate(cb, BOOLEAN_NOT, res, val1);
-      } else {
+	return;
+      } else if (c == OPT_ConditionOperand.FALSE) {
         Move.mutate(cb, INT_MOVE, res, val1);
+	return;
       }
-    } else {
-      BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
-			new OPT_BranchProfileOperand());
-    }
+    } 
+    BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
+		      new OPT_BranchProfileOperand());
   }
 
   /**
@@ -722,7 +750,7 @@ public final class OPT_BranchOptimizations
       // make sure no register is defined more than once in this block.
       for (Enumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
         OPT_Operand def = (OPT_Operand)defs.nextElement();
-        if (VM.VerifyAssertions) VM.assert(def.isRegister());
+        if (VM.VerifyAssertions) VM._assert(def.isRegister());
         OPT_Register r = def.asRegister().register;
         if (defined.contains(r)) return true;
         defined.add(r);
@@ -801,7 +829,7 @@ public final class OPT_BranchOptimizations
         }
       }
 
-      if (VM.VerifyAssertions) VM.assert(s.getNumberOfDefs() == 1);
+      if (VM.VerifyAssertions) VM._assert(s.getNumberOfDefs() == 1);
 
       OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
       OPT_RegisterOperand rDef = def.asRegister();
@@ -943,7 +971,7 @@ public final class OPT_BranchOptimizations
     Goto.mutate(cb,GOTO,target);
     
     // Delete a potential GOTO after cb.
-    OPT_Instruction next = cb.getNext();
+    OPT_Instruction next = cb.nextInstructionInCodeOrder();
     if (next.operator != BBEND) {
       next.remove();
     }
@@ -980,13 +1008,13 @@ public final class OPT_BranchOptimizations
     if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))
       return false;
     // make sure this is the last branch in the block
-    if (cb.getNext().operator() != BBEND)
+    if (cb.nextInstructionInCodeOrder().operator() != BBEND)
       return false;
     OPT_Operand val1 = IfCmp.getVal1(cb);
     OPT_Operand val2 = IfCmp.getVal2(cb);
     OPT_ConditionOperand condition = IfCmp.getCond(cb);
     // "not taken" path
-    OPT_BasicBlock fb = getNotTakenNextBlock(cb.getBasicBlock());
+    OPT_BasicBlock fb = cb.getBasicBlock().getNotTakenNextBlock();
     // make sure it's a diamond
     if (tb.getNumberOfNormalOut() != 1)
       return false;

@@ -1,17 +1,20 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM;
-import VM_Atom;
-import VM_Array;
-import VM_Class;
-import VM_ClassLoader;
-import VM_ResolutionException;
-import VM_SystemClassLoader;
-import VM_UnimplementedError;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_StackBrowser;
+import com.ibm.JikesRVM.VM_ResolutionException;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 import java.security.ProtectionDomain;
 
 /**
@@ -39,7 +42,7 @@ public class ClassLoaderSupport {
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */ 
-  public static String[] getApplicationRepositories() {
+  public static String getApplicationRepositories() {
     return VM_ClassLoader.getApplicationRepositories();
   }
 
@@ -78,7 +81,7 @@ public class ClassLoaderSupport {
    * @see	java.lang.ClassLoader
    */
   public static ClassLoader getClassLoader(Class C) {
-      return ((VM_Class)C.type).getClassLoader();
+      return java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getClassLoader();
   }
   /**
    * Constructs a new class from an array of bytes containing a
@@ -126,8 +129,23 @@ public class ClassLoaderSupport {
 	VM_Atom d = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
 	VM_Array cls = (VM_Array)VM_ClassLoader.findOrCreateType(d, cl);
 
-	if (! cls.getElementType().isPrimitiveType())
-	    cl.loadClass(cls.getElementType().getName(), resolveClass);
+	if (! cls.getElementType().isPrimitiveType()) {
+	    Class k = cl.loadClass(cls.getElementType().getName());
+	    if (resolveClass) try {
+		VM_Type x = java.lang.JikesRVMSupport.getTypeForClass(k);
+		x.resolve();
+		x.instantiate();
+		x.initialize();
+	    } catch (VM_ResolutionException e) {
+		throw new ClassNotFoundException( k.toString() );
+	    }
+	}
+	
+	try {
+	    cls.load();
+	} catch (VM_ResolutionException e) {
+	    throw new ClassNotFoundException( className );
+	}
 
 	return cls.getClassForType();
     }
@@ -207,5 +225,19 @@ public class ClassLoaderSupport {
     
     public static ClassLoader getClassLoaderFromStackFrame(int depth) {
 	return VM_Class.getClassLoaderFromStackFrame(depth+1);
+    }
+
+    public static ClassLoader getNonSystemClassLoader() {
+	ClassLoader cl = null;
+	VM_StackBrowser sb = new VM_StackBrowser();
+	VM.disableGC();
+	sb.init();
+	while ((cl=sb.getCurrentClass().getClassLoader())==VM_SystemClassLoader.getVMClassLoader() && sb.hasMoreFrames())
+	    sb.up();
+	VM.enableGC();
+	if (cl!=VM_SystemClassLoader.getVMClassLoader())
+	    return cl;
+	else
+	    return null;
     }
 }

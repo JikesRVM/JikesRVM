@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Assemble PowerPC MIR into binary code.
@@ -16,6 +18,7 @@ import instructionFormats.*;
 public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
   private static final boolean DEBUG = false;
+  private static final boolean DEBUG_CODE_PATCH = false;
 
   // PowerPC specific constants/masks
   private static final int REG_MASK = 0x1F;             // for 32 registers
@@ -36,7 +39,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
   private static final int NOPtemplate = (24 << 26);
   private static final int Btemplate = (18 << 26);
 
-  private int unresolvedBranches;
+  private int unresolvedBranches = 0;
 
   /**
    * Generate machine code into ir.MIRInfo.machinecode.
@@ -72,16 +75,24 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  int bi = bo >> LG_INSTRUCTION_WIDTH;
 	  int targetOffset = (mi - bi) << LG_INSTRUCTION_WIDTH;
 	  boolean setLink = false;
-	  if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH)
+
+	  if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
 	    throw  new OPT_OptimizingCompilerException("CodeGen", 
 						       "Branch positive offset too large: ", 
 						       targetOffset);
+	  }
+
 	  switch (branchStmt.getOpcode()) {
 	  case PPC_B_opcode:case PPC_BL_opcode:
 	    machinecodes[bi] |= targetOffset & LI_MASK;
 	    break;
 	  case PPC_DATA_LABEL_opcode:
 	    machinecodes[bi] = targetOffset & LI_MASK;
+	    break;
+	  // Since resolveBranch and patch already check the range
+	  // of target offset, and will fail if it is out of range
+	  case IG_PATCH_POINT_opcode:
+	    // do nothing
 	    break;
 	  case PPC_BCL_opcode:
 	    setLink = true;
@@ -801,7 +812,31 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 	}
 	break;
+	
+      case IG_PATCH_POINT_opcode:
+	{
+	  OPT_BranchOperand bop = InlineGuard.getTarget(p);
+	  OPT_Instruction target = bop.target;
+	  if (VM.VerifyAssertions) {
+	    VM._assert(target.getOpcode() == LABEL_opcode);
+	  }
 
+	  // resolve the target instruction, in LABEL_opcode, 
+	  // add one case for IG_PATCH_POINT
+	  int targetOffset = resolveBranch(p, target, mi);
+
+	  machinecodes[mi++] = NOPtemplate;
+	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+
+	  if (DEBUG_CODE_PATCH) {
+	    VM.sysWrite("to be patched at ");
+	    VM.sysWrite(mi-1, false);
+	    VM.sysWrite(" inst ");
+	    VM.sysWriteHex(machinecodes[mi-1]);
+	    VM.sysWrite("\n");
+	  }
+	}
+	break;
       default:
 	throw new OPT_OptimizingCompilerException("CodeGen", 
 						  "OPCODE not implemented:", 
@@ -861,10 +896,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
     } else {
       // backward branch target, which has been fixed.
       int targetOffset = tgt.getmcOffset() - (mi << LG_INSTRUCTION_WIDTH);
-      if (targetOffset < (MIN_DISPL << LG_INSTRUCTION_WIDTH))
-        throw new OPT_OptimizingCompilerException("CodeGen", 
+      if (targetOffset < (MIN_DISPL << LG_INSTRUCTION_WIDTH)) {
+	throw new OPT_OptimizingCompilerException("CodeGen", 
 						  " Branch negative offset too large: ", 
 						  targetOffset);
+      }
       return targetOffset;
     }
   }
@@ -885,8 +921,8 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
     // WARNING: may not be correct when both condition and counter
     //          are tested, since, by DeMorgan's law,
     //          ~(A & B) == ~A | ~B, and the flip will produce ~A & ~B
-    int flip = (~inst & CFLIP_MASK) >> 1;
-    return (inst ^ flip);
+   int flip = (~inst & CFLIP_MASK) >> 1;
+   return (inst ^ flip);
   }
 
 
@@ -898,5 +934,43 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    */
   private String disasm (int instr, int offset) {
     return PPC_Disassembler.disasm(instr, offset);
+  }
+
+  /** Apply a patch.
+   * The instruction at patchOffset should be a NOP instruction.
+   * It is replaced by a "B rel32" instruction. 
+   *  
+   * @param code        the code intructions to be patched
+   * @param patchOffset the offset of the last byte of the patch point
+   * @param rel32       the new immediate to use in the branch instruction
+   * 
+   */
+  final static void patchCode(INSTRUCTION[] code,
+			      int patchOffset,
+			      int rel32) {
+
+    /* The expecting instruction at patchOffset should be a NOP.
+     */    
+    if (DEBUG_CODE_PATCH) {
+      VM.sysWrite("patching at ");
+      VM.sysWrite(patchOffset, false);
+      VM.sysWrite(" inst ");
+      VM.sysWriteHex(code[patchOffset]);
+      VM.sysWrite(" offset ");
+      VM.sysWrite(rel32, false);
+      VM.sysWrite("\n");
+    }
+     
+    // turn this into VM.VerifyAssertions later
+    if (VM.VerifyAssertions) {
+      VM._assert(code[patchOffset] == NOPtemplate);
+      VM._assert(rel32 <= (MAX_DISPL << LG_INSTRUCTION_WIDTH));
+      VM._assert(rel32 >= (MIN_DISPL << LG_INSTRUCTION_WIDTH));
+    }
+    /* the rel32 has to be in the range from -2^25 to 2^25-1, 
+     * is is guaranteed when generating code for IG_PATCH_POINT.
+     */  
+    // make a B IMM instruction
+    code[patchOffset] = (18 << 26) | (rel32 & LI_MASK);
   }
 }

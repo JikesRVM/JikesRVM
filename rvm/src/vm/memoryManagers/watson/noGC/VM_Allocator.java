@@ -3,6 +3,42 @@
  */
 //$Id$
 
+
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_JavaHeader;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_ProcessorLocalState;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Registers;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_Synchronizer;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_Callbacks;
+
 /**
  * Trivial implementation for illustrative purposes, not for production use.
  * Allocates all objects out of the immortal heap and exits with an OutOfMemoryError
@@ -138,9 +174,9 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   // methods called from utility methods of VM_GCUtil, VM_ScanObject,
   // VM_ScanStack, VM_ScanStatics
   //
-  static final void       processPtrField( VM_Address location ) { VM.assert(false); }
-  static final VM_Address processPtrValue( VM_Address reference ) { VM.assert(false); return null; }
-  static final void       processWriteBufferEntry( VM_Address discard ) { VM.assert(false); }
+  static final void       processPtrField( VM_Address location ) { VM._assert(false); }
+  static final VM_Address processPtrValue( VM_Address reference ) { VM._assert(false); return null; }
+  static final void       processWriteBufferEntry( VM_Address discard ) { VM._assert(false); }
 
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)

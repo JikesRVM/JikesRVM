@@ -1,2 +1,0 @@
-   . $1/FullOptHybrid
-   export RVM_WITHOUT_ASSERTIONS=1 

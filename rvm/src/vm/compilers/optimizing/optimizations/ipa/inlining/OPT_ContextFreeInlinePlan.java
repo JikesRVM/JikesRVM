@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
 import  java.io.*;
@@ -14,7 +16,7 @@ import  java.io.*;
  * @modified Peter Sweeney
  * @modified Matthew Arnold
  */
-class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
+public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
 
   /** 
    * Add the rule "inline b into a at bytecode x" to the object

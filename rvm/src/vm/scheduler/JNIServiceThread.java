@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.lang.reflect.Method;
 import java.lang.Thread;
@@ -15,7 +16,7 @@ import java.lang.Thread;
  * @author Ton Ngo 
  * @date October 24 2000
  */
-class JNIServiceThread extends Thread   {
+class JNIServiceThread extends VM_Thread   {
   // constant must match #define in libjni.C
   static final int ATTACHREQUEST  = 0;     
   static final int DETACHREQUEST  = 1;
@@ -185,7 +186,7 @@ class JNIServiceThread extends Thread   {
       default:
 	// bad requestType value from C
 	VM.sysWrite("JNIServiceThread: bad request value from external pthread.\n");
-	VM_Scheduler.assert(VM.NOT_REACHED);
+	VM_Scheduler._assert(VM.NOT_REACHED);
       }
 
 

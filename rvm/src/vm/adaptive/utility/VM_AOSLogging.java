@@ -3,6 +3,13 @@
  */
 // $Id$
 
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.opt.*;
 import java.io.*;
 
 /**
@@ -112,14 +119,14 @@ class VM_AOSLogging {
 		      " ThreadIndex: " + t.getIndex() + " "
 		      + t.getClass().getName() + " "
 		      + " Time: " 
-		      + t.cpuTotalTime
+		      + t.getCPUTotalTime()
 		      + " status("
-		      + (  t.isIdleThread ?     "i"         // idle daemon
-			   : t.isGCThread   ?     "g"       // gc daemon
-			   : t.isDaemon     ?     "d"       // user daemon
+		      + (  t.isIdleThread() ?     "i"         // idle daemon
+			   : t.isGCThread() ?     "g"       // gc daemon
+			   : t.isDaemonThread()  ?     "d"       // user daemon
 			   :                      "" )
-		      + (!t.isAlive     ?     "!" : "")     // dead/alive
-		      + (t.cpuStartTime > 0 ? "+" : "-")    // running/stopped
+		      + (!t.isAlive()     ?     "!" : "")     // dead/alive
+		      + (t.getCPUStartTime() > 0 ? "+" : "-")    // running/stopped
 		      + ")"
 		      );
 	}
@@ -179,14 +186,27 @@ class VM_AOSLogging {
   /**
    * Call this method when one run of the application is completed
    */
-  public static void appRunComplete() {
+  public static void appRunStart(String prog, int run) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
-		    +" Application completed a run");
+		    +" Application "+prog+" starting run "+run);
       }
     }
   }
+
+  /**
+   * Call this method when one run of the application is completed
+   */
+  public static void appRunComplete(String prog, int run) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+	log.println(VM_Controller.controllerClock 
+		    +" Application "+prog+" completed run "+run);
+      }
+    }
+  }
+
 
   /**
    * Call this method when the controller thread is exiting

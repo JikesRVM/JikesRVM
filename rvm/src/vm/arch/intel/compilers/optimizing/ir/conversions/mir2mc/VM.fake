@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * @author Julian Dolby
  */
@@ -13,21 +14,13 @@ class VM {
 
     public static boolean BuildForITableInterfaceInvocation;
 
-    public static boolean BuildForFastDynamicTypeCheck;
-
     public static boolean VerifyAssertions;
 
     public static boolean NOT_REACHED;
 
-    public static void assert(boolean c) {
+    public static void _assert(boolean c) { }
 
-    }
+    public static void _assert(boolean c, String s) { }
 
-    public static void assert(boolean c, String s) {
-
-    }
-
-    public static void sysWrite(String s) {
-
-    }
+    public static void sysWrite(String s) { }
 }

@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
-import  OPT_SpaceEffGraphNode.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)
@@ -18,36 +20,112 @@ import  OPT_SpaceEffGraphNode.*;
  *
  * @author: Mauricio J. Serrano
  * @modified: Stephen Fink
+ * @modified: Dave Grove
  * @modified: Michael Hind
  */
 public class OPT_LSTGraph extends OPT_SpaceEffGraph {
-  static final boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
-  /** Implementation */
-  private java.util.HashMap hash = new java.util.HashMap();   // bb -> node
   private OPT_LSTNode rootNode;
-  private java.util.HashMap nest;            // bb -> Integer (nesting depth)
-  private OPT_IR ir;
+  private final java.util.HashMap loopMap = new java.util.HashMap(); // bb -> OPT_LSTNode of innermost loop containing bb
 
   /**
    * The main entry point
    * @param ir the IR to process
    */
   public static void perform(OPT_IR ir) {
-    if (DEBUG) {   System.out.println("LSTGraph:" + ir.method); }
+    if (DEBUG) System.out.println("LSTGraph:" + ir.method);
     ir.HIRInfo.LoopStructureTree = new OPT_LSTGraph(ir);
     if (DEBUG) {
       OPT_VCG.printVCG("cfg", ir.cfg);
       OPT_VCG.printVCG("lst", ir.HIRInfo.LoopStructureTree);
+      System.out.println(ir.HIRInfo.LoopStructureTree.toString());
+    }
+    
+  }
+
+  /**
+   * @param bb the basic block
+   * @return the loop nesting depth or 0, if not in loop
+   */
+  public int getLoopNestDepth(OPT_BasicBlock bb) {
+    OPT_LSTNode loop = (OPT_LSTNode)loopMap.get(bb);
+    if (loop == null) return 0;
+    return loop.depth;
+  }
+
+  /**
+   * Is a given basic block in an innermost loop?
+   * @param bb the basic block
+   * @return whether the block is in an innermost loop
+   */
+  public boolean inInnermostLoop(OPT_BasicBlock bb) {
+    OPT_LSTNode node = (OPT_LSTNode)loopMap.get(bb);
+    if (node == null) return false;
+    if (node.firstOutEdge() == null && node.loop != null) { 
+      return true;
+    } else {
+      return false;
     }
   }
+
+  /**
+   * Is the edge from source to target an exit from the loop containing source?
+   * @param source the basic block that is the source of the edge
+   * @param target the basic block that is the target of the edge
+   */
+  public boolean isLoopExit(OPT_BasicBlock source, OPT_BasicBlock target) {
+    OPT_LSTNode snode = (OPT_LSTNode)loopMap.get(source);
+    OPT_LSTNode tnode = (OPT_LSTNode)loopMap.get(target);
+
+    if (snode == null || snode == rootNode) return false; // source isn't in a loop
+    if (tnode == null || tnode == rootNode) return true;  // source is in a loop and target isn't
+    if (snode == tnode) return false; // in same loop
+    
+    for (OPT_LSTNode ptr = tnode; 
+	 ptr != rootNode; 
+	 ptr = ptr.getParent()) {
+      if (ptr == snode) return false; // tnode is nested inside of snode
+    }
+
+    return true;
+  }
+
+  public OPT_LSTNode getLoop(OPT_BasicBlock b) {
+    return (OPT_LSTNode)loopMap.get(b);
+  }
+
+  /**
+   * Return the root node of the tree
+   * @return the root node of the loop structure tree
+   */
+  public OPT_LSTNode getRoot() {
+    return rootNode;
+  }
+
+  public String toString() {
+    return "LST:\n" + dumpIt(rootNode);
+  }
+
+  private String dumpIt(OPT_LSTNode n) {
+    String ans = n.toString() + "\n";
+    for (Enumeration e = n.getChildren();
+	 e.hasMoreElements();) {
+      ans += dumpIt((OPT_LSTNode)e.nextElement());
+    }
+    return ans;
+  }
+
+
+  /*
+   * Code to construct the LST for an IR.
+   */
 
   /**
    * Constructor, it creates the LST graph
    * @param  ir the IR
    */
-  OPT_LSTGraph(OPT_IR ir) {
-    this.ir = ir;
+  private OPT_LSTGraph(OPT_IR ir) {
     OPT_ControlFlowGraph cfg = ir.cfg;
     OPT_BasicBlock entry = ir.cfg.entry();
 
@@ -69,7 +147,6 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     OPT_LSTNode lstheader = new OPT_LSTNode(entry);
     rootNode = lstheader;
     addGraphNode(lstheader);
-    hash.put(entry, lstheader);
 
     // compute the natural loops for each back edge. 
     // merge backedges with the same header
@@ -85,7 +162,6 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
           if (header == null) {
             header = new OPT_LSTNode(node);
             addGraphNode(header);
-            hash.put(node, header);
             loop = new OPT_BitVector(cfg.numberOfNodes());
             loop.set(node.getNumber());
             header.loop = loop;
@@ -124,97 +200,30 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
       // else the node is considered to be connected to the LST head
       _firstNode.insertOut(node);
     }
-  }
 
-  /**
-   * return the loop nesting depth of a basic block.
-   * returns 0 if not in a loop
-   * @param bb the basic block
-   * @return the loop nesting depth or 0, if not in loop
-   */
-  public int getLoopNestDepth(OPT_BasicBlock bb) {
-    if (nest == null)
-      initializeNesting();
-    Integer depth = (Integer)nest.get(bb);
-    if (depth == null) {
-      return 0;
-    }
-    return depth.intValue();
-  }
-
-  /**
-   * Is a given basic block in an innermost loop?
-   * @param bb the basic block
-   * @return whether the block is in an innermost loop
-   */
-  public boolean inInnermostLoop(OPT_BasicBlock bb) {
-    OPT_LSTNode node = (OPT_LSTNode)hash.get(bb);
-    if (VM.VerifyAssertions) VM.assert(node != null);
-    if (node.firstOutEdge() == null && node.loop != null) { 
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-
-  /**
-   * Initialize a structure which holds the loop nest depth
-   * for every basic block in loops in the IR
-   * TODO: This data structure is inefficient.  Re-design this whole
-   *  	shebang.
-   */
-  private void initializeNesting() {
-    nest = new java.util.HashMap();
+    // Set loop nest depth for each node in the LST and initialize LoopMap
     ir.resetBasicBlockMap();
-    // for each node in the LST ...
-    for (OPT_LSTNode node = (OPT_LSTNode)_firstNode.getNext(); 
-	 node != null; 
-	 node = (OPT_LSTNode)node.getNext()) {
-      int depth = computeDepth(node);
-      OPT_BitVector loop = node.loop;
+    setDepth(ir, rootNode, 0);
+  }
 
-      // set the nesting depth for each basic block in the loop
+  private void setDepth(OPT_IR ir, OPT_LSTNode node, int depth) {
+    if (VM.VerifyAssertions) VM._assert(node.depth == 0);
+    node.depth = depth;
+    for (Enumeration e = node.getChildren();
+	 e.hasMoreElements();) {
+      setDepth(ir, (OPT_LSTNode)e.nextElement(), depth+1);
+    }
+    OPT_BitVector loop = node.loop;
+    if (loop != null) {
       for (int i = 0; i < loop.length(); i++) {
-        if (loop.get(i)) {
-          OPT_BasicBlock bb = ir.getBasicBlock(i);
-          Integer d = (Integer)nest.get(bb);
-          if (d == null) {
-            nest.put(bb, new Integer(depth));
-          } 
-          else {
-            // only set the depth deeper than before; not shallower
-            int newDepth = Math.max(depth, d.intValue());
-            nest.put(bb, new Integer(newDepth));
-          }
-        }
+	if (loop.get(i)) {
+	  OPT_BasicBlock bb = ir.getBasicBlock(i);
+	  if (loopMap.get(bb) == null) {
+	    loopMap.put(bb, node);
+	  }
+	}
       }
     }
-  }
-
-  /**
-   * How many levels of nesting enclose a particular LSTNode?
-   * @param n the LSTnode of interest
-   * @return the number levels of nesting enclosing n
-   */
-  private int computeDepth(OPT_LSTNode n) {
-    int depth = 0;
-    while (n != rootNode) {
-      depth++;
-      if (n.getNumberOfIn() != 1) {
-        throw  new OPT_OptimizingCompilerException("Invalid LST");
-      }
-      n = (OPT_LSTNode)n.inNodes().next();
-    }
-    return depth;
-  }
-
-  /**
-   * Return the root node of the tree
-   * @return the root node of the loop structure tree
-   */
-  public OPT_LSTNode getRoot() {
-    return rootNode;
   }
 
   /**
@@ -224,10 +233,11 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param bb the basic block to process
    * @param numNodes the number of basic block
    */
-  static void findBackEdges(OPT_BasicBlock bb, int numBlocks) {
+  private void findBackEdges(OPT_BasicBlock bb, int numBlocks) {
     OPT_Stack stack = new OPT_Stack();
-    GraphEdgeEnumeration[] BBenum = new GraphEdgeEnumeration[numBlocks];
-
+    OPT_SpaceEffGraphNode.GraphEdgeEnumeration[] BBenum = 
+      new OPT_SpaceEffGraphNode.GraphEdgeEnumeration[numBlocks];
+    
     // push node on to the emulated activation stack
     stack.push(bb);
 
@@ -237,7 +247,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 
       // check if we were already processing this node, if so we would have
       // saved the state of the enumeration in the loop below
-      GraphEdgeEnumeration e = BBenum[bb.getNumber()];
+      OPT_SpaceEffGraphNode.GraphEdgeEnumeration e = BBenum[bb.getNumber()];
       if (e == null) {
 	if (DEBUG) { System.out.println(" Initial processing of " + bb);  }
 	bb.setDfsVisited();
@@ -261,7 +271,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 	} else if (!outbb.dfsVisited()) {
 	  // irreducible loop test
 	  if (outbb.scratch < bb.scratch)
-	    throw  new OPT_OptimizingCompilerException("irreducible loop found!");
+	    throw new OPT_OptimizingCompilerException("irreducible loop found!");
 	  // simulate a recursive call
 	  // but first save the enumeration state for resumption later
 	  BBenum[bb.getNumber()] = e;
@@ -280,7 +290,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param bb the basic block
    */
   private void clearBackEdges(OPT_SpaceEffGraphNode bb) {
-    GraphEdgeEnumeration f = bb.outEdges();
+    OPT_SpaceEffGraphNode.GraphEdgeEnumeration f = bb.outEdges();
     while (f.hasMoreElements()) {
       OPT_SpaceEffGraphEdge outEdge = f.next();
       outEdge.clearBackEdge();
@@ -293,8 +303,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param edge the edge to process
    * @param loop bit vector to hold the results of the algorithm
    */
-  static void findNaturalLoop(OPT_SpaceEffGraphEdge edge, 
-			      OPT_BitVector loop) {
+  private void findNaturalLoop(OPT_SpaceEffGraphEdge edge, OPT_BitVector loop) {
 
     /* Algorithm to compute Natural Loops, Muchnick, pp. 192: 
        procedure Nat_Loop(m,n,Pred) return set of Node
@@ -335,6 +344,3 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     }
   }
 }
-
-
-

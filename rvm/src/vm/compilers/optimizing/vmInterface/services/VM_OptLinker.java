@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
@@ -37,36 +40,14 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     case JBC_getfield: case JBC_putfield: 
     case JBC_getstatic: case JBC_putstatic: 
       { 
-	VM_Field target = realMethod.getDeclaringClass().getFieldRef(cpi);
-	if (VM.TraceDynamicLinking) {
-	  VM_Class declaringClass = target.getDeclaringClass();
-	  VM.sysWrite(realMethod);
-	  VM.sysWrite(" at bci ");
-	  VM.sysWrite(bci, false);
-	  VM.sysWrite(" is causing dynamic loading of ");
-	  VM.sysWrite(declaringClass.getDescriptor());
-	  VM.sysWrite(" due to ");
-	  VM.sysWrite(target);
-	  VM.sysWrite("\n");
-	}
-	VM_TableBasedDynamicLinker.resolve(target);
+	int fid = realMethod.getDeclaringClass().getFieldRefId(cpi);
+	VM_TableBasedDynamicLinker.resolveField(fid);
       }
       break;
     case JBC_invokevirtual:case JBC_invokestatic:
       {
-	VM_Method target = realMethod.getDeclaringClass().getMethodRef(cpi);
-	if (VM.TraceDynamicLinking) {
-	  VM_Class declaringClass = target.getDeclaringClass();
-	  VM.sysWrite(realMethod);
-	  VM.sysWrite(" at bci ");
-	  VM.sysWrite(bci, false);
-	  VM.sysWrite(" is causing dynamic loading of ");
-	  VM.sysWrite(declaringClass.getDescriptor());
-	  VM.sysWrite(" due to ");
-	  VM.sysWrite(target);
-	  VM.sysWrite("\n");
-	}
-	VM_TableBasedDynamicLinker.resolve(target);
+	int mid = realMethod.getDeclaringClass().getMethodRefId(cpi);
+	VM_TableBasedDynamicLinker.resolveMethod(mid);
       }
       break;
     case JBC_invokeinterface:
@@ -79,7 +60,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       // code is executed, the method offset table will contain a valid value.
     default:
       if (VM.VerifyAssertions)
-	VM.assert(VM.NOT_REACHED, 
+	VM._assert(VM.NOT_REACHED, 
 		  "Unexpected case in VM_OptLinker.resolveDynamicLink");
       break;
     }

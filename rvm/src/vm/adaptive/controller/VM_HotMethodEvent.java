@@ -2,6 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.opt.VM_OptCompiledMethod;
 
 /**
  * Abstract parent class for events from organizers to the controller 
@@ -40,8 +47,8 @@ abstract class VM_HotMethodEvent {
    */
   VM_HotMethodEvent(VM_CompiledMethod _cm, double _numSamples) {
     if (VM.VerifyAssertions) {
-      VM.assert(_cm != null, "Don't create me for null compiled method!");
-      VM.assert(_numSamples >= 0.0, "Invalid numSamples value");
+      VM._assert(_cm != null, "Don't create me for null compiled method!");
+      VM._assert(_numSamples >= 0.0, "Invalid numSamples value");
     }
     cm = _cm;
     numSamples = _numSamples;

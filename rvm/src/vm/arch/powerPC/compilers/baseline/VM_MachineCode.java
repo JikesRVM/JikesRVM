@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import java.util.Vector;
 
 /*
@@ -16,13 +18,13 @@ import java.util.Vector;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-class VM_MachineCode {
+final class VM_MachineCode {
 
   /**
    * Get the instructions comprising this block of machine code.
    */ 
   INSTRUCTION[] getInstructions() {
-    if (VM.VerifyAssertions) VM.assert(instructions != null); // must call "finish" first
+    if (VM.VerifyAssertions) VM._assert(instructions != null); // must call "finish" first
     return instructions;
   }
 
@@ -41,10 +43,10 @@ class VM_MachineCode {
    * Finish generation of assembler code.
    */ 
   void finish () {
-    if (VM.VerifyAssertions) VM.assert(instructions == null); // finish must only be called once
+    if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
     int n = (next_bundle-1)*size+next;
-    instructions = VM_RuntimeStructures.newInstructions(n);
+    instructions = VM_Interface.newInstructions(n);
     int k = 0;
     for (int i=0; i<next_bundle; i++){
       INSTRUCTION[] b = (INSTRUCTION[]) bundles.elementAt(i);

@@ -2,13 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.Iterator;
-import instructionFormats.Unary;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform live-range splitting.
@@ -20,18 +22,16 @@ import instructionFormats.Unary;
  * name for r.  The SPLIT operator is later turned into a MOVE during
  * BURS.
  *
+ * <p>This pass also splits live ranges on edges to and from infrequent code.
+ *
  * <p> This composite phase should be performed at the end of SSA in LIR.
  *
  * @author Stephen Fink
  */
 class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**
@@ -40,11 +40,11 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
   OPT_LiveRangeSplitting() {
     super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
           // 0. Clean up the IR
-          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2)),
+          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
           new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
           // 1. Insert the split operations.
           new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
-          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2)),
+          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
           // 2. Use SSA to rename
           new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
           new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
@@ -57,22 +57,18 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
   private static class LiveRangeSplitting extends OPT_CompilerPhase 
     implements OPT_Operators{
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    final String getName () {
+    public final String getName () {
       return "Live Range Splitting";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /**
      * The main entrypoint for this pass.
      */
-    final void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       // 1. Compute an up-to-date loop structure tree.
       OPT_DominatorsPhase dom = new OPT_DominatorsPhase(true);
       dom.perform(ir);
@@ -159,8 +155,43 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           }
         }
       }
+      
+      addEntriesForInfrequentBlocks(ir, live, result);
+
       return result;
     }
+
+    /**
+     * Split live ranges on entry and exit to infrequent regions.
+     * Add this information to 'result', a mapping from BasicBlockPair to a set of 
+     * registers to split.
+     *
+     * @param ir the governing IR
+     * @param live valid liveness information
+     * @param result mapping from BasicBlockPair to a set of registers
+     */
+    private static void addEntriesForInfrequentBlocks(OPT_IR ir, OPT_LiveAnalysis live,
+                                                      HashMap result) {
+      for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+        OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+        boolean bbInfrequent = bb.getInfrequent();
+        for (Enumeration out = bb.getNormalOut(); out.hasMoreElements(); ) {
+          OPT_BasicBlock dest = (OPT_BasicBlock)out.nextElement();
+          boolean destInfrequent = dest.getInfrequent();
+          if (bbInfrequent ^ destInfrequent) {
+            HashSet liveRegisters = live.getLiveRegistersOnEdge(bb,dest);
+            for (Iterator it = liveRegisters.iterator(); it.hasNext();) {
+              OPT_Register r = (OPT_Register)it.next();
+              if (r.isSymbolic()) {
+                HashSet s = findOrCreateSplitSet(result,bb,dest);
+                s.add(r);
+              }
+            }
+          }
+        }
+      }
+    }
+
 
     /**
      * Given a mapping from BasicBlockPair -> HashSet, find or create the hash
@@ -290,16 +321,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    */
   private static class RenamePreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    final String getName () {
+    public final String getName () {
       return  "Rename Preparation";
-    }
-
-    final boolean printingEnabled (OPT_Options options, boolean before) {
-      return false;
     }
 
     /**

@@ -157,11 +157,6 @@ Goto
 "U Target OPT_BranchOperand"
 
 
-ComputedGoto
-0 0 1
-"U Target OPT_RegisterOperand"
-
-
 Label
 0 0 1
 "U Block OPT_BasicBlockOperand"

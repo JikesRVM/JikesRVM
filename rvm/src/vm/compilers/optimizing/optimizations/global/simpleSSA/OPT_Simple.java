@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /*
  * Simple flow-insensitive optimizations.
@@ -22,7 +24,7 @@ import instructionFormats.*;
 public final class OPT_Simple extends OPT_CompilerPhase
   implements OPT_Operators, OPT_Constants {
 
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
 
   /**
    * Perform type propagation?
@@ -37,15 +39,15 @@ public final class OPT_Simple extends OPT_CompilerPhase
    */
   private final boolean foldBranches;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return options.SIMPLE_OPT;
   }
 
-  final String getName () {
+  public final String getName () {
     return "Simple Opts";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 
@@ -96,7 +98,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
    *
    * @param ir the IR to optimize
    */
-  void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     // Compute defList, useList, useCount fields for each register.
     OPT_DefUse.computeDU(ir);
     // Recompute isSSA flags
@@ -180,7 +182,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
 	  OPT_RegisterOperand rhsRegOp = rhs.asRegister();
 	  for (OPT_RegisterOperand use = reg.useList; use != null; use = nextUse) {
 	    nextUse = use.getNext(); // get early before reg's useList is updated. 
-	    if (VM.VerifyAssertions) VM.assert(rhsRegOp.register.getType() == use.register.getType());
+	    if (VM.VerifyAssertions) VM._assert(rhsRegOp.register.getType() == use.register.getType());
             OPT_DefUse.transferUse(use, rhsRegOp);
 	  }
 	} else if (rhs.isConstant()) {
@@ -308,7 +310,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
       OPT_RegisterOperand lhs = reg.defList;
       OPT_Instruction instr = lhs.instruction;
       OPT_Operator op = instr.operator();
-      if (op != NEWARRAY)
+      if (!(op == NEWARRAY || op == NEWARRAY_UNRESOLVED))
         continue;
       OPT_Operand sizeOp = NewArray.getSize(instr);
       // check for an array whose length is a compile-time constant
@@ -473,7 +475,8 @@ public final class OPT_Simple extends OPT_CompilerPhase
     boolean recomputeRegList = false;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; 
         s = s.nextInstructionInCodeOrder()) {
-      byte code = OPT_Simplifier.simplify(s);
+      byte code = 0;
+      OPT_Simplifier.simplify(s);
       // If something was reduced (as opposed to folded) then its uses may 
       // be different. This happens so infrequently that it's cheaper to 
       // handle it by  recomputing the DU from

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Methods of a class that implements this interface
@@ -12,4 +13,4 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_SaveVolatile  { }
+public interface VM_SaveVolatile  { }

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
 /**
@@ -13,8 +15,9 @@ import java.util.*;
  * @author Dave Grove
  * @author Martin Trapp
  **/
-final class OPT_GenerationContext implements OPT_Constants, 
-					     OPT_Operators {
+public final class OPT_GenerationContext 
+  implements com.ibm.JikesRVM.opt.OPT_Constants, 
+	     OPT_Operators {
 
   //////////
   // These fields are used to communicate information from its 
@@ -34,6 +37,11 @@ final class OPT_GenerationContext implements OPT_Constants,
    * The method to be generated
    */
   VM_Method method;
+
+  /**
+   * The BranchProfile data for method, if available
+   */
+  VM_BranchProfiles branchProfiles;
 
   /**
    * The options to control the generation
@@ -113,7 +121,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   /**
    * Inlining context of the method to be generated
    */
-  OPT_InlineSequence inlineSequence;
+  public OPT_InlineSequence inlineSequence;
 
   /**
    * The OPT_InlineOracle to be consulted for all inlining decisions during
@@ -187,6 +195,9 @@ final class OPT_GenerationContext implements OPT_Constants,
     original_method = meth;
     original_cm = cm;
     method = meth;
+    if (opts.frequencyCounters() || opts.inverseFrequencyCounters()) {
+      branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
+    }
     options = opts;
     inlinePlan = ip;
     inlineSequence = new OPT_InlineSequence(meth);
@@ -245,11 +256,6 @@ final class OPT_GenerationContext implements OPT_Constants,
       }
     }
     VM_Type returnType = meth.getReturnType();
-
-    try {
-	Class.forName("OPT_ClassLoaderProxy");
-    } catch (Throwable e) {
-    }
     if (returnType != OPT_ClassLoaderProxy.VoidType) {
       resultReg = temps.makeTemp(returnType).register;
     }
@@ -280,6 +286,9 @@ final class OPT_GenerationContext implements OPT_Constants,
 						  OPT_Instruction callSite) {
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;
+    if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
+      child.branchProfiles = VM_EdgeCounts.getBranchProfiles(callee);
+    }
     child.original_method = parent.original_method;
     child.original_cm = parent.original_cm;
 
@@ -310,7 +319,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     }
  
     // Initialize the child CFG, prologue, and epilogue blocks
-    child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes);
+    child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes());
     child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, 
 					child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
@@ -455,7 +464,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     parent.localMCSizeEstimate += 
       child.localMCSizeEstimate - VM_OptMethodSummary.CALL_COST;
 
-    parent.cfg.numberOfNodes = child.cfg.numberOfNodes;
+    parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
     if (child.generatedExceptionHandlers)
       parent.generatedExceptionHandlers = true;
     if (child.allocFrame)
@@ -573,6 +582,37 @@ final class OPT_GenerationContext implements OPT_Constants,
       _ncGuards.put(ref, guard);
     }
     return guard;
+  }
+
+
+  ///////////
+  // Profile data
+  ///////////
+  public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
+    float prob;
+    if (branchProfiles != null) {
+      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
+      prob = ((VM_ConditionalBranchProfile)bp).getTakenProbability();
+    } else if (backwards) {
+      prob = 0.9f;
+    } else {
+      prob = 0.5f;
+    }
+    // experimental option: flip the probablity to see how bad things would be if
+    // we were completely wrong.
+    if (options.inverseFrequencyCounters()) {
+      prob = 1f - prob;
+    }
+    return new OPT_BranchProfileOperand(prob);
+  }
+
+  public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
+    if (branchProfiles != null) {
+      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
+      return (VM_SwitchBranchProfile)bp;
+    } else {
+      return null;
+    }
   }
 
 
@@ -739,7 +779,7 @@ final class OPT_GenerationContext implements OPT_Constants,
    * optimizations. This method should be called before hir2lir conversions
    * which might trigger inlining.
    */
-  void resync () {
+  public void resync () {
     //make sure the _ncGuards contain no dangling mappings
     resync_ncGuards();
   }
@@ -767,7 +807,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   /**
    * Kill ncGuards, so we do not use outdated mappings unintendedly later on
    */
-  void close () {
+  public void close () {
     _ncGuards = null;
   }
   

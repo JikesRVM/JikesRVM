@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
 
 /**
  * This class is not meant to be instantiated.
@@ -30,8 +31,8 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  static final OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
-							      final OPT_Instruction end) {
+  public static final OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
+								     final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
@@ -67,8 +68,8 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  static final OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
-							      final OPT_Instruction end) {
+  public static final OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
+								     final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
@@ -96,7 +97,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  static final OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
+  public static final OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -120,7 +121,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  static final OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
+  public static final OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -144,7 +145,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the basic blocks in ir
    */ 
-  static final OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
+  public static final OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.firstBasicBlockInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -168,7 +169,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a reverse enumeration of the basic blocks in ir
    */ 
-  static final OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
+  public static final OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.lastBasicBlockInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -186,7 +187,8 @@ public abstract class OPT_IREnumeration {
     };
   }
   
-  private static final void fail(String msg) throws java.util.NoSuchElementException, VM_PragmaNoInline {
+  private static final void fail(String msg) throws java.util.NoSuchElementException, 
+                                                    com.ibm.JikesRVM.VM_PragmaNoInline {
     throw new java.util.NoSuchElementException(msg);
   }
 }

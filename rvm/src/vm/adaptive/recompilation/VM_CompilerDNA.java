@@ -2,7 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_Constants;
 import java.io.*;
 import java.util.*;
 
@@ -12,7 +16,7 @@ import java.util.*;
  *
  * @author: Michael Hind
  */
-class VM_CompilerDNA implements VM_Constants {
+public class VM_CompilerDNA implements VM_Constants {
 
   private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   final static int BASELINE = 0;
@@ -30,14 +34,14 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on June 28, 2002 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on October 23, 2002 on AIX/PPC (munchkin)
    */
-  private static final double[] compilationRates = {431.78, 9.72, 4.04, 1.44};
+  private static final double[] compilationRates = {595.49, 9.38, 3.81, 1.29};
   //-#else
   /*
-   *  These numbers were from a shadow on June 28, 2002 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
    */
-  private static final double[] compilationRates = {584.98, 15.08, 6.03, 2.39};
+  private static final double[] compilationRates = {916.99, 15.56, 5.88, 1.92};
   //-#endif
 
   /**
@@ -45,14 +49,14 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on June 28, 2002 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on October 23, 2002 on AIX/PPC (munchkin)
    */
-  private static final double[] speedupRates = {1.00, 4.09, 5.27, 5.66};
+  private static final double[] speedupRates = {1.00, 3.99, 5.47, 6.11};
   //-#else
   /*
-   *  These numbers were from a shadow on June 28, 2002 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
    */
-  private static final double[] speedupRates = {1.00, 3.59, 4.69, 4.77};
+  private static final double[] speedupRates = {1.00, 3.80, 5.26, 5.10};
   //-#endif
 
   /**
@@ -159,6 +163,18 @@ class VM_CompilerDNA implements VM_Constants {
 	
       }
     }
+
+    // Compute MAX_OPT_LEVEL
+    int maxProfitableCompiler = 0;
+    for (int compiler = 1; compiler < numCompilers; compiler++) {
+      if (compilationRates[compiler] > compilationRates[compiler-1] ||
+	  speedupRates[compiler] > speedupRates[compiler-1]) {
+	maxProfitableCompiler = compiler;
+      }
+    }
+    int maxOptLevel = getOptLevel(maxProfitableCompiler);
+    VM_Controller.options.MAX_OPT_LEVEL = maxOptLevel;
+    VM_Controller.options.FILTER_OPT_LEVEL = maxOptLevel;
   }
 
 
@@ -193,14 +209,14 @@ class VM_CompilerDNA implements VM_Constants {
 				     double[] valueHolder) throws IOException {
 
     String s = in.readLine();
-    if (VM.VerifyAssertions) VM.assert(s != null);
+    if (VM.VerifyAssertions) VM._assert(s != null);
     
     // parse the string
     StringTokenizer parser = new StringTokenizer(s);
     
     // make sure the title matches
     String token = parser.nextToken();
-    if (VM.VerifyAssertions) VM.assert(token.equals(title));
+    if (VM.VerifyAssertions) VM._assert(token.equals(title));
     
     // walk through the array, making sure we still have tokens
     for (int i=0;
@@ -236,7 +252,7 @@ class VM_CompilerDNA implements VM_Constants {
       case OPT1: return 1;
       case OPT2: return 2;
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown compiler constant\n");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
 	return -99;
     }
   }
@@ -261,7 +277,7 @@ class VM_CompilerDNA implements VM_Constants {
       case 1: return OPT1;
       case 2: return OPT2;
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown Opt Level\n");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
 	return -99;
     }
   }

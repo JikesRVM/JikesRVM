@@ -2,7 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Thread;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -27,7 +30,10 @@ class VM_ControllerThread extends VM_Thread {
    * constructor
    * @param sentinel: an object to signal when up and running
    */
-  VM_ControllerThread(Object sentinel)  { this.sentinel = sentinel; }
+  VM_ControllerThread(Object sentinel)  { 
+    this.sentinel = sentinel; 
+    makeDaemon(true);
+  }
   private Object sentinel;
 
 
@@ -56,6 +62,10 @@ class VM_ControllerThread extends VM_Thread {
       return; // controller thread exits.
     }
 
+    // Initialize the CompilerDNA class
+    // This computes some internal options, must be done early in boot process
+    VM_CompilerDNA.init();
+
     // Create the organizerThreads and schedule them
     createOrganizerThreads();
 
@@ -64,9 +74,6 @@ class VM_ControllerThread extends VM_Thread {
 
     // Initialize the controller "memory"
     VM_ControllerMemory.init();
-
-    // Initialize the CompilerDNA class
-    VM_CompilerDNA.init();
 
     // Create our set of standard optimization plans.
     VM_Controller.recompilationStrategy.init();
@@ -131,7 +138,6 @@ class VM_ControllerThread extends VM_Thread {
   private void createCompilationThread() {
     VM_CompilationThread ct = new VM_CompilationThread();
     VM_Controller.compilationThread = ct;
-    ct.makeDaemon(true);
     ct.start();
   }
 
@@ -162,28 +168,12 @@ class VM_ControllerThread extends VM_Thread {
     // Primary backing store for method sample data
     VM_Controller.methodSamples = new VM_MethodCountData();
 
-    // Select organizers to drive method recompilation 
-    int filterOptLevel = opts.ADAPTIVE_RECOMPILATION ? 
-      opts.FILTER_OPT_LEVEL : opts.DEFAULT_OPT_LEVEL;
-    VM_Organizer methodOrganizer = null;
-    if (opts.windowing()) {
-      VM_BasicMethodListener methodListener = 
-	new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
-      methodOrganizer = 
-	new VM_MethodSampleOrganizer(methodListener, filterOptLevel);
-    } else if (opts.windowingWithHistory()) {
-      VM_BasicMethodListener methodListener = 
-	new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
-      methodOrganizer = 
-	new VM_SlopeDetectingMethodSampleOrganizer(methodListener,
-						   filterOptLevel,
-						   opts.MSO_ADJUST_BOUNDS,
-						   opts.MSO_NUM_EPOCHS);
-    } else {
-      VM.sysFail("Unimplemented selection of method organizer");
-    }
+    // Instal organizer to drive method recompilation 
+    VM_BasicMethodListener methodListener = 
+      new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
+    VM_Organizer methodOrganizer = 
+      new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
     VM_Controller.organizers.addElement(methodOrganizer);
-
 
     // Decay runtime measurement data 
     if (opts.ADAPTIVE_INLINING) {
@@ -201,7 +191,6 @@ class VM_ControllerThread extends VM_Thread {
     for (Enumeration e = VM_Controller.organizers.elements(); 
 	 e.hasMoreElements(); ) {
       VM_Organizer o = (VM_Organizer)e.nextElement();
-      o.makeDaemon(true);
       o.start();
     }
   }

@@ -2,9 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
+import java.util.*;
 /*
  * This class holds the results of global value numbering.
  * ala Alpern, Wegman and Zadeck, PoPL 88.
@@ -14,7 +17,7 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-final class OPT_GlobalValueNumberState {
+public final class OPT_GlobalValueNumberState {
   /**
    * Constant used to flag "unknown" value numbers
    */

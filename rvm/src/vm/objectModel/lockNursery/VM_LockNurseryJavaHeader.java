@@ -2,6 +2,15 @@
  * (C) Copyright IBM Corp. 2002
  */
 // $Id$
+package com.ibm.JikesRVM;
+
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
+//-#endif
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Defines shared support for one-word headers in the JikesRVM object
@@ -41,9 +50,10 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
   /**
    * How many bits are used to encode the hash code state?
    */
-  protected static final int HASH_STATE_BITS = VM_Collector.MOVES_OBJECTS ? 2 : 0;
-  protected static final int HASH_STATE_MASK = VM_Collector.MOVES_OBJECTS ? (HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED) : 0;
-  protected static final int HASHCODE_BYTES  = VM_Collector.MOVES_OBJECTS ? 4 : 0;
+  protected static final boolean MOVES_OBJECTS = VM_Interface.MOVES_OBJECTS;
+  protected static final int HASH_STATE_BITS = MOVES_OBJECTS ? 2 : 0;
+  protected static final int HASH_STATE_MASK = MOVES_OBJECTS ? (HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED) : 0;
+  protected static final int HASHCODE_BYTES  = MOVES_OBJECTS ? 4 : 0;
   protected static final int HASHCODE_SCALAR_OFFSET = -4; // in "phantom word"
   protected static final int HASHCODE_ARRAY_OFFSET = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
   
@@ -236,7 +246,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Get the hash code of an object.
    */
   public static int getObjectHashCode(Object o) { 
-    if (VM_Collector.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       int hashState = VM_Magic.getIntAtOffset(o, TIB_OFFSET) & HASH_STATE_MASK;
       if (hashState == HASH_STATE_HASHED) {
 	return VM_Magic.objectAsAddress(o).toInt() >>> 2;
@@ -347,7 +357,8 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Get the offset of the thin lock word in this object
    */
   public static int getThinLockOffset(Object o) {
-    return VM_Magic.getObjectType(o).thinLockOffset;
+      VM_Type cls = VM_Magic.getObjectType(o);
+      return cls.thinLockOffset;
   }
 
   /**
@@ -363,7 +374,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    */
   public static void allocateThinLock(VM_Type t) {
     if (t.thinLockOffset == -1) {
-      if (VM.VerifyAssertions) VM.assert(t.isClassType());
+      if (VM.VerifyAssertions) VM._assert(t.isClassType());
       VM_Class klass = t.asClass();
       int fieldOffset = objectEndOffset(klass) - 4; // layout field backwards!
       klass.thinLockOffset = fieldOffset;

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * This class provides a layer of abstraction that the rest of the VM must
  * use in order to access the current <code>VM_Processor</code> object.
@@ -10,7 +11,7 @@
  *
  * @author Stephen Fink
  */
-final class VM_ProcessorLocalState implements VM_Uninterruptible {
+public final class VM_ProcessorLocalState implements VM_Uninterruptible {
   
   /**
    * The C bootstrap program has placed a pointer to the initial
@@ -23,14 +24,14 @@ final class VM_ProcessorLocalState implements VM_Uninterruptible {
   /**
    * Return the current VM_Processor object
    */
-  static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
+  public static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
     return VM_Magic.getProcessorRegister();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  static void setCurrentProcessor(VM_Processor p) throws VM_PragmaInline {
+  public static void setCurrentProcessor(VM_Processor p) throws VM_PragmaInline {
     VM_Magic.setProcessorRegister(p);
   }
 }

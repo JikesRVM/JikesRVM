@@ -1,0 +1,15 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value, S = Set, B = BitMask (TODO).
+# TYPE: byte, int, String, double
+DESCRIP  
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
+
+V EDGE_COUNTER_FILE String \"EdgeCounters\"
+File into which to dump edge counter data
+
+

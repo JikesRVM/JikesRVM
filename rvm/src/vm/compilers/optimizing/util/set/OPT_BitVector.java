@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /** 
  * OPT_BitVector.java
@@ -199,6 +200,17 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     }
     return h;
   }
+
+  /**
+   * How many bits are set?
+   */
+  public int populationCount() {
+    int count = 0;
+    for (int i=0; i<bits.length; i++) {
+      count += OPT_Bits.populationCount(bits[i]);
+    }	
+    return count;
+  }
   
   /**
    * Calculates and returns the set's size in bits.
@@ -262,7 +274,8 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     StringBuffer buffer = new StringBuffer();
     boolean needSeparator = false;
     buffer.append('{');
-    int limit = length();
+//    int limit = length();
+    int limit = this.nbits;
     for (int i = 0 ; i < limit ; i++) {
       if (get(i)) {
 	if (needSeparator) {

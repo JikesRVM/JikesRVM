@@ -1,10 +1,15 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
 
 /**
  * A method of a java class.
@@ -51,16 +56,16 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Space required by this method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  final int getParameterWords() throws VM_PragmaUninterruptible {
+  public final int getParameterWords() throws VM_PragmaUninterruptible {
     return parameterWords;
   }
 
   /**
    * Has machine code been generated for this method's bytecodes?
    */
-  final boolean isCompiled() {
+  public final boolean isCompiled() {
     if (VM.VerifyAssertions) 
-      VM.assert(!declaringClass.isLoaded() || isLoaded());
+      VM._assert(!declaringClass.isLoaded() || isLoaded());
     return currentCompiledMethod != null;
   }
 
@@ -74,7 +79,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * It is not needed for the core vm.
    */
   final int findLineNumberForBytecode(int pc) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (lineNumberMap == null)
       return 0; // javac didn't provide any info
@@ -102,7 +107,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // successful lookup is kept. We first check it to catch repeated quries
   // for the same bytecode. Failing this, we perform a binary search where the
   // first probe is either the next sequential entry or 0 (typical cases).
-  final boolean queryAnnotationForBytecode( int pc, byte mask ) {
+  public final boolean queryAnnotationForBytecode( int pc, byte mask ) {
 
     if ( annotationNum == 0 ) return false;		// none
 
@@ -150,44 +155,44 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Declared as statically dispatched?
    */
   public final boolean isStatic() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * Declared as non-overridable by subclasses?
    */
-  final boolean isFinal() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isFinal() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Guarded by monitorenter/monitorexit?
    */
-  final boolean isSynchronized() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isSynchronized() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_SYNCHRONIZED) != 0;
   }
 
   /**
    * Not implemented in java?
    */
-  final boolean isNative() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isNative() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_NATIVE) != 0;
   }
 
   /**
    * Implemented in subclass?
    */
-  final boolean isAbstract() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isAbstract() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0;
   }
 
@@ -195,9 +200,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
-  final int getLocalWords() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final int getLocalWords() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return localWords;
   }
 
@@ -211,9 +216,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Space required by this method for its operand stack, in words.
    */
-  final int getOperandWords() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final int getOperandWords() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return operandWords;
   }
 
@@ -228,9 +233,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Bytecodes to be executed by this method.
    * @return bytecodes (null --> native or abstract: no code)
    */
-  final byte[] getBytecodes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final byte[] getBytecodes() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return bytecodes;
   }
 
@@ -246,9 +251,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Local variables defined by this method.
    * @return info (null --> no locals or method wasn't compiled with "-g")
    */
-  final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return localVariables;
   }
 
@@ -256,9 +261,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Exceptions caught by this method.
    * @return info (null --> method doesn't catch any exceptions)
    */
-  final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return exceptionHandlerMap;
   }
 
@@ -275,8 +280,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * @return info (null --> method doesn't throw any exceptions)
    */
   public final VM_Type[] getExceptionTypes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return exceptionTypes;
   }
 
@@ -284,9 +289,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Line numbers for this method.
    * @return info (null --> native or abstract: no code, no exception map)
    */
-  final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return lineNumberMap;
   }
 
@@ -295,6 +300,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    */
   final void setLineNumberMap(VM_LineNumberMap lnm) {
     lineNumberMap = lnm;
+  }
+
+  public final int getModifiers() {
+    return modifiers & (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED | 
+      ACC_STATIC | ACC_FINAL | ACC_SYNCHRONIZED | ACC_NATIVE | ACC_ABSTRACT | ACC_STRICT);
   }
 
   /**
@@ -313,7 +323,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    *      exception.
    * </ul>
    */
-  final boolean isInterruptible() {
+  public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (VM_PragmaInterruptible.declaredBy(this)) return true;
     if (VM_PragmaUninterruptible.declaredBy(this)) return false;
@@ -328,7 +338,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Has this method been marked as mandatory to inline?
    * ie., it throws the <CODE>VM_PragmaInline</CODE> exception?
    */
-  final boolean hasInlinePragma() {
+  public final boolean hasInlinePragma() {
     return VM_PragmaInline.declaredBy(this);
   }
     
@@ -336,7 +346,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Has this method been marked as forbidden to inline?
    * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
    */
-  final boolean hasNoInlinePragma() {
+  public final boolean hasNoInlinePragma() {
     return VM_PragmaNoInline.declaredBy(this);
   }
     
@@ -350,7 +360,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * The actual method that this object represents
    */
   public final VM_Method resolve() {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (!isLoaded()) return VM_ClassLoader.repairMethod(this);
     return this;
   }
@@ -375,8 +385,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * object's type information block.
    */
   public final int getOffset() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isResolved());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return offset;
   }
 
@@ -387,13 +397,14 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   public synchronized INSTRUCTION[] getCurrentInstructions() {
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
-    } else if (VM.BuildForLazyCompilation && !VM.writingBootImage) {
+    } else if (VM.BuildForLazyCompilation && (!VM.writingBootImage || isNative())) {
       return VM_LazyCompilationTrampolineGenerator.getTrampoline();
     } else {
       compile(); 
       return currentCompiledMethod.getInstructions();
     }
   }
+
 
   /**
    * Generate machine code for this method if valid
@@ -403,12 +414,24 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * @return VM_CompiledMethod object representing the result of the compilation.
    */
   final synchronized void compile() {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (isCompiled()) return;
 
+    if (VM.VerifyBytecode) {
+      VM_Verifier verifier = new VM_Verifier();
+      try {
+        boolean success = verifier.verifyMethod(this);
+        if (!success) {
+          VM.sysWrite("Method " + this + " fails bytecode verification!\n");
+        }
+      } catch(Exception e) {
+        VM.sysWrite("Method " + this + " fails bytecode verification!\n");
+      }
+    }
+
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
-    if (VM.VerifyAssertions)   VM.assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions)   VM._assert(declaringClass.isResolved());
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     VM_CompiledMethod cm;
@@ -424,14 +447,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
       //
       if (VM.writingBootImage)
         cm = VM_BootImageCompiler.compile(this); // use compiler specified by RVM_BOOT_IMAGE_COMPILER_PATH
-      else if (VM.runningVM)
+      else 
         cm = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
-      else
-        cm = VM_BaselineCompiler.compile(this);  // use baseline compiler (assumption: we're producing information for debugger)
     }
 
     // Ensure that cm wasn't invalidated while it was being compiled.
-    
     synchronized(cm) {
       if (cm.isInvalid()) {
 	VM_CompiledMethods.setCompiledMethodObsolete(cm);
@@ -455,7 +475,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * @return compiled method
    */ 
   public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return currentCompiledMethod;
   }
 
@@ -469,7 +489,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    *              for this class and its subclasses
    */ 
   public final synchronized void replaceCompiledMethod(VM_CompiledMethod compiledMethod) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     // If we're replacing with a non-null compiledMethod, ensure that is still valid!
     if (compiledMethod != null) {
@@ -513,10 +533,10 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Note: this method is for use by VM_Interpreter. 
    * It is not needed for the core vm.
    */ 
-  final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isInstantiated());
-    if (VM.VerifyAssertions) VM.assert(exceptionType.isInstantiated());
+  public final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
+    if (VM.VerifyAssertions) VM._assert(exceptionType.isInstantiated());
 
     if (exceptionHandlerMap == null)
       return -1;
@@ -609,8 +629,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // Byte Code Annotations
   private short[]	annotationPC;
   private byte[]	annotationValue;
-  static final byte	annotationNullCheck = 4;
-  static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
+  public static final byte	annotationNullCheck = 4;
+  public static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
   private int		annotationNum;
   private int		annotationPrior;
 
@@ -647,7 +667,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * "VM_ClassLoader.findOrCreate" methods.
    */ 
   private VM_Method() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -866,12 +886,22 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     if (libs!=null) {
       for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
         VM_DynamicLibrary lib = libs[i];
-        if (lib!=null)
+
+        if (lib!=null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-        if (lib != null && symbolAddress == VM_Address.zero())
+	  if (symbolAddress != VM_Address.zero()) {
+	      nativeProcedureName = nativeProcedureNameWithSigniture;
+	      break;
+	  }
+	}
+
+        if (lib != null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureName);
-	else if (symbolAddress != VM_Address.zero())
-	  nativeProcedureName = nativeProcedureNameWithSigniture;
+	  if (symbolAddress != VM_Address.zero()) {
+	      nativeProcedureName = nativeProcedureName;
+	      break;
+	  }
+	}
       }
     }
 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Registers used by virtual machine.
@@ -9,7 +10,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_BaselineConstants extends VM_Constants {
+public interface VM_BaselineConstants extends VM_Constants {
 
   // Dedicated registers
   static final int FP   = FRAME_POINTER; 

@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Simple flow-insensitive escape analysis
@@ -19,15 +21,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     implements OPT_Operators {
   private final static boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform (OPT_Options options) {
     return  options.SIMPLE_ESCAPE_IPA;
   }
 
-  final String getName () {
+  public final String getName () {
     return  "Simple Escape Analysis";
   }
 
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled (OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -148,7 +150,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 
       if (VM.VerifyAssertions && use.type == null) {
 	  ir.printInstructions();
-	  VM.assert(false, "type of " + use + " is null");
+	  VM._assert(false, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -170,7 +172,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 
       if (VM.VerifyAssertions && def.type == null) {
 	  ir.printInstructions();
-	  VM.assert(false, "type of " + def + " is null");
+	  VM._assert(false, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -254,7 +256,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  true;
         }
       case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
-      case INT_STORE_opcode:  case LONG_STORE_opcode:
+      case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
@@ -275,7 +277,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
-      case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode:
+      case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
       case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
       case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
@@ -418,7 +420,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  true;
         }
       case BYTE_STORE_opcode:case SHORT_STORE_opcode:
-      case INT_STORE_opcode:case LONG_STORE_opcode:
+      case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
@@ -439,7 +441,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
       case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:
-      case NEW_UNRESOLVED_opcode:
+      case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
       case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
       case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:

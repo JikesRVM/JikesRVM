@@ -17,8 +17,8 @@ vpath %.jar	$(BENCH_HOME)
 
 START_NAME=spec.jbb.JBBmain
 
-HEAPSIZE=500
-LHEAPSIZE=300
+HEAPSIZE=400
+LHEAPSIZE=200
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -44,8 +44,7 @@ check:
 else
 check:
 	@$(FGREP) -q "JVM Check OK" < $(OUT)
-	@$(FGREP) -q "No errors.  Valid run." < $(OUT)
-	@$(FGREP) -q "Valid run, Score is" < $(OUT)
+	@egrep -q "(Valid run, Score is)|(INVALID run; Score is  Invalid, but estimate is)" < $(OUT)
 endif
 
 #

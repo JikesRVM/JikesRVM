@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Final acts of MIR expansion for the IA32 architecture.
@@ -105,7 +107,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 	{
 	  // split the basic block right before the IA32_TRAPIF
 	  OPT_BasicBlock thisBlock = p.getBasicBlock();
-	  OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir);
+	  OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir,0f);
 	  OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
 	  OPT_TrapCodeOperand tc = MIR_TrapIf.getClearTrapCode(p);
 	  p.remove();
@@ -233,7 +235,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 	break;
 
       case IR_ENDPROLOGUE_opcode:
-	// Remember where the end of prologue is for jdp
+	// Remember where the end of prologue is for debugger
 	p.remove();
 	ir.MIRInfo.instAfterPrologue = next;
 	break;
@@ -310,16 +312,16 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
         // Expand as:
         //        FLD M    (push M on FP stack).
         //        FSTP F(i+1)  (copy F0 to F(i+1) and pop register stack)
-        if (VM.VerifyAssertions) VM.assert(result.isRegister());
+        if (VM.VerifyAssertions) VM._assert(result.isRegister());
         int i = phys.getFPRIndex(result.asRegister().register);   
         s.insertBefore(MIR_Move.create(IA32_FLD,D(phys.getFPR(0)),value));
         MIR_Move.mutate(s,IA32_FSTP,D(phys.getFPR(i+1)),D(phys.getFPR(0)));
       }
     } else {
       // We have FMOV M, Fi
-      if (VM.VerifyAssertions) VM.assert(value.isRegister());
+      if (VM.VerifyAssertions) VM._assert(value.isRegister());
       if (VM.VerifyAssertions) 
-        VM.assert(result instanceof OPT_MemoryOperand);
+        VM._assert(result instanceof OPT_MemoryOperand);
       int i = phys.getFPRIndex(value.asRegister().register);   
       if (i!=0) {
         // Expand as:
@@ -338,14 +340,14 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
   private static void expandYieldpoint(OPT_Instruction s,
 				       OPT_IR ir,
 				       VM_Method meth) {
-    if (VM.VerifyAssertions) VM.assert(ir.options.FIXED_JTOC);
+    if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
 
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
     OPT_BasicBlock thisBlock = s.getBasicBlock();
     OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
-    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir, 0);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
@@ -374,6 +376,6 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),
 						      yieldpoint.makeJumpTarget(),
-						      OPT_BranchProfileOperand.unlikely()));
+						      OPT_BranchProfileOperand.never()));
   }
 }

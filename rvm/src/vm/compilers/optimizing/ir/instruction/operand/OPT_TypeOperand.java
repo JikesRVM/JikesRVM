@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * A OPT_TypeOperand represents a data type. Used in checkcast, instanceof,
@@ -17,12 +20,12 @@ public final class OPT_TypeOperand extends OPT_Operand {
   /**
    * The data type.
    */
-  VM_Type type;
+  public VM_Type type;
 
   /**
    * Create a new type operand with the specified data type.
    */
-  OPT_TypeOperand(VM_Type typ) {
+  public OPT_TypeOperand(VM_Type typ) {
     type = typ;
   }
 
@@ -31,7 +34,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    * 
    * @return a copy of <code>this</code>
    */
-  OPT_Operand copy() {
+  public OPT_Operand copy() {
     return new OPT_TypeOperand(type);
   }
   
@@ -43,7 +46,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    *           are semantically equivalent or <code>false</code> 
    *           if they are not.
    */
-  boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_TypeOperand) && (type == ((OPT_TypeOperand)op).type);
   }
 

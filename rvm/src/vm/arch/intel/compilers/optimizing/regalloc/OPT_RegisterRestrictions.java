@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Iterator;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 

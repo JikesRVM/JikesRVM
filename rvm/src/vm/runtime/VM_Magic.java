@@ -1,7 +1,15 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_BlockControl;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
+//-#endif
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 
@@ -23,19 +31,25 @@ public class VM_Magic {
 
   /** Get contents of "stack frame pointer" register. */
   public static VM_Address getFramePointer() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /** Get contents of "jtoc" register. */
   public static VM_Address getTocPointer() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
+  }
+
+  /** Set contents of "jtoc" register. */
+  public static void setTocPointer(VM_Address addr) {
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    //TODOreturn VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
   }
 
   /** Get contents of "jtoc" register as an int[] */
   public static int[] getJTOC() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -44,7 +58,7 @@ public class VM_Magic {
    * @return shifted thread index of currently executing thread
    */
   public static int getThreadId() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -52,31 +66,31 @@ public class VM_Magic {
    * Set contents of "thread id" pseduo register.
    * @param ti shifted thread index
    */
-  static void setThreadId(int ti) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setThreadId(int ti) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Get contents of "processor" register. */
-  static VM_Processor getProcessorRegister() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static VM_Processor getProcessorRegister() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /** Set contents of "processor" register. */
-  static void setProcessorRegister(VM_Processor p) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setProcessorRegister(VM_Processor p) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   //-#if RVM_FOR_IA32
   /** Get contents of ESI, as a VM_Processor */
-  static VM_Processor getESIAsProcessor() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static VM_Processor getESIAsProcessor() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /** Set contents of ESI to hold a reference to a processor object */
-  static void setESIAsProcessor(VM_Processor p) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setESIAsProcessor(VM_Processor p) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
 
@@ -86,8 +100,8 @@ public class VM_Magic {
    *           undocumented and may vary across processor implementations.
    * @return number of ticks (epoch undefined)
    */
-  static long getTimeBase() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static long getTimeBase() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -98,19 +112,19 @@ public class VM_Magic {
    * @param p current processor (!!TEMP)
    * @return time in seconds (epoch Jan 1 1970), to nanonsecond resolution.
    */
-  static double getTime(VM_Processor p) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static double getTime(VM_Processor p) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Set bit in thread switch condition register. */ // TODO: remove me!
-  static void setThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setThreadSwitchBit() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Clear bit in thread switch condition register. */
-  static void clearThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void clearThreadSwitchBit() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
      
   //---------------------------------------//
@@ -122,7 +136,7 @@ public class VM_Magic {
    * @param fp frame pointer for child frame
    */
   public static VM_Address getCallerFramePointer(VM_Address fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -132,7 +146,7 @@ public class VM_Magic {
    * @param newCallerFP new value for caller frame pointer
    */
   public static void setCallerFramePointer(VM_Address fp, VM_Address newCallerFP) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -140,7 +154,7 @@ public class VM_Magic {
    * @param fp its frame pointer).
    */ 
   public static int getCompiledMethodID(VM_Address fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -150,7 +164,7 @@ public class VM_Magic {
    * @param newCMID a new cmid for the frame
    */
   public static void setCompiledMethodID(VM_Address fp, int newCMID) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** 
@@ -158,7 +172,7 @@ public class VM_Magic {
    * @param fp its frame pointer.
    */
   public static VM_Address getNextInstructionAddress(VM_Address fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -168,25 +182,32 @@ public class VM_Magic {
    * @param newAddr new next instruction address
    */
   public static void setNextInstructionAddress(VM_Address fp, VM_Address newAddr) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Get location containing return address for a frame
+   * @param fp its frame pointer
+   */
+  public static VM_Address getReturnAddressLocation(VM_Address fp) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
   }
 
   /**
    * Get return address for a frame
    * @param fp its frame pointer
    */
-  public static VM_Address getReturnAddress(VM_Address fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
+  public static VM_Address getReturnAddress(VM_Address fp) throws VM_PragmaUninterruptible {
+    return VM_Magic.getMemoryAddress(getReturnAddressLocation(fp));
   }
 
   /**
-   * Set return address for a frame 
-   * @param fp its frame pointer 
-   * @param newAddr a new return address
+   * Get return address for a frame
+   * @param fp its frame pointer
    */
-  public static void setReturnAddress(VM_Address fp, VM_Address newAddr) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setReturnAddress(VM_Address fp, VM_Address v) throws VM_PragmaUninterruptible {
+    VM_Magic.setMemoryAddress(getReturnAddressLocation(fp), v);
   }
 
   //---------------------------------------//
@@ -198,8 +219,8 @@ public class VM_Magic {
    * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
    * (In other words, mask off all but the lower 8 bits before using the value).
    */
-  static byte getByteAtOffset(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static byte getByteAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -207,8 +228,8 @@ public class VM_Magic {
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
    */
-  static int getIntAtOffset(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static int getIntAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -217,8 +238,8 @@ public class VM_Magic {
    * Use getObjectAtOffset(obj, ofs) instead of 
    * addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
    */
-  static Object getObjectAtOffset(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static Object getObjectAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -227,8 +248,8 @@ public class VM_Magic {
    * Use getObjectArrayAtOffset(obj, ofs) instead of 
    * (Object[])addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
    */
-  static Object[] getObjectArrayAtOffset(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static Object[] getObjectArrayAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -236,8 +257,8 @@ public class VM_Magic {
    * Get long at arbitrary (byte) offset from object.
    * Use getlongAtOffset(obj, ofs) instead of two getIntAtOffset
    */
-  static long getLongAtOffset(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static long getLongAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -246,44 +267,52 @@ public class VM_Magic {
    * @deprecated  Use getIntAtOffset / getObjectAtOffset where possible.
    */
   public static int getMemoryWord(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   public static VM_Address getMemoryAddress(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /**
    * Set byte at arbitrary (byte) offset from object.
    */ 
-  static void setByteAtOffset(Object object, int offset, byte newvalue) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setByteAtOffset(Object object, int offset, byte newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Set int at arbitrary (byte) offset from object.
    * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
-  static void setIntAtOffset(Object object, int offset, int newvalue) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setIntAtOffset(Object object, int offset, int newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Set Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, objectAsAddress(new))
    */ 
-  static void setObjectAtOffset(Object object, int offset, Object newvalue) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setObjectAtOffset(Object object, int offset, Object newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Set long at arbitrary (byte) offset from object.
    * Use setlongAtOffset(obj, ofs) instead of two setIntAtOffset
    */ 
-  static void setLongAtOffset(Object object, int offset, long newvalue) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void setLongAtOffset(Object object, int offset, long newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set double at arbitrary (byte) offset from object.
+   * Use setDoubleAtOffset(obj, ofs) instead of two setIntAtOffset
+   */ 
+  public static void setDoubleAtOffset(Object object, int offset, double newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -291,11 +320,11 @@ public class VM_Magic {
    * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
    */
   public static void setMemoryWord(VM_Address address, int value) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   public static void setMemoryAddress(VM_Address address, VM_Address value) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   //---------------------------------------//
@@ -305,8 +334,8 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  static int prepare(Object object, int offset) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static int prepare(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -316,8 +345,8 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  static boolean attempt(Object object, int offset, int oldValue, int newValue) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static boolean attempt(Object object, int offset, int oldValue, int newValue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
 
@@ -331,7 +360,7 @@ public class VM_Magic {
    * Specify how to handle "objectAsAddress" and "addressAsObject" casts.
    * Used by debugger and boot image writer.
    */
-  static void setObjectAddressRemapper(VM_ObjectAddressRemapper x) { 
+  public static void setObjectAddressRemapper(VM_ObjectAddressRemapper x) { 
     objectAddressRemapper = x; 
   }
 
@@ -344,7 +373,7 @@ public class VM_Magic {
    * @return object reference as bits
    */
   public static VM_Address objectAsAddress(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
 
     if (objectAddressRemapper == null)
       return VM_Address.zero();                 // tool isn't interested in remapping
@@ -359,7 +388,7 @@ public class VM_Magic {
    * @return object reference
    */
   public static Object addressAsObject(VM_Address address) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
 
     if (objectAddressRemapper == null)
       return null;               // tool isn't interested in remapping
@@ -373,7 +402,7 @@ public class VM_Magic {
    * @return object array reference
    */
   public static Object[] addressAsObjectArray(VM_Address address) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -384,7 +413,7 @@ public class VM_Magic {
    * @depracated  Use objectAsType( addressAsObject (...))
    */
   public static VM_Type addressAsType(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -394,7 +423,7 @@ public class VM_Magic {
    * @return object reference as type (no checking on cast)
    */
   public static VM_Type objectAsType(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -405,7 +434,7 @@ public class VM_Magic {
    * @depracated  Use objectAsThread.
    */
   public static VM_Thread addressAsThread(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -416,7 +445,7 @@ public class VM_Magic {
    * @return object reference as thread (no checking on cast)
    */
   public static VM_Thread objectAsThread(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -427,7 +456,7 @@ public class VM_Magic {
    * @return object reference as processor (no checking on cast)
    */
   public static VM_Processor objectAsProcessor(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -441,7 +470,7 @@ public class VM_Magic {
    * @return object reference as VM_BlockControl (no checking on cast)
    */
   public static VM_BlockControl addressAsBlockControl(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
     return null;
   }
 
@@ -451,7 +480,7 @@ public class VM_Magic {
    * @return object reference as VM_SizeControl (no checking on cast)
    */
   public static VM_SizeControl addressAsSizeControl(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
     return null;
   }
 
@@ -461,24 +490,9 @@ public class VM_Magic {
    * @return object reference as VM_SizeControl[] (no checking on cast)
    */
   public static VM_SizeControl[] addressAsSizeControlArray(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
     return null;
   }
-
-//-#if RVM_WITH_CONCURRENT_GC
-  /**
-  /**
-   * Downcast.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param  t VM_Thread object reference
-   * @return   VM_RCCollectorThread object reference
-   */
-  public static VM_RCCollectorThread threadAsRCCollectorThread(VM_Thread t) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-//-#endif
-
 //-#endif
 
   /**
@@ -488,7 +502,7 @@ public class VM_Magic {
    * @return object reference as VM_Registers (no checking on cast)
    */
   public static VM_Registers addressAsRegisters(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -499,7 +513,7 @@ public class VM_Magic {
    * @return object reference as int[] (no checking on cast)
    */
   public static int[] addressAsStack(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -509,7 +523,7 @@ public class VM_Magic {
    * @param number as bits
    */
   public static int floatAsIntBits(float number) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -519,7 +533,7 @@ public class VM_Magic {
    * @return number as float
    */
   public static float intBitsAsFloat(int number) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -529,7 +543,7 @@ public class VM_Magic {
    * @return number as bits
    */
   public static long doubleAsLongBits(double number) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -539,7 +553,7 @@ public class VM_Magic {
    * @return number as double
    */
   public static double longBitsAsDouble(long number) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -550,7 +564,7 @@ public class VM_Magic {
    * @return VM_CollectorThread object reference
    */
   public static VM_CollectorThread threadAsCollectorThread(VM_Thread t) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -561,7 +575,7 @@ public class VM_Magic {
    * Returned: byte array (byte[])  object reference
    */
   public static byte[] addressAsByteArray(VM_Address byte_array) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -572,7 +586,7 @@ public class VM_Magic {
    * @return byte array (byte[])  object reference
    */
   public static byte[] objectAsByteArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return (byte[])object;
   }
 
@@ -583,7 +597,7 @@ public class VM_Magic {
    * @return short array (short[])  object reference
    */
   public static short[] objectAsShortArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return (short[])object;
   }
 
@@ -594,7 +608,7 @@ public class VM_Magic {
    * @return int array (int[])  object reference
    */
   public static int[] objectAsIntArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return (int[])object;
   }
 
@@ -602,7 +616,7 @@ public class VM_Magic {
    * To allow noncopying collectors to treat blocks array as array of ints
    */
   public static int[] addressAsIntArray(VM_Address int_array) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -616,7 +630,7 @@ public class VM_Magic {
    * @return object type
    */
   public static VM_Type getObjectType(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -626,7 +640,7 @@ public class VM_Magic {
    * @return array length (number of elements)
    */
   public static int getArrayLength(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -645,7 +659,7 @@ public class VM_Magic {
    * @param registers place to save register values
    */
   public static void saveThreadState(VM_Registers registers) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -662,7 +676,7 @@ public class VM_Magic {
    */
   public static void threadSwitch(VM_Thread currentThread, 
 				  VM_Registers restoreRegs) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -675,7 +689,7 @@ public class VM_Magic {
    * @param registers register values to be used
    */
   public static void restoreHardwareExceptionState(VM_Registers registers) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -684,7 +698,7 @@ public class VM_Magic {
    * @param fp value to place into FRAME_POINTER register
    */
   public static void returnToNewStack(VM_Address fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -695,17 +709,17 @@ public class VM_Magic {
    * @param instructions target method
    */
   public static void dynamicBridgeTo(INSTRUCTION[] instructions) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "main" method with argument list. */
   public static void invokeMain(Object argv, INSTRUCTION[] main) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "<clinit>" method with no argument list. */
   public static void invokeClassInitializer(INSTRUCTION[] clinit) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
@@ -713,7 +727,7 @@ public class VM_Magic {
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
@@ -721,7 +735,7 @@ public class VM_Magic {
 					     int[] gprs, 
 					     double[] fprs, 
 					     int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -730,7 +744,7 @@ public class VM_Magic {
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -739,7 +753,7 @@ public class VM_Magic {
 						 int[] gprs, 
 						 double[] fprs, 
 						 int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -748,7 +762,7 @@ public class VM_Magic {
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
@@ -757,7 +771,7 @@ public class VM_Magic {
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
@@ -773,46 +787,46 @@ public class VM_Magic {
    *
    */
 //-#if RVM_FOR_POWERPC
-   public static int  sysCall0(int ip, int toc)                                 { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall1(int ip, int toc, int p0)                         { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall2(int ip, int toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall3(int ip, int toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall4(int ip, int toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall0(int ip, int toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall1(int ip, int toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall2(int ip, int toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall3(int ip, int toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall4(int ip, int toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 
-   public static long sysCall_L_0(int ip, int toc)                              { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_I(int ip, int toc, int p0)                      { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCallAD(int ip, int toc, int p0, double p1)             { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_0(int ip, int toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_I(int ip, int toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCallAD(int ip, int toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 //-#endif
 
 //-#if RVM_FOR_IA32
    public static int  sysCall0(int ip) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static int  sysCall1(int ip, int p0) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static int  sysCall2(int ip, int p0, int p1) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static int  sysCall3(int ip, int p0, int p1, int p2) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static int  sysCall4(int ip, int p0, int p1, int p2, int p3) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static long sysCall_L_0(int ip) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static long sysCall_L_I(int ip, int p0) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
    public static int  sysCallAD(int ip, int p0, double p1) { 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 //-#endif
    public static int  sysCallSigWait(int ip, int toc, int p0, 
                                      int p1, VM_Registers r){ 
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 
 //-#if RVM_FOR_IA32
@@ -820,14 +834,14 @@ public class VM_Magic {
     * Set the floating-point rounding mode to round-towards-zero
     */
    public static void roundToZero() {
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
    }
 
    /**
     * Clear the hardware floating point state
     */
    public static void clearFloatingPointState() {
-     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
    }
 
 //-#endif
@@ -840,8 +854,8 @@ public class VM_Magic {
   /** 
    * Write contents of this processor's modified data cache back to main storage.
    */
-  static void dcbst(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void dcbst(VM_Address address) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
 
@@ -849,23 +863,23 @@ public class VM_Magic {
   /**
    * Invalidate copy of main storage held in any processor's instruction cache.
    */
-  static void icbi(VM_Address address) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void icbi(VM_Address address) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
 
   /**
    * Wait for preceeding cache flush/invalidate instructions to complete on all processors.
    */
-  static void sync() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void sync() {
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Wait for all preceeding instructions to complete and discard any prefetched instructions on this processor.
    */ 
-  static void isync() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static void isync() {
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   //----------------------//
@@ -873,26 +887,11 @@ public class VM_Magic {
   //----------------------//
 
   /**
-   * The method containing this pragma is either unsafe, or undesirable to inline.
-   */
-  public static void pragmaNoInline() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /**
-   * User directive that the method containing this pragma should be 
-   * inlined regardless of code space heuristics.
-   */
-  public static void pragmaInline() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /**
    * User directive that the method containing this pragma should be not be
    * compiled by the optimizing compiler.  Only used by VM_NativeIdleThread.
    */
   public static void pragmaNoOptCompile() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   
 }

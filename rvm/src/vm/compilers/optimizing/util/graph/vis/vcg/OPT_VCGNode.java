@@ -3,6 +3,7 @@
  */
 //OPT_VCGNode.java
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * OPT_VCGNode provides the minimum set of routines for printing a graph
@@ -100,7 +101,7 @@ public interface OPT_VCGNode extends OPT_VisNode {
       _backEdge = backEdge;
     }
     public boolean backEdge() { return _backEdge; }
-    public EdgeDesc getVCGDescriptor() { return OPT_VCGEdge.defaultVCGDesc; }
+    public OPT_VCGEdge.EdgeDesc getVCGDescriptor() { return OPT_VCGEdge.defaultVCGDesc; }
   }
 }
 

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Normalize the use of constants in the LIR
@@ -50,7 +52,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
               if (dc.index == 0) {
-                dc.index = VM_Statics.findOrCreateDoubleLiteral(VM_Magic.doubleAsLongBits(dc.value));
+                dc.index = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
               }
 	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
@@ -59,12 +61,15 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
               if (fc.index  == 0) {
-                fc.index = VM_Statics.findOrCreateFloatLiteral(VM_Magic.floatAsIntBits(fc.value));
+                fc.index = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
               }
 	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
 	    } else if (use instanceof OPT_NullConstantOperand) {
 	      s.putOperand(idx, new OPT_IntConstantOperand(0));
+	    } else if (use instanceof OPT_AddressConstantOperand) {
+	      int v = ((OPT_AddressConstantOperand)use).value.toInt();
+              s.putOperand(idx, new OPT_IntConstantOperand(v));
 	    }
 	  }
         }

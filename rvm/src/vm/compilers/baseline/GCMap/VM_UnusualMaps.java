@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Unusual maps are maps to track references that don't take the usual format.
@@ -12,7 +13,7 @@
  *
  * @author Anthony Cocchi
  */
-class VM_UnusualMaps implements VM_Uninterruptible {
+final class VM_UnusualMaps implements VM_Uninterruptible {
 
   // set the offset in the stack frame of the return address for this map
   //

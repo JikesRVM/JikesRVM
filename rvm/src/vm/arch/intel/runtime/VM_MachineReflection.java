@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Machine dependent portion of Reflective method invoker.
@@ -165,7 +166,7 @@ public class VM_MachineReflection implements VM_Constants {
 	Parameters[parameter++] = VM_Reflection.unwrapObject(otherArgs[i]);
 
       } else  {
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

@@ -2,8 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.OPT_Register;
 import java.util.Enumeration;
+
 /**
  * This class represents a graph, where
  *    - the nodes are registers

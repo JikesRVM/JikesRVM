@@ -1,0 +1,14 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL
+# Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+##########
+# First all the non-printing, non-debugging options
+# Should not start with PRINT_ or DEBUG_ prefix
+##########
+EDGE_COUNTERS -1 VM.BuildForAdaptiveSystem
+Insert edge counters on all bytecode-level conditional branches
+

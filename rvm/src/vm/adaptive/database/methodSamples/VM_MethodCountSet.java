@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+
 /**
  * Wrapper around a pair of parallel arrays:
  *  (1) an array of compiled method id's
@@ -27,7 +32,7 @@ public final class VM_MethodCountSet {
    * @param _counters array of counters
    */
   VM_MethodCountSet(VM_CompiledMethod[] _cms, double[] _counters) {
-    if (VM.VerifyAssertions) VM.assert(_cms.length == _counters.length);
+    if (VM.VerifyAssertions) VM._assert(_cms.length == _counters.length);
     cms = _cms;
     counters= _counters;
   }

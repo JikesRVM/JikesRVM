@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Implementation of thin locks.
@@ -25,7 +26,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    *
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see OPT_ExpandRuntimeServices
+   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineLock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);
@@ -48,7 +49,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    *
    * @param o the object to be unlocked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see  OPT_ExpandRuntimeServices
+   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);
@@ -210,7 +211,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     int old;
     int changed;
     VM_Lock l = VM_Lock.allocate();
-    if (VM.VerifyAssertions) VM.assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
+    if (VM.VerifyAssertions) VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
     int locked = TL_FAT_LOCK_MASK | (l.index << TL_LOCK_ID_SHIFT);
     l.mutex.lock();
     do {
@@ -239,8 +240,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   static void deflate (Object o, int lockOffset, VM_Lock l) {
     if (VM.VerifyAssertions) {
       int old = VM_Magic.getIntAtOffset(o, lockOffset);
-      VM.assert((old & TL_FAT_LOCK_MASK) != 0);
-      VM.assert(l == VM_Scheduler.locks[(old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT]);
+      VM._assert((old & TL_FAT_LOCK_MASK) != 0);
+      VM._assert(l == VM_Scheduler.locks[(old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT]);
     }
     int old;
     int changed;
@@ -302,7 +303,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       return false; // caller will try again
     } else { // can't yield - must spin and let caller retry
       // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM.assert(VM_Thread.getCurrentThread().isGCThread);
+      if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread().isGCThread);
       l.mutex.unlock(); // thread-switching benign
       return false; // caller will try again
     }
@@ -389,7 +390,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   static int fastLocks;
   static int slowLocks;
 
-  static void notifyAppRunStart (int value) {
+  static void notifyAppRunStart (String app, int value) {
     if (!STATS) return;
     fastLocks = 0;
     slowLocks = 0;

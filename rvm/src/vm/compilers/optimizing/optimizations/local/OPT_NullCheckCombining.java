@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This module performs two tasks:
@@ -28,16 +29,8 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
 
   OPT_NullCheckCombining () { }
 
-  final boolean shouldPerform (OPT_Options options) {
-    return true;
-  }
-
-  final String getName () {
+  public final String getName () {
     return "NullCheckCombining";
-  }
-
-  final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
   }
 
   /**

@@ -2,13 +2,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Instances of this class represent decisions to inline.
  *
  * @author Stephen Fink
  */
-final class OPT_InlineDecision {
+public final class OPT_InlineDecision {
 
   /** 
    * Return a decision NOT to inline.

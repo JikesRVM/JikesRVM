@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
@@ -17,7 +18,9 @@
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-class VM_OptSaveVolatile implements VM_SaveVolatile {
+import com.ibm.JikesRVM.*;
+
+public class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**
    * Suspend execution of current thread and place it on tail of system
@@ -69,7 +72,7 @@ class VM_OptSaveVolatile implements VM_SaveVolatile {
     // (2) Get the return address 
     VM_Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     VM_Address methodStartAddress = VM_Magic.objectAsAddress(cm.getInstructions());
-    int offset = ip.diff(methodStartAddress);
+    int offset = ip.diff(methodStartAddress).toInt();
     VM.enableGC();
     // (3) Call the routine in VM_OptLinker that does all the real work.
     VM_OptLinker.resolveDynamicLink(cm, offset);

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * Encoding of try ranges in the final machinecode and the
@@ -10,7 +11,7 @@
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-abstract class VM_ExceptionTable {
+public abstract class VM_ExceptionTable {
 
   /**
    * An eTable array encodes the exception tables using 4 ints for each
@@ -44,20 +45,9 @@ abstract class VM_ExceptionTable {
 	if (lhs == exceptionType) {
 	  return eTable[i + CATCH_START];
 	} else if (lhs.isInitialized()) {
-	  if (VM.BuildForFastDynamicTypeCheck) {
-	    Object[] rhsTIB = exceptionType.getTypeInformationBlock();
-	    if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
-	      return eTable[i + CATCH_START];
-	    }
-	  } else {
-	    try {
-	      if (VM_Runtime.isAssignableWith(lhs, exceptionType)) {
-		return eTable[i + CATCH_START];
-	      }
-	    } catch (VM_ResolutionException e) {
-	      // cannot be thrown since lhs and rhs are initialized 
-	      // thus no classloading will be performed
-	    }
+	  Object[] rhsTIB = exceptionType.getTypeInformationBlock();
+	  if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
+	    return eTable[i + CATCH_START];
 	  }
 	}
       }
@@ -71,15 +61,14 @@ abstract class VM_ExceptionTable {
    */
   public static final void printExceptionTable (int[] eTable) {
     int length = eTable.length;
-    System.out.println("Exception Table:");
-    System.out.println("    trystart   tryend    catch    type");
+    VM.sysWriteln("Exception Table:");
+    VM.sysWriteln("    trystart   tryend    catch    type");
     for (int i = 0; i<length; i+=4) {
-      System.out.print("    " + 
-		       VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
-		       VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
-		       VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
-		       VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
-      System.out.println();
+      VM.sysWriteln("    " + 
+		    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
+		    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
+		    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
+		    VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
     }
   }
 }

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 
 /**
  * Primitive accumulating timer that detects if a gc
@@ -12,9 +16,9 @@
  *
  * @author Dave Grove
  */
-class VM_Stopwatch {
-  int count;
-  double elapsedTime;
+public class VM_Stopwatch {
+  public int count;
+  public double elapsedTime;
   private double startTime;
   private int gcEpoch;
 

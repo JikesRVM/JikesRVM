@@ -2,11 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
+import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+import com.ibm.JikesRVM.adaptive.VM_StringEventCounterData;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Vector;
 import java.util.Enumeration;
-
 
 /** 
  *
@@ -29,11 +33,11 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 
    static final boolean DEBUG = false;
 
-   final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
      return options.INSERT_INSTRUCTION_COUNTERS;
    }
 
-   final String getName() { return "InsertInstructionCounters"; }
+  public final String getName() { return "InsertInstructionCounters"; }
 
    /**
     * Insert a counter on every instruction, and group counts by

@@ -35,8 +35,9 @@ JNIEXPORT jobject JNICALL Java_TestGC_testgc
   jmethodID methodID;
   jclass expectCls;
   jboolean matchClass;
+  jclass systemClass;
 
-  jclass systemClass = (*env) -> FindClass(env, "java/lang/System");
+  systemClass = (*env) -> FindClass(env, "java/lang/System");
   if (systemClass == NULL) {
     if (verbose) 
       printf("> FindClass: fail to get class for java/lang/System\n");
@@ -60,15 +61,18 @@ JNIEXPORT jobject JNICALL Java_TestGC_testgc
 
 
   /* Do a few operations on the moved object to see if it's still valid */
+  if (verbose) printf("Calling FindClass\n");
   expectCls = (*env) -> FindClass(env, "java/lang/String");  
+  if (verbose) printf("Calling IsInstanceOf\n");
   matchClass = (*env) -> IsInstanceOf(env, obj1, expectCls);
   if (!matchClass)
     return NULL;
+  if (verbose) printf("Calling IsInstanceOf\n");
   matchClass = (*env) -> IsInstanceOf(env, obj2, expectCls);
   if (!matchClass)
     return NULL;
-      
 
+  if (verbose) printf("Returning\n");
 
   return obj1;
 }

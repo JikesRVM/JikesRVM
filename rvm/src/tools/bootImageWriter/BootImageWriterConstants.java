@@ -4,6 +4,8 @@
 //BootImageWriterConstants.java
 //$Id$
 
+import com.ibm.JikesRVM.*;
+
 /**
  * Manifest constants for bootimage writer.
  *
@@ -11,15 +13,11 @@
  * @version 03 Jan 2000
  */
 public interface BootImageWriterConstants extends VM_Constants {
-  /**
-   * Address at which image will be loaded when it runs
-   */
-  public static final int IMAGE_ADDRESS = 0x30000000;
 
   /**
    * Maximum size image that we can write (in bytes)
    */
-  public static final int IMAGE_SIZE = 40 * 1024 * 1024;
+  public static final int IMAGE_SIZE = 50 * 1024 * 1024;
 
   /**
    * Offset to associate with objects that haven't yet been placed into image.

@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * A field of a java class.
@@ -32,7 +34,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   /**
    * Get size of this field's value, in bytes.
    */ 
-  final int getSize() throws VM_PragmaUninterruptible {
+  public final int getSize() throws VM_PragmaUninterruptible {
     return type.getStackWords() << 2;
   }
 
@@ -50,26 +52,26 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * Shared among all instances of this class?
    */ 
   public final boolean isStatic() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * May only be assigned once?
    */ 
-  final boolean isFinal() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isFinal() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Value not to be cached in a register?
    */ 
-  final boolean isVolatile() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+  public final boolean isVolatile() throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_VOLATILE) != 0;
   }
 
@@ -77,8 +79,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * Value not to be written/read by persistent object manager?
    */ 
   final boolean isTransient() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_TRANSIENT) != 0;
   }
 
@@ -88,8 +90,19 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * @return constant pool index (0 --> field is not a "static final constant")
    */ 
   final int getConstantValueIndex() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return constantValueIndex;
+  }
+
+  public final int getModifiers() {
+      return modifiers & 
+	  (ACC_PUBLIC | 
+	   ACC_PRIVATE |
+	   ACC_PROTECTED |
+	   ACC_STATIC | 
+	   ACC_FINAL |
+	   ACC_VOLATILE |
+	   ACC_TRANSIENT);
   }
 
   //--------------------------------------------------------------------//
@@ -102,7 +115,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * The actual field that this object represents
    */
   public final VM_Field resolve() {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (!isLoaded()) return VM_ClassLoader.repairField(this);
     return this;
   }
@@ -117,8 +130,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * object pointer.
    */ 
   public final int getOffset() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(getDeclaringClass().isResolved());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return offset;
   }
 
@@ -159,7 +172,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
     * @return the reference described by this VM_Field from the given object.
     */
   public final Object getObjectValue(Object obj) throws IllegalArgumentException {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     if (!type.isReferenceType()) throw new IllegalArgumentException("field type mismatch");
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsObject(offset>>>2);
@@ -218,14 +231,14 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   }
 
   private int get32Bits(Object obj) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     // then a static object, get from jtoc
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsInt(offset >>> 2);  // divide by 4 to get words from bytes
     } else {
       if (VM.VerifyAssertions)
-	VM.assert(getSize()==4); // assume instance fields are 1 or 2 words
+	VM._assert(getSize()==4); // assume instance fields are 1 or 2 words
       if (obj==null)
 	throw new NullPointerException();
       return VM_Magic.getIntAtOffset(obj, offset);
@@ -233,14 +246,14 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   }
 
   private long get64Bits(Object obj) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (isStatic()) {
       long result = VM_Statics.getSlotContentsAsLong(offset >>> 2);
       return result;
     } else {
       if (VM.VerifyAssertions)
-	VM.assert(getSize()==8); // assume instance fields are 1 or 2 words
+	VM._assert(getSize()==8); // assume instance fields are 1 or 2 words
       if (obj==null)
 	throw new NullPointerException();
       long result = VM_Magic.getLongAtOffset(obj, offset);
@@ -255,7 +268,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 
   public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException
   {
-    VM.assert(false, "FINISH ME\n");
+    VM._assert(false, "FINISH ME\n");
     // !!TODO: get and modify form Field
   }
 
@@ -266,7 +279,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
    * @return void
    */
   public final void setObjectValue(Object obj, Object ref) throws IllegalArgumentException {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if ( ref != null ) {
       VM_Type actualType = VM_Magic.getObjectType(ref);
@@ -280,8 +293,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
     }
 
     if (isStatic()) {
-      if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, ref);
+      if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	VM_Interface.resolvedPutStaticWriteBarrier(offset, ref);
       }
       VM_Statics.setSlotContents(offset>>>2, ref);
     } else {
@@ -289,8 +302,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 	throw new NullPointerException();
       if (!getDeclaringClass().getClassForType().isInstance(obj))
 	throw new IllegalArgumentException();
-      if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	VM_WriteBarrier.resolvedPutfieldWriteBarrier(obj, offset, ref);
+      if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	VM_Interface.resolvedPutfieldWriteBarrier(obj, offset, ref);
       }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }
@@ -399,7 +412,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   }
 
   private void put32(Object obj, int value) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (isStatic()) {
       VM_Statics.setSlotContents( offset >>> 2, value );
@@ -410,7 +423,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   }
 
   private void put64(Object obj, long value) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (isStatic()) {
       VM_Statics.setSlotContents( offset >>> 2, value );
@@ -427,19 +440,19 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 
   private VM_Type type;               // field's type
   private int     constantValueIndex; // constant pool index of field's value (0 --> not a "static final constant")
-  int     offset;             // field's jtoc/obj offset, in bytes
+  public  int     offset;             // field's jtoc/obj offset, in bytes
 
   // To guarantee uniqueness, only the VM_ClassLoader class may construct VM_Field instances.
   // All VM_Field creation should be performed by calling "VM_ClassLoader.findOrCreate" methods.
   //
   private VM_Field() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   VM_Field(VM_Class declaringClass, VM_Atom name, 
 	   VM_Atom descriptor, int dictionaryId) {
     super(declaringClass, name, descriptor, dictionaryId);
-    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.classloader);
+    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.getClassLoader());
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 

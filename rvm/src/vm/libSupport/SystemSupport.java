@@ -1,18 +1,20 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM;
-import VM_Array;
-import VM_Lock;
-import VM_Magic;
-import VM_ObjectModel;
-import VM_Process;
-import VM_Runtime;
-import VM_Time;
-import FinalizerThread;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM_Lock;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_Process;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.FinalizerThread;
 
 /**
  * This class provides a set of static method entrypoints used in the
@@ -28,6 +30,15 @@ public class SystemSupport {
    */
   public static void sysExit(int value) {
     VM.sysExit(value);
+  }
+
+  /**
+   * An entrypoint for debugging messages at runtime
+   */
+  public static void debugPrint(String s) {
+    if (VM.runningVM) {
+      VM.sysWriteln(s);
+    }
   }
 
   /**
@@ -177,14 +188,20 @@ public class SystemSupport {
     else if (src instanceof double[])  VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
     else                               VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
   }
-
-    public static Process createProcess(String program, String[] args) {
-	return new VM_Process(program, args);
-    }
     
-    public static Process createProcess(String program, String[] args, String[] env) {
-	return new VM_Process(program, args, env);
-    }
+  public static Process createProcess(String program, String[] args, String[] env, java.io.File dir) {
+    String dirPath = (dir != null) ? dir.getPath() : null;
+    return new VM_Process(program, args, env, dirPath);
+  }
 
+  public static void addShutdownHook(final Thread hook) {
+      VM_Callbacks.addExitMonitor(
+	  new VM_Callbacks.ExitMonitor() {
+	      public void notifyExit(int value) {
+		  hook.start();
+	      }
+	  });
+  }
+	  
 }
 	

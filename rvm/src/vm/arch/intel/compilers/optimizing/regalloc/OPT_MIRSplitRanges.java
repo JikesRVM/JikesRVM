@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class splits live ranges for certain special cases to ensure
@@ -13,28 +14,15 @@ import instructionFormats.*;
  * @author Stephen Fink
  */
 class OPT_MIRSplitRanges extends OPT_CompilerPhase 
-implements OPT_Operators {
-
-  /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
-   */
-  final boolean shouldPerform (OPT_Options options) {
-    return true;
-  }
+  implements OPT_Operators {
 
   /**
    * Return the name of this phase
    * @return "Live Range Splitting"
    */
-  final String getName () {
+  public final String getName () {
     return "MIR Range Splitting"; 
   }
-
-  public boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
-  } 
 
   /**
    * The main method.

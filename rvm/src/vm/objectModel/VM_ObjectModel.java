@@ -2,6 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.ir.*;
+//-#endif
 
 /**
  * The interface to the object model definition accessible to the 
@@ -104,13 +115,13 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 					     VM_JavaHeaderConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
-  static final boolean HASH_STATS = false;
+  public static final boolean HASH_STATS = false;
   /** count number of Object::hashCode() operations */
-  static int hashRequests    = 0; 
+  public static int hashRequests    = 0; 
   /** count transitions from HASH_STATE_UNHASHED to HASH_STATE_HASHED */
-  static int hashTransition1 = 0; 
+  public static int hashTransition1 = 0; 
   /** count transitions from HASH_STATE_HASHED to HASH_STATE_HASHED_AND_MOVED */
-  static int hashTransition2 = 0; 
+  public static int hashTransition2 = 0; 
 
   /**
    * Given a reference to an object of a given class, 
@@ -197,6 +208,24 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static void gcProcessTIB(VM_Address ref) {
     VM_JavaHeader.gcProcessTIB(ref);
   }
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    VM_JavaHeader.gcProcessTIB(ref, root);
+  }
+
+//   public static int bytesRequiredWhenCopied(Object object) {
+//     return VM_JavaHeader.bytesRequiredWhenCopied(object);
+//   }
+
+  public static int bytesRequiredWhenCopied(Object obj) {
+    Object[] tib = VM_ObjectModel.getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return bytesRequiredWhenCopied(obj, type.asClass());
+    } else {
+      int numElements = VM_Magic.getArrayLength(obj);
+      return bytesRequiredWhenCopied(obj, type.asArray(), numElements);
+    }
+  }
 
   /**
    * how many bytes are needed when the scalar object is copied by GC?
@@ -225,16 +254,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
 				  VM_Array type, int availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
-  }
-
-  /**
-   * Get a reference to the TIB for an object.
-   *
-   * @param jdpService
-   * @param address address of the object
-   */
-  public static int getTIB(JDPServiceInterface jdpService, int ptr) throws VM_PragmaInterruptible {
-    return VM_JavaHeader.getTIB(jdpService, VM_Address.fromInt(ptr)).toInt();
   }
 
   /**
@@ -398,7 +417,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeHeaderSize(VM_Type type) {
+  public static int computeHeaderSize(VM_Type type) throws VM_PragmaInline {
     return (type.dimension>0)?computeArrayHeaderSize(type.asArray()):computeScalarHeaderSize(type.asClass());
   }
 
@@ -406,14 +425,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Compute the header size of an object 
    */
   public static int computeHeaderSize(Object ref) throws VM_PragmaInterruptible {
-    VM_Type type = ref.getClass().getVMType();
+    VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(ref.getClass());
     return computeHeaderSize(type);
   }
 
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeScalarHeaderSize(VM_Class type) {
+  public static int computeScalarHeaderSize(VM_Class type) throws VM_PragmaInline {
     return VM_JavaHeader.computeScalarHeaderSize(type);
   }
 

@@ -3,6 +3,35 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Thread;
+
 /**
  * Class that manages work buffers of references to objects that need to
  * be scanned during a collection.  Each GC thread (a VM_CollectorThread)
@@ -27,7 +56,7 @@
  * @author Tony Cocchi
  * @author Stephen Smith
  */
-class VM_GCWorkQueue  implements VM_Uninterruptible {
+public class VM_GCWorkQueue {
    
   //-----------------------
   //static variables
@@ -68,10 +97,10 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * Changing the buffer size can significantly affect the performance
    * of the load-balancing Work Queue.
    */
-  static int WORK_BUFFER_SIZE = 4 * 1024;
+  public static int WORK_BUFFER_SIZE = 4 * 1024;
 
   /** single instance of GCWorkQueue, allocated in the bootImage */
-  static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
+  public static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
   
   //-----------------------
   //instance variables
@@ -85,7 +114,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   //-----------------------
 
   /** constructor */
-  VM_GCWorkQueue() {
+  VM_GCWorkQueue() throws VM_PragmaUninterruptible {
     numRealProcessors = 1;     // default to 1 real physical processor
   }
 
@@ -93,7 +122,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * Reset the shared work queue, setting the number of
    * participating gc threads.
    */
-  synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
+  public synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.initialSetup entered\n");
     
@@ -119,7 +148,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * have left a previous use of the queue. It should always
    * be called (by 1 thread) before any reuse of the Work Queue.
    */  
-  void reset () {
+  void reset () throws VM_PragmaUninterruptible {
     
     int debug_counter = 0;
     int debug_counter_counter = 0;
@@ -152,7 +181,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * GC thread (a VM_CollectorThread).
    */
   static void
-    resetWorkQBuffers () {
+    resetWorkQBuffers () throws VM_PragmaUninterruptible {
 
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
@@ -229,7 +258,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return address of a buffer
    *         zero if no buffers available & all participants waiting
    */
-  VM_Address getBufferAndWait () throws VM_PragmaLogicallyUninterruptible {
+  VM_Address getBufferAndWait () throws VM_PragmaLogicallyUninterruptible, VM_PragmaUninterruptible {
     VM_Address  temp;
     int debug_counter = 0;
     int debug_counter_counter = 0;
@@ -314,7 +343,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param ref  object reference to add to the put buffer
    */
-  static void putToWorkBuffer (VM_Address ref ) {
+  static void putToWorkBuffer (VM_Address ref ) throws VM_PragmaUninterruptible {
 
     if (VALIDATE_BUFFER_PUTS) {
       if (!VM_GCUtil.validRef(ref)) {
@@ -327,7 +356,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 	VM_Scheduler.trace("GCWorkQueue:putToWorkBuffer:","dumping all thread stacks");
 	VM_GCUtil.dumpAllThreadStacks();
 	***/
-	VM.assert(false);
+	VM._assert(false);
       }
     }
 
@@ -362,7 +391,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return object reference from the get buffer
    *         zero when there are no more references to process
    */
-  static VM_Address getFromWorkBuffer () {
+  public static VM_Address getFromWorkBuffer () throws VM_PragmaUninterruptible {
 
     VM_Address newbufaddress;
     VM_Address temp;
@@ -476,7 +505,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @param   VM_CollectorThread needing a new put buffer
    */
   private static void
-    allocatePutBuffer (VM_CollectorThread myThread) { 
+    allocatePutBuffer (VM_CollectorThread myThread) throws VM_PragmaUninterruptible { 
     VM_Address bufferAddress;
 
     if (!myThread.extraBuffer.isZero()) {
@@ -505,7 +534,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param   VM_CollectorThread with a get buffer to free
    */
-  private static void freeGetBuffer (VM_CollectorThread myThread) { 
+  private static void freeGetBuffer (VM_CollectorThread myThread) throws VM_PragmaUninterruptible { 
 
     if (myThread.extraBuffer.isZero()) 
       myThread.extraBuffer = myThread.getBufferStart;
@@ -526,7 +555,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param x amount to spin in some unknown units
    */
-  private int spinABit ( int x) {
+  private int spinABit ( int x) throws VM_PragmaUninterruptible {
     int sum = 0;
 
     if (numThreads < numRealProcessors) {
@@ -547,7 +576,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   /**
    * Process references in work queue buffers until empty.
    */
-  static void emptyWorkQueue() {
+  static void emptyWorkQueue() throws VM_PragmaUninterruptible {
 
       VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
     
@@ -564,7 +593,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 
   // methods for measurement statistics
 
-  static void resetCounters ( VM_CollectorThread ct ) {
+  static void resetCounters ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
     ct.copyCount = 0;
     ct.rootWorkCount = 0;
     ct.putWorkCount = 0;
@@ -574,15 +603,14 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     ct.getBufferCount = 0;
   }
 
-  static void
-  resetWaitTimes ( VM_CollectorThread ct ) {
+  public static void resetWaitTimes ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
     ct.bufferWaitCount = 0;
     ct.bufferWaitTime = 0.0;
     ct.finishWaitTime = 0.0;
   }
 
   static void 
-  saveAllCounters() {
+  saveAllCounters() throws VM_PragmaUninterruptible {
     int i;
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -593,7 +621,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   static void 
-  resetAllCounters() {
+  resetAllCounters() throws VM_PragmaUninterruptible {
     int i;
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -603,7 +631,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   static void
-  saveCounters ( VM_CollectorThread ct ) {
+  saveCounters ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
     ct.copyCount1       = ct.copyCount       ;
     ct.rootWorkCount1   = ct.rootWorkCount   ;
     ct.putWorkCount1    = ct.putWorkCount    ;
@@ -615,7 +643,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   static void 
-  saveAllWaitTimes() {
+  saveAllWaitTimes() throws VM_PragmaUninterruptible {
     int i;
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -626,7 +654,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   static void
-  resetAllWaitTimes() {
+  resetAllWaitTimes() throws VM_PragmaUninterruptible {
     int i;
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -636,7 +664,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
   
   static void
-  saveWaitTimes ( VM_CollectorThread ct ) {
+  saveWaitTimes ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
     ct.bufferWaitCount1 = ct.bufferWaitCount ;
     ct.bufferWaitTime1  = ct.bufferWaitTime  ;
     ct.finishWaitTime1  = ct.finishWaitTime  ;
@@ -644,7 +672,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   static void
-  printAllWaitTimes () {
+  printAllWaitTimes () throws VM_PragmaUninterruptible {
     int i;
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -661,7 +689,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }  // printAllWaitTimes
 
   static void
-  printAllCounters() {
+  printAllCounters() throws VM_PragmaUninterruptible {
     // print load balancing work queue counts
     int i;
     VM_CollectorThread ct;

@@ -16,7 +16,7 @@ extern "C" {
  * Method:    getAliasesByNameImpl
  * Signature: (Ljava/lang/String;)[Ljava/net/InetAddress;
  */
-JNIEXPORT jobjectArray JNICALL Java_VM_1InetAddress_getAliasesByNameImpl
+JNIEXPORT jobjectArray JNICALL Java_com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl
   (JNIEnv *, jclass, jstring);
 
 /*
@@ -24,7 +24,7 @@ JNIEXPORT jobjectArray JNICALL Java_VM_1InetAddress_getAliasesByNameImpl
  * Method:    getHostByAddrImpl
  * Signature: (I)Ljava/net/InetAddress;
  */
-JNIEXPORT jobject JNICALL Java_VM_1InetAddress_getHostByAddrImpl
+JNIEXPORT jobject JNICALL Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl
   (JNIEnv *, jclass, jint);
 
 /*
@@ -32,7 +32,7 @@ JNIEXPORT jobject JNICALL Java_VM_1InetAddress_getHostByAddrImpl
  * Method:    getHostNameImpl
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_VM_1InetAddress_getHostNameImpl
+JNIEXPORT jstring JNICALL Java_com_ibm_JikesRVM_VM_1InetAddress_getHostNameImpl
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus

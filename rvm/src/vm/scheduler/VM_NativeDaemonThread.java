@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Handshake;
 
 /**
  * This thread executes in a distinct daemon thread: its
@@ -214,8 +218,8 @@ class VM_NativeDaemonThread extends VM_Thread {
      // active java thread of stuck Processor should now be the native processors
      // NativeIdleThread, IN_SIGWAIT, waiting for a signal.
      if (VM.VerifyAssertions) {
-       VM.assert(VM_Processor.vpStatus[stuckProcessor.vpStatusIndex] == VM_Processor.IN_SIGWAIT);
-       VM.assert(VM_Processor.vpStatus[nativeProcessor.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE);
+       VM._assert(VM_Processor.vpStatus[stuckProcessor.vpStatusIndex] == VM_Processor.IN_SIGWAIT);
+       VM._assert(VM_Processor.vpStatus[nativeProcessor.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE);
      }
 
      // now the native idle thread is "active" on the blue/stuck vp, and
@@ -296,7 +300,7 @@ if (stuckEnv == null) {
 //-#endif 
 
     // active thread of native vp should be its NativeIdleThread
-    if (VM.VerifyAssertions) VM.assert( native_vp.activeThread.isNativeIdleThread == true );
+    if (VM.VerifyAssertions) VM._assert( native_vp.activeThread.isNativeIdleThread == true );
 
     // switch active threads on the two processors
     VM_NativeIdleThread nativeIdleThread = (VM_NativeIdleThread) native_vp.activeThread;

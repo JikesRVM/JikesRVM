@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Converts all remaining instructions with HIR-only operators into 
@@ -17,7 +19,7 @@ import instructionFormats.*;
  * @author Igor Pechtchanski
  * @modified Peter F. Sweeney
  */
-abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
+public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   implements OPT_Operators, VM_Constants, OPT_Constants {
   // We have slightly different ideas of what the LIR should look like
   // for IA32 and PowerPC.  The main difference is that for IA32 
@@ -330,7 +332,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     int highLimit = TableSwitch.getHigh(s).value;
     int number = highLimit - lowLimit + 1;
     if (VM.VerifyAssertions)
-      VM.assert(number > 0);    // also checks that there are < 2^31 targets
+      VM._assert(number > 0);    // also checks that there are < 2^31 targets
     OPT_Operand val = TableSwitch.getClearValue(s);
     OPT_BranchOperand defaultLabel = TableSwitch.getClearDefault(s);
     if (number < 8) {           // convert into a lookupswitch
@@ -360,9 +362,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     } else {
       t = reg.copyU2U();
     }
+    OPT_BranchProfileOperand defaultProb = TableSwitch.getClearDefaultBranchProfile(s);
     s.replace(IfCmp.create(INT_IFCMP, null, t, I(highLimit - lowLimit),
 			   OPT_ConditionOperand.HIGHER(), 
-			   defaultLabel,TableSwitch.getClearDefaultBranchProfile(s)));
+			   defaultLabel, defaultProb));
+    float weight = 1f / (1f - defaultProb.takenProbability);
 
     /********** second Basic Block ******/
     s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number*2);
@@ -370,8 +374,9 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     for (int i = 0; i < number; i++) {
       OPT_BranchOperand b = TableSwitch.getClearTarget(s, i);
       LowTableSwitch.setTarget(s2, i, b);
-      LowTableSwitch.setBranchProfile(s2, i, 
-				      TableSwitch.getClearBranchProfile(s,i));
+      OPT_BranchProfileOperand bp = TableSwitch.getClearBranchProfile(s,i);
+      bp.takenProbability *= weight;
+      LowTableSwitch.setBranchProfile(s2, i, bp);
       if (b.target == defaultLabel.target)
         containsDefault = true;
     }
@@ -392,7 +397,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       BB2.appendInstruction(s2);
     }
     // continue at next BB
-    s = BB2.end;
+    s = BB2.lastInstruction();
 
     return  s;
   }
@@ -464,54 +469,47 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    int min, 
 						    int max) {
     if (VM.VerifyAssertions)
-      VM.assert(low <= high, "broken control logic in _lookupswitchHelper");
+      VM._assert(low <= high, "broken control logic in _lookupswitchHelper");
 
     int middle = (low + high) >> 1;             // find middle
 
     // The following are used below to store the computed branch
     // probabilities for the branches that are created to implement
     // the binary search.  Used only if basic block frequencies available
-    double lessProb = 0.0;
-    double greaterProb = 0.0;
-    double equalProb = 0.0;
-    double sum=0.0;
+    float lessProb = 0.0f;
+    float greaterProb = 0.0f;
+    float equalProb = 0.0f;
+    float sum=0.0f;
 
-    // If basic block counts are being used, take the time to compute
-    // the branch probabilities of each branch along the binary search
-    // tree.
-    if (ir.basicBlockFrequenciesAvailable()) {
-      // Sum the probabilities for all targets < middle
-      for (int i=low; i < middle; i++) {
-	lessProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
-      }
+    // Sum the probabilities for all targets < middle
+    for (int i=low; i < middle; i++) {
+      lessProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
+    }
 
-      // Sum the probabilities for all targets > middle
-      for (int i=middle+1; i <= high; i++) {
-	greaterProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
-      }
-      equalProb = 
-	LookupSwitch.getBranchProfile(switchInstr,middle).takenProbability;
+    // Sum the probabilities for all targets > middle
+    for (int i=middle+1; i <= high; i++) {
+      greaterProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
+    }
+    equalProb = LookupSwitch.getBranchProfile(switchInstr,middle).takenProbability;
 
-      // The default case is a bit of a kludge.  We know the total
-      // probability of executing the default case, but we have no
-      // idea which paths are taken to get there.  For now, we'll
-      // assume that all paths that went to default were because the
-      // value was less than the smallest switch value.  This ensures
-      // that all basic block appearing in the switch will have the
-      // correct weights (but the blocks in the binary switch
-      // generated may not).
-      if (low == 0) 
-	lessProb += 
-	  LookupSwitch.getDefaultBranchProfile(switchInstr).takenProbability;
+    // The default case is a bit of a kludge.  We know the total
+    // probability of executing the default case, but we have no
+    // idea which paths are taken to get there.  For now, we'll
+    // assume that all paths that went to default were because the
+    // value was less than the smallest switch value.  This ensures
+    // that all basic block appearing in the switch will have the
+    // correct weights (but the blocks in the binary switch
+    // generated may not).
+    if (low == 0) 
+      lessProb += LookupSwitch.getDefaultBranchProfile(switchInstr).takenProbability;
 
-      // Now normalize them so they are relative to the sum of the
-      // branches being considered in this piece of the subtree
-      sum = lessProb + equalProb + greaterProb;
-      if (sum > 0) {  // check for divide by zero
-	lessProb /= sum;
-	equalProb /= sum;
-	greaterProb /= sum;
-      }
+    // Now normalize them so they are relative to the sum of the
+    // branches being considered in this piece of the subtree
+    sum = lessProb + equalProb + greaterProb;
+    if (sum > 0) {  // check for divide by zero
+      lessProb /= sum;
+      equalProb /= sum;
+      greaterProb /= sum;
     }
 
     OPT_IntConstantOperand val = 
@@ -538,7 +536,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	// To compute the probability of the second compare, the first
 	// probability must be removed since the second branch is
 	// considered only if the first fails.
-	double secondIfProb = 0.0;
+	float secondIfProb = 0.0f;
 	sum = equalProb + greaterProb;
 	if (sum > 0) // if divide by zero, leave as is
 	  secondIfProb = equalProb/sum;
@@ -595,7 +593,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param op the load operator to use
    * @param logwidth the log base 2 of the element type's size 
    */
-  static void doArrayLoad (OPT_Instruction s, OPT_IR ir, 
+  public static void doArrayLoad (OPT_Instruction s, OPT_IR ir, 
 			   OPT_Operator op, 
 			   int logwidth) {
     if (LOWER_ARRAY_ACCESS) {
@@ -621,7 +619,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param op the store operator to use
    * @param logwidth the log base 2 of the element type's size 
    */
-  static void doArrayStore (OPT_Instruction s, OPT_IR ir, 
+  public static void doArrayStore (OPT_Instruction s, OPT_IR ir, 
 			    OPT_Operator op, 
 			    int logwidth) {
     if (LOWER_ARRAY_ACCESS) {
@@ -654,7 +652,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     if (methOp != null && methOp.unresolved) {
       unresolved = true;
       if (VM.VerifyAssertions)
-	VM.assert(Call.getAddress(s) == null, 
+	VM._assert(Call.getAddress(s) == null, 
 		  "Unresolved call with InstrAddr?");
       OPT_RegisterOperand instrAddr = 
 	ir.regpool.makeTemp(OPT_ClassLoaderProxy.InstructionArrayType);
@@ -987,10 +985,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                     offsetTable, dictID << 2);
       return  offset;
     } else {
+      OPT_BranchProfileOperand bp = OPT_BranchProfileOperand.never();
       OPT_BasicBlock predBB = s.getBasicBlock();  
       OPT_BasicBlock succBB = predBB.splitNodeAt(s.getPrev(), ir); 
-      OPT_BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir, 1f);
+      OPT_BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
       // Get the offset from the appropriate VM_ClassLoader array 
       // and check to see if it is valid
       OPT_RegisterOperand offsetTable = 
@@ -1004,7 +1003,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 					    I(NEEDS_DYNAMIC_LINK),
 					    OPT_ConditionOperand.EQUAL(), 
 					    resolveBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely()));
+					    OPT_BranchProfileOperand.never()));
       // Handle the offset being invalid
       if (isField)
         s2 = CacheOp.create(RESOLVE, loc); 
@@ -1021,9 +1020,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       testBB.insertOut(resolveBB);
       ir.cfg.linkInCodeOrder(testBB, succBB);
       resolveBB.insertOut(testBB);              // backedge
-      resolveBB.setInfrequent(true);
-      ir.cfg.addLastInCodeOrder(resolveBB);  // stick resolution code off 
-      // in outer space.
+      ir.cfg.addLastInCodeOrder(resolveBB);  // stick resolution code in outer space.
       return  offset;
     }
   }
@@ -1038,7 +1035,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param o2 the second operand
    * @return the result operand of the inserted instruction
    */
-  static OPT_RegisterOperand InsertBinary (OPT_Instruction s, OPT_IR ir, 
+  public static OPT_RegisterOperand InsertBinary (OPT_Instruction s, OPT_IR ir, 
 					   OPT_Operator operator, 
 					   VM_Type type, 
 					   OPT_Operand o1, 
@@ -1204,7 +1201,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    */
   static OPT_RegisterOperand getVMType (OPT_Instruction ptr, OPT_IR ir, 
 					VM_Type t) {
-    if (VM.VerifyAssertions) VM.assert(!t.isPrimitiveType());
+    if (VM.VerifyAssertions) VM._assert(!t.isPrimitiveType());
     OPT_RegisterOperand tib = getTIB(ptr, ir, t);
     return  InsertUnary(ptr, ir, GET_TYPE_FROM_TIB, 
 			OPT_ClassLoaderProxy.VM_Type_type, tib);
@@ -1302,7 +1299,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param ir
    * @param field
    */
-  static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
+  public static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
 					VM_Field field) {
     return InsertLoadOffsetJTOC(s, ir, 
 				OPT_IRTools.getLoadOp(field), 

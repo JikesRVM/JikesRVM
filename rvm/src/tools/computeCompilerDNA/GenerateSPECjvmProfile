@@ -1,0 +1,18 @@
+#!/bin/ksh
+
+#
+# (C) Copyright IBM Corp. 2002
+#
+# $Id$
+
+# This script will run the system on the SPECjvm98 benchmarks, 
+# and collect profile data, dumped to a file.
+#
+# usage: GenerateSPECjvmProfile <profile Data file>
+#
+# @author Stephen Fink
+
+FILE=$1
+
+RunSanityTests -measureCompilation -configuration FastBaseAdaptiveSemispace -test SPECjvm98 \
+-rc-args "-X:aos:final_report_level=2 -X:aos:primary_strategy=baseonly -X:aos:base:edge_counter_file=$FILE"

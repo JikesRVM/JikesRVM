@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 /**
@@ -13,7 +15,7 @@ import java.util.*;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
+public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
   /**
    * Build this phase as a composite of others.
@@ -55,15 +57,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Register allocation is required
    */
-  final boolean shouldPerform(OPT_Options options) { 
+  public final boolean shouldPerform(OPT_Options options) { 
     return true; 
   }
 
-  final String getName() { 
+  public final String getName() { 
     return "Linear Scan Composite Phase"; 
   }
 
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
@@ -150,11 +152,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   }
 
 
-  final static class LinearScanState {
+  public final static class LinearScanState {
     /**
      * The live interval information, a set of Basic Intervals 
      * sorted by increasing start point
-     * Used by ClassWriter so needs to be public
      */
     public ArrayList intervals;
 
@@ -174,23 +175,23 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class RegisterRestrictions extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Register Restrictions"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
-
+    public void perform(OPT_IR ir) {
+      
       //  The registerManager has already been initialized
       OPT_GenericStackManager sm = ir.stackManager;
 
@@ -216,15 +217,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       /**
        * Register allocation is required
        */
-      final boolean shouldPerform(OPT_Options options) { 
-        return true; 
+      public final boolean shouldPerform(OPT_Options options) { 
+	return true; 
       }
 
-      final String getName() { 
+      public final String getName() { 
         return "Linear Scan"; 
       }
 
-      final boolean printingEnabled(OPT_Options options, boolean before) {
+      public final boolean printingEnabled(OPT_Options options, boolean before) {
         return false;
       }
 
@@ -233,7 +234,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        *  See TOPLAS 21(5), Sept 1999, p 895-913
        *  @param ir the IR
        */
-      void perform(OPT_IR ir) {
+      public void perform(OPT_IR ir) {
 
         this.ir = ir;
 
@@ -458,6 +459,13 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   static class CompoundInterval extends IncreasingStartIntervalSet {
 
     /**
+     * Is this compound interval fully contained in infrequent code?
+     */
+    private boolean _infrequent = true;
+    final void setFrequent() { _infrequent = false; }
+    final boolean isInfrequent() { return _infrequent; }
+
+    /**
      * The register this compound interval represents
      */
     private OPT_Register reg;
@@ -566,7 +574,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // Make sure the new live range starts after the last basic interval
       if (VM.VerifyAssertions) {
-        VM.assert(last.getEnd() <= getDfnBegin(live,bb));
+        VM._assert(last.getEnd() <= getDfnBegin(live,bb));
       }
 
       int dfnBegin = getDfnBegin(live, bb);
@@ -706,7 +714,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           currentI = otherIterator.hasNext() ? 
             (BasicInterval)otherIterator.next() : null;
         } else {
-          if (VM.VerifyAssertions) VM.assert(current.sameRange(currentI));
+          if (VM.VerifyAssertions) VM._assert(current.sameRange(currentI));
 
           currentI = otherIterator.hasNext() ? 
             (BasicInterval)otherIterator.next() : null;
@@ -902,30 +910,18 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.ir = ir;
       this.spillManager = sm;
 
-      if (ir.options.getOptLevel() >= 2) {
-        if (ir.hasReachableExceptionHandlers()) {
+      switch (ir.options.SPILL_COST_ESTIMATE) {
+        case OPT_Options.SIMPLE_SPILL_COST:
           spillCost = new OPT_SimpleSpillCost(ir);
-        } else {
-          spillCost = new OPT_LoopDepthSpillCost(ir);
-        }
-      } else {
-        switch (ir.options.SPILL_COST_ESTIMATE) {
-          case OPT_Options.SIMPLE_SPILL_COST:
-            spillCost = new OPT_SimpleSpillCost(ir);
-            break;
-          case OPT_Options.BRAINDEAD_SPILL_COST:
-            spillCost = new OPT_BrainDeadSpillCost(ir);
-            break;
-          case OPT_Options.LOOPDEPTH_SPILL_COST:
-            if (ir.hasReachableExceptionHandlers()) {
-              spillCost = new OPT_SimpleSpillCost(ir);
-            } else {
-              spillCost = new OPT_LoopDepthSpillCost(ir);
-            }
-            break;
-          default:
-            OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
-        }
+          break;
+        case OPT_Options.BRAINDEAD_SPILL_COST:
+          spillCost = new OPT_BrainDeadSpillCost(ir);
+          break;
+        case OPT_Options.BLOCK_COUNT_SPILL_COST:
+          spillCost = new OPT_BlockCountSpillCost(ir);
+          break;
+        default:
+          OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
       }
     }
 
@@ -987,7 +983,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       } else {
         // free the assigned register
-        if (VM.VerifyAssertions) VM.assert(container.getAssignment().isAllocated());
+        if (VM.VerifyAssertions) VM._assert(container.getAssignment().isAllocated());
         container.getAssignment().deallocateRegister();
       }
 
@@ -1105,13 +1101,13 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             // active set must be spilled.  Choose a spill candidate.
             CompoundInterval spillCandidate = getSpillCandidate(container);
             if (VM.VerifyAssertions) {
-              VM.assert(!spillCandidate.isSpilled());
-              VM.assert(spillCandidate.getRegister().getType() ==
+              VM._assert(!spillCandidate.isSpilled());
+              VM._assert(spillCandidate.getRegister().getType() ==
                         r.getType());
-              VM.assert(!ir.stackManager.getRestrictions().mustNotSpill
+              VM._assert(!ir.stackManager.getRestrictions().mustNotSpill
                         (spillCandidate.getRegister()));
               if (spillCandidate.getAssignment() != null) {
-                VM.assert(!ir.stackManager.getRestrictions().
+                VM._assert(!ir.stackManager.getRestrictions().
                           isForbidden(r,spillCandidate.getAssignment()));
               }
             }
@@ -1154,7 +1150,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       } else {
         // incorporate i into the set of intervals assigned to p
         CompoundInterval ci = new CompoundInterval(i,p);
-        if (VM.VerifyAssertions) VM.assert(!ci.intersects(physInterval));
+        if (VM.VerifyAssertions) VM._assert(!ci.intersects(physInterval));
         physInterval.addAll(ci);
       }
     }
@@ -1174,7 +1170,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         setInterval(p,c.copy(p,stop));
       } else {
         // incorporate c into the set of intervals assigned to p
-        if (VM.VerifyAssertions) VM.assert(!c.intersects(physInterval));
+        if (VM.VerifyAssertions) VM._assert(!c.intersects(physInterval));
         // copy to a new BasicInterval so "equals" will work as expected,
         // since "stop" may be a MappedBasicInterval.
         stop = new BasicInterval(stop.getBegin(),stop.getEnd());
@@ -1221,6 +1217,11 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     final OPT_Register findAvailableRegister(CompoundInterval ci) {
 
+      if (ir.options.FREQ_FOCUS_EFFORT && ci.isInfrequent()) {
+        // don't bother trying to find an available register
+        return null;
+      }
+
       OPT_Register r = ci.getRegister();
       OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
@@ -1229,8 +1230,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         OPT_Register p = getPhysicalPreference(ci);
         if (p != null) {
           if (debugCoalesce) {
-            System.out.println("REGISTER PREFERENCE " + ci + " "
-                               + p);
+            System.out.println("REGISTER PREFERENCE " + ci + " " + p);
           }
           return p;
         }
@@ -1276,8 +1276,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         OPT_Register p = getPhysicalPreference(symb);
         if (p != null) {
           if (debugCoalesce) {
-            System.out.println("REGISTER PREFERENCE " + symb + " "
-                               + p);
+            System.out.println("REGISTER PREFERENCE " + symb + " " + p);
           }
           return p;
         }
@@ -1541,6 +1540,16 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     private CompoundInterval getSpillCandidate(CompoundInterval newInterval) {
       if (verboseDebug) System.out.println("GetSpillCandidate from " + this);
+
+      if (ir.options.FREQ_FOCUS_EFFORT && newInterval.isInfrequent()) {
+        // if it's legal to spill this infrequent interval, then just do so!
+        // don't spend any more effort.
+        OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+        if (!restrict.mustNotSpill(newInterval.getRegister())) {
+          return newInterval;
+        }
+      }
+
       return spillMinUnitCost(newInterval);
     }
 
@@ -1606,7 +1615,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       }
       if (VM.VerifyAssertions) {
-        VM.assert (result != null);
+        VM._assert (result != null);
       }
       return result;
     }
@@ -1674,17 +1683,17 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * should we perform this phase? yes.
      */
-    final boolean shouldPerform(OPT_Options options) { return true; }
+    public final boolean shouldPerform(OPT_Options options) { return true; }
 
     /**
      * a name for this phase.
      */
-    final String getName() { return "Interval Analysis"; }
+    public final String getName() { return "Interval Analysis"; }
 
     /**
      * should we print the ir?
      */
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -1698,7 +1707,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *
      * @param ir the ir
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       this.ir = ir;
 
       OPT_ControlFlowGraph cfg = ir.cfg;
@@ -1732,7 +1741,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // begin.
           if (VM.VerifyAssertions) {
             int begin = getDfnBegin(live,bb);
-            VM.assert(begin >= lastBeginSeen);
+            VM._assert(begin >= lastBeginSeen);
             lastBeginSeen = begin;
           }
           
@@ -1740,8 +1749,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           if (live.getRegister().isPhysical() &&
               !phys.isAllocatable(live.getRegister())) continue;
 
-          CompoundInterval resultingInterval = processLiveInterval(live, 
-                                                                   bb);
+          CompoundInterval resultingInterval = processLiveInterval(live, bb);
+          if (!bb.getInfrequent() && resultingInterval != null) {
+            resultingInterval.setFrequent();
+          }
         } 
       }
 
@@ -1867,8 +1878,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               if (!end.isPEI()) {
                 if (VM.VerifyAssertions) {		      
                   OPT_Operand value = MIR_Move.getValue(end);
-                  VM.assert(value.isRegister());
-                  VM.assert(MIR_Move.getValue(end).asRegister().register 
+                  VM._assert(value.isRegister());
+                  VM._assert(MIR_Move.getValue(end).asRegister().register 
                             == reg);
                 }
                 end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
@@ -2241,15 +2252,15 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class UpdateGCMaps1 extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Update GCMaps 1"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2258,7 +2269,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  replace the symbolic reg with the real reg or spill it was allocated
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
 
       for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
            GCenum.hasMoreElements(); ) {
@@ -2301,22 +2312,22 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class UpdateGCMaps2 extends OPT_CompilerPhase {
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Update GCMaps 2"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       OPT_ScratchMap scratchMap = ir.stackManager.getScratchMap();
 
@@ -2410,22 +2421,22 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   final static class SpillCode extends OPT_CompilerPhase implements
     OPT_Operators{
 
-    final boolean shouldPerform(OPT_Options options) { 
+    public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    final String getName() { 
+    public final String getName() { 
       return "Spill Code"; 
     }
 
-    final boolean printingEnabled(OPT_Options options, boolean before) {
+    public final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      *  @param ir the IR
      */
-    void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       replaceSymbolicRegisters(ir);
 
       // Generate spill code if necessary
@@ -2455,7 +2466,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             OPT_Register r = rop.register;
             if (r.isSymbolic() && !r.isSpilled()) {
               OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
-              if (VM.VerifyAssertions) VM.assert(p!=null);
+              if (VM.VerifyAssertions) VM._assert(p!=null);
               rop.register = p;
             }
           }
@@ -2514,7 +2525,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           } else if (s.operator().isFpPush()) {
             fpStackOffset++;
           }
-          if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
+          if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
         }
       }
       //-#endif

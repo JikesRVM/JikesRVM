@@ -2,18 +2,21 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
+package com.ibm.JikesRVM.opt.ir;
+
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.*;
 
 /**
  * @author Julian Dolby
  * @date May 20, 2002
  */
-
-abstract class OPT_AbstractRegisterPool {
+public abstract class OPT_AbstractRegisterPool {
 
   /* inlined behavior of DoublyLinkedList */
   private OPT_Register start, end;
 
-  OPT_Register getFirstRegister() {
+  public OPT_Register getFirstRegister() {
     return start;
   }
 
@@ -77,7 +80,7 @@ abstract class OPT_AbstractRegisterPool {
   /**
    * Remove register from register pool.
    */
-  void removeRegister(OPT_Register reg) {
+  public void removeRegister(OPT_Register reg) {
     registerListremove(reg);
   }
 
@@ -178,7 +181,7 @@ abstract class OPT_AbstractRegisterPool {
     case OPT_Register.VALIDATION_TYPE: 
       return getValidation();
     }
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
+import com.ibm.JikesRVM.*;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * This class computes du-lists and associated information.
@@ -16,7 +18,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @modified Mauricio Serrano
  */
-final class OPT_DefUse implements OPT_Operators {
+public final class OPT_DefUse implements OPT_Operators {
   final static boolean DEBUG = false;
   final static boolean TRACE_DU_ACTIONS = false;
   final static boolean SUPRESS_DU_FOR_PHYSICALS = true;
@@ -26,7 +28,7 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question 
    */
-  static void clearDU(OPT_IR ir) {
+  public static void clearDU(OPT_IR ir) {
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {
       reg.defList = null;
@@ -43,24 +45,25 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  static void computeDU(OPT_IR ir) {
+  public static void computeDU(OPT_IR ir) throws VM_PragmaNoInline {
     // Clear old register list (if any)
     clearDU(ir);
-    if (TRACE_DU_ACTIONS || DEBUG)
-      VM.sysWrite("Computing Register List\n");
     // Create register defList and useList
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-        != null; instr = instr.nextInstructionInCodeOrder()) {
-      for (OPT_OperandEnumeration defs = instr.getPureDefs(); 
-          defs.hasMoreElements();) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); 
+	 instr != null; instr = instr.nextInstructionInCodeOrder()) {
+
+      OPT_OperandEnumeration defs = instr.getPureDefs(); 
+      OPT_OperandEnumeration uses = instr.getUses(); 
+
+      for ( ; defs.hasMoreElements();) {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
 	  recordDef(rop);
         }
       }         // for ( defs = ... )
-      for (OPT_OperandEnumeration uses = instr.getUses(); 
-          uses.hasMoreElements();) {
+
+     for ( ; uses.hasMoreElements() ;) {
         OPT_Operand op = uses.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
@@ -80,8 +83,6 @@ final class OPT_DefUse implements OPT_Operators {
         ir.regpool.removeRegister(reg);
       }
     }
-    if (DEBUG)
-      printDU(ir);
   }
 
   /**
@@ -180,7 +181,7 @@ final class OPT_DefUse implements OPT_Operators {
   static void transferUse(OPT_RegisterOperand origRegOp, 
 			  OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions)
-      VM.assert(origRegOp.register.getType() == newRegOp.register.getType());
+      VM._assert(origRegOp.register.getType() == newRegOp.register.getType());
     OPT_Instruction inst = origRegOp.instruction;
     if (DEBUG)
       VM.sysWrite("Transfering a use of " + origRegOp + " in " + inst + 
@@ -385,7 +386,7 @@ final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  static void recomputeSpansBasicBlock(OPT_IR ir) {
+  public static void recomputeSpansBasicBlock(OPT_IR ir) {
     // clear fields
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {

@@ -1,0 +1,79 @@
+This subsection briefly describes the overall structure of \jrvm.
+Details of the various subsystems are provided in subsequent
+sections.  
+
+\subsection{Major Components of \jrvm}
+
+
+The \jrvm\ can be divided into the following major components:
+\begin{description}
+\item [Core runtime] (thread scheduler, class loader, library support,
+verifier, etc.) This component is responsible for 
+managing all the underlying data
+structures required to execute applications and interfacing with
+libraries.
+
+\item [Compilers] (baseline, optimizing, JNI) This component is
+responsible for generating executable code from bytecodes.
+
+\item [Memory managers] This component is responsible for the
+allocation and collection of objects during the execution of an
+application. 
+
+\item [Adaptive optimization system] This component is responsible
+for profiling an executing application
+and judiciously using the optimizing compiler to
+improve its performance.
+\end{description}
+
+More details of each of these components are provided in the following sections.
+
+\subsection{Package Structure}
+The 2.2.0 release introduced packages into the system.  Prior releases
+did not use packages explicitly, which resulted in all classes being in
+the unnamed package.  
+
+There are currently seven packages in \jrvm. All classes are in
+one of these packages.
+\begin{description}
+\item [com.ibm.JikesRVM] Classes for the core runtime, except for library
+support.  This package also contains other classes that are not
+included in one of the other packages, such as the baseline and JNI
+compilers. 
+
+\item [com.ibm.JikesRVM.librarySupport] Classes for library support
+\item [com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
+
+\item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
+memory management that deal with the interface to the VM
+
+\item [com.ibm.JikesRVM.memoryManagers.JMTk] Classes in the newer JMTk
+(Java Memory Management Toolkit) collection of memory managers
+
+\item [com.ibm.JikesRVM.memoryManagers.watson] Classes in the older
+Watson collection of memory managers
+
+\item [com.ibm.JikesRVM.opt] Classes related to the optimizing
+compiler, except for IR-related classes
+
+\item [com.ibm.JikesRVM.opt.ir] Classes related to the IR
+(intermediate representation) of the optimizing compiler
+\end{description}
+
+The distributed directory structure
+does not follow the Java convention that the location of source file
+be correlated with the package structure, i.e.,
+there is no {\tt com/ibm/JikesRVM} directory anywhere under {\tt
+rvmRoot}.  Instead, a more logical structure of the source
+files is used.  One step of building a boot image
+is copying the source files from the rvmRoot tree into a build
+directory.  The scripts that perform this copy create the directory
+structure required by Java semantics and place classes in appropriate
+directories.
+
+This approach avoids the need to change the directory structure as the
+package structure evolves to become more fine-grained. If we
+eventually arrive at a more fine-grained package structure (so that
+each package contains a reasonably small number of classes) we may
+convert the source tree to a package-oriented structure to facilitate
+using standard Java IDE's to edit Jikes RVM source code.

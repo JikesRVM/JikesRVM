@@ -2,7 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.VM;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -52,7 +56,7 @@ class VM_ManagedCounterData
     // assigned, it should not be changed.  Use resizeCounters(int) to
     // change the size of the data.
     if (VM.VerifyAssertions)
-      VM.assert(handle == -1);
+      VM._assert(handle == -1);
 
     this.numCounters = countersNeeded;
     // Register  this many counters with the counter manager
@@ -83,7 +87,7 @@ class VM_ManagedCounterData
   {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions)
-      VM.assert(handle != -1);
+      VM._assert(handle != -1);
     
     counterManager.resizeCounterSpace(this.getHandle(),countersNeeded);
     numCounters = countersNeeded;
@@ -100,7 +104,7 @@ class VM_ManagedCounterData
     // Confirm that counters have been initialized 
     //  (using initializeCounters(int))
     if (VM.VerifyAssertions)
-      VM.assert(handle != -1);
+      VM._assert(handle != -1);
     return counterManager.getCounter(this.getHandle(), counterNumber);
   }
 
@@ -114,7 +118,7 @@ class VM_ManagedCounterData
   {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions) {
-      VM.assert(handle != -1);
+      VM._assert(handle != -1);
     }
     if (counterNumber >= getNumCounters()) {
       if (automaticallyGrowCounters) {
@@ -122,7 +126,7 @@ class VM_ManagedCounterData
 	  resizeCounters(getNumCounters()*2);
       }
       else {
-	VM.assert(false);
+	VM._assert(false);
       }
     }
 
@@ -139,7 +143,7 @@ class VM_ManagedCounterData
   {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions)
-      VM.assert(handle != -1);
+      VM._assert(handle != -1);
     return numCounters;
   }
 
@@ -189,7 +193,7 @@ class VM_ManagedCounterData
   {
     // Confirm that counters have been initialized 
     if (VM.VerifyAssertions) {
-      VM.assert(handle != -1);
+      VM._assert(handle != -1);
     }
 
     // If we automatically growing counters, see if we need to.

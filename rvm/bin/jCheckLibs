@@ -21,8 +21,6 @@ license_file=$lib_dir/$license_name
 license_cache=$HOME/.rvmrt
 jar_file=rvmrt.jar
 id_file=rvmrt
-jazzlib_dir=http://telia.dl.sourceforge.net/sourceforge/jazzlib
-jazzlib_file=$jazzlib_dir/jazzlib-binary-0.04-juz.jar
 ignore_HOST_CONFIG=""
 
 # Who we are.
@@ -79,14 +77,21 @@ if [[ x$WGET != x && ! -x $WGET ]] ; then
     WGET=""
 fi
 
-# make sure we have the jazzlib jar file
-if [[ ! -e $RVM_ROOT/support/lib/jazzlib.jar ]]; then
+
+#
+# make sure we have the classpath jar file
+#
+if [[ ! -e $RVM_ROOT/support/lib/classpath.jar ]]; then
 cat <<EOF
 
-The GNU Classpath jazzlib jar file is required for this build.
+The GNU Classpath jar file is required to build JikesRVM
 
-You can download this file from
-${jazzlib_file}
+You can build this file yourself, or have it generated automatically.
+If you build it yourself, place it in $RVM_ROOT/support/lib/classpath.jar
+
+NOTE: the only currently-supported way of running Jikes RVM with solely
+the GNU Classpath libraries involves building the jar and corresponding
+native code yourself.
 
 The license for this library is available at 
 http://www.gnu.org/software/classpath
@@ -94,18 +99,33 @@ http://www.gnu.org/software/classpath
 EOF
 
 if [[ x$automatic = x ]] ; then 
-  echo "Do you want to automatically download and install this file now? \c"
+  echo "Do you want to generate and install this file now? \c"
   if ! read automatic ; then 
     automatic="y"
   fi
 fi
   if [[ x$automatic = xy || x$automatic = xyes ]] ; then
-    echo "Downloading and installing jazzlib.jar"
+    echo "Generating and installing classpath.jar"
     mkdir -p $RVM_ROOT/support/lib
-    $WGET -q -O $RVM_ROOT/support/lib/jazzlib.jar ${jazzlib_file}
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar
   fi
 fi
 
+
+#
+# make sure we have the GNU Classpath security properties file
+#
+if [[ ! -e $RVM_ROOT/lib/security/JikesRVM.security ]]; then
+  # install security properties file for classpath
+  print "$ME: Installing security properties file in $RVM_ROOT/lib/security"
+  mkdir -p $RVM_ROOT/lib/security
+  echo "security.provider.1=gnu.java.security.provider.Gnu" > $RVM_ROOT/lib/security/JikesRVM.security
+fi
+
+
+#
+# get rvmrt.jar
+#
 cd $rvm_ids
 
 license=""
@@ -144,7 +164,7 @@ fi
 if [[ -f ${lib_dir}/${jar_file} ]] ; then
   rm -f ${id_file}.id
   # make an attempt for speed:
-  $UNZIP -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
+  $UNZIP_CMD -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
   if [ ! -f ${id_file}.id ] ; then
     # fall back
     $HOST_JAR xf ${lib_dir}/${jar_file} ${id_file}.id

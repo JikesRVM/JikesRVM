@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import java.lang.reflect.Field;
 
 /**
@@ -15,7 +17,7 @@ import java.lang.reflect.Field;
  * @author Steve Fink
  * @author Dave Grove
  */
-abstract class OPT_StaticFieldReader {
+public abstract class OPT_StaticFieldReader {
 
   /**
    * Returns a constant operand with the current value of a static field.
@@ -25,11 +27,19 @@ abstract class OPT_StaticFieldReader {
    */
   public static OPT_ConstantOperand getStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM.assert(field.isStatic());
+    if (VM.VerifyAssertions) VM._assert(field.isStatic());
 
     VM_Type fieldType = field.getType();
     int slot = field.getOffset() >>> 2;
-    if (fieldType.isIntLikeType()) {
+    if (fieldType == VM_Type.AddressType) {
+      Object obj = getObjectStaticFieldValue(field);
+      VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
+      return new OPT_AddressConstantOperand(val);
+    } else if (fieldType == VM_Type.WordType) {
+      Object obj = getObjectStaticFieldValue(field);
+      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
+      return new OPT_AddressConstantOperand(VM_Address.fromInt(val.toInt()));
+    } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);
     } else if (fieldType.isLongType()) {
@@ -46,7 +56,7 @@ abstract class OPT_StaticFieldReader {
       return new OPT_StringConstantOperand(val, slot);
     } else {
       // TODO: Add array and scalar reference constant operands
-      throw new OPT_OptimizingCompilerException("Unsupported type");
+      throw new OPT_OptimizingCompilerException("Unsupported type " + fieldType);
     }
   }
 
@@ -56,7 +66,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static int getIntStaticFieldValue(VM_Field field) 
+  public static int getIntStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -93,7 +103,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static float getFloatStaticFieldValue(VM_Field field) 
+  public static float getFloatStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -116,7 +126,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final long getLongStaticFieldValue(VM_Field field) 
+  public static final long getLongStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -138,7 +148,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final double getDoubleStaticFieldValue(VM_Field field) 
+  public static final double getDoubleStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -161,7 +171,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return the current value of the field
    */
-  static final Object getObjectStaticFieldValue(VM_Field field) 
+  public static final Object getObjectStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
     if (VM.runningVM) {
       int slot = field.getOffset() >>> 2;
@@ -184,7 +194,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return true if the field contains null, false otherwise
    */
-  static final boolean isStaticFieldNull(VM_Field field) 
+  public static final boolean isStaticFieldNull(VM_Field field) 
     throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
@@ -195,7 +205,7 @@ abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return type of value contained in the field
    */
-  static final VM_Type getTypeFromStaticField (VM_Field field) 
+  public static final VM_Type getTypeFromStaticField (VM_Field field) 
     throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
     if (o == null) return OPT_ClassLoaderProxy.NULL_TYPE;

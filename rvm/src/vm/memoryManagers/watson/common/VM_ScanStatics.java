@@ -3,6 +3,16 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * Class that supports scanning statics (the JTOC) for references
  * and processing those references
@@ -10,13 +20,13 @@
  * @author Stephen Smith
  */  
 public class VM_ScanStatics
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+  implements VM_Constants, VM_GCConstants {
 
   /**
    * Scan static variables (JTOC) for object references.
    * Executed by all GC threads in parallel, with each doing a portion of the JTOC.
    */
-  static void scanStatics () {
+  static void scanStatics () throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
     VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
     int chunkSize = 512;
@@ -50,7 +60,7 @@ public class VM_ScanStatics
   }  // scanStatics
 
 
-  static boolean validateRefs () {
+  static boolean validateRefs () throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
     VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
     boolean result = true;
@@ -68,7 +78,7 @@ public class VM_ScanStatics
   }  // validateRefs
 
 
-  static boolean validateRefs ( int depth ) {
+  static boolean validateRefs ( int depth ) throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
     VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
     boolean result = true;
@@ -85,7 +95,7 @@ public class VM_ScanStatics
     return result;
   }
 
-  static void dumpRefs ( int start, int count ) {
+  static void dumpRefs ( int start, int count ) throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
     VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
     int last     = start + count;

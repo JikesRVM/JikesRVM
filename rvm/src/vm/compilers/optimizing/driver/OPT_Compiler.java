@@ -2,7 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
 import  java.util.Enumeration;
 
 /**
@@ -50,7 +53,6 @@ public class OPT_Compiler {
         // Caller failed to ensure that the VM was initialized.
         throw new OPT_OptimizingCompilerException("VM not initialized", true);
       }
-
       // Make a local copy so that some options can be forced off just for the
       // duration of this initialization step.
       options = (OPT_Options)options.clone();
@@ -72,7 +74,7 @@ public class OPT_Compiler {
         // compiled (to get special prologues/epilogues)
         // TODO: This could be phased out as the new DynamicBridge 
         // magic comes on line.
-        loadSpecialClass("LVM_OptSaveVolatile;", options);
+        loadSpecialClass("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", options);
       }
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
@@ -93,20 +95,12 @@ public class OPT_Compiler {
    */
   public static void setBootOptions(OPT_Options options) {
     // Pick an optimization level
-    options.setOptLevel(3); 
+    options.setOptLevel(2); 
 
-    // Disable things that we think are a bad idea in this context
-    options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
-
-    // Pre-existence based inlining isn't supported for bootimage writing.
-    // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
-    // The problem is that some subset of bootimage methods can't be safely invalidated.
-    // If a method that is executed when GC is disabled becomes invalid, we are unable
-    // to invalidate it (since we can't recompile it the next time it is called).
-    // We could work around this by doing eager recompilation of invalidated bootimage
-    // methods, but for now simply give up on these optimizations when writing the bootimage.
-    options.PREEX_INLINE = false;
-    options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
+    // Only do guarded inlining if we can use code patches.
+    // Early speculation with method test/class test can result in
+    // bad code that we can't recover from later.
+    options.GUARDED_INLINE = options.guardWithCodePatch();
 
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until
@@ -193,7 +187,7 @@ public class OPT_Compiler {
   /**
    * Has the optimizing compiler been initialized?
    */
-  static boolean isInitialized () {
+  public static boolean isInitialized () {
     return isInitialized;
   }
 
@@ -221,9 +215,11 @@ public class OPT_Compiler {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
       // Temporary workaround memory retention problems
+      /* TODO: delete me!
       if (!cp.irGeneration) {
 	cleanIR(ir);
       }
+      */
       // if doing analysis only, don't try to return an object
       if (cp.analyzeOnly || cp.irGeneration)
 	return null;
@@ -251,7 +247,6 @@ public class OPT_Compiler {
    * after compilation
    * completes.  If we ever make the opt compiler truly reentrant, 
    * this would be fixed. --dave.
-   */
   static void cleanIR (OPT_IR ir) {
     OPT_DefUse.clearDU(ir);
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
@@ -275,6 +270,7 @@ public class OPT_Compiler {
       instr = next;
     }
   }
+  */
 
   /**
    * Debugging aid.
@@ -371,10 +367,11 @@ public class OPT_Compiler {
       throw new OPT_OperationNotImplementedException(msg);
     }
     if (options.hasEXCLUDE()) {
-      String name = 
-	method.getDeclaringClass().toString() + "." + method.getName();
+      String name = method.getDeclaringClass().toString() + "." + method.getName();
       if (options.fuzzyMatchEXCLUDE(name)) {
-        throw new OPT_OptimizingCompilerException("method excluded", false);
+	if (!method.getDeclaringClass().isSaveVolatile()) {
+          throw new OPT_OptimizingCompilerException("method excluded", false);
+	}
       }
     }
   }
