@@ -368,18 +368,36 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   /* set the next instruction for the failing frame */
   instructionFollowing = getInstructionFollowing(localInstructionAddress);
 
+
+  /* 
+   * advance ESP to the guard region of the stack. 
+   * enables opt compiler to have ESP point to somewhere 
+   * other than the bottom of the frame at a PEI (see bug 2570).
+   * We'll execute the entire code sequence for VM_Runtime.deliverHardwareException et al
+   * in the guard region of the stack to avoid bashing stuff in the bottom opt-frame.
+   */
+  sp = (long unsigned int *) sc->esp;
+  unsigned stackLimit = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
+  if ((long unsigned)sp <= stackLimit - 384) {
+    write (SysErrorFd, buf,
+	   sprintf (buf,
+		    "sp too far below stackLimit to recover\n"));
+      exit (2);
+  }
+  sp = (long unsigned int *)stackLimit - 384;
+  stackLimit -= VM_Constants_STACK_SIZE_GUARD;
+  *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
+  *(unsigned *)(sc->esi + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+  
   /* Insert artificial stackframe at site of trap. */
   /* This frame marks the place where "hardware exception registers" were saved. */
-  sp = (long unsigned int *) sc->esp;
   sp = (long unsigned int *) ((char *) sp - VM_Constants_STACKFRAME_HEADER_SIZE);
-  fp = (long unsigned int *) ((char *) sp - 4 - VM_Constants_STACKFRAME_BODY_OFFSET);
-  					/*  4 = wordsize  */
+  fp = (long unsigned int *) ((char *) sp - 4 - VM_Constants_STACKFRAME_BODY_OFFSET);	/*  4 = wordsize  */
 
   /* fill in artificial stack frame */
   *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = localFrameAddress;
   *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = HardwareTrapMethodId;
-  *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) =
-			instructionFollowing;
+  *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = instructionFollowing;
 
   /* fill in call to "deliverHardwareException" */
   sp = (long unsigned int *) ((char *) sp - 4);	/* first parameter is type of trap */
@@ -393,28 +411,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
       // is INT imm instruction
       unsigned char code = *(unsigned char*)(localInstructionAddress+1);
       code -= VM_Constants_RVM_TRAP_BASE;
-      switch (code) {
-      case VM_Runtime_TRAP_STACK_OVERFLOW:
-        {
-	*(int *) sp = code;
-        unsigned stackLimit = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
-        unsigned stackStart = *(unsigned *)(threadObjectAddress + VM_Thread_stack_offset); 
-        stackLimit -= VM_Constants_STACK_SIZE_GUARD;
-        *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
-	*(unsigned *)(sc->esi + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
-        }
-	break;
-
-      case VM_Runtime_TRAP_NULL_POINTER:
-      case VM_Runtime_TRAP_ARRAY_BOUNDS:
-      case VM_Runtime_TRAP_DIVIDE_BY_ZERO:
-      case VM_Runtime_TRAP_CHECKCAST:
-      case VM_Runtime_TRAP_REGENERATE:
-	*(int *) sp = code;
-	break;
-      default:
-	break;
-      }
+      *(int *) sp = code;
     }
   }
 

@@ -872,9 +872,10 @@ public class VM extends VM_Properties implements VM_Constants,
       
     // 1.
     //
-    if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < myThread.stackLimit)
+    if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < myThread.stackLimit) {
+      VM.sysWrite("growing stack\n");
        VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
-
+    }
     // 2.
     //
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
