@@ -33,12 +33,13 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <property name="package"     value="com.ibm.jikesrvm.launching_${plugin.version}"/>
+  <property name="package"
+	    value="com.ibm.jikesrvm.launching_${plugin.version}"/>
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
-
   <property name="build.config.debug" value="yes"/>
-
+  <property name="quiet.clean" value="yes" />
+  
   <path id="project.classpath">
    <pathelement path="${build.classes}"/>
    <fileset dir="${plugin.dir}">
@@ -70,7 +71,7 @@ $Id$
         <include name="*.xml"/>
       </fileset>
       <filterset>
-	<filter token="PLUGIN.VERSION" VALUE="${plugin.version}" />
+	<filter token="PLUGIN.VERSION" value="${plugin.version}" />
       </filterset>
 
     </copy>
@@ -86,7 +87,7 @@ $Id$
 
   <target name="reinstall" 
           depends="clean.all,install"
-	  description="cleans an reinstalls the plugin"/>
+	  description="cleans and reinstalls the plugin"/>
 
   <target name="install" 
           depends="build.dist"
@@ -106,8 +107,16 @@ $Id$
           depends="build.src"
           description="compiles source code">
     <mkdir dir="${build.classes}"/>
+       <!-- had the following as one of the attributes for the "javac" tag, 
+	    works with Ant 1.5.3, does not work with
+            Ant 1.4.1.  Can we put 1.4.1 in a mode where it won't
+            treat attributes it doesn't understand as fatal errors? -->
+	<!--  listfiles="${build.trace}" -->
+
     <javac destdir="${build.classes}"
 	   classpathref="project.classpath"
+	   failonerror="true"
+	   deprecation="${build.trace}"
 	   debug="${build.config.debug}">
       <src path="${src.dir}"/>
       <src path="${build.src}"/>
@@ -115,6 +124,7 @@ $Id$
     <copy todir="${build.classes}">
       <fileset dir="${src.dir}" >
         <include name="**/*.properties"/>
+        <include name="**/jalapeno.jpg"/>
       </fileset>
     </copy>
   </target>
@@ -128,11 +138,11 @@ $Id$
   </target>
 
   <target name="clean" description="cleans the built classes">
-    <delete quiet="yes" dir="${build.dir}"/>
+    <delete quiet="${quiet.clean}" dir="${build.dir}"/>
   </target>
 
   <target name="clean.install" description="cleans installation path">
-    <delete quiet="yes" dir="${install.dir}"/>
+    <delete quiet="${quiet.clean}" dir="${install.dir}"/>
   </target>
 
   <target name="clean.all" description="cleans everything">
@@ -142,7 +152,7 @@ $Id$
   </target>
 
   <target name="clean.dist" description="cleans the dist path">
-    <delete quiet="yes" dir="${dist.dir}"/>
+    <delete quiet="${quiet.clean}" dir="${dist.dir}"/>
   </target>
 
 </project>
