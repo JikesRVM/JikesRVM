@@ -1507,6 +1507,7 @@ function emitImageLinker
 #  print "   print 'Ljava/util/MapEntry;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/List;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/AbstractList;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/AbstractList\$SimpleListIterator;'     >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/ArrayList;'     >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Map;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Map\$Entry;'       >> $PRIMORDIAL_CLASSES_STR"
