@@ -864,7 +864,6 @@ print_events(int *ev_list)
   int	pmcid;		/* which pmc */
   int	evid;		/* event id */
   int	len;
-  char	str[100];
   char name[100];
   
   /* go through evs, get sname from table of events, print it */	
@@ -884,17 +883,15 @@ print_events(int *ev_list)
   
   fprintf(stdout,"\n*** Results :\n");
   
-  /** XXX This code will not print correct results if there are more than
-      100/9 events. */
-  str[0] = '\0';
   for (pmcid=0; pmcid<set_program.n_events; pmcid++) {
-    fprintf(stdout,"PMC%2d     ", pmcid+1);
-    len = strlen(str);
-    str[len] = ' ';
-    snprintf(str+len, str - len, "%s","=====     ");
+      fprintf(stdout, "PMC%2d     ", pmcid+1);
   }
-  fprintf(stdout,"\n%s\n", str);	
+  fprintf(stdout, "\n");
+
+  for (pmcid=0; pmcid<set_program.n_events; pmcid++) {
+      fprintf(stdout, "=====     ");
+  }
+  fprintf(stdout, "\n");
+
   return OK_CODE;
 }
-
-

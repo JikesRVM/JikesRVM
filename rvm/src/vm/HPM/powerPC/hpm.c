@@ -996,7 +996,6 @@ print_events(int *ev_list)
 	int	pmcid;		/* which pmc */
 	int	evid;		/* event id */
 	pm_events_t *evp;
-	char	str[100];
 	int	len;
 	int	i;
 
@@ -1022,14 +1021,15 @@ print_events(int *ev_list)
 
 	fprintf(stdout,"\n*** Results :\n");
 
-	str[0] = '\0';
 	for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
 		fprintf(stdout,"PMC%2d     ", pmcid+1);
-		len = strlen(str);
-		str[len] = ' ';
-		snprintf(str+len, sizeof str - len, "%s","=====     ");
 	}
-	fprintf(stdout,"\n%s\n", str);	
+        fprintf(stdout, "\n");
+
+	for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
+            fprintf(stdout, "=====     ");
+        }
+        fprintf(stdout, "\n");
 }
 
 /*
