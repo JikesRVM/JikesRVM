@@ -34,41 +34,62 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/usr/java14"
+# Root of JDK installation.
+[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
 export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
 
+# the JDK Javadoc executable
+export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
+
 # the JDK javac executable
 export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
 
-# the JDK javadoc executable
-export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
-
 # the JDK jar executable
-export HOST_JAR="${HOST_JAVA_HOME}/bin/jar"
+export JAR="$HOST_JAVA_HOME/bin/jar"
 
 # the JDK standard library jar files
 #export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
 export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/jre/lib/graphics.jar:${HOST_JAVA_HOME}/jre/lib/security.jar:${HOST_JAVA_HOME}/jre/lib/charsets.jar"
 
-# the JDK standard library jar files
+# the JDK tools jar
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
-# sources for current stable version of classpath
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.08
+## CLASSPATH_INSTALLATION
+## If you built GNU Classpath with the default install directory (if
+## unspecified, "--prefix=/usr/local/classpath" is implied) and
+## installed it with "make install", then uncomment this line:
+#
+# export CLASSPATH_INSTALLATION=/usr/local/classpath
 
-# path for GNU make
+## If you don't have such an installation (most people don't), 
+## you can *instead* set CLASSPATH_ROOT: 
+
+# CLASSPATH_ROOT: Directory containing the unpacked and built sources 
+# for GNU Classpath 0.10 
+# (current stable version of Classpath)
+# Uncomment this line only if you manually downloaded the Classpath sources.
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.10
+
+## OR you can leave all of the CLASSPATH_ variables unset and let the build 
+## process download and build GNU Classpath for you.
+
+# Path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 
-# path for jikes.
+# Path for the Jikes java-to-byte-code compiler.
+# Try Jikes 1.13 if you have trouble figuring out the error messages
+# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.  
+# We haven't tested Jikes 1.21 yet. 
 export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.19
 
-# what C/C++ compilers should be used?
+# What C/C++ compiler should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
 export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc"
 
-# how to link a shared C++ library
+# how to link a shared C++ library (possibly also recompile one 
+# or more source files in it)
 export LDSHARED="/usr/gnu/bin/g++ -shared"
 
 # The configuration for building the user guide.
@@ -78,7 +99,7 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
 export AWK="/usr/gnu/bin/gawk"
 export BASH="/usr/gnu/bin/bash"
-# You need one of YACC or Bison (one will usually be installed)
+# You need one of Yacc or Bison (one will usually be installed)
 # If you're using Bison, uncomment the line below:
 # BISON="bison"
 export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
@@ -96,4 +117,21 @@ export XARGS="/usr/gnu/bin/xargs"
 export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"
 
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+##########
+# PART IV: Miscellaneous variables.
+#
+# If you add any variables to this section, please document them.  Please.
+##########
+
+# BENCHMARK_ROOT is used in running some of the Jikes RVM regression
+# tests.  It doesn't need to be set unless you are running those tests.
 export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
