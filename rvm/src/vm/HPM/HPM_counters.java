@@ -1,22 +1,26 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-//$Id:&
+//$Id$
 package com.ibm.JikesRVM;
 
 /**
  * HPM counter values
+ * A HPM_counter may be constructed only after VM_HPM is booted.
+ * The number of events that are counters may be more or less than the number
+ * of physical HPM counters: less because fewer events are specified, more because
+ * of multiplexing.
  *
  * @author Peter F. Sweeney 
  */
 public final class HPM_counters
 {
   /*
-   * Possible HPM counters
+   * Possible HPM counter values
    * 0 counter is real time
-   * 1-MAX_VALUES are HPM counter values 
+   * 1-HPM_info.numberOfEvents are HPM counter values 
    */
-  public long []counters;
+  public long [] counters;
   // local buffer
   private char[] l_buffer;
   // format buffer
@@ -29,8 +33,14 @@ public final class HPM_counters
    * constructor
    */
   HPM_counters() {
-    counters = new long[HPM_info.MAX_VALUES];
-    for (int i=0; i<HPM_info.MAX_VALUES; i++) {
+    if (!VM_HardwarePerformanceMonitors.booted()) {
+      VM.sysWrite("***HPM_counters() called before VM_HPM.booted()!***\n");
+      new Exception().printStackTrace();
+      VM.sysExit(VM.exitStatusHPMTrouble);
+    }
+    // TEMPORARY
+    counters = new long[HPM_info.getNumberOfValues()];
+    for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
       counters[i]=0;
     }
     l_buffer = new char[MAX_LONG_LENGTH];
@@ -43,15 +53,15 @@ public final class HPM_counters
    * @param info    HPM information
    * @return        return true if at least one counter not zero.
    */
-  public boolean dump_counters(HPM_info info) throws VM_PragmaUninterruptible {
-    // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
+  public boolean dump() throws VM_PragmaUninterruptible 
+  {
     boolean notZero = false;
-    for (int i=0; i<=info.numberOfCounters; i++) {
+    for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
       if (counters[i] > 0) {
 	notZero = true;
-        //	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
+        //	System.out.println(i+": "+HPM_info.short_name(i)+":"+format_long(counters[i]));
 	VM.sysWrite  (i,": ");
-        VM.sysWrite  (info.short_name(i));
+        VM.sysWrite  (HPM_info.short_name(i));
         VM.sysWrite  (":");
         VM.sysWrite  (format_long(counters[i]),MAX_LONG_FORMAT_LENGTH);
         VM.sysWriteln();
@@ -62,8 +72,8 @@ public final class HPM_counters
   /*
    * Reset counters to zero
    */
-  public void reset_counters() throws VM_PragmaUninterruptible {
-    for (int i=0; i<HPM_info.MAX_VALUES; i++) {
+  public void reset() throws VM_PragmaUninterruptible {
+    for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
       counters[i]=0;
     }
   }
@@ -76,7 +86,7 @@ public final class HPM_counters
    */
   public void accumulate(HPM_counters sum, int n_counters) throws VM_PragmaUninterruptible
   {
-    for (int i=0; i<=n_counters; i++) {
+    for (int i=0; i<n_counters; i++) {
       sum.counters[i] += counters[i];
     }
   }
@@ -134,13 +144,13 @@ public final class HPM_counters
     }
     if (l_index < 2) {
       VM.sysWrite("***HPM_counters.format_length(");
-      VM.sysWrite(value);VM.sysWrite(") l_index ");VM.sysWrite(l_index,MAX_LONG_LENGTH);
+      VM.sysWriteLong(value);VM.sysWrite(") l_index ");VM.sysWrite(l_index,MAX_LONG_LENGTH);
       VM.sysWrite("< 2 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
       VM.sysExit(VM.exitStatusHPMTrouble);
     }
     if (f_index < 3) {
       VM.sysWrite("***HPM_counters.format_length(");
-      VM.sysWrite(value);VM.sysWrite(") f_index ");VM.sysWrite(f_index,MAX_LONG_FORMAT_LENGTH);
+      VM.sysWriteLong(value);VM.sysWrite(") f_index ");VM.sysWrite(f_index,MAX_LONG_FORMAT_LENGTH);
       VM.sysWrite("< 3 and length ");VM.sysWrite(length);VM.sysWrite(" > 3!***\n");
       VM.sysExit(VM.exitStatusHPMTrouble);
     }
