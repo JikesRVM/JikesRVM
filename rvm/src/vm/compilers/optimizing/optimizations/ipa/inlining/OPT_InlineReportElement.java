@@ -145,16 +145,18 @@ class OPT_InlineReportElement {
         inlinedSizeEstimate = OPT_InlineTools.inlinedSizeEstimate(callee, 
             state);
       }
-      needsGuard = OPT_InlineTools.needsGuard(callee);
-      isRecursive = state.getSequence().containsMethod(callee);
-      isFinal = callee.isFinal();
-      declaringClassFinal = callee.getDeclaringClass().isFinal();
-      isPrivate = callee.isPrivate();
-      isObjectInitializer = callee.isObjectInitializer();
-      isStatic = callee.isStatic();
-      needsDynamicLink = OPT_ClassLoaderProxy.needsDynamicLink(callee,caller.getDeclaringClass());
-      isAbstract = callee.isAbstract();
-      isNative = callee.isNative();
+      if (callee.getDeclaringClass().isLoaded()) {
+        needsGuard = OPT_InlineTools.needsGuard(callee);
+        isRecursive = state.getSequence().containsMethod(callee);
+        isFinal = callee.isFinal();
+        declaringClassFinal = callee.getDeclaringClass().isFinal();
+        isPrivate = callee.isPrivate();
+        isObjectInitializer = callee.isObjectInitializer();
+        isStatic = callee.isStatic();
+        needsDynamicLink = OPT_ClassLoaderProxy.needsDynamicLink(callee,caller.getDeclaringClass());
+        isAbstract = callee.isAbstract();
+        isNative = callee.isNative();
+      }
     }
     instruction = state.getCallInstruction();
     maxAlwaysInlineSize = opts.IC_MAX_ALWAYS_INLINE_TARGET_SIZE;
