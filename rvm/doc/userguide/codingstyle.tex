@@ -1,7 +1,47 @@
-The vast majority of Jikes RVM's source code is in Java ($\approx 1041$
+The vast majority of Jikes RVM's source code is in Java ($\approx 1049$
 source files as of this writing.)  This section describes a set of
 coding style guidelines that we recommend for all Java code added to
-the Jikes\trademark RVM system.
+Jikes\trademark RVM.
+
+This section also includes one or more coding conventions that we
+use within Jikes RVM.  
+
+\subsection{Coding Convention}
+
+\subsubsection{The {\tt VM\_} prefix}
+
+By convention, any class which should be loaded into the boot image
+starts its name with {\tt VM\_}.  This is used by the build configurator,
+{\tt jconfigure}, which uses that information to create {\tt
+RVM\_BUILD/RVM.primordials}, the file containing the list of classes
+that should be written into \jrvm{}'s  boot image.
+
+The JMTk (see~\ref{section:JMTk}) classes don't follow this naming convention
+because they're an independent subsystem, but the rest of \jrvm{} does.
+
+\subsubsection{Assertions}
+\label{assertions}
+
+Partly for historical reasons, we use our own built-in assertion
+facility rather than the one that appeared in Sun's JDK 1.4.   All
+assertion checks have one of the two forms:
+\begin{example}
+\tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}
+\tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}, {\it message})
+\end{example}
+{\tt VM.VerifyAssertions} is a {\tt 
+public static final} field.  The {\tt RVM\_WITHOUT\_ASSERTIONS}
+configuration variable determines {\tt VM.VerifyAssertions}' value.
+If {\tt RVM\_WITHOUT\_ASSERTIONS} is enabled, \jrvm{} has no assertion
+overhead. 
+
+If you use the form without a {\it message}, then the default message
+``{\tt vm internal error at:}''  will appear.  
+
+An assertion failure is always followed by a stack dump.
+
+
+\subsection{Coding Style Introduction}
 
 Regrettably, much code in the current system does not follow any
 consistent coding style.  This is an unfortunate residuum of the
@@ -9,6 +49,8 @@ system's evolution.  It makes editing sometimes unpleasant, and
 prevents Javadoc from formatting comments in many files.  To alleviate
 this problem, we present this style guide for new Java code; it's just
 a small tweak of Sun's style guide.
+
+\subsection{File Headers}
 
 Every file needs to have a header with a copyright notice, a Javadoc
 {\tt @author} tag, and an RCS/CVS {\tt \$Id\$} entry. There may be
@@ -44,7 +86,7 @@ conventions can be found at
 postscript, and PDF.  Most of the style guide is intuitive; 
 however, please read through the document (or at least look at its sample code).
 
-We have adopted two modifications to the Sun code conventions:
+We have adopted four modifications to the Sun code conventions:
 \begin{enumerate}
 \index{indenting}
 \item {\bf Two-space indenting} The Sun coding convention suggests 4
@@ -56,6 +98,32 @@ space indenting.
 that lines be no longer than 80 columns.  Several Jikes RVM
 contributors have found this constraining.  Therefore, we allow 132
 column lines for exceptional cases, such as to avoid bad line breaks.
+
+\item {\bf \tt if (VM.VerifyAssertions)}
+As a special case, the condition {\tt if (VM.VerifyAssertions)} is
+usually immediately followed by the call to {\tt VM.\_assert()},
+with a single space substituting for the normal
+newline-and-indentation.  There's an example in \ref{assertions}.    
+
+\item {\bf Capitalized fields} 
+Under the Sun coding conventions, and as specified in 
+{\em The Java Language Specification, Second Edition}, the names of
+fields begin with a lowercase letter.  (The only exception they give
+is for some {\tt final static} constants, which have names
+ALL\_IN\_CAPITAL\_LETTERS, with underscores separating them.)  That
+convention reserves
+IdentifiersBeginningWithACapitalLetterFollowedByMixedCase for the
+names of classes and interfaces.  However, most of the {\tt final}
+fields in the {\tt VM\_Configuration} class and the {\tt VM\_Properties}
+interface also are in that format.   
+
+Since the {\tt VM} class inherits
+fields from both {\tt VM\_Properties} and {\tt VM\_Configuration},
+that's how we get {\tt VM.VerifyAssertions}, etc.
+%
+% If you run: find ${RVM_ROOT}/rvm -name \*.java -print0 | xargs -0 -e egrep -n -e '[^\.]\.[A-Z]+[_a-z0-9][_A-Za-z0-9]+\>[	 ]*=[^=]'  | grep -v sysWrite | egrep -v -e '^[[:space:]]*\*'
+% you'll discover 58 lines in the source tree where we also have
+% variables that don't meet the specification.  Bummer.
 
 \end{enumerate}
 
