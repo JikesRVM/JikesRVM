@@ -3,46 +3,48 @@ include:
 
 
 \subsection{Java} 
-($\approx 1041$ source files as of this writing, on July 17, 2003)  This is
+($\approx 1052$ source files as of this writing, November 21, 2003)  This is
 the vast majority of the code.  The names of Java source files always end in
 `{\tt .java}''.   We \link{have already discussed Java coding style}[ in
-section~\Ref (page~\Pageref)]{section:javacodingstyle}. 
+section~\Ref{} (page~\Pageref)]{section:javacodingstyle}. 
 
 We have found it necessary to preprocess the Java code; \link{the
-preprocessor is discussed later}[, in
-  section~\Ref, on page~\Pageref]{section:preprocessor}.
+preprocessor is discussed in the \SectionName{Java Preprocessor} section}[ 
+  (Section~\Ref), on page~\Pageref]{section:preprocessor}.
 
 
-\subsection {C}
+\subsection{C}
 
-($\approx 26$ source files)  The file names always
+($\approx 27$ source files)  The file names always
 end in ``{\tt .c}''.  We are committed to GNU C.\@  One of the core team
-members uses the latest GNU C (3.3 as of this writing), but many users
-are still running GNU C 2.95 and 2.96.  So if you use constructs that
-would not be legal in GNU C 2.95, then please surround them with
-appropriate preprocessor conditionals.  It is OK to use constructs
-found through GCC 2.95.
+members uses the latest stable GNU C release (3.3.2 as of this writing), but many users
+are still running GNU C 2.95 (which came out in July 29, 1999).  So if
+you use constructs that are not accepted by GNU C 2.95, then please surround them with
+appropriate preprocessor conditionals.  It is OK to use GCC 2.95;
+that's the oldest version we'll support.
 
 Our C style is straight Kernighan and Ritchie, with four-space
 indenting.  
 
 \subsection{C++} 
 
-($\approx 13$ source files)  The file names always end in
+($\approx 15$ source files)  The file names always end in
 ``{\tt .C}''.   The material discussed for C applies here as well.
+Some older C++ source files don't meet the coding standard yet.
 
-\subsection{Bourne Shell (Bash)}
+\subsection{Bourne-Again Shell (Bash)}
 
 We use the GNU Bourne-Again Shell (Bash) exclusively in our shell
-scripts.  Our build system is driven by one massive Bash script, {\tt
-rvm/bin/jconfigure}, which in turn generates other scripts in the
-\varName{RVM\_BUILD} directory.
+scripts ($\approx 13$ source files).  Our build system is driven by
+one massive Bash script, {\tt rvm/bin/jconfigure}, which in turn
+generates other scripts in the \varName{RVM\_BUILD} directory.
 
 \subsubsection{Indenting}
 
-We use four-space indenting for Bash; you'll find older parts of the
-Bash code that use two-space and three-space indenting.   We limit
-lines to 80 columns unless necessary for syntactic reasons to do otherwise.
+We use four-space indenting for Bash.  One source file contains an
+older indentation style.
+We limit lines to 80 columns unless necessary for syntactic reasons to
+do otherwise. 
 
 \subsubsection{Declaring functions}
 
@@ -114,8 +116,8 @@ status.
 
 We are committed to GNU Make.  All new makefiles should be named {\tt
 GNUmakefile}, \link{just as discussed in the Sun\Rheadingweb{} style guide}[
-  mentioned in section~\Ref, on page~\Pageref]{section:javacodingstyle}.  We have gone
-over to pure Bash 
-(we used to use Korn shell, for historical reasons); authors of
-Makefiles can safely use any Bash constructs.
+  mentioned in section~\Ref, on
+  page~\Pageref]{section:javacodingstyle}.  We are committed to
+pure Bash, so Makefile writers can safely use Bash constructs.
+
 
