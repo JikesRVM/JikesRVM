@@ -266,6 +266,7 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write("   ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
       Log.write(" KB ");
+      Log.flush();
     }
     if (Options.verbose > 2) {
       Log.write("Collection "); Log.write(Statistics.gcCount);

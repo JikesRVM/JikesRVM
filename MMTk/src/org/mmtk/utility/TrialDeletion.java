@@ -177,12 +177,12 @@ final class TrialDeletion extends CycleDetector
 	if (shouldCollectCycles()) {
 	  if (Options.verbose > 0) { 
 	    Log.write("(CD "); 
+	    Log.flush();
 	  }
 	  long cycleStart = VM_Interface.cycles();
 	  remaining = finishTarget - cycleStart;
 	  boolean abort = false;
-	  while ((maturePurplePool.enqueuedPages() > 0 ||
-		  unfilteredPurplePool.enqueuedPages() > 0) && !abort &&
+	  while (maturePurplePool.enqueuedPages()> 0 && !abort &&
 		 remaining > gcTimeCap/CYCLE_TIME_FRACTION) {
 	    abort = collectSomeCycles(time, finishTarget);
 	    remaining = finishTarget - VM_Interface.cycles();
