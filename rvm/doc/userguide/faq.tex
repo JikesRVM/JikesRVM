@@ -285,7 +285,7 @@ is the base class representing each
 Posix thread.  
 
 \link{On some platforms, only $m$-to-$1$ threading is supported}[.  See 
-question~\Ref on page~\Pageref]{singleProcessorQuestion}.
+question~\Ref{} on page~\Pageref]{singleProcessorQuestion}.
 
 \subsubsection{What is the list of operations that may cause a GC?}
 
@@ -301,11 +301,12 @@ force a GC.\@  Some cases to look out for include:
 
 \subsubsection{How can I implement a new GC algorithm?}
 
-See the memory management section of the userguide.
+See \link{the \SectionName{Memory Management Details} section\texonly{ (Section~\Ref, starting at
+    page~\Pageref)} of the user's guide}{section:JMTk}.
 
 \subsubsection{How does Jikes RVM enter native code?}
 
-See the discussion in \link{the JNI section of the userguide}[
+See the discussion in \link{the JNI section of the user's guide}[
   (Section~\Ref, page~\Pageref)]{section:jni}. 
 
 \subsubsection{What happens to thread switching while a thread is
@@ -482,7 +483,7 @@ compiler driver?}
 \index{compiler pass, inserting a new one}
 
 See \link{the Optimizing Compiler Implementation Details section}[
-  (Section~\Ref, on page~\Pageref)]{sec:optdriver} of the userguide, which describes how to
+  (Section~\Ref, on page~\Pageref)]{sec:optdriver} of the user's guide, which describes how to
 add phases to class 
 \xlink{\texttt{OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL}.
 
