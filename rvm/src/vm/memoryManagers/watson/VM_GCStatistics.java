@@ -3,7 +3,10 @@
  */
 //$Id$
 
-class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
+class VM_GCStatistics implements VM_GCConstants, 
+				 VM_Uninterruptible,
+				 VM_Callbacks.ExitMonitor, 
+				 VM_Callbacks.AppRunStartMonitor {
 
   // Number and types of GC
   static int gcExternalCount = 0;   // number of calls from System.gc
@@ -43,6 +46,24 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
   static final int DEFAULT = 0;  // non-generational
   static final int MINOR = 1;
   static final int MAJOR = 2;
+
+
+  /**
+   * To be called when the VM is about to exit.
+   * @param value the exit value
+   */
+  public void notifyExit(int value) {
+    printSummaryStatistics();
+  }
+
+  /**
+   * To be called when the application starts a run
+   * @param value the exit value
+   */
+  public void notifyAppRunStart(int value) {
+    VM.sysWrite("Clearing VM_Allocator statistics\n");
+    clearSummaryStatistics();
+  }
 
   static void updateGCStats(int GCType, int copied) {
       if (VM.VerifyAssertions) 
@@ -224,17 +245,17 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
 
 
   static void profileCopy (Object obj, Object[] tib) {
-      if (COUNT_BY_TYPE) {
+      if (COUNT_BY_TYPES) {
           VM_Type t = VM_Magic.objectAsType(tib[0]);
-	  t.copiedCount++;
+	  // t.copiedCount++;
       }
   }
 
   static void profileAlloc (VM_Address addr, int size, Object[] tib) {
       VM_Magic.pragmaInline();
-      if (COUNT_BY_TYPE) {
+      if (COUNT_BY_TYPES) {
           VM_Type t = VM_Magic.objectAsType(tib[0]);
-	  t.allocatedCount++;
+	  // t.allocatedCount++;
       }
       if (COUNT_ALLOCATIONS) {
 	  VM_Processor st = VM_Processor.getCurrentProcessor();
