@@ -24,9 +24,6 @@ import java.io.DataInputStream;
  */
 public class VM_Class extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants {
-  //-----------//
-  // interface //
-  //-----------//
 
   //------------------------------------------------------------------//
   //                              Section 0.                          //
@@ -740,8 +737,7 @@ public class VM_Class extends VM_Type
    * Read this class's description from its .class file.
    */ 
   public final synchronized void load() throws VM_ResolutionException {
-    if (isLoaded())
-      return;
+    if (isLoaded()) return;
 
     if (VM.TraceClassLoading && VM.runningVM) 
       VM.sysWrite("VM_Class: (begin) load " + descriptor + "\n");
@@ -767,6 +763,8 @@ public class VM_Class extends VM_Type
    * Read this class's description from specified data stream.
    */ 
   final synchronized void load(DataInputStream input) throws ClassFormatError, IOException {
+    if (isLoaded()) return;
+
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_VACANT);
