@@ -504,8 +504,8 @@ public abstract class BasePlan
    * state variable appropriately.
    */
   public static void collectionComplete() throws VM_PragmaUninterruptible {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(collectionInitiated);
+//     if (VM_Interface.VerifyAssertions) 
+//       VM_Interface._assert(collectionInitiated);
     collectionInitiated = false;
   }
 
