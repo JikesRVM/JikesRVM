@@ -80,8 +80,8 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   }
   /*
    *  Determine if HPM sampling is available.
-   */
   public boolean isActive() { return active; }
+   */
 
   /*
    * record formats
@@ -175,16 +175,15 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * ASSUMPTION: only called if active == true.
    *
    * @param previous_thread     thread that is being switched out
-   * @param current_thread      thread that is being scheduled
    * @param timerInterrupted   	timer interrupted if true
    * @param threadSwitch        did a thread switch occur or not?
    */
-  public void updateHPMcounters(VM_Thread previous_thread, VM_Thread current_thread, 
-				boolean timerInterrupted, boolean threadSwitch)
+  public void updateHPMcounters(VM_Thread previous_thread, boolean timerInterrupted, boolean threadSwitch)
   {
     //-#if RVM_WITH_HPM
-    //    if(VM.VerifyAssertions)
-    //      VM._assert(active,"***VM_HPM.updateHPMcounters() called with active = false!***");
+    if (VM_HardwarePerformanceMonitors.hpm_trace && ! active) 
+      // only collect what can be traced when tracing
+      return;
 
     VM_SysCall.sysHPMstopMyThread();
     long endOfWallTime   = VM_Time.cycles();
@@ -203,7 +202,8 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 	VM.sysWrite(") wall time overflowed: current ",endOfWallTime);
 	VM.sysWrite(" - start ",startOfWallTime);VM.sysWrite(" = delta ",wallTime);
 	VM.sysWriteln(" < 0!***"); wallTime = 0;
-    } }
+      } 
+    }
     tmp_counters.counters[0] = wallTime;	// need relative time for aggregate values
     // read counters
     for (int i=1; i<=n_counters; i++) {
@@ -223,12 +223,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
     }
 
-    if (current_thread != null) {			// set up real time for current thread!
-      current_thread.startOfWallTime = VM_Time.cycles();
-    } else { 						// don't expect this to happen
-      if(VM_HardwarePerformanceMonitors.verbose>=3)
-	VM.sysWriteln("***VM_HPM.updateHPMcounters() current_thread == null!***");
-    }
     VM_SysCall.sysHPMresetMyThread();
     VM_SysCall.sysHPMstartMyThread();
     //-#endif
@@ -378,15 +372,15 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       VM.sysWrite(" BC ",buffer_code);
       VM.sysWrite(" PID ", vpid);  
       //      VM.sysWrite(" ("); VM.sysWriteHex(encoding); VM.sysWrite(")");
-      VM.sysWrite(" GTID ", global_tid);
-      VM.sysWrite(" TID ", tid);
-      VM.sysWrite(" SWT ");    VM.sysWriteLong(startOfWallTime);
-      if(n_counters > 4) VM.sysWrite("\n  ");
+      VM.sysWrite(" GTID "); if (global_tid < 10) VM.sysWrite(" ");VM.sysWrite(global_tid);
+      VM.sysWrite( " TID "); if (       tid < 10) VM.sysWrite(" ");VM.sysWrite(       tid);
+      VM.sysWrite(" SWT " ); VM.sysWriteLong(startOfWallTime);
       VM.sysWrite(" EWT " ); VM.sysWriteLong(endOfWallTime);
       //BEGIN HRM
-      VM.sysWrite(" CALLEE_MID ", callee_MID);
-      VM.sysWrite(" CALLER_MID ", caller_MID);
+      VM.sysWrite(" CALLEE ", callee_MID);
+      VM.sysWrite(" CALLER ", caller_MID);
       //END HRM
+      if(n_counters > 4) VM.sysWrite("\n  ");
     }
     if (buffer != null) { // write record header
       n_records++;

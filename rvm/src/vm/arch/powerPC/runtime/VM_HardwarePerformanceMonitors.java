@@ -945,8 +945,7 @@ public class VM_HardwarePerformanceMonitors
     // capture MID's
     VM_Thread.captureCallChainCMIDs(false);
     // update hpm counters of current processor and thread.
-    VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), null, 
-							     false, false);
+    VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), false, false);
 
     reset();
   }

@@ -312,12 +312,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     //-#if RVM_WITH_HPM
     if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
-      captureCallChainCMIDs(true);
       // sample HPM counter values at every interrupt or a thread switch.
       if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	captureCallChainCMIDs(true);
 	VM_Thread myThread = getCurrentThread();
-	VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, threadSwitch);
+	VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, true, threadSwitch);
       }
     }
     //-#endif 
@@ -512,6 +512,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Capture the CMIDs of 
    * a) this method's caller, and the caller's caller, or
    * b) this method's caller's caller, and the caller's caller's caller (if startWithCallersCaller is true)
+   * Sets the callee_CMID and caller_CMID of the processor's hpm.
    *
    * @param startWithCallersCaller walk to next activation record if true
    * @throws  do not inline
@@ -536,8 +537,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       dumpCallStack(); VM.sysExit(-1);
     }
     if (callee_CMID == INVISIBLE_METHOD_ID) {
-      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() callee_CMID == INVISIBLE_METHOD_ID***");
-      dumpCallStack(); VM.sysExit(-1);
+      if (VM_HardwarePerformanceMonitors.verbose>=4) {
+	VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() callee_CMID == INVISIBLE_METHOD_ID***");
+	//      dumpCallStack(); 
+      }
     }
 
     // get cmid2
@@ -609,7 +612,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
       VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
     //-#endif
     //END HRM
@@ -632,7 +635,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
       VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
     //-#endif
     //END HRM
@@ -655,7 +658,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
       VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
     //-#endif
     //END HRM
@@ -685,7 +688,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
       VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
     //-#endif
     //END HRM
@@ -722,7 +725,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
       VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, true);
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
     //-#endif
     //END HRM
@@ -875,7 +878,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   private static void startoff () throws VM_PragmaInterruptible {
     VM_Thread currentThread = getCurrentThread();
+    //-#if RVM_WITH_HPM
+    if (VM_HardwarePerformanceMonitors.verbose>=5) {
+      VM.sysWriteln("***VM_Thread.startoff() run thread "+currentThread.getIndex()+"***!");
+    }
+    //-#endif 
     currentThread.run();
+
     terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
@@ -921,6 +930,20 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   static void terminate () throws VM_PragmaInterruptible {
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
+
+    //-#if RVM_WITH_HPM
+    // sample HPM counter values at every interrupt or a thread switch.
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      captureCallChainCMIDs(false);
+      VM_Thread myThread = getCurrentThread();
+      if (VM_HardwarePerformanceMonitors.verbose>=5) {
+	VM.sysWriteln("***VM_Thread.startoff() terminate thread "+myThread.getIndex()+"***!");
+      }
+      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
+    }
+    //-#endif 
+
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_RuntimeMeasurements.monitorThreadExit();
