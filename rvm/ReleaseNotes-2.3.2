@@ -58,4 +58,11 @@ for the Java 1.4.2 API.
 ** Fixed bug in which the time zone code always thought 
 the user was on New York time. 
 
+** We now can print a meaningful message when we get
+an ErrorInInitializerError in the early stages of booting the VM
+before it is able to load in new classes.  We had incorrectly left
+ErrorInInitializerError out of the VM's list of boot classes.
 
+** If an uncaught exception is thrown while booting, 
+we no longer try to print to the uninitialized System.err stream.
+That used to trigger a NullPointerException.
