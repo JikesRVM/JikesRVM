@@ -2420,3 +2420,373 @@ sysSprintf(char buffer[], double d)
     sprintf(buffer, "%G", d);
     return strlen(buffer);
   }
+
+//-----------------------------------------------------//
+// Hardware performance monitor operations for PowerPC //
+//-----------------------------------------------------//
+
+#ifdef RVM_WITH_HPM
+  extern "C" int hpm_init(int);
+  extern "C" int hpm_set_settings();
+  extern "C" int hpm_get_settings();
+  extern "C" int hpm_delete_settings();
+  extern "C" int hpm_set_event  (int, int, int, int);
+  extern "C" int hpm_set_event_X(int, int, int, int);
+  extern "C" int hpm_set_mode(int);
+  extern "C" int hpm_start_counting();
+  extern "C" int hpm_stop_counting();
+  extern "C" int hpm_reset_counters();
+  extern "C" int hpm_print();
+  extern "C" long long hpm_get_counter(int);
+  extern "C" int hpm_test();
+#endif
+
+/*
+ * Initialize HPM services.  
+ * Must be called before any other HPM requests.
+ * Load dynamic library.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMinit(int filter)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMint(%d) called: no support for linux\n",filter);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMint(%d) called:\n",filter);
+  rc = hpm_init(filter);
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMint(%d) called: not compiled for HPM\n",filter);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Set, in HPM world, what is to be monitored.
+ * Only returns if valid parameters.
+ * Must be called after sysHPMinit is called.
+ * May becalled multiple times only if sysHPMdeleteSettings is called in between.
+ */
+extern "C" int
+sysHPMsetSettings()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMsetSettings() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMsetSettings() called\n");
+  rc = hpm_set_settings();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMsetSettings() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Get, in HPM world, what is being monitored.
+ * Only returns if valid parameters.
+ * May be called only after sysHPMsetSettings is called.
+ * May be called if want to change subset of specification of what is counted.
+ */
+extern "C" int
+sysHPMgetSettings()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMgetSettings() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMgetSettings() called\n");
+  rc = hpm_get_settings();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMgetSettings() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Delete, in HPM world,  what is being monitored.
+ * Only returns if valid parameters.
+ * May be called only after sysHPMsetSettings is called.
+ */
+extern "C" int
+sysHPMdeleteSettings()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMdeleteSettings() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMdeleteSettings() called\n");
+  rc = hpm_delete_settings();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMdeleteSettings() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Set, in HPM World, events to be monitored.
+ * Only returns if valid parameters.
+ * Only take effect after sysHPMsetSettings is called.
+ * PowerPC 604e only has 4 counters.
+ */
+extern "C" int
+sysHPMsetEvent(int e1, int e2, int e3, int e4)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMsetEvent(%d,%d,%d,%d) called: no support for linux\n",
+	  e1,e2,e3,e4);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMsetEvent(%d,%d,%d,%d) called\n",e1,e2,e3,e4);
+  rc = hpm_set_event(e1, e2, e3, e4);
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
+	  e1,e2,e3,e4);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Set events to be monitored.
+ * Only take effect after sysHPMsetSettings is called.
+ * Only returns if valid parameters.
+ * The PowerPC 630 has 8 counters, this is how we access the additional 4.
+ */
+extern "C" int
+sysHPMsetEventX(int e5, int e6, int e7, int e8)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMsetEventX(%d,%d,%d,%d) called: no support for linux\n",
+	  e5,e6,e7,e8);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMsetEventX(%d,%d,%d,%d) called\n",e5,e6,e7,e8);
+  rc = hpm_set_event_X(e5, e6, e7, e8);
+  return rc;
+#else
+  fprintf(SysErrorFile, 
+	  "jvm: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
+	  e5,e6,e7,e8);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Set mode(s) to be monitored.
+ * Only take effect after sysHPMsetSettings is called.
+ * Only returns if valid parameters.
+ * Possible modes are:
+ *   #define PM_USER		4	// turns user mode counting on
+ *   #define PM_KERNEL		8	// turns kernel mode counting on
+ */
+extern "C" int
+sysHPMsetMode(int mode)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMsetMode(%d) called: no support for linux\n",
+	  mode);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMsetMode(%d) called\n",mode);
+  rc = hpm_set_mode(mode);
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMsetMode(%d) called: not compiled for HPM\n",
+	  mode);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Start monitoring.
+ * May be called only after sysHPMsetSettings is called.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMstartCounting()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMstartCounting() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMstartCounting() called\n");
+  rc = hpm_start_counting();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMstartCounting() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Stop monitoring.
+ * Should be called only after sysHPMstartCounting is called.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMstopCounting()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMstopCounting() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMstopCounting() called\n");
+  rc = hpm_stop_counting();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMstopCounting() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Reset counters to zero.
+ * Should be called only after sysHPMstop has been called.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMresetCounters()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMresetCounters() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called\n");
+  rc = hpm_reset_counters();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Get value from a counter.
+ * Only returns if successful.
+ * May be called only after sysHPMstart is called.
+ * parameters:
+ *   counter input: specifies which counter to read.
+ *   return value   output: is the value of the counter that is read.
+ */
+extern "C" long long
+sysHPMgetCounter(int counter)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMgetCounter(%d) called: no support for linux\n",
+	  counter);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  return hpm_get_counter(counter);
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMgetCounter(%d) called: not compiled for HPM\n",counter);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+/*
+ * Print status of hardware performance monitors.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMprint()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMprint called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  //  fprintf(SysErrorFile, "jvm: sysHPMprint called\n");
+  return hpm_print();
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMprint called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Test interface to HPM.
+ * Debug mode.  Currently used to determine cost to access HPM world.
+ */
+extern "C" int
+sysHPMtest()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMprint called: no support for linux\n");
+  exit(1);
+  return -1;
+#else
+#ifdef RVM_WITH_HPM
+  //   fprintf(SysErrorFile, "jvm: sysHPMprint called\n");
+  return hpm_test();
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMprint called: not compiled for HPM\n");
+  exit(1);
+  return -1;
+#endif
+#endif
+}
+
+
+

@@ -29,3 +29,6 @@ On exit, print some static summary information of the program?
 EARLY_EXIT -1 false
 Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 
+HARDWARE_PERFORMANCE_MONITORS -1 false
+Should we use the hardware performance monitors?
+
