@@ -459,13 +459,14 @@ public class VM_Runtime implements VM_Constants {
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
    */ 
-  public static void initializeClassForDynamicLink(VM_Class cls) {
+  public static void initializeClassForDynamicLink(VM_Class cls) 
+  {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
     cls.resolve();
-    cls.instantiate();
-    cls.initialize();
+    cls.instantiate();	
+    cls.initialize();	// throws ExceptionInInitializerError
 
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
