@@ -1374,7 +1374,8 @@ function emitExpander () {
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	echo "
-declare -a cmd=(${GNU_MAKE_STR} \${MFLAGS} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
+declare -a cmd
+cmd=(${GNU_MAKE_STR} \${MFLAGS} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
 ! tracing make || echo \"\${cmd[@]}\"
 \"\${cmd[@]}\"
 "
@@ -2600,13 +2601,15 @@ function chdir() {
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
+	echo "declare -a gnu_compiler_flags
+gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
 	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
 	echo "function run_booter_cc() { run $HOST_CC_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
+	echo "declare -a gnu_compiler_flags
+gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
 	echo "function run_booter_cc() { run $HOST_CC_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
 	echo 'CCLIBS="-ldl"'
