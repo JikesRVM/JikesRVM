@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -157,9 +157,10 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * <p> NOTE: The dominance frontiers for the IR MUST be calculated 
    *    BEFORE calling this routine.
    *
-   * @param ir the governing IR
-   * @param bits the BitVector representing the set of basic blocks
-   * @return a BitVector representing the dominance frontier for the set
+   * @param ir The governing IR
+   * @param S  The {@link OPT_BitVector} representing the set of basic blocks
+   * @return an {@link OPT_BitVector} representing the dominance frontier for
+   *    the set 
    */
   public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir, 
                                                            OPT_BitVector S) {

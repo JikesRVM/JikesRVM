@@ -354,15 +354,14 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
 
   /**
    * Logic to select the appropriate guarding mechanism for the edge
-   * from caller to callee according to the controlling OPT_Options.
+   * from caller to callee according to the controlling {@link OPT_Options}.
    * If we are using IG_CODE_PATCH, then this method also records 
    * the required dependency.
-   * Precondition: lock on VM_Class.OptCLDepManager is held.
+   * Precondition: lock on {@link VM_Class#OptCLDepManager} is held.
    *
-   * @param caller the caller method
-   * @param callee the callee method
-   * @param opts the opt options
-   * @param codePatchSupported can we use code patching at this call site?
+   * @param caller The caller method
+   * @param callee The callee method
+   * @param codePatchSupported   Can we use code patching at this call site?
    */
   private byte chooseGuard(VM_Method caller,
                            VM_Method singleImpl,
