@@ -154,6 +154,11 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static int bootImageAddress = 0;
 
+  public static int getBootImageAddress()  {
+    if (bootImageAddress == 0) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    return bootImageAddress;
+  }
+
   /**
    * Write words to bootimage in little endian format?
    */
@@ -364,7 +369,7 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("please specify boot-image address with \"-ia <addr>\"");
     if (bootImageAddress % 0xff000000 != 0)
       fail("please specify a boot-image address that is a multiple of 0x01000000");
-    VM_Interface.checkBootImageAddress(bootImageAddress);
+    // VM_Interface.checkBootImageAddress(bootImageAddress);
 
     //
     // Initialize the bootimage.
@@ -1064,17 +1069,7 @@ public class BootImageWriter extends BootImageWriterMessages
           else if (rvmFieldType.equals(VM_Type.AddressType)) {
 	      Object o = jdkFieldAcc.get(null);
 	      VM_Address addr = (VM_Address) o;
-	      int value = 0; // zero as default value 
-	      if (addr != null) {
-		  value = addr.toInt();
-		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
-		  int high = 0x10000000;  // we shouldn't have that many objects
-		  if (value > low && value < high && value != 32767 && 
-		      (value < 4088 || value > 4096)) {
-		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
-			  " written for static field ", rvmField.toString());
-		  }
-	      }
+	      int value = getAddressValue(addr);
 	      VM_Statics.setSlotContents(rvmFieldSlot, value);
 	  }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
@@ -1101,6 +1096,20 @@ public class BootImageWriter extends BootImageWriterMessages
   private static int depth = -1;
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
+
+  private static int getAddressValue(VM_Address addr) {
+    if (addr == null) return 0;
+    int value = addr.toInt();
+    int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
+    int high = 0x10000000;  // we shouldn't have that many objects
+    if (value > low && value < high && value != 32767 &&
+	(value < 4088 || value > 4096)) {
+      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
+	  " written for address array");
+    }
+    return value;
+  }
+
   /**
    * Copy an object (and, recursively, any of its fields or elements that
    * are references) from host jdk address space into image.
@@ -1236,16 +1245,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	    VM_Address values[] = (VM_Address[]) jdkObject;
 	    for (int i=0; i<arrayCount; i++) {
 		VM_Address addr = values[i];
-		int value = 0;
-		if (addr != null) {
-		    value = addr.toInt();
-		    int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
-		    int high = 0x10000000;  // we shouldn't have that many objects
-		    if (value > low && value < high && value != 32767) {
-			say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
-			    " written for address array");
-		    }
-		}
+		int value = getAddressValue(addr);
 		bootImage.setFullWord(arrayImageOffset + (i << 2), value);
 	    }
 	}
@@ -1371,19 +1371,7 @@ public class BootImageWriter extends BootImageWriterMessages
           else if (rvmFieldType.equals(VM_Type.AddressType)) {
 	      Object o = jdkFieldAcc.get(jdkObject);
 	      VM_Address addr = (VM_Address) o;
-	      int value = 0;
-	      if (addr != null) {
-		  value = addr.toInt();
-		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
-		  int high = 0x10000000;  // we shouldn't have that many objects
-		  if (value > low && value < high && value != 32767) {
-		    String name = rvmField.toString();
-		    if (!name.equals("com.ibm.JikesRVM.VM_Processor.vpStatusAddress Lcom/ibm/JikesRVM/VM_Address;")) {
-		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
-			  " written for field ", rvmField.toString());
-		    }
-		  }
-	      }
+	      int value = getAddressValue(addr);
 	      bootImage.setFullWord(rvmFieldOffset, value);
           }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
