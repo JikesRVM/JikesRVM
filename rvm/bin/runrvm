@@ -67,7 +67,7 @@ done
 ARGS="$ARGS -Drvm.root=$rvm_root"
 ARGS="$ARGS -Drvm.build=$rvm_build"
 ARGS="$ARGS -Djava.home=$rvm_root"
-ARGS="$ARGS -Dgnu.classpath.home.url=file:${rvm_root}lib"
+ARGS="$ARGS -Dgnu.classpath.home.url=file:${rvm_build}"
 ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
 
 ARGS="$ARGS -Duser.home=$home -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"

@@ -2208,7 +2208,7 @@ if (( ! BUILD_RVMRT_JAR )); then
  else
   . $RVM_HOST_CONFIG
   if [[ x$CLASSPATH_SRC = x ]]; then
-    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath --datespec "2003-01-14 12:00 EST"
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
   fi
  fi
 fi
@@ -2298,6 +2298,12 @@ chmod +x$PERM		      $BUILD_DIRECTORY/environment
 
 emitEnvironmentPerl	      >$BUILD_DIRECTORY/environment.pl
 chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
+
+
+# write the GNU Classpath security properties file
+#
+mkdir -p $BUILD_DIRECTORY/security
+echo "security.provider.1=gnu.java.security.provider.Gnu" > $BUILD_DIRECTORY/security/JikesRVM.security
 
 
 print "(control files and scripts installed) "

@@ -19,7 +19,7 @@ if [ `uname` = Linux ]; then
 else
   CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
 fi
-CLASSPATH_CVS_DATESPEC_ARG="2002-10-08 00:00 EST"
+CLASSPATH_CVS_DATESPEC_ARG="2003-01-14 12:00 EST"
 
 ##
 ## read local config
