@@ -638,9 +638,11 @@ public final class Class implements java.io.Serializable {
    
   private static Class forNameInternal(String className, 
 				       boolean initialize, 
-				       ClassLoader classLoader) throws ClassNotFoundException,
-								       LinkageError,
-								       ExceptionInInitializerError {
+				       ClassLoader classLoader)
+    throws ClassNotFoundException,
+	   LinkageError,
+	   ExceptionInInitializerError 
+  {
     if (className.startsWith("[")) {
       if (!validArrayDescriptor(className)) throw new ClassNotFoundException();
     }
