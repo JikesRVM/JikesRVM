@@ -80,22 +80,18 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        //-#if RVM_FOR_POWERPC
-        if ((!options.NO_CACHE_FLUSH)) {
-          inst.insertBefore(Empty.create(ISYNC));
+        if (!options.NO_CACHE_FLUSH) {
+          inst.insertBefore(Empty.create(READ_CEILING));
         }
-	//-#endif
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        //-#if RVM_FOR_POWERPC
-        if ((!options.NO_CACHE_FLUSH)) {
-          inst.insertAfter(Empty.create(SYNC));
+        if (!options.NO_CACHE_FLUSH) {
+          inst.insertAfter(Empty.create(WRITE_FLOOR));
         }
-	//-#endif
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:

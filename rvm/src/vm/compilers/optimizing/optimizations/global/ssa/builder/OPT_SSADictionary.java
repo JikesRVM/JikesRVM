@@ -554,10 +554,9 @@ class OPT_SSADictionary
         break;
       case CALL_opcode:case SYSCALL_opcode:
       case MONITORENTER_opcode:case MONITOREXIT_opcode:case PREPARE_opcode:
-      case ATTEMPT_opcode:
+      case ATTEMPT_opcode:case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
         //-#if RVM_FOR_POWERPC
       case DCBST_opcode:case ICBI_opcode:
-      case ISYNC_opcode:case SYNC_opcode:
         //-#endif
         // do nothing: these cases handled by registerUnknown
         break;

@@ -341,9 +341,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   private static boolean isSynchronizing (OPT_Instruction inst) {
     switch (inst.getOpcode()) {
       case MONITORENTER_opcode:case MONITOREXIT_opcode:
-        //-#if RVM_FOR_POWERPC
-      case ISYNC_opcode:case SYNC_opcode:
-        //-#endif
+      case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
         return  true;
       default:
         return  false;

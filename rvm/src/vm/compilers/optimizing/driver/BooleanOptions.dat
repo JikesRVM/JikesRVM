@@ -147,7 +147,7 @@ Should all synchronization operations be (unsafely) eliminated?
 NO_THREADS -1 false
 Should all yield points be (unsafely) eliminated?
 
-NO_CACHE_FLUSH -1 false
+NO_CACHE_FLUSH -1 VM.BuildForIA32
 Should cache flush instructions (PowerPC SYNC/ISYNC) be omitted? NOTE: Cannot be correctly changed via the command line!
 
 DETECT_UNIPROCESSOR -1 true

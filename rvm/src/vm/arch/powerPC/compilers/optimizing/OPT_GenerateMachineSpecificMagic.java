@@ -192,10 +192,10 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       if (!gc.options.NO_CACHE_FLUSH)
-        bc2ir.appendInstruction(Empty.create(ISYNC));
+        bc2ir.appendInstruction(Empty.create(READ_CEILING));
     } else if (methodName == VM_MagicNames.sync) {
       if (!gc.options.NO_CACHE_FLUSH)
-        bc2ir.appendInstruction(Empty.create(SYNC));
+        bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (methodName == VM_MagicNames.dcbst) {
       bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popInt()));
     } else if (methodName == VM_MagicNames.icbi) {

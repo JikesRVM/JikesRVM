@@ -84,22 +84,6 @@ none
 
 -1
 
-# PowerPC sync instruction
-SYNC
-Empty
-memAsLoad | memAsStore
-
-
--1
-
-# PowerPC isync instruction
-ISYNC
-Empty
-memAsLoad | memAsStore
-
-
--1
-
 # PowerPC dcbf instruction
 DCBF
 CacheOp

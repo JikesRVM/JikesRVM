@@ -451,6 +451,20 @@ none
 
 
 
+# Memory barrier.  No load instructions may rise above this instruction.
+READ_CEILING
+Empty
+memAsLoad | memAsStore | acquire 
+
+
+
+# Memory barrier. No store instruction may sink below this instruction.
+WRITE_FLOOR
+Empty
+memAsLoad | memAsStore | release
+
+
+
 # PHI node for SSA form.
 PHI
 Phi

@@ -229,12 +229,10 @@ class OPT_IndexPropagationSystem extends OPT_DF_System
           processCall(s); 
         else if (Phi.conforms(s))
           processPhi(s);
-        //-#if RVM_FOR_POWERPC
-        else if (s.operator == SYNC)
+        else if (s.operator == READ_CEILING)
           processCall(s); 
-        else if (s.operator == ISYNC)
+        else if (s.operator == WRITE_FLOOR)
           processCall(s);
-        //-#endif
       }
     }
   }

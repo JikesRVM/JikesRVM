@@ -409,13 +409,7 @@ implements OPT_Operators, OPT_Constants {
       for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); 
            e.hasMoreElements();) {
         OPT_Instruction s = e.next();
-        //-#if RVM_FOR_IA32
-        boolean isSynch = false;                // ignore this for now.
-        //-#elif RVM_FOR_IA32
-        boolean isSynch = false;                // ignore this for now.
-        //-#elif RVM_FOR_POWERPC
-        boolean isSynch = (s.operator() == SYNC) || (s.operator() == ISYNC);
-        //-#endif
+        boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR);
         if (isSynch || Call.conforms(s) || CallSpecial.conforms(s) || 
             MonitorOp.conforms(s) || Prepare.conforms(s) || Attempt.conforms(s)
             || CacheOp.conforms(s) 

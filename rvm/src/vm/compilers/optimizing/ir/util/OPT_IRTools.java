@@ -247,12 +247,12 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
-    //-#if RVM_FOR_IA32
-    if (type.isByteType())      return BYTE_LOAD;
-    if (type.isBooleanType())   return UBYTE_LOAD;
-    if (type.isCharType())      return USHORT_LOAD;
-    if (type.isShortType())     return SHORT_LOAD;
-    //-#endif
+    if (VM.BuildForIA32) {
+      if (type.isByteType())      return BYTE_LOAD;
+      if (type.isBooleanType())   return UBYTE_LOAD;
+      if (type.isCharType())      return USHORT_LOAD;
+      if (type.isShortType())     return SHORT_LOAD;
+    }
     if (type.isLongType())      return LONG_LOAD;
     if (type.isFloatType())     return FLOAT_LOAD;
     if (type.isDoubleType())    return DOUBLE_LOAD;
@@ -273,12 +273,12 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
-    //-#if RVM_FOR_IA32
-    if (type.isByteType())      return BYTE_STORE;
-    if (type.isBooleanType())   return BYTE_STORE;
-    if (type.isCharType())      return SHORT_STORE;
-    if (type.isShortType())     return SHORT_STORE;
-    //-#endif
+    if (VM.BuildForIA32) {
+      if (type.isByteType())      return BYTE_STORE;
+      if (type.isBooleanType())   return BYTE_STORE;
+      if (type.isCharType())      return SHORT_STORE;
+      if (type.isShortType())     return SHORT_STORE;
+    }
     if (type.isLongType())       return LONG_STORE;
     if (type.isFloatType())      return FLOAT_STORE;
     if (type.isDoubleType())     return DOUBLE_STORE;

@@ -146,9 +146,7 @@ public class OPT_ObjectReplacer
         if (ir.options.NO_CACHE_FLUSH)
           OPT_DefUse.removeInstructionAndUpdateDU(inst); 
         else {
-          //-#if RVM_FOR_POWERPC
-          inst.insertBefore(Empty.create(ISYNC));
-          //-#endif
+          inst.insertBefore(Empty.create(READ_CEILING));
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
         }
         break;
@@ -156,9 +154,7 @@ public class OPT_ObjectReplacer
         if (ir.options.NO_CACHE_FLUSH)
           OPT_DefUse.removeInstructionAndUpdateDU(inst); 
         else {
-          //-#if RVM_FOR_POWERPC
-          inst.insertBefore(Empty.create(SYNC));
-          //-#endif
+          inst.insertBefore(Empty.create(WRITE_FLOOR));
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
         }
         break;
