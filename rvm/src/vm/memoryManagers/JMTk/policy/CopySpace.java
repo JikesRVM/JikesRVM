@@ -104,16 +104,12 @@ public final class CopySpace extends BasePolicy
   private static VM_Address forwardObject(VM_Address object, boolean scan) 
     throws VM_PragmaInline {
     VM_Word forwardingPtr = CopyingHeader.attemptToForward(object);
-    // prevent instructions moving infront of attemptToForward
-    VM_Magic.isync();   
 
     // Somebody else got to it first.
     //
     if (CopyingHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
       while (CopyingHeader.stateIsBeingForwarded(forwardingPtr)) 
         forwardingPtr = CopyingHeader.getForwardingWord(object);
-      // prevent following instructions from being moved in front of waitloop
-      VM_Magic.isync();  
       VM_Address newObject = forwardingPtr.and(CopyingHeader.GC_FORWARDING_MASK.not()).toAddress();
       return newObject;
     }
