@@ -1348,6 +1348,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
+	  if (!unresolved) field = field.resolve();
 	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
 
 	  // optimization: 
@@ -1411,6 +1412,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand r = pop(fieldType);
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTSTATIC_UNRESOLVED:PUTSTATIC;
+	  if (!unresolved) field = field.resolve();
 	  s = PutStatic.create(operator, r, makeStaticFieldRef(field));
 	  if (unresolved)
 	    rectifyStateWithErrorHandler();
@@ -1442,6 +1444,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
+	  if (!unresolved) field = field.resolve();
 	  s = GetField.create(operator, t, op1, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
 	  push(t.copyD2U(), fieldType);
@@ -1461,6 +1464,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
+	  if (!unresolved) field = field.resolve();
 	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
 	  if (unresolved)
@@ -1497,6 +1501,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
+	  if (!unresolved) meth = meth.resolve();
 	  OPT_MethodOperand methOp = 
 	    OPT_MethodOperand.VIRTUAL(meth, unresolved);
 	  s = _callHelper(methOp);
@@ -1574,6 +1579,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = 
 	    !meth.getDeclaringClass().isResolved() ||
 	    (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
+	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.SPECIAL(meth, unresolved));
 	  if (s == null) {
 	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
@@ -1624,6 +1630,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
+	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.STATIC(meth, unresolved));
 	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
 	    OPT_InlineReport.classUnresolved(unresolved, meth);
