@@ -29,7 +29,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
   public boolean shouldPerform (OPT_Options options) {
     if (options.getOptLevel() < 2) return false;
-    unrollFactor = (1 << options.UNROLL_LOG);
     return options.UNROLL_LOG >= 1;
   }
   
@@ -41,6 +40,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   public void perform (OPT_IR ir) {
 
     this.ir = ir;
+
+    unrollFactor = (1 << ir.options.UNROLL_LOG);
     
     if (ir.hasReachableExceptionHandlers()) return;
     OPT_DefUse.computeDU (ir);
@@ -61,13 +62,14 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   }
   
   /**
-   * unroll the loops.
-   * still to be done
+   * unroll the loops in the given IR.
    */
   private static void unrollLoops(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
-    if (lstg != null)
-      unrollLoopTree((OPT_LSTNode)lstg.firstNode(), ir);
+    for (int i = 1;  lstg != null && i <= 1;  ++i) {
+      unrollLoopTree((OPT_LSTNode)lstg.firstNode(), ir, i);
+      (new OPT_BuildLST()).perform(ir);
+    }
   }
 
   /**
@@ -75,8 +77,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    * @param t
    * @param ir
    */
-  static int unrollLoopTree(OPT_LSTNode t, OPT_IR ir) {
-    int res = 0;
+  static int unrollLoopTree(OPT_LSTNode t, OPT_IR ir, int target) {
+    int height = 1;
     Enumeration e = t.outNodes();
     if (!e.hasMoreElements()) {
       if (t.loop != null) {
@@ -85,16 +87,16 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	if (t.header.getInfrequent()) {
 	  report("no unrolling of infrequent loop\n");
 	} else {
-	  boolean doNaiveUnrolling = unrollLeaf(t, ir);
+	  boolean doNaiveUnrolling = height == target && unrollLeaf(t, ir);
 	  if (doNaiveUnrolling) naiveUnroller (t, ir);
 	}
       }
     } else while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
-      int heightOfTree = unrollLoopTree(n, ir);
-      res = Math.max(res, heightOfTree) + 1;
+      int heightOfTree = unrollLoopTree(n, ir, target);
+      height = Math.max(height, heightOfTree) + 1;
     }
-    return  res;
+    return  height;
   }
 
 
@@ -275,8 +277,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
     OPT_RegisterOperand outerGuard;
     OPT_BasicBlock outer = predBlock;
-    while (outer.getNumberOfOut() == 1 && outer.getNumberOfIn() >= 1) {
-      if (outer.getNumberOfIn() == 0) break;
+    while (outer.getNumberOfOut() == 1 && outer.getNumberOfIn() == 1) {
       outer = outer.getIn().next();
     }
     if (outer.getNumberOfIn() > 0 && outer.getNumberOfOut() < 2) {
@@ -560,7 +561,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock firstHeaderCopy = null;
     OPT_BasicBlock currentBlock = seqLast;
     
-    for (int i = 1;  i < unrollFactor ;  ++i) {
+    for (int i = 1;  i <= unrollFactor ;  ++i) {
 
       // copy body
       for (int k = 0;  k < body.length;  ++k) {

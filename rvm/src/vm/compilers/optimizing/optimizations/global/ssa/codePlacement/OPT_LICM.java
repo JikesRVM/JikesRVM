@@ -23,7 +23,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   public void perform(OPT_IR ir) {
     this.ir = ir;
 
-    if (false && ir.hasReachableExceptionHandlers()) {
+    if (DEBUG && ir.hasReachableExceptionHandlers()) {
       VM.sysWrite ("] "+ir.method+"\n");
       (new OPT_LiveAnalysis(false, false, true, false)).perform(ir);
       OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
@@ -31,7 +31,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	OPT_BasicBlock b = e.next();
 	if (b instanceof OPT_ExceptionHandlerBasicBlock)
 	  VM.sysWrite ("] "+b+": "
-		       +((OPT_ExceptionHandlerBasicBlock)b).getLiveSet()+"\n");
+		       +((OPT_ExceptionHandlerBasicBlock)b).getLiveSet()
+		       +"\n");
       }
     }
       
@@ -104,7 +105,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param ir
    */
-  public static boolean shouldMove(OPT_Instruction inst, OPT_IR ir) {
+  public static boolean shouldMove(OPT_Instruction inst, OPT_IR ir)
+  {    
     if ((  inst.isAllocation())
 	|| inst.isDynamicLinkingPoint()
 	|| inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
@@ -264,6 +266,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     //if (ir.HIRInfo.LoopStructureTree.getLoopNestDepth(getBlock(inst)) == 0)
     //  return inst;
 
+    if (ir.options.FREQ_FOCUS_EFFORT && getOrigBlock (inst).getInfrequent())
+      return inst;
+    
     // explicitly INCLUDE instructions
     if (!shouldMove(inst, ir)) {
       return inst;
@@ -311,6 +316,12 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
     setState (inst, late);
 
+    if (ir.options.FREQ_FOCUS_EFFORT) {
+      OPT_BasicBlock origBlock = getOrigBlock (inst);
+      if (origBlock.getInfrequent())
+	return origBlock;
+    }
+    
     // explicitly INCLUDE instructions
     if (!shouldMove(inst, ir)) {
       return getOrigBlock (inst);
@@ -827,6 +838,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       e = ir.getBasicBlocks();
       while (e.hasMoreElements()) {
 	OPT_BasicBlock b = e.next();
+	
+	if (ir.options.FREQ_FOCUS_EFFORT && b.getInfrequent()) continue;
+
 	Enumeration ie = ssad.getAllInstructions(b);
 	while (ie.hasMoreElements()) {
 	  OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
