@@ -122,10 +122,8 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method, return null if the method cannot be resolved without classloading.
    */
   public final VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = null;
-    if (name == VM_ClassLoader.StandardClassInitializerMethodName) {
-      thisClass = (VM_Class)type.peekResolvedType();
-    } else { 
+    VM_Class thisClass = (VM_Class)type.peekResolvedType();
+    if (thisClass == null && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
       try {
 	thisClass = (VM_Class)type.resolve();
       } catch (ClassNotFoundException e) {
