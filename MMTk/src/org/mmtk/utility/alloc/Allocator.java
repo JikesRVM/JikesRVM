@@ -71,9 +71,12 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    VM_Interface.sysFail("Out of Memory after multiple retries (in Allocator.allocSlowBody()).   This is an error straight from the garbage collector.");
+    VM_Interface.sysWrite("GC Warning: OutOfMemory from allocSlowBody - possible VM range imbalance");
+    OutOfMemoryError oome = new OutOfMemoryError();
+    throw oome;
+    // VM_Interface.sysFail("Out of Memory after multiple retries (in Allocator.allocSlowBody()).   This is an error straight from the garbage collector.");
     /* NOTREACHED */
-    return VM_Address.zero();
+    // return VM_Address.zero();
   }
 
 }
