@@ -72,6 +72,19 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
+  //-#if RVM_FOR_IA32
+  /** Get contents of ESI, as a VM_Processor */
+  static VM_Processor getESIAsProcessor() {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /** Set contents of ESI to hold a reference to a processor object */
+  static void setESIAsProcessor(VM_Processor p) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+  //-#endif
+
   /**
    * Read contents of hardware time base registers.
    * Note:     we think that 1 "tick" == 4 "machine cycles", but this seems to be

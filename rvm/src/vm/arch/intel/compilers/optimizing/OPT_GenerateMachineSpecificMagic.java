@@ -31,7 +31,21 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     VM_Atom methodName = meth.getName();
     OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
 
-    if (methodName == VM_MagicNames.getFramePointer) {
+    if (methodName == VM_MagicNames.getESIAsProcessor) {
+      OPT_RegisterOperand rop = gc.temps.makePROp();
+      bc2ir.markGuardlessNonNull(rop);
+      bc2ir.push(rop);
+    } else if (methodName == VM_MagicNames.setESIAsProcessor) {
+      OPT_Operand val = bc2ir.popRef();
+      if (val instanceof OPT_RegisterOperand) {
+	bc2ir.appendInstruction(Move.create(REF_MOVE, 
+					    gc.temps.makePROp(), 
+					    val));
+      } else {
+	String msg = " Unexpected operand VM_Magic.setProcessorRegister";
+	throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+      }
+    }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       VM_Field f = (VM_Field)VM.getMember("LVM_Processor;", "framePointer", "I");

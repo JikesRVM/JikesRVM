@@ -844,7 +844,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitPUSH_Reg(T1);
 	asm.emitPUSH_Reg(S0);
 	asm.emitPUSH_Reg(T0);
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+        // restore JTOC register
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x5f: /* swap */ {
@@ -955,7 +957,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
 	asm.emitADD_Reg_Reg (S0, EAX);      // step 12
 	asm.emitMOV_RegDisp_Reg (SP, 4, S0);            // step 13
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+        // restore JTOC register
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x6a: /* fmul */ {
@@ -1120,7 +1124,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7a: /* ishr */ {
@@ -1172,7 +1178,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 15)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7c: /* iushr */ {
@@ -1223,7 +1231,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7e: /* iand */ {
@@ -2090,7 +2100,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
 	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
 	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
-	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+            // restore JTOC
+            VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                      VM_Entrypoints.jtocOffset);
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
@@ -2311,7 +2323,12 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (VM.BuildForIMTInterfaceInvocation) {
 	  int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
 	  int offset      = VM_InterfaceMethodSignature.getOffset(signatureId);
-	  asm.emitMOV_RegDisp_Imm (PR, VM_Entrypoints.hiddenSignatureIdOffset, signatureId); // squirrel away signature ID
+          
+          // squirrel away signature ID
+          VM_ProcessorLocalState.emitMoveImmToField(asm, 
+                                                    VM_Entrypoints.hiddenSignatureIdOffset,
+                                                    signatureId);
+
 	  asm.emitMOV_Reg_RegDisp (S0, SP, (count-1) << 2);                                  // "this" object
 	  asm.emitMOV_Reg_RegDisp (S0, S0, OBJECT_TIB_OFFSET);                               // tib of "this" object
           if (VM.BuildForIndirectIMT) {
@@ -2670,16 +2687,27 @@ public class VM_Compiler implements VM_BaselineConstants {
     asm.emitPUSH_Reg       (FP);			 // store caller's frame pointer
     asm.emitMOV_Reg_Reg    (FP, SP);			 // establish new frame
     asm.emitMOV_RegDisp_Imm(FP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
-
-    // save registers
+  
+    // squirrel away FP in the procesoor object so a hardware trap handler can 
+    // always find it (opt compiler will reuse FP register)
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                               VM_Entrypoints.framePointerOffset,
+                                               FP);
+    /*
+     * save registers
+     */
     asm.emitMOV_RegDisp_Reg (FP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
-    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // establish JTOC register
+    
+    // establish the JTOC register
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                              VM_Entrypoints.jtocOffset);
+
     int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;	// default
     /* handle "dynamic brige" methods:
      * save all registers except FP, SP, PR, S0 (scratch), and
      * JTOC saved above.
      */
+    // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
     if (klass.isDynamicBridge()) {
       savedRegistersSize += 3 << LG_WORDSIZE;
       asm.emitMOV_RegDisp_Reg (FP, T0_SAVE_OFFSET,  T0); 
@@ -2702,7 +2730,10 @@ public class VM_Compiler implements VM_BaselineConstants {
      * generate stacklimit check
      */
     if (klass.isInterruptible()) {
-      asm.emitMOV_Reg_RegDisp (S0, PR, VM_Entrypoints.activeThreadStackLimitOffset);	// S0<-limit
+      // S0<-limit
+       VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+                                                 VM_Entrypoints.activeThreadStackLimitOffset);
+
       asm.emitSUB_Reg_Reg (S0, SP);                                   	// space left
       asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE); 	// space left after this expression stack
       VM_ForwardReference fr = asm.forwardJcc(asm.LT);	// Jmp around trap if OK
@@ -2740,7 +2771,13 @@ public class VM_Compiler implements VM_BaselineConstants {
 
     asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
     asm.emitLEAVE();				// discard current stack frame
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+    
+    // Save the frame pointer in the processor object so a hardware trap 
+    // handler can always find it (opt compiler will reuse FP register)
+    VM_ProcessorLocalState.emitMoveRegToField(asm, 
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+
     asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
   }
    
@@ -2775,7 +2812,12 @@ public class VM_Compiler implements VM_BaselineConstants {
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
     asm.emitCMP_RegDisp_Reg(arrayRefReg, ARRAY_LENGTH_OFFSET, indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(asm.LGT);                     // Jmp around trap if index is OK
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.arrayIndexTrapParamOffset, indexReg); // "pass" index param to C trap handler
+    
+    // "pass" index param to C trap handler
+    VM_ProcessorLocalState.emitMoveRegToField(asm, 
+                                              VM_Entrypoints.arrayIndexTrapParamOffset,
+                                              indexReg);
+
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );	  // trap
     fr.resolve(asm);
   }
@@ -3011,9 +3053,16 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (!klass.isInterruptible()) {
       return;
     } else if (VM.BuildForDeterministicThreadSwitching) {
-      asm.emitDEC_RegDisp(PR, VM_Entrypoints.deterministicThreadSwitchCountOffset);                          // 0 == count-- ??
+      // decrement the deterministic thread switch count field in the
+      // processor object
+      VM_ProcessorLocalState.emitDecrementField(asm, 
+                                                VM_Entrypoints.deterministicThreadSwitchCountOffset);
       VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                  // if not, skip
-      asm.emitMOV_RegDisp_Imm(PR, VM_Entrypoints.deterministicThreadSwitchCountOffset, THREAD_SWITCH_LIMIT);     // reset count
+      
+      // reset the count.
+      VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountOffset,
+                                                THREAD_SWITCH_LIMIT);
+
       if (whereFrom == VM_Thread.PROLOGUE) {
         asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueOffset); 
       } else if (whereFrom == VM_Thread.BACKEDGE) {
@@ -3023,7 +3072,10 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       fr1.resolve(asm);
     } else {
-      asm.emitCMP_RegDisp_Imm(PR, VM_Entrypoints.threadSwitchRequestedOffset, 0);    // thread switch requested ??
+      // thread switch requested ??
+      VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
+                                                     VM_Entrypoints.threadSwitchRequestedOffset,
+                                                     0);
       VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
       if (whereFrom == VM_Thread.PROLOGUE) {
         asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueOffset); 
@@ -3120,11 +3172,11 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (methodName == VM_MagicNames.sysCall0) {
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+       asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3134,13 +3186,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// first and only argument
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(S0);	// push arg on stack
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(S0);	// pop the argument 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3152,14 +3204,14 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// first arg
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(T1);	// reorder arguments for C 
       asm.emitPUSH_Reg(S0);	// reorder arguments for C
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);	// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3175,13 +3227,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);
       asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // fourth arg on stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3197,13 +3249,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 3*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, ESI);	
       asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, JTOC);	// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 4*WORDSIZE); // fifth arg on stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*4);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3215,11 +3267,11 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (methodName == VM_MagicNames.sysCall_L_0) {
       asm.emitMOV_Reg_Reg(T0, SP);
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitCALL_RegInd(T0);	// first arg on stack is address to call
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
       asm.emitPUSH_Reg(T0);	// low half
@@ -3233,13 +3285,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// the one integer argument
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(S0);	// push arg on stack
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(S0);	// pop the argument 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
       asm.emitPUSH_Reg(T0);	// low half
@@ -3256,13 +3308,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);	
       asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // 4th word on orig. stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3379,13 +3431,13 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     
     if (methodName == VM_MagicNames.getThreadId) {
-      asm.emitPUSH_RegDisp(PR, VM_Entrypoints.threadIdOffset);                                   
+      VM_ProcessorLocalState.emitPushField(asm,VM_Entrypoints.threadIdOffset);
       return;
     }
        
     // set the Thread id register (not really a register)
     if (methodName == VM_MagicNames.setThreadId) {
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.threadIdOffset);                                   
+      VM_ProcessorLocalState.emitPopField(asm,VM_Entrypoints.threadIdOffset); 
       return;
     }
     
@@ -3398,6 +3450,18 @@ public class VM_Compiler implements VM_BaselineConstants {
     // set the processor register (PR)
     if (methodName == VM_MagicNames.setProcessorRegister) {
       asm.emitPOP_Reg(PR);
+      return;
+    }
+    
+    // Get the value in ESI 
+    if (methodName == VM_MagicNames.getESIAsProcessor) {
+      asm.emitPUSH_Reg(ESI);
+      return;
+    }  
+
+    // Set the value in ESI
+    if (methodName == VM_MagicNames.setESIAsProcessor) {
+      asm.emitPOP_Reg(ESI);
       return;
     }
   
@@ -3617,7 +3681,10 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitLEAVE();				
       // so hardware trap handler can always find it 
       // (opt compiler will reuse FP register)
-      asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); 
+       VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                                 VM_Entrypoints.framePointerOffset,
+                                                  FP);
+      
       // return to caller- pop parameters from stack
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 
       return;

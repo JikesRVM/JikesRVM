@@ -7,19 +7,20 @@
  * A place to put hand written machine code typically invoked by VM_Magic 
  * methods.
  *
- * Hand coding of small inline instruction sequences is typically handled by 
+ * <p>Hand coding of small inline instruction sequences is typically handled by 
  * each compiler's implementation of VM_Magic methods.  
  * A few VM_Magic methods are so complex that their implementations require 
  * many instructions.  But our compilers do not inline 
  * arbitrary amounts of machine code. We therefore write such code blocks 
  * here, out of line.
  * 
- * These code blocks can be shared by all compilers. They can be branched to
+ * <p>These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsOffset).
  * 
- * 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000 by somebody)
+ * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000 
+ * by somebody)
  * 
- * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
+ * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
  * could inline these methods if they wanted.  We do not believe this would 
  * be very easy since they return assuming the return address is on the stack.)
  *
@@ -147,7 +148,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_Reg (FP, SP);		// establish base of new frame
     asm.emitMOV_RegDisp_Imm (FP, STACKFRAME_METHOD_ID_OFFSET, INVISIBLE_METHOD_ID);
     asm.emitADD_Reg_Imm ( SP, STACKFRAME_BODY_OFFSET + WORDSIZE);
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+    
+    // so hardware trap handler can always find it 
+    // (opt compiler will reuse FP register)
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+    // asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); 
 
 
     /* write parameters on stack 
@@ -209,7 +216,14 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     /* and get out */
     asm.emitLEAVE();
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+    
+    // so hardware trap handler can always find it 
+    // (opt compiler will reuse FP register)
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+    // asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); 
+
     asm.emitRET_Imm(4 << LG_WORDSIZE);			// again, exactly 4 parameters
       
     return asm.getMachineCodes();
@@ -272,11 +286,21 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // T1 is VM_Registers for thread to be resumed
     asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedOffset, 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := registers.fp
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, S0); // PR.framePointer := S0
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              S0);
+    // asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, S0); // PR.framePointer := S0
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := registers.gprs[]
     asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := registers.gprs[#SP]
     asm.emitMOV_Reg_RegDisp(FP, S0, FP<<LG_WORDSIZE); // FP := registers.gprs[#FP]
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+    // so hardware trap handler can always find it 
+    // (opt compiler will reuse FP register)
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+    // asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+
+
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE); // i'th register := registers.gprs[i]
     }
@@ -320,7 +344,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, S0);
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              S0);
+    // asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, S0);
 
     // Restore SP
     asm.emitMOV_Reg_RegDisp (S0, T0, gprsOffset);
@@ -329,9 +356,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // Push registers.ip to stack (now that SP has been restored)
     asm.emitPUSH_RegDisp(T0, ipOffset);
 
-    // Restore the GPRs except for S0, PR, and SP (restored above and then modified by pushing registers.ip!)
+    // Restore the GPRs except for S0, PR, and SP 
+    // (restored above and then modified by pushing registers.ip!)
     for (byte i= 0; i < NUM_GPRS; i++) {
-      if (i != S0 && i != PR && i != SP) {
+      if (i != S0 && i != ESI && i != SP) {
 	asm.emitMOV_Reg_RegDisp(i, S0, i<<LG_WORDSIZE);
       }
     }
@@ -363,13 +391,17 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     VM_Assembler asm = new VM_Assembler(0);
 
     // save PR in glue frame - to be relocated by GC
-    asm.emitMOV_RegDisp_Reg (FP, VM_JNICompiler.JNI_PR_OFFSET, PR);
+    VM_ProcessorLocalState.emitStoreProcessor(asm, FP, 
+                                              VM_JNICompiler.JNI_PR_OFFSET);
+    // asm.emitMOV_RegDisp_Reg (FP, VM_JNICompiler.JNI_PR_OFFSET, PR);
 
     // save callers ret addr in glue frame
     asm.emitPOP_RegDisp (FP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     // change processor status to IN_NATIVE
-    asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.vpStatusAddressOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, 
+                                              VM_Entrypoints.vpStatusAddressOffset);
+    // asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.vpStatusAddressOffset);
     asm.emitMOV_RegInd_Imm(T0, VM_Processor.IN_NATIVE);
 
     // make the call...
@@ -386,13 +418,21 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
     // reload PR ref from glue frame
-    asm.emitMOV_Reg_RegDisp (PR, FP, VM_JNICompiler.JNI_PR_OFFSET);
+    VM_ProcessorLocalState.emitLoadProcessor(asm, FP,
+                                             VM_JNICompiler.JNI_PR_OFFSET);
+    // asm.emitMOV_Reg_RegDisp (PR, FP, VM_JNICompiler.JNI_PR_OFFSET);
 
     // reload JTOC from processor NOTE: JTOC saved in glue frame may not be
     // the RVM JTOC 
-    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                              VM_Entrypoints.jtocOffset);
+    // asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset);
 
-    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.vpStatusAddressOffset);  // S0<-addr of statusword
+    // S0<-addr of statusword
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+                                              VM_Entrypoints.vpStatusAddressOffset);
+    // asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.vpStatusAddressOffset);  
+
     asm.emitMOV_Reg_RegInd(T0,S0);                         // T0<-contents of statusword 
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
     VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip 3 instructions
@@ -415,7 +455,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // Test if returning to Java on a RVM processor or a Native processor.
 
-    asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.processorModeOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
+                                              VM_Entrypoints.processorModeOffset);
+    // asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.processorModeOffset);
     asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
     VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
 

@@ -40,8 +40,14 @@ class VM_MagicNames {
   static VM_Atom getJTOC;
   static VM_Atom getThreadId;
   static VM_Atom setThreadId;
+
   static VM_Atom getProcessorRegister;
   static VM_Atom setProcessorRegister;
+ 
+  //-#if RVM_FOR_IA32
+  static VM_Atom getESIAsProcessor;
+  static VM_Atom setESIAsProcessor;
+  //-#endif
     
   static VM_Atom getTime;
   static VM_Atom getTimeBase;
@@ -155,6 +161,11 @@ class VM_MagicNames {
     setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");
     getProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("getProcessorRegister");
     setProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("setProcessorRegister");
+    
+    //-#if RVM_FOR_IA32
+    getESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("getESIAsProcessor");
+    setESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("setESIAsProcessor");
+    //-#endif
 
     getTime                       = VM_Atom.findOrCreateAsciiAtom("getTime");
     getTimeBase                   = VM_Atom.findOrCreateAsciiAtom("getTimeBase");
