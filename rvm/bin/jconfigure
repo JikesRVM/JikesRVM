@@ -134,6 +134,15 @@ function help_message () {
 	directory where files comprising the configuration are to be
 	placed.
 	
+	We normally do not request warnings from the C,  C++, and Java
+	compilers.  If you want to see C and/or C++ warnings, set 
+	the CFLAGS and/or CXXFLAGS environment variable before you 
+	invoke "jconfigure" and while running "jbuild".  
+	You can also enable these by setting CC to "gcc -g \$CFLAGS"
+	and CPLUS to "g++ -g \$CXXFLAGS" in your RVM_TARGET_CONFIG 
+	and RVM_HOST_CONFIG files.
+
+
 	You can invoke this script as "${ME} < /dev/null" in order to
 	suppress interactive questions.
 
@@ -159,8 +168,8 @@ function help_message () {
 	again.  Modified source files will be discovered, copied to the
 	build directory, recompiled, and the bootimage will be rebuilt.
 	
-	Special Cases
-	=============
+	Special Cases when running "jbuild"
+	===================================
 	
 	To avoid unnecessarily rebuilding the bootimage (when, for example,
 	you've only modified classes that are dynamically loaded and which
@@ -2370,12 +2379,17 @@ function emitBooterLinker () {
     echo "[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG"
 
     echo ""
+    echo "# Here, we go ahead and delete some .o files because it takes"
+    echo "# only a second or two to regenerate them, and there was a long"
+    echo "# trail of problems getting the dependencies correct."
     echo "rm -f libjni.a"
     echo "cd $SCRATCH_DIRECTORY_STR"
-    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles disasm.o innpdsm.o"
+    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles"
+    echo "if [[ \$CLEAN_FLAG ]]; then"
+    echo "    rm -f disasm.o innpdsm.o"
+    echo 'fi'
     echo 'echo -n "(booter cleaned) "'
     echo "if [[ \$CLEAN_FLAG ]]; then"
-
     echo '    trap "" EXIT'
     echo '    exit 0'
     echo 'fi'
