@@ -55,10 +55,6 @@ if [[ $RVM_TARGET_CONFIG = "" ]]; then
    exit 1
 fi
 
-# Do we have the correct libraries?
-#
-#$RVM_ROOT/rvm/bin/jCheckLibs
-
 #---------------------------#
 # SECTION 1 - DOCUMENTATION #
 #---------------------------#
@@ -1928,6 +1924,13 @@ function emitToolCompiler
 # SECTION 6 - MAINLINE #
 #----------------------#
     
+# Do we have the correct libraries?
+#
+if (( ! BUILD_RVMRT_JAR )); then
+  echo "\c"
+#  $RVM_ROOT/rvm/bin/jCheckLibs
+fi
+
 print "$ME: setting up $BUILD_DIRECTORY for $CONFIGURATION_NAME"
 
 # Make a fresh start.
