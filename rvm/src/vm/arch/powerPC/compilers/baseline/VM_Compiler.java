@@ -89,7 +89,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   public static int getFrameSize (VM_NativeMethod m) throws VM_PragmaUninterruptible {
     // space for:
-    //   -AIX header (6 words)
+    //   -NATIVE header (AIX 6 words, LINUX 2 words)
     //   -parameters and 2 new JNI parameters (jnienv + obj), minimum 8 words
     //   -JNI_SAVE_AREA_OFFSET = savedSP + savedJTOC  + Processor_Register
     //                           nonvolatile registers + GC flag + 
@@ -98,7 +98,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     int argSpace = 4 * (m.getParameterWords()+ 2);
     if (argSpace<32)
       argSpace = 32;
-    int size = AIX_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
+    int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
 
     size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
     return size;

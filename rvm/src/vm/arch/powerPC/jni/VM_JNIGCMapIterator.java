@@ -90,7 +90,14 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     //
     VM_Address callers_fp = VM_Address.fromInt(VM_Magic.getMemoryWord(this.framePtr));
     jniSavedProcessorRegAddr = callers_fp.sub(JNI_PR_OFFSET);
+    //-#if RVM_FOR_AIX
     jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
+    //-#endif
+    //-#if RVM_FOR_LINUX
+    // ScanThread calls getReturnAddressLocation() to get this stack frame
+    // it is already processed
+    jniSavedReturnAddr       = VM_Address.zero();
+    //-#endif
 
     // set the GC flag in the Java to C frame to indicate GC occurred
     // this forces saved non volatile regs to be restored from save area

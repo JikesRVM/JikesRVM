@@ -789,7 +789,20 @@ public class VM_Runtime implements VM_Constants {
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     } while ( !VM_Interface.refInVM(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
-    return callee_fp;
+
+	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
+	// for SVR4 convention, a Java-to-C frame has two mini frames,
+	// stop before the mini frame 1 whose ip is in VM (out of line machine
+	// code), in the case of sentinal fp, it has to return the callee's fp
+	// because GC ScanThread uses it to get return address and so on.
+	if (VM_Interface.refInVM(ip)) {
+      return fp;
+	} else {
+	  return callee_fp;
+	}
+	//-#else
+	return callee_fp;
+	//-#endif
   }
 
   /**

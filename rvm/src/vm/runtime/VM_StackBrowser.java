@@ -34,26 +34,29 @@ public final class VM_StackBrowser implements VM_Constants {
 	if (currentMethod != null && currentMethod.getDeclaringClass().isBridgeFromNative()) 
 	    fp = VM_Runtime.unwindNativeStackFrame( currentFramePointer );
 	else 
-	    fp = currentFramePointer;
+        fp = currentFramePointer;
 
-	VM_Address newIP = VM_Magic.getReturnAddress(fp);
+	VM_Address prevFP = fp;
 	VM_Address newFP = VM_Magic.getCallerFramePointer(fp);
-
 	if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
 	    return false;
+	// getReturnAddress has to be put here, consider the case
+	// on ppc, when fp is the frame above SENTINAL FP
+	VM_Address newIP = VM_Magic.getReturnAddress(prevFP);
 
 	int cmid = VM_Magic.getCompiledMethodID(newFP);
-
+	
 	while (cmid == INVISIBLE_METHOD_ID) {
-	    newIP = VM_Magic.getReturnAddress( newFP );
-	    newFP = VM_Magic.getCallerFramePointer( newFP );
 
+	    prevFP = newFP;
+	    newFP = VM_Magic.getCallerFramePointer( newFP );
 	    if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
 		return false;
-
+		newIP = VM_Magic.getReturnAddress(prevFP);
+		
 	    cmid = VM_Magic.getCompiledMethodID(newFP);
 	}
-
+	
 	if (set) {
 	    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	    

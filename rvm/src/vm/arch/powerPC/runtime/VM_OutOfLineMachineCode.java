@@ -422,8 +422,14 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     asm.emitL     (SP, 0, FP);
     asm.emitMFLR  (T0);
+	//-#if RVM_FOR_LINUX
+	// save return address of JNI method in mini frame (2)
+	asm.emitST    (T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, SP);
+	//-#endif
+	//-#if RVM_FOR_AIX
     asm.emitST    (T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, SP);  // save return address in stack frame
-    //
+    //-#endif
+	//
     // Load required JNI function ptr into first parameter reg (GPR3/T0)
     // This pointer is in the JNIEnvAddress field of JNIEnvironment
     //
@@ -448,14 +454,18 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
     // in the call to becomeRVMThreadOffset
-    asm.emitST    (T0, AIX_FRAME_HEADER_SIZE, FP);
-    asm.emitST    (T1, AIX_FRAME_HEADER_SIZE+4, FP);
+    asm.emitST    (T0, NATIVE_FRAME_HEADER_SIZE, FP);
+    asm.emitST    (T1, NATIVE_FRAME_HEADER_SIZE+4, FP);
     //
     // try to return to Java state, by testing state word of process
     //
     int label1    = asm.getMachineCodeIndex();                            // inst index of the following load
     asm.emitL     (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
-    asm.emitL     (JTOC, -4, PROCESSOR_REGISTER);                         // load JTOC reg
+	//-#if RVM_FOR_LINUX
+	// mimi (1) FP -> mimi(2) FP -> java caller
+	asm.emitL     (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
+	//-#endif
+    asm.emitL     (JTOC, -JNI_JTOC_OFFSET, PROCESSOR_REGISTER);                         // load JTOC reg
     asm.emitL     (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
     asm.emitL     (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
     asm.emitLWARX (S0, 0, T3);                                            // get status for processor
@@ -481,8 +491,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // return to caller
     //
     asm.emitL     (T3, 0 , FP);                                // get previous frame
-    asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
-    asm.emitMTLR  (S0);
+	//-#if RVM_FOR_LINUX
+	asm.emitL     (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
+	//-#endif
+	//-#if RVM_FOR_AIX
+	asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
+    //-#endif
+	asm.emitMTLR  (S0);
     asm.emitBLR   ();
     //
     return asm.makeMachineCode().getInstructions();

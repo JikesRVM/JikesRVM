@@ -1026,10 +1026,16 @@ int createJVM(int vmInSeparateThread) {
    int  tid  = bootRecord.tiRegister;
    int  ip   = bootRecord.ipRegister;
    int *sp   = (int *)bootRecord.spRegister;
-     *--sp   = ip;                                   // STACKFRAME_NEXT_INSTRUCTION_OFFSET
-     *--sp   = VM_Constants_INVISIBLE_METHOD_ID;     // STACKFRAME_METHOD_ID_OFFSET
-     *--sp   = VM_Constants_STACKFRAME_SENTINAL_FP;  // STACKFRAME_FRAME_POINTER_OFFSET
+
    int  fp   = (int)sp;
+        fp  -= VM_Constants_STACKFRAME_HEADER_SIZE;
+
+	    // align fp
+		fp   = fp & ~VM_Constants_STACKFRAME_ALIGNMENT_MASK;
+	
+   *(int *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
+   *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
+   *(int *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINAL_FP;
    
    // force any machine code within image that's still in dcache to be
    // written out to main memory so that it will be seen by icache when

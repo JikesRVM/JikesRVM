@@ -173,7 +173,8 @@ public final class VM_NativeMethod extends VM_Method {
       // native procedure not found in library
       return false;
     } else {
-      //-#if RVM_FOR_IA32
+      //-#if RVM_FOR_LINUX
+	  // both intel and linux use direct address
       nativeIP = symbolAddress.toInt();		// Intel use direct branch address
       nativeTOC = 0;                          // not used
       //-#else

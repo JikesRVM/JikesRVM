@@ -80,10 +80,17 @@ package com.ibm.JikesRVM;
 public interface VM_StackframeLayoutConstants  {
 
    static final int STACKFRAME_HEADER_SIZE             = 12; // size of frame header, in bytes
+//-#if RVM_FOR_AIX
    static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  8; // spot for this frame's callee to put return address
    static final int STACKFRAME_METHOD_ID_OFFSET        =  4; // spot for this frame's method id
    static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
-
+//-#endif
+//-#if RVM_FOR_LINUX
+   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID
+   static final int STACKFRAME_METHOD_ID_OFFSET        =  8;
+   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  4;
+   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
+//-#endif
    static final int STACKFRAME_SENTINAL_FP = -2; // fp value indicating end of stack walkback
    static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 

@@ -249,6 +249,8 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.JNI_STACK_TRAP + ";\n");
       System.out.print("static const int VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET = "
           + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET + ";\n");
+	  System.out.print("static const int VM_Constants_STACKFRAME_ALIGNMENT_MASK = "
+		  + VM_Constants.STACKFRAME_ALIGNMENT_MASK + " ;\n");
     }
     //-#endif
 

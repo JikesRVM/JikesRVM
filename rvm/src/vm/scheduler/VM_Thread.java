@@ -1165,13 +1165,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
 //-#else
 
+	// align stack frame
+	int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
+	fp = VM_Address.fromInt(sp.sub(INITIAL_FRAME_SIZE).toInt() & ~STACKFRAME_ALIGNMENT_MASK);
+	VM_Magic.setMemoryWord(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
+	VM_Magic.setMemoryWord(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip.toInt());
+	VM_Magic.setMemoryWord(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
+	
     // initialize thread stack as if "startoff" method had been called
     // by an empty "sentinal" frame  (with a single argument ???)
     //
+	/*
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, ip.toInt());          // STACKFRAME_NEXT_INSTRUCTION_OFFSET
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, fp.toInt());          // STACKFRAME_FRAME_POINTER_OFFSET
     fp = sp;
+    */
 
     contextRegisters.gprs[FRAME_POINTER]  = fp.toInt();
     contextRegisters.ip  = ip;

@@ -25,8 +25,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * This is the JNI function table, the address of this array will be
    * passed to the native code
    */
+  //-#if RVM_FOR_LINUX
+  private static INSTRUCTION[][]   JNIFunctions;
+  //-#endif
+  //-#if RVM_FOR_AIX
   private static INSTRUCTION[][][] JNIFunctions;
-
+  //-#endif
+  
   /**
    * This is a table of pointers to the shared JNI function table.  All entries 
    * point to the same function table.  Each thread uses the pointer at its thread id
@@ -35,8 +40,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * Its offset into the JNIFunctionPts array is the same as the threads offset
    * in the Scheduler.threads array.
    */
-    //  private static int[] JNIFunctionPointers;
-    static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
+  //  private static int[] JNIFunctionPointers;
+  static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
                                              // maybe need set & get functions ??
 
   /**
@@ -71,8 +76,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   // we have an address pointing to it.  This is necessary for thread creation
   // since the VM_JNIEnvironment object will contain a field pointing to this array
   public static void init() {
+    //-#if RVM_FOR_AIX
     JNIFunctions = new int[FUNCTIONCOUNT][][];
-
+    //-#endif
+    //-#if RVM_FOR_LINUX
+    JNIFunctions = new int[FUNCTIONCOUNT+1][];
+    //-#endif
+	
     // 2 words for each thread
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
   }
@@ -91,11 +101,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // fill an array of JNI names
     setNames();
 
+    //-#if RVM_FOR_AIX
     // fill in the TOC entries for each AIX linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
       JNIFunctions[i] = new int[3][];
       JNIFunctions[i][TOC] = VM_Statics.getSlots();   // the JTOC value: address of TOC
     }
+    //-#endif
 
     // fill in the IP entries for each AIX linkage triplet
     try {
@@ -106,7 +118,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	String methodName = mths[i].getName().toString();
 	int jniIndex = indexOf(methodName);
 	if (jniIndex!=-1) {
+	  //-#if RVM_FOR_AIX
 	  JNIFunctions[jniIndex][IP] = mths[i].getCurrentInstructions();
+	  //-#endif
+	  //-#if RVM_FOR_LINUX
+	  JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
+	  //-#endif
+
 	  // VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex][IP]));
 	} 
 	// else {
@@ -114,11 +132,18 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	// }
       }
 
+      //-#if RVM_FOR_AIX
       VM_Address functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][IP]);
       // VM.sysWrite("   NewIntArray is at " + VM.intAsHexString(functionAddress) + "\n");
       functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][TOC]);
       // VM.sysWrite("   TOC is stored at " + VM.intAsHexString(functionAddress) + "\n");
+      //-#endif
 
+      //-#if RVM_FOR_LINUX
+      // set JTOC content, how about GC ? will it move JTOC ?
+      VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
+				VM_Magic.getTocPointer());
+      //-#endif
     } catch (VM_ResolutionException e) {
       throw new InternalError("VM_JNIEnvironment fails to initialize, has the class been renamed\n");
     }
@@ -222,7 +247,12 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   }
 
   public INSTRUCTION[] getInstructions(int id) {    
+    //-#if RVM_FOR_AIX
     return JNIFunctions[id][IP];
+    //-#endif
+    //-#if RVM_FOR_LINUX
+    return JNIFunctions[id];
+    //-#endif
   }
 
   //
@@ -536,19 +566,40 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       throw new Exception("Constructor not found");
 
 
-    // Package the parameters for the constructor
-    VM_Address varargAddress;
-    if (isDotDotStyle) 
-      // flag is false because this JNI function has 3 args before the var args
-      varargAddress = pushVarArgToSpillArea(methodID, false);    
-    else
-      varargAddress = argAddress;
-
     Object argObjs[];
-    if (isJvalue)
+
+    if (isJvalue) {
       argObjs = packageParameterFromJValue(mth, argAddress);
-    else
-      argObjs = packageParameterFromVarArg(mth, varargAddress);
+    } else {
+      if (isDotDotStyle) {
+	//-#if RVM_FOR_AIX
+	VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);
+	argObjs = packageParameterFromVarArg(mth, varargAddress);
+	//-#endif
+	
+	//-#if RVM_FOR_LINUX
+	// pass in the frame pointer of glue stack frames
+	// stack frame looks as following:
+	//      this method -> 
+	//
+	//      native to java method ->
+	//
+	//      glue frame ->
+	//
+	//      native C method ->
+	VM_Address gluefp = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer())); 
+	argObjs = packageParameterFromDotArgSVR4(mth, gluefp, false);
+	//-#endif
+      } else {
+	// var arg
+	//-#if RVM_FOR_AIX
+	argObjs = packageParameterFromVarArg(mth, argAddress);
+	//-#endif
+	//-#if RVM_FOR_LINUX
+	argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
+	//-#endif
+      }
+    }
 
     // construct the new object
     Object newobj = constMethod.newInstance(argObjs);
@@ -568,10 +619,16 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   public static Object invokeWithDotDotVarArg(int methodID, 
 					      VM_TypeReference expectReturnType)
     throws Exception {
-    
-    VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
-    return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
 
+    //-#if RVM_FOR_AIX
+    VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
+    return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
+    //-#endif
+
+    //-#if RVM_FOR_LINUX
+    VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
+    //-#endif
   }
 
   /**
@@ -588,9 +645,15 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 					      VM_TypeReference expectReturnType, boolean skip4Args)
     throws Exception {
 
-      VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
-      return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
+    //-#if RVM_FOR_AIX
+    VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
+    return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
+    //-#endif
 
+    //-#if RVM_FOR_LINUX
+    VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
+    //-#endif
   }
 
 
@@ -712,8 +775,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // skipping the args which are not part of the arguments for the target method
     // For Call<type>Method functions, skip 3 args
     // For CallNonvirtual<type>Method functions, skip 4 args
-    int spillAreaLimit  = glueFrameSize + AIX_FRAME_HEADER_SIZE + 8*4;
-    int spillAreaOffset = glueFrameSize + AIX_FRAME_HEADER_SIZE + 
+    int spillAreaLimit  = glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8*4;
+    int spillAreaOffset = glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 
                           (skip4Args ? 4*4 : 3*4);
 
     // address to return pointing to the var arg list
@@ -780,9 +843,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   public static Object invokeWithVarArg(int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType) 
     throws Exception {
+    //-#if RVM_FOR_AIX
+    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, AIX_VARARG);
+    //-#endif
 
-    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
-
+    //-#if RVM_FOR_LINUX
+    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
+    //-#endif
   }
 
   /**
@@ -799,8 +866,13 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 					boolean skip4Args) 
     throws Exception {
 
-    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
+    //-#if RVM_FOR_AIX
+    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, AIX_VARARG);
+    //-#endif
 
+    //-#if RVM_FOR_LINUX
+    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
+    //-#endif
   }
 
   /**
@@ -812,7 +884,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   public static Object invokeWithJValue(int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType) 
     throws Exception {
-    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
+    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, JVALUE_ARG);
   }
 
   /**
@@ -828,9 +900,14 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 					VM_TypeReference expectReturnType, 
 					boolean skip4Args) 
     throws Exception {
-    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
+    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, JVALUE_ARG);
   }
 
+  public static final int SVR4_DOTARG = 0;         // Linux/PPC SVR4 normal
+  public static final int AIX_DOTARG  = 1;         // AIX normal 
+  public static final int JVALUE_ARG  = 2;         // javlue
+  public static final int SVR4_VARARG = 3;         // Linux/PPC SVR4 vararg
+  public static final int AIX_VARARG  = 4;         // AIX vararg
 
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
@@ -850,7 +927,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    */
   public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, 
-					boolean skip4Args, boolean isVarArg) 
+					boolean skip4Args, int argtype) 
     throws Exception {
   
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
@@ -874,16 +951,237 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
     // Repackage the arguments into an array of objects based on the signature of this method
     Object[] argObjectArray;
-    if (isVarArg)
-      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-    else
+    
+    switch (argtype) {
+    case SVR4_DOTARG:
+      // argAddress is the glue frame pointer
+      argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
+      break;
+    case JVALUE_ARG:
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
+      break;
+    case SVR4_VARARG:
+      argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
+      break;
+    case AIX_VARARG:
+      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+      break;
+    default:
+      argObjectArray = null;
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
 
     // now invoke the method
     Object returnObj = VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
     
     return returnObj;
   }
+
+
+  //-#if RVM_FOR_LINUX 
+  /* The method reads out parameters from registers saved in native->java glue stack frame (glueFP)
+   * and the spill area of native stack frame (caller of glueFP).
+   * 
+   * NOTE: assuming the stack frame won't get moved, (see pushVarArgToSpillArea)
+   *       the row address glueFP can be replaced by offset to the stack.
+   *
+   * @param targetMethod, the call target
+   * @param glueFP, the glue stack frame pointer
+   */
+  static Object[] packageParameterFromDotArgSVR4(VM_Method targetMethod, VM_Address glueFP, boolean skip4Args) {
+
+//    VM_Magic.breakpoint();
+
+    // native method's stack frame
+    VM_Address nativeFP = VM_Magic.getCallerFramePointer(glueFP);
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+
+    // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
+    VM_Address regsavearea = glueFP.add(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
+
+    // spill area offset
+    VM_Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
+    
+    // overflowarea is aligned to 8 bytes
+    if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
+    
+    // adjust gpr and fpr to normal numbering, make life easier
+    int gpr = (skip4Args) ? 7:6;       // r3 - env, r4 - cls, r5 - method id
+    int fpr = 1;
+    
+    // not set the starting gprs array address 
+    // and fpr starting array address, so we can use gpr and fpr to 
+    // calculate the right position to get values
+    // GPR starts with r3;
+    VM_Address gprarray = regsavearea.add(-3*4); 
+    VM_Address fprarray = regsavearea.add(8*4-2*4);
+
+    // call the common function for SVR4
+    packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env); 
+    
+    return argObjectArray;
+  }
+
+  // linux has totally different layout of va_list
+  // see /usr/lib/gcc-lib/powerpc-linux/xxxx/include/va-ppc.h
+  //
+  // va_list is defined as following
+  //
+  // struct {
+  //   char unsigned gpr;    // compiled to 1 byte, index of gprs in saved area
+  //                         // 0 -> r3, 1 -> r4, ....
+  //   char unsigned fpr;    // compiled to 1 byte, index to fprs in saved area
+  //                         // 0 -> fr1, 1 -> fr2, ....
+  //   char * over_flow_area;
+  //   char * reg_save_area;
+  // }
+  //
+  // The interpretation of data can be found in PowerPC Processor ABI Supplement
+  //
+  // The reg_save area lays out r3 - r10, f1 - f8
+  // 
+  // I am not sure if GCC understand the ABI in a right way, it saves GPRs 1 - 10
+  // in the area, while only gprs starting from r3 are used.
+  //
+  // -- Feng
+  // 
+  static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
+//  VM_Magic.breakpoint();
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+    
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+    
+    // the va_list has following layout on PPC/Linux
+    // GPR FPR 0 0   (4 bytes)
+    // overflowarea  (pointer)
+    // reg_save_area (pointer)
+    VM_Address va_list_addr = argAddress;
+    int word1 = VM_Magic.getMemoryWord(va_list_addr);
+    int gpr = word1 >> 24;
+    int fpr = (word1 >> 16) & 0x0FF;
+    va_list_addr = va_list_addr.add(4);
+    VM_Address overflowarea = VM_Magic.getMemoryAddress(va_list_addr);
+    va_list_addr = va_list_addr.add(4);
+    VM_Address regsavearea = VM_Magic.getMemoryAddress(va_list_addr);
+    
+    // overflowarea is aligned to 8 bytes
+    if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
+    
+    // adjust gpr and fpr to normal numbering, make life easier
+    gpr += 3;
+    fpr += 1;
+    
+    // not set the starting gprs array address 
+    // and fpr starting array address, so we can use gpr and fpr to 
+    // calculate the right position to get values
+    // GPR starts with r3;
+    VM_Address gprarray = regsavearea.add(-3*4); 
+    VM_Address fprarray = regsavearea.add(8*4-2*4);
+    
+    // call the common function for SVR4
+    packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env); 
+
+    return argObjectArray;
+  }
+
+  static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
+				     VM_Address gprarray, VM_Address fprarray,
+				     VM_Address overflowarea, int gpr, int fpr,
+				     VM_JNIEnvironment env) {
+    // also make overflow offset, we may need to round it
+    int overflowoffset = 0;
+    int argCount = argTypes.length;
+
+    // now interpret values by types, see PPC ABI
+    for (int i=0; i<argCount; i++) {
+      if (argTypes[i].isFloatType()
+	  || argTypes[i].isDoubleType()) {
+	int loword, hiword;
+	if (fpr > LAST_OS_PARAMETER_FPR) {
+	  // overflow, OTHER
+	  // round it, bytes are saved from lowest to highest one, regardless endian
+	  overflowoffset = (overflowoffset + 7) & -8;
+	  hiword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  overflowoffset += 4;
+	  loword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  overflowoffset += 4;
+	} else {
+	  // get value from fpr, increase fpr by 1
+	  hiword = VM_Magic.getMemoryWord(fprarray.add(fpr*8));
+	  loword = VM_Magic.getMemoryWord(fprarray.add(fpr*8 + 4));
+	  fpr += 1;
+	}
+	long doubleBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	if (argTypes[i].isFloatType()) {
+	  argObjectArray[i] = VM_Reflection.wrapFloat((float)(Double.longBitsToDouble(doubleBits)));
+	} else { // double type
+	  argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+	}
+	
+	//		VM.sysWriteln("double "+Double.longBitsToDouble(doubleBits));
+	
+      } else if (argTypes[i].isLongType()) {
+	int loword, hiword;
+	if (gpr > LAST_OS_PARAMETER_GPR-1) {
+	  // overflow, OTHER
+	  // round overflowoffset, assuming overflowarea is aligned to 8 bytes
+	  overflowoffset = (overflowoffset + 7) & -8;
+	  hiword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  overflowoffset += 4;
+	  loword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  overflowoffset += 4;
+	  
+	  // va-ppc.h makes last gpr useless
+	  gpr = 11;
+	} else {
+	  gpr += (gpr + 1) & 0x01;  // if gpr is even, gpr += 1
+	  hiword = VM_Magic.getMemoryWord(gprarray.add(gpr*4));
+	  loword = VM_Magic.getMemoryWord(gprarray.add((gpr+1)*4));
+	  gpr += 2;
+	}
+	long longBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	argObjectArray[i] = VM_Reflection.wrapLong(longBits);
+	
+	//		VM.sysWriteln("long 0x"+Long.toHexString(longBits));
+      } else {
+	// int type left now
+	int ivalue;
+	if (gpr > LAST_OS_PARAMETER_GPR) {
+	  // overflow, OTHER
+	  ivalue = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  overflowoffset += 4;
+	} else {
+	  ivalue = VM_Magic.getMemoryWord(gprarray.add(gpr*4));
+	  gpr += 1;
+	} 
+	
+	//		VM.sysWriteln("int "+ivalue);
+	
+	if (argTypes[i].isBooleanType()) {
+	  argObjectArray[i] = VM_Reflection.wrapBoolean(ivalue);
+	} else if (argTypes[i].isByteType()) {
+	  argObjectArray[i] = VM_Reflection.wrapByte((byte)ivalue);
+	} else if (argTypes[i].isShortType()) {
+	  argObjectArray[i] = VM_Reflection.wrapShort((short)ivalue);
+	} else if (argTypes[i].isCharType()) {
+	  argObjectArray[i] = VM_Reflection.wrapChar((char)ivalue);
+	} else if (argTypes[i].isIntType()) {
+	  argObjectArray[i] = VM_Reflection.wrapInt(ivalue);
+	} else if (argTypes[i].isReferenceType()) {
+	  argObjectArray[i] = env.getJNIRef(ivalue);
+	} else {
+	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+	}
+      }
+    }
+  }
+  //-#endif  RVM_FOR_LINUX
 
 
   /**
