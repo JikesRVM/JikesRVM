@@ -528,3 +528,57 @@ adaptive optimization system, see our
 
 For details on individual classes, see the source files under 
 {\tt \$RVM\_ROOT/rvm/src/vm/adaptive}.
+
+\subsection{OptTestHarness}
+
+For optimizing compiler development, it is sometimes useful to exercise
+careful control over which classes are compiled, and with which
+optimization level.  In many cases, a {\tt BaseOptSemispace} image will
+suit this process.  This configuration invokes the optimizing compiler on
+each method run.  Since the optimizing compiler is not in the boot image, 
+you can modify its classes without re-linking the boot image.  Instead,
+{\tt jbuild -nolink} will recompile the source files you edit, without
+invoking the time-consuming boot image writing step.
+
+The {\tt OptTestHarness} program provides even more control over the
+optimizing compiler.  This driver program allows you to invoke the
+optimizing compiler as an ``application'' running on top of the VM.
+The most useful configuration for this is probably {\tt
+BaseBaseOTHcopyingGC}; this image is a BaseBase image which includes just
+enough support to invoke the optimizing compiler through {\tt
+OptTestHarness}.  Like the {\tt BaseOpt} images, you can use {\tt jbuild
+-nolink} to skip a time-consuming boot image writing during development.
+
+To use the {\tt OptTestHarness} program:
+\begin{verbatim}
+% rvm OptTestHarness -class Foo
+\end{verbatim}
+will invoke the optimizing compiler on all methods of class {\tt Foo.}
+
+\begin{verbatim}
+% rvm OptTestHarness -method Foo bar - 
+\end{verbatim}
+will invoke the optimizing compiler on the first method {\tt bar} of class
+{\tt Foo} it loads.
+
+\begin{verbatim}
+% rvm OptTestHarness -method Foo bar (I)V; 
+\end{verbatim} 
+will invoke the optimizing compiler on method {\tt Foo.bar(I)V;}.
+
+You can specify any number of {\tt -method} and {\tt -class} options on
+the command line.  Any arguments passed to {\tt OptTestHarness} via {\tt
+-oc} will be passed on directly to the optimizing compiler.  So:
+
+\begin{verbatim}
+% rvm OptTestHarness -oc:O1 -oc:print_final_hir=true -method Foo bar -
+\end{verbatim} 
+will invoke compile {\tt Foo.bar} at optimization level {\tt O1} and print
+the final HIR.
+
+One other useful option to {\tt OptTestHarness} is {\tt -longcommandline
+<filename>}. With this option, {\tt OptTestHarness} reads the command line
+from a file.
+
+The source to the {\tt OptTestHarness} resides in 
+{\tt \$RVM\_ROOT/rvm/src/tools/optTestHarness}.
