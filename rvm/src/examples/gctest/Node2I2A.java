@@ -42,7 +42,8 @@ class Node2I2A {
       long used = end - start;
       if (used > 0) {
 	measuredObjectSize = used / ((double) estimateSize);
-	objectSize = (int) (measuredObjectSize + 0.5);
+	objectSize = (int) (measuredObjectSize + 0.5); // round to byte
+	objectSize = (objectSize + 2) / 4 * 4; // round to word
 	if (objectSize > 16) 
 	  break;
       }
