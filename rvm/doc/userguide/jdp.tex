@@ -68,6 +68,17 @@ jdp -jdpattach<processID>
    "{\tt -jdpattach}".  The effect is that the debugger is faster and more
    stable, but it will only show methods in the boot image.
 
+\item If there is an error in the RVM initialization, you can start debugging
+ at a point where the boot image has been loaded but the RVM has not begun
+ executing yet. Specify the option:
+\begin{verbatim}
+jdp -jdpviewboot
+\end{verbatim}
+  Note that if the option "{\tt -jdpbootonly}" is used, the option 
+  "{\tt -jdpviewboot}" is also on by default because jdp would be unable
+  to find the dynamically loaded user's main method.
+
+
 \end{enumerate}
 
 
