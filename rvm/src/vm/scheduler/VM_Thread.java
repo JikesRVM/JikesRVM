@@ -119,12 +119,16 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   /**
-   * Get current thread.
+   * Get current VM_Thread.
    */ 
   public static VM_Thread getCurrentThread () {
     return VM_Processor.getCurrentProcessor().activeThread;
   }
       
+  /** Get the current java.lang.Thread.  Prints out a warning if someone asks
+      for a thread too soon.   The warning is for code that does not expect to
+      be called early in the boot process.  Use peekJavaLangThread if you
+      expect you might get null. */
   public Thread getJavaLangThread() 
     throws InterruptiblePragma
   {
@@ -138,6 +142,19 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     }
     thread = java.lang.JikesRVMSupport.createThread(this, toString());
     return thread;
+  }
+
+  /** Peek at the current java.lang.Thread.  Do not print out any warnings.
+      This is used by code that expects it might be called early in the boot
+      process.  Use getJavaLangThread if your caller is not necessarily
+      prepared to get null. */
+  public Thread peekJavaLangThread() 
+    throws InterruptiblePragma
+  {
+    if (VM.safeToAllocateJavaThread)
+      return getJavaLangThread();
+    else
+      return thread;
   }
 
   public void setJavaLangThread(Thread t) {
