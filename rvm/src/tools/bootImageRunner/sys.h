@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002,2004
  */
 //$Id$
 
@@ -12,6 +12,9 @@
 
 /* These exit status codes are defined here and in VM.java.
    If you change one of them here, or add any, add it there too. */
+
+const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR  = 125;
+
 
 /* See VM.java; VM.exitStatusSyscallTrouble */
 const int EXIT_STATUS_SYSCALL_TROUBLE = 121;
