@@ -39,6 +39,8 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    */
   OPT_LiveRangeSplitting() {
     super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
+          // 0. Clean up the IR
+          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2)),
           // 1. Get into SSA
           new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
           new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
