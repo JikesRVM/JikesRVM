@@ -634,9 +634,10 @@ final class OPT_BURS implements OPT_Operators {
    * Add a node to the ready set.
    */
   private void readySetInsert(OPT_BURS_TreeNode node) {
-    // Adjust numRegisters to bias towards picking store 
-    // instructions, since they do not start new live ranges.
-    if (node.getInstruction().isExplicitStore()) {
+    // Adjust numRegisters to bias away from picking trees that
+    // are rooted in result carriers, since they start a new live 
+    // range.
+    if (!ResultCarrier.conforms(node.getInstruction())) {
       node.setNumRegisters(node.numRegisters()+2);
     }
 
