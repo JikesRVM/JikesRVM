@@ -3297,6 +3297,9 @@ EOF
 
     # Include GCspy libraries, if requested
     if (( $RVM_WITH_GCSPY )); then
+	if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR  )); then
+	    show_mesg >&2 "Warning: RVM_FOR_SINGLE_VIRTUAL_PROCESSOR is set, as is RVM_WITH_GCSPY.  Those two options are not compatible, since the GCspy server's C runtime support code spawns a pthread.  If you use the GCspy support in this build, Jikes RVM may freeze up or crash."
+	fi 
         echo "GCSPY_LIBS=\"-L$GCSPY_LIB_DIR -lgcspy\""
         echo "GCSPY_INCLUDES=\"-I$GCSPY_INCLUDE_DIR\""
     else
