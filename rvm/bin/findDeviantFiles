@@ -1,4 +1,5 @@
 #! /bin/bash
+# -*-coding: iso-8859-1; -*-
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
@@ -61,6 +62,9 @@ set -o nounset
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
 
+if (( $# < 1 )); then		# make sure $1 is set.
+    usage 1;
+fi
 case "$1" in
     -help|--help) usage 0 ;;
 esac
@@ -161,12 +165,11 @@ declare -r -a find_optsA=( \
 declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
 #echo "find all plain files without @Author tags"
-# Commented out due to trouble.
 find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
 #find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
 
 #echo "find all plain files with copyright notices"
-find . "${find_optsA[@]}" -exec egrep -c "\(C\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$out/noCopyright${suffix}"
+find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$out/noCopyright${suffix}"
 
 #echo "find all plain files without \$Id: tags"
 find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$out/noId${suffix}"
