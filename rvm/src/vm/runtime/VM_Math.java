@@ -24,23 +24,23 @@ public class VM_Math {
   /*
    * Constants that are used by the compilers in generated code.
    */
-  static double I2Dconstant = Double.longBitsToDouble(0x4330000080000000L);
-  static double IEEEmagic = Double.longBitsToDouble(0x4338000000000000L);
-  static long   longOne  =  1L;
-  static float  minusOne = -1.0F;
-  static float  zero     =  0.0F;
-  static float  half     =  0.5F;
-  static float  one      =  1.0F;
-  static float  two      =  2.0F;
-  static double zeroD    =  0.0;
-  static double oneD     =  1.0;
-  static float  half32   =  java.lang.Float.intBitsToFloat(0x2f800000);
-  static float  two32    =  java.lang.Float.intBitsToFloat(0x4f800000);
-  static double billionth = 1e-9;
+  static final double I2Dconstant = Double.longBitsToDouble(0x4330000080000000L);
+  static final double IEEEmagic = Double.longBitsToDouble(0x4338000000000000L);
+  static final long   longOne  =  1L;
+  static final float  minusOne = -1.0F;
+  static final float  zero     =  0.0F;
+  static final float  half     =  0.5F;
+  static final float  one      =  1.0F;
+  static final float  two      =  2.0F;
+  static final double zeroD    =  0.0;
+  static final double oneD     =  1.0;
+  static final float  half32   =  java.lang.Float.intBitsToFloat(0x2f800000);
+  static final float  two32    =  java.lang.Float.intBitsToFloat(0x4f800000);
+  static final double billionth = 1e-9;
   
   // largest double that can be rounded to an int
-  static double maxint   =  0.5D + 0x7FFFFFFF;
+  static final double maxint   =  0.5D + 0x7FFFFFFF;
 
   // smallest double that can be rounded to an int
-  static double minint   =  (double)Integer.MIN_VALUE;
+  static final double minint   =  (double)Integer.MIN_VALUE;
 }
