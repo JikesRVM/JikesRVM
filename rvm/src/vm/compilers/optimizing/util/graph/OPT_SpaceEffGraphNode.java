@@ -426,6 +426,22 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       System.out.println(n);
   }
 
+  /**
+   * Revert the sequence of out edges
+   */
+  final void revertOuts() {
+    OPT_SpaceEffGraphEdge last = null;
+    OPT_SpaceEffGraphEdge e = firstOutEdge();
+    _outEdgeStart = _outEdgeEnd;
+    _outEdgeEnd = e;
+    while (e != null) {
+      OPT_SpaceEffGraphEdge next = e.getNextOut();
+      e.appendOut (last);
+      last = e;
+      e = next;
+    }
+  }
+    
   /* enumerations to get the nodes/edges */
 
   public interface GraphEdgeEnumeration extends Enumeration {
