@@ -29,7 +29,7 @@ public final class HPM_info
    * Assume header and trace files in the same directory.
    */
   public String headerFilename() {
-    String filename = "";
+    String filename = filenamePrefix;
     int index = filenamePrefix.lastIndexOf('/');
     if (index != -1) {
       filename = filenamePrefix.substring(index);

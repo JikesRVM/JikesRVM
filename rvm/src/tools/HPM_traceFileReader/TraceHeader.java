@@ -218,6 +218,7 @@ public final class TraceHeader
    */
   private DataInputStream openTraceMetaFile(String header_filename, String trace_filename)
   {
+    if(debug>=2)System.out.println("TraceHeader.openTraceMetaFile("+header_filename+","+trace_filename+")");
     String path = null;
     int index = trace_filename.lastIndexOf('/');
     if (index == -1) {
@@ -230,7 +231,7 @@ public final class TraceHeader
       
       path = trace_filename.substring(0,index);
       path += "/";
-      System.out.println("TH.openTraceMetaFile() path "+path);
+      System.out.println("TraceHeader.openTraceMetaFile() path \""+path+"\"");
     }
     index = header_filename.lastIndexOf(' ');
     if (index != -1) 
