@@ -67,5 +67,8 @@ export XARGS="/usr/bin/xargs"
 export MD5SUM="/usr/bin/md5sum"
 export GNU_TAR=/bin/tar
 
+# The following is optional; only needed for fancy CVS scripts
+export CVS="/homes/fury5/jalapeno/bin/cvs"
+
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02
