@@ -4,15 +4,11 @@
 //$Id$
 
 /**
- * 15 Jan 2001 Peter Sweeney 
- *	Command line option processing:
- *	  Follow JDK 1.3 specification, and
- *	  Eliminate necessity of VM option order.
- * 22 May 2001 Igor Pechtchanski
- *      Arbitrary prefix support
+ * Command line option processing.
  *
  * @author Peter Sweeney
  * @modified Igor Pechtchanski
+ *      Arbitrary prefix support
  */
 class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;

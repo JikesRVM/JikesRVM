@@ -4,270 +4,341 @@
 
 // $Id$
 
-// Information required to start the virtual machine and communicate with the outside world.
-//
-// The virtual machine image consists entirely of java objects.
-// The first java-object, the boot record, is the communication area between
-// the host operating system and the virtual machine. It consists of read-only
-// fields containing startup information used by the assembler bootstrap
-// loader, by the virtual machine's initializer methods, and by the virtual
-// machine's operating system call interface methods.
-//
-// See also: BootImageWriter.main(), VM_Magic.sysCall(), RunBootImage.C
-//
-// The boot record looks like this (note that fields are layed out "backwards"):
-//
-//                       lo-mem
-//                  +---------------+
-//                  |   fieldN-1    |
-//                  +---------------+
-//                  |     ...       |
-//                  +---------------+
-//                  |    field1     |
-//                  +---------------+
-//                  |    field0     |
-//                  +---------------+ \
-//                  |  tib pointer  |  |
-//                  +---------------+  | object header
-//                  |  lock word    |  |
-//                  +---------------+ /
-//                       hi-mem
-//
-// The "startAddress", "freeAddress", and "endAddress" fields of the boot
-// record point to the region of memory comprising the heap in which the 
-// virtual machine lives. The heap looks like this:
-//
-//                       lo-mem
-//                  +---------------+
-//  startAddress -> |    object     |
-//                  +---------------+
-//                  |    object     |
-//                  +---------------+
-//                  |      ...      |
-//                  +---------------+
-//                  |    object     |
-//                  +---------------+
-//   freeAddress -> |   <empty>     |
-//                  +---------------+
-//                  |      ...      |
-//                  +---------------+
-//                  |   <empty>     |
-//                  +---------------+
-//    endAddress ->      hi-mem
-//
-// The "spRegister" field of the boot record points to the word immediately
-// preceeding the top of a stack object (ie. it's ready to accept a "push" 
-// instruction). The stack object is an array of words that looks like this:
-//
-//                       lo-mem
-//                  +---------------+ \
-//                  |  tib pointer  |  |
-//                  +---------------+  | array
-//                  |  lock word    |  |   object
-//                  +---------------+  |      header
-//                  |    .length    |  | 
-//                  +---------------+ /
-//                  |    <empty>    |
-//                  +---------------+
-//                  |     ...       |
-//                  +---------------+
-//                  |    <empty>    |
-//                  +---------------+
-//    spRegister ->      hi-mem
-//
-// The "ipRegister" field of the boot record points to the first word
-// of an array of machine instructions comprising
-// the virtual machine's startoff code -- see "VM.boot()".
-//
-// The "tocRegister" field of the boot record points to an array of words
-// containing the static fields and method addresses of the virtual
-// machine image -- see "VM_Statics.slots[]".
-//
-// The remaining fields of the boot record serve as a function linkage area
-// between services residing in the host operating system and services
-// residing in the virtual machine.
-
 /**
- * @author Bowen Alpern
- * @author Derek Lieber
- */
+ * Information required to start the virtual machine and communicate 
+ * with the outside world.
+ *
+ * <p> The virtual machine image consists entirely of java objects.
+ * The first java-object, the boot record, is the communication area between
+ * the host operating system and the virtual machine. It consists of read-only
+ * fields containing startup information used by the assembler bootstrap
+ * loader, by the virtual machine's initializer methods, and by the virtual
+ * machine's operating system call interface methods.
+ *
+ * <p> See also: BootImageWriter.main(), VM_Magic.sysCall(), RunBootImage.C
+ *
+ * <p>The boot record looks like this 
+ * (note that fields are layed out "backwards"):
+ *
+ * <pre>
+ *                       lo-mem
+ *                  +---------------+
+ *                  |   fieldN-1    |
+ *                  +---------------+
+ *                  |     ...       |
+ *                  +---------------+
+ *                  |    field1     |
+ *                  +---------------+
+ *                  |    field0     |
+ *                  +---------------+ \
+ *                  |  tib pointer  |  |
+ *                  +---------------+  | object header
+ *                  |  lock word    |  |
+ *                  +---------------+ /
+ *                       hi-mem
+* </pre>
+* The "startAddress", "freeAddress", and "endAddress" fields of the boot
+* record point to the region of memory comprising the heap in which the 
+* virtual machine lives. The heap looks like this:
+* <pre>
+*
+*                       lo-mem
+*                  +---------------+
+*  startAddress -> |    object     |
+*                  +---------------+
+*                  |    object     |
+*                  +---------------+
+*                  |      ...      |
+*                  +---------------+
+*                  |    object     |
+*                  +---------------+
+*   freeAddress -> |   <empty>     |
+*                  +---------------+
+*                  |      ...      |
+*                  +---------------+
+*                  |   <empty>     |
+*                  +---------------+
+*    endAddress ->      hi-mem
+* </pre>
+*
+* The "spRegister" field of the boot record points to the word immediately
+* preceeding the top of a stack object (ie. it's ready to accept a "push" 
+                                        * instruction). The stack object is an array of words that looks like this:
+*
+* <pre>
+*                       lo-mem
+*                  +---------------+ \
+*                  |  tib pointer  |  |
+*                  +---------------+  | array
+*                  |  lock word    |  |   object
+*                  +---------------+  |      header
+*                  |    .length    |  | 
+*                  +---------------+ /
+*                  |    <empty>    |
+*                  +---------------+
+*                  |     ...       |
+*                  +---------------+
+*                  |    <empty>    |
+*                  +---------------+
+*    spRegister ->      hi-mem
+* </pre>
+*
+* <P> The "ipRegister" field of the boot record points to the first word
+* of an array of machine instructions comprising
+* the virtual machine's startoff code -- see "VM.boot()".
+*
+* <P> The "tocRegister" field of the boot record points to an array of words
+* containing the static fields and method addresses of the virtual
+* machine image -- see "VM_Statics.slots[]".
+*
+* <P> The remaining fields of the boot record serve as a function linkage area
+* between services residing in the host operating system and services
+* residing in the virtual machine.
+*
+* @author Bowen Alpern
+* @author Derek Lieber
+*/
 
-public
-class VM_BootRecord
-   {
-   //
-   // The following static field is initialized by the boot image writer.
-   // It allows the virtual machine to address the boot record using normal 
-   // field access instructions (the assembler bootstrap function, on the other
-   // hand, simply addresses the boot record as the first object in the boot image).
-   //
-   public static VM_BootRecord the_boot_record;
+public class VM_BootRecord {
+  /**
+   * The following static field is initialized by the boot image writer.
+   * It allows the virtual machine to address the boot record using normal 
+   * field access instructions (the assembler bootstrap function, on the other
+   * hand, simply addresses the boot record as the first object in 
+   * the boot image).
+   */ 
+  public static VM_BootRecord the_boot_record;
 
-   //
-   // The following fields are written when the virtual machine image
-   // is generated (see BootImage.java), loaded (see RunBootImage.C),
-   // or executed (see VM.java).
-   //
-   // If you add/remove/change fields here, be sure to change the 
-   // corresponding code in RunBootImage.
-   //
-   
-   // RVM image
-   //
-   int startAddress;        // address at which image is to be loaded into memory
-   int permaAddress;
-   int freeAddress;         // address of first free word following end of image
-   int endAddress;          // address of first word following end of memory
-   int relocaterAddress;    // address of first word of an array of offsets to all addresses in the image.
-   int relocaterLength;     // number of 32 bit words of relocation addresses.
+  
+  // The following fields are written when the virtual machine image
+  // is generated (see BootImage.java), loaded (see RunBootImage.C),
+  // or executed (see VM.java).
+  //
+  // If you add/remove/change fields here, be sure to change the 
+  // corresponding code in RunBootImage.
 
-   // Two fields used by MemoryManagers that maintaina separate space for large objects
-   int largeStart;	    // address of start of large object space
-   int largeSize; 	    // size of large object space in bytes
+  // RVM image
+  //
+  /**
+   * address at which image is to be loaded into memory
+   */
+  int startAddress;        
+  int permaAddress;
 
-   // size of the nursery for generational collectors that use a fixed size nursery
-   int nurserySize;         // size of nursery in generational collector
+  /**
+   * address of first free word following end of image
+   */
+  int freeAddress;         
+  /**
+   * address of first word following end of memory
+   */
+  int endAddress;          
+  /**
+   * address of first word of an array of offsets to all addresses in the image.
+   */
+  int relocaterAddress;    
+  /**
+   * number of 32 bit words of relocation addresses.
+   */
+  int relocaterLength;     
 
-   // Field added to enable signal trapping when dynamically resizing heap
-   int heapEnd;             // address of word beyond end of large object space
+  // Two fields used by MemoryManagers that maintain separate space for 
+  // large objects
+  /**
+   * address of start of large object space
+   */
+  int largeStart;	    
+  /**
+   * size of large object space in bytes
+   */
+  int largeSize; 	    
 
-   // RVM startoff
-   //
-   int tiRegister;          // value to place into TI register
-   int spRegister;          // value to place into SP register
-   int ipRegister;          // value to place into IP register
-   int tocRegister;         // value to place into TOC register
+  /**
+   * size of the nursery for generational collectors that 
+   * use a fixed size nursery
+   */
+  int nurserySize;         // size of nursery in generational collector
 
-   // flag to indicate RVM has completed booting and ready to run Java programs
-   // added by Ton Ngo for JNI support
-   int bootCompleted;       // use for start up by JNI_CreateJavaVM
+  /**
+   * Field added to enable signal trapping when dynamically resizing heap
+   */
+  int heapEnd;             // address of word beyond end of large object space
 
-   // Additional RVM entrypoints
-   //
-   int hardwareTrapMethodId;           // method id for inserting stackframes at site of hardware traps
-   int deliverHardwareExceptionOffset; // jtoc offset of VM_Runtime.deliverHardwareException()
-   int dumpStackAndDieOffset;          // jtoc offset of VM_Scheduler.dumpStackAndDie(I)
-   int processorsOffset;               // jtoc offset of VM_Scheduler.processors[]
-   int threadsOffset;                  // jtoc offset of VM_Scheduler.threads[]
-   int debugRequestedOffset;           // jtoc offset of VM_Scheduler.debugRequested
-   int externalSignalFlag;             // an external signal has been sent e.g. kill -signalnumber processid
+  // RVM startoff
+  //
+  int tiRegister;          // value to place into TI register
+  int spRegister;          // value to place into SP register
+  int ipRegister;          // value to place into IP register
+  int tocRegister;         // value to place into TOC register
 
-   // Support for JNI Native functions
-   //
-   int attachThreadRequestedOffset;    // jtoc offset of VM_Scheduler.attachThreadRequested
-   int globalGCInProgressFlag;        // set when GC starts; reset at end
-   static final int GC_IN_PROGRESS = 1;   
-   int lockoutProcessor; // used during GC and transfers to and from native processors
-   
+  /**
+   * flag to indicate RVM has completed booting and ready to run Java programs
+   * added by Ton Ngo for JNI support
+   */
+  int bootCompleted;       // use for start up by JNI_CreateJavaVM
 
-   // Host operating system entrypoints - see "sys.C"
-   //
-   
-     //-#if RVM_FOR_POWERPC
-   int sysTOC;           // value to place in TOC register when issuing "sys" calls
-   int sysIP;            // dummy function to pair with sysTOC
-     //-#endif
-   
-   // startup/shutdown
-   int sysWriteCharIP;    
-   int sysWriteIP;            
-   int sysWriteLongIP;
-   int sysExitIP;                     
-   int sysArgIP;
+  // Additional RVM entrypoints
+  //
+  /**
+   * method id for inserting stackframes at site of hardware traps
+   */
+  int hardwareTrapMethodId;           
+  /**
+   * jtoc offset of VM_Runtime.deliverHardwareException()
+   */
+  int deliverHardwareExceptionOffset; 
+  /**
+   * jtoc offset of VM_Scheduler.dumpStackAndDie(I)
+   */
+  int dumpStackAndDieOffset;          
+  /**
+   * jtoc offset of VM_Scheduler.processors[]
+   */
+  int processorsOffset;               
+  /**
+   * jtoc offset of VM_Scheduler.threads[]
+   */
+  int threadsOffset;                  
+  /**
+   * jtoc offset of VM_Scheduler.debugRequested
+   */
+  int debugRequestedOffset;           
+  /**
+   * an external signal has been sent e.g. kill -signalnumber processid
+   */
+  int externalSignalFlag;             
 
-   // memory
-   int sysCopyIP;         
-   int sysFillIP;
-   int sysMallocIP;
-   int sysFreeIP;
-   int sysZeroIP;
-   int sysZeroPagesIP;
-   int sysSyncCacheIP;
+  // Support for JNI Native functions
+  //
+  /**
+   * jtoc offset of VM_Scheduler.attachThreadRequested
+   */
+  int attachThreadRequestedOffset;    
+  /**
+   * set when GC starts; reset at end
+   */
+  int globalGCInProgressFlag;        
+  static final int GC_IN_PROGRESS = 1;   
+  /**
+   * used during GC and transfers to and from native processors
+   */
+  int lockoutProcessor; 
 
-   // files
-   int sysStatIP;         
-   int sysListIP;
-   int sysOpenIP;                
-   int sysReadByteIP;            
-   int sysWriteByteIP;
-   int sysReadBytesIP;
-   int sysWriteBytesIP;
-   int sysSeekIP;
-   int sysCloseIP;
-   int sysDeleteIP;
-   int sysRenameIP;
-   int sysMkDirIP;
-   int sysBytesAvailableIP;
-   int sysSyncFileIP;
 
-   // memory mapping
-   int sysMMapIP;
-   int sysMMapNonFileIP;
-   int sysMMapGeneralFileIP;
-   int sysMMapDemandZeroFixedIP;
-   int sysMMapDemandZeroAnyIP;
-   int sysMUnmapIP;
-   int sysMProtectIP;
-   int sysMSyncIP;
-   int sysMAdviseIP;
-   int sysGetPageSizeIP;
+  // Host operating system entrypoints - see "sys.C"
+  //
 
-   // threads
-   int sysNumProcessorsIP;
-   int sysVirtualProcessorCreateIP;
-   int sysVirtualProcessorBindIP;
-   int sysVirtualProcessorYieldIP;
-   int sysVirtualProcessorEnableTimeSlicingIP;
-   int sysPthreadSelfIP;
-   int sysPthreadSigWaitIP;
-   int sysPthreadSignalIP;
-   int sysPthreadExitIP;
-   int sysPthreadJoinIP;
+  //-#if RVM_FOR_POWERPC
+  /**
+   * value to place in TOC register when issuing "sys" calls
+   */
+  int sysTOC;           
+  /**
+   * dummy function to pair with sysTOC
+   */
+  int sysIP;            
+  //-#endif
 
-   //-#if RVM_WITH_OPT_COMPILER
-   //
-   // arithmetic (opt compiler)
-   int sysLongDivideIP;
-   int sysLongRemainderIP;
-   int sysLongDivideTOC;
-   int sysLongRemainderTOC;
-   //
-   //-#endif
+  // startup/shutdown
+  int sysWriteCharIP;    
+  int sysWriteIP;            
+  int sysWriteLongIP;
+  int sysExitIP;                     
+  int sysArgIP;
 
-   // time
-   int sysGetTimeOfDayIP;
+  // memory
+  int sysCopyIP;         
+  int sysFillIP;
+  int sysMallocIP;
+  int sysFreeIP;
+  int sysZeroIP;
+  int sysZeroPagesIP;
+  int sysSyncCacheIP;
 
-   // shared libraries
-   int sysDlopenIP;
-   int sysDlcloseIP;
-   int sysDlsymIP;
-   int sysSlibcleanIP;
+  // files
+  int sysStatIP;         
+  int sysListIP;
+  int sysOpenIP;                
+  int sysReadByteIP;            
+  int sysWriteByteIP;
+  int sysReadBytesIP;
+  int sysWriteBytesIP;
+  int sysSeekIP;
+  int sysCloseIP;
+  int sysDeleteIP;
+  int sysRenameIP;
+  int sysMkDirIP;
+  int sysBytesAvailableIP;
+  int sysSyncFileIP;
 
-   // network
-   public int sysNetLocalHostNameIP;
-   public int sysNetRemoteHostNameIP;
-   public int sysNetHostAddressesIP;
-   public int sysNetSocketCreateIP;
-   public int sysNetSocketPortIP;
-   public int sysNetSocketFamilyIP;
-   public int sysNetSocketLocalAddressIP;
-   public int sysNetSocketBindIP;
-   public int sysNetSocketConnectIP;
-   public int sysNetSocketListenIP;
-   public int sysNetSocketAcceptIP;
-   public int sysNetSocketLingerIP;
-   public int sysNetSocketNoDelayIP;
-   public int sysNetSocketNoBlockIP;
-   public int sysNetSocketCloseIP;
-   public int sysNetSelectIP;
+  // memory mapping
+  int sysMMapIP;
+  int sysMMapNonFileIP;
+  int sysMMapGeneralFileIP;
+  int sysMMapDemandZeroFixedIP;
+  int sysMMapDemandZeroAnyIP;
+  int sysMUnmapIP;
+  int sysMProtectIP;
+  int sysMSyncIP;
+  int sysMAdviseIP;
+  int sysGetPageSizeIP;
 
-   public int sysSprintfIP;
+  // threads
+  int sysNumProcessorsIP;
+  int sysVirtualProcessorCreateIP;
+  int sysVirtualProcessorBindIP;
+  int sysVirtualProcessorYieldIP;
+  int sysVirtualProcessorEnableTimeSlicingIP;
+  int sysPthreadSelfIP;
+  int sysPthreadSigWaitIP;
+  int sysPthreadSignalIP;
+  int sysPthreadExitIP;
+  int sysPthreadJoinIP;
 
-   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-   //-#else
-   // system startup pthread sync. primitives
-   public int sysInitializeStartupLocksIP;
-   public int sysWaitForVirtualProcessorInitializationIP;
-   public int sysWaitForMultithreadingStartIP;
-   //-#endif
-   }
+  //-#if RVM_WITH_OPT_COMPILER
+  //
+  // arithmetic (opt compiler)
+  int sysLongDivideIP;
+  int sysLongRemainderIP;
+  int sysLongDivideTOC;
+  int sysLongRemainderTOC;
+  //
+  //-#endif
+
+  // time
+  int sysGetTimeOfDayIP;
+
+  // shared libraries
+  int sysDlopenIP;
+  int sysDlcloseIP;
+  int sysDlsymIP;
+  int sysSlibcleanIP;
+
+  // network
+  public int sysNetLocalHostNameIP;
+  public int sysNetRemoteHostNameIP;
+  public int sysNetHostAddressesIP;
+  public int sysNetSocketCreateIP;
+  public int sysNetSocketPortIP;
+  public int sysNetSocketFamilyIP;
+  public int sysNetSocketLocalAddressIP;
+  public int sysNetSocketBindIP;
+  public int sysNetSocketConnectIP;
+  public int sysNetSocketListenIP;
+  public int sysNetSocketAcceptIP;
+  public int sysNetSocketLingerIP;
+  public int sysNetSocketNoDelayIP;
+  public int sysNetSocketNoBlockIP;
+  public int sysNetSocketCloseIP;
+  public int sysNetSelectIP;
+
+  public int sysSprintfIP;
+
+  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  //-#else
+  // system startup pthread sync. primitives
+  public int sysInitializeStartupLocksIP;
+  public int sysWaitForVirtualProcessorInitializationIP;
+  public int sysWaitForMultithreadingStartIP;
+  //-#endif
+}

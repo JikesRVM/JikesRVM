@@ -8,31 +8,37 @@ import java.util.Enumeration;
 
 /**
  * A class for managing various callbacks from the VM.
- * Consumers should register an implementation of the needed interface with
+ * 
+ * <p>Consumers should register an implementation of the needed interface with
  * a given callback method, and will get notified when the event happens.
- * Note: callback consumers should not rely on any particular order of
+ * 
+ * <p>Note: callback consumers should not rely on any particular order of
  * callback invocation.
- * TODO: allow limited control over callback order.
+ * 
+ * <p>TODO: allow limited control over callback order.
  *
+ * <p>
  * The following events are currently implemented.  See code for exact
  * invocation syntax.
- *      ClassLoaded       - called after a VM_Class is loaded
- *      ClassResolved     - called after a VM_Class is resolved
- *      ClassInstantiated - called after a VM_Class is instantiated
- *      ClassInitialized  - called after a VM_Class is initialized
- *      MethodOverride    - called when a method in a newly loaded class
+ * <ul>
+ * <li> ClassLoaded       - called after a VM_Class is loaded
+ * <li> ClassResolved     - called after a VM_Class is resolved
+ * <li> ClassInstantiated - called after a VM_Class is instantiated
+ * <li> ClassInitialized  - called after a VM_Class is initialized
+ * <li> MethodOverride    - called when a method in a newly loaded class
  *                          overrides a method in an existing class
- *      MethodCompile     - called before a method is compiled
- *      ForName           - called when java.lang.Class.forName() is invoked
- *      BootImageWriting  - called when boot image writing is started
- *      Startup           - called when the VM has completed booting
- *      Exit              - called when the VM is about to exit
- *      AppRunStart       - called before the application starts a run
+ * <li> MethodCompile     - called before a method is compiled
+ * <li> ForName           - called when java.lang.Class.forName() is invoked
+ * <li> BootImageWriting  - called when boot image writing is started
+ * <li> Startup           - called when the VM has completed booting
+ * <li> Exit              - called when the VM is about to exit
+ * <li> AppRunStart       - called before the application starts a run
  *                          (many applications have several runs -- needs
  *                          application support)
- *      AppRunComplete    - called after the application completes a run
+ * <li> AppRunComplete    - called after the application completes a run
  *                          (many applications have several runs --- needs
  *                          application support)
+ * </ul>
  *
  * @author Igor Pechtchanski
  */
