@@ -904,7 +904,8 @@ public class VM_Allocator
       else {
 	// if after a minor collection, the end of mature objects is too close to end of
 	// current mature space, must do a major collection
-	if ( fromHeap.usedMemory() + MAJOR_GC_DELTA > appelHeap.size / 2)
+	if ((variableNursery && (fromHeap.usedMemory() + MAJOR_GC_DELTA > appelHeap.size / 2)) ||
+	    (!variableNursery && (fromHeap.freeMemory() < MAJOR_GC_DELTA)))
 	    majorCollection = true;
       }
 
@@ -1116,7 +1117,7 @@ public class VM_Allocator
     if (mylocal.gcOrdinal == 1) finalizeTime.stop();
     }  //  end of Finalization Processing
 
-    if (mylocal.gcOrdinal == 1) finishTime.start();
+    if (mylocal.gcOrdinal == 1) 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
     //
@@ -1129,7 +1130,8 @@ public class VM_Allocator
       
       // set ending times for preceeding finalization phase
       // do here where a sync (below) will push value to memory
-      
+
+      finishTime.start();
       gc_finish();  // reset heap allocation area, reset GC locks, maybe zero nursery, etc
 
       if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "finished major collection");
