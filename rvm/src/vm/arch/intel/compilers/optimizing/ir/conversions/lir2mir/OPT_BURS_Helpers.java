@@ -566,11 +566,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // following two instructions put 'value' into IEEE mode.
     // The following two instructions could be commented out for
     // non-fp-strict mode.
-    burs.append(MIR_Move.create(IA32_FMOV, sl, value));
-    burs.append(MIR_Move.create(IA32_FMOV, value, sl));
+    burs.append(MIR_Move.create(IA32_FMOV, sl.copy(), value.copy()));
+    burs.append(MIR_Move.create(IA32_FMOV, value.copy(), sl.copy()));
     
     // FP0 := value
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value.copy()));
 
     // Move the JTOC into a register
     OPT_RegisterOperand PR = R(burs.ir.regpool.
@@ -578,10 +578,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocOffset, 
                                             DW, null, null);
     OPT_RegisterOperand jtocR = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, jtocR, jtoc));
+    burs.append(MIR_Move.create(IA32_MOV, jtocR.copyRO(), jtoc.copy()));
 
     // Convert FP0 to an integer (round-toward nearest) and store in sl
-    burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FIST, sl.copy(), D(getFPR(0))));
 
     // isPositive == 1 iff FP(0) > 0.0
     // isNegative == 1 iff FP(0) < 0.0
@@ -589,67 +589,74 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_RegisterOperand isNegative = burs.ir.regpool.makeTempInt();
     OPT_RegisterOperand dZero = burs.ir.regpool.makeTempDouble();
     OPT_RegisterOperand one = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, one, I(1)));
-    burs.append(MIR_Move.create(IA32_MOV, isPositive, I(0)));
-    burs.append(MIR_Move.create(IA32_MOV, isNegative, I(0)));
-    OPT_Operand M = OPT_MemoryOperand.BD(jtocR,
+    burs.append(MIR_Move.create(IA32_MOV, one.copy(), I(1)));
+    burs.append(MIR_Move.create(IA32_MOV, isPositive.copy(), I(0)));
+    burs.append(MIR_Move.create(IA32_MOV, isNegative.copy(), I(0)));
+    OPT_Operand M = OPT_MemoryOperand.BD(jtocR.copyRO(),
                                          VM_Entrypoints.zeroDoubleOffset, 
                                          QW, null, null);
-    burs.append(MIR_Move.create(IA32_FMOV, dZero, M));
+    burs.append(MIR_Move.create(IA32_FMOV, dZero.copy(), M));
     burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), dZero.copy()));
-    burs.append(MIR_CondMove.create(IA32_CMOV, isPositive, one.copy(),
+    burs.append(MIR_CondMove.create(IA32_CMOV, isPositive.copy(), one.copy(),
                                     OPT_IA32ConditionOperand.LGT()));
-    burs.append(MIR_CondMove.create(IA32_CMOV, isNegative, one.copy(),
+    burs.append(MIR_CondMove.create(IA32_CMOV, isNegative.copy(), one.copy(),
                                     OPT_IA32ConditionOperand.LLT()));
     // push round(x) into FP(0).
-    burs.append(MIR_Move.create(IA32_FILD, D(getFPR(0)), sl));
+    burs.append(MIR_Move.create(IA32_FILD, D(getFPR(0)), sl.copy()));
     // addee == 1 iff round(x) < x
     // subtractee == 1 iff round(x) > x
     burs.append(MIR_Compare.create(IA32_FCOMIP, D(getFPR(0)),
                                    D(getFPR(1))));
     OPT_RegisterOperand addee = burs.ir.regpool.makeTempInt();
     OPT_RegisterOperand subtractee = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, addee , I(0)));
-    burs.append(MIR_Move.create(IA32_MOV, subtractee , I(0)));
-    burs.append(MIR_CondMove.create(IA32_CMOV, addee, one.copy(),
+    burs.append(MIR_Move.create(IA32_MOV, addee.copy() , I(0)));
+    burs.append(MIR_Move.create(IA32_MOV, subtractee.copy() , I(0)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, addee.copy(), one.copy(),
                                     OPT_IA32ConditionOperand.LLT()));
-    burs.append(MIR_CondMove.create(IA32_CMOV, subtractee, one.copy(),
+    burs.append(MIR_CondMove.create(IA32_CMOV, subtractee.copy(), one.copy(),
                                     OPT_IA32ConditionOperand.LGT()));
     // result := sl
-    burs.append(MIR_Move.create(IA32_MOV, result, sl)); 
+    burs.append(MIR_Move.create(IA32_MOV, result.copy(), sl.copy())); 
     
     // Now a little tricky part.
     // We will add 1 iff isNegative and x > round(x)
     // We will subtract 1 iff isPositive and x < round(x)
-    burs.append(MIR_BinaryAcc.create(IA32_AND, addee, isNegative)); 
-    burs.append(MIR_BinaryAcc.create(IA32_AND, subtractee, isPositive)); 
-    burs.append(MIR_BinaryAcc.create(IA32_ADD, result, addee)); 
-    burs.append(MIR_BinaryAcc.create(IA32_SUB, result, subtractee)); 
+    burs.append(MIR_BinaryAcc.create(IA32_AND, addee.copy(),
+                                     isNegative.copy())); 
+    burs.append(MIR_BinaryAcc.create(IA32_AND, subtractee.copy(),
+                                     isPositive.copy())); 
+    burs.append(MIR_BinaryAcc.create(IA32_ADD, result.copy(), addee.copy())); 
+    burs.append(MIR_BinaryAcc.create(IA32_SUB, result.copy(),
+                                     subtractee.copy())); 
 
     // Compare FP0 with (double)Integer.MAX_VALUE
-    M = OPT_MemoryOperand.BD(jtocR, VM_Entrypoints.maxintOffset, QW, 
+    M = OPT_MemoryOperand.BD(jtocR.copyRO(), VM_Entrypoints.maxintOffset, QW, 
                              null, null);
     OPT_RegisterOperand fMaxInt = burs.ir.regpool.makeTempDouble();
-    burs.append(MIR_Move.create(IA32_FMOV, fMaxInt, M));
-    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), fMaxInt));
+    burs.append(MIR_Move.create(IA32_FMOV, fMaxInt.copy(), M));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)),
+                                   fMaxInt.copy()));
 
     // If FP0 >= MAX_VALUE, then result := MAX_INT
     OPT_RegisterOperand rMaxInt = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, rMaxInt, I(Integer.MAX_VALUE)));
-    burs.append(MIR_CondMove.create(IA32_CMOV, result, rMaxInt,
+    burs.append(MIR_Move.create(IA32_MOV, rMaxInt.copy(), I(Integer.MAX_VALUE)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(),
+                                    rMaxInt.copy(),
                                     OPT_IA32ConditionOperand.LGE()));
     
     // Compare FP0 with (double)Integer.MIN_VALUE
-    M = OPT_MemoryOperand.BD(jtocR, VM_Entrypoints.minintOffset, QW, 
+    M = OPT_MemoryOperand.BD(jtocR.copyRO(), VM_Entrypoints.minintOffset, QW, 
                              null, null);
     OPT_RegisterOperand fMinInt = burs.ir.regpool.makeTempDouble();
-    burs.append(MIR_Move.create(IA32_FMOV, fMinInt, M));
-    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), fMinInt));
+    burs.append(MIR_Move.create(IA32_FMOV, fMinInt.copy(), M.copy()));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)),
+                                   fMinInt.copy()));
     
     // If FP0 <= MIN_VALUE, then result := MIN_INT
     OPT_RegisterOperand rMinInt = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, rMinInt, I(Integer.MIN_VALUE)));
-    burs.append(MIR_CondMove.create(IA32_CMOV, result, rMinInt,
+    burs.append(MIR_Move.create(IA32_MOV, rMinInt.copy(), I(Integer.MIN_VALUE)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(),
+                                    rMinInt.copy(),
                                     OPT_IA32ConditionOperand.LLE()));
     
     // Set condition flags: set PE iff FP0 is a Nan
@@ -657,7 +664,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // If FP0 was classified as a NaN, then result := 0
     OPT_RegisterOperand zero = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, zero, I(0)));
-    burs.append(MIR_CondMove.create(IA32_CMOV, result, zero,
+    burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(), zero.copy(),
                                   OPT_IA32ConditionOperand.PE()));
 
   }
