@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
