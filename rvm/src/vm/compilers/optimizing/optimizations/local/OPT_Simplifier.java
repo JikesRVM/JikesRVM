@@ -185,23 +185,74 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	if (ref.isNullConstant()) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
+	} else if (ref.isStringConstant()) {
+	  s.operator = CHECKCAST_NOTNULL;
+	  return simplify(s);
 	} else {
-	  VM_Type rType = ref.getType();
-	  OPT_TypeOperand op1 = TypeCheck.getType(s);
-	  if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	  VM_Type lhsType = TypeCheck.getType(s).type;
+	  VM_Type rhsType = ref.getType();
+	  byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	  if (ans == OPT_Constants.YES) {
 	    Empty.mutate(s, NOP);
 	    return REDUCED;
 	  }
+	  // NOTE: OPT_Constants.NO can't help us because (T)null always succeeds
 	}
       }
       return UNCHANGED;
     case CHECKCAST_NOTNULL_opcode:
       { 
-	VM_Type rType = TypeCheck.getRef(s).getType();
-	OPT_TypeOperand op1 = TypeCheck.getType(s);
-	if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	OPT_Operand ref = TypeCheck.getRef(s);
+	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	if (ans == OPT_Constants.YES) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
+	} else if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+		   rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.CheckCast());
+	  return TRAP_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case INSTANCEOF_opcode:
+      {
+	OPT_Operand ref = InstanceOf.getRef(s);
+	if (ref.isNullConstant()) {
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
+	} else if (ref.isStringConstant()) {
+	  s.operator = INSTANCEOF_NOTNULL;
+	  return simplify(s);
+	}
+	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	// NOTE: OPT_Constants.YES doesn't help because ref may be null and null instanceof T is false
+	if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+	    rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
+	}
+      }
+      return UNCHANGED;
+    case INSTANCEOF_NOTNULL_opcode:
+      {
+	OPT_Operand ref = InstanceOf.getRef(s);
+	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type rhsType = ref.getType();
+	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+	if (ans == OPT_Constants.YES) {
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(1));
+	  return MOVE_FOLDED;
+	} else if (ans == OPT_Constants.NO && rhsType.isResolved() && 
+		   rhsType.isClassType() && rhsType.asClass().isFinal()) {
+	  // only final (or precise) rhs types can be optimized since rhsType may be conservative
+	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
+	  return MOVE_FOLDED;
 	}
       }
       return UNCHANGED;
