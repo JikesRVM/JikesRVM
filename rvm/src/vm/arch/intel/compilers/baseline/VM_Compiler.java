@@ -72,6 +72,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit the code to implement the spcified magic.
+   * @param body        method magic occurred in
    * @param magicMethod desired magic
    */
   protected final boolean emit_Magic(VM_MethodReference magicMethod) {
@@ -377,6 +378,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to an int array
    */
   protected final void emit_iastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -389,6 +391,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a long array
    */
   protected final void emit_lastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -403,6 +406,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -415,6 +419,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a double array
    */
   protected final void emit_dastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -429,6 +434,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a reference array
    */
   protected final void emit_aastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
     asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
     genParameterRegisterLoad(2);                     // pass 2 parameter
@@ -449,6 +455,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a byte/boolean array
    */
   protected final void emit_bastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -461,6 +468,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a char array
    */
   protected final void emit_castore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -473,6 +481,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a short array
    */
   protected final void emit_sastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -1937,6 +1946,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement a getfield
+   * @param method   the method this bytecode is in
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
@@ -1985,12 +1995,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   }
 
+
   /**
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
+    VM_Barriers.compileModifyCheck(asm, 4);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
@@ -2215,6 +2227,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to allocate a scalar object
+   * @param method  the method this bytecode is compiled in
    * @param typeRef the VM_Class to instantiate
    */
   protected final void emit_resolved_new(VM_Class typeRef) {
@@ -2249,7 +2262,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array);
+    int whichAllocator = VM_Interface.pickAllocator(array, method);
     // count is already on stack- nothing required
     asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
     asm.emitSHL_Reg_Imm (T0, width);              // compute array size
@@ -3336,7 +3349,46 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
       return true;
     }
-    
+
+    if (methodName == VM_MagicNames.addressArrayCreate) {
+	// Do NOT call an auxiliary method for that will obscure the true calling site
+	//   and confound the pickAllocator method's logic
+	//-#if RVM_FOR_32_ADDR
+	VM_Array arrayType = VM_Array.IntArray;
+	//-#elif RVM_FOR_64_ADDR
+	VM_Array arrayType = VM_Array.LongArray;
+	//-#endif
+	emit_resolved_newarray(arrayType);
+	return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArrayLength) {
+	emit_arraylength();  // argument order already correct
+	return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArrayGet) {
+	//-#if RVM_FOR_32_ADDR
+	emit_iaload();   
+	//-#elif RVM_FOR_64_ADDR
+	emit_laload();
+	//-#else
+	VM._assert(NOT_REACHED);
+	//-#endif
+	return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArraySet) {
+	//-#if RVM_FOR_32_ADDR
+	emit_iastore();  
+	//-#elif RVM_FOR_64_ADDR
+	VM._assert(false);  // not implemented
+	//-#else
+	VM._assert(NOT_REACHED);
+	//-#endif
+	return true;
+    }
+
     if (methodName == VM_MagicNames.getMemoryInt ||
 	methodName == VM_MagicNames.getMemoryWord ||
 	methodName == VM_MagicNames.getMemoryAddress) {
