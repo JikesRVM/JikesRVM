@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.VM;
+
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley
@@ -28,13 +30,11 @@ public class OPT_LinkedList {
    * append at the end of the list
    */
   final public void append(OPT_LinkedListElement e) {
-    if (e == null)
-      return;
-    OPT_LinkedListElement End = end;
-    if (End != null) {
-      End.insertAfter(e);
-    } 
-    else {      // empty list
+    if (e == null) return;
+    if (end != null) {
+      end.insertAfter(e);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(start == null); // empty list!
       start = e;
     }
     end = e;
@@ -44,11 +44,10 @@ public class OPT_LinkedList {
    * insert at the start of the list
    */
   final public void prepend(OPT_LinkedListElement e) {
-    OPT_LinkedListElement Start = start;
-    if (Start != null) {
-      e.next = Start;
-    } 
-    else {      // empty list
+    if (start != null) {
+      e.next = start;
+    } else {      // empty list
+      if (VM.VerifyAssertions) VM._assert(end == null); // empty list!
       end = e;
     }
     // in either case, e is the first node on the list
@@ -61,7 +60,7 @@ public class OPT_LinkedList {
   final public void removeNext(OPT_LinkedListElement e) {
     // update end if needed
     if (end == e.getNext())
-      end = null;
+      end = e;
     // remove the element
     e.next = e.getNext().getNext();
   }
@@ -99,6 +98,7 @@ public class OPT_LinkedList {
     result.next = null;
     return  result;
   }
+
   private OPT_LinkedListElement start;
   private OPT_LinkedListElement end;
 }
