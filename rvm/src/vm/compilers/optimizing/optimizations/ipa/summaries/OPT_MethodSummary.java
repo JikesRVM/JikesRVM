@@ -20,7 +20,7 @@ public class OPT_MethodSummary {
   // Top bit is result, bits 0..63 are for parameters 0..63 respectively
   // The default value encodes that the result escapes but that no parameter is escaping.
   private static final long RES_ESCAPE = 0x80000000; 
-  private long summary = RES_ESCAPE;
+  private long escapeInfo = RES_ESCAPE;
 
   /**
    * @param m VM_Method representing this method.
@@ -37,9 +37,9 @@ public class OPT_MethodSummary {
     if (p > 62) return; // all params past 62 escape!
     long mask = 1L << p;
     if (b) {
-      summary |= mask;
+      escapeInfo |= mask;
     } else {
-      summary &= (~mask);
+      escapeInfo &= (~mask);
     }
   }
 
@@ -52,7 +52,7 @@ public class OPT_MethodSummary {
   public boolean parameterMayEscapeThread (int p) {
     if (p > 62) return true; // all params past 62 escape!
     long mask = 1L << p;
-    return (summary & mask) != 0;
+    return (escapeInfo & mask) != 0;
   }
 
   /**
@@ -62,9 +62,9 @@ public class OPT_MethodSummary {
    */
   public void setResultMayEscapeThread (boolean b) {
     if (b) {
-      summary |= RES_ESCAPE;
+      escapeInfo |= RES_ESCAPE;
     } else {
-      summary &= ~RES_ESCAPE;
+      escapeInfo &= ~RES_ESCAPE;
     }
   }
 
@@ -74,7 +74,7 @@ public class OPT_MethodSummary {
    * thread. true otherwise.
    */
   public boolean resultMayEscapeThread () {
-    return (summary & RES_ESCAPE) != 0L;
+    return (escapeInfo & RES_ESCAPE) != 0L;
   }
 
   /**
