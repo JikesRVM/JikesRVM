@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.classloader.*;
@@ -29,6 +28,8 @@ import com.ibm.JikesRVM.VM_Synchronizer;
 import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Statistic;
 import com.ibm.JikesRVM.VM_TimeStatistic;
+
+import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 
 /**
  * Contains common statistic, profiling, and debugging code
