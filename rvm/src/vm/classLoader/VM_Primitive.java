@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -86,8 +86,12 @@ public final class VM_Primitive extends VM_Type
       return VM_SystemClassLoader.getVMClassLoader();
   }
 
+  public final void setClassLoader(ClassLoader cl) {
+    throw new InternalError("Cannot set a primitive's ClassLoader!");
+  }
+
   //----------------//
-  // Implementation //
+  // implementation //
   //----------------//
    
   private VM_Atom name;

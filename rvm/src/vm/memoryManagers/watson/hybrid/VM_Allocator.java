@@ -313,7 +313,7 @@ public class VM_Allocator extends VM_GCStatistics
 
   static int verbose = 0;
 
-  private static final boolean GC_CHECKWRITEBUFFER = false;   // buffer entries during gc
+  private static final boolean GC_CHECKWRITEBUFFER = true;   // buffer entries during gc
 
   private static volatile boolean initGCDone = false;
 
@@ -434,7 +434,6 @@ public class VM_Allocator extends VM_GCStatistics
 
     if (VM_GCLocks.testAndSetInitLock()) {
       // BEGIN SINGLE GC THREAD SECTION - GC INITIALIZATION
-       
       startTime.start(VM_CollectorThread.gcBarrier.rendezvousStartTime); 
       initTime.start(startTime);
       minorGCTime.start(initTime.lastStart);
@@ -1089,6 +1088,7 @@ public class VM_Allocator extends VM_GCStatistics
   // Argument is a modified old object which needs to be scanned
   //
   static void processWriteBufferEntry (VM_Address ref) throws VM_PragmaUninterruptible {
+      if (ref == VM_Magic.objectAsAddress( com.ibm.JikesRVM.VM_AtomDictionary.getChainsPointer() )) VM.sysWriteln("found dictionary in write barrier");
       VM_ScanObject.scanObjectOrArray(ref);
   }
         

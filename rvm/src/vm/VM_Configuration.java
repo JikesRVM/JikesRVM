@@ -211,11 +211,11 @@ public abstract class VM_Configuration {
   // new pThreads to run the old virtual processors.
   //
   public static final boolean BuildWithNativeDaemonProcessor = 
-	//-#if RVM_WITHOUT_NATIVE_DAEMON_PROCESSOR
-	  false;
-	//-#else
+	//-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
 	  !BuildForSingleVirtualProcessor
 	    && !BuildForConcurrentGC;
+	//-#else
+	  false;
 	//-#endif
 
   // The following configuration objects are final when disabled, but

@@ -3,6 +3,7 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * Abstract class for the internal and external 
  * implementation of OsProcess
@@ -23,7 +24,9 @@ import com.ibm.JikesRVM.*;
 
 import java.io.*;
 
-abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
+import java.lang.reflect.*;
+
+public abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
   //*********************************************************************************
   // These will be native in the external implementation
@@ -188,7 +191,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
   /**
    * to access the process memory
    */
-  memory mem;       
+  memory mem;
 
   /**
    * access for the process registers
@@ -197,8 +200,10 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
   /**
    * map from mem address to boot image bytecode, methods, ...
+   * NOTE: Made this public b/c it's accessed while in the interpreter
+   * NOTE: and the interpreter sucks.
    */
-  BootMap bmap;     
+  public BootMap bmap;
 
   /**
    * global breakpoints
@@ -234,7 +239,10 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    */
   int lastSignal[]; 
   
-
+  /**
+   * debugger using this process
+   */
+  private final Debugger debugger;
 
   /**
    * Constructor for the external version
@@ -256,14 +264,18 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * @exception
    * @see
    */
-  public OsProcess(String ProgramName, String args[], 
-		   String mainClass, String classesNeededFilename, String classpath) {
-
+  public OsProcess(String ProgramName, 
+		   String args[], 
+		   String mainClass, 
+		   String classesNeededFilename, 
+		   String classpath,
+		   Debugger debugger) {
+    this.debugger = debugger;
     createDebugProcess(ProgramName, args);
     lastSignal = new int[1];                     // TODO:  multithreaded
     lastSignal[0] = 0;                           // 0 for no signal
     if (args.length>1) {
-      bmap = loadMap(mainClass, classesNeededFilename, classpath);
+      bmap = loadMap(mainClass, classesNeededFilename, classpath, debugger);
     }
     verbose = false;
   }
@@ -274,19 +286,25 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * we are expecting a C program that would load the JVM boot image
    * so the first argument arg[1] is assumed to be the name of the JVM boot image
    */
-  private BootMap loadMap(String mainClass, String classesNeededFilename, String classpath) {
+  private BootMap loadMap(String mainClass, 
+			  String classesNeededFilename, 
+			  String classpath,
+			  Debugger debugger) {
 
     try { 
-      return new BootMapExternal(this, mainClass, 
-				 classesNeededFilename, classpath); 
+      return new BootMapExternal(this, 
+				 mainClass, 
+				 classesNeededFilename, 
+				 classpath,
+				 debugger); 
     } catch (BootMapCorruptException bme) {   
       System.out.println(bme); bme.printStackTrace();
       System.out.println("ERROR: corrupted method map");
-      return new BootMapExternal(this);                        // create a dummy boot map
+      return new BootMapExternal(this, debugger);                        // create a dummy boot map
     } catch (Exception e) { 
       System.out.println(e); e.printStackTrace();
       System.out.println("ERROR: something wrong with method map :) ");
-      return new BootMapExternal(this);                        // create a dummy boot map
+      return new BootMapExternal(this, debugger);                        // create a dummy boot map
     }
 
   }
@@ -309,14 +327,16 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * @see
    */
   public OsProcess (int processID, String mainClass, 
-		    String classesNeededFilename, String classpath) throws OsProcessException 
+		    String classesNeededFilename, String classpath, 
+		    Debugger debugger) throws OsProcessException 
   {
+    this.debugger = debugger;
     int pid = attachDebugProcess(processID);
     if (pid==-1)
       throw new OsProcessException("Fail to attach to process");
     lastSignal = new int[1];                     // TODO:  multithreaded
     lastSignal[0] = 0;                           // 0 for no signal
-    bmap = loadMap(mainClass, classesNeededFilename, classpath);
+    bmap = loadMap(mainClass, classesNeededFilename, classpath, debugger);
     verbose = false;
   }
 
@@ -498,6 +518,15 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * @see
    */
   private boolean continueCheckingForSignal(int thread, int printMode, boolean allThreads) {
+
+    boolean debug = false;
+
+    if (debug) {
+      System.out.println("*** continueCheckingForSignal thread="+ thread + " ***");
+      System.out.println("*** continueCheckingForSignal printMode="+ printMode + " ***");
+      System.out.println("*** continueCheckingForSignal allThreads="+ allThreads + " ***");
+    }
+
     // continue by single thread not supported yet
     // if (allThreads) {
     if (lastSignal[thread]==0)          // do we have a signal pending in the debugger?
@@ -519,6 +548,9 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     // 
     // }
 
+    if (debug) System.out.println("*** continueCheckingForSignal waiting... (start) ***");
+    if (debug) printCurrentStatus(printMode);
+
     try { 
       pwait(allThreads);                          // wait for debuggee to return
       // printCurrentStatus(printMode);
@@ -535,9 +567,18 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 	// If you want to reinstate this line see powerPC version
 	// printCurrentStatus(printMode);	
       }
+    } finally {
+      if (debug) System.out.println("*** continueCheckingForSignal waiting...  (done) ***");
     }
-
+    
     return true;
+  }
+
+  /**
+   * Prints current status using it's current print mode
+   */
+  final void printCurrentStatus() {
+    printCurrentStatus(PRINTASSEMBLY);
   }
 
   
@@ -636,8 +677,9 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     boolean skipBP=false;
     int status =  mwait();
 
-    while (isIgnoredTrap(status) || (skipBP=isLibraryLoadedTrap(status)) ||
-           isIgnoredOtherBreakpointTrap(status)) {
+    while (isIgnoredTrap(status)                 || 
+	   (skipBP=isLibraryLoadedTrap(status))  ||
+           isIgnoredOtherBreakpointTrap(status))  {
 
       if (skipBP)
 	status = 0;     // reset status so the process continue normally without the signal
@@ -648,13 +690,21 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       // mcontinueThread(status);
       status =  mwait();
     }
-     
+    
     if (isBreakpointTrap(status)) {
+
       // recompute breakpoint list, some code may have moved
       bpset.relocateBreakpoint();
+      
+      addr = reg.hardwareIP();
+
+      // Tell the debugger we're at a breakpoint if that breakpoint
+      // is one set by the user
+      if (bpset.doesBreakpointExist(addr)) {
+	debugger.handleBreakpoint(bpset.lookup(addr));
+      }
 
       // check jdp list of breakpoints to see if it's our own
-      addr = reg.hardwareIP();
       if (bpset.doesBreakpointExist(addr) || 
 	  threadstep.doesBreakpointExist(addr) ||
 	  threadstepLine.doesBreakpointExist(addr) ) {
@@ -758,7 +808,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       if (isExit(e.status)) 
 	System.out.println("Program has exited.");
       else if (isKilled(e.status))
-	System.out.println("Program terminated by user.");
+	System.out.println(System.currentTimeMillis() + ": Program terminated by user.");
       //else
       //System.out.println("Unexpected signal: " + statusMessage(e.status));
     }
@@ -855,6 +905,34 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     } 
   }
 
+  public VM_Thread[] allThreads() throws Exception {
+    try {
+      VM_Field field = bmap.findVMField("VM_Scheduler", "threads");   // get the thread array
+      int address = mem.readTOC(field.getOffset());           // we know it's a static field
+      int arraySize = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
+      
+      // first find the size
+      VM_Field numThreadsField = bmap.findVMField("VM_Scheduler", "numActiveThreads");
+      int numThreadsAddress = mem.addressTOC(numThreadsField.getOffset());
+      //System.out.println("numThreadsAddress = " + numThreadsAddress);
+
+      //int numThreads = mem.readsafe(numThreadsAddress) + 1;
+      int numThreads = numThreadsField.getIntValue(null);
+      //System.out.println("numThreads = " + numThreads);
+      // get the pointer values
+      VM_Thread[] threadArray = new VM_Thread[numThreads];
+      // This probably sucks
+      for (int i = 0; i < numThreads; i++) {
+	VM_Thread thread = (VM_Thread)Array.get(field, i);
+	threadArray[i] = thread;
+      }
+
+      return threadArray;
+    } catch (BmapNotFoundException e) {
+      throw new Exception("cannot find VM_Scheduler.threads, has VM_Scheduler.java been changed?");
+    }
+  }
+
 
 
   /**
@@ -938,6 +1016,48 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
   }
 
   /**
+   * Returns a pointer to the current active thread.
+   * @return a pointer to the current active thread.
+   */
+  public int activeThread() {
+    return reg.hardwareTP();
+  }
+  
+  /**
+   * Find the name of a thread
+   * @return then name of the thread pointer to by <code>threadPointer</code>
+   */
+  public String threadName(int threadPointer) {
+    try {
+      return bmap.addressToClassString(threadPointer).substring(1);
+    } catch (Exception e) {
+      e.printStackTrace(); //TODO
+    }
+    return threadToString(threadPointer);
+  }
+
+  public boolean isRunningThread(int threadPointer) {
+    return threadPointer == activeThread();
+  }
+
+  public int threadPriority(int threadPointer) {
+    if (threadPointer == 0) {
+      throw new NullPointerException("Invalid thread pointer @" + Integer.toHexString(threadPointer));
+    }
+    try {
+      VM_Field field = bmap.findVMField("VM_Thread", "priority");
+      int priority = mem.read(threadPointer + field.getOffset());
+      return priority;
+    } catch (Exception e) {
+      System.err.println("Trouble reading thread @" + Integer.toHexString(threadPointer));
+      e.printStackTrace(); //TODO
+    }
+    return -1;
+  }
+
+
+
+  /**
    * 
    * @return  
    * @exception
@@ -962,7 +1082,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 	result += "  -- -----------  -----------------\n";
       }
 
-      int activeThread = reg.hardwareTP();    
+      int activeThread = activeThread();
 
       // for each thread, get its status and marked it as active or running
       for (int i=0; i<allThreads.length; i++) {

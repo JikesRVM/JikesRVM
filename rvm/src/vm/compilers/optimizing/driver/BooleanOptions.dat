@@ -303,3 +303,5 @@ Enable debugging support for ABCD (Array Bound Check elimination on Demand)
 PRINT_MC_SIZE -1 false
 Report generated machine code size
 
+SKIP_UNKNOWN_MAGIC -1 false
+Skip generation of unknown magic calls

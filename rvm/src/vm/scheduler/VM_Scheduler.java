@@ -1,13 +1,18 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
+//-#endif
+
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
 //-#endif
 
 /**
@@ -146,11 +151,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   }
 
   // Begin multi-threaded vm operation.
-  // Taken:    main thread to be run
+  // Taken:    arguments to pass to application's main() method
   //           VM_Scheduler.numProcessors == number of virtual processors desired
   // Returned: never returns (virtual processors begin running)
   //
-  static void boot (VM_Thread mainThread) throws VM_PragmaInterruptible {
+  static void boot (String[] applicationArguments) throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
@@ -215,49 +220,27 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     deadVPQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
     availableProcessorQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
 
-    // Create one collector thread and one idle thread per processor.
-    //
     VM_CollectorThread.boot(numProcessors);
-    for (int i = 0; i < numProcessors; ++i) {
-      VM_Thread t;
-      t = VM_CollectorThread.createActiveCollectorThread(processors[1+i]);
-      t.start(processors[1+i].readyQueue);
 
-      t = new VM_IdleThread(processors[1+i]);
+    // Create one one idle thread per processor.
+    //
+    for (int i = 0; i < numProcessors; ++i) {
+      VM_Thread t = new VM_IdleThread(processors[1+i]);
       t.start(processors[1+i].idleQueue);
     }
 
-    VM_Thread t;
-
     if (VM.BuildWithNativeDaemonProcessor) {
-      // Create one collector thread and one idle thread for the NATIVEDAEMON processor
-      t = VM_CollectorThread.createActiveCollectorThread(processors[nativeDPndx]);
-      t.start(processors[nativeDPndx].readyQueue);
-      t = new VM_IdleThread(processors[nativeDPndx]);
+      // Create one idle thread for the NATIVEDAEMON processor
+      VM_Thread t = new VM_IdleThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].idleQueue);
       // create the NativeDaemonThread that runs on the NativeDaemonProcessor
       t = new VM_NativeDaemonThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].readyQueue);
     }
-    // Create one debugger thread.
-    //
-
-    t = new DebuggerThread();
-    t.start(debuggerQueue);
 
     // JNI support
     attachThreadRequested = VM_Address.zero();
     terminated = false;         
-
-    // Schedule "main" thread for execution.
-    //
-    mainThread.start();
-
-    // Create the FinalizerThread
-    //
-    FinalizerThread tt = new FinalizerThread();
-    tt.makeDaemon(true);
-    tt.start();
 
     // the one we're running on
     processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; 
@@ -266,7 +249,14 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
 
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else 
+    //-#else
+    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS 
+    //-#else
+    // Create thread-specific data key which will allow us to find
+    // the correct VM_Processor from an arbitrary pthread.
+    VM.sysCreateThreadSpecificDataKeys();
+    //-#endif
+
     if (VM.BuildWithNativeDaemonProcessor)
       VM.sysInitializeStartupLocks( numProcessors + 1 );
     else
@@ -363,6 +353,71 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //-#else
     VM.sysWaitForMultithreadingStart();
     //-#endif
+
+    // Start collector threads on each VM_Processor.
+    for (int i = 0; i < numProcessors; ++i) {
+      VM_Thread t = VM_CollectorThread.createActiveCollectorThread(processors[1+i]);
+      t.start(processors[1+i].readyQueue);
+    }
+
+    // Start the G.C. system.
+
+    // Start collector thread for native daemon processor (if configured).
+    if (VM.BuildWithNativeDaemonProcessor) {
+      VM_Thread t = VM_CollectorThread.createActiveCollectorThread(processors[nativeDPndx]);
+      t.start(processors[nativeDPndx].readyQueue);
+    }
+
+    // Create the FinalizerThread
+    FinalizerThread tt = new FinalizerThread();
+    tt.makeDaemon(true);
+    tt.start();
+
+    // start user-level and debugging stuff
+    finishBoot(applicationArguments);
+  }
+
+    // NOTE: finishBoot is NOT uninterruptable
+  private static void finishBoot(String[] applicationArguments) {
+
+    VM_Thread.getCurrentThread().initializeJNIEnv();
+
+    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+    //-#else
+    // Store VM_Processor in pthread
+    VM_Processor.getCurrentProcessor().stashProcessorInPthread();
+    //-#endif
+
+    // Initialize compiler that compiles dynamically loaded classes.
+    //
+    if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
+    VM_RuntimeCompiler.boot();
+
+    // At this point, all of the virtual processors should be running,
+    // and thread switching should be enabled.
+
+    if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
+
+    // Create main and debugger threads.
+    // We wait until this point to create them because these threads
+    // trigger class loading, and our IO system is happier if
+    // IO happens when thread switching is enabled (and it can thus
+    // make use of the IO queue).
+
+    // Create main thread.
+    // Work around class incompatibilities in boot image writer
+    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
+    if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
+    Thread      xx         = new MainThread(applicationArguments);
+    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
+    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
+
+    // Schedule "main" thread for execution.
+    mainThread.start();
+
+    // Create one debugger thread.
+    VM_Thread t = new DebuggerThread();
+    t.start(debuggerQueue);
 
     // End of boot thread. Relinquish control to next job on work queue.
     //
@@ -824,6 +879,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * one (0) will notify the blocked thread.
    */
   public static int toSyncProcessors;
+
   /* synchronize object 
    */
   public static Object syncObj = null;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 
 // $Id$
@@ -217,6 +217,7 @@ public class VM_BootRecord {
   public int sysStatIP;         
   public int sysListIP;
   public int sysOpenIP;                
+  public int sysUtimeIP;                
   public int sysReadByteIP;            
   public int sysWriteByteIP;
   public int sysReadBytesIP;
@@ -228,6 +229,8 @@ public class VM_BootRecord {
   public int sysMkDirIP;
   public int sysBytesAvailableIP;
   public int sysSyncFileIP;
+  public int sysIsTTYIP;
+  public int sysSetFdCloseOnExecIP;
 
   // shm* - memory mapping
   public int sysShmgetIP;
@@ -258,6 +261,10 @@ public class VM_BootRecord {
   public int sysPthreadSignalIP;
   public int sysPthreadExitIP;
   public int sysPthreadJoinIP;
+  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  //-#else
+  public int sysStashVmProcessorIdInPthreadIP;
+  //-#endif
 
   // arithmetic 
   int sysLongDivideIP;
@@ -297,13 +304,21 @@ public class VM_BootRecord {
   public int sysNetSocketNoDelayIP;
   public int sysNetSocketNoBlockIP;
   public int sysNetSocketCloseIP;
+  public int sysNetSocketShutdownIP;
   public int sysNetSelectIP;
+
+  // process management
+  public int sysWaitPidsIP;
 
   public int sysSprintfIP;
 
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   //-#else
   // system startup pthread sync. primitives
+  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  //-#else
+  public int sysCreateThreadSpecificDataKeysIP;
+  //-#endif
   public int sysInitializeStartupLocksIP;
   public int sysWaitForVirtualProcessorInitializationIP;
   public int sysWaitForMultithreadingStartIP;

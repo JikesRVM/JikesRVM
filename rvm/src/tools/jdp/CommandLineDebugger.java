@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * This class is the command line front end to the jdp
  * debugger.  
@@ -12,6 +13,8 @@ import com.ibm.JikesRVM.*;
  * @author Manu Sridharan
  * 
  */
+
+import java.util.Map;
 
 public class CommandLineDebugger
 {
@@ -68,6 +71,13 @@ public class CommandLineDebugger
   }
 
   /**
+   * Invokes listen on the debugger.
+   */
+  public void listen(String address) { 
+    debugger.setAddress(address); 
+  }
+
+  /**
    * Initialize the debugger and execute user commands
    * <p>
    * BootImageWriter.  A process is created to execute the debuggee program.
@@ -102,6 +112,9 @@ public class CommandLineDebugger
 
     while (!quit)
     {
+
+      if (Debugger.debug) System.err.println("*** CommandLoop ***");
+
       quit = debugger.runCommand();
       // if the process has exited, clean up
       if (debugger.checkCleanup())

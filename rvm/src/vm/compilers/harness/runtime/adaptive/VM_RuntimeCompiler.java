@@ -4,7 +4,10 @@
 // $Id$
 package com.ibm.JikesRVM.adaptive;
 
+import java.util.*;
+
 import com.ibm.JikesRVM.opt.*;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BaselineCompiler;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -34,12 +37,17 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     // Currently, the baseline compiler does not have a boot method
     VM_RuntimeOptCompilerInfrastructure.boot(); 
 
+    // boot() has set compilerEnabled to true
+    Iterator i = earlyArgs.iterator();
+    while (i.hasNext()) processCommandLineArg( (String) i.next() );
   }
   
   public static void initializeMeasureCompilation() {
     VM_RuntimeOptCompilerInfrastructure.initializeMeasureCompilation(); 
   }
   
+  private static final HashSet earlyArgs = new HashSet(5);
+
   public static void processCommandLineArg(String arg) {
     if (VM_Controller.options !=null  && VM_Controller.options.optOnly()) {
       if (compilerEnabled) {
@@ -52,8 +60,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  VM.sysExit(-1);
 	}
       } else {
-	VM.sysWrite("VM_RuntimeCompiler: Compiler not enabled; unable to process command line argument: "+arg+"\n");
-	VM.sysExit(-1);
+	  earlyArgs.add( arg );
       }
     } else {
       VM_BaselineCompiler.processCommandLineArg("-X:aos:irc", arg);

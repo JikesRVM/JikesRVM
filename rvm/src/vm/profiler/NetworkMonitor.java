@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @date 10 Nov 1999 
  */
-class NetworkMonitor extends VM_Thread
+class NetworkMonitor extends Thread
    {
    // Invoked by VM_Debugger.
    //

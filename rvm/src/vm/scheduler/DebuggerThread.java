@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -56,13 +56,14 @@ class DebuggerThread extends VM_Thread {
       return;
          
     case '*': // repeat previous command once per second, until SIGQUIT is received
-      if (previousTokens != null)
-	for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; ) {
-	  VM.sysWrite("\033[H\033[2J");
-	  eval(previousTokens);
-	  sleep(1000);
-	}
-      return;
+	if (previousTokens != null)
+            for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; )
+		{
+		    VM.sysWrite("\033[H\033[2J");
+		    eval(previousTokens);
+		    VM_Wait.sleep(1000);
+		}
+	return;
     }
          
     previousTokens = tokens;
@@ -208,17 +209,21 @@ class DebuggerThread extends VM_Thread {
 
    // Figure out what a thread is doing.
    //
-   private static String getThreadState(VM_Thread t) {
-     // scan per-processor queues
-     //
-     for (int i = 0; i < VM_Scheduler.processors.length; ++i) {
-       VM_Processor p = VM_Scheduler.processors[i];
-       if (p == null) continue;
-       if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
-       if (p.readyQueue.contains(t))    return "runnable on processor " + i;
-       if (p.ioQueue.contains(t))       return "waitingForIO (fd=" + t.waitFdRead + " ready=" + t.waitFdReady + ") on processor " + i;
-       if (p.idleQueue.contains(t))     return "waitingForIdleWork on processor " + i;
-     }
+   private static String
+   getThreadState(VM_Thread t)
+      {
+      // scan per-processor queues
+      //
+      for (int i = 0; i < VM_Scheduler.processors.length; ++i)
+         {
+         VM_Processor p = VM_Scheduler.processors[i];
+         if (p == null) continue;
+         if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
+         if (p.readyQueue.contains(t))    return "runnable on processor " + i;
+         if (p.ioQueue.contains(t))       return "waitingForIO (" + p.ioQueue.getWaitDescription(t) + ") on processor " + i;
+	 if (p.processWaitQueue.contains(t)) return "waitingForProcess (" + p.processWaitQueue.getWaitDescription(t) + ") on processor " + i;
+         if (p.idleQueue.contains(t))     return "waitingForIdleWork on processor " + i;
+         }
          
      // scan global queues
      //

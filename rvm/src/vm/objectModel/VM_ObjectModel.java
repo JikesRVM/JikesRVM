@@ -412,7 +412,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Compute the header size of an object 
    */
   public static int computeHeaderSize(Object ref) throws VM_PragmaInterruptible {
-    VM_Type type = ref.getClass().getVMType();
+    VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(ref.getClass());
     return computeHeaderSize(type);
   }
 

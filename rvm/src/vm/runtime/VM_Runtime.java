@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
 import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
 import com.ibm.JikesRVM.memoryManagers.VM_Heap;
+
+import com.ibm.JikesRVM.librarySupport.SystemSupport;
 
 /**
  * Entrypoints into the runtime of the virtual machine.
@@ -342,7 +344,7 @@ public class VM_Runtime implements VM_Constants {
       int      size  = ary.getInstanceSize(nelts);
       Object[] tib   = ary.getTypeInformationBlock();
       Object newObj  = quickNewArray(nelts, size, tib);
-      System.arraycopy(obj, 0, newObj, 0, nelts);
+      SystemSupport.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
       if (!(obj instanceof Cloneable))
@@ -524,15 +526,17 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static void initializeClassForDynamicLink(VM_Class cls) 
     throws VM_ResolutionException {
-    if (VM.TraceClassLoading) 
+      if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
                   + cls + "\n");
 
     try {
-	cls.classloader.loadClass(cls.getDescriptor().classNameFromDescriptor(), true);
+      cls.getClassLoader().loadClass(cls.getDescriptor().classNameFromDescriptor());
+      cls.resolve();
+      cls.instantiate();
+      cls.initialize();
     } catch (ClassNotFoundException e) {
-	VM.sysWrite("bad " + cls + " with " + cls.classloader + "\n");
-	throw new VM_ResolutionException(cls.getDescriptor(), e);
+      throw new VM_ResolutionException(cls.getDescriptor(), e, cls.getClassLoader());
     }
 
     if (VM.TraceClassLoading) 

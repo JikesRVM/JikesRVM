@@ -16,7 +16,7 @@ NON_DETERMINISTIC_OUTPUT_ORDER=YES
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-TESTS=TestNotification TestDispatch TestTimedWait
+TESTS=TestNotification TestDispatch TestTimedWait TestInterruptAndSpin TestInterruptedSleep TestInterruptedWait
 
 $(TESTS): %:
 	$(MAKE) START_NAME=$@ do-sanity-compare

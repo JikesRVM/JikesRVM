@@ -3,6 +3,7 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /*
  * A string buffer that finds and holds a Java source file
  *   understand the Java file convention
@@ -16,7 +17,9 @@ public class SourceSnapshot {
   static final char SOURCE_PATH_SEPARATOR = System.getProperty("path.separator").charAt(0); // eg. ";"
   private SourceFinder sourceFinder;       // to search the local file system for a source file
   private Vector sourceRepositories;
-  private String currSourceName; 
+  private String currPackageName;	  // current package name, e.g. "com.ibm"
+  private String currSourceFile;	  // current unqualified source file, e.g. "Foo.java"
+  private String currResolvedSource; 	  // current resolved source location, e.g. "./com/ibm/Foo.java"
   private byte data[];                    // a array of byte caching the source file last accessed
   private int line_count;
 
@@ -32,17 +35,39 @@ public class SourceSnapshot {
 							   SOURCE_PATH_SEPARATOR);    
     sourceFinder = new SourceFinder(sourceRepositories);
     
-    currSourceName = "";
+    resetBuffer();
   }
 
-  public String getSourceLine(String source, int linenum) {
+  /**
+   * Resolves a source file given a source file name and package name
+   *
+   * @param packageName package name
+   * @param sourceFile  unqualified name of the source file
+   * @return            resolved file path of source
+   */
+  public final String resolveSourceFileName(String packageName, String sourceFile) {
+    return sourceFinder.resolveSourceFileName(packageName, sourceFile);
+  }
+
+  /**
+   * Try to get a source line from given package, source filename, and
+   * line number.
+   * @param packageName the package we expect the source file to be in; i.e.,
+   *    the Java package specified in the source file's package declaration
+   * @param sourceFile the source file, as specified in the class file
+   *    (not qualified with any directory information)
+   * @param linenum the line number in the source file
+   * @return a string containing the source line, or a message explaining
+   *    that we couldn't find it
+   */
+  public String getSourceLine(String packageName, String sourceFile, int linenum) {
     int start, end, j, currline;
-    //String resolvedSource = sourceFinder.resolveSourceFileName("",source);
-    //System.out.println("Resolved to: " + resolvedSource + ", previous was: " + currSourceName);
+    String resolvedSource = sourceFinder.resolveSourceFileName(packageName,sourceFile);
+    //System.out.println("Resolved to: " + resolvedSource + ", previous was: " + currResolvedSource);
     
-    if (!currSourceName.equals(source)) {
-      currSourceName=source;
-      data = sourceFinder.getFileContents("",source);
+    if (!currResolvedSource.equals(resolvedSource)) {
+      setCurrent(packageName, sourceFile, resolvedSource);
+      data = sourceFinder.getFileContents(packageName, sourceFile);
       line_count = countLine();
     }
 
@@ -152,21 +177,47 @@ public class SourceSnapshot {
     return components;
   }
 
-
-  public boolean sameSourceFile(String newSourceName) {
-    return (currSourceName.equals(newSourceName));
+  /**
+   * Do given package name and source file match what we
+   * currently have loaded?
+   */
+  public boolean sameSourceFile(String packageName, String sourceFile) {
+    return currPackageName.equals(packageName) && currSourceFile.equals(sourceFile);
   }
 
-  public boolean exists(String name) {
-    String resolved_name = sourceFinder.resolveSourceFileName("",name);
+  /**
+   * Can we find a match in the filesystem for
+   * given package name and source file?
+   */
+  public boolean exists(String packageName, String sourceFile) {
+    String resolved_name = sourceFinder.resolveSourceFileName(packageName, sourceFile);
     if (resolved_name==null)
       return false;
     else
       return true;
   }
   
+  /**
+   * Forget what source file we currently have loaded.
+   */
   public void resetBuffer() {
-    currSourceName="";
+    setCurrent("", "", "");
+  }
+
+  /**
+   * Return the fully resolved name and path of current source file.
+   */
+  public String getCurrentResolvedSource() {
+    return currResolvedSource;
+  }
+
+  /**
+   * Set current fully resolved source file.
+   */
+  private void setCurrent(String packageName, String sourceFile, String resolvedSource) {
+    currPackageName = packageName;
+    currSourceFile = sourceFile;
+    currResolvedSource = resolvedSource;
   }
 
 }

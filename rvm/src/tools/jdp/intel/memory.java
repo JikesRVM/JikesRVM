@@ -3,6 +3,7 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * This is the abstract class for the internal and external implementation of memory
  * This object represents the memory, intended to be associated with an OsProcess
@@ -79,7 +80,7 @@ JDPServiceInterface
     if (data!=-1)
       return data;
     else
-      throw new memoryException("bad address");
+      throw new memoryException("bad address: " + Integer.toHexString(address));
   }
 
   /**
@@ -384,6 +385,60 @@ JDPServiceInterface
     return ret.toString();
   }
 
+  public int[] framePointers(int framepointer) {
+    int fp = framepointer;
+    int linkaddr = owner.reg.currentIP(); //read(fp+STACKFRAME_RETURN_ADDRESS_OFFSET);
+    List fpList = new LinkedList();
+    int depth = 0;
+    while (linkaddr!=0) {
+      fpList.add(new Integer(linkaddr));
+      linkaddr = read(fp+STACKFRAME_RETURN_ADDRESS_OFFSET);
+      fp = read(fp);              // up to next stack frame
+      if (linkaddr==-1 || fp==-1) {
+	throw new Error("ERROR:  stack corrupted at frame " + depth + " or earlier");
+      }
+      depth++;
+    }
+    int[] fps = new int[fpList.size()];
+    for (int i = 0; i < fps.length; i++) {
+      fps[i] = ((Integer)fpList.get(i)).intValue();
+    }
+    return fps;
+  }
+  
+  public String frameInfo(int framepointer, int frameAddress) {
+    //
+    // If the frame address is the current IP, we want to use 0 as the 
+    // depth to get the corrent bottom stack frame's line number, otherwise
+    // use -1
+    //
+    int depth = frameAddress == owner.reg.currentIP() ? 0 : -1;
+    return printThisFrame(depth, frameAddress, framepointer);
+//      int depth = 0;
+//      int fp = framepointer;
+//      int linkaddr = owner.reg.currentIP(); //read(fp+STACKFRAME_RETURN_ADDRESS_OFFSET);
+//      while (linkaddr!=0) {
+//        if (linkaddr == frameAddress) {
+//  	return printThisFrame(-1,linkaddr,fp);
+//        }
+//        linkaddr = read(fp+STACKFRAME_RETURN_ADDRESS_OFFSET);
+//        fp = read(fp);              // up to next stack frame
+//        if (linkaddr==-1 || fp==-1) {
+//  	throw new Error("ERROR:  stack corrupted at frame " + depth + " or earlier");
+//        }
+//        depth++;
+//      }
+//      return null; //TODO: how to handle this?
+  }
+
+  public String currentThreadsFrameInfo(int frameAddress) {
+    return frameInfo(owner.reg.currentFP(), frameAddress);
+  }
+
+  public int[] currentThreadsFramePointers() {
+    return framePointers(owner.reg.currentFP());
+  }
+
   /** 
    * Print stack trace from the given Frame Pointer
    * @param fp  the frame pointer to start the stack trace
@@ -404,6 +459,26 @@ JDPServiceInterface
       }
     }
     return ret.toString();
+  }
+
+  public int getFrameCount(int framepointer) {
+    int fp = framepointer;
+    int linkaddr = owner.reg.currentIP(); //read(fp + STACKFRAME_RETURN_ADDRESS_OFFSET);
+    int count = 0;
+    while (linkaddr!=0) {
+      count++;
+      linkaddr = read(fp + STACKFRAME_RETURN_ADDRESS_OFFSET);
+      fp = read(fp);              // up to next stack frame
+      if (linkaddr==-1 || fp==-1) {
+	throw new Error("ERROR:  stack corrupted at frame " + 
+			count + " or earlier");
+      }
+    }
+    return count;
+  }
+
+  public int getCurrentThreadsFrameCount() {
+    return getFrameCount(owner.reg.currentFP());
   }
 
   /**

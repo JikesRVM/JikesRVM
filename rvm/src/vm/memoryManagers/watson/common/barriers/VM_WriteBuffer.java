@@ -152,6 +152,14 @@ public class VM_WriteBuffer implements VM_Constants,
     VM_Address start = VM_Magic.objectAsAddress(vp.modifiedOldObjects);  // first buffer
     while ( !start.isZero() ) {
       VM_Address lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
+
+      com.ibm.JikesRVM.VM.sysWrite( start.toInt() );
+      com.ibm.JikesRVM.VM.sysWrite( "\n" );
+      com.ibm.JikesRVM.VM.sysWrite( lastSlotAddr.toInt() );
+      com.ibm.JikesRVM.VM.sysWrite( "\n" );
+      com.ibm.JikesRVM.VM.sysWrite( top.toInt() );
+      com.ibm.JikesRVM.VM.sysWrite( "\n" );
+
       // determine if this is last buffer or not, by seeing if there is a next ptr
       if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
@@ -161,6 +169,14 @@ public class VM_WriteBuffer implements VM_Constants,
       while ( start.LE(end) ) {
 	VM_Address wbref = VM_Magic.getMemoryAddress( start );
 	
+	if (start.EQ(VM_WriteBarrier.xxx)) {
+	    com.ibm.JikesRVM.VM.sysWrite(start.toInt(), true);
+	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
+	    com.ibm.JikesRVM.VM.sysWrite(wbref.toInt(), true);
+	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
+	    VM_WriteBarrier.xxx = VM_Address.zero();
+	}
+
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
 	// Call method in specific collector to process write buffer entry

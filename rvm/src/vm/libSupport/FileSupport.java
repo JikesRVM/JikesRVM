@@ -1,12 +1,15 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
 
 package com.ibm.JikesRVM.librarySupport;
+import java.io.*; // includes java.io.JikesRVMSupport
 import java.io.*;
+import java.io.JikesRVMSupport;
 import com.ibm.JikesRVM.VM_FileSystem;
+import com.ibm.JikesRVM.VM_Callbacks;
 
 /**
  * This class provides a set of static method entrypoints used in the
@@ -37,10 +40,10 @@ public class FileSupport {
   public static final int STAT_LENGTH        = 6;
 
   private static final String pathSeparator =
-    System.getProperty("path.separator") == null ? ";" :
+    System.getProperty("path.separator") == null ? ":" :
     System.getProperty("path.separator");
   private static final String separator =
-    System.getProperty("file.separator") == null ? "\\" :
+    System.getProperty("file.separator") == null ? "/" :
     System.getProperty("file.separator");
   private static final char separatorChar = separator.charAt(0);
   private static final char pathSeparatorChar = pathSeparator.charAt(0);
@@ -105,9 +108,9 @@ public class FileSupport {
     FileDescriptor fd = f.fd;
     f.fd = null;
     if (fd != null) {
-      fd.deref();
-      if (fd.dead()) {
-        int rc = FileSupport.close(fd.fd);
+      JikesRVMSupport.deref(fd);
+      if (JikesRVMSupport.dead(fd)) {
+        int rc = FileSupport.close(JikesRVMSupport.getFd(fd));
         if (rc == -2)
           // !!TODO: what additional details to supply?
           throw new IOException(); 
@@ -126,14 +129,14 @@ public class FileSupport {
     FileDescriptor fd = f.fd;
     f.fd = null;
     if (fd != null) {
-      fd.deref();
-      if (fd.dead()) {
-        int rc = FileSupport.close(fd.fd);
+      JikesRVMSupport.deref(fd);
+      if (JikesRVMSupport.dead(fd)) {
+        int rc = FileSupport.close(JikesRVMSupport.getFd(fd));
         if (rc == -2)
           // !!TODO: what additional details to supply?
           throw new IOException(); 
       } else {
-        FileSupport.sync(fd.fd);
+        FileSupport.sync(JikesRVMSupport.getFd(fd));
       }
     }  
     }
@@ -143,14 +146,17 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException	If an error occurs attempting to finalize this FileOutputStream.
    */
-     public static void finalize(FileOutputStream f) throws IOException {
-    // in UNIX, fds 0, 1 and 2 tend to be special
-    if (f.fd != null)
-      if (f.fd.fd > 2) 
+  public static void finalize(FileOutputStream f) throws IOException {
+    if (f.fd != null) {
+      int fd = JikesRVMSupport.getFd(f.fd);
+
+      // in UNIX, fds 0, 1 and 2 tend to be special
+      if (fd > 2) 
         close(f);
       else
-        FileSupport.sync( f.fd.fd );
-	}
+        FileSupport.sync(fd);
+    }
+  }
 
   /**
    * Writes <code>count</code> <code>bytes</code> from the byte array
@@ -167,7 +173,8 @@ public class FileSupport {
    */
     
   public static void write(FileOutputStream f, byte[] buffer, int offset, int count) throws IOException {
-    int rc = FileSupport.writeBytes(f.fd.fd, buffer, offset, count);
+    int fd = JikesRVMSupport.getFd(f.fd);
+    int rc = FileSupport.writeBytes(fd, buffer, offset, count);
     if (rc != count)
       throw new IOException();
       }
@@ -260,7 +267,8 @@ public class FileSupport {
    * @return		<code>true</code> if this File is absolute, <code>false</code> otherwise.
    */
   public static boolean isAbsolute(File f) {
-    return f.getPath().charAt(0) == '/';
+    final String path = f.getPath();
+    return path == null ? false : path.charAt(0) == '/';
   }
 
 
@@ -291,6 +299,23 @@ public class FileSupport {
     if (security != null)
       security.checkRead(f.getPath());
     return stat(f.getAbsolutePath(), STAT_LAST_MODIFIED);
+  }
+
+  /**
+   * Set the last modified time for the File.
+   *
+   * @param file the file
+   * @param time modification time in milliseconds past the epoch
+   *
+   * @return true if succeeded, false otherwise
+   */
+  public static boolean setLastModified(File file, long time) {
+    if (time < 0)
+      throw new IllegalArgumentException("negative modification time");
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkWrite(file.getPath());
+    return VM_FileSystem.setLastModified(file.getPath(), time);
   }
 
   /**
@@ -404,7 +429,7 @@ public class FileSupport {
    * @param buf buffer to be filled
    * @param off position in buffer
    * @param cnt number of bytes to read
-   * @return number of bytes read (-2: error, -1: socket would have blocked)
+   * @return number of bytes read (-2: error)
    */ 
   public static int readBytes(int fd, byte buf[], int off, int cnt) {
     return VM_FileSystem.readBytes(fd,buf,off,cnt);
@@ -416,7 +441,7 @@ public class FileSupport {
    * @param buf buffer to be written
    * @param off position in buffer
    * @param cnt number of bytes to write
-   * @return number of bytes written (-2: error, -1: socket would have blocked)
+   * @return number of bytes written (-2: error)
    */ 
   public static int writeBytes(int fd, byte buf[], int off, int cnt) {
     return VM_FileSystem.writeBytes(fd,buf,off,cnt);
@@ -445,14 +470,14 @@ public class FileSupport {
     FileDescriptor fd = f.fd;
     f.fd = null;
     if (fd != null) {
-      fd.deref();
-      if (fd.dead()) {
-        int rc = close(fd.fd);
+      JikesRVMSupport.deref(fd);
+      if (JikesRVMSupport.dead(fd)) {
+        int rc = close(JikesRVMSupport.getFd(fd));
         if (rc == -2)
           // !!TODO: what additional details to supply?
           throw new IOException(); 
       } else {
-        sync( fd.fd );
+        sync( JikesRVMSupport.getFd(fd) );
       }
     }  
   }
@@ -468,7 +493,7 @@ public class FileSupport {
    */
 
   public static long getFilePointer(RandomAccessFile f) throws IOException {
-    int curpos = seek(f.fd.fd, 0, SEEK_CUR);
+    int curpos = seek(JikesRVMSupport.getFd(f.fd), 0, SEEK_CUR);
     if (curpos == -1)
       throw new IOException();
     return curpos;
@@ -482,14 +507,15 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to get the file length
    *									of this RandomAccessFile.
    */
-
   public static long length(RandomAccessFile f) throws IOException {
+    int fd = JikesRVMSupport.getFd(f.fd);
+
     //!!TODO - probably an fstat() would be faster than three lseeks()...
     //!!TODO - also, this computation is not thread safe if
     //         multiple threads do read/write/seek on file simultaneously
-    int oldpos = seek(f.fd.fd, 0,      FileSupport.SEEK_CUR);
-    int endpos = seek(f.fd.fd, 0,      FileSupport.SEEK_END);
-    int newpos = seek(f.fd.fd, oldpos, FileSupport.SEEK_SET);
+    int oldpos = seek(fd, 0,      FileSupport.SEEK_CUR);
+    int endpos = seek(fd, 0,      FileSupport.SEEK_END);
+    int newpos = seek(fd, oldpos, FileSupport.SEEK_SET);
 
     if (oldpos == -1 || endpos == -1 || newpos != oldpos)
       throw new IOException();
@@ -512,7 +538,7 @@ public class FileSupport {
 
   public static int read(RandomAccessFile f) throws IOException {
     if (f.fd != null) {
-      int rc = readByte(f.fd.fd);
+      int rc = readByte(JikesRVMSupport.getFd(f.fd));
       if (rc < -1)	throw new IOException();
       else		return rc;
     }
@@ -529,7 +555,7 @@ public class FileSupport {
    */
     
   public static void seek(RandomAccessFile f, long pos) throws IOException {
-    if (seek(f.fd.fd, (int)pos, SEEK_SET) == -1)
+    if (seek(JikesRVMSupport.getFd(f.fd), (int)pos, SEEK_SET) == -1)
       throw new IOException();
   }
     
@@ -551,7 +577,7 @@ public class FileSupport {
     
   public static void write(RandomAccessFile f, byte[] buffer, int offset, int count) throws IOException {
     if (f.fd != null) {
-      int rc = writeBytes(f.fd.fd, buffer, offset, count);
+      int rc = writeBytes(JikesRVMSupport.getFd(f.fd), buffer, offset, count);
       if (rc != count) throw new IOException();
       return;
     }
@@ -573,11 +599,31 @@ public class FileSupport {
   public static void write(RandomAccessFile f, int oneByte) throws IOException {
     if (f.fd != null)
     {
-      if (FileSupport.writeByte(f.fd.fd, oneByte) == -1)
+      if (FileSupport.writeByte(JikesRVMSupport.getFd(f.fd), oneByte) == -1)
         throw new IOException();
       return;
     }
     else throw new IOException();
-    }
-//-#endif
+  }
+
+  public static void deleteOnExit(final String fileName) {
+      VM_Callbacks.addExitMonitor(new VM_Callbacks.ExitMonitor() {
+	public void notifyExit(int code) {
+	  VM_FileSystem.delete( fileName );
+	}
+     });
+  }
+
+  /**
+   * Registration hook for new FileDescriptor objects.
+   * The library should call this from FileDescriptor's constructor(s).
+   *
+   * @param fd the file descriptor object
+   * @param shared true if the file descriptor might be shared with
+   *    another process
+   */
+  public static void onCreateFileDescriptor(FileDescriptor fd, boolean shared) {
+    VM_FileSystem.onCreateFileDescriptor(JikesRVMSupport.getFd(fd), shared);
+  }
+  //-#endif
 }

@@ -42,6 +42,7 @@ extern "C" char *sys_siglist[];
 
 
 extern "C" int createJVM(int);
+extern "C" void processTimerTick(void);
 
 // There are several ways to allocate large areas of virtual memory:
 // 1. malloc() is simplest, but doesn't allow a choice of address and so requires address relocation for references appearing in boot image
@@ -224,75 +225,10 @@ void cSignalHandler(int signum, int zero, sigcontext *context)
    #define ANNOUNCE(message) 
    #define ANNOUNCE_TICK(message)
 
-   if (signum == SIGALRM)
-      { // asynchronous signal used for time slicing
-      if (!VM_Configuration_BuildForThreadSwitchUsingControlRegisterBit)
-         { 
-         // Turn on thread-switch flag in each virtual processor.
-         // Note that "jtoc" is not necessairly valid, because we might have interrupted
-         // C-library code, so we use boot image jtoc address (== VmToc) instead.
-         // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-         // For now, we assume table is fixed in boot image and never moves.
-         //
-         unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
-         unsigned  cnt        =  processors[-1];
-         int	   i;
-	 int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-	 *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
-
-#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// line added here - ndp is now the last processor = and cnt includes it
-				 cnt = cnt - 1;
-	 // check for gc in progress: if so, return
-	 // 
-	 if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;
-
-	 int       val;
-	 int       sendit = 0;
-	 int       MISSES = -2;			// tuning parameter
-         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
-	     {
-             val = *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
-	     if (val <= MISSES) sendit++;
-	     *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = val - 1;
-             }
-	 if (sendit != 0) // some processor "stuck in native"
-	 { 
-	   if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon Processor (the last one)
-	   ANNOUNCE(" got NDprocessor value\n ");
-	   int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
-	   ANNOUNCE(" got pthread_id  value\n ");
-	   pthread_t thread = (pthread_t)pthread_id;
-	   pthread_kill(thread, SIGCONT);
-	 }
-	 }
-#else
-         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-           *(unsigned *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = (unsigned) -1; // -1: all bits on
-#endif
-         }
-      else
-         { 
-         // Turn on thread-switch bit in condition register of current virtual processor.
-         // Note that we do this only if we've interrupted vm code (ie. if we've interrupted
-         // C-library code, we cannot touch the condition registers).
-         //
-         if (isVmSignal(iar, jtoc))
-            {
-#ifdef __linux__
-            save->ccr |= (0x80000000 >> VM_Constants_THREAD_SWITCH_BIT);
-#else
-            save->cr |= (0x80000000 >> VM_Constants_THREAD_SWITCH_BIT);
-#endif
-            ANNOUNCE_TICK("[tick]\n");
-            }
-         else
-            {
-            ANNOUNCE_TICK("[miss]\n");
-            }
-         }
-      return;
-      }
+   if (signum == SIGALRM) {     
+     processTimerTick();
+     return;
+   }
 
    if (signum == SIGHUP)
       { // asynchronous signal used to awaken external debugger
@@ -347,8 +283,55 @@ void cSignalHandler(int signum, int zero, sigcontext *context)
 #endif
       return;
       }
-
    }
+ 
+extern "C" void processTimerTick() {
+  void *bootRegion = (void *) bootImageAddress;
+  VM_BootRecord *bootRecord = (VM_BootRecord *) bootRegion;
+
+   // Turn on thread-switch flag in each virtual processor.
+   // Note that "jtoc" is not necessairly valid, because we might have interrupted
+   // C-library code, so we use boot image jtoc address (== VmToc) instead.
+   // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+   // For now, we assume table is fixed in boot image and never moves.
+   //
+   unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
+   unsigned  cnt        =  processors[-1];
+   int	   i;
+   int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+   *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+   
+#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
+// line added here - ndp is now the last processor = and cnt includes it
+   cnt = cnt - 1;
+   // check for gc in progress: if so, return
+   // 
+   if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;
+   
+   int       val;
+   int       sendit = 0;
+   int       MISSES = -2;			// tuning parameter
+   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
+     {
+       val = *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
+       if (val <= MISSES) sendit++;
+       *(int      *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = val - 1;
+     }
+   if (sendit != 0) // some processor "stuck in native"
+     { 
+       if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon Processor (the last one)
+	 ANNOUNCE(" got NDprocessor value\n ");
+	 int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
+	 ANNOUNCE(" got pthread_id  value\n ");
+	 pthread_t thread = (pthread_t)pthread_id;
+	 pthread_kill(thread, SIGCONT);
+       }
+     }
+#else
+   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
+     *(unsigned *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = (unsigned) -1; // -1: all bits on
+#endif
+}
 
 // Handle hardware traps.
 // Note: this code runs in a small "signal stack" allocated by "sigstack()" (see later).
@@ -1107,6 +1090,15 @@ void *bootThreadCaller(void *dummy) {
 }
 
 
+// Get address of JTOC.
+extern "C" void *getJTOC() {
+  return (void*) VmToc;
+}
+
+// Get offset of VM_Scheduler.processors in JTOC.
+extern "C" int getProcessorsOffset() {
+  return ProcessorsOffset;
+}
 
 
 /******* UNSUPPORTED RELOCATION CODE NOT CURRENTLY IN USE

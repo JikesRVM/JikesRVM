@@ -53,7 +53,6 @@ public class OPT_Compiler {
         // Caller failed to ensure that the VM was initialized.
         throw new OPT_OptimizingCompilerException("VM not initialized", true);
       }
-
       // Make a local copy so that some options can be forced off just for the
       // duration of this initialization step.
       options = (OPT_Options)options.clone();

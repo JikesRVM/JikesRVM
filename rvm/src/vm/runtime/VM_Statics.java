@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -368,7 +368,7 @@ package com.ibm.JikesRVM;
     /**
      * initial size of slots[] and descriptions[]
      */
-    private static final int INITIAL_SLOTS = 32768; 
+    private static final int INITIAL_SLOTS = 65536; 
 
     static void init() {
       slots        = new int[INITIAL_SLOTS];

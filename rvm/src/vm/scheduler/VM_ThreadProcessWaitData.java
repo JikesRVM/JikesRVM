@@ -1,0 +1,48 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+package com.ibm.JikesRVM;
+
+/**
+ * Object specifying a process to wait for,
+ * and for recording its exit status.
+ *
+ * @author David Hovemeyer
+ * @see VM_ThreadProcessWaitQueue
+ */
+public class VM_ThreadProcessWaitData
+  extends VM_ThreadEventWaitData
+  implements VM_Uninterruptible {
+
+  /** Process ID of process being waited for. */
+  int pid;
+
+  /** Set to true if the process has finished. */
+  boolean finished;
+
+  /** Exit status of the process (if finished). */
+  int exitStatus;
+
+  /**
+   * Constuctor.
+   * @param maxWaitTime timeout value for wait, or negative
+   *   if there is no timeout
+   * @param pid process ID of process being waited for
+   */
+  public VM_ThreadProcessWaitData(int pid, double maxWaitTime) {
+    super(maxWaitTime);
+    this.pid = pid;
+    // finished = false;
+    // exitStatus = 0;
+  }
+
+  /**
+   * Inform given <code>VM_ThreadEventWaitQueue</code> of this object's
+   * concrete class type.
+   */
+  public void accept(VM_ThreadEventWaitDataVisitor visitor) {
+    visitor.visitThreadProcessWaitData(this);
+  }
+}

@@ -1,10 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
-
 package com.ibm.JikesRVM.librarySupport;
+
 import java.util.HashMap;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Atom;
@@ -124,8 +124,8 @@ public class ReflectionSupport {
    */
   public static boolean isAssignableFrom(Class A, Class B) {
     try {
-      return A.getVMType() == B.getVMType() ||
-        VM_Runtime.isAssignableWith(A.type, B.type);
+      return java.lang.JikesRVMSupport.getTypeForClass(A) == java.lang.JikesRVMSupport.getTypeForClass(B) ||
+        VM_Runtime.isAssignableWith(java.lang.JikesRVMSupport.getTypeForClass(A), java.lang.JikesRVMSupport.getTypeForClass(B));
     } catch (VM_ResolutionException e) {
       throw new NoClassDefFoundError(e.getException().toString());
     }
@@ -135,9 +135,9 @@ public class ReflectionSupport {
    * Load the VM_Type for Class C.
    */ 
   private static void loadType(Class C) {
-    if (C.type.isLoaded()) return;
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isLoaded()) return;
     try { 
-      C.type.load();
+      java.lang.JikesRVMSupport.getTypeForClass(C).load();
     } catch (VM_ResolutionException e) {
       throw new NoClassDefFoundError(e.getException().toString());
     }
@@ -147,10 +147,10 @@ public class ReflectionSupport {
    * Load and resolve the VM_Type for Class C.
    */ 
   private static void loadAndResolveType(Class C) {
-    if (C.type.isResolved()) return;
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isResolved()) return;
     try {
-      C.type.load();
-      C.type.resolve();
+      java.lang.JikesRVMSupport.getTypeForClass(C).load();
+      java.lang.JikesRVMSupport.getTypeForClass(C).resolve();
     } catch (VM_ResolutionException e) {
       throw new NoClassDefFoundError(e.getException().toString());
     }
@@ -164,10 +164,10 @@ public class ReflectionSupport {
    * @return the interfaces the receiver claims to implement.
    */
   public static Class[] getInterfaces(Class C) {
-    if (!C.type.isClassType())
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType())
       return new Class[0];
     loadType(C);
-    VM_Class[] interfaces  = C.type.asClass().getDeclaredInterfaces();
+    VM_Class[] interfaces  = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredInterfaces();
     Class[]    jinterfaces = new Class[interfaces.length];
     for (int i = 0; i != interfaces.length; i++)
       jinterfaces[i] = interfaces[i].getClassForType();
@@ -182,10 +182,10 @@ public class ReflectionSupport {
    *                  if it does not represent an interface
    */
   public static boolean isInterface(Class C) {
-    if (C.type.isClassType())
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isClassType())
     {
       loadType(C);
-      return C.type.asClass().isInterface();
+      return java.lang.JikesRVMSupport.getTypeForClass(C).asClass().isInterface();
     }
     return false;
   }
@@ -199,7 +199,7 @@ public class ReflectionSupport {
    */
   public static boolean isPrimitive(Class C)
   {
-    return C.type.isPrimitiveType();
+    return java.lang.JikesRVMSupport.getTypeForClass(C).isPrimitiveType();
   }
   /**
    * Return true if the typecode <code>typecode<code> describes a primitive type
@@ -253,7 +253,7 @@ public class ReflectionSupport {
    *                  if it does not represent an array type
    */
   public static boolean isArray(Class C) {
-    return C.type.isArrayType();
+    return java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType();
   }
 
   /**
@@ -266,7 +266,7 @@ public class ReflectionSupport {
     // Note change from 1.1.7 to 1.2: For primitive types,
     // return just the type name.
     if (C.isPrimitive()) return getName(C);
-    else if (C.type.isArrayType())
+    else if (java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType())
       return "class " + getName(C);
     else
     {
@@ -287,12 +287,12 @@ public class ReflectionSupport {
   public static Class getSuperclass(Class C)
   {
     loadAndResolveType(C);
-    if (C.type.isArrayType()) {
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType()) {
       return VM_Type.JavaLangObjectType.getClassForType();
     }
-    if (!C.type.isClassType()) return null;
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) return null;
 
-    VM_Type supe = C.type.asClass().getSuperClass();
+    VM_Type supe = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getSuperClass();
     if (supe == null)
       return null;
     return supe.getClassForType();
@@ -341,12 +341,15 @@ public class ReflectionSupport {
 
       // Get a new instance, uninitialized.
       //
-      VM_Method constructor = c.constructor;
+      VM_Method constructor = java.lang.reflect.JikesRVMSupport.getMethodOf(c);
       VM_Class cls = constructor.getDeclaringClass();
       if (!cls.isInitialized()) {
         try {
           VM_Runtime.initializeClassForDynamicLink(cls);
         } catch (VM_ResolutionException e) {
+
+	    e.printStackTrace();
+
           throw new InstantiationException();
         }
       }
@@ -358,7 +361,7 @@ public class ReflectionSupport {
 
       // Run <init> on the instance.
       //
-      Method m = new Method(constructor);
+      Method m = java.lang.reflect.JikesRVMSupport.createMethod(constructor);
 
       // Note that <init> is not overloaded but it is
       // not static either: it is called with a "this"
@@ -398,7 +401,7 @@ public class ReflectionSupport {
         throw new IllegalArgumentException();
 
       // get VM_Array type for multi-dimensional array 
-      componentVMType = componentType.getVMType();
+      componentVMType = java.lang.JikesRVMSupport.getTypeForClass(componentType);
       arrayType = componentVMType.getArrayTypeForElementType();
       for ( i = 0; i < length-1; i++ ) {
         arrayType = arrayType.getArrayTypeForElementType();
@@ -430,7 +433,7 @@ public class ReflectionSupport {
 
     VM_Array arrayType = (VM_Array)arrayClassCache.get(componentType);
     if (arrayType == null) {
-      arrayType = componentType.getVMType().getArrayTypeForElementType();
+      arrayType = java.lang.JikesRVMSupport.getTypeForClass(componentType).getArrayTypeForElementType();
       try {
 	arrayType.load();
 	arrayType.resolve();
@@ -473,7 +476,7 @@ public class ReflectionSupport {
 	  
       Class guess = (Class) classCache.get( className );
       if (guess != null) {
-	VM_Callbacks.notifyForName( guess.type );
+	VM_Callbacks.notifyForName( java.lang.JikesRVMSupport.getTypeForClass(guess) );
 	return guess;
       }
 	  
@@ -481,11 +484,11 @@ public class ReflectionSupport {
 	if (className.startsWith("[")) {
 	  if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
 	  classCache.put(className, VM_Array.forName(className).getClassForType());
-	  VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+	  VM_Callbacks.notifyForName( java.lang.JikesRVMSupport.getTypeForClass( ((Class)classCache.get(className)) ) );
 	  return (Class) classCache.get( className );
 	} else {
 	  classCache.put(className, VM_Class.forName(className).getClassForType());
-	  VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+	  VM_Callbacks.notifyForName( java.lang.JikesRVMSupport.getTypeForClass( ((Class)classCache.get(className)) ) );
 	  return (Class) classCache.get( className );
 	}
       }
@@ -494,8 +497,18 @@ public class ReflectionSupport {
       }
     } else {
       if (DEBUG) VM_Scheduler.trace("Class.forName 3 args, loading", className);
-      Class klass = classLoader.loadClass(className, initialize);
-      VM_Callbacks.notifyForName( klass.type );
+      Class klass = classLoader.loadClass(className);
+      if (initialize) {
+	  VM_Type kls = java.lang.JikesRVMSupport.getTypeForClass(klass);
+	  try {
+	      kls.resolve();
+	      kls.instantiate();
+	      kls.initialize();
+	  } catch (VM_ResolutionException e) {
+	      throw new ClassNotFoundException(className);
+	  }
+      }
+      VM_Callbacks.notifyForName( java.lang.JikesRVMSupport.getTypeForClass(klass) );
       return klass;
     }
   }
@@ -536,7 +549,7 @@ public class ReflectionSupport {
    */
   public static Method[] getDeclaredMethods(Class C) throws SecurityException {
     checkMemberAccess(C,Member.DECLARED);
-    if (!C.type.isClassType()) return new Method[0];
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) return new Method[0];
     return getMethods0(C, Member.DECLARED);
   }
 
@@ -632,11 +645,54 @@ public class ReflectionSupport {
    */
   public static Field[] getDeclaredFields(Class C) throws SecurityException {
     checkMemberAccess(C, Member.DECLARED);
-    if (!C.type.isClassType()) return new Field[0];
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) return new Field[0];
 
     return getFields0(C, Member.DECLARED);
   }
 
+
+  /**
+   * Get declared class members (i.e., named inner and static classes)
+   * for given class.  To support <code>java.lang.Class.getDeclaredClasses()</code>.
+   */
+  public static Class[] getDeclaredClasses(Class C) throws SecurityException {
+    // Security check
+    checkMemberAccess(C, Member.DECLARED);
+
+    // Make sure type is loaded
+    loadType(C);
+
+    // Is it a class type?
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType())
+      return new Class[0];
+
+    // Get array of declared classes from VM_Class object
+    VM_Class cls = java.lang.JikesRVMSupport.getTypeForClass(C).asClass();
+    VM_Class[] declaredClasses = cls.getDeclaredClasses();
+
+    // The array can be null if the class has no declared inner class members
+    if (declaredClasses == null)
+      return new Class[0];
+
+    // Count the number of actual declared inner and static classes.
+    // (The array may contain null elements, which we want to skip.)
+    int count = 0;
+    int length = declaredClasses.length;
+    for (int i = 0; i < length; ++i) {
+      if (declaredClasses[i] != null)
+	++count;
+    }
+
+    // Now build actual result array.
+    Class[] result = new Class[count];
+    count = 0;
+    for (int i = 0; i < length; ++i) {
+      if (declaredClasses[i] != null)
+	result[count++] = declaredClasses[i].getClassForType();
+    }
+
+    return result;
+  }
 
 
   private static Method getMethod0(Class C, String name, Class[] parameterTypes, int which)
@@ -644,17 +700,17 @@ public class ReflectionSupport {
     {
       loadAndResolveType(C);
 
-      if (!C.type.isClassType()) throw new NoSuchMethodException();
+      if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) throw new NoSuchMethodException();
 
       VM_Method vm_virtual_methods[] = null;
       VM_Method vm_other_methods[] = null;
 
       if ( which == Member.PUBLIC ) {
-        vm_virtual_methods = C.type.getVirtualMethods();
-        vm_other_methods = C.type.getStaticMethods();
+        vm_virtual_methods = java.lang.JikesRVMSupport.getTypeForClass(C).getVirtualMethods();
+        vm_other_methods = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticMethods();
       } else {
         vm_virtual_methods = new VM_Method[0];
-        vm_other_methods = C.type.asClass().getDeclaredMethods(); 
+        vm_other_methods = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredMethods(); 
       }
 
       // TODO: Problem here with User flooding the atom dictionary if
@@ -678,7 +734,7 @@ public class ReflectionSupport {
         if (!meth.isObjectInitializer() &&
             ( meth.getName() == aName ) &&
             parametersMatch(meth.getParameterTypes(), parameterTypes))
-          return new java.lang.reflect.Method(meth);
+          return java.lang.reflect.JikesRVMSupport.createMethod(meth);
       }
 
       // TODO: Object initializers should not be returned by getStaticMethods
@@ -688,7 +744,7 @@ public class ReflectionSupport {
         if (!meth.isClassInitializer() && !meth.isObjectInitializer() &&
             ( meth.getName() == aName ) &&
             parametersMatch(meth.getParameterTypes(), parameterTypes))
-          return new java.lang.reflect.Method(meth);
+          return java.lang.reflect.JikesRVMSupport.createMethod(meth);
       }
 
       throw new NoSuchMethodException( name + parameterTypes );
@@ -721,17 +777,17 @@ public class ReflectionSupport {
    */
   public static void setField(Field f, Object object, Object value) throws IllegalAccessException, IllegalArgumentException
   {
-    VM_Type type = f.field.getType();
+    VM_Type type = java.lang.reflect.JikesRVMSupport.getFieldOf(f).getType();
 
-    if (type.isReferenceType())      f.field.setObjectValue(object, value);
-    else if (type.isCharType())      f.field.setCharValue(object, VM_Reflection.unwrapChar(value));
-    else if (type.isDoubleType())    f.field.setDoubleValue(object, VM_Reflection.unwrapDouble(value));
-    else if (type.isFloatType())     f.field.setFloatValue(object, VM_Reflection.unwrapFloat(value));
-    else if (type.isLongType())      f.field.setLongValue(object, VM_Reflection.unwrapLong(value));
-    else if (type.isIntType())       f.field.setIntValue(object, VM_Reflection.unwrapInt(value));
-    else if (type.isShortType())     f.field.setShortValue(object, VM_Reflection.unwrapShort(value));
-    else if (type.isByteType())      f.field.setByteValue(object, VM_Reflection.unwrapByte(value));
-    else if (type.isBooleanType())   f.field.setBooleanValue(object, VM_Reflection.unwrapBoolean(value));
+    if (type.isReferenceType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setObjectValue(object, value);
+    else if (type.isCharType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setCharValue(object, VM_Reflection.unwrapChar(value));
+    else if (type.isDoubleType())    java.lang.reflect.JikesRVMSupport.getFieldOf(f).setDoubleValue(object, VM_Reflection.unwrapDouble(value));
+    else if (type.isFloatType())     java.lang.reflect.JikesRVMSupport.getFieldOf(f).setFloatValue(object, VM_Reflection.unwrapFloat(value));
+    else if (type.isLongType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setLongValue(object, VM_Reflection.unwrapLong(value));
+    else if (type.isIntType())       java.lang.reflect.JikesRVMSupport.getFieldOf(f).setIntValue(object, VM_Reflection.unwrapInt(value));
+    else if (type.isShortType())     java.lang.reflect.JikesRVMSupport.getFieldOf(f).setShortValue(object, VM_Reflection.unwrapShort(value));
+    else if (type.isByteType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setByteValue(object, VM_Reflection.unwrapByte(value));
+    else if (type.isBooleanType())   java.lang.reflect.JikesRVMSupport.getFieldOf(f).setBooleanValue(object, VM_Reflection.unwrapBoolean(value));
 
   }
   /**
@@ -776,7 +832,7 @@ public class ReflectionSupport {
     */
     public static Object invoke(Method m, Object receiver, Object args[])
     throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-      VM_Method method = m.method;
+      VM_Method method = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
       VM_Type[] parameterTypes = method.getParameterTypes();
       VM_Type   returnType     = method.getReturnType();
 
@@ -814,6 +870,9 @@ public class ReflectionSupport {
       }
       catch (Throwable e)
       {
+
+	  e.printStackTrace( System.err );
+
         throw new InvocationTargetException(e);
       }
     }
@@ -829,7 +888,7 @@ public class ReflectionSupport {
    */
   public static Class[] getExceptionTypes(Method m)
   {
-    VM_Type[] exceptionTypes = m.method.getExceptionTypes();
+    VM_Type[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(m).getExceptionTypes();
     return typesToClasses(exceptionTypes == null ? new VM_Type[0] : exceptionTypes);
   }
 
@@ -843,7 +902,7 @@ public class ReflectionSupport {
    */
   public static Class[] getExceptionTypes(Constructor c)
   {
-    VM_Type[] exceptionTypes = c.constructor.getExceptionTypes();
+    VM_Type[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(c).getExceptionTypes();
     return typesToClasses(exceptionTypes == null ? new VM_Type[0] : exceptionTypes);
   }
 
@@ -855,7 +914,7 @@ public class ReflectionSupport {
    */
   public static Class getReturnType(Method m)
   {
-    return m.method.getReturnType().getClassForType();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getReturnType().getClassForType();
   }
 
 
@@ -867,7 +926,7 @@ public class ReflectionSupport {
    */
   public static Class getDeclaringClass(Constructor c)
   {
-    return c.constructor.getDeclaringClass().getClassForType();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(c).getDeclaringClass().getClassForType();
   }
   /**
    * Return the java.lang.Class associated with the class that defined
@@ -877,7 +936,7 @@ public class ReflectionSupport {
    */
   public static Class getDeclaringClass(Method m)
   {
-    return m.method.getDeclaringClass().getClassForType();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getDeclaringClass().getClassForType();
   }
 
   /**
@@ -889,7 +948,7 @@ public class ReflectionSupport {
    */
   public static Class[] getParameterTypes(Constructor c)
   {
-    return typesToClasses(c.constructor.getParameterTypes());
+    return typesToClasses(java.lang.reflect.JikesRVMSupport.getMethodOf(c).getParameterTypes());
   }
 
   /**
@@ -901,7 +960,7 @@ public class ReflectionSupport {
    */
   public static Class[] getParameterTypes(Method m)
   {
-    return typesToClasses(m.method.getParameterTypes());
+    return typesToClasses(java.lang.reflect.JikesRVMSupport.getMethodOf(m).getParameterTypes());
   }
 
   /**
@@ -919,11 +978,11 @@ public class ReflectionSupport {
     VM_Method vm_virtual_methods[] = null;
     VM_Method vm_other_methods[] = null;
     if ( which == Member.PUBLIC ) {
-      vm_virtual_methods = C.type.getVirtualMethods();
-      vm_other_methods = C.type.getStaticMethods();
+      vm_virtual_methods = java.lang.JikesRVMSupport.getTypeForClass(C).getVirtualMethods();
+      vm_other_methods = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticMethods();
     } else {
       vm_virtual_methods = new VM_Method[0];
-      vm_other_methods = C.type.asClass().getDeclaredMethods(); 
+      vm_other_methods = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredMethods(); 
     }
 
     for (int j = 0; j < vm_other_methods.length; j++)
@@ -934,7 +993,7 @@ public class ReflectionSupport {
       if (!vm_other_methods[j].isClassInitializer() &&
           !vm_other_methods[j].isObjectInitializer() &&
           ! ( which == Member.PUBLIC && !vm_other_methods[j].isPublic() )  )
-        coll.collect(new java.lang.reflect.Method(vm_other_methods[j]));
+        coll.collect(java.lang.reflect.JikesRVMSupport.createMethod(vm_other_methods[j]));
     }
 
     for (int j = 0; j < vm_virtual_methods.length; j++)
@@ -942,7 +1001,7 @@ public class ReflectionSupport {
       if (!vm_virtual_methods[j].isObjectInitializer() &&
           ! ( which == Member.PUBLIC && !vm_virtual_methods[j].isPublic() )
          )
-        coll.collect(new java.lang.reflect.Method(vm_virtual_methods[j]));
+        coll.collect(java.lang.reflect.JikesRVMSupport.createMethod(vm_virtual_methods[j]));
     }
 
     return coll.methodArray();
@@ -968,13 +1027,13 @@ public class ReflectionSupport {
     loadAndResolveType(C);
     // TODO: constructors should not be returned by getStaticMethods 
     // - Eugene
-    VM_Method vm_static_methods[] = C.type.getStaticMethods();
+    VM_Method vm_static_methods[] = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticMethods();
     Collector coll = new Collector();
     for (int i = 0; i < vm_static_methods.length; i++) 
     {
       if (vm_static_methods[i].isObjectInitializer() &&
           ! ( which == Member.PUBLIC && !vm_static_methods[i].isPublic() ) )
-        coll.collect(new Constructor(vm_static_methods[i]));
+        coll.collect(java.lang.reflect.JikesRVMSupport.createConstructor(vm_static_methods[i]));
     }
     return coll.constructorArray();
   }
@@ -984,7 +1043,7 @@ public class ReflectionSupport {
     {
       loadAndResolveType(C);
 
-      if (!C.type.isClassType()) throw new NoSuchMethodException();
+      if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) throw new NoSuchMethodException();
 
       // TODO: Did I already mention that Object initializers should not be
       // returned by getStaticMethods? :)
@@ -1001,9 +1060,9 @@ public class ReflectionSupport {
       VM_Method methods[];
 
       if ( which == Member.PUBLIC ) {
-        methods = C.type.getStaticMethods();
+        methods = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticMethods();
       } else {
-        methods = C.type.asClass().getDeclaredMethods();
+        methods = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredMethods();
       }
 
       for (int i = 0, n = methods.length; i < n; ++i)
@@ -1012,7 +1071,7 @@ public class ReflectionSupport {
         if (method.isObjectInitializer() &&
             ! ( which == Member.PUBLIC && !method.isPublic() )
             && parametersMatch(method.getParameterTypes(), parameterTypes))
-          return new java.lang.reflect.Constructor(method);
+          return java.lang.reflect.JikesRVMSupport.createConstructor(method);
       }
 
       throw new NoSuchMethodException("<init> " + parameterTypes );
@@ -1026,24 +1085,24 @@ public class ReflectionSupport {
     VM_Field vm_instance_fields[] = null;
     VM_Field vm_other_fields[] = null;
     if ( which == Member.PUBLIC ) {
-      vm_instance_fields = C.type.getInstanceFields();
-      vm_other_fields = C.type.getStaticFields();
+      vm_instance_fields = java.lang.JikesRVMSupport.getTypeForClass(C).getInstanceFields();
+      vm_other_fields = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticFields();
     } else {
       vm_instance_fields = new VM_Field[0];
-      vm_other_fields = C.type.asClass().getDeclaredFields(); 
+      vm_other_fields = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredFields(); 
     }
 
     for (int j = 0; j < vm_other_fields.length; j++)
     {
       if ( ! ( which == Member.PUBLIC && !vm_other_fields[j].isPublic() )  )
-        coll.collect(new java.lang.reflect.Field(vm_other_fields[j]));
+        coll.collect(java.lang.reflect.JikesRVMSupport.createField(vm_other_fields[j]));
     }
 
     for (int j = 0; j < vm_instance_fields.length; j++)
     {
       if ( ! ( which == Member.PUBLIC && !vm_instance_fields[j].isPublic() )
          )
-        coll.collect(new java.lang.reflect.Field(vm_instance_fields[j]));
+        coll.collect(java.lang.reflect.JikesRVMSupport.createField(vm_instance_fields[j]));
     }
 
     return coll.fieldArray();
@@ -1054,16 +1113,16 @@ public class ReflectionSupport {
     {
       loadAndResolveType(C);
 
-      if (!C.type.isClassType()) throw new NoSuchFieldException();
+      if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) throw new NoSuchFieldException();
 
       VM_Field vm_instance_fields[] = null;
       VM_Field vm_other_fields[] = null;
       if ( which == Member.PUBLIC ) {
-        vm_instance_fields = C.type.getInstanceFields();
-        vm_other_fields = C.type.getStaticFields();
+        vm_instance_fields = java.lang.JikesRVMSupport.getTypeForClass(C).getInstanceFields();
+        vm_other_fields = java.lang.JikesRVMSupport.getTypeForClass(C).getStaticFields();
       } else {
         vm_instance_fields = new VM_Field[0];
-        vm_other_fields = C.type.asClass().getDeclaredFields(); 
+        vm_other_fields = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredFields(); 
       }
 
 
@@ -1077,14 +1136,14 @@ public class ReflectionSupport {
       {
         if ( ! ( which == Member.PUBLIC && !vm_other_fields[j].isPublic() ) &&
              ( vm_other_fields[j].getName() == aName ) )
-          return new java.lang.reflect.Field( vm_other_fields[j] );
+          return java.lang.reflect.JikesRVMSupport.createField( vm_other_fields[j] );
       }
 
       for (int j = 0; j < vm_instance_fields.length; j++)
       {
         if ( ! ( which == Member.PUBLIC && !vm_instance_fields[j].isPublic() ) &&
              ( vm_instance_fields[j].getName() == aName ) )
-          return new java.lang.reflect.Field(vm_instance_fields[j]);
+          return java.lang.reflect.JikesRVMSupport.createField(vm_instance_fields[j]);
       }
 
       throw new NoSuchFieldException( name );
@@ -1099,7 +1158,7 @@ public class ReflectionSupport {
    * @return		Class the component type of the receiver.
    */
   public static Class getComponentType(Class C) {
-    if (C.type.isArrayType()) return C.type.asArray().getElementType().getClassForType();
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType()) return java.lang.JikesRVMSupport.getTypeForClass(C).asArray().getElementType().getClassForType();
     else                    return null;
   }
 
@@ -1114,7 +1173,7 @@ public class ReflectionSupport {
    */
   public static Constructor[] getDeclaredConstructors(Class C) throws SecurityException {
     checkMemberAccess(C, Member.DECLARED);
-    if (!C.type.isClassType()) return new Constructor[0];
+    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) return new Constructor[0];
 
     return getConstructors0(C, Member.DECLARED);
   }
@@ -1167,16 +1226,15 @@ public class ReflectionSupport {
    * @return		the receiver's modifiers
    */
   public static int getModifiers(Class C) {
-    if (C.type.isClassType()) {
-      return C.type.asClass().getModifiers();
-    } else if (C.type.isArrayType()) {  
-      int result = C.type.asArray().getElementType().getClassForType().getModifiers();
-      result &= Modifier.FINAL;
-      result &= ~Modifier.INTERFACE;
+    if (java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) {
+      return java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getModifiers();
+    } else if (java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType()) {
+      int result = java.lang.JikesRVMSupport.getTypeForClass(C).asArray().getElementType().getClassForType().getModifiers();  
+      result |= Modifier.FINAL;
+      result |= ~Modifier.INTERFACE;
       return result;
     } else {  // primitive or reference type;
-      int result = Modifier.PUBLIC; 
-      result &= Modifier.FINAL;
+      int result = Modifier.PUBLIC | Modifier.FINAL;
       return result;
     }
   }
@@ -1189,7 +1247,7 @@ public class ReflectionSupport {
    */
   public static int getModifiers(Method m)
   {
-    return m.method.getModifiers();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getModifiers();
   }
   /**
    * Return the modifiers for the modelled constructor.
@@ -1199,17 +1257,17 @@ public class ReflectionSupport {
    */
   public static int getModifiers(Constructor c)
   {
-    return c.constructor.getModifiers();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(c).getModifiers();
   }
   /**
    */ 
   public static String getSignature(Constructor c) {
-    return c.constructor.getDescriptor().toString();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(c).getDescriptor().toString();
   } 
   /**
    */ 
   public static String getSignature(Method m) {
-    return m.method.getDescriptor().toString();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getDescriptor().toString();
   } 
 
   /**
@@ -1222,12 +1280,12 @@ public class ReflectionSupport {
    */
   public static boolean methodEquals(Method m,Object object)
   {
-    VM_Method method = m.method;
+    VM_Method method = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
     if (object != null && object instanceof Method)
     {
       Method other = (Method) object;
       if (method != null)
-        return method.equals(other.method);
+        return method.equals(java.lang.reflect.JikesRVMSupport.getMethodOf(other));
       else {
         VM.sysFail("Should not get here");
       }
@@ -1245,7 +1303,7 @@ public class ReflectionSupport {
    * @return		the receiver's name.
    */
   public static String getName(Class C) {
-    return C.type.getName();
+    return java.lang.JikesRVMSupport.getTypeForClass(C).getName();
   }
 
   /**
@@ -1255,7 +1313,7 @@ public class ReflectionSupport {
    */
   public static String getName(Method m)
   {
-    return m.method.getName().toString();
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getName().toString();
   }
 
   /**
@@ -1294,6 +1352,7 @@ public class ReflectionSupport {
     }
     catch (java.lang.reflect.InvocationTargetException e)
     {
+	e.printStackTrace();
       throw new InstantiationException(e.getMessage());
     }
     catch (NoSuchMethodException e)
@@ -1318,7 +1377,7 @@ public class ReflectionSupport {
     throws NoSuchMethodException, 
   IllegalAccessException,
   java.lang.reflect.InvocationTargetException{  
-    VM_Class iKlass = instantiationClass.getVMType().asClass();
+    VM_Class iKlass = java.lang.JikesRVMSupport.getTypeForClass(instantiationClass).asClass();
     if (!iKlass.isInstantiated()) {
       iKlass.instantiate();
       iKlass.initialize();
@@ -1332,8 +1391,8 @@ public class ReflectionSupport {
 
     // run the constructor 
     Constructor cons = constructorClass.getDeclaredConstructor(new Class[0]);
-    VM_Method cm = cons.getVMConstructor();
-    Method m = new Method(cm);
+    VM_Method cm = java.lang.reflect.JikesRVMSupport.getMethodOf(cons);
+    Method m = java.lang.reflect.JikesRVMSupport.createMethod(cm);
     m.invoke(obj,null);
     return obj;
   }
@@ -1405,11 +1464,12 @@ public class ReflectionSupport {
       return false;
 
     for (int i = 0, n = lhs.length; i < n; ++i)
-      if (lhs[i] != rhs[i].type)
-        return false;
-
+	if (lhs[i] != java.lang.JikesRVMSupport.getTypeForClass(rhs[i]))
+	    return false;
+    
     return true;
   }
+
   // Check if (possibly wrapped) method argument is compatible with expected type.
   //
   private static boolean argumentIsCompatible(VM_Type expectedType, Object arg) {

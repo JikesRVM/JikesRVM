@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 #include <jni.h>
@@ -85,15 +85,14 @@ Java_com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
   for(i = 0; addresses[i] != 0; i++);
 
   // allocate an object array to hold the byte arrays
-  jclass inetArr = env->FindClass("java.net.InetAddress");
+  jclass inetArr = env->FindClass("java/net/InetAddress");
   jobjectArray addrs = env->NewObjectArray(i, inetArr, NULL);
 
   // allocate objects for addresses
-  jclass jinet = env->FindClass("java.net.InetAddress");
-  jmethodID ctor = env->GetMethodID(jinet, "<init>", "(ILjava/lang/String;)V");
+  jclass jinet = env->FindClass("java/net/JikesRVMSupport");
+  jmethodID ctor = env->GetStaticMethodID(jinet, "createInetAddress", "(ILjava/lang/String;)Ljava/net/InetAddress;");
   for(i = 0; addresses[i] != 0; i++) {
-    env->SetObjectArrayElement(addrs, i, 
-     env->NewObject(jinet, ctor, MANGLE32(*(addresses[i])), hostname));
+    env->SetObjectArrayElement(addrs, i, env->CallStaticObjectMethod(jinet, ctor, MANGLE32(*(addresses[i])), hostname));
   }
 
   // return array of addresses
@@ -112,6 +111,9 @@ Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
 	       jint inetAddress)
 {
   // get address based on internet address
+
+  inetAddress = MANGLE32(inetAddress); // little endian crap :(
+
 #ifdef __linux__
   hostent *resultAddress = gethostbyaddr((char *)&inetAddress,
 				sizeof(inetAddress),
@@ -134,7 +136,7 @@ Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
     jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, strerror( errno ));
   }
-
+  else {
   // create java string of hostname
   char *name = resultAddress->h_name;
   jchar *jchars = new jchar[ strlen(name) + 1 ];
@@ -143,9 +145,11 @@ Java_com_ibm_JikesRVM_VM_1InetAddress_getHostByAddrImpl(
   jstring jname = env->NewString( jchars, strlen(name) );
 
   // return new InetAddress object
-  jclass jaddrt = env->FindClass("java/net/InetAddress");
-  jmethodID ctor = env->GetMethodID(jaddrt,"<init>","(ILjava/lang/String;)V");
-  return env->NewObject(jaddrt, ctor, inetAddress, jname);
+  jclass jaddrt = env->FindClass("java/net/JikesRVMSupport");
+  jmethodID ctor = env->GetStaticMethodID(jaddrt, "createInetAddress", "(ILjava/lang/String;)Ljava/net/InetAddress;");
+  return env->CallStaticObjectMethod(jaddrt, ctor, inetAddress, jname);
+ 
+  }
 }
 
 

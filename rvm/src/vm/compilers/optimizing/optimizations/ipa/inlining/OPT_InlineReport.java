@@ -46,7 +46,7 @@ public class OPT_InlineReport {
       try {
         report = new PrintStream((OutputStream)new FileOutputStream(
             "InlineReport.txt"));
-      } catch (FileNotFoundException e) {
+      } catch (IOException e) {
         System.err.println("Can't open file: InlineReport.txt");
       }
     }

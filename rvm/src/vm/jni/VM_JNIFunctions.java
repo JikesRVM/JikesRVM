@@ -1,11 +1,13 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
+
+import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 
 /**
  * This class implements the 211 JNI functions
@@ -54,7 +56,7 @@ import java.lang.reflect.*;
 */
 public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   // one message for each JNI function called from native
-  static boolean verboseJNI = false;
+  final static boolean verboseJNI = false;
 
   private static final boolean LittleEndian = VM.BuildForIA32;
 
@@ -98,16 +100,20 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (verboseJNI) VM.sysWrite("JNI called: FindClass  \n");
 
     VM_JNIEnvironment env;
+    String classString = null;
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
-      String classString = VM_JNIEnvironment.createStringFromC(classNameAddress);
+      classString = VM_JNIEnvironment.createStringFromC(classNameAddress);
+      if (verboseJNI) VM.sysWriteln( classString );
       Class matchedClass = Class.forName(classString);
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {
+      if (verboseJNI) e.printStackTrace( System.err );
       env = VM_Thread.getCurrentThread().getJNIEnv();
-      env.recordException(new NoClassDefFoundError());
+      env.recordException(new NoClassDefFoundError(classString));
       return 0;
     } catch (Throwable unexpected) {
+      if (verboseJNI) unexpected.printStackTrace( System.err );
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
       return 0;
@@ -404,7 +410,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
         if (javaCls.isArray() || javaCls.isPrimitive() || javaCls.isInterface())
           throw new InstantiationException();
 
-        VM_Class cls = javaCls.getVMType().asClass();
+        VM_Class cls = java.lang.JikesRVMSupport.getTypeForClass(javaCls).asClass();
         if (cls.isAbstract() || cls.isInterface()) {
           env.recordException(new InstantiationException());
           return 0;
@@ -446,7 +452,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       try {
         env = VM_Thread.getCurrentThread().getJNIEnv();    
         Class cls = (Class) env.getJNIRef(classJREF); 
-        VM_Class vmcls = cls.getVMType().asClass();
+        VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
 
         if (vmcls.isAbstract() || vmcls.isInterface()) {
           env.recordException(new InstantiationException());
@@ -484,8 +490,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       try {
         env = VM_Thread.getCurrentThread().getJNIEnv();    
         Class cls = (Class) env.getJNIRef(classJREF); 
-        VM_Class vmcls = cls.getVMType().asClass();
-
+        VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
         if (vmcls.isAbstract() || vmcls.isInterface()) {
           env.recordException(new InstantiationException());
           return 0;
@@ -523,7 +528,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       try {
         env = VM_Thread.getCurrentThread().getJNIEnv();    
         Class cls = (Class) env.getJNIRef(classJREF);
-        VM_Class vmcls = cls.getVMType().asClass();
+        VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
 
         if (vmcls.isAbstract() || vmcls.isInterface()) {
           env.recordException(new InstantiationException());
@@ -582,7 +587,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       Class cls = (Class) env.getJNIRef(classJREF);
       Object obj = (Object) env.getJNIRef(objJREF);
-      if (VM_Runtime.instanceOf(obj, cls.getVMType().getTibOffset()))
+      if (VM_Runtime.instanceOf(obj, java.lang.JikesRVMSupport.getTypeForClass(cls).getTibOffset()))
         return 1;
       else 
         return 0;
@@ -624,7 +629,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Class cls = (Class) env.getJNIRef(classJREF);
 
       // search for the method and sig in this class and superclass
-      VM_Type type = cls.getVMType();
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(cls);
       VM_Method mth = null;
 
       if (type.isClassType()) {	
@@ -640,6 +645,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       if (mth!=null) {
+	  if (verboseJNI) VM.sysWrite("got method " + mth + "\n");
         return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
       } else {
         env.recordException(new NoSuchMethodError());
@@ -2656,7 +2662,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // VM.sysWrite("JNI.GetFieldID: reflection on instance field " + fieldString + ", type " + descriptorString + "\n");
 
       // list of all instance fields including superclasses
-      VM_Field[] fields = cls.getVMType().getInstanceFields();
+      VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
       int i = 0;
       int length = fields.length;
       for (i = 0; i < length; ++i) {
@@ -3322,7 +3328,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Class cls = (Class) env.getJNIRef(classJREF);
 
       // search for the method and sig in this class and superclass
-      VM_Type type = cls.getVMType();
+      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(cls);
       VM_Method mth = null;
 
       if (type.isClassType()) {
@@ -3334,6 +3340,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       if (mth!=null) {
+	if (verboseJNI) VM.sysWrite("got static method " + mth + "\n");
         return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
       } else {
         Throwable e = new NoSuchMethodError();
@@ -3342,7 +3349,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
     } catch (Throwable unexpected) {
-      VM.sysWrite(" GetStaticMethodID: unexpected exception " + unexpected.toString() + "\n");
+      if (verboseJNI) {
+	  VM.sysWrite(" GetStaticMethodID: unexpected exception " + unexpected.toString() + "\n");
+	  unexpected.printStackTrace( System.err );
+      }
+
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
       return 0;
@@ -4210,7 +4221,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // VM.sysWrite("JNI.GetStaticFieldID: reflection on field " + fieldString + ", type " + descriptorString + "\n");
 
       // list of all instance fields including superclasses
-      VM_Field[] fields = cls.getVMType().getStaticFields();
+      VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
       VM_Field field = null;
       for (int i = 0; i < fields.length; ++i) {
         field = fields[i];
@@ -5134,8 +5145,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Object initElement = (Object) env.getJNIRef(initElementJREF);
       Class cls = (Class) env.getJNIRef(classJREF);
 
-      Object newArray[] = (Object []) Array.newInstance(cls, length);
-
+      Object newArray[] = (Object [])ReflectionSupport.newInstance(cls, length);
+      
       for (int i=0; i<length; i++) {
         newArray[i] = initElement;
       }
@@ -5456,10 +5467,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       boolean sourceArray[] = (boolean []) env.getJNIRef(arrayJREF);
 
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) 
-        return VM_Address.zero();
-
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5512,10 +5519,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
-
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
-
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5578,9 +5581,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
 
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
-
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5631,9 +5631,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
-
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
 
       int size = sourceArray.length;
 
@@ -5686,9 +5683,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
 
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
-
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5738,9 +5732,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
-
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
 
       int size = sourceArray.length;
 
@@ -5792,9 +5783,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
 
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
-
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5844,9 +5832,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
-
-      // Is this right, I wonder? It's not like the spec says anything :(
-      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
 
       int size = sourceArray.length;
 

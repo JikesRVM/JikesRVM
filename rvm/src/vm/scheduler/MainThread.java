@@ -1,8 +1,17 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileDescriptor;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintStream;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
@@ -42,15 +51,41 @@ class MainThread extends Thread {
   public void run() {
     // VM_Scheduler.trace("MainThread", "run");
       
+    // class intializers that require fully booted VM
+    VM.runClassInitializer("java.lang.Double");
+
+    // Create file descriptors for stdin, stdout, stderr
+    java.io.JikesRVMSupport.setFd(FileDescriptor.in, VM_FileSystem.getStdinFileDescriptor());
+    java.io.JikesRVMSupport.setFd(FileDescriptor.out, VM_FileSystem.getStdoutFileDescriptor());
+    java.io.JikesRVMSupport.setFd(FileDescriptor.err, VM_FileSystem.getStderrFileDescriptor());
+
+    // Set up System.in, System.out, System.err
+    FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
+    FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
+    FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
+    System.setIn(new BufferedInputStream(fdIn));
+    System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
+    System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
+
+    VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
+	    public void notifyExit(int value) {
+		try {
+		    System.err.flush();
+		    System.out.flush();
+		} catch (Throwable e) {
+		    VM.sysWrite("vm: error flushing stdout, stderr");
+		}
+	    }
+	});
+
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // initialize the controller and runtime measurement subsystems
     VM_Controller.boot();
     //-#endif
-
+    
     // Set up application class loader
-    VM_ApplicationClassLoader.setPathProperty();
-    ClassLoader cl = new VM_ApplicationClassLoader(VM_SystemClassLoader.getVMClassLoader());
-    privateSetContextClassLoader(cl); 
+    ClassLoader cl = new ApplicationClassLoader(VM_ClassLoader.getApplicationRepositories());
+    setContextClassLoader(cl); 
 
     // find method to run
     String[]      mainArgs = null;
@@ -58,8 +93,15 @@ class MainThread extends Thread {
     //
     VM_Class cls = null;
     try {
-      cls = (VM_Class)cl.loadClass(args[0], true).getVMType();
+      cls = java.lang.JikesRVMSupport.getTypeForClass(cl.loadClass(args[0])).asClass();
+      cls.resolve();
+      cls.instantiate();
+      cls.initialize();
     } catch (ClassNotFoundException e) { 
+      // no such class
+      VM.sysWrite(e+"\n");
+      return;
+    } catch (VM_ResolutionException e) { 
       // no such class
       VM.sysWrite(e+"\n");
       return;

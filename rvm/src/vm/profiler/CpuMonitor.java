@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+
 /**
  * Display per-thread cpu utilization information in real time.
  * @authorDerek Lieber

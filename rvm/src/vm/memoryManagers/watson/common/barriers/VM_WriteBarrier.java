@@ -102,6 +102,8 @@ public class VM_WriteBarrier implements VM_Constants {
     }
   }
 
+    static VM_Address xxx;
+
   /**
    * Actually do the insertion into the write barrier.
    * Put out of line due to Steve Blackburn et al experience that
@@ -120,6 +122,23 @@ public class VM_WriteBarrier implements VM_Constants {
     wbTop = wbTop.add(4);
     VM_Magic.setMemoryAddress(wbTop, VM_Magic.objectAsAddress(ref));
     p.modifiedOldObjectsTop = wbTop;
+
+      if (ref == com.ibm.JikesRVM.VM_AtomDictionary.getChainsPointer() ) {
+	  com.ibm.JikesRVM.VM.sysWriteln("putting dictionary in write barrier");
+	  com.ibm.JikesRVM.VM.sysWrite(VM_Magic.objectAsAddress(ref).toInt(), true);
+	  com.ibm.JikesRVM.VM.sysWrite("\n");
+	  com.ibm.JikesRVM.VM.sysWrite(wbMax.toInt(), true);
+	  com.ibm.JikesRVM.VM.sysWrite("\n");
+	  com.ibm.JikesRVM.VM.sysWrite(wbTop.toInt(), true);
+	  com.ibm.JikesRVM.VM.sysWrite("\n");
+	  com.ibm.JikesRVM.VM.sysWrite( wbMax.toInt()-wbTop.toInt(), true);
+	  com.ibm.JikesRVM.VM.sysWrite("\n");
+	  xxx = wbTop;
+      }
+
+      else if (wbTop == xxx) {
+	  com.ibm.JikesRVM.VM.sysWrite("wb entry for dictionary being clobbered!\n");
+      }
 
     // (3) grow write buffer (if necessary)
     if (wbMax == wbTop) {

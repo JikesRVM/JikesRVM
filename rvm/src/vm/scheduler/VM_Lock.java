@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -169,11 +169,11 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     t.waitCount  = l.recursionCount;
     // release locks and simultaneously put t on their waiting queues
     l.ownerId = 0;
+    Throwable rethrow = null;
     try {
       t.yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
     } catch (Throwable thr) {
-      VM_ObjectModel.genericLock(o);
-      VM_Runtime.athrow(thr);
+	rethrow = thr;
     }
     // regain lock
     VM_ObjectModel.genericLock(o);
@@ -182,6 +182,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       l = VM_ObjectModel.getHeavyLock(o, true);
       l.recursionCount = t.waitCount;
     }
+    if (rethrow != null)
+	VM_Runtime.athrow(rethrow);
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 

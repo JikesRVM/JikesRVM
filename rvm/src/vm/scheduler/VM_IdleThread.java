@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -51,15 +51,24 @@ class VM_IdleThread extends VM_Thread {
    main: while (true) {
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
       if (VM_Scheduler.terminated) VM_Thread.terminate();
-      for (double t=VM_Time.now()+SPIN_TIME; VM_Time.now()<t;) {
-	if (!VM.BuildForConcurrentGC) VM_Processor.idleProcessor = myProcessor;
-	if (availableWork(myProcessor)) {
-	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
-	  continue main;
-	}
+      double t=VM_Time.now()+SPIN_TIME;
+
+      if (VM_Scheduler.debugRequested) {
+	  System.err.println("debug requested in idle thread");
+	  VM_Scheduler.debugRequested = false;
       }
+      
+      do {
+	  if (!VM.BuildForConcurrentGC) VM_Processor.idleProcessor = myProcessor;
+	  if (availableWork(myProcessor)) {
+	      
+	      VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
+	      continue main;
+	  }
+      } while (VM_Time.now()<t);
+      
       VM.sysVirtualProcessorYield();
-    }
+   }
   }
 
   /*

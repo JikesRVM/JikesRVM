@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  *    This class extends the InterpreterBase by adding methods that are specific
  * to environment, e.g. access methods through ptrace for remote process or 
@@ -50,11 +51,15 @@ class LocalInterpreter extends InterpreterBase
       
       LocalInterpreter interpreter = new LocalInterpreter();
 
-      if (traceInterpreter) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
+      if (traceInterpreter()) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
 
       interpreter.interpretMethod(mainMethod, mainArgs);
 
       }
+
+     private static boolean traceInterpreter() {
+       return traceInterpreter > 0;
+     }
 
    /**
     * Print usage message and exit.
@@ -72,7 +77,7 @@ class LocalInterpreter extends InterpreterBase
      //
   protected int getStaticWord(int index) 
   {
-    if (traceInterpreter) 
+    if (traceInterpreter()) 
       System.out.println("LocalInterpreter: VM_Statics.getSlotContentsAsInt("+index+") (" +
 			 VM_Statics.getSlotDescriptionAsString(index)+")");
     return VM_Statics.getSlotContentsAsInt(index);
@@ -124,49 +129,49 @@ class LocalInterpreter extends InterpreterBase
       {
       if (sysCall1 == null) super.init();  /// TODO: convince VM to do this
 
-      if (traceInterpreter) System.out.println("LocalInterpreter: invokeMagic on "+called_method);
+      if (traceInterpreter()) System.out.println("LocalInterpreter: invokeMagic on "+called_method);
       
       VM_Atom methodName = called_method.getName();
      
-      if (methodName == sysCall0)
-         {
-         int toc = stack.popInt();
-         int ip = stack.popInt();
-         if (traceInterpreter) System.out.println("LocalInterpreter.sysCall0: ip="+ip+" toc="+toc);
-         int result = VM_Magic.sysCall0(ip, toc);  // this call will be inlined by the compiler.
-         stack.push(result);
-         }
-      else if (methodName == sysCall1) 
-	 {
-	 int parameter = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
-	 int toc = stack.popInt();
-	 int ip = stack.popInt();
-	 if (traceInterpreter) System.out.println("LocalInterpreter.sysCall1: ip="+ip+" toc="+toc+" parameter="+parameter);
-	 int result = VM_Magic.sysCall1(ip, toc, parameter);  // this call will be inlined by the compiler.
-	 stack.push(result);
-	 }
-      else if (methodName == sysCall2) 
-	 {
-	 int parameter2 = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
-	 int parameter1 = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
-	 int toc = stack.popInt();
-	 int ip = stack.popInt();
-	 if (traceInterpreter) System.out.println("LocalInterpreter.sysCall2: ip="+ip+" toc="+toc+" parameters="+parameter1+","+parameter2);
-	 int result = VM_Magic.sysCall2(ip, toc, parameter1, parameter2);  // this call will be inlined by the compiler.
-	 stack.push(result);
-	 }
-      else if (methodName == sysCall3) 
-	 {
-	 int parameter3 = stack.popInt(); 
-	 int parameter2 = stack.popInt(); 
-	 int parameter1 = stack.popInt(); 
-	 int toc = stack.popInt();
-	 int ip = stack.popInt();
-	 if (traceInterpreter) System.out.println("LocalInterpreter.sysCall3: ip="+ip+" toc="+toc+" parameters= "+
-						  parameter1+", "+parameter2+", "+parameter3);
-	 int result = VM_Magic.sysCall3(ip, toc, parameter1, parameter2, parameter3);  // this call will be inlined by the compiler.
-	 stack.push(result);
-	 }
+//        if (methodName == sysCall0)
+//           {
+//           int toc = stack.popInt();
+//           int ip = stack.popInt();
+//           if (traceInterpreter()) System.out.println("LocalInterpreter.sysCall0: ip="+ip+" toc="+toc);
+//           int result = VM_Magic.sysCall0(ip, toc);  // this call will be inlined by the compiler.
+//           stack.push(result);
+//           }
+//        else if (methodName == sysCall1) 
+//  	 {
+//  	 int parameter = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
+//  	 int toc = stack.popInt();
+//  	 int ip = stack.popInt();
+//  	 if (traceInterpreter()) System.out.println("LocalInterpreter.sysCall1: ip="+ip+" toc="+toc+" parameter="+parameter);
+//  	 int result = VM_Magic.sysCall1(ip, toc, parameter);  // this call will be inlined by the compiler.
+//  	 stack.push(result);
+//  	 }
+//        else if (methodName == sysCall2) 
+//  	 {
+//  	 int parameter2 = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
+//  	 int parameter1 = stack.popInt();  // args to sysCall1 are pushed left to right, so pop right to left.
+//  	 int toc = stack.popInt();
+//  	 int ip = stack.popInt();
+//  	 if (traceInterpreter()) System.out.println("LocalInterpreter.sysCall2: ip="+ip+" toc="+toc+" parameters="+parameter1+","+parameter2);
+//  	 int result = VM_Magic.sysCall2(ip, toc, parameter1, parameter2);  // this call will be inlined by the compiler.
+//  	 stack.push(result);
+//  	 }
+//        else if (methodName == sysCall3) 
+//  	 {
+//  	 int parameter3 = stack.popInt(); 
+//  	 int parameter2 = stack.popInt(); 
+//  	 int parameter1 = stack.popInt(); 
+//  	 int toc = stack.popInt();
+//  	 int ip = stack.popInt();
+//  	 if (traceInterpreter()) System.out.println("LocalInterpreter.sysCall3: ip="+ip+" toc="+toc+" parameters= "+
+//  						  parameter1+", "+parameter2+", "+parameter3);
+//  	 int result = VM_Magic.sysCall3(ip, toc, parameter1, parameter2, parameter3);  // this call will be inlined by the compiler.
+//  	 stack.push(result);
+//  	 }
       else if (methodName == floatAsIntBits)
 	 {
 	 stack.push(Float.floatToIntBits(stack.popFloat()));
@@ -205,7 +210,7 @@ class LocalInterpreter extends InterpreterBase
 	 System.out.print("LocalInterpreter: VM.Magic.getObjectType("+obj+")=");
 	 VM_Type the_type = VM_Magic.getObjectType(obj);
 	 stack.push(the_type);
-	 if (traceInterpreter) System.out.println(the_type);
+	 if (traceInterpreter()) System.out.println(the_type);
 	 }
       else if (methodName == isync) 
 	{ // nothing to do

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -21,13 +21,16 @@ public interface VM_ClassLoaderConstants {
   static final int ACC_FINAL        = 0x00000010;  //   X      X      X
   static final int ACC_SYNCHRONIZED = 0x00000020;  //   -      -      X  <- same value as ACC_SPECIAL
   static final int ACC_SPECIAL      = 0x00000020;  //   X      -      -  <- same value as ACC_SYNCHRONIZED
+  static final int ACC_SUPER        = 0x00000020;
   static final int ACC_VOLATILE     = 0x00000040;  //   -      X      -
   static final int ACC_TRANSIENT    = 0x00000080;  //   -      X      -
   static final int ACC_NATIVE       = 0x00000100;  //   -      -      X
   static final int ACC_INTERFACE    = 0x00000200;  //   X      -      -
   static final int ACC_ABSTRACT     = 0x00000400;  //   X      -      X
+  static final int ACC_STRICT       = 0x00000800;
 
   static final int ACC_LOADED       = 0x80000000;  //   -      X      X  <- used to indicate loaded field/method
+
 
    // Possible states of a class description.
    //

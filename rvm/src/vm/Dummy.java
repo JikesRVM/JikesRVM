@@ -30,4 +30,5 @@ class Dummy {
   //-#endif
   static VM_MultianewarrayHelper    r;
   static VM_Address                 s;
+  static VM_Math                    vmm;
 }

@@ -592,6 +592,7 @@ public class VM_Allocator extends VM_GCStatistics
       // make any access to discarded fromspace impossible
       if (VM.ParanoidGCCheck) {
 	  VM.sysWriteln("  Protecting fromspace");
+	  fromHeap.clobber();
 	  fromHeap.protect();
 	  toHeap.paranoidScan(fromHeap, false);
       }

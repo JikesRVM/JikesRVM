@@ -1,0 +1,90 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+# Invoke Jikes RVM virtual machine that was created by "jbuild".
+# See also: $RVM_ROOT/rvm/bin/jconfigure -help
+#
+# This is the 'rvm' script except the variables are specified using
+# parameters instead of environment variables.  Now, 'rvm' passes this
+# script parameters using values defined by environment variables.
+#
+# @author Jeffrey Palm
+# @date 25 Jun 2002
+#
+# @author Derek Lieber
+# @date 04 Feb 2000
+#
+# @modified Peter Sweeney
+# @date 15 Jan 2001 
+#    eliminate dependence on option order.
+#
+
+ME=`basename $0`
+
+if [[ $# -lt 3 ]]; then
+    echo "Usage: $ME <home> <rvm_root> <rvm_build> [<options>]"
+    exit 1
+fi
+
+home=$1;      shift;  # Used to be $HOME
+rvm_root=$1;  shift;  # Used to be $RVM_ROOT
+rvm_build=$1; shift;  # Used to be $RVM_BUILD
+
+# Sanity checks for $homeE and $RVM_ROOT, because these may not be
+# set if we invoke this scripts from someplace other than a shell
+if [[ x$home = "x" ]]; then
+   print "$ME: please set your HOME environment variable (eg. /home/me)"
+   exit 1
+fi
+if [[ x$rvm_root = "x" ]]; then
+   print "$ME: please set your RVM_ROOT environment variable (eg. $home/rvmRoot)"
+   exit 1
+fi
+
+# Place where RVM bootimage, booter, and runtime support files reside.
+#
+if [[ x$rvm_build = "x" ]]; then
+   print "$ME: please set your rvm_build environment variable (eg. $home/rvmBuild)"
+   exit 1
+fi
+
+. $rvm_build/environment
+
+ARGS="-X:i=$rvm_build/RVM.image -X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar"
+
+for arg in $*; do
+   if   [[ $arg = --   ]]; then
+     print "$ME: the command line option \"--\" is no longer used!"
+   fi
+done
+
+#
+# Need to make some more defines
+#
+ARGS="$ARGS -Djava.vm.name=JikesRVM"
+ARGS="$ARGS -Drvm.root=$rvm_root"
+ARGS="$ARGS -Drvm.build=$rvm_build"
+ARGS="$ARGS -Djava.home=$rvm_root"
+
+ARGS="$ARGS -Duser.home=$home -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+
+#  echo "=== args ==="
+#  echo $ARGS
+#  echo "=== args ==="
+
+LOADPATH=$rvm_build:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
+
+typeset -x LIBPATH=$LIBPATH:$LOADPATH
+typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOADPATH
+
+# Add the rvm_build directory to the dynamic library path,
+# in order to get the system call wrapper library.
+LD_LIBRARY_PATH=$rvm_build:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+
+# Now execute the VM
+exec $rvm_build/JikesRVM $ARGS "$@"
+

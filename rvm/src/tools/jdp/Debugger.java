@@ -3,6 +3,7 @@
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * This class is the front end to the jdp debugger.  
  * A user jdp_console is established to accept commands to debug the program 
@@ -19,12 +20,26 @@ import com.ibm.JikesRVM.*;
  * object because the current JVM does not support thread yet.
  * @author Ton Ngo 1/15/98
  */
-import java.util.*;
+
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.net.*;
+import java.util.*;
+import java.lang.reflect.*;
+
+import com.ibm.jikesrvm.jdi.jdwp.*;
 
 // class Debugger extends Thread implements jdpConstants {
-class Debugger implements jdpConstants {
+public class Debugger implements jdpConstants { //,Runnable /*TODO*/{
+
+  ////////////////////////////////////////////////////////////////////////
+  // Member variables
+  ////////////////////////////////////////////////////////////////////////
+
+  /**
+   * The address to which to listen fro JDI.
+   */
+  private String address;
+
   /**
    * Initial breakpoint on startup; the debugger will stop here.
    */
@@ -55,10 +70,14 @@ class Debugger implements jdpConstants {
    */
   private JDPCommandInterface jdp_console;
 
+  public JDPCommandInterface console() { return jdp_console; }
+
   /**
    * The process executing the debuggee
    */
   private OsProcess user;
+
+  public OsProcess getUser() { return user; }
 
   /**
    * Saved argument list for restarting
@@ -132,6 +151,31 @@ class Debugger implements jdpConstants {
   static char fprPreference='f';     // print FPR values in hex or in float
   static boolean showFPRsPreference = false;  // Show or do not show FPRs with other regs
 
+  /**
+   * Table of JDPCommand objects implementing JDP commands.
+   */
+  JDPCommand[] commandTable;
+
+  /**
+   * Current command dictionary mapping command names to debugger commands.
+   */
+  CommandDictionary commandDictionary;
+
+  /**
+   * Hadlesp proxies to the JDWP debugger
+   */
+  private DebuggerProxy debuggerProxy;
+
+  ////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Sets the address to which to listen for JDI.
+   * @param adderss the address to which to listen for JDI.
+   */
+  void setAddress(String address) {
+    this.address = address;
+  }
+
 
   /**
    * Instance of an external debugger (outside the JVM)
@@ -146,8 +190,24 @@ class Debugger implements jdpConstants {
    */  
   public Debugger(int bp, String runner, boolean rawMode, boolean interpreted, String init_macro,
                   JDPCommandInterface console, boolean _viewBoot) {
+    
+    if (debug) {
+      System.err.println("bp="+bp);
+      System.err.println("runner="+runner);
+      System.err.println("rawMode="+rawMode);
+      System.err.println("interpreted="+interpreted);
+      System.err.println("init_macro="+init_macro);
+      System.err.println("console="+console);
+      System.err.println("_viewBoot="+_viewBoot);
+    }
+
+
+    debug("*** Platform.init (start) ***");
+
     // load the JNI library to access ptrace
     Platform.init();
+
+    debug("*** Platform.init  (done) ***");
 
     // save the initial breakpoint
     // a hack:  we need to stop where the registers have been initialized
@@ -173,8 +233,172 @@ class Debugger implements jdpConstants {
       debuggerEnvironment = EXTERNALCREATE; 
 
     macro = new jdpMacro();
+
+    commandTable = buildCommandTable();
+    commandDictionary = CommandDictionary.getStandardDictionary();
   }
 
+  /**
+   * Initialize the debugger to listen in on the given
+   * host and port
+   *
+   * @param host host on which to listen
+   * @param port port on which to listen
+   */
+  JDWP jdwp;
+  JDWP listen() { return listen(address); }
+  JDWP listen(String address) {
+    try {
+      debuggerProxy = new DebuggerProxy(user, this);
+      jdwp = new JDWP(debuggerProxy);
+      jdwp.listen(address);
+    } catch (Throwable t) {
+      System.err.println("Trouble listening to " + address);
+      t.printStackTrace();
+      System.err.println("------------------------------");
+    }
+    return jdwp;
+  }
+
+//    private void isMethods(Socket socket, String msg) throws Exception {
+//      Method[] ms = Socket.class.getMethods();
+//      System.out.println("******************** Is Methods ( " + msg + " ) ********************");
+//      for (int i = 0; i < ms.length; i++) {
+//        Method m = ms[i];
+//        if (m.getName().startsWith("is") && m.getReturnType().equals(boolean.class)) {
+//  	System.out.println(" -> " + m.getName() + " = " + m.invoke(socket, new Object[]{}));
+//        }
+//      }
+//      System.out.println("*****************************************************");
+//    }
+  
+//    private void doListen(String address) throws Exception {
+//      if (debug) System.out.println("*** listen (start) ***");
+
+//      // Sanity checks
+//      if (address == null) throw new NullPointerException("adderss cannot be null!");
+//      if (address.length() == 0) throw new IllegalArgumentException("address must have size > 0!");
+
+//      // Find the host and port
+//      int icolon = address.indexOf(":");
+//      final String hostString, portString;
+//      if (icolon == -1) {
+//        hostString = "localhost";
+//        portString = address;
+//      } else {
+//        hostString = address.substring(0,icolon);
+//        portString = address.substring(icolon+1);
+//      }
+
+//      // We'll read from the address host:port
+//      final String host = hostString;
+//      final int port = Integer.decode(portString).intValue();
+
+//      // Set up a thread to read fom the address
+//      ServerSocket server = null;
+//      Socket socket = null;
+//      OutputStream out = null;
+//      InputStream in = null;
+//      try {
+//  //        server = new ServerSocket(port);
+//  //        socket = server.accept();
+//        class Sacket extends Socket {
+//  	Sacket(String s, int p)  throws UnknownHostException, IOException {
+//  	  super(s,p);
+//  	}
+//  	public void close() throws IOException {
+//  	  System.out.println(" --------> Closing the fucking socket!");
+//  	  new Exception().printStackTrace();
+//  	  super.close();
+//  	}
+//        }
+//        socket = new Socket(host, port);
+
+//        isMethods(socket, "initial");
+
+//        if (debug) System.out.println("*** listen socket=" + socket + " ***");
+//        in = socket.getInputStream(); isMethods(socket, "after socket.getInputStream");
+//        out = socket.getOutputStream(); isMethods(socket, "after socet.getOutputStream");
+//        if (debug) System.out.println("*** listen in=" + in + " ***");
+//      } catch (Throwable t) {
+//        t.printStackTrace(); //TODO
+//      } finally {
+//  //        if (out != null)    try { out.flush(); }    catch (IOException e) {}
+//  //        if (out != null)    try { out.close(); }    catch (IOException e) {}
+//  //        if (in != null)     try { in.close(); }     catch (IOException e) {}
+//  //        if (socket != null) try { socket.close(); } catch (IOException e) {}
+//  //        if (server != null) try { server.close(); } catch (IOException e) {}
+//      }
+
+//      if (out == null) throw new RuntimeException("Couldn't create out!");
+//      if (in  == null) throw new RuntimeException("Couldn't create in!");
+
+
+//      final byte[] handshake = "JDWP-Handshake".getBytes();
+//      byte[] handshakeInput = new byte[handshake.length];
+//      reader = new DataInputStream(in);
+//      writer = new DataOutputStream(out);
+
+    
+//      Field implField = in.getClass().getDeclaredField("impl");
+//      implField.setAccessible(true);
+//      SocketImpl impl = (SocketImpl)implField.get(in);
+
+//      Method getFileDescriptor = SocketImpl.class.getDeclaredMethod("getFileDescriptor", new Class[]{});
+                                                                  
+//      getFileDescriptor.setAccessible(true);
+//      Object fd = getFileDescriptor.invoke(impl, new Object[]{});
+//      if (debug) System.out.println("*** fd=" + fd + " ***");
+
+//      FileDescriptor fD = new FileDescriptor();
+//      Field fdField = SocketImpl.class.getDeclaredField("fd");
+//      fdField.setAccessible(true);
+//      //fdField.set(impl, fD);
+
+//      fd = getFileDescriptor.invoke(impl, new Object[]{});
+//      if (debug) System.out.println("*** fd=" + fd + " ***");
+
+//        reader.readFully(handshakeInput);
+//        if (debug) System.out.println("*** read  handshake ***");
+
+//        writer.write(handshake);
+//        if (debug) System.out.println("*** wrote handshake ***");
+
+//      String rest = "";
+//      rest += "handshake=";
+//      for (int i = 0; i < handshake.length; i++) rest += Integer.toHexString(handshake[i]) + " ";
+//      rest += "\n";
+//      rest += "handshakeInput=";
+//      for (int i = 0; i < handshakeInput.length; i++) rest += Integer.toHexString(handshakeInput[i]) + " ";
+//      rest += "\n";
+//      if (debug) System.out.println("*** handshake " + rest + " ***");
+//        if (!Arrays.equals(handshakeInput, handshake)) {
+//          String msg = "Handshake arrays are not equal:\n" + rest;
+//          throw new RuntimeException(msg);
+//        }
+
+    
+//      if (debug) System.out.println("*** listen reader=" + reader + " ***");
+
+//      Thread readerThread = new Thread(this);
+//      readerThread.start();
+
+//      if (debug) System.out.println("*** listen  (done) ***");
+//    }
+//    DataInputStream reader = null;
+//    DataOutputStream writer = null;
+//    public void run() {
+//      for (;;) {
+//        try {
+//  	byte b = (byte)reader.read();
+//  	System.out.println("[debugger read] " + b);
+//        } catch (Throwable t) {
+//  	System.err.println("Trouble reading...");
+//  	t.printStackTrace();
+//  	break;
+//        }
+//      }
+//    }
 
   /**
    * Initialize the debugger
@@ -187,6 +411,9 @@ class Debugger implements jdpConstants {
    * @see     jdp  
    */  
   public void init(String args[]) {
+
+    if (debug) System.out.println("*** init (start) args="+args(args));
+
     int i, status;
     saved_args = args;
     VM_Method mymethod[];
@@ -194,14 +421,25 @@ class Debugger implements jdpConstants {
 
     parseRunArgs(args);
 
-
     // for (int k=0; k<bi_args.length; k++) {
     // 	 jdp_console.writeOutput("boot image arg " + k + " = " + bi_args[k]);
     // }
 
+
+
     // Create the OS (AIX/Lintel) process, wait for it to start up and return
     user = new OsProcessExternal(bi_runner, bi_args, saved_progname, 
-				 classesNeededFilename, classpath);
+				 classesNeededFilename, classpath, this);
+
+    if (address != null) {
+      listen(address);
+      jdwp.startSpinning();
+    }
+
+//      // If someone has asked us to listen to an address, do it
+//      if (address != null) {
+//        listen(address);
+//      }
 
     // wait for process to be ready, set the initial breakpoint
     // and let the process proceeds there
@@ -219,6 +457,8 @@ class Debugger implements jdpConstants {
     } else if ((new File("startup.jdp")).exists()) {
       macro.load("startup.jdp");
     }
+
+    if (debug) System.out.println("*** init (end) ***");
   }
 
   /**
@@ -247,7 +487,7 @@ class Debugger implements jdpConstants {
     parseRunArgs(args);
     try {
       user = new OsProcessExternal(processID, saved_progname, 
-                                   classesNeededFilename, classpath);
+                                   classesNeededFilename, classpath, this);
 
       // wait for the attachment to complete
       // cache the JTOC value before referring to other JVM structures
@@ -367,9 +607,10 @@ class Debugger implements jdpConstants {
     }
   }
 
-
-
   public boolean runCommand() {
+
+    if (debug) System.err.println("*** runCommand (start) ***");
+
     String cmd; 
     String cmd_args[];
     // if we are processing a macro file, get the next line
@@ -401,81 +642,129 @@ class Debugger implements jdpConstants {
         }
         catch (Exception e) {
           jdp_console.writeOutput("ERROR executing jdp command: " + e.getMessage());
-          //e.printStackTrace();
+          e.printStackTrace();
           jdp_console.writeOutput("email to jvm-coders or try again . . . ");
         }
       }
     }
     return false;
   }
-    
+
+  // ----------------------------------------------------------------------
+  // Communication concerning events from the VM
+  // ----------------------------------------------------------------------
+
   /**
-   * Execute a jdp_console command.  
-   * <p>
-   * When the program has been started, all jdp 
-   * command except <i>run</i> will be accepted. 
-   * When the program has exited or has been killed, only the <i>run</i>
-   * command will be accepted to restart the program
-   * </p>
-   * @param   command   a jdp command
-   * @param   args      argument list for the jdp command
-   * @return true if exiting from the debugger
-   *         false if continuing to read/process command
-   * @see     Debugger.printHelp
-   */  
-  private boolean jdpCommand(String command, String[] args) {
-    // running status of the program, may be set to false by a command in this round
-    runstat=true;   
-    int addr, count; 
-    
-    // if we don't have a debuggee running, only accept the run or help command 
-    if (user==null) {
-      if (command.equals("run")) {
-	switch (args.length) {
-	case 0:       // no program name specified, rerun last program
-	  restart(saved_args);
-	  break;
-	default:
-	  //jdp_console.writeOutput(args[0] + " " + args[1]);
-	  //String newargs[] = new String[args.length-1];
-	  //for (int i=0; i<args.length-1; i++) {
-	  //  newargs[i] = args[i+1];
-	  //  jdp_console.writeOutput("args " + newargs[i]);
-	  //}
-	  restart(args);
-	}
+   * Called by OsProcess to tell this that we are at a breakpoint
+   * or another stopping point.
+   */
+  void handleBreakpoint(breakpoint bp) {
+    if (debuggerProxy != null) {
+      debuggerProxy.handleBreakpoint(bp);
+    }
+  }
 
+  ////////////////////////////////////////////////////////////////////////
+  // JDP command classes
+  ////////////////////////////////////////////////////////////////////////
 
-      } else if (command.equals("help") || command.equals("h") || command.equals("?")) {
-	if (args.length==0)
-	  printHelp(""); 
-	else
-	  printHelp(args[0]); 
-	
-      } else {
-	jdp_console.writeOutput("No program running, enter:  run ... ");
-      }
+  // TODO: move code of helper methods inside the command classes,
+  // so the code is in one place (and not spread out).  This would
+  // also make it easier to do many other things, such as
+  // properly check argument counts and types, have a UnaryCommand
+  // class, emit help messages, etc.
 
-      return false;
+  /**
+   * Class representing a JDP command.
+   */
+  abstract class JDPCommand {
+    int minArgs, maxArgs;
+
+    JDPCommand(int minArgs, int maxArgs) {
+      this.minArgs = minArgs;
+      this.maxArgs = maxArgs;
     }
 
+    int getMinArgs() {
+      return minArgs;
+    }
 
-    // from this point, the debuggee is running
+    int getMaxArgs() {
+      return maxArgs;
+    }
 
-    if (command.equals("step") || command.equals("s")) {
-      if (args.length != 0) 
-	jdp_console.writeOutput("Sorry, step does not take any arguments at this time. Ignoring arguments.");
+    /**
+     * Execute the command.
+     * @param args Arguments of the command
+     * @return true if process should be killed, false if not
+     */
+    abstract boolean execute(String[] args);
+
+    /**
+     * Append short help message for this command to a StringBuffer.
+     * This is used in getting help information for all commands.
+     */
+    abstract void appendShortHelpMessage(StringBuffer buffer);
+
+    /**
+     * Append a detailed help message for this command to given StringBuffer.
+     */
+    abstract void appendDetailedHelpMessage(StringBuffer buffer);
+  }
+
+  /**
+   * Common base class for JDP commands which do not take arguments.
+   */
+  abstract class VoidCommand extends JDPCommand {
+    VoidCommand() {
+      super(0, 0);
+    }
+
+    /**
+     * Execute the command.
+     * @return true if process should be killed, false if not
+     */
+    abstract boolean execute();
+
+    /** 
+     * @see JDPCommand#execute(String[])
+     */
+    boolean execute(String[] args) {
+      return execute();
+    }
+  }
+
+  /**
+   * Command to step to next machine instruction.
+   * If the current instruction is a branch, it is followed.
+   */
+  class StepCommand extends VoidCommand {
+    boolean execute() {
       boolean skip_prolog = false;
       printMode = PRINTASSEMBLY;
       runstat = user.pstep(0, printMode, skip_prolog);
       if (runstat==true)
 	refreshEnvironment();
-    } 
+      return false;
+    }
 
-    else if (command.equals("stepbr") || command.equals("sbr")) {
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("step          step current thread by instruction, into method\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < s | step > \n");
+      ret.append("Single step only the current thread by one machine instruction, \nstepping into all method invocations\n");
+    }
+  }
+
+  /**
+   * Command to step to next machine instruction,
+   * stepping over current instruction if it is a branch.
+   */
+  class StepBrCommand extends VoidCommand {
+    boolean execute() {
       if (Platform.stepbrImplemented == 1) {
-	if (args.length != 0) 
-	  jdp_console.writeOutput("Sorry, stepbr does not take any arguments at this time. Ignoring arguments.");
 	printMode = PRINTASSEMBLY;
 	runstat = user.pstepOverBranch(0);
 	if (runstat==true)
@@ -483,32 +772,114 @@ class Debugger implements jdpConstants {
       } else {
 	jdp_console.writeOutput("Sorry, step instruction over call is not supported yet on this platform");
       }
-    } 
+      return false;
+    }
 
-    else if (command.equals("stepline") || command.equals("sl")) {
-      // printMode = PRINTSOURCE;  too slow for now
-      if (args.length != 0) 
-	jdp_console.writeOutput("Sorry, stepline does not take any arguments at this time. Ignoring arguments.");
-      printMode = PRINTASSEMBLY;
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("stepbr        step current thread by instruction, over method\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < sbr | stepbr >\n");
+      ret.append("Single step only the current thread by one machine instruction, \nstepping over method invocations\n");
+    }
+  }
+
+  /**
+   * StepLine command.
+   * In the RVM user guide, and in the online help, this is described
+   * as stepping <em>into</em> a method.  However, the current implementation
+   * (as of July 2002) steps <em>over</em> a method.
+   */
+  class StepLineCommand extends VoidCommand {
+    boolean execute() {
+      printMode = PRINTSOURCE;
       runstat = user.pstepLine(0, printMode);
       if (runstat==true)
 	refreshEnvironment();
-    } 
+      return false;
+    }
 
-    else if (command.equals("steplineover") || command.equals("slo")) {
-      if (args.length != 0) 
-	jdp_console.writeOutput("Sorry, steplineover does not take any arguments at this time. Ignoring arguments.");
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("stepline      step current thread by java source line, into method \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < sl | stepline > \n");
+      ret.append("Single step only the current thread by one java source line, stepping into method invocations\n");
+      ret.append("(may need to hit enter twice to step one line because currently jdp may not be able to set precise breakpoints)\n");
+    }
+  }
+
+  /**
+   * StepLineOver command.
+   */
+  class StepLineOverCommand extends VoidCommand {
+    boolean execute() {
       printMode = PRINTSOURCE;
       runstat = user.pstepLineOverMethod(0);
       if (runstat==true)
 	refreshEnvironment();
-    } 
-
-    else if (command.equals("run")) {
-      jdp_console.writeOutput("Debuggee is running, kill before restarting");
+      return false;
     }
 
-    else if (command.equals("kill") || command.equals("k")) {
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("steplineover  step current thread by java source line, over method \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < slo | steplineover >\n");
+      ret.append("Single step only the current thread by one java source line, stepping over method invocations\n");
+    }
+  }
+
+  /**
+   * Command to run a program in the debugger.
+   */
+  class RunCommand extends JDPCommand {
+    RunCommand() {
+      super(0, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Execute a program in the debugger.
+     * This is only valid when no child process is running.
+     */
+    boolean execute(String[] args) {
+      switch (args.length) {
+      case 0:       // no program name specified, rerun last program
+	restart(saved_args);
+	break;
+      default:
+	//jdp_console.writeOutput(args[0] + " " + args[1]);
+	//String newargs[] = new String[args.length-1];
+	//for (int i=0; i<args.length-1; i++) {
+	//  newargs[i] = args[i+1];
+	//  jdp_console.writeOutput("args " + newargs[i]);
+	//}
+	restart(args);
+      }
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("run           start new program \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < run > <name ... >\n");
+      ret.append("Start a new program\n");
+      ret.append("If no program name is specified, rerun the last program\n");
+      ret.append("All current breakpoints will be set\n");
+      ret.append("The current program must be killed before restarting\n");
+    }
+  }
+
+  /**
+   * Command to kill the process being debugged.
+   */
+  class KillCommand extends VoidCommand {
+    boolean execute() {
       switch (debuggerEnvironment) {
       case EXTERNALCREATE:
 	runstat = false;     // to be killed and cleaned up at the end of this method
@@ -519,181 +890,811 @@ class Debugger implements jdpConstants {
       case INTERNAL:
 	jdp_console.writeOutput("Debugger running inside JVM, type quit to exit debugger");
       }
-    } 
+      return false;
+    }
 
-    else if (command.equals("cont") || command.equals("c")) {
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("kill          terminate program \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < k | kill >\n");
+      ret.append("Terminate the current program without exiting the debugger\n");
+    }
+  }
+
+  /**
+   * Command to continue execution of the debugged process.
+   */
+  class ContinueCommand extends VoidCommand {
+    boolean execute() {
       // if there is no breakpoint for an attached process, detach and let it run
       // otherwise we will be stuck with no return
       if (debuggerEnvironment==EXTERNALATTACH && !user.bpset.anyBreakpointExist()) {
 	jdp_console.writeOutput("no breakpoint currently set, detaching process");
 	return true;
       } else {
-	if (args.length != 0) 
-	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
 	runstat = user.pcontinue(0, printMode, true);
 	if (runstat==true)
 	  refreshEnvironment();
       }
+      return false;
     }
 
-    else if (command.equals("cthread") || command.equals("ct")) {
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("cont          continue all threads\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < c | cont > \n");
+      ret.append("Continue all threads, passing to the program any pending signal\n");
+    }
+  }
+
+  /**
+   * Command to continue execution of a single thread.
+   */
+  class ContinueThreadCommand extends VoidCommand {
+    public boolean execute() {
       if (Platform.cthreadImplemented == 1) {
-	if (args.length != 0) 
-	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
 	runstat = user.pcontinue(0, printMode, false);
 	if (runstat==true)
 	  refreshEnvironment();
       } else {
 	jdp_console.writeOutput("Sorry, continue thread is not supported yet on this platform");
       } 
+      return false;
     }
 
-    else if (command.equals("creturn") || command.equals("cr")) {
-      if (args.length != 0) 
-	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("cthread       continue current thread only\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < ct | cthread > \n");
+      ret.append("Continue only current thread, passing to the program any pending signal\n");
+    }
+  }
+
+  /**
+   * Command to return to caller of current method.
+   */
+  class ReturnToCallerCommand extends VoidCommand {
+    boolean execute() {
       runstat = user.pcontinueToReturn(0, printMode);
       if (runstat==true)
 	refreshEnvironment();
-    } 
-
-    else if (command.equals("thread") || command.equals("th")) {
-      doThread(command, args);
-    } 
-
-    else if (command.equals("reg") || command.equals("r")) {
-      doRegisterRead(command, args);
+      return false;
     }
 
-    else if (command.equals("wreg") || command.equals("wr")) {
-      doRegisterWrite(command, args);
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("creturn       continue to last caller \n");
     }
 
-    else if (command.equals("regname") || command.equals("regnames")) {
-      if (args.length != 0)
-	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
-      doRegisterName(command);
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < cr | creturn >\n");
+      ret.append("continue only current thread to the end of this method \n");
+      ret.append("(i.e. go up one stack frame)\n");
+    }
+  }
+
+  /**
+   * Command to set thread context.
+   */
+  class ThreadCommand extends JDPCommand {
+    ThreadCommand() {
+      super(1, 2);
     }
 
-    else if (command.equals("memraw") || command.equals("mraw")) {
-      doMemoryReadRaw(command, args);
+    boolean execute(String[] args) {
+      doThread("thread", args);
+      return false;
     }
 
-    else if (command.equals("mem") || command.equals("m")) {
-      doMemoryRead(command, args);
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("thread        set or turn off thread context\n");
     }
 
-    else if (command.equals("wmem") || command.equals("wm")) {
-      doMemoryWrite(command, args);
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < th | thread > <threadID|off>\n");
+      ret.append("Select a thread context by its ID \n");
+      ret.append("(this is a small integer, get all current thread ID by the listt command)\n");
+      ret.append("The new thread context will be shown in the jdp prompt\n");
+      ret.append("and all future stack and local display will be for this thread\n");
+      ret.append("If no ID is specified, the context is returned to the current thread in which the debugger has stopped\n");
+      ret.append("To force jdp to use the context in the hardware register, specify an ID of 0 or OFF; jdp will stay there until the context is set manually to a valid thread ID\n");
+      ret.append("jdp will start in the OFF thread (i.e. no thread context)\n");
+    }
+  }
+
+  /**
+   * Base class for read/write register commands.
+   * They share a help message.
+   */
+  abstract class RegisterCommand extends JDPCommand {
+    RegisterCommand(int minArgs, int maxArgs) {
+      super(minArgs, maxArgs);
     }
 
-    else if (command.equals("print") || command.equals("p")) {
-      doPrintCommand(command, args);
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format 1:  < r | reg > <num|name> <count>\n");
+      ret.append("Format 2:  < wr | wreg > <num|name> <hexval>\n");
+      ret.append("Display/update hardware registers (not thread context registers)\n");
+      ret.append("For AIX: you can specify number or name, where number is:  0-31, 128-136, 138, 148, 256-287\n");
+      ret.append("For Lintel: you can only specify name.\n");
+      ret.append("Display will not include floating point registers unless\n");
+      ret.append("'pref showFPRs true' has been specified.\n");
+      ret.append("On this plaform the register names are: \n");
+      String regname="";
+      for (int i=0; i<VM_BaselineConstants.GPR_NAMES.length; i++)
+	regname += VM_BaselineConstants.GPR_NAMES[i] + " ";
+      ret.append(regname);
+      regname = "";
+      for (int i=0; i<VM_BaselineConstants.FPR_NAMES.length; i++)
+	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
+      ret.append(regname);
+      ret.append(Platform.extraRegNames);
     }
-    else if (command.equals("printclass") || command.equals("pc")) {
-      doPrintClassCommand(command, args);
+  }
+
+  /**
+   * Command to read the value of a register.
+   */
+  class ReadRegisterCommand extends RegisterCommand {
+    ReadRegisterCommand() {
+       super(0, 2);
     }
 
-    // network debugger commands, not to be used on the command line
-    else if (command.equals("getclass")) {
-      doGetClassCommand(command, args);
+    boolean execute(String[] args) {
+      doRegisterRead("reg", args);
+      return false;
     }
 
-    else if (command.equals("getinstance")) {
-      doGetInstanceCommand(command, args);
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("reg           display registers \n");
+    }
+  }
+
+  /**
+   * Command to write the value of a register.
+   */
+  class WriteRegisterCommand extends RegisterCommand {
+    WriteRegisterCommand() {
+      super(2, 2);
     }
 
-    else if (command.equals("getarray")) {
-      doGetArrayCommand(command, args);
-    }
-    else if (command.equals("getcl")) {
-      doGetClassAndLine(command, args);
-    }
-    else if (command.equals("getcia")) {
-      doGetCurrentInstrAddr(command, args);
-    }
-    else if (command.equals("getframes")) {
-      doGetFrames(command, args);
-    }
-    else if (command.equals("getlocals")) {
-      doGetLocals(command, args);
-    }
-    // end network debugger commands
-    else if (command.equals("listb") || command.equals("lb")) {
-      jdp_console.writeOutput("(this command has been removed because the Opt compiler does not generate the bytecode map)");
-      //doListBytecode(command, args);
-    }
-
-    else if (command.equals("listi") || command.equals("li")) {
-      doListInstruction(command, args);      
-    }
-
-    else if (command.equals("listt") || command.equals("lt")) {
-      doListThread(command, args);      
-    }
-
-    else if (command.equals("break") || command.equals("b")) {
-      doSetBreakpoint(command, args);
-    }
-
-    else if (command.equals("clearbreak") || command.equals("cb")) {
-      doClearBreakpoint(command, args);
-    }
-
-    else if (command.equals("stack") || command.equals("f")) {
-      doCurrentFrame(command, args);
-    }
-
-    else if (command.equals("where") || command.equals("w")) {
-      doShortFrame(command, args);
-    }
-
-    else if (command.equals("whereframe") || command.equals("wf")) {
-      doFullFrame(command, args);
-    }
-
-    else if (command.equals("preference") || command.equals("pref")) {
-      doSetPreference(command, args);
-    }
-
-    else if (command.equals("x2d")) {
-      doConvertHexToInt(command, args);
-    }
-
-    else if (command.equals("d2x")) {
-      doConvertIntToHex(command, args);
-    }
-
-    else if (command.equals("test")) {
-      doTest(args);
-    }   
-
-    else if (command.equals("test1")) {
-      doTest1(args);
-    }   
-
-    else if (command.equals("count")) {
-      doThreadCount(0);
-    }   
-
-    else if (command.equals("zerocount")) {
-      doThreadCount(1);
-    }   
-
-    else if (command.equals("readmem")) {
-      if (args.length!=0) {
-	try {
-	  addr = parseHex32(args[0]);
-	  int mydata = user.mem.read(addr);
-	  jdp_console.writeOutput("true memory = x" + Integer.toHexString(mydata)); 
-	} catch (NumberFormatException e) {
-	  jdp_console.writeOutput("bad address: " + args[0]);
-	}
+    boolean execute(String[] args) {
+      try {
+	int regnum = Integer.parseInt(args[0]);
+	int data = parseHex32(args[1]);
+	user.reg.write(regnum, data);
+      } catch (NumberFormatException e) {
+	jdp_console.writeOutput("bad value for write: " + args[0] + ", " + args[1]);
       }
-    }   
+      return false;
+    }
 
-    else if (command.equals("verbose") || command.equals("v")) {
-      if (args.length != 0) 
-	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("wreg          write register \n");
+    }
+  }
+
+  /**
+   * Command to print the names of registers.
+   */
+  class RegisterNamesCommand extends VoidCommand {
+    boolean execute() {
+      doRegisterName("regname");
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("regnames      display register symbolic names \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format: regnames || regnames \n");
+      ret.append("Show the correspondence between hardware register names \n");
+      ret.append("and symbolic register names \n");
+    }
+  }
+
+  /**
+   * Base class for read/write memory commands which share a
+   * detailed help message.
+   */
+  abstract class ReadOrWriteMemoryCommand extends JDPCommand {
+    ReadOrWriteMemoryCommand(int minArgs, int maxArgs) {
+      super(minArgs, maxArgs);
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format 1:  < m | mem > <hexaddr> <count>\n");
+      ret.append("Format 2:  < wm | wmem > <hexaddr> <hexvalue>\n");
+      ret.append("Format 3:  < mraw | memraw > <hexaddr> <hexvalue>\n");
+      ret.append("Display/update memory at this address\n");
+      ret.append("If count is not specified, 5 words will be displayed\n");
+      ret.append("For mem and wmem, the breakpoints are transparent\n");
+      ret.append("For memraw, the actual memory contents are shown with the breakpoints as is (intended for debugging jdp)\n");
+    }
+  }
+
+  /**
+   * Command to read actual memory.
+   */
+  class ReadMemoryRawCommand extends ReadOrWriteMemoryCommand {
+    ReadMemoryRawCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doMemoryReadRaw("memraw", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("memraw        display actual memory, jdp breakpoints visible\n");
+    }
+  }
+
+  /**
+   * Command to read memory.
+   */
+  class ReadMemoryCommand extends ReadOrWriteMemoryCommand {
+    ReadMemoryCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doMemoryRead("mem", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("mem           display memory\n");
+    }
+  }
+
+  /**
+   * Command to write memory.
+   */
+  class WriteMemoryCommand extends ReadOrWriteMemoryCommand {
+    WriteMemoryCommand() {
+      super(2, 2);
+    }
+
+    boolean execute(String[] args) {
+      doMemoryWrite("wmem", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("wmem          write memory \n");
+    }
+  }
+
+  /**
+   * Print the value of an object in memory.
+   */
+  class PrintCommand extends JDPCommand {
+    PrintCommand() {
+      super(1, 2);
+    }
+
+    boolean execute(String[] args) {
+      doPrintCommand("print", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("print         print local variables or cast an address as an object\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format 1:   < p | print> frame<:localvar><.field><[n]>\n");
+      ret.append("Print the content of a local variable in this stack frame;\n");
+      ret.append("If no name is specified, all locals in the current scope are printed\n");
+      ret.append("The name can be the string this to print the current object\n");
+      ret.append("Example:\n");
+      ret.append("   p 0                             print all locals in frame 0\n");
+      ret.append("   p this                          print the current object in frame 0\n");
+      ret.append("   p 1:mylocal.field1              print this local variable in frame 1\n\n");
+      ret.append("Format 2:   < p | print> (classname) hexaddress\n");
+      ret.append("Cast the address as an instance of this class\n");
+      ret.append("and print the contents \n\n");
+      ret.append("Format 3:   < p | print><@class.staticvar>\n");
+      ret.append("Print the address of a static variable for this class\n");
+    }
+  }
+
+  /**
+   * Command to print the values of static fields in a class.
+   */
+  class PrintClassCommand extends JDPCommand {
+    PrintClassCommand() {
+      super(1, 1);
+    }
+
+    boolean execute(String[] args) {
+      doPrintClassCommand("printclass", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("printclass    print the class statics or the type of an object address\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format 1:   < pc | printclass> <class><.field><[n]>\n");
+      ret.append("Print the static fields for this class\n");
+      ret.append("(including super classes up to but not including java.lang.Object)\n");
+      ret.append("For array, specify an individual element or omit the rightmost dimension \nto display the full dimension\n");
+      ret.append("The variable name can be nested arbitrarily\n");
+      ret.append("Example:\n");
+      ret.append("   pc class                         print the static variables\n");
+      ret.append("   pc class.field                   print this field\n");
+      ret.append("   pc class.array[2]                print this array element\n");
+      ret.append("   pc class.field1.array[4].field2  nested expression\n\n");
+      ret.append("Format 2:   < pc | printclass> <hexaddr>\n");
+      ret.append("   pc 01234567                      print the type for this address\n\n");
+    }
+  }
+
+  /**
+   * Common base class for network debugger commands.
+   * These have no help available.
+   */
+  abstract class NetworkDebuggerCommand extends JDPCommand {
+    NetworkDebuggerCommand(int minArgs, int maxArgs) {
+      super(minArgs, maxArgs);
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      // No help available
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("No help available for this command.");
+    }
+  }
+
+  /**
+   * Get representation of given class.
+   */
+  class GetClassCommand extends NetworkDebuggerCommand {
+    GetClassCommand() {
+      super(1, 1);
+    }
+
+    boolean execute(String[] args) {
+      doGetClassCommand("getclass", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get an object instance (field values and such).
+   */
+  class GetInstanceCommand extends NetworkDebuggerCommand {
+    GetInstanceCommand() {
+      super(2, 2);
+    }
+
+    boolean execute(String[] args) { 
+      doGetInstanceCommand("getinstance", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get an array instance.
+   */
+  class GetArrayCommand extends NetworkDebuggerCommand {
+    public GetArrayCommand() {
+      super(3, 3);
+    }
+
+    boolean execute(String[] args) {
+      doGetArrayCommand("getarray", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get class and line number.
+   */
+  class GetClassAndLineCommand extends NetworkDebuggerCommand {
+    GetClassAndLineCommand() {
+      super(0, 0);
+    }
+
+    boolean execute(String[] args) {
+      doGetClassAndLine("getcl", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get the address of the current instruction.
+   */
+  class GetCurrentInstrAddrCommand extends NetworkDebuggerCommand {
+    GetCurrentInstrAddrCommand() {
+      super(0, 0);
+    }
+
+    boolean execute(String[] args) {
+      doGetCurrentInstrAddr("getcia", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get current stack frames.
+   */
+  class GetFramesCommand extends NetworkDebuggerCommand {
+    GetFramesCommand() { 
+      super(0, 0);
+    }
+
+    boolean execute(String[] args) {
+      doGetFrames("getframes", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to get locals in current frame.
+   */
+  class GetLocalsCommand extends NetworkDebuggerCommand {
+    GetLocalsCommand() {
+      super(4, 4);
+    }
+
+    boolean execute(String[] args) {
+      doGetLocals("getlocals", args);
+      return false;
+    }
+  }
+
+  /**
+   * Command to list machine instructions.
+   */
+  class ListInstructionsCommand extends JDPCommand {
+    ListInstructionsCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doListInstruction("listi", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("listi         list machine instruction\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < li | listi > <hexaddr><count>\n");
+      ret.append("Dissassemble the machine instruction in this range of addresses\n");
+      ret.append("If address is not specified, the current PC will be used.\n");
+      ret.append("If count is specified it must be an integer. It can be negative on PPC\n");
+      ret.append("Default count is 10. Count can be specified alone.\n");
+    }
+  }
+
+  /**
+   * Command to list threads.
+   */
+  class ListThreadsCommand extends JDPCommand {
+    ListThreadsCommand() {
+      super(0, 1);
+    }
+
+    boolean execute(String[] args) {
+      doListThread("listt", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("listt         list threads\n\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < lt | listt > <all|byname|run|ready|wakeup|system|gc>\n");
+      ret.append("List the threads, select the type of thread by:\n");
+      ret.append("  all      all threads listed by top stack frame\n");
+      ret.append("  byname   all threads listed by thread class name\n");
+      ret.append("  run      threads currently loaded in the system threads\n");
+      ret.append("  ready    threads in the VM_Scheduler ready queue\n");
+      ret.append("  wakeup   threads in the VM_Scheduler wakeup queue\n");
+      ret.append("  system   dump the state of the system threads\n");
+      ret.append("  gc       garbage collector threads\n");
+      ret.append("Annotation: \n");
+      ret.append("  threads loaded in system thread are indicated by >\n");
+      ret.append("  the current thread in which the debugger stops is indicated by ->\n");
+    }
+  }
+
+  /**
+   * Command to set a breakpoint.
+   */
+  class SetBreakpointCommand extends JDPCommand {
+    SetBreakpointCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doSetBreakpoint("break", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("break         list/set breakpoint \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < b ><hexaddr><class.method:line sig>\n");
+      ret.append("Set breakpoint by hex address or symbolic name \n");
+      ret.append("With no argument, the list of current breakpoints is shown\n");
+      ret.append("For symbolic name, jdp will attempt to match partial names\n");
+      ret.append("The method prolog is skipped;  to break at the start of the prolog, \nspecify 0 for the line number\n");
+      ret.append("example:\n");
+      ret.append("   b                        list current breakpoints\n");
+      ret.append("   b 0123abcd               at this hex address\n");
+      ret.append("   b class:line             at java source line in class\n");
+      ret.append("   b method                 at start of method, skipping prolog\n");
+      ret.append("   b class.method           at start of method, skipping prolog\n");
+      ret.append("   b class.method sig       for overloaded method\n");
+      ret.append("   b class.method:0         at start of method prolog\n");
+      ret.append("the class file must be generated with -g to get the line number\n");
+    }
+  }
+
+  /**
+   * Command to clear a breakpoint.
+   */
+  class ClearBreakpointCommand extends JDPCommand {
+    ClearBreakpointCommand() {
+      super(0, 1);
+    }
+
+    boolean execute(String[] args) {
+      doClearBreakpoint("clearbreak", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("clearbreak    clear breakpoints \n\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < cb ><hexaddr|all> \n");
+      ret.append("Clear breakpoint at the hex address or all breakpoint\n");
+      ret.append("(type b to get the list of current breakpoints)\n");
+      ret.append("If no address is specified, clear breakpoint at the current instruction\n");
+    }
+  }
+
+  /**
+   * Command to print the current stack frame.
+   */
+  class DisplayCurrentFrameCommand extends JDPCommand {
+    DisplayCurrentFrameCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doCurrentFrame("stack", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("stack         display formatted stack \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < f | stack > <hexval> <n>\n");
+      ret.append("Display current JVM stack \n");
+      ret.append("showing n words at the top and bottom, the default is 4 words\n");
+      ret.append("The value for Frame Pointer may be specified in <hexval>\n");
+    }
+  }
+
+  /** 
+   * Print current call stack.
+   */
+  class ShortStackTraceCommand extends JDPCommand {
+    ShortStackTraceCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doShortFrame("where", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("where         print short stack trace \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < w | where > < from | to > <hexval>\n");
+      ret.append("Display stack trace\n");
+      ret.append("Up to 20 frames are displayed and the number of remaining frames are indicated\n");
+      ret.append("Any frame, range of frames, or a specific frame pointer can be specified\n");
+      ret.append("If we are in the prolog code, the stack frame is being constructed\n");
+      ret.append("so a place holder will be shown for the frame\n");
+    }
+  }
+
+  /**
+   * Display current call stack with full frame information.
+   */
+  class FullStackTraceCommand extends JDPCommand {
+    FullStackTraceCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doFullFrame("whereframe", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("whereframe    print full stack trace \n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < wf | whereframe > < from | to > <hexval>\n");
+      ret.append("Display stack trace with arguments, local variables, temporary variables for each stack frame\n");
+      ret.append("Up to 20 frames are displayed and the number of remaining frames are indicated\n");
+      ret.append("Any frame, range of frames, or a specific frame pointer can be specified\n");
+    }
+  }
+
+  /**
+   * Command to set and display preferences.
+   */
+  class PreferenceCommand extends JDPCommand {
+    PreferenceCommand() {
+      super(0, 2);
+    }
+
+    boolean execute(String[] args) {
+      doSetPreference("preference", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("preference    set user preference\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < preference | pref> <string> <value>\n");
+      ret.append("Set user preferences\n");
+      ret.append("To display integer in hex or decimal, specify:  int  < hex | x | dec | d > \n");
+      ret.append("To display stack with/without a decimal column, specify: stack < hex | x | dec | d > \n");
+      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f >\n "); 
+      ret.append("To select whether floating point registers are displayed as part of reg command, specify: showFPRs true | false\n");
+    }
+  }
+
+  /**
+   * Command to convert hex to decimal.
+   */
+  class HexToDecCommand extends JDPCommand {
+    HexToDecCommand() {
+      super(1, 1);
+    }
+
+    boolean execute(String[] args) {
+      doConvertHexToInt("x2d", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("x2d           convert number from hex to decimal\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  x2d hexnum\n");
+      ret.append("Convert number from hex to decimal\n");
+    }
+  }
+
+  /**
+   * Command to convert decimal to hex.
+   */
+  class DecToHexCommand extends JDPCommand {
+    DecToHexCommand() {
+      super(1, 1);
+    }
+
+    boolean execute(String[] args) {
+      doConvertIntToHex("d2x", args);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("d2x           convert number from decimal to hex\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  d2x decimalnum\n");
+      ret.append("Convert number from decimal to hex\n");
+    }
+  }
+
+  /**
+   * Command to print thread counts.
+   */
+  class CountCommand extends VoidCommand {
+    boolean execute() {
+      doThreadCount(0);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      // no help
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("No help available for this command.");
+    }
+  }
+
+  /**
+   * Command to set thread counts to zero.
+   */
+  class ZeroCountCommand extends VoidCommand {
+    boolean execute() {
+      doThreadCount(1);
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      // no help
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("No help available for this command.");
+    }
+  }
+
+  /**
+   * Command to read the contents of a memory location.
+   * (Why does JDP have three commands for reading memory?)
+   */
+  class ReadMemoryAltCommand extends JDPCommand {
+    ReadMemoryAltCommand() {
+      super(1, 1);
+    }
+
+    boolean execute(String[] args) {
+      try {
+	int addr = parseHex32(args[0]);
+	int mydata = user.mem.read(addr);
+	jdp_console.writeOutput("true memory = x" + Integer.toHexString(mydata)); 
+      } catch (NumberFormatException e) {
+	jdp_console.writeOutput("bad address: " + args[0]);
+      }
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      // no help
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("No help available for this command.");
+    }
+  }
+
+  /**
+   * Command to toggle the verbose setting.
+   */
+  class ToggleVerboseCommand extends VoidCommand {
+    boolean execute() {
       if (user.verbose) {
         jdp_console.writeOutput("Verbose now OFF");
         user.verbose = false;
@@ -701,24 +1702,337 @@ class Debugger implements jdpConstants {
         jdp_console.writeOutput("Verbose now ON");
         user.verbose = true;
       }
+      return false;
     }
 
-    else if (command.equals("help") || command.equals("h") || command.equals("?")) {
-      if (args.length==0)
-	printHelp("");
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("verbose       toggle verbose mode\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  < v | verbose >\n");
+      ret.append("Toggle verbose mode on and off\n");
+      ret.append("In verbose, the current stack frame is automatically displayed\n");
+    }
+  }
+
+  /**
+   * Command to print help information.
+   */
+  class HelpCommand extends JDPCommand {
+    HelpCommand() {
+      super(0, 1);
+    }
+
+    boolean execute(String[] args) {
+      StringBuffer ret = new StringBuffer();
+
+      if (args.length == 1) {
+	int commandNum = commandDictionary.lookup(args[0]);
+	if (commandNum < 0 || commandNum >= commandTable.length)
+	  appendCommandSummaries(ret);
+	else
+	  commandTable[commandNum].appendDetailedHelpMessage(ret);
+      }
       else
-	printHelp(args[0]);
+	appendCommandSummaries(ret);
+
+      jdp_console.writeOutput(ret.toString());
+
+      return false;
     }
 
-    else if (macro.exists(command+".jdp")) {
-      macro.load(command+".jdp");
+    private void appendCommandSummaries(StringBuffer ret) {
+      for (int i = 0; i < commandTable.length; ++i) {
+        commandTable[i].appendShortHelpMessage(ret);
+      }
+      ret.append("(macro name)  load and execute this macro (a text file with suffix .jdp)\n");
+      ret.append("(enter)       repeat last command\n\n");
+      ret.append("To get more information on a specific command including what arguments it can process, type: \n \thelp thiscommand\n");
     }
 
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("help          print help on all commands or a specific command\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:  help [<command name>]\n");
+      ret.append("If no command name is given, a summary of all available commands\n");
+      ret.append("is listed.\n");
+    }
+  }
+
+  /**
+   * Command to step to the next source line, stepping into or out of
+   * methods if appropriate.  The functionality we are trying
+   * to achieve is like what the "step" command in gdb does.
+   *
+   * <p> Currently, the implementation of this command is rather stupid.
+   * It single steps by machine instruction until it looks like the source line
+   * is different.  This approach has the advantage of not requiring
+   * a breakpoint.
+   */
+  class StepNextSourceLineCommand extends VoidCommand {
+    boolean execute() {
+
+      // Keep single stepping by machine instruction until we find
+      // that we're in a different source line (and not executing
+      // in the VM).
+
+      // FIXME: this is really, really slow right now.
+      // Need to find some common cases that we can optimize.
+      // (For example, to a "return to caller" from VM methods).
+      // Executing code that we have no source info for is more
+      // problematic.
+
+      // FIXME: we should probably just stop if we find ourselves
+      // in a method where we have no source info.  Otherwise it
+      // could be a very long time before the user gets a jdp
+      // prompt again.
+
+      JDP_Frame oldFrame = user.bmap.getBottomFrame();
+      boolean haveSourceLocationForOriginalFrame = fillInSourceLocationInformation(oldFrame);
+/*
+      if (haveSourceLocationForOriginalFrame)
+	System.out.println("Starting at: " + oldFrame.getClassName() + ", line " + oldFrame.lineNumber);
+*/
+
+      while (/*user.stillRunning()*/ true) {
+	// Step to next assembly instruction
+	final boolean skip_prolog = false;
+	runstat = user.pstep(0, PRINTNONE, skip_prolog);
+	if (runstat==true)
+	  refreshEnvironment();
+
+	JDP_Frame currentFrame = user.bmap.getBottomFrame();
+	if (currentFrame.valid &&
+	    fillInSourceLocationInformation(currentFrame)) {
+
+	  //System.out.println("At: " + currentFrame.getClassName() + ", line " + currentFrame.lineNumber);
+
+	  if (!haveSourceLocationForOriginalFrame)
+	    // We didn't have source information for the location we started from.
+	    // So, just stop here, since now we do know where we are.
+	    break;
+
+	  if (!inRemoteVirtualMachine(currentFrame) &&
+	      !inSameSourceLine(oldFrame, currentFrame))
+	    // Looks like we have reached another source line!
+	    break;
+	}
+      }
+
+      return false;
+    }
+
+    void appendShortHelpMessage(StringBuffer ret) {
+      ret.append("stepnext      print help on all commands or a specific command\n");
+    }
+
+    void appendDetailedHelpMessage(StringBuffer ret) {
+      ret.append("Format:   stepnext | sn\n");
+      ret.append("Step to next source line, stepping into or out of method as appropriate.\n");
+      ret.append("This command tries to emulate the functionality of the \"step\" command\n");
+      ret.append("found in gdb.\n");
+    }
+  }
+
+  /**
+   * Retrieve source location information corresponding to given frame.
+   * @return true if successful, false if not
+   */
+  boolean fillInSourceLocationInformation(JDP_Frame frame) {
+    // FIXME: this method should throw LnNotAvailException, so
+    // caller can handle it.
+    try {
+      int line = user.bmap.findLineNumber(frame.compiledMethodID, frame.ip);
+      frame.lineNumber = line;
+      return true;
+    }
+    catch (LnNotAvailException e) {
+      // No line number information available here.
+      // Should probably warn the user.
+      return false;
+    }
+    catch (BcPrologException e) {
+      // Executing prolog of method, so no line numbers yet.
+      // We should hit them eventually.
+      return false;
+    }
+  }
+
+  /**
+   * Does it appear that the given frame represents a method
+   * in the remote VM (i.e., not the program the remote VM is running?)
+   * Assumes that fillInSourceLocationInformation() was successful.
+   * Basically, we're just assuming the the user of JDP doesn't care about
+   * stepping into VM functions.  Perhaps this should be configurable
+   * preference setting.
+   */
+  boolean inRemoteVirtualMachine(JDP_Frame frame) {
+    // Well, this is cheesy, but good enough for now.
+    String className = frame.getClassName();
+    return className.startsWith("VM_") || className.equals("VM");
+  }
+
+  /**
+   * Do the given frames appear to represent instructions which are
+   * part of the same source line?  Assumes that fillInSourceLocationInformation()
+   * was successful.
+   */
+  boolean inSameSourceLine(JDP_Frame frame1, JDP_Frame frame2) {
+    return frame1.getClassName().equals(frame2.getClassName()) &&
+	   frame1.lineNumber == frame2.lineNumber;
+  }
+
+  /**
+   * Build table of JDPCommand objects.
+   * This table allows lookup of a Command object by its
+   * corresponding enumeration value, specified in
+   * <code>jdpConstants</code>.
+   */
+  private JDPCommand[] buildCommandTable() {
+    JDPCommand[] table = new JDPCommand[] {
+      // Note: these must be in the same order as specified in jdpConstants
+      new StepCommand(),
+      new StepBrCommand(),
+      new StepLineCommand(),
+      new StepLineOverCommand(),
+      new RunCommand(),
+      new KillCommand(),
+      new ContinueCommand(),
+      new ContinueThreadCommand(),
+      new ReturnToCallerCommand(),
+      new ThreadCommand(),
+      new ReadRegisterCommand(),
+      new WriteRegisterCommand(),
+      new RegisterNamesCommand(),
+      new ReadMemoryRawCommand(),
+      new ReadMemoryCommand(),
+      new WriteMemoryCommand(),
+      new PrintCommand(),
+      new PrintClassCommand(),
+      new GetClassCommand(),
+      new GetInstanceCommand(),
+      new GetArrayCommand(),
+      new GetClassAndLineCommand(),
+      new GetCurrentInstrAddrCommand(),
+      new GetFramesCommand(),
+      new GetLocalsCommand(),
+      new ListInstructionsCommand(),
+      new ListThreadsCommand(),
+      new SetBreakpointCommand(),
+      new ClearBreakpointCommand(),
+      new DisplayCurrentFrameCommand(),
+      new ShortStackTraceCommand(),
+      new FullStackTraceCommand(),
+      new PreferenceCommand(),
+      new HexToDecCommand(),
+      new DecToHexCommand(),
+      new CountCommand(),
+      new ZeroCountCommand(),
+      new ReadMemoryAltCommand(),
+      new ToggleVerboseCommand(),
+      new HelpCommand(),
+      new StepNextSourceLineCommand(),
+    };
+
+    // Sanity check to ensure that the table is the expected size
+    if (table.length != NUM_COMMANDS)
+      throw new IllegalStateException("command table is out of sync with jdpConstants");
+
+    return table;
+  }
+
+  ////////////////////////////////////////////////////////////////////////
+  // End of JDP command clases
+  ////////////////////////////////////////////////////////////////////////
+    
+  /**
+   * Execute a jdp_console command.  
+   * <p>
+   * When the program has been started, all jdp 
+   * command except <i>run</i> will be accepted. 
+   * When the program has exited or has been killed, only the <i>run</i>
+   * command will be accepted to restart the program
+   * </p>
+   * @param   commandName   a jdp command
+   * @param   args      argument list for the jdp command
+   * @return true if exiting from the debugger
+   *         false if continuing to read/process command
+   * @see     Debugger.printHelp
+   */  
+  private boolean jdpCommand(String commandName, String[] args) {
+
+    debug("jdpCommand command=" + commandName + " args=" + args(args));
+
+    // running status of the program, may be set to false by a command in this round
+    runstat=true;   
+    int addr, count; 
+
+    int commandNum = commandDictionary.lookup(commandName);
+    //System.out.println("Got command " + commandNum);
+    if (commandNum == UNKNOWN_COMMAND) {
+      // Is there a macro of this name?
+      if (macro.exists("", commandName+".jdp")) {
+	System.out.println("Attempting to load macro: " + commandName +".jdp");
+	macro.load(commandName+".jdp");
+      }
+      else
+	jdp_console.writeOutput("Sorry, you've specified an unknown command.\n" +
+	  "Please use help to see the list of known commands");
+      return false;
+    }
+    else if (commandNum == AMBIGUOUS_COMMAND) {
+      // Command dictionary accepts abbreviations, but the command
+      // given could be expanded in more than one way.
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("Sorry, command \"");
+      buffer.append(commandName);
+      buffer.append("\" is ambiguous.  Possible completions are:\n\t");
+      Iterator i = commandDictionary.getPossibleExpansions().iterator();
+      while (i.hasNext()) {
+	Map.Entry expansion = (Map.Entry) i.next();
+	buffer.append(expansion.getKey());
+	buffer.append(' ');
+      }
+      jdp_console.writeOutput(buffer.toString());
+      return false;
+    }
     else {
-      jdp_console.writeOutput("Sorry, you've specified an unknown command. Please use help to see the list of known commands");
-    }
-    return false;
+      if (commandNum < 0 || commandNum >= commandTable.length)
+	throw new IllegalStateException("Unexpected command number: " + commandNum);
 
+      if (user == null) {
+	// If no process is running, then we only accept
+	// HELP_COMMAND and RUN_COMMAND.
+	if (commandNum != HELP_COMMAND && commandNum != RUN_COMMAND) {
+	  jdp_console.writeOutput("No program running, enter:  run ... ");
+	  return false;
+	}
+      }
+      else {
+	// Don't accept run command if process is already running.
+	if (commandNum == KILL_COMMAND) {
+	  jdp_console.writeOutput("Debuggee is running, kill before restarting");
+	  return false;
+	}
+      }
+
+      // Find the JDPCommand object
+      JDPCommand jdpCommand = commandTable[commandNum];
+
+      // Check that we got the right number of arguments
+      int numArgs = args.length;
+      if (numArgs < jdpCommand.getMinArgs() || numArgs > jdpCommand.getMaxArgs()) {
+	jdp_console.writeOutput("Wrong number of arguments passed to " + commandName + " command.\n" +
+	  "Type \"help " + commandName + "\" for more information.\n");
+	return false;
+      }
+
+      // Now we can actually execute the command
+      return jdpCommand.execute(args);
+    }
   }
 
   public boolean checkCleanup() {
@@ -791,10 +2105,14 @@ class Debugger implements jdpConstants {
   private void setInitialBreakPoint() {
     int status;
 
+    if (debug) System.err.println("*** setInitialBreakPoint (start) ***");
+    if (debug) System.out.println("*** Setting initial breakpoint at " + Integer.toHexString(initial_bp));
+
     // don't use pwait or pcontinue yet because the mechanism for jdp and jvm 
     // to handle signal is not set up yet at this point
     status = user.mwait();
     while (user.isIgnoredTrap(status)) {
+      if (debug) System.err.println(" setInitialBreakPoint: waiting...");
       user.mcontinue(0);           
       status = user.mwait();
     }
@@ -802,8 +2120,7 @@ class Debugger implements jdpConstants {
     // If we have an initial breakpoint, set it and proceed there
     // then clear the breakpoint
     if (initial_bp!=0) {
-      //  System.out.println("Setting initial breakpoint at " + 
-      // 			    Integer.toHexString(initial_bp));
+      if (debug) System.out.println("Setting initial breakpoint at " + Integer.toHexString(initial_bp));
       breakpoint bp = new breakpoint(0,0,initial_bp);
       user.bpset.setBreakpoint(bp);    
       user.mcontinue(0);           // continue, ignoring any traps now 
@@ -818,26 +2135,38 @@ class Debugger implements jdpConstants {
       user.bpset.clearBreakpoint(bp);    
 
       // cache the JTOC value before referring to other JVM structures
+      if (debug) System.out.println("*** user.reg.cacheJTOC() (start) ***");
       user.reg.cacheJTOC();
+      if (debug) System.out.println("*** user.reg.cacheJTOC()  (done) ***");
 
-      // cache the dictionary pointers if running under the interpreter
+      // cache the dictionary pointers if running under the interprete
+
       if (interpretMode) {
+	if (debug) System.out.println("*** mapVM.cachePointers() (start) ***");
 	mapVM.cachePointers();
+	if (debug) System.out.println("*** mapVM.cachePointers()  (done) ***");
       }
 
       // set up the address tables for the boot image
-      // (must do this after cachePointers because in interpreted mode
+      // (must do this after cachePointers because in interpreted mod
+
       // we will need use the dictionary pointers)
+      if (debug) System.out.println("*** user.bmap.fillBootMethodTable() (start) ***");
       user.bmap.fillBootMethodTable();
+      if (debug) System.out.println("*** user.bmap.fillBootMethodTable()  (done) ***");
 
       // skip to the user main method if desired
       if (!viewBoot)
       {
+	if (debug) System.out.println("*** goToMainMethod() (start) ***");
         goToMainMethod();
+	if (debug) System.out.println("*** goToMainMethod()  (done) ***");
       }
 
     } 
-
+    
+    if (debug) System.err.println("*** setInitialBreakPoint  (done) ***");
+    
   }
 
   /**
@@ -852,6 +2181,7 @@ class Debugger implements jdpConstants {
     try
     {
       bp = user.bmap.findBreakpoint("com.ibm.JikesRVM.VM.debugBreakpoint", null, user.reg.hardwareIP());
+      if (debug) System.out.println("*** goToMainMethod bp=" + bp);
     } 
     catch (BmapMultipleException e1)
     {
@@ -861,23 +2191,39 @@ class Debugger implements jdpConstants {
     {
       jdp_console.writeOutput(e2.getMessage());
     }
+    
+    
+    if (debug) System.out.println("*** user.bpset.setBreakpoint(bp) (start) ***");
     user.bpset.setBreakpoint(bp);
-
+    if (debug) System.out.println("*** user.bpset.setBreakpoint(bp)  (done) ***");
+    
     // Continue
     // We may get spurrious Trace/BPT trap or Seg fault as the system 
     // is inialized (stack resize, etc). Tell the debugger
     // to ignore these during initialization
+    if (debug) System.out.println("*** user.enableIgnoreOtherBreakpointTrap();  (start) ***");
     user.enableIgnoreOtherBreakpointTrap();  
+    if (debug) System.out.println("*** user.enableIgnoreOtherBreakpointTrap();   (done) ***");
 
     // !!!! Intel version had PRINTNONE for this call ... don't know why
+    if (debug) System.out.println("*** user.pcontinue(0, PRINTASSEMBLY, true) (start) ***");
     user.pcontinue(0, PRINTASSEMBLY, true);
+    if (debug) System.out.println("*** user.pcontinue(0, PRINTASSEMBLY, true)  (done) ***");
 
+    if (debug) System.out.println("*** refreshEnvironment() (start) ***");
     refreshEnvironment();
+    if (debug) System.out.println("*** refreshEnvironment()  (done) ***");
+
+    if (debug) System.out.println("*** refreshEnvironment() (start) ***");
     refreshEnvironment();
+    if (debug) System.out.println("*** refreshEnvironment()  (done) ***");
     
     
     // set breakpoint in main() method of user program
     breakpoint main_bp = setMainBreakpoint();
+
+    if (debug) System.out.println("*** goToMainMethod main_bp="+main_bp);
+
     // remove original breakpoint
     user.bpset.clearBreakpoint(bp);
     
@@ -887,9 +2233,14 @@ class Debugger implements jdpConstants {
     // continue to beginning of user's main()
     user.pcontinue(0, PRINTASSEMBLY, true);
     
+    if (debug) System.out.println("*** refreshEnvironment() (start) ***");
     refreshEnvironment();
+    if (debug) System.out.println("*** refreshEnvironment()  (done) ***");
+
     // remove the breakpoint at the beginning of the main method
+    if (debug) System.out.println("*** user.bpset.clearBreakpoint(main_bp) (start) ***");
     user.bpset.clearBreakpoint(main_bp);
+    if (debug) System.out.println("*** user.bpset.clearBreakpoint(main_bp)  (done) ***");
   }
 
 
@@ -952,6 +2303,13 @@ class Debugger implements jdpConstants {
     JDP_Field valueField = (JDP_Field)stringClass.fields.elementAt(0);
     String charArrayString = valueField.value;
     // get out chars from string format
+    // FIXME: this is not a good way to get the name of the main class,
+    // because the value has been formatted for display, and may have
+    // been truncated.
+    if (charArrayString.indexOf("... length is") >= 0)
+      throw new Error(
+	"You are trying to debug a class whose name is too long for jdp. " +
+	"Try increasing MAX_NUM_ARRAY_ELEMENTS in BootMap.java. Sorry!");
     charArrayString = charArrayString.substring(1, charArrayString.indexOf('}'));
     StringTokenizer st = new StringTokenizer(charArrayString, ", ", false);
     StringBuffer ret = new StringBuffer();
@@ -989,7 +2347,7 @@ class Debugger implements jdpConstants {
 
     // use the same args set up at the beginning for the user process
     user = new OsProcessExternal(bi_runner, bi_args, saved_progname, 
-				 classesNeededFilename, classpath);
+				 classesNeededFilename, classpath , this);
 
     // wait for process to be ready, set the initial breakpoint
     // and let the process proceeds there
@@ -1243,7 +2601,12 @@ class Debugger implements jdpConstants {
    * @return  
    * @see     
    */
-  public void doSetBreakpoint(String command, String[] args) {
+  public boolean doSetBreakpoint(String command, String[] args) {
+
+//      System.err.println("doSetBreakpoint >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+//      Thread.dumpStack();
+//      System.err.println("doSetBreakpoint <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
     breakpoint bp = null;
 
     if (args.length!=0) {
@@ -1265,7 +2628,9 @@ class Debugger implements jdpConstants {
 	// int offset = addr - user.bmap.instructionAddress(compiledMethodID);
 	// *******************************
 	// Don't compute the method ID, just set a raw address breakpoint (nonrelocatable)
-	jdp_console.writeOutput("Caution: setting breakpoint at raw address. \n  If the code is moved by GC, the breakpoint will be lost \n  and the trap instruction will be left in the code.");
+	jdp_console.writeOutput("Caution: setting breakpoint at raw address. \n" + 
+				"  If the code is moved by GC, the breakpoint will be lost \n" + 
+				"  and the trap instruction will be left in the code.");
 	bp = new breakpoint(addr);
       } catch (NumberFormatException e) {
 
@@ -1291,6 +2656,8 @@ class Debugger implements jdpConstants {
       // Only the Intel version prints anything with this call
       Platform.printbp();
     }
+
+    return bp != null;
   }
 
   /**
@@ -1535,8 +2902,7 @@ class Debugger implements jdpConstants {
   }
 
   /**
-   * send a JDP_Class object representing the static fields
-   * of a class to the network client
+   * send a JDP_Class object representing the static fields   * of a class to the network client
    * @param command String containing this command
    * @param args  Array of string arguments (symbolic name)
    */
@@ -1988,279 +3354,27 @@ class Debugger implements jdpConstants {
       throw new NumberFormatException();
   }
 
-
   /**
-   * Print help messages.  If a command is specified, a detailed help message 
-   * for this command is displayed;  otherwise, a general list of jdp commands
-   * and a short description for each command is displayed.
-   * @param   command   The jdp command for specific help messages to be displayed
-   * @return  
-   * @see     
-   */  
-  private void printHelp(String command) {
-    StringBuffer ret = new StringBuffer();
-    if (command.equals("step") || command.equals("s")) {
-      ret.append("Format:  < s | step > \n");
-      ret.append("Single step only the current thread by one machine instruction, \nstepping into all method invocations\n");
-
-    } else if (command.equals("stepbr") || command.equals("sbr")) {
-      ret.append("Format:  < sbr | stepbr >\n");
-      ret.append("Single step only the current thread by one machine instruction, \nstepping over method invocations\n");
-
-    } else if (command.equals("stepline") || command.equals("sl")) {
-      ret.append("Format:  < sl | stepline > \n");
-      ret.append("Single step only the current thread by one java source line, stepping into method invocations\n");
-      ret.append("(may need to hit enter twice to step one line because currently jdp may not be able to set precise breakpoints)\n");
-
-    } else if (command.equals("steplineover") || command.equals("slo")) {
-      ret.append("Format:  < slo | steplineover >\n");
-      ret.append("Single step only the current thread by one java source line, stepping over method invocations\n");
-
-    } else if (command.equals("run")) {
-      ret.append("Format:  < run > <name ... >\n");
-      ret.append("Start a new program\n");
-      ret.append("If no program name is specified, rerun the last program\n");
-      ret.append("All current breakpoints will be set\n");
-      ret.append("The current program must be killed before restarting\n");
-
-    } else if (command.equals("kill") || command.equals("k")) {
-      ret.append("Format:  < k | kill >\n");
-      ret.append("Terminate the current program without exiting the debugger\n");
-
-    } else if (command.equals("cthread") || command.equals("ct")) {
-      ret.append("Format:  < ct | cthread > \n");
-      ret.append("Continue only current thread, passing to the program any pending signal\n");
-
-    } else if (command.equals("cont") || command.equals("c")) {
-      ret.append("Format:  < c | cont > \n");
-      ret.append("Continue all threads, passing to the program any pending signal\n");
-
-    } else if (command.equals("creturn") || command.equals("cr")) {
-      ret.append("Format:  < cr | creturn >\n");
-      ret.append("continue only current thread to the end of this method \n");
-      ret.append("(i.e. go up one stack frame)\n");
-
-    } else if (command.equals("where") || command.equals("w")) {
-      ret.append("Format:  < w | where > < from | to > <hexval>\n");
-      ret.append("Display stack trace\n");
-      ret.append("Up to 20 frames are displayed and the number of remaining frames are indicated\n");
-      ret.append("Any frame, range of frames, or a specific frame pointer can be specified\n");
-      ret.append("If we are in the prolog code, the stack frame is being constructed\n");
-      ret.append("so a place holder will be shown for the frame\n");
-
-    } else if (command.equals("whereframe") || command.equals("wf")) {
-      ret.append("Format:  < wf | whereframe > < from | to > <hexval>\n");
-      ret.append("Display stack trace with arguments, local variables, temporary variables for each stack frame\n");
-      ret.append("Up to 20 frames are displayed and the number of remaining frames are indicated\n");
-      ret.append("Any frame, range of frames, or a specific frame pointer can be specified\n");
-
-    } else if (command.equals("reg") || command.equals("r") || 
-               command.equals("wreg") || command.equals("wr")) {
-      ret.append("Format 1:  < r | reg > <num|name> <count>\n");
-      ret.append("Format 2:  < wr | wreg > <num|name> <hexval>\n");
-      ret.append("Display/update hardware registers (not thread context registers)\n");
-      ret.append("For AIX: you can specify number or name, where number is:  0-31, 128-136, 138, 148, 256-287\n");
-      ret.append("For Lintel: you can only specify name.\n");
-      ret.append("Display will not include floating point registers unless\n");
-      ret.append("'pref showFPRs true' has been specified.\n");
-      ret.append("On this plaform the register names are: \n");
-      String regname="";
-      for (int i=0; i<VM_BaselineConstants.GPR_NAMES.length; i++)
-	regname += VM_BaselineConstants.GPR_NAMES[i] + " ";
-      ret.append(regname);
-      regname = "";
-      for (int i=0; i<VM_BaselineConstants.FPR_NAMES.length; i++)
-	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
-      ret.append(regname);
-      ret.append(Platform.extraRegNames);
-
-    } else if (command.equals("regnames") || command.equals("regname")) {
-      ret.append("Format: regnames || regnames \n");
-      ret.append("Show the correspondence between hardware register names \n");
-      ret.append("and symbolic register names \n");
-
-    } else if (command.equals("mem") || command.equals("m") || 
-	       command.equals("wmem") || command.equals("wm") ||
-	       command.equals("memraw") || command.equals("mraw")  ) {
-      ret.append("Format 1:  < m | mem > <hexaddr> <count>\n");
-      ret.append("Format 2:  < wm | wmem > <hexaddr> <hexvalue>\n");
-      ret.append("Format 3:  < mraw | memraw > <hexaddr> <hexvalue>\n");
-      ret.append("Display/update memory at this address\n");
-      ret.append("If count is not specified, 5 words will be displayed\n");
-      ret.append("For mem and wmem, the breakpoints are transparent\n");
-      ret.append("For memraw, the actual memory contents are shown with the breakpoints as is (intended for debugging jdp)\n");
-
-    } else if (command.equals("printclass") || command.equals("pc")) {
-      ret.append("Format 1:   < pc | printclass> <class><.field><[n]>\n");
-      ret.append("Print the static fields for this class\n");
-      ret.append("(including super classes up to but not including java.lang.Object)\n");
-      ret.append("For array, specify an individual element or omit the rightmost dimension \nto display the full dimension\n");
-      ret.append("The variable name can be nested arbitrarily\n");
-      ret.append("Example:\n");
-      ret.append("   pc class                         print the static variables\n");
-      ret.append("   pc class.field                   print this field\n");
-      ret.append("   pc class.array[2]                print this array element\n");
-      ret.append("   pc class.field1.array[4].field2  nested expression\n\n");
-      ret.append("Format 2:   < pc | printclass> <hexaddr>\n");
-      ret.append("   pc 01234567                      print the type for this address\n\n");
-
-    } else if (command.equals("print") || command.equals("p")) {
-      ret.append("Format 1:   < p | print> frame<:localvar><.field><[n]>\n");
-      ret.append("Print the content of a local variable in this stack frame;\n");
-      ret.append("If no name is specified, all locals in the current scope are printed\n");
-      ret.append("The name can be the string this to print the current object\n");
-      ret.append("Example:\n");
-      ret.append("   p 0                             print all locals in frame 0\n");
-      ret.append("   p this                          print the current object in frame 0\n");
-      ret.append("   p 1:mylocal.field1              print this local variable in frame 1\n\n");
-      ret.append("Format 2:   < p | print> (classname) hexaddress\n");
-      ret.append("Cast the address as an instance of this class\n");
-      ret.append("and print the contents \n\n");
-      ret.append("Format 3:   < p | print><@class.staticvar>\n");
-      ret.append("Print the address of a static variable for this class\n");
-
-
-    } else if (command.equals("listb") || command.equals("lb")) {
-      ret.append("Format:  < lb | listb > <hexaddr>\n");
-      ret.append("Dissassemble the bytecodes of the method containing this address\n");
-      ret.append("If address is not specified, use the current PC\n");
-      ret.append("(this command has been removed because the Optimizing compiler does not generate the bytecode information)\n");
-
-    } else if (command.equals("listi") || command.equals("li")) {
-      ret.append("Format:  < li | listi > <hexaddr><count>\n");
-      ret.append("Dissassemble the machine instruction in this range of addresses\n");
-      ret.append("If address is not specified, the current PC will be used.\n");
-      ret.append("If count is specified it must be an integer. It can be negative on PPC\n");
-      ret.append("Default count is 10. Count can be specified alone.\n");
- 
-    } else if (command.equals("listt") || command.equals("lt")) {
-      ret.append("Format:  < lt | listt > <all|byname|run|ready|wakeup|system|gc>\n");
-      ret.append("List the threads, select the type of thread by:\n");
-      ret.append("  all      all threads listed by top stack frame\n");
-      ret.append("  byname   all threads listed by thread class name\n");
-      ret.append("  run      threads currently loaded in the system threads\n");
-      ret.append("  ready    threads in the VM_Scheduler ready queue\n");
-      ret.append("  wakeup   threads in the VM_Scheduler wakeup queue\n");
-      ret.append("  system   dump the state of the system threads\n");
-      ret.append("  gc       garbage collector threads\n");
-      ret.append("Annotation: \n");
-      ret.append("  threads loaded in system thread are indicated by >\n");
-      ret.append("  the current thread in which the debugger stops is indicated by ->\n");
-
-
-    } else if (command.equals("thread") || command.equals("th")) {
-      ret.append("Format:  < th | thread > <threadID|off>\n");
-      ret.append("Select a thread context by its ID \n");
-      ret.append("(this is a small integer, get all current thread ID by the listt command)\n");
-      ret.append("The new thread context will be shown in the jdp prompt\n");
-      ret.append("and all future stack and local display will be for this thread\n");
-      ret.append("If no ID is specified, the context is returned to the current thread in which the debugger has stopped\n");
-      ret.append("To force jdp to use the context in the hardware register, specify an ID of 0 or OFF; jdp will stay there until the context is set manually to a valid thread ID\n");
-      ret.append("jdp will start in the OFF thread (i.e. no thread context)\n");
-
-    } else if (command.equals("break") || command.equals("b")) {
-      ret.append("Format:  < b ><hexaddr><class.method:line sig>\n");
-      ret.append("Set breakpoint by hex address or symbolic name \n");
-      ret.append("With no argument, the list of current breakpoints is shown\n");
-      ret.append("For symbolic name, jdp will attempt to match partial names\n");
-      ret.append("The method prolog is skipped;  to break at the start of the prolog, \nspecify 0 for the line number\n");
-      ret.append("example:\n");
-      ret.append("   b                        list current breakpoints\n");
-      ret.append("   b 0123abcd               at this hex address\n");
-      ret.append("   b class:line             at java source line in class\n");
-      ret.append("   b method                 at start of method, skipping prolog\n");
-      ret.append("   b class.method           at start of method, skipping prolog\n");
-      ret.append("   b class.method sig       for overloaded method\n");
-      ret.append("   b class.method:0         at start of method prolog\n");
-      ret.append("the class file must be generated with -g to get the line number\n");
-
-    } else if (command.equals("clearbreak") || command.equals("cb")) {
-      ret.append("Format:  < cb ><hexaddr|all> \n");
-      ret.append("Clear breakpoint at the hex address or all breakpoint\n");
-      ret.append("(type b to get the list of current breakpoints)\n");
-      ret.append("If no address is specified, clear breakpoint at the current instruction\n");
-
-    } else if (command.equals("stack") || command.equals("f")) {
-      ret.append("Format:  < f | stack > <hexval> <n>\n");
-      ret.append("Display current JVM stack \n");
-      ret.append("showing n words at the top and bottom, the default is 4 words\n");
-      ret.append("The value for Frame Pointer may be specified in <hexval>\n");
-      
-    } else if (command.equals("preference") || command.equals("pref")) {
-      ret.append("Format:  < preference | pref> <string> <value>\n");
-      ret.append("Set user preferences\n");
-      ret.append("To display integer in hex or decimal, specify:  int  < hex | x | dec | d > \n");
-      ret.append("To display stack with/without a decimal column, specify: stack < hex | x | dec | d > \n");
-      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f >\n "); 
-      ret.append("To select whether floating point registers are displayed as part of reg command, specify: showFPRs true | false\n");
-
-
-    } else if (command.equals("verbose") || command.equals("v")) {
-      ret.append("Format:  < v | verbose >\n");
-      ret.append("Toggle verbose mode on and off\n");
-      ret.append("In verbose, the current stack frame is automatically displayed\n");
-
-    } else if (command.equals("macro")) {
-      ret.append("Format:  <your macro name>\n");
-      ret.append("jdp will search for the named file with the .jdp suffix in the current class path\n");
-      ret.append("Each line is read and executed it as if it is entered from the command line\n");
-      ret.append("The file should contain normal jdp commands\n");
-      ret.append("On start up, jdp will look for the file startup.jdp in the current directory\n");
-      ret.append("If it exists, it will be loaded and executed automatically\n");
-
-    } else if (command.equals("q") || command.equals("quit")) {
-      ret.append("Format:  <q | quit>\n");
-      ret.append("Exit debugger\n");
-
-    } else if (command.equals("enter")) {
-      ret.append("Format:  (enter)\n");
-      ret.append("Repeat last command\n");
-
-    } else if (command.equals("x2d") || command.equals("d2x")) {
-      ret.append("Format:  x2d hexnum\n");
-      ret.append("         d2x decimalnum\n");
-      ret.append("Convert number between hex and decimal\n");
-
-    } else {
-      ret.append("step          step current thread by instruction, into method\n");
-      ret.append("stepbr        step current thread by instruction, over method\n");
-      ret.append("stepline      step current thread by java source line, into method \n");
-      ret.append("steplineover  step current thread by java source line, over method \n");
-      ret.append("creturn       continue to last caller \n");
-      ret.append("cthread       continue current thread only\n");
-      ret.append("cont          continue all threads\n");
-      ret.append("kill          terminate program \n");
-      ret.append("run           start new program \n");
-      ret.append("break         list/set breakpoint \n");
-      ret.append("clearbreak    clear breakpoints \n\n");
-      
-      ret.append("thread        set or turn off thread context\n");
-      ret.append("where         print short stack trace \n");
-      ret.append("whereframe    print full stack trace \n");
-      ret.append("stack         display formatted stack \n");
-      ret.append("mem           display memory\n");
-      ret.append("memraw        display actual memory, jdp breakpoints visible\n");
-      ret.append("wmem          write memory \n");
-      ret.append("reg           display registers \n");
-      ret.append("wreg          write register \n");
-      ret.append("regnames      display register symbolic names \n");
-      ret.append("printclass    print the class statics or the type of an object address\n");
-      ret.append("print         print local variables or cast an address as an object\n");
-      ret.append("listi         list machine instruction\n");
-      ret.append("listt         list threads\n\n");
-      
-      ret.append("quit          exit debugger\n");
-      ret.append("preference    set user preference\n");
-      ret.append("verbose       toggle verbose mode\n");
-      ret.append("(macro name)  load and execute this macro (a text file with suffix .jdp)\n");
-      ret.append("x2d, d2x      convert number between hex and decimal\n");
-      ret.append("(enter)       repeat last command\n\n");
-      
-      ret.append("To get more information on a specific command including what arguments it can process, type: \n \thelp thiscommand\n");
-
-    }
-    jdp_console.writeOutput(ret.toString());
+   * Print usage information for a particular command.
+   * This is just a convenient way to delegate to the HelpCommand object.
+   * @param commandName name of the command to print help information for
+   */
+  void printHelp(String commandName) {
+    commandTable[HELP_COMMAND].execute(new String[]{commandName});
   }
 
+  // Misc stuff by palm
+  final static boolean debug = false; //true;
+  private final void debug(Object msg) { if (debug) System.err.println(msg); }
+  final static String args(String[] args) {
+    if (args == null) return "<null>";
+    StringBuffer sb = new StringBuffer("[");
+    for (int i = 0, N = args.length; i < N; i++) {
+      sb.append(args[i]);
+      if (i <N-1) sb.append(",");
+    }
+    sb.append("]");
+    return sb.toString();
+  }
 
 }

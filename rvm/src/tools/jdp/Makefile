@@ -1,6 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #$Id$
+
 #
 # This Makefile is to be called from the jdp script file where the appropriate
 # environment variables are set for the platform
@@ -16,10 +17,18 @@ TOOLS_DIR:=$(RVM_BUILD)/RVM.tools
 
 CLASSPATH:=$(RVM_BUILD)/RVM.scratch:$(RVM_BUILD)/RVM.classes:$(RVM_BUILD)/RVM.classes/rvmrt.jar
 
+DOC_DIR=docs
+DOC=javadoc
+DOC_OPTIONS=-use -private -windowtitle "JDP API"
+
 .SUFFIXES:	.java .class
 
-.java.class:	
-	$(JCOMPILE) -g -classpath $(CLASSPATH) $< 
+.java.class:
+	$(JCOMPILE) -g -classpath $(CLASSPATH) $<
+
+
+classes:
+	$(JCOMPILE) -g com/ibm/jikesrvm/jdi/jdwp/*.java
 
 CLASSES   = \
 	jdp.class \
@@ -55,7 +64,10 @@ CLASSES   = \
 	InterpreterStack.class \
 	addressRemapper.class \
 	unInitType.class \
-        mapVM.class
+        mapVM.class \
+	QueueCommandInterface.class \
+	CommandQueueDebugger.class \
+	Assert.class 
 
 # Class files that contain native methods, and for which there is a
 # corresponding .c file.  If this makefile is to be used for .class files only,
@@ -86,7 +98,31 @@ EXTRA_C_MODULES = OsProcessExternal.o \
 #             echo "include Makefile") > Makefile.tmp
 #	@$(MAKE) -f Makefile.tmp all_1
 
-copy_intel: 
+jdwp_packages=	com/ibm/jikesrvm/jdi \
+		com/ibm/jikesrvm/jdi/event \
+		com/ibm/jikesrvm/jdi/request \
+		com/ibm/jikesrvm/jdi/jdwp \
+		com/ibm/jikesrvm/jdi/jdwp/request \
+		com/ibm/jikesrvm/jdi/jdwp/event \
+		com/ibm/jikesrvm/jdi/jvmdi \
+		com/ibm/jikesrvm/jvmdi 
+
+# 	@mkdir -p $(TOOLS_DIR)/com/ibm/jikesrvm/jdi/jdwp/events
+# 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/jdwp-src/src/com/ibm/jikesrvm/jdi/jdwp/*.java \
+# 		$(TOOLS_DIR)/com/ibm/jikesrvm/jdi/jdwp
+# 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/jdwp-src/src/com/ibm/jikesrvm/jdi/jdwp/events/*.java \
+# 		$(TOOLS_DIR)/com/ibm/jikesrvm/jdi/jdwp/events
+
+copy_common:
+	@@for p in $(jdwp_packages); do \
+		echo 'copying ' $$p; \
+		mkdir -p $(TOOLS_DIR)/$$p; \
+		cp -f $(RVM_ROOT)/rvm/src/tools/jdp/jdwp-src/src/$$p/*.java \
+			$(TOOLS_DIR)/$$p; \
+	done
+
+
+copy_intel: copy_common
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/*.java $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/intel/*.java $(TOOLS_DIR)/.
@@ -103,7 +139,7 @@ copy_intel:
 	@rm -f $(TOOLS_DIR)/BootMapExternal.java
 	@cp -f $(RVM_BUILD)/RVM.scratch/BootMapExternal.java $(TOOLS_DIR)/BootMapExternal.java
 
-copy_powerPC:
+copy_powerPC: copy_common
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/*.java $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/powerPC/*.java $(TOOLS_DIR)/.
@@ -116,9 +152,13 @@ copy_powerPC:
 	@rm -f $(TOOLS_DIR)/BootMapExternal.java
 	@cp -f $(RVM_BUILD)/RVM.scratch/BootMapExternal.java $(TOOLS_DIR)/BootMapExternal.java
 
-compile:  $(CLASSES) $(NATIVECLASSES) lib_$(ARCH)
+compile:  classes $(CLASSES) $(NATIVECLASSES) lib_$(ARCH)
 
+$(DOC_DIR):
+	mkdir -p $(DOC_DIR)
 
+doc: $(DOC_DIR)
+	$(DOC) $(DOC_OPTIONS) *.java $(ARCH)/*.java -d $(DOC_DIR)
 
 lib_powerPC: $(NATIVECLASSES_POWERPC:.class=.h) $(NATIVECLASSES_POWERPC:.class=.o) \
             $(EXTRA_C_MODULES) 
@@ -145,5 +185,8 @@ lib_intel: $(NATIVECLASSES_INTEL:.class=.h) $(NATIVECLASSES_INTEL:.class=.o) \
 
 clean:
 	(cd $(TOOLS_DIR); rm -f *)
+
+doc-clean:
+	rm -rf $(DOC_DIR)
 
 

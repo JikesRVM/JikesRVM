@@ -1,0 +1,76 @@
+#!/bin/sh
+
+CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
+CLASSPATH_CVS_DATESPEC_ARG="2002-10-08 00:00 EST"
+
+##
+## read local config
+##
+
+. $RVM_HOST_CONFIG
+
+
+##
+## process arguments
+##
+
+while [[ $# > 0 ]] ; do
+  case $1 in
+
+    --current) 
+
+	CLASSPATH_CVS_DATESPEC_ARG=;;
+
+    --datespec) 
+	CLASSPATH_CVS_DATESPEC_ARG="$2"
+	shift ;;
+
+    --root)
+	CLASSPATH_CVS_ROOT=$2
+	shift ;;
+
+  esac	
+  shift
+done
+
+##
+## download classpath
+##
+echo "Downloading GNU Classpath"
+rm -rf $RVM_ROOT/support/classpathBuildDir
+mkdir $RVM_ROOT/support/classpathBuildDir
+cd $RVM_ROOT/support/classpathBuildDir
+
+if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
+  $CVS -Q -d $CLASSPATH_CVS_ROOT co classpath
+else
+  $CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath
+fi 
+
+
+##
+## fix gnu.classpath.Configuration
+##
+cd classpath
+$SED s/@LIBDEBUG@/false/g gnu/classpath/Configuration.java.in |
+$SED s/@INIT_LOAD_LIBRARY@/true/g - > gnu/classpath/Configuration.java
+
+##
+## compile .java files
+##
+echo "Compiling the .java files"
+cd lib
+TOP_LEVEL_PACKAGES="java javax gnu"
+for p in $TOP_LEVEL_PACKAGES; do
+  $FIND ../$p -name '*.java' | $GREP -v -f standard.omit | $XARGS $JIKES -classpath ..:../vm/reference
+done
+
+
+##
+## build classpath.jar
+##
+echo "Building $RVM_ROOT/support/lib/classpath.jar"
+cd ..
+rm -f $RVM_ROOT/support/lib/classpath.jar
+touch $RVM_ROOT/support/lib/classpath.jar
+$FIND . -name '*.class' | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar

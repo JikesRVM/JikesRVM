@@ -12,8 +12,6 @@ include         	$(RVM_BUILD)/Make.rules
 BENCH_NAME=JLex
 include			$(JAL_ROOT)/rvm/regression/Local.rules
 
-JAVACUP_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/java_cup_v10j
-QBCJ_HOME=/homes/munchkin.1/jalapeno/contrib/benchmarks/QBJC
 BENCH_SOURCE_PATH=$(BENCH_HOME)/classes 
 BENCH_CLASS_PATH=$(JAVACUP_HOME)
 HEAPSIZE=200
@@ -22,9 +20,9 @@ START_NAME=JLex.Main
 include			$(JAL_ROOT)/rvm/regression/Make.rules
 
 ifeq ($(WORKING),.)
-$(WORKING)/%.lex:	$(QBCJ_HOME)/qb1.lex
+$(WORKING)/%.lex:	$(QBJC_HOME)/qb1.lex
 else
-$(WORKING)/%.lex:	$(QBCJ_HOME)/qb1.lex $(WORKING)
+$(WORKING)/%.lex:	$(QBJC_HOME)/qb1.lex $(WORKING)
 endif
 	cp $< $@
 
@@ -36,4 +34,8 @@ endif
 	$(MAKE) START_ARGS=$< sanity-check-rule
 
 check:
-	@diff $(START_ARGS).java qb1.lex.ref
+ifeq ($(CLASSPATH_LIBRARIES),YES)
+	@diff $(START_ARGS).java qb1.lex.ref.classpath
+else
+	@diff $(START_ARGS).java qb1.lex.ref.oldlibs
+endif

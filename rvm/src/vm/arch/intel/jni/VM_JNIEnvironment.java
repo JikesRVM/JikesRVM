@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -762,9 +762,14 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     targetMethod = VM_MethodDictionary.getValue(methodID);
     VM_Type returnType = targetMethod.getReturnType();
 
-    // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +
-    //		"." + targetMethod.getName().toString() + "\n");
-
+    if (VM_JNIFunctions.verboseJNI) 
+	VM.sysWrite("JNI CallXXXMethod:  (mid " + 
+		    methodID + 
+		    ") " +
+		    targetMethod.getDeclaringClass().toString() + 
+		    "." + 
+		    targetMethod.getName().toString() + "\n");
+    
     if (expectReturnType==null) {   // for reference return type 
       if (!returnType.isReferenceType())
 	throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);      

@@ -183,6 +183,9 @@ class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Ca
     VM.sysWrite(free / 1024, " Kb free (");
                 VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
     VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); VM.sysWriteln("(Mb/s)      ");
+
+    if (COUNT_BY_TYPE)	printCountsByType();
+
   }
 
   static void clearSummaryStatistics () throws VM_PragmaUninterruptible {

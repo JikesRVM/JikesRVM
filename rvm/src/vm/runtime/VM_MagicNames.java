@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -37,6 +37,7 @@ public class VM_MagicNames {
 
   public static VM_Atom getFramePointer;          
   public static VM_Atom getTocPointer;            
+  public static VM_Atom setTocPointer;            
   public static VM_Atom getJTOC;
   public static VM_Atom getThreadId;
   public static VM_Atom setThreadId;
@@ -177,6 +178,7 @@ public class VM_MagicNames {
 
     getFramePointer               = VM_Atom.findOrCreateAsciiAtom("getFramePointer");
     getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
+    setTocPointer                 = VM_Atom.findOrCreateAsciiAtom("setTocPointer");
     getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
     getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");
     setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");

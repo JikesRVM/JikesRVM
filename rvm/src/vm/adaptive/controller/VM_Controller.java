@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -247,10 +247,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     VM.sysWrite("\nAOS: Killing all adaptive system threads\n");
     for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
       VM_Organizer organizer = (VM_Organizer)e.nextElement();
-      organizer.kill(new ThreadDeath());
+      organizer.kill(new ThreadDeath(), true);
     }
-    compilationThread.kill(new ThreadDeath());
-    controllerThread.kill(new ThreadDeath());
+    compilationThread.kill(new ThreadDeath(), true);
+    controllerThread.kill(new ThreadDeath(), true);
     VM_RuntimeMeasurements.stop();
     report();
   }

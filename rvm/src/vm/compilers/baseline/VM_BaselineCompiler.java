@@ -107,7 +107,8 @@ public abstract class VM_BaselineCompiler {
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     compiledMethod = cm;
     method = cm.getMethod();
-    shouldPrint  = ((options.PRINT_MACHINECODE) &&
+    shouldPrint  = (!VM.runningTool &&
+		    (options.PRINT_MACHINECODE) &&
 		    (!options.hasMETHOD_TO_PRINT() ||
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
@@ -199,7 +200,7 @@ public abstract class VM_BaselineCompiler {
    * Top level driver for baseline compilation of a method.
    */
   protected void compile() {
-    if (options.PRINT_METHOD) printMethodMessage();
+    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
     VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(compiledMethod, stackHeights);
     VM_MachineCode  machineCode  = genCode();

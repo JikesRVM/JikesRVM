@@ -11,92 +11,107 @@ package com.ibm.JikesRVM;
 
 public class VM_StackBrowser implements VM_Constants {
 
-  private VM_Method currentMethod;
-  private int currentBytecodeIndex;
+    private VM_Method currentMethod;
+    private int currentBytecodeIndex;
 
-  private VM_Address currentFramePointer;
-  private int currentInstructionPointer;
-  private VM_CompiledMethod currentCompiledMethod;
+    private VM_Address currentFramePointer;
+    private int currentInstructionPointer;
+    private VM_CompiledMethod currentCompiledMethod;
+    
+    //-#if RVM_WITH_OPT_COMPILER
+    private int currentInlineEncodingIndex;
+    //-#endif
 
-  //-#if RVM_WITH_OPT_COMPILER
-  private int currentInlineEncodingIndex;
-  //-#endif
-
-  public void init() throws VM_PragmaNoInline {
-    currentFramePointer = VM_Magic.getFramePointer();
-    upOneFrame();
-  }
-
-  private void upOneFrame() {
-    VM_Address newIP = VM_Magic.getReturnAddress(currentFramePointer);
-    VM_Address newFP = VM_Magic.getCallerFramePointer(currentFramePointer);
-
-    if (! hasMoreFrames())
-      throw new Error("Error during stack browsing");
-
-    int cmid = VM_Magic.getCompiledMethodID(newFP);
-    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-    while (cmid == INVISIBLE_METHOD_ID) {
-      if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) 
-        newFP = VM_Runtime.unwindNativeStackFrame( newFP );
-      else
-        newFP = VM_Magic.getCallerFramePointer( newFP );
-      newIP = VM_Magic.getReturnAddress( currentFramePointer );
-      cmid = VM_Magic.getCompiledMethodID(newFP);
-      cm = VM_CompiledMethods.getCompiledMethod(cmid);
+    public void init() throws VM_PragmaNoInline {
+	currentFramePointer = VM_Magic.getFramePointer();
+	upOneFrame();
     }
 
-    currentFramePointer = newFP;
-    currentInstructionPointer = newIP.diff( VM_Magic.objectAsAddress(cm.getInstructions()) );
+    private boolean upOneFrameInternal(boolean set) {
+	VM_Address fp;
+	if (currentMethod != null && currentMethod.getDeclaringClass().isBridgeFromNative()) 
+	    fp = VM_Runtime.unwindNativeStackFrame( currentFramePointer );
+	else 
+	    fp = currentFramePointer;
 
-    cm.set(this, currentInstructionPointer);
-  }
+	VM_Address newIP = VM_Magic.getReturnAddress(fp);
+	VM_Address newFP = VM_Magic.getCallerFramePointer(fp);
 
-  boolean hasMoreFrames() {
-    VM_Address newFP =
-      VM_Magic.getCallerFramePointer( currentFramePointer );
-    return newFP.toInt() !=  STACKFRAME_SENTINAL_FP;
-  }
+	if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
+	    return false;
 
-  void up() {
-    if (!currentCompiledMethod.up(this)) upOneFrame();
-  }
+	int cmid = VM_Magic.getCompiledMethodID(newFP);
 
-  public void setBytecodeIndex(int bytecodeIndex) {
-    currentBytecodeIndex = bytecodeIndex;
-  }
+	while (cmid == INVISIBLE_METHOD_ID) {
+	    newIP = VM_Magic.getReturnAddress( newFP );
+	    newFP = VM_Magic.getCallerFramePointer( newFP );
 
-  public int getBytecodeIndex() {
-    return currentBytecodeIndex;
-  }
+	    if (newFP.toInt() ==  STACKFRAME_SENTINAL_FP)
+		return false;
 
-  public void setMethod(VM_Method method) {
-    currentMethod = method;
-  }
+	    cmid = VM_Magic.getCompiledMethodID(newFP);
+	}
 
-  public VM_Method getMethod() {
-    return currentMethod;
-  }
+	if (set) {
+	    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	    
+	    currentFramePointer = newFP;
+	    currentInstructionPointer = newIP.diff( VM_Magic.objectAsAddress(cm.getInstructions()) );
+	    
+	    cm.set( this, currentInstructionPointer );
+	}
+	
+	return true;
+    }
 
-  public void setCompiledMethod(VM_CompiledMethod cm) {
-    currentCompiledMethod = cm;
-  }
+    private void upOneFrame() {
+	boolean ok = upOneFrameInternal( true );
+	if (VM.VerifyAssertions) VM._assert(ok, "tried to browse off stack");
+    }
 
-  VM_Class getCurrentClass() {
-    return getMethod().getDeclaringClass();
-  }
+    public boolean hasMoreFrames() {
+	return upOneFrameInternal( false );
+    }
+    
+    public void up() {
+	if (! currentCompiledMethod.up(this)) upOneFrame();
+    }
 
-  ClassLoader getClassLoader() {
-    return getCurrentClass().getClassLoader();
-  }
+    public void setBytecodeIndex(int bytecodeIndex) {
+	currentBytecodeIndex = bytecodeIndex;
+    }
 
-  //-#if RVM_WITH_OPT_COMPILER
-  public void setInlineEncodingIndex(int index) {
-    currentInlineEncodingIndex = index;
-  }
+    public int getBytecodeIndex() {
+	return currentBytecodeIndex;
+    }
 
-  public int getInlineEncodingIndex() {
-    return currentInlineEncodingIndex;
-  }
-  //-#endif
+    public void setMethod(VM_Method method) {
+	currentMethod = method;
+    }
+
+    public VM_Method getMethod() {
+	return currentMethod;
+    }
+
+    public void setCompiledMethod(VM_CompiledMethod cm) {
+	currentCompiledMethod = cm;
+    }
+
+    public VM_Class getCurrentClass() {
+	return getMethod().getDeclaringClass();
+    }
+
+    public ClassLoader getClassLoader() {
+	return getCurrentClass().getClassLoader();
+    }
+
+    //-#if RVM_WITH_OPT_COMPILER
+    public void setInlineEncodingIndex(int index) {
+	currentInlineEncodingIndex = index;
+    }
+
+    public int getInlineEncodingIndex() {
+	return currentInlineEncodingIndex;
+    }
+    //-#endif
 }

@@ -55,7 +55,7 @@ public class VM_CommonAllocatorHeader
   /**
    * test to see if the barrier bit is set
    */
-  static boolean testBarrierBit(Object ref) throws VM_PragmaUninterruptible {
+  public static boolean testBarrierBit(Object ref) throws VM_PragmaUninterruptible {
     return VM_ObjectModel.testAvailableBit(ref, GC_BARRIER_BIT_IDX);
   }
 

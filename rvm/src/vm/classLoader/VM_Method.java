@@ -1,11 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -306,6 +307,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     lineNumberMap = lnm;
   }
 
+  public final int getModifiers() {
+    return modifiers & (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED | 
+      ACC_STATIC | ACC_FINAL | ACC_SYNCHRONIZED | ACC_NATIVE | ACC_ABSTRACT | ACC_STRICT);
+  }
+
   /**
    * Is this method interruptible?
    * In other words, should the compiler insert threadswitch points
@@ -396,13 +402,14 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   public synchronized INSTRUCTION[] getCurrentInstructions() {
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
-    } else if (VM.BuildForLazyCompilation && !VM.writingBootImage) {
+    } else if (VM.BuildForLazyCompilation && (!VM.writingBootImage || isNative())) {
       return VM_LazyCompilationTrampolineGenerator.getTrampoline();
     } else {
       compile(); 
       return currentCompiledMethod.getInstructions();
     }
   }
+
 
   /**
    * Generate machine code for this method if valid
@@ -887,12 +894,22 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     if (libs!=null) {
       for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
         VM_DynamicLibrary lib = libs[i];
-        if (lib!=null)
+
+        if (lib!=null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-        if (lib != null && symbolAddress == VM_Address.zero())
+	  if (symbolAddress != VM_Address.zero()) {
+	      nativeProcedureName = nativeProcedureNameWithSigniture;
+	      break;
+	  }
+	}
+
+        if (lib != null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureName);
-	else if (symbolAddress != VM_Address.zero())
-	  nativeProcedureName = nativeProcedureNameWithSigniture;
+	  if (symbolAddress != VM_Address.zero()) {
+	      nativeProcedureName = nativeProcedureName;
+	      break;
+	  }
+	}
       }
     }
 
@@ -911,5 +928,17 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
       return true;
     }
 
+  }
+
+  // ----------------------------------------------------------------------
+  // Support added for JDP
+  // ----------------------------------------------------------------------
+
+  public final int[] startPCs() {
+    return lineNumberMap.startPCs;
+  }
+
+  public final int[] lineNumbers() {
+    return lineNumberMap.lineNumbers;
   }
 }

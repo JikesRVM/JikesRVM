@@ -1,0 +1,41 @@
+package com.ibm.JikesRVM;
+
+import java.io.File;
+import java.util.StringTokenizer;
+import java.net.*;
+
+class ApplicationClassLoader extends URLClassLoader {
+
+    ApplicationClassLoader(String specifiedClassPath) {
+	super( new URL[0] );
+
+	try {
+	    if (specifiedClassPath == null)
+		addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator));
+
+	    else {
+		StringTokenizer tok = new StringTokenizer(specifiedClassPath, File.pathSeparator);
+
+		while (tok.hasMoreElements()) {
+		    String elt = tok.nextToken();
+
+		    if (! (elt.endsWith(".jar") || elt.endsWith(".zip")))
+			if (! elt.endsWith( File.separator ))
+			    elt += File.separator;
+
+		    if (elt.indexOf(":") != -1)
+			addURL( new URL( elt ) );
+		    else if (elt.startsWith( File.separator ))
+			addURL( new URL("file", null, -1, elt) );
+		    else
+			addURL( new URL("file", null, -1, System.getProperty("user.dir") + File.separator + elt) );
+		}
+	    }
+	} catch (MalformedURLException e) {
+	    VM.sysWrite("error setting classpath " + e);
+	    VM.sysExit(-1);
+	}
+    }
+}
+
+		    

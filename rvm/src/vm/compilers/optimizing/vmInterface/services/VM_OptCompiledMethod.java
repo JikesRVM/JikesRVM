@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+
 //$Id$
 package com.ibm.JikesRVM.opt;
 
@@ -105,7 +106,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	  VM.sysWrite( browser.getBytecodeIndex() );
 	  VM.sysWrite("\n");
       }
-    } else {
+    } else {	
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }

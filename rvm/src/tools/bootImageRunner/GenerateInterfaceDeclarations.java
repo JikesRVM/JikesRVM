@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 /**
@@ -307,11 +307,39 @@ class GenerateInterfaceDeclarations {
         + VM_Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
     System.out.print("\n");
 
+    // values in VM_ThreadEventConstants
+    //
+    System.out.print("static const double VM_ThreadEventConstants_WAIT_INFINITE = " +
+	VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
+
     // values in VM_ThreadIOQueue
     //
-    System.out.print("static const int VM_ThreadIOQueue_FD_READY = " + 
-        VM_ThreadIOQueue.FD_READY + ";\n");
+    System.out.print("static const int VM_ThreadIOQueue_READ_OFFSET = " + 
+        VM_ThreadIOQueue.READ_OFFSET + ";\n");
+    System.out.print("static const int VM_ThreadIOQueue_WRITE_OFFSET = " + 
+        VM_ThreadIOQueue.WRITE_OFFSET + ";\n");
+    System.out.print("static const int VM_ThreadIOQueue_EXCEPT_OFFSET = " + 
+        VM_ThreadIOQueue.EXCEPT_OFFSET + ";\n");
     System.out.print("\n");
+
+    // values in VM_ThreadIOConstants
+    //
+    System.out.print("static const int VM_ThreadIOConstants_FD_READY = " +
+	VM_ThreadIOConstants.FD_READY + ";\n");
+    System.out.print("static const int VM_ThreadIOConstants_FD_READY_BIT = " +
+	VM_ThreadIOConstants.FD_READY_BIT + ";\n");
+    System.out.print("static const int VM_ThreadIOConstants_FD_INVALID = " +
+	VM_ThreadIOConstants.FD_INVALID + ";\n");
+    System.out.print("static const int VM_ThreadIOConstants_FD_INVALID_BIT = " +
+	VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
+    System.out.print("static const int VM_ThreadIOConstants_FD_MASK = " +
+	VM_ThreadIOConstants.FD_MASK + ";\n");
+    System.out.print("\n");
+
+    // values in VM_ThreadProcessWaitQueue
+    //
+    System.out.print("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
+	VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
 
     // values in VM_Runtime
     //
@@ -384,6 +412,9 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.epochField.getOffset();
     System.out.print("static const int VM_Processor_epoch_offset = "
 		     + offset + ";\n");
+    offset = VM_Entrypoints.activeThreadField.getOffset();
+    System.out.print("static const int VM_Processor_activeThread_offset = "
+		     + offset + ";\n");
     //-#if RVM_FOR_IA32
     offset = VM_Entrypoints.processorThreadIdField.getOffset();
     System.out.print("static const int VM_Processor_threadId_offset = "
@@ -408,6 +439,9 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
     System.out.print("static const int VM_Thread_hardwareExceptionRegisters_offset = "
 		     + offset + ";\n");
+    offset = VM_Entrypoints.jniEnvField.getOffset();
+    System.out.print("static const int VM_Thread_jniEnv_offset = "
+		     + offset + ";\n");
 
     // fields in VM_Registers
     //
@@ -430,17 +464,20 @@ class GenerateInterfaceDeclarations {
     System.out.print("static const int VM_Registers_inuse_offset = " + 
 		     offset + ";\n");
 
+    // fields in VM_JNIEnvironment
+    offset = VM_Entrypoints.JNIEnvAddressField.getOffset();
+    System.out.print("static const int VM_JNIEnvironment_JNIEnvAddress_offset = " +
+		     offset + ";\n");
+
     // fields in java.net.InetAddress
     //
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
     offset = VM_Entrypoints.inetAddressAddressField.getOffset();
     System.out.print("static const int java_net_InetAddress_address_offset = "
 		     + offset + ";\n");
     offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
     System.out.print("static const int java_net_InetAddress_family_offset = "
 		     + offset + ";\n");
-    //-#endif
+
     // fields in java.net.SocketImpl
     //
     offset = VM_Entrypoints.socketImplAddressField.getOffset();

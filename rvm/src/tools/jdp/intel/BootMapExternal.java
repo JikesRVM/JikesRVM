@@ -1,11 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+
 /**
  * External implementation for BootMap.
  * Load the method map for the JVM boot image from disk
@@ -68,12 +69,15 @@ class BootMapExternal extends BootMap {
    * @return
    * @see BootMap
    */
-  public BootMapExternal(OsProcess process, String mainClass, 
-			 String classesNeededFilename, String classpath) 
+  public BootMapExternal(OsProcess process, 
+			 String mainClass, 
+			 String classesNeededFilename, 
+			 String classpath,
+			 Debugger debugger) 
     throws BootMapCorruptException, Exception   {
 
     // superclass: BootMap constructor
-    super(process);
+    super(process, debugger);
 
     // If we are running under the mapping interpreter, it has already
     // set up the JVM data structure in its layer
@@ -113,10 +117,10 @@ class BootMapExternal extends BootMap {
    * @return
    * @see
    */
-  public BootMapExternal(OsProcess process) {   
+  public BootMapExternal(OsProcess process, Debugger debugger) {   
 
     // superclass: BootMap constructor
-    super(process);
+    super(process, debugger);
 
   }
 
@@ -196,12 +200,24 @@ class BootMapExternal extends BootMap {
   // Either the caller or this routine should should be recoded to 
   // scan the compiled method table to get all codes for this method
   public int temp_instructionAddressForMethod(int methodAddress) {
+
     try {
-      VM_Field field = findVMField("com.ibm.JikesRVM.VM_Method", "mostRecentlyGeneratedInstructions");
-      return owner.mem.read(methodAddress + field.getOffset());    
-    } catch (BmapNotFoundException e) {
-      System.out.println("JDP ERROR:  could not find fields VM_Method.mostRecentlyGeneratedInstructions, has it been changed?");
-      return 0;      
+      // At the present time, the instructions for a compiled method hang
+      // off a VM_CompiledMethod object which is accessible from a field of
+      // the VM_Method.
+
+      VM_Field currentCompiledMethodField = findVMField("com.ibm.JikesRVM.VM_Method", "currentCompiledMethod");
+      VM_Field instructionsField = findVMField("com.ibm.JikesRVM.VM_CompiledMethod", "instructions");
+
+      // Evil: using int values as addresses
+      int compiledMethodAddr = owner.mem.read(methodAddress + currentCompiledMethodField.getOffset());
+      int instructionsAddr = owner.mem.read(compiledMethodAddr + instructionsField.getOffset());
+
+      return instructionsAddr;
+    }
+    catch (BmapNotFoundException e) {
+      System.out.println("JDP ERROR: exception looking for compiled code for method: " + e);
+      return 0;
     }
   }
 
@@ -335,7 +351,7 @@ class BootMapExternal extends BootMap {
    * @param  method name with or without classname preceding, delimited by ".",
    *         and with or without line number following, delimited by ":"
    * @param  signature optional, can be null
-   * @param  address of current instruction for lookup
+   * @param  address of current instruction for lookup; ignored (why?)
    * @return  the corresponding address of the machine instructions 
    * @exception  BmapMultipleException if multiple matches exist
    * @exception	 BmapNotFoundException if no match
@@ -343,33 +359,36 @@ class BootMapExternal extends BootMap {
    */
   public breakpoint findBreakpoint(String name, String sig, int address) throws BmapMultipleException, BmapNotFoundException {
 
-    String methodname;
-    String classname;
-    int line;
+    // Check line number; if not specified, then breakpoint must be
+    // at (beginning of) a method
+    int line = CommandLine.breakpointParseLine(name);
 
-    // the name is of the form:  class.method:line, where class and line may be omitted.
-    // separate the class and method names and line number
-    classname = CommandLine.breakpointParseClass(name);
-    methodname = CommandLine.breakpointParseMethod(name);
-    line = CommandLine.breakpointParseLine(name);
+    // Enumerate ways of interpreting this breakpoint
+    CommandLine.BreakpointLocation[] possibleLocations =
+      CommandLine.breakpointParse(name, sig != null || line <= 0);
 
-    // if no line number given, look for the start of code for the method
-    if (line == -1 || line == 0) {
+    // Try each location.
+    for (int i = 0; i < possibleLocations.length; ++i) {
+      try {
+	CommandLine.BreakpointLocation loc = possibleLocations[i];
+	//System.out.println("Trying breakpoint location " + loc.toString());
+	breakpoint result;
+	if (loc.methodName != null)
+	  result = breakpointForMethod(loc.className, loc.methodName, sig, line);
+	else
+	  result = breakpointForLine(loc.className, line);
 
-      return breakpointForMethod(classname, methodname, sig, line);
-
-    // given line number with class name, there should be an exact match
-    // in this case the method name and signature are not ingored
-    } else {
-
-      if (classname.equals("")) {
-	throw new BmapNotFoundException("no class specified.");
-      } else {
-
-	return breakpointForLine(classname, line);
-
+	if (result != null)
+	  return result;
       }
+      catch (BmapNotFoundException e) {
+	//System.out.println("Exception: " + e.getMessage());
+      }
+      // No good, but keep trying
     }
+
+    // We tried, but just didn't find anything
+    throw new BmapNotFoundException("Could not resolve breakpoint: " + name);
 
   }
    
@@ -572,27 +591,33 @@ class BootMapExternal extends BootMap {
     {
       throw new BmapNotFoundException("class not loaded");
     }
-    //System.out.println("breakpointForLine: search class " + cls.getName().toString());
+//      System.out.println("breakpointForLine: search class " + cls.getName().toString() + " @ " + linenum);
 
     // scan through the static methods for this line number
     VM_Method mth;
     VM_Method[] methods = cls.getStaticMethods();
+
     int  mthIndex;
-    //System.out.println("breakpointForLine: found " + methods.length + " static methods");
+//      System.out.println("breakpointForLine: found " + methods.length + " static methods");
     for (int i=0; i<methods.length; i++) {
       mth = methods[i];
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
         offset = mth.getCurrentCompiledMethod().findInstructionForLineNumber(linenum);
+//  	System.out.println("breakpointForLine: " + mth.getName().toString() + " offset=" + offset);
         if (offset!=-1) {
           startAddr = instructionAddressForClass(id, i, true);
+//  	  System.out.println("breakpointForLine: " + mth.getName().toString() + " startAddr=" + startAddr);
           methodID = getCompiledMethodIDForInstruction(startAddr);
-          // System.out.println("breakpointForLine: " + methodID + ", " + offset + " at " +
-          // 		      Integer.toHexString(startAddr + offset));
+//             System.out.println("breakpointForLine: " + methodID + ", " + offset + " at " +
+//             		      Integer.toHexString(startAddr + offset));
           return new breakpoint(methodID, offset, startAddr + offset);
         }
-      }
+      } else 
+	{
+//  	  System.out.println("breakpointForLine: " + mth.getName().toString() + " is not compiled!");
+	}
     }
 
     // no luck, scan through the virtual methods for the line number
@@ -603,16 +628,21 @@ class BootMapExternal extends BootMap {
       if (mth.isCompiled())
       {
         offset = mth.getCurrentCompiledMethod().findInstructionForLineNumber(linenum);
-        //System.out.println("... checking virtual method " + methods[i].getName().toString() +
-        // 			    ": offset " + offset);
+//  	System.out.println("breakpointForLine: " + mth.getName().toString() + " offset=" + offset);
+//          System.out.println("... checking virtual method " + methods[i].getName().toString() +
+//           			    ": offset " + offset);
         if (offset!=-1) {
           startAddr = instructionAddressForClass(id, i, false);
           methodID = getCompiledMethodIDForInstruction(startAddr);
-          // System.out.println("breakpointForLine: " + methodID + ", " + offset + " at " +
-          // 		      Integer.toHexString(startAddr + offset));
+//             System.out.println("breakpointForLine: " + methodID + ", " + offset + " at " +
+//             		      Integer.toHexString(startAddr + offset));
           return new breakpoint(methodID, offset, startAddr + offset);
         }
-      }
+      } 
+      else 
+	{
+//  	  System.out.println("breakpointForLine: " + mth.getName().toString() + " is not compiled!");
+	}
     }
    
     throw new BmapNotFoundException("no compiled code at line " + linenum);
@@ -976,8 +1006,15 @@ class BootMapExternal extends BootMap {
 
     // not found in dictionary, the address must not be an instruction address
     System.out.print("Could not find code address: " + Integer.toHexString(address));
+//      for (int compiledMethodID=numMethods-1; compiledMethodID>0; compiledMethodID--) {
+//        int methodAddress = owner.mem.read(methodArrayAddress + compiledMethodID*4);
+//        if (methodAddress==0)              // can be null with opt compiler
+//  	continue;
+//        System.out.println(compiledMethodID + ":" + Integer.toHexString(methodAddress));
+//      }
     System.out.println(" in address ranges of any compiled method.");
     System.out.println("scanCompiledMethodIDTable:  address not found");
+    if (true) throw new RuntimeException();
     return 0;
   }
 

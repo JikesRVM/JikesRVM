@@ -13,14 +13,22 @@ import com.ibm.JikesRVM.*;
 
 import java.util.*;
 import java.io.*;
+
+import com.ibm.jikesrvm.jdi.jdwp.*;
+import com.ibm.jikesrvm.jdi.jvmdi.*;
+import com.ibm.jikesrvm.jdi.request.*;
+import com.ibm.jikesrvm.jvmdi.*;
  
-abstract class BootMap implements jdpConstants, 
-				  VM_JavaHeaderConstants,
-				  JDPServiceInterface {
+abstract class BootMap 
+  implements jdpConstants, 
+	     VM_JavaHeaderConstants,
+	     JDPServiceInterface {
+
+
   /**
    * Pointer back to the process that owns this map
    */
-  OsProcess owner;                  	  
+  OsProcess owner;  
 
   /**
    * A buffer holding the current java source
@@ -160,6 +168,8 @@ abstract class BootMap implements jdpConstants,
   /****************************************************************************
    */
 
+  private final Debugger debugger;
+
   /**
    * Set up the super class instance;  most of the work will be done by
    * the subclass constructor
@@ -169,8 +179,9 @@ abstract class BootMap implements jdpConstants,
    * @return
    * @see OsProcess, BootMapExternal, BootMapInternal
    */
-  public BootMap(OsProcess process) {
+  public BootMap(OsProcess process, Debugger debugger) {
     owner = process;         // save the reference to the owning process
+    this.debugger = debugger;
     sourceSnapshot = new SourceSnapshot();      // for source access
   }
 
@@ -230,6 +241,7 @@ abstract class BootMap implements jdpConstants,
     {
       classDescriptor = className;
     }
+
     VM_Type vmtype = dictionaryExtension.findType(classDescriptor);
 
     if (vmtype!=null)
@@ -251,13 +263,18 @@ abstract class BootMap implements jdpConstants,
     String arrayDescriptor;
     // fix up the type name string to be of the form [LElementClass;
     if (typeName.startsWith("["))
-    {
-      arrayDescriptor = typeName.replace('.','/');
-    }
+      {
+	arrayDescriptor = typeName.replace('.','/');
+      }
+//      else if (isPrimitive(typeName))
+//        {
+//  	arrayDescriptor = "[" + descriptor(typeName);
+//        }
     else
-    {
-      arrayDescriptor = "[L" + typeName.replace('.','/') + ";";
-    }
+      {
+	arrayDescriptor = "[L" + typeName.replace('.','/') + ";";
+      }
+
     // lookup the array type
     VM_Type vmtype = dictionaryExtension.findType(arrayDescriptor);
     if (vmtype!=null)
@@ -269,6 +286,41 @@ abstract class BootMap implements jdpConstants,
       System.out.println("findVMArrayByTypeName: array type not found, " + typeName);
       throw new BmapNotFoundException("array type " + typeName + " is not in the boot image");
     }
+  }
+
+  private static boolean isPrimitive(String typeName) {  
+    return "boolean".equals(typeName)
+      ||   "byte".equals(typeName)
+      ||   "char".equals(typeName)
+      ||   "double".equals(typeName)
+      ||   "float".equals(typeName)
+      ||   "int".equals(typeName)
+      ||   "long".equals(typeName)
+      ||   "short".equals(typeName);
+  }
+
+  /**
+   * @return descriptor for the type name
+   */
+  private static String descriptor(String typeName) {
+    if ("boolean".equals(typeName)) {
+      return "Z";
+    } else if ("byte".equals(typeName)) {
+      return "B";
+    } else if ("char".equals(typeName)) {
+      return "C";
+    } else if ("double".equals(typeName)) {
+      return "D";
+    } else if ("float".equals(typeName)) {
+      return "F";
+    } else if ("int".equals(typeName)) {
+      return "I";
+    } else if ("long".equals(typeName)) {
+      return "J";
+    } else if ("short".equals(typeName)) {
+      return "S";
+    }
+    return typeName;
   }
 
   /**
@@ -811,10 +863,15 @@ abstract class BootMap implements jdpConstants,
 
   }
 
+  /**
+   * An arbitrary constant specifying how many array elements
+   * we'll list when displaying the contents of an array.
+   */
+  private static final int MAX_NUM_ARRAY_ELEMENTS = 256;
   
   /**
-   * Return string listing the contents of a 1D array
-   * or the first 20 elements if longer than 20
+   * Return string listing the contents of a 1D array,
+   * up to MAX_NUM_ARRAY_ELEMENTS
    * @param etype the VM_Type descriptor for the array element
    * @param address the starting address of the array
    * @param size  the size of the array element 
@@ -828,12 +885,12 @@ abstract class BootMap implements jdpConstants,
     if (elementType.isPrimitiveType()) {
       String result = "{";
       result += primitiveToString(elementType, address, size);    
-      int limit = 20;
+      int limit = MAX_NUM_ARRAY_ELEMENTS;
       limit = (length<limit) ? length : limit;
       for (int i=1; i<limit; i++) {
     	result += ", " + primitiveToString(elementType, address+i*size, size);
       }
-      if ((length<20)) { 
+      if ((length<MAX_NUM_ARRAY_ELEMENTS)) { 
 	result += "}";
       } else {
 	result += ", ... length is " + length + "}";
@@ -1343,20 +1400,43 @@ abstract class BootMap implements jdpConstants,
   }
 
   /**
-   * Find the file name of the Java source 
-   * @param address  an arbitrary address pointing to a machine instruction
-   * @return the Java source file name for this class
-   * @exception BmapNotFoundException
-   * @see
+   * Returns the full path given a VM_Class.
+   *
+   * @param cls VM_Class whose source we want
    */
-  private String findSourceFileName(int compiledMethodID) throws BmapNotFoundException {
-    VM_Class cls = findVMClass(compiledMethodID, true);
-    VM_Atom source = cls.getSourceName();
-    if (source!=null) {
-      return source.toString();
-    } else {
-      throw new BmapNotFoundException("No Java source file for this class");
+  public final String findFullSourcePath(VM_Class cls) {
+    try {
+      String sourceFile = findSourceFileName(cls) + "";
+      String packageName = findPackageName(cls) + "";
+      return sourceSnapshot.resolveSourceFileName(packageName, sourceFile);
+    } catch (BmapNotFoundException e) {
+      e.printStackTrace(); //TODO
     }
+    return null;
+  }
+
+  /**
+   * Find source file name for given VM_Class.
+   * @param cls the VM_Class object
+   * @return the name of the source file corresponding to this class
+   * @throws BmapNotFoundException if there is no source file information
+   *    for the class
+   */
+  private String findSourceFileName(VM_Class cls) throws BmapNotFoundException {
+    VM_Atom source = cls.getSourceName();
+    if (source == null)
+      throw new BmapNotFoundException("No Java source file for this class");
+    return source.toString();
+  }
+
+  /**
+   * Return the package name for given VM_Class,
+   * @param cls the VM_Class object
+   * @return the package name, or the empty string if the class
+   *    is in the unnamed package
+   */
+  private String findPackageName(VM_Class cls) {
+    return cls.getPackageName();
   }
 
   /**
@@ -1380,10 +1460,14 @@ abstract class BootMap implements jdpConstants,
 
       curr_line = findLineNumber(compiledMethodID, ip);
       try {
-	String source = findSourceFileName(compiledMethodID);
-	if (!sourceSnapshot.sameSourceFile(source))
-	  System.out.println("  In file " + source + ":");
-	String sourceline = sourceSnapshot.getSourceLine(source, curr_line);
+	// Look up the source file and package name for this class.
+	VM_Class cls = findVMClass(compiledMethodID, true);
+	String sourceFile = findSourceFileName(cls);
+	String packageName = findPackageName(cls);
+
+	if (!sourceSnapshot.sameSourceFile(packageName, sourceFile))
+	  System.out.println("  In file " + sourceSnapshot.getCurrentResolvedSource() + ":");
+	String sourceline = sourceSnapshot.getSourceLine(packageName, sourceFile, curr_line);
 	System.out.println("  line " + curr_line + ":" + sourceline);
       } catch (BmapNotFoundException e) {
 	System.out.println("  (source file name not recorded):"  + curr_line);
@@ -1725,15 +1809,15 @@ abstract class BootMap implements jdpConstants,
     if (elementType.isPrimitiveType()) {
       // just set the value to be a representation of the primitive
       // array element values
-      // don't display more than 20 elements on the line
+      // don't display more than MAX_NUM_ARRAY_ELEMENTS elements on the line
       String result = "{";
       result += primitiveToString(elementType, address, size);    
-      int limit = 20;
+      int limit = MAX_NUM_ARRAY_ELEMENTS;
       limit = (length<limit) ? length : limit;
       for (int i=1; i<limit; i++) {
     	result += ", " + primitiveToString(elementType, address+i*size, size);
       }
-      if ((length<20)) { 
+      if ((length<MAX_NUM_ARRAY_ELEMENTS)) { 
 	result += "}";
       } else {
 	result += ", ... length is " + length + "}";
@@ -1778,6 +1862,16 @@ abstract class BootMap implements jdpConstants,
   {
     VM_Class cls = findVMClass(compiledMethodID, true);
     return cls.getName();
+  }
+
+  /**
+   * Get the bottom stack frame (e.g., the activation record of the
+   * method we're currently in).  This frame is the "bottom" because
+   * in gdb, the "up" command goes towards the caller, and because on
+   * most architectures the stack grows downwards in memory.
+   */
+  public JDP_Frame getBottomFrame() {
+    return createJDPFrame(0);
   }
 
   /**
@@ -1841,6 +1935,7 @@ abstract class BootMap implements jdpConstants,
       frame.compiledMethodID = compiledMethodID;
       frame.fp = fp;
       frame.ipOffset = ipOffset;
+      frame.ip = ip;
     }
     catch (BmapNotFoundException e)
     {
@@ -1979,6 +2074,12 @@ abstract class BootMap implements jdpConstants,
   public int readMemory(ADDRESS ptr) {
     return Platform.readmem(ptr);
   }
+
+
+//    final com.ibm.jikesrvm.jdi.jdwp.Debugger createDebugger() { 
+//      return new DebuggerProxy(this, owner, debugger);
+//    }
+
 }
 
 

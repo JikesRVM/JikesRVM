@@ -29,7 +29,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   static OPT_Instruction instanceOf(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand result = InstanceOf.getClearResult(s);
     VM_Type LHStype = InstanceOf.getType(s).type;
-    OPT_RegisterOperand ref = (OPT_RegisterOperand)InstanceOf.getClearRef(s);
+    OPT_Operand ref = InstanceOf.getClearRef(s);
     OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
     OPT_Instruction next = s.nextInstructionInCodeOrder();
     if (next.operator() == INT_IFCMP && 
@@ -60,7 +60,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock trueBranch = 
 	branchCondition ? branchBB : fallThroughBB;
       OPT_Instruction nullComp = 
-	IfCmp.create(REF_IFCMP, guard, ref.copyU2U(), 
+	IfCmp.create(REF_IFCMP, guard, ref.copy(), 
 		     new OPT_NullConstantOperand(),
 		     OPT_ConditionOperand.EQUAL(), 
 		     falseBranch.makeJumpTarget(),
@@ -83,7 +83,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock nullCaseBB = 
 	instanceOfBlock.createSubBlock(s.bcIndex, ir, .01f);
       prevBB.appendInstruction(IfCmp.create(REF_IFCMP, guard, 
-					    ref.copyU2U(), 
+					    ref.copy(), 
 					    new OPT_NullConstantOperand(),
 					    OPT_ConditionOperand.EQUAL(), 
 					    nullCaseBB.makeJumpTarget(),
@@ -113,7 +113,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   static OPT_Instruction instanceOfNotNull(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand result = InstanceOf.getClearResult(s);
     VM_Type LHStype = InstanceOf.getType(s).type;
-    OPT_RegisterOperand ref = (OPT_RegisterOperand)InstanceOf.getClearRef(s);
+    OPT_Operand ref = InstanceOf.getClearRef(s);
     OPT_Operand guard = InstanceOf.getClearGuard(s);
     OPT_Instruction next = s.nextInstructionInCodeOrder();
     if (next.operator() == INT_IFCMP && 
@@ -161,11 +161,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
   static OPT_Instruction checkcast(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
+    OPT_Operand ref = TypeCheck.getClearRef(s);
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
     OPT_Instruction nullCond = 
-      IfCmp.create(REF_IFCMP, guard, ref.copyU2U(), 
+      IfCmp.create(REF_IFCMP, guard, ref.copy(), 
 		   new OPT_NullConstantOperand(),
 		   OPT_ConditionOperand.EQUAL(), 
 		   null, // KLUDGE...we haven't created the block yet!
@@ -203,7 +203,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
   static OPT_Instruction checkcastNotNull(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
+    OPT_Operand ref = TypeCheck.getClearRef(s);
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_Operand guard = TypeCheck.getClearGuard(s);
     OPT_BasicBlock myBlock = s.getBasicBlock();
@@ -234,7 +234,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
   static OPT_Instruction mustImplementInterface(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
+    OPT_Operand ref = TypeCheck.getClearRef(s);
     VM_Class LHSClass = TypeCheck.getType(s).type.asClass();
     int interfaceIndex = LHSClass.getDoesImplementIndex();
     int interfaceMask = LHSClass.getDoesImplementBitMask();
@@ -294,7 +294,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    */
   static OPT_Instruction arrayStoreCheck(OPT_Instruction s, OPT_IR ir, boolean couldBeNull) {
     OPT_RegisterOperand guardResult = StoreCheck.getClearGuardResult(s);
-    OPT_RegisterOperand arrayRef = StoreCheck.getClearRef(s).asRegister();
+    OPT_Operand arrayRef = StoreCheck.getClearRef(s);
     OPT_Operand elemRef = StoreCheck.getClearVal(s);
     OPT_Operand guard = StoreCheck.getClearGuard(s);
     if (elemRef instanceof OPT_NullConstantOperand) {
@@ -351,7 +351,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     // we lost type information due to unloaded classes causing
     // imprecise meets.  This should only happen once in a blue moon,
     // so don't bother trying anything clever when it does.
-    VM_Type compType = arrayRef.type;
+    VM_Type compType = arrayRef.getType();
     if (compType != VM_Type.JavaLangObjectType) {
       // optionally (1) from above
       if (compType.getDimensionality() == 1) {
@@ -374,7 +374,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
       // optionally (2) from above
       OPT_RegisterOperand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
-      if (arrayRef.isDeclaredType() || compType == VM_Type.JavaLangObjectArrayType) {
+      if (((arrayRef instanceof OPT_RegisterOperand)&&((OPT_RegisterOperand)arrayRef).isDeclaredType()) || compType == VM_Type.JavaLangObjectArrayType) {
 	OPT_RegisterOperand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
 	curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
 						declTIB, lhsTIB,
@@ -487,7 +487,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    */
   private static OPT_Instruction generateValueProducingTypeCheck(OPT_Instruction s, 
 								 OPT_IR ir, 
-								 OPT_RegisterOperand RHSobj, 
+								 OPT_Operand RHSobj, 
 								 VM_Type LHStype, 
 								 OPT_RegisterOperand RHStib, 
 								 OPT_RegisterOperand result) {
@@ -626,7 +626,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    */
   private static OPT_Instruction convertToBranchingTypeCheck(OPT_Instruction s,
 							     OPT_IR ir,
-							     OPT_RegisterOperand RHSobj, 
+							     OPT_Operand RHSobj, 
 							     VM_Type LHStype,
 							     OPT_RegisterOperand RHStib,
 							     OPT_RegisterOperand result) {
@@ -671,7 +671,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    */
   private static OPT_Instruction generateBranchingTypeCheck(OPT_Instruction s, 
 							    OPT_IR ir, 
-							    OPT_RegisterOperand RHSobj,
+							    OPT_Operand RHSobj,
 							    VM_Type LHStype, 
 							    OPT_RegisterOperand RHStib, 
 							    OPT_BasicBlock trueBlock, 

@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /*
  * @author Manu Sridharan
  */
@@ -19,6 +20,13 @@ public class JDP_Frame implements java.io.Serializable
   String methodName;
 
   /**
+   * Get class name corresponding to method.
+   */
+  public String getClassName() {
+    return methodName.substring(0, methodName.lastIndexOf('.'));
+  }
+
+  /**
    * compiled method ID
    */
   int compiledMethodID;
@@ -30,6 +38,11 @@ public class JDP_Frame implements java.io.Serializable
    * constructed
    */
   int ipOffset;
+
+  /**
+   * Actual address of instruction.
+   */
+  transient int ip;
   
   /**
    * whether this frame is valid
@@ -40,6 +53,9 @@ public class JDP_Frame implements java.io.Serializable
    * message if frame is invalid
    */
   String invalidMessage;
+
+  // This field is filled in by Debugger.fillInSourceLocationInformation().
+  transient int lineNumber;
 
   private static final long serialVersionUID =  3944939733538353418L;
   public String toString()

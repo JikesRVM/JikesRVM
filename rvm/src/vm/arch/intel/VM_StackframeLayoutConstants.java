@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 
 //$Id$
@@ -129,32 +129,45 @@ package com.ibm.JikesRVM;
  */
 public interface VM_StackframeLayoutConstants  {
 
-   static final int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4; // offset of caller's return address from FP
-   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
-   static final int STACKFRAME_METHOD_ID_OFFSET        = -4; // offset of method id from FP
-   static final int STACKFRAME_BODY_OFFSET             = -8; // offset of work area from FP
-   static final int STACKFRAME_HEADER_SIZE             = 12; // size of frame header, in bytes
+  /** offset of caller's return address from FP */
+  static final int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4;
+  /** base of this frame */
+  static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
+  /** offset of method id from FP */
+  static final int STACKFRAME_METHOD_ID_OFFSET        = -4;
+  /** offset of work area from FP */
+  static final int STACKFRAME_BODY_OFFSET             = -8;
+  /** size of frame header, in bytes */
+  static final int STACKFRAME_HEADER_SIZE             = 12;
    
    // space to save entire FPU state.  The FPU state is saved only for 'bridge' frames
    static final int FPU_STATE_SIZE       	       = 108;
 
-   static final int STACKFRAME_SENTINAL_FP = -2; // fp value indicating end of stack walkback
-   static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
+  /** fp value indicating end of stack walkback */
+  static final int STACKFRAME_SENTINAL_FP = -2;
+  /** marker for "assembler" frames that have no associated VM_Method */
+  static final int INVISIBLE_METHOD_ID    = -1;
 
    // Stackframe alignment.
    // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
    //
    static final int STACKFRAME_ALIGNMENT = 8;
-   static final int STACKFRAME_ALIGNMENT_MASK = STACKFRAME_ALIGNMENT - 1; // roundedUpSize = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK
+  /** roundedUpSize = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK */
+  static final int STACKFRAME_ALIGNMENT_MASK = STACKFRAME_ALIGNMENT - 1;
    
    // Sizes for stacks and subregions thereof.
    // Values are in bytes and must be a multiple of 4 (size of a stack slot).
    //
-   static final int STACK_SIZE_GROW      = 8*1024; // how much to grow stack when overflow detected
-   static final int STACK_SIZE_GUARD     = 8*1024; // max space needed for stack overflow trap processing
-   static final int STACK_SIZE_SYSCALL   = 4*1024; // max space needed for any native code called by vm
-   static final int STACK_SIZE_DLOPEN    = 30*1024; // max space needed for dlopen sys call
-   static final int STACK_SIZE_GCDISABLED= 4*1024; // max space needed while running with gc disabled
+  /** how much to grow stack when overflow detected */
+  static final int STACK_SIZE_GROW      = 8*1024;
+  /** max space needed for stack overflow trap processing */
+  static final int STACK_SIZE_GUARD     = 8*1024;
+  /** max space needed for any native code called by vm */
+  static final int STACK_SIZE_SYSCALL   = 4*1024;
+  /** max space needed for dlopen sys call */
+  static final int STACK_SIZE_DLOPEN    = 30*1024;
+  /** max space needed while running with gc disabled */
+  static final int STACK_SIZE_GCDISABLED= 4*1024;
    
    // Complications:
    // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
@@ -168,8 +181,8 @@ public interface VM_StackframeLayoutConstants  {
    // Stacks for "normal" threads grow as needed by trapping on guard region.
    // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
    //
-   static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +   8*1024; // initial stack space to allocate for normal    thread (includes guard region)
-
+  /** initial stack space to allocate for normal    thread (includes guard region) */
+   static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  250*1024; // initial stack space to allocate for normal    thread (includes guard region)
    static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for boot      thread (includes guard region)
    static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for collector thread (includes guard region)
    static final int STACK_SIZE_MAX       = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 244*1024; // upper limit on stack size (includes guard region)

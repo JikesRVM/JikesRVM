@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -61,6 +61,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     return jniEnv;
   }
 
+  public void initializeJNIEnv() {
+      jniEnv = new VM_JNIEnvironment( threadSlot );
+  }
+
   /**
    * Indicate whether the stack of this VM_Thread contains any C frame
    * (used in VM_Runtime.deliverHardwareException for stack resize)
@@ -119,59 +123,73 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-
   /**
-   * Suspend execution of current thread for specified number of seconds 
-   * (or fraction).
-   */ 
-  public static void sleep (long millis) throws InterruptedException, VM_PragmaInterruptible {
-    VM_Thread myThread = getCurrentThread();
-    myThread.wakeupTime = VM_Time.now() + millis * .001;
-    // cache the proxy before obtaining lock
-    myThread.proxy = new VM_Proxy (myThread, myThread.wakeupTime); 
+   * Put given thread to sleep.
+   */
+  public static void sleepImpl(VM_Thread thread) {
     // RCGC - currently prevent threads from migrating to another processor
     if (VM.BuildForConcurrentGC) {
-      myThread.processorAffinity = VM_Processor.getCurrentProcessor();
+      thread.processorAffinity = VM_Processor.getCurrentProcessor();
     }
     VM_Scheduler.wakeupMutex.lock();
     yield(VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex);
   }
 
   /**
-   * Suspend execution of current thread until "fd" can be read without 
-   * blocking.
-   */ 
-  public static void ioWaitRead (int fd) {
-    // VM.sysWrite("VM_Thread: ioWaitRead " + fd + "\n");
-    VM_Thread myThread   = getCurrentThread();
-    myThread.waitFdRead  = fd;
-    myThread.waitFdReady = false;
-    myThread.waitFdWrite  = -1;
+   * Put given thread onto the IO wait queue.
+   * @param waitData the wait data specifying the file descriptor(s)
+   * to wait for.
+   */
+  public static void ioWaitImpl(VM_ThreadIOWaitData waitData) {
+    VM_Thread myThread = getCurrentThread();
+    myThread.waitData = waitData;
     yield(VM_Processor.getCurrentProcessor().ioQueue);
   }
 
   /**
-   * Suspend execution of current thread until "fd" can be written without 
-   * blocking.
-   */ 
-  public static void ioWaitWrite (int fd) {
-    // VM.sysWrite("VM_Thread: ioWaitRead " + fd + "\n");
-    VM_Thread myThread   = getCurrentThread();
-    myThread.waitFdRead  = -1;
-    myThread.waitFdReady = false;
-    myThread.waitFdWrite  = fd;
-    yield(VM_Processor.getCurrentProcessor().ioQueue);
+   * Put given thread onto the process wait queue.
+   * @param waitData the wait data specifying which process to wait for
+   * @param process the <code>VM_Process</code> object associated
+   *    with the process
+   */
+  public static void processWaitImpl(VM_ThreadProcessWaitData waitData, VM_Process process) {
+    VM_Thread myThread = getCurrentThread();
+    myThread.waitData = waitData;
+
+    // Note that we have to perform the wait on the pthread
+    // that created the process, which may involve switching
+    // to a different VM_Processor.
+
+    VM_Processor creatingProcessor = process.getCreatingProcessor();
+    VM_ProcessorLock queueLock = creatingProcessor.processWaitQueueLock;
+    queueLock.lock();
+
+    // This will throw InterruptedException if the thread
+    // is interrupted while on the queue.
+    yield(creatingProcessor.processWaitQueue, queueLock);
   }
 
   /**
    * Deliver an exception to this thread.
    */ 
-  public final void kill (Throwable externalInterrupt) {
+  public final void kill (Throwable externalInterrupt, boolean throwImmediately) {
     // yield() will notice the following and take appropriate action
     this.externalInterrupt = externalInterrupt; 
+    if (throwImmediately) {
+      // FIXME - this is dangerous.  Only called from Thread.stop(),
+      // which is deprecated.
+      this.throwInterruptWhenScheduled = true;
+    }
+
     // remove this thread from wakeup and/or waiting queue
     VM_Proxy p = proxy; 
     if (p != null) {
+      // If the thread has a proxy, then (presumably) it is either
+      // doing a sleep() or a wait(), both of which are interruptible,
+      // so let morph() know that it should throw the
+      // external interrupt object.
+      this.throwInterruptWhenScheduled = true;
+
       VM_Thread t = p.unproxy(); // t == this or t == null
       if (t != null) t.schedule();
     }
@@ -474,9 +492,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // respond to interrupt sent to this thread by some other thread
     //
-    if (myThread.externalInterrupt != null) {
+    if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
       Throwable t = myThread.externalInterrupt;
       myThread.externalInterrupt = null;
+      myThread.throwInterruptWhenScheduled = false;
       VM_Runtime.athrow(t);
     }
   }
@@ -1220,6 +1239,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * exception to this thread.
    */ 
   Throwable externalInterrupt; 
+
+  /**
+   * Should <code>VM_Thread.morph()</code> throw the external
+   * interrupt object?
+   */
+  boolean throwInterruptWhenScheduled;
   
   /**
    * Assertion checking while manipulating raw addresses - 
@@ -1256,13 +1281,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * If this thread is sleeping, when should it be awakened?
    */ 
   double wakeupTime;
-  
+
   /**
-   * Info if this thread is waiting for i/o.
-   */ 
-  int     waitFdRead;  // file/socket descriptor that thread is waiting to read
-  int     waitFdWrite;  // file/socket descriptor that thread is waiting to read
-  boolean waitFdReady; // can operation on file/socket proceed without blocking?
+   * Object specifying the event the thread is waiting for.
+   * E.g., set of file descriptors for an I/O wait.
+   */
+  VM_ThreadEventWaitData waitData;
   
   /**
    * Scheduling priority for this thread.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -7,11 +7,46 @@ package com.ibm.JikesRVM;
 import java.io.IOException;
 import java.io.FileDescriptor;
 import java.io.FileDescriptor;
+import java.net.JikesRVMSupport;
 import java.net.*;
+import java.net.SocketTimeoutException;
+import java.lang.reflect.Field;
 
 public class VM_SocketImpl {
 
-private static final boolean trace = false;
+  private static final boolean trace = false;
+
+/**
+ * Utility method to check the result of an ioWaitRead()
+ * for possible exceptions.
+ */
+private static void checkIoWaitRead(VM_ThreadIOWaitData waitData)
+    throws SocketException, SocketTimeoutException {
+
+  // Did the wait return because it timed out?
+  if (waitData.timedOut())
+    throw new SocketTimeoutException("socket operation timed out");
+
+  // Is file descriptor actually valid?
+  if ((waitData.readFds[0] & VM_ThreadIOConstants.FD_INVALID_BIT) != 0)
+    throw new SocketException("invalid socket file descriptor");
+
+}
+
+/**
+ * Utility method to check the result of an ioWaitWrite()
+ * for possible exceptions.
+ */
+private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData)
+    throws SocketException, SocketTimeoutException {
+
+  // Note that we do not check timeouts for socket writes.
+
+  // Is file descriptor actually valid?
+  if ((waitData.writeFds[0] & VM_ThreadIOConstants.FD_INVALID_BIT) != 0)
+    throw new SocketException("invalid socket file descriptor");
+
+}
 
 /**
  * Query the IP stack for the local address to which this socket is bound.
@@ -25,11 +60,11 @@ private static final boolean trace = false;
 
 public static InetAddress getSocketLocalAddressImpl(FileDescriptor aFD) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int localaddr = VM.sysCall1(bootRecord.sysNetSocketLocalAddressIP, aFD.fd);
+    int localaddr = VM.sysCall1(bootRecord.sysNetSocketLocalAddressIP, java.io.JikesRVMSupport.getFd(aFD));
 
     if (localaddr == -1) VM.sysFail("Socket has no local address!");
 
-    return new InetAddress( localaddr );
+    return JikesRVMSupport.createInetAddress(localaddr);
 }
 
 
@@ -49,7 +84,7 @@ public static int getSocketLocalPortImpl(FileDescriptor aFD) {
 
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
         localPort = VM.sysCall1(bootRecord.sysNetSocketPortIP,
-				   aFD.fd);
+				   java.io.JikesRVMSupport.getFd(aFD));
 	return localPort;
 
 }  // end method getSocketLocalPortImpl
@@ -93,12 +128,17 @@ public static Object getSocketOptionImpl(FileDescriptor aFD, int opt)
  * to the op sys, only handles TCP_NODELAY. The code for SO_LINGER is
  * untested and pre OTI library.  As for IP_MULTICAST_IF, that
  * only applies to MulticastSocket, which are also not implemented
+ *
+ * <p> Update: other socket options, including SO_KEEPALIVE, were added
+ * in JDK 1.3.
  */
 
 public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object optVal)
 	throws SocketException {
 
        VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+
+       int fd = java.io.JikesRVMSupport.getFd(aFD);
        
        switch (option)
           {
@@ -107,22 +147,29 @@ public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object op
 	      { // when socket is closed on this end, wait until unsent data has been received
 		  // by other end or timeout expires
 		  //
-		  int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, aFD.fd, 1, ((Integer)optVal).intValue());
+		  int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, fd, 1, ((Integer)optVal).intValue());
 		  if (rc == -1) throw new SocketException("SO_LINGER"); // !!TODO: what additional details should be supplied with exception?
 	      }
 	  else
 	      { // when socket is closed on this end, discard any unsent data
 		  //
-		  int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, aFD.fd, 0, 0);
+		  int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, fd, 0, 0);
 		  if (rc == -1) throw new SocketException("SO_LINGER"); // !!TODO: what additional details should be supplied with exception?
 	      }
+	  } break;
+
+	  case SocketOptions.SO_KEEPALIVE:
+	  {
+		// TODO: implement this.
+		// optVal will be a java.lang.Boolean.
+		// Having it be a no-op is OK for now.
 	  } break;
 
           case SocketOptions.TCP_NODELAY:
           { // true:  send data immediately when socket is written to
             // false: delay sending, in order to coalesce packets
           int rc = VM.sysCall2(bootRecord.sysNetSocketNoDelayIP,
-				     aFD.fd,
+				     fd,
 				     ((Boolean)optVal).booleanValue() ? 1 : 0);
           if (rc == -1) throw new SocketException("setTcpNoDelay");
           break;
@@ -155,12 +202,23 @@ public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object op
 public static void socketBindImpl(FileDescriptor aFD, int localPort,
 			   InetAddress localAddress)
 	throws SocketException {
+		
+       byte[] ip = localAddress.getAddress();
+	  
+       int address;
+	  
+       address = ip[3] & 0xff;
+       address |= ((ip[2] << 8) & 0xff00);
+       address |= ((ip[1] << 16) & 0xff0000);
+       address |= ((ip[0] << 24) & 0xff000000); 
+	  
+       int family = JikesRVMSupport.getFamily(localAddress);
 
        VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
        int rc = VM.sysCall4(bootRecord.sysNetSocketBindIP,
-				  aFD.fd,
-				  localAddress.family,
-				  localAddress.address,
+				  java.io.JikesRVMSupport.getFd(aFD),
+				  family,
+				  address,
 				  localPort);
 
        if (rc != 0)
@@ -181,16 +239,42 @@ public static void socketBindImpl(FileDescriptor aFD, int localPort,
 
 public static void socketCloseImpl(FileDescriptor aFD) {
 
+       int fd = java.io.JikesRVMSupport.getFd(aFD);
+
        if (trace) VM_Scheduler.trace("VM_SocketImpl.socketCloseImpl",
-				     "socketClose", aFD.fd);
+				     "socketClose", fd);
        VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
-       int fd = aFD.fd;
-       int rc = VM.sysCall1(bootRecord.sysNetSocketCloseIP,
-				  fd);
+       int rc = VM.sysCall1(bootRecord.sysNetSocketCloseIP, fd);
     
 }  // end method socketCloseImpl
 
+private static final int CLOSE_INPUT = 0;
+private static final int CLOSE_OUTPUT = 1;
+
+/**
+ * Close the input side of the given socket file descriptor.
+ * The output side is unaffected.
+ *
+ * @param		aFD		the socket descriptor
+ */
+public static void socketCloseInputImpl(FileDescriptor aFD) throws IOException {
+  VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+  if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(aFD), CLOSE_INPUT) != 0)
+    throw new IOException("could not close input side of socket");
+}
+
+/**
+ * Close the output side of the given socket file descriptor.
+ * The input side is unaffected.
+ *
+ * @param		aFD		the socket descriptor
+ */
+public static void socketCloseOutputImpl(FileDescriptor aFD) throws IOException {
+  VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+  if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(aFD), CLOSE_OUTPUT) != 0)
+    throw new IOException("could not close input side of socket");
+}
 
 /**
  * Answer the result of attempting to accept a connection request
@@ -206,92 +290,104 @@ public static void socketCloseImpl(FileDescriptor aFD) {
  * @param		fdServer	the server socket FileDescriptor
  * @param		newSocket	the host socket a connection will be accepted on
  * @param		fdnewSocket	the FileDescriptor for the host socket
- * @param		timeout		the timeout that the server should listen for
+ * @param		timeout		the timeout that the server should listen for:
+ *                                        0 == infinite
  * @exception	SocketException	if an error occurs while accepting connections
+ * @exception   SocketTimeoutException if the accept times out before a connection arrives
  */
 
 public static FileDescriptor acceptStreamSocketImpl(
 	FileDescriptor fdServer,
 	SocketImpl newSocket,
 	int timeout)
-		throws SocketException {
+		throws SocketException, SocketTimeoutException {
 
-    if (timeout != 0)
-	VM.sysWrite("VM_SocketImpl.acceptStreamSocketImpl timeout(" +
-		    timeout +
-		    ") not implemented: ignoring\n"); // !!TODO
-    
-    if (trace) VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
+  int fd = java.io.JikesRVMSupport.getFd(fdServer);
+
+  if (trace) VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
 				  "socketAccept BEGIN",
-				  fdServer.fd);
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) 
-	VM_EventLogger.logNetAcceptBegin(fdServer.fd);
-    
-    for (;;) {
-	// PIN(newSocket);
-	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	VM_ThreadIOQueue.selectInProgressMutex.lock();
-	int connectionFd = VM.sysCall2(bootRecord.sysNetSocketAcceptIP,
-				       fdServer.fd,
-				       VM_Magic.objectAsAddress(newSocket).toInt());
-	VM_ThreadIOQueue.selectInProgressMutex.unlock();
+				  fd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled) 
+	VM_EventLogger.logNetAcceptBegin(fd);
 
-	// Note that sysNetSocketAccept fills in the InetAddress
-	// in the new socket (family, and integer address); and
-	// the port field.  In the unlikely event that someone
-	// has already resolved the interger address and cached
-	// this value in the object (see InetAddress.getHostName() )
-	// reset the host value.
-	newSocket.getInetAddress().hostName = null;
-	// UNPIN(newSocket);
-	
-	if (connectionFd >= 0)
-	    { // success
-		// fdnewSocket could work too
-		// newSocket.localport       = ***  dont have this localport;
-		
-		// enable non-blocking reads/writes on connection
-		//
-		if (VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, connectionFd, 1) != 0)
-		    // !!TODO: what additional details should be supplied>
-		    throw new SocketException(); 
-		
-		if (trace)
-		    VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
-				       "socketAccept END: new connection",
-				       connectionFd);
-		if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		    VM_EventLogger.logNetAcceptEnd(fdServer.fd, connectionFd);
-		return new FileDescriptor( connectionFd );
-	    }
-	
-	if (connectionFd == -1)
-	    { // operation interrupted by timer tick - retry
-		if (trace)
-		    VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
-				       "socketAccept interrupted RETRY",
-				       fdServer.fd);
-		if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		    VM_EventLogger.logNetAcceptRetry(fdServer.fd);
-		Thread.currentThread().yield();
-		continue;
-	    }
-	
-	if (connectionFd == -2)
-	    { // operation would have blocked
-		if (trace)
-		    VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
-				       "socketAccept would have blocked RETRY",
-				       fdServer.fd);
-		if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		    VM_EventLogger.logNetAcceptRetry(fdServer.fd);
+  // If there is a timeout,
+  // compute total wait time (total number of seconds that
+  // we are willing to wait before a connection arrives)
+  boolean hasTimeout = (timeout > 0);
+  double totalWaitTime = hasTimeout
+    ? ((double) timeout) / 1000.0
+    : VM_ThreadEventConstants.WAIT_INFINITE;
 
-		VM_Thread.ioWaitRead(fdServer.fd);
-		continue;
-	    }
-	
-	throw new SocketException(); // !!TODO: what additional details should be supplied with exception?
+  int connectionFd;
+  double waitStartTime = hasTimeout ? VM_Time.now() : 0.0;
+
+  // Main loop; keep trying to accept a connection until we succeed,
+  // the timeout (if any) is reached, or an error occurs.
+  for (;;) {
+    // Try to accept a connection
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    VM_ThreadIOQueue.selectInProgressMutex.lock();
+    connectionFd = VM.sysCall2(bootRecord.sysNetSocketAcceptIP,
+				   fd,
+				   VM_Magic.objectAsAddress(newSocket).toInt());
+    VM_ThreadIOQueue.selectInProgressMutex.unlock();
+
+    if (connectionFd >= 0)
+      // Got a connection
+      break;
+
+    switch (connectionFd) {
+    case -1:
+      // accept() was interrupted; try again
+      continue;
+    case -2:
+      {
+	// accept() would have blocked:
+	// Wait for the fd to become ready.
+	if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
+	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
+
+	// Check for exceptions (including timeout)
+	checkIoWaitRead(waitData);
+
+	// Update timeout, and make sure it hasn't become negative
+	// (which the IO queue treats as infinite).
+	if (hasTimeout) {
+	  double nextWaitStartTime = VM_Time.now();
+	  totalWaitTime -= (nextWaitStartTime - waitStartTime);
+	  if (totalWaitTime < 0.0)
+	    throw new SocketTimeoutException("socket operation timed out");
+	  waitStartTime = nextWaitStartTime;
+	}
+      }
+      continue;
+    default:
+      // Some kind of error from accept()
+      throw new SocketException("accept failed");
     }
+
+  }
+
+  // Note that sysNetSocketAccept fills in the InetAddress
+  // in the new socket (family, and integer address); and
+  // the port field.  In the unlikely event that someone
+  // has already resolved the interger address and cached
+  // this value in the object (see InetAddress.getHostName() )
+  // reset the host value.
+  
+  JikesRVMSupport.setHostName(newSocket.getInetAddress(), null);
+
+  if (trace)
+    VM_Scheduler.trace("VM_SocketImpl.acceptStreamSocketImpl",
+  			       "socketAccept END: new connection",
+  			       connectionFd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
+    VM_EventLogger.logNetAcceptEnd(fd, connectionFd);
+
+  // Success!
+  // Note that the file descriptor creation hook (in VM_FileSystem.java)
+  // will take care of setting the socket fd to nonblocking mode.
+  return java.io.JikesRVMSupport.createFileDescriptor(connectionFd, false);
     
 }  // end method acceptStreamSocketImpl
 
@@ -309,7 +405,7 @@ public static FileDescriptor acceptStreamSocketImpl(
 
 public static int availableStreamImpl(FileDescriptor aFD)
 	throws SocketException {
-    return VM_FileSystem.bytesAvailable( aFD.fd );
+    return VM_FileSystem.bytesAvailable( java.io.JikesRVMSupport.getFd(aFD) );
 }
 
 
@@ -340,20 +436,34 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
 	throws IOException {
 
        VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+
+       int fd = java.io.JikesRVMSupport.getFd(aFD);
        
        if (trace) VM_Scheduler.trace("VM_SocketImpl.connectStreamSocketImpl", 
-				     "socketConnect BEGIN", aFD.fd);
+				     "socketConnect BEGIN", fd);
 
        if (VM.BuildForEventLogging && VM.EventLoggingEnabled) 
-	   VM_EventLogger.logNetConnectBegin(aFD.fd);
+	   VM_EventLogger.logNetConnectBegin(fd);
 
        int rc = -1;
+       
+       byte[] ip = remoteAddress.getAddress();
+	  
+       int address;
+	  
+       address = ip[3] & 0xff;
+       address |= ((ip[2] << 8) & 0xff00);
+       address |= ((ip[1] << 16) & 0xff0000);
+       address |= ((ip[0] << 24) & 0xff000000); 
+	  
+       int family = JikesRVMSupport.getFamily(remoteAddress);
+       
        while (rc < 0) {
 	   VM_ThreadIOQueue.selectInProgressMutex.lock();
           rc = VM.sysCall4(bootRecord.sysNetSocketConnectIP,
-				     aFD.fd, 
-				     remoteAddress.family,
-				     remoteAddress.address,
+				     fd, 
+				     family,
+				     address,
 				     remotePort);
 	  VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
@@ -365,9 +475,9 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
              if (trace)
 	          VM_Scheduler.trace("VM_SocketImpl.connectStreamSocketImpl",
 		                     "socketConnect interrupted RETRY",
-				     aFD.fd);
+				     fd);
              if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		 VM_EventLogger.logNetConnectRetry(aFD.fd);
+		 VM_EventLogger.logNetConnectRetry(fd);
              Thread.currentThread().yield();
              break;
              
@@ -375,10 +485,11 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
              if (trace)
 		 VM_Scheduler.trace("VM_SocketImpl.connectStreamSocketImpl",
 				    "socketConnect would have blocked RETRY",
-				    aFD.fd);
+				    fd);
              if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		 VM_EventLogger.logNetConnectRetry(aFD.fd);
-	     VM_Thread.ioWaitWrite( aFD.fd );
+		 VM_EventLogger.logNetConnectRetry(fd);
+	     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+	     checkIoWaitWrite(waitData);
              break;
 
 	  case -4 : // errno was ECONNREFUSED
@@ -389,16 +500,16 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
 
 	  case -3 :
 	  default :
-          throw new IOException(); // !!TODO: what additional details should be supplied with exception?
+          throw new IOException("rc="+rc);
 	  }
 
        }
        
        if (trace) VM_Scheduler.trace("VM_SocketImpl.connectStreamSocketImpl",
 				     "socketConnect END ",
-				     aFD.fd);
+				     fd);
        if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-	   VM_EventLogger.logNetConnectEnd(aFD.fd);
+	   VM_EventLogger.logNetConnectEnd(fd);
        
 }  // end method connectStreamSocketImpl
 
@@ -436,16 +547,14 @@ public static FileDescriptor createStreamSocketImpl() throws SocketException {
     if (fd < 0)
 	// !!TODO: what additional details should be supplied with exception?
 	throw new SocketException(); 
-
-    if (VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, fd, 1) != 0)
-	// !!TODO: what additional details should be supplied>
-	throw new SocketException(); 
-       
+ 
     if (trace) 
 	VM_Scheduler.trace(
 	   "VM_SocketImpl.createStreamSocketImpl", "socketCreate", fd);
 
-    return new FileDescriptor(fd);    
+    // Note that the file descriptor creation hook (in VM_FileSystem.java)
+    // will take care of setting the socket fd to nonblocking mode.
+    return java.io.JikesRVMSupport.createFileDescriptor(fd, false);    
 }
 
 
@@ -471,7 +580,7 @@ public static void listenStreamSocketImpl(FileDescriptor aFD, int backlog)
 
        VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
        int rc = VM.sysCall2(bootRecord.sysNetSocketListenIP,
-				  aFD.fd, backlog);
+				  java.io.JikesRVMSupport.getFd(aFD), backlog);
 
        if (rc == -1)
           throw new SocketException(); // !!TODO: what additional details should be supplied with exception?
@@ -503,59 +612,28 @@ public static int receiveStreamImpl(
 		int timeout
 		) throws IOException {
 
-	/*
-       if (timeout != 0)
-          VM.sysWrite("VM_SocketImpl.receiveStreamImpl timeout(" +
-	              timeout +
-		      ") not implemented: ignoring\n"); // !!TODO
-	*/
-          
-       int fd = aFD.fd;
+  int fd = java.io.JikesRVMSupport.getFd(aFD);
 
-       if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl",
-				     "read BEGIN", fd);
-       if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-	      VM_EventLogger.logNetReadBegin(fd);
+  if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl", "read BEGIN", fd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logNetReadBegin(fd);
 
-       for (;;)
-          {
-          int rc = VM_FileSystem.readBytes(fd, data, offset, count);
-          if (rc > 0)
-             { // ok
-             if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl",
-					   "read END", fd);
-             if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		   VM_EventLogger.logNetReadEnd(fd);
+  double totalWaitTime = (timeout > 0)
+    ? ((double) timeout) / 1000.0
+    : VM_ThreadEventConstants.WAIT_INFINITE;
 
-             if (VM.BuildForNetworkMonitoring)
-		    VM_Thread.getCurrentThread().netReads += 1;
-             return rc;
-             }
+  int rc;
+  try {
+    rc = VM_FileSystem.readBytes(fd, data, offset, count, totalWaitTime);
+  }
+  catch (VM_TimeoutException e) {
+    throw new SocketTimeoutException("socket receive timed out");
+  }
 
-          if (rc == 0)
-             { // eof
-             if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl",
-					   "read END", fd);
-             if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		   VM_EventLogger.logNetReadEnd(fd);
+  if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl", "read END", fd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logNetReadEnd(fd);
+  if (VM.BuildForNetworkMonitoring) VM_Thread.getCurrentThread().netReads += 1;
 
-             if (VM.BuildForNetworkMonitoring)
-		    VM_Thread.getCurrentThread().netReads += 1;
-             return -1;
-             }
-
-          if (rc == -1)
-             { // operation would have blocked
-             if (trace) VM_Scheduler.trace("VM_SocketImpl.receiveStreamImpl",
-					   "read would have blocked RETRY",
-					   fd);
-             if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		     VM_EventLogger.logNetReadRetry(fd);
-	     VM_Thread.ioWaitRead(fd);
-             continue;
-             }
-          throw new IOException(); // !!TODO: what additional details should be supplied with exception?
-          }
+  return rc;
 
 }  // end method receiveStreamImpl
 
@@ -581,53 +659,20 @@ public static int sendStreamImpl(
 		int count
 		) throws IOException {
 
-       int fd = ifd.fd;
+       if (count == 0) return 0;
 
-       if (trace) VM_Scheduler.trace("VM_SocketImpl.sendStreamImpl",
-				     "write BEGIN", fd);
-       if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-	     VM_EventLogger.logNetWriteBegin(fd);
+  int fd = java.io.JikesRVMSupport.getFd(ifd);
 
-       for (;;)
-          {
-          int rc = VM_FileSystem.writeBytes(fd, data, offset, count);
+  if (trace) VM_Scheduler.trace("VM_SocketImpl.sendStreamImpl", "write BEGIN", fd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logNetWriteBegin(fd);
 
-          if (rc == count)
-             { // ok
-             if (trace) VM_Scheduler.trace("VM_SocketImpl.sendStreamImpl",
-					   "write END", fd);
-             if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		    VM_EventLogger.logNetWriteEnd(fd);
-             if (VM.BuildForNetworkMonitoring)
-		    VM_Thread.getCurrentThread().netWrites += 1;
-             return rc;
-             }
+  int rc = VM_FileSystem.writeBytes(fd, data, offset, count);
 
-	  if (rc > 0 && rc < count) {
-	      offset += rc;
-	      count -= rc;
-	      VM_Thread.ioWaitWrite(fd);
-	      continue;
-	  }
+  if (trace) VM_Scheduler.trace("VM_SocketImpl.sendStreamImpl", "write END", fd);
+  if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logNetWriteEnd(fd);
+  if (VM.BuildForNetworkMonitoring) VM_Thread.getCurrentThread().netWrites += 1;
 
-          if (rc == -1 || rc == 0)
-             { // operation would have blocked
-             if (trace) VM_Scheduler.trace("VM_SocketImpl.sendStreamImpl",
-					  "write would have blocked RETRY",
-					  fd);
-             if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-		     VM_EventLogger.logNetWriteRetry(fd);
-	     VM_Thread.ioWaitWrite(fd);
-             continue;
-             }
-	  
-	  if (rc == -3) // EPIPE error
-	    {
-	     throw new SocketException("Broken pipe");
-	     }
-
-          throw new IOException(); // !!TODO: what additional details should be supplied with exception?
-          }
+  return rc;
 
 }  // end method sendStreamImpl
 

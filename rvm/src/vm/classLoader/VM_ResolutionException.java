@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -30,6 +30,13 @@ public class VM_ResolutionException extends Exception {
   public final Throwable getException() {
     return exception;
   }
+
+  /**
+   * Get the classloader that couldn't load the class.
+   */
+  public final ClassLoader getClassLoader() {
+    return classloader;
+  }
    
   //----------------//
   // implementation //
@@ -38,18 +45,33 @@ public class VM_ResolutionException extends Exception {
   /**
    * descriptor for type whose resolution caused the problem
    */
-  VM_Atom   targetTypeDescriptor; 
+  final VM_Atom   targetTypeDescriptor; 
+
   /**
    * exception that prevented resolution
    */
-  Throwable exception;            
+  final Throwable exception;   
+
+  /**
+   * class loader we tried to use
+   */
+  final ClassLoader classloader;
    
   VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception) {
+    this(targetTypeDescriptor, exception, null);
+  }
+
+  VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception, ClassLoader classloader) {
     this.targetTypeDescriptor = targetTypeDescriptor;
-    this.exception = exception;
+    this.exception            = exception;
+    this.classloader          = classloader;
   }
 
   public final String toString() {
-    return "VM_ResolutionException: " + exception;
+    final StringBuffer msg = new StringBuffer("VM_ResolutionException: ");
+    msg.append(exception);
+    msg.append(", using classloader ");
+    msg.append(classloader);
+    return msg.toString();
   }
 }

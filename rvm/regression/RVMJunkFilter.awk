@@ -111,6 +111,11 @@ verbose_trap==yes { next }
 }
 
 #
+# GNU Classpath debugging verbosity
+#
+/java.lang.Double.initIDs/ { next }
+
+#
 # print everything else
 #
 /.*/

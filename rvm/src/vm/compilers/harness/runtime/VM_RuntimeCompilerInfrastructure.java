@@ -93,7 +93,7 @@ public class VM_RuntimeCompilerInfrastructure
   public static void report (boolean explain) { 
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
-    for (int i=BASELINE_COMPILER; i<=OPT_COMPILER; i++) {
+    for (int i=0; i<3; i++) {
       if (total_methods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods

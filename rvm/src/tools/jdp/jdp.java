@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * jdp main program:
  *   parse the command line to pick up jdp arguments and collect the user program arguments,
@@ -10,6 +11,7 @@ import com.ibm.JikesRVM.*;
  * @author Ton Ngo  1/15/98
  */
 import java.io.*;
+import java.util.*;
 
 class jdp {
 
@@ -17,7 +19,7 @@ class jdp {
     
   }
 
-  static boolean trace = false;
+  static boolean trace = true;
 
   public static void main(String args[])  {
     String  userArgs[] = null;  // args for user program
@@ -31,8 +33,12 @@ class jdp {
     boolean viewBoot = false; // if false, will start debugger at main() of user program
     int processID = 0;
     int cnt, i;
+    boolean listen = false;
+    String address = null; // string for listening
 
     if (trace) System.out.println("*** Entered jdp.main ***");
+    
+    if (trace) System.out.println("*** args=" + Debugger.args(args) + " ***");
 
     // parse the debugger arguments and separate those for the user program
     // Note that in the java convention, args[] does not include
@@ -65,6 +71,12 @@ class jdp {
       else if (arg.startsWith("-jdpattach")) {
 	attach = true;
 	processID = Integer.parseInt(arg.substring(10));
+      }
+
+      // pick up the address if listening for a current process
+      else if (arg.startsWith("-jdplisten")) {
+	listen = true;
+	address = arg.substring(10);
       }
 
       // NOTE: this mode is needed for command line retrieval, no longer supported
@@ -118,13 +130,15 @@ class jdp {
     cnt = args.length - i;
     if (cnt != 0) {
       userArgs = new String[cnt];
+      //for (int j = 0; j < cnt; j++) {
       for (int j = 0; j < cnt; j++) {
-	if (args[i].equals("-h") || args[i].equals("-help")) {
+	String arg = args[i++];
+	if (arg.equals("-h") || arg.equals("-help")) {
 	  printHelpMessage();
 	  System.exit(1);
 	}
-	userArgs[j] = args[i++];
-	// System.out.println(j + " " + i + " "+ userArgs[j]);
+	userArgs[j] = arg;
+	//if (trace) System.out.println(j + " " + i + " "+ userArgs[j]);
       }
     } else {
       System.out.println("jdp: no program specified");
@@ -140,13 +154,31 @@ class jdp {
     if (trace) System.out.println("*** Creating debugger ***");
 
     // Create the debugger: either create the user process or attach to a current one
-    if (commandLine)
+    if (listen) {
+      // run in command line mode
+      //CommandLineDebugger db;
+      CommandQueueDebugger db;
+      if (attach) {
+//          db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot);
+//          db.runAttached(processID, userArgs);
+      } else {
+	db = new CommandQueueDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
+	db.listen(address);
+        if (args.length==0) {
+          System.out.println("no program specified");
+          System.exit(1);
+        } else {
+          db.run(userArgs);
+        }
+      }
+    } 
+    else if (commandLine)
     {
       // run in command line mode
       CommandLineDebugger db;
       if (attach) {
-        db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot);
-        db.runAttached(processID, userArgs);
+	db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot);
+	db.runAttached(processID, userArgs);
       } else {
         db = new CommandLineDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
         if (args.length==0) {
@@ -187,5 +219,4 @@ class jdp {
 
     System.exit(0);
   }
-
 }

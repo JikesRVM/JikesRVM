@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id:
 package com.ibm.JikesRVM;
@@ -252,6 +252,11 @@ package com.ibm.JikesRVM;
   public abstract ClassLoader getClassLoader();
 
   /**
+   * Set the class loader for this type
+   */
+  public abstract void setClassLoader(ClassLoader classLoader);
+
+  /**
    * get number of superclasses to Object 
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
@@ -269,6 +274,7 @@ package com.ibm.JikesRVM;
     // See VM.boot(). This test for runtime can be removed 
     // once the bootImageWriter has been rewritten to properly load classes.
    if (classForType == null && VM.runningVM) {
+
      // ensure that we load and resolve VM_Class before creating a 
      // java.lang.Class object for it.  Doing it here frees us from having
      // to check it all over the reflection code. 
@@ -277,12 +283,13 @@ package com.ibm.JikesRVM;
 	 load();
 	 resolve();
        } catch (VM_ResolutionException e) {
+	   e.printStackTrace( System.err );
 	 throw new NoClassDefFoundError(e.getException().toString());
        }
      }
      synchronized(this) {
        if (classForType == null) {
-	 classForType = Class.create(this);
+	 classForType = java.lang.JikesRVMSupport.createClass(this);
        }
      }
    }

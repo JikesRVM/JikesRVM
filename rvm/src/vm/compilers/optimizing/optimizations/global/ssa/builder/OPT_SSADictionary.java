@@ -445,7 +445,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
     u.add (op);
   }
 
-  
+
   /** 
    * Create a heap control phi instruction, and store it at the
    * beginning of a basic block.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
@@ -113,6 +113,11 @@ public class JDPServer implements JDPCommandInterface
   }
 
   // stuff for implementing command interface
+
+  /**
+   * Empty
+   */
+  public void writeCommand(String command) {}
 
   /**
    * current command

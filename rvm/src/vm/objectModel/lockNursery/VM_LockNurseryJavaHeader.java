@@ -351,7 +351,8 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Get the offset of the thin lock word in this object
    */
   public static int getThinLockOffset(Object o) {
-    return VM_Magic.getObjectType(o).thinLockOffset;
+      VM_Type cls = VM_Magic.getObjectType(o);
+      return cls.thinLockOffset;
   }
 
   /**

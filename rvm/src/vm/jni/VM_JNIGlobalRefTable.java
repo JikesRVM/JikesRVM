@@ -12,12 +12,18 @@ import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
  */
 class VM_JNIGlobalRefTable {
 
-    static Object[] refs = new Object[ 100 ];
-    static int free = 0;
+    static private Object[] refs = new Object[ 100 ];
+    static private int free = 1;
 
     static int newGlobalRef(Object referent) {
-	if (VM.VerifyAssertions) VM._assert( free < 100 );
 	if (VM.VerifyAssertions) VM._assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(referent) ) );
+	
+	if (free >= refs.length) {
+	    Object[] newrefs = new Object[ refs.length * 2 ];
+	    VM_Array.arraycopy(refs, 0, newrefs, 0, refs.length);
+	    refs = newrefs;
+	}
+
 	refs[ free ] = referent;
 	return - free++;
     }
@@ -30,5 +36,3 @@ class VM_JNIGlobalRefTable {
 	return refs[ - index ];
     }
 }
-
-    

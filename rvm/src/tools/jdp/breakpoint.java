@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /*
  * A breakpoint object
  * @author Ton Ngo
@@ -38,10 +39,20 @@ class breakpoint
 
   // relocatable breakpoint: with instruction offset and a method ID
   public breakpoint(int mthID, int instructionOffset, int address) {
+    this(null, mthID, instructionOffset, address);
+  }
+
+  public breakpoint(String className, int mthID, int instructionOffset, int address) {
+    this(className, mthID, instructionOffset, address, -1);
+  }
+
+  public breakpoint(String className, int mthID, int instructionOffset, int address, int lineNumber) {
+    this.className   = className;
     this.methodID    = mthID;
     this.next_offset = instructionOffset;
     this.next_addr   = address;
     this.branch_addr = -1;
+    this.lineNumber  = lineNumber;
   }
 
   // non relocatable breakpoint: raw address
@@ -64,6 +75,29 @@ class breakpoint
   public int address() {
     return next_addr;
   }
+
+  public String className(BootMap bmap) {
+    VM_Method mth = bmap.findVMMethod(methodID, true);
+    if (mth == null) {
+      return className;
+    }
+    try {
+      return mth.getDeclaringClass().getName().toString();
+    } catch (Exception e) {}
+    return "fuck you";
+  }
+
+  public int lineNumber(BootMap bmap) {
+    try {
+      return bmap.findLineNumber(methodID, next_addr);
+    } catch (Exception e) {}
+    return -1;
+  }
+
+  public int index(BootMap bmap) {
+    return next_offset;
+  }
+ 
 
   /**
    * (ugly hack: pass in the bootmap pointer to be able to call its methods)
@@ -96,6 +130,22 @@ class breakpoint
       return(result + 
 	     " (" + Integer.toHexString(next_addr) + ":" + 
 	     Integer.toHexString(next_I) + ")");
+  }
+  
+  public String toLongString() {
+    StringBuffer sb = new StringBuffer("Breakpoint(");
+    sb.append("sourceFileName="); sb.append(sourceFileName);
+    sb.append(",lineNumber="); sb.append(lineNumber);
+    sb.append(",className="); sb.append(className);
+    sb.append(",methodID="); sb.append(methodID);
+    sb.append(",next_offset="); sb.append(next_offset);
+    sb.append(",next_addr="); sb.append(next_addr);
+    sb.append(",next_I="); sb.append(next_I);
+    sb.append(",branch_offset="); sb.append(branch_offset);
+    sb.append(",branch_addr="); sb.append(branch_addr);
+    sb.append(",branch_I="); sb.append(branch_I);
+    sb.append(")");
+    return sb.toString();
   }
 
 }

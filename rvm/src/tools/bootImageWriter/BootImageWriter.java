@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
@@ -42,6 +42,10 @@ import com.ibm.JikesRVM.*;
  */
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
+
+  public static void setVerbose(int value) {
+    verbose = value;
+  }
 
   /**
    * How much talking while we work?
@@ -1011,7 +1015,8 @@ public class BootImageWriter extends BootImageWriterMessages
 		if (verbose >= 1) traceContext.pop();
 	    }
 	    VM_Statics.setSlotContents(rvmFieldSlot, 0);
-	    bootImage.countNulledReference();
+	    if (!VM.runningTool)
+	        bootImage.countNulledReference();
 	    continue;
         }
 
@@ -1033,8 +1038,13 @@ public class BootImageWriter extends BootImageWriterMessages
             VM_Statics.setSlotContents(rvmFieldSlot,
                                        jdkFieldAcc.getShort(null));
           else if (rvmFieldType.equals(VM_Type.IntType))
+	      try {
             VM_Statics.setSlotContents(rvmFieldSlot,
                                        jdkFieldAcc.getInt(null));
+	      } catch (IllegalArgumentException ex) {
+		  System.err.println( "type " + rvmType + ", field " + rvmField);
+		  throw ex;
+	      }
           else if (rvmFieldType.equals(VM_Type.LongType)) {
 	    // note: Endian issues handled in setSlotContents.
 	    VM_Statics.setSlotContents(rvmFieldSlot,
@@ -1326,8 +1336,13 @@ public class BootImageWriter extends BootImageWriterMessages
             bootImage.setFullWord(rvmFieldOffset,
                                   jdkFieldAcc.getShort(jdkObject));
           else if (rvmFieldType.equals(VM_Type.IntType))
+	      try {
             bootImage.setFullWord(rvmFieldOffset,
                                   jdkFieldAcc.getInt(jdkObject));
+	      } catch (IllegalArgumentException ex) {
+		  System.err.println( "type " + rvmScalarType + ", field " + rvmField);
+		  throw ex;
+	      }
           else if (rvmFieldType.equals(VM_Type.LongType))
             bootImage.setDoubleWord(rvmFieldOffset,
                                     jdkFieldAcc.getLong(jdkObject));

@@ -1,14 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
-//-#endif
 
 /**
  * A virtual machine.
@@ -136,6 +132,7 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
+    VM_SystemClassLoader.boot();
 
     //
     // At this point the virtual machine is running as a single thread 
@@ -156,18 +153,21 @@ public class VM extends VM_Properties
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
     //-#if RVM_WITH_GNU_CLASSPATH
-    java.lang.ref.Reference.lock = new Object();
+    java.lang.ref.JikesRVMSupport.setReferenceLock( new Object() );
     //-#else
     runClassInitializer("java.io.FileDescriptor");
+    runClassInitializer("java.io.File");
     //-#endif
 
     runClassInitializer("java.lang.Runtime");
-    runClassInitializer("java.lang.System");
-    System.boot();
     //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.io.FileDescriptor");
-    //-#endif
+    runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
+    //-#else
+    runClassInitializer("java.lang.System");
+    System.boot();
+    //-#endif
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
@@ -177,29 +177,32 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Integer");
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
-    runClassInitializer("java.lang.Double");
+    // needs jni with classpath, so done later
+    // runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.Character");
     //-#if RVM_WITH_GNU_CLASSPATH
     //-#else
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
-    //-#endif
     runClassInitializer("java.util.Hashtable");
+    runClassInitializer("java.lang.String");
+    //-#endif
     //-#if RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("java.lang.Class");
     runClassInitializer("gnu.java.io.EncodingManager");
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
     runClassInitializer("java.io.PrintWriter");
-    System.makeStandardStreams();
     runClassInitializer("gnu.java.lang.SystemClassLoader");
-    if( gnu.java.lang.SystemClassLoader.NO_SUCH_ARCHIVE == null)
-      gnu.java.lang.SystemClassLoader.NO_SUCH_ARCHIVE = new Object();
-    //-#endif
     runClassInitializer("java.lang.String");
+    runClassInitializer("gnu.java.security.provider.DefaultPolicy");
+    runClassInitializer("java.security.Policy");
+    //-#endif
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
     runClassInitializer("java.lang.Math");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    //-#else
     runClassInitializer("java.lang.RuntimePermission");
+    //-#endif
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -210,13 +213,12 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
+    //-#if RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("java.util.Date");
+    //-#endif
+    //-#if RVM_WITH_ALL_CLASSES
     runClassInitializer("java.util.jar.Attributes$Name");
-
-    // Initialize compiler that compiles dynamically loaded classes.
-    //
-    if (verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
-    VM_RuntimeCompiler.boot();
-
+    //-#endif
 
     // Process virtual machine directives.
     //
@@ -241,27 +243,12 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
     VM_Collector.postBoot();
 
-    //-#if RVM_WITH_GNU_CLASSPATH
-    VM_SystemClassLoader.getVMClassLoader().jarCache = null;
-    //-#endif
-
-    // Work around class incompatibilities in boot image writer
-    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    if (verbose >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread      xx         = new MainThread(applicationArguments);
-    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
-    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
-
-    // record the main thread and the name of the main application class.
-    _mainApplicationClassName = applicationArguments[0];
-    _mainThread = mainThread;
-
     VM_Lock.boot();
 
     // Begin multiprocessing.
     //
+    VM_Scheduler.boot(applicationArguments);
 
-    VM_Scheduler.boot(mainThread);
     if (VM.VerifyAssertions) 
       VM._assert(VM.NOT_REACHED);
   }
@@ -286,7 +273,8 @@ public class VM extends VM_Properties
    */
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
-      classObjects[i].getClassForType();
+	if (verbose >= 2) VM.sysWriteln( classObjects[i].getName() );
+	classObjects[i].getClassForType();
     }
   }
 
@@ -295,13 +283,19 @@ public class VM extends VM_Properties
    * in bootimage.
    * @param className
    */
-  private static void runClassInitializer(String className) throws VM_PragmaInterruptible {
+  static void runClassInitializer(String className) throws VM_PragmaInterruptible {
+      if (verbose >= 2) {
+	  sysWrite("running class intializer for ");
+	  sysWriteln( className );
+      }
+
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
       clinit.compile();
+      if (verbose >= 10) VM.sysWriteln("invoking method " + clinit);
       VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
@@ -581,8 +575,7 @@ public class VM extends VM_Properties
     // SJF: I don't want this method inlined, since I use it as a
     // breakpoint for the jdp regression test.
     if (runningVM) {
-      System.out.flush();
-      System.err.flush();
+      VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
       VM.shutdown(value);
     } else {
@@ -649,6 +642,14 @@ public class VM extends VM_Properties
 
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   //-#else
+
+  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  //-#else
+  static void sysCreateThreadSpecificDataKeys() {
+      sysCall0(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
+  }
+  //-#endif
+
   static void sysWaitForVirtualProcessorInitialization() {
     sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
   }
@@ -932,6 +933,8 @@ public class VM extends VM_Properties
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled
     //    (otherwise we might trigger a stack reallocation)
+    //    (We can't resize the stack if there's a native frame, so don't
+    //     do it and hope for the best)
     //
     // 2. force all other threads that need gc to wait until this thread
     //    is done with the raw addresses
@@ -945,8 +948,9 @@ public class VM extends VM_Properties
 
     // 1.
     //
-    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit))
+    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
       VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
+    }
 
     // 2.
     //
@@ -972,18 +976,6 @@ public class VM extends VM_Properties
     }
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
-
-  private static String _mainApplicationClassName;
-  private static VM_Thread _mainThread;
-
-  /**
-   * getMainMethod
-   * @return the main method of the main thread
-   */
-  public static VM_Method getMainMethod() throws VM_PragmaInterruptible {
-    if(VM.VerifyAssertions) VM._assert(_mainThread != null);
-    return ((MainThread)_mainThread).getMainMethod();
-  } 
 
   /**
    * Place to set breakpoints (called by compiled code).

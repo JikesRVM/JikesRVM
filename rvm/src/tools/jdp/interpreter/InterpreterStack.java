@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
@@ -179,6 +179,8 @@ class InterpreterStack
       * pop it back out wrapped as an object)
       * <li> We don't try to copy mapped object, hopefully we don't to.
       * </ul>
+      * 
+      *
       * @param paramType the VM_Type that the top stack entry is expected to be
       * @return an object wrapping the top stack entry, stack is popped
       * @see InterpreterBase._invokespecial
@@ -191,10 +193,15 @@ class InterpreterStack
        // before popping and wrapping it.
        if (descriptors[top] == reference_type) {
 	 if (mapVM.isMappedObject(objects[top])) {
+	   Object popped = null;
 	   try {
-	     pushMappedPrimitiveToStack((mapVM) popObject());	   
+	     popped = popObject();
+	     pushMappedPrimitiveToStack((mapVM) popped);
 	   } catch (Exception e) {
-	     System.out.println("popAsObject: ERROR, " + e.getMessage());
+	     System.out.println("popAsObject: ERROR, " + e.getMessage() + ", popped=" + popped);
+	     System.out.println(this);
+	     System.out.println("--------------------------------------------------");
+	     e.printStackTrace();
 	   }
 	 }
        }
@@ -297,38 +304,38 @@ class InterpreterStack
     VM_Type fieldType = mappedObject.getType();
     if (fieldType.isBooleanType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: boolean, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: boolean, size " + size);
       push(mappedFieldValue==0?0:1);
     } else if (fieldType.isByteType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: byte, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: byte, size " + size);
       push((byte) mappedFieldValue);
     } else if (fieldType.isCharType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: char, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: char, size " + size);
       push((char) mappedFieldValue);
     } else if (fieldType.isDoubleType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: double, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: double, size " + size);
       double element = Double.longBitsToDouble(twoIntsToLong(mappedFieldValue, mappedFieldValue1));
       push(element);
     } else if (fieldType.isFloatType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: float, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: float, size " + size);
       float element = Float.intBitsToFloat(mappedFieldValue);
       push(element);
     } else if (fieldType.isIntType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: int, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: int, size " + size);
       push(mappedFieldValue);
     } else if (fieldType.isLongType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: long, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: long, size " + size);
       long element = twoIntsToLong(mappedFieldValue, mappedFieldValue1);
       push(element);
     } else if (fieldType.isShortType()) {
       if (InterpreterBase.traceExtension)
-        System.out.println("pushMappedPrimitiveToStack: short, size " + size);
+        InterpreterBase.log("pushMappedPrimitiveToStack: short, size " + size);
       push((short) mappedFieldValue);
     } 
 
@@ -342,15 +349,116 @@ class InterpreterStack
 
     else if (fieldType.isJavaLangStringType()) {
       if (InterpreterBase.traceExtension)
-	System.out.println("pushMappedPrimitiveToStack: cloning String");
+	InterpreterBase.log("pushMappedPrimitiveToStack: cloning String");
       push(mapVM.getMappedString(mappedObject));
     }
 
+//      else if (fieldType.toString().equals("VM_Type")) {
+//        if (InterpreterBase.traceExtension)
+//  	System.out.println("pushMappedPrimitiveToStack: cloning VM_Type");
+//        //XXX TODO: put getMappedVM_Type in mapVM push(mapVM.getMappedVM_Type(mappedObject));
+//        push(mapVM_getMappedVM_Type(mappedObject));
+//      }
+
+//      else if (fieldType.toString().equals("VM_LineNumberMap")) {
+//        if (InterpreterBase.traceExtension)
+//  	System.out.println("pushMappedPrimitiveToStack: cloning VM_LineNumberMap");
+//        //XXX TODO: put getMappedVM_LineNumberMap in mapVM push(mapVM.getMappedVM_LineNumberMap(mappedObject));
+//        push(mapVM_getMappedVM_LineNumberMap(mappedObject));
+//      }
+
     else {
+      System.err.println("this type is currently not being handled, " + fieldType); 
+      InterpreterBase.jid(); //new
       throw new Exception("this type is currently not being handled, " + fieldType); 
     } 
+  }   
+     //XXX
+     // for now put it here so we don't have to
+     // recompile mapVM
+  //palm
+  static VM_LineNumberMap mapVM_getMappedVM_LineNumberMap(mapVM mapped) {
     
+    // address of the object
+    final int address = mapped.getAddress();
+
+    // we need the two int[] arrays: startPCs and lineNumbers
+    int startPCAddress = getAddress("LVM_LineNumberMap;", "startPCs", address);
+    int lineNumbersAddress = getAddress("LVM_LineNumberMap;", "lineNumbers", address);
+
+    // read in the arrays
+    int[] startPCs = readIntArray(startPCAddress);
+    int[] lineNumbers = readIntArray(lineNumbersAddress);
+
+    // Construct the new map
+    VM_LineNumberMap map = new VM_LineNumberMap(startPCs, lineNumbers);
+    return map;
   }
+
+  static int getAddress(String clsName, String fieldName, int address) {
+    try {
+      VM_Field field = BootMap.findVMField(clsName, fieldName);
+      return Platform.readmem(address + field.getOffset());
+    } catch (BmapNotFoundException e2) {
+      VM.sysWrite("Trouble with " + clsName + "." + fieldName + " @ " + Integer.toHexString(address));
+      VM.sysWrite(e2 + "\n");
+      e2.printStackTrace();
+      VM.sysExit(1);            
+    }
+    return 0;
+  }     
+
+  static int[] readIntArray(int address) {
+    final int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset());
+    int[] v = new int[count];
+    for (int i = 0; i < v.length; i++) {
+      v[i] = Platform.readmem(address + i*4);
+    }
+    return v;
+  }
+
+  static VM_Type mapVM_getMappedVM_Type(mapVM mappedVM_Type) {
+
+    // The address of the mapped object
+    int address = mappedVM_Type.getAddress();
+
+    // Get the VM_Atom descriptor of class VM_Type
+    try {
+      VM_Field descriptorField = BootMap.findVMField("LVM_Type;", "descriptor");
+      address = Platform.readmem(address + descriptorField.getOffset());
+    } catch (BmapNotFoundException e2) {
+      VM.sysWrite(e2 + "\n");
+      e2.printStackTrace();
+      VM.sysExit(1);            
+    }
+
+    // Get the byte[] val field of class VM_Atom
+    try {
+      VM_Field valField = BootMap.findVMField("LVM_Atom;", "val");
+      address = Platform.readmem(address + valField.getOffset());
+    } catch (BmapNotFoundException e2) {
+      VM.sysWrite(e2 + "\n");
+      e2.printStackTrace();
+      VM.sysExit(1);            
+    }
+
+    // val.length
+    final int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset());
+
+    // Clone the byte array val
+    byte[] bytes = new byte[count];
+    for (int i = 0; i < count; i++) {
+      bytes[i] = Platform.readByte(address + i);
+    }
+    
+    // Create a possibly new type in this VM
+    String keyString = new String(bytes);
+    VM_Atom descriptor = VM_Atom.findOrCreateUnicodeAtom(keyString);
+    ClassLoader classLoader = null;
+    VM_Type type = VM_ClassLoader.findOrCreateType(descriptor, classLoader);
+    return type;
+  }
+  //end-palm
 
 
 
@@ -494,6 +602,12 @@ class InterpreterStack
 	 }
       long result = twoIntsToLong(primitives[top-1], primitives[top]);
       top -= 2;
+      //XXX
+      //XXX This is a horrible hack around loading longs.
+      //XXX It's temporary, but without it, you don't know what
+      //XXX will be returned when popping a long
+      //XXX
+      String s = ""+result;
       return result;
       }
 

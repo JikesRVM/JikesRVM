@@ -1,0 +1,301 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+/**
+ * Wrappers for blocking system calls.
+ * By linking the JikesRVM executable against this shared library,
+ * we can define our own versions of blocking system calls (from the
+ * platform's C library) which call back into the VM.  That way,
+ * we can make native code play more nicely with Java threads.
+ * For example, we can prevent select() calls made from JNI code
+ * from blocking the virtual processor.
+ *
+ * @author David Hovemeyer
+ * @date 10 Jun 2002
+ */
+
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+# include <pthread.h>
+#endif
+#include <unistd.h>
+#include <dlfcn.h>
+#include <stdio.h> // XXX
+#include <jni.h>
+
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#include "InterfaceDeclarations.h"
+
+#include "syswrap.h"
+
+//////////////////////////////////////////////////////////////
+// Private functions and data
+//////////////////////////////////////////////////////////////
+
+// FIXME: should not hardcode name of C library
+//        should be determined by build system
+// FIXME: this works for recent Linux, need to update for AIX
+#define C_LIBRARY_NAME "libc.so.6"
+
+// Pointers to actual syscall functions from C library.
+static SelectFunc libcSelect;
+
+// Get a pointer to a symbol from the C library.
+//
+// Taken:
+// symbolName - name of symbol
+// pPtr - address of pointer variable in which to store
+//        the address of the symbol
+static void getRealSymbol(const char *symbolName, void **pPtr)
+{
+  static void *libcHandle;
+
+  // FIXME: should handle errors
+  if (*pPtr == 0) {
+    if (libcHandle == 0)
+      libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
+    *pPtr = dlsym(libcHandle, symbolName);
+  }
+}
+
+// Fish out an address stored in an instance field of an object.
+static void *getFieldAsAddress(void *objPtr, int fieldOffset)
+{
+  char *fieldAddress = ((char*) objPtr) + fieldOffset;
+  return *((void**) fieldAddress);
+}
+
+// Get the JNI environment object from the VM_Processor.
+static JNIEnv *getJniEnvFromVmProcessor(void *vmProcessorPtr)
+{
+  if (vmProcessorPtr == 0)
+    return 0; // oops
+
+  // Follow chain of pointers:
+  // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
+  void *vmThreadPtr =
+    getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+  void *jniEnvironment =
+    getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+  void *jniEnv =
+    getFieldAsAddress(jniEnvironment, VM_JNIEnvironment_JNIEnvAddress_offset);
+
+  return (JNIEnv*) jniEnv;
+}
+
+// Arbitrarily consider anything longer than 1 second a "long" wait.
+// We may want to adjust this so any non-zero wait is considered long.
+static bool isLongWait(struct timeval *timeout)
+{
+  return timeout == 0 || timeout->tv_sec > 0;
+}
+
+// Pointer to JTOC.
+static void *Jtoc;
+
+// Offset of the static VM_Scheduler.processors array in the JTOC.
+static int ProcessorsOffset;
+
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+// ID of the single VM_Processor object.
+static int VmProcessorId;
+#else
+// Thread-specific data key for accessing ID of VM_Processor
+// from the pthread it runs on.
+static pthread_key_t VmProcessorIdKey;
+#endif
+
+// Return the number of file descriptors which are set in given
+// fd_set.
+static int countFileDescriptors(fd_set *fdSet, int maxFd)
+{
+  int count = 0;
+  for (int i = 0; i < maxFd; ++i) {
+    if (FD_ISSET(i, fdSet))
+      ++count;
+  }
+  return count;
+}
+
+// Transfer file descriptors from an fd_set to a Java array of integer.
+static void addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
+{
+  int count = 0;
+  for (int i = 0; i < maxFd; ++i) {
+    if (FD_ISSET(i, fdSet))
+      elements[count++] = i;
+  }
+}
+
+// Convert an fd_set into a Java array of integer containing the
+// file descriptors which are set in the fd_set.
+static jintArray fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
+{
+  jintArray arr = 0;
+  if (fdSet != 0) {
+    int count = countFileDescriptors(fdSet, maxFd);
+    arr = env->NewIntArray(count);
+    jint *elements = env->GetIntArrayElements(arr, 0);
+    addFileDescriptors(elements, fdSet, maxFd);
+    env->ReleaseIntArrayElements(arr, elements, 0);
+  }
+  return arr;
+}
+
+// Scan through java array of file descriptors, noting
+// the ones that are marked as ready and setting them
+// in the given fd_set.
+//
+// Returns: count of file descriptors marked as ready
+//
+// TODO: check for FD_INVALID_BIT
+static int updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
+{
+  int readyCount = 0;
+  if (fdSet != 0) {
+    // Clear the fd_set.
+    FD_ZERO(fdSet);
+
+    // Scan through the elements of the array
+    jsize length = env->GetArrayLength(fdArray);
+    jint *elements = env->GetIntArrayElements(fdArray, 0);
+    for (jsize i = 0; i < length; ++i) {
+      int fd = elements[i];
+      if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
+	fd &= VM_ThreadIOConstants_FD_MASK;
+	FD_SET(fd, fdSet);
+	++readyCount;
+      }
+    }
+    env->ReleaseIntArrayElements(fdArray, elements, 0);
+  }
+  return readyCount;
+}
+
+//////////////////////////////////////////////////////////////
+// Initialization functions
+//////////////////////////////////////////////////////////////
+
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+// Initialization function for single virtual processor
+extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
+  int vmProcessorId)
+{
+  Jtoc = jtoc;
+  ProcessorsOffset = processorsOffset;
+  VmProcessorId = vmProcessorId;
+  //fprintf(stderr, "Set VmProcessorId = %d\n", VmProcessorId);
+}
+#else
+// Initialization function for configurations with
+// multiple VM_Processors.
+// Called by the VM to tell us the thread-specific data key
+// storing the id of each pthread's VM_Processor object.
+extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
+  pthread_key_t vmProcessorIdKey)
+{
+#if 0
+  fprintf(stderr, "initSyscallWrapperLibrary called, key=%u, self=%u!\n",
+    vmProcessorIdKey, pthread_self());
+#endif
+  Jtoc = jtoc;
+  ProcessorsOffset = processorsOffset;
+  VmProcessorIdKey = vmProcessorIdKey;
+}
+#endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+
+//////////////////////////////////////////////////////////////
+// Accessors for C library functions
+//////////////////////////////////////////////////////////////
+
+// Get a pointer to the real select() call.
+//
+// Returned:
+// Pointer to select() function in C library.
+SelectFunc getLibcSelect(void)
+{
+  getRealSymbol("select", (void**) &libcSelect);
+  return libcSelect;
+}
+
+//////////////////////////////////////////////////////////////
+// Wrappers for C library functions
+//////////////////////////////////////////////////////////////
+
+// Wrapper for the select() system call.
+// If the call might block for a long time, puts the Java thread on
+// the VM_ThreadIOQueue, to avoid blocking the entire virtual processor.
+//
+// Taken:
+// maxFd - value of highest-numbered file descriptor passed in,
+//     plus 1
+// readFdSet - set of read file descriptors to query
+// writeFdSet - set of write file descriptors to query
+// except - set of exception file descriptors to query
+// timeout - how long to wait
+//
+// Returned:
+// -1: on error (errno should be set)
+//  0: if no file descriptors became ready prior to timeout
+// >0: number of file descriptors that are ready
+extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
+   fd_set *exceptFdSet, struct timeval *timeout)
+{
+  getRealSymbol("select", (void**) &libcSelect);
+
+  // If timeout is short, just call real select().
+  if (!isLongWait(timeout))
+    return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+
+  // Get VM_Processor id.
+  int vmProcessorId =
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    VmProcessorId;
+#else
+    (int) pthread_getspecific(VmProcessorIdKey);
+#endif
+  //fprintf(stderr, "got vm_processor id = %d\n", vmProcessorId);
+
+  // Find the VM_Processor object.
+  //fprintf(stderr, "jtoc address = %p, processors offset = %d\n", Jtoc, ProcessorsOffset);
+  unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
+  void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
+  //fprintf(stderr, "vm_processor address = %p\n", vmProcessorPtr);
+
+
+  // Get the JNIEnv from the VM_Processor object
+  JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
+
+  // Build int arrays to describe file descriptor sets
+  jintArray readArr = fdSetToIntArray(env, readFdSet, maxFd);
+  jintArray writeArr = fdSetToIntArray(env, writeFdSet, maxFd);
+  jintArray exceptArr = fdSetToIntArray(env, exceptFdSet, maxFd);
+
+  // Figure out how many seconds to wait
+  double totalWaitTime;
+  if (timeout == 0)
+    totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
+  else {
+    totalWaitTime = ((double) timeout->tv_sec);
+    totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
+  }
+
+  // Call VM_Thread.ioWaitSelect()
+  jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
+  jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
+    "ioWaitSelect", "([I[I[IDZ)V");
+  env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
+    readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
+
+  // TODO: should have return value from ioWaitSelect(), for returning errors
+
+  // For each file descriptor set in the Java arrays,
+  // mark the corresponding entry in the fd_sets (as appropriate).
+  int readyCount = 0;
+  readyCount += updateStatus(env, readFdSet, readArr);
+  readyCount += updateStatus(env, writeFdSet, writeArr);
+  readyCount += updateStatus(env, exceptFdSet, exceptArr);
+
+  return readyCount;
+}

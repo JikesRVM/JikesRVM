@@ -4,44 +4,28 @@
 #
 # $Id$
 #
-# Invoke Jikes RVM virtual machine that was created by "jbuild".
-# See also: $RVM_ROOT/rvm/bin/jconfigure -help
+# Invoke the rvm script using environmental variables
 #
-# @author Derek Lieber
-# @date 04 Feb 2000
-#
-# @modified Peter Sweeney
-# @date 15 Jan 2001 
-#    eliminate dependence on option order.
+# @author Jeffrey Palm
+# @date   25 Jun 2002
 #
 
-ME=`basename $0`
+# Sanity checks for $HOME and $RVM_ROOT, because these may not be
+# set if we invoke this scripts from someplace other than a shell
+if [[ x$HOME = "x" ]]; then
+   print "$ME: please set your HOME environment variable (eg. /$HOME/me)"
+   exit 1
+fi
 
-# Place where RVM bootimage, booter, and runtime support files reside.
-#
+if [[ x$RVM_ROOT = "x" ]]; then
+   print "$ME: please set your RVM_ROOT environment variable (eg. $HOME/rvmRoot)"
+   exit 1
+fi
+
 if [[ $RVM_BUILD = "" ]]; then
    print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
    exit 1
 fi
 
-. $RVM_BUILD/environment
-
-ARGS="-X:i=$RVM_BUILD/RVM.image"
-if [[ ! -e $RVM_BUILD/javamath.jar ]]; then
-  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
-else
-  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/javamath.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
-fi
-for arg in $*; do
-   if   [[ $arg = --   ]]; then
-     print "$ME: the command line option \"--\" is no longer used!"
-   fi
-done
-
-ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
-
-LOADPATH=$RVM_BUILD:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
-typeset -x LIBPATH=$LIBPATH:$LOADPATH
-typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOADPATH
-exec $RVM_BUILD/JikesRVM $ARGS "$@"
-
+# Pass these along as parameters to runrvm
+. $RVM_ROOT/rvm/bin/runrvm $HOME $RVM_ROOT $RVM_BUILD "$@"

@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * Abstract class for the internal and external 
  * implementation of OsProcess
@@ -250,13 +251,14 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * @see
    */
   public OsProcess(String ProgramName, String args[], 
-		   String mainClass, String classesNeededFilename, String classpath) {
+		   String mainClass, String classesNeededFilename, String classpath,
+		   Debugger debugger) {
 
     createDebugProcess(ProgramName, args);
     lastSignal = new int[1];                     // TODO:  multithreaded
     lastSignal[0] = 0;                           // 0 for no signal
     if (args.length>1) {
-      bmap = loadMap(mainClass, classesNeededFilename, classpath);
+      bmap = loadMap(mainClass, classesNeededFilename, classpath, debugger);
     }
     verbose = false;
   }
@@ -267,19 +269,25 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
    * we are expecting a C program that would load the JVM boot image
    * so the first argument arg[1] is assumed to be the name of the JVM boot image
    */
-  private BootMap loadMap(String mainClass, String classesNeededFilename, String classpath) {
+  private BootMap loadMap(String mainClass, 
+			  String classesNeededFilename, 
+			  String classpath,
+			  Debugger debugger) {
 
     try { 
-      return new BootMapExternal(this, mainClass, 
-				 classesNeededFilename, classpath); 
+      return new BootMapExternal(this, 
+				 mainClass, 
+				 classesNeededFilename, 
+				 classpath,
+				 debugger); 
     } catch (BootMapCorruptException bme) {   
       System.out.println(bme); bme.printStackTrace();
       System.out.println("ERROR: corrupted method map");
-      return new BootMapExternal(this);                        // create a dummy boot map
+      return new BootMapExternal(this, debugger);                        // create a dummy boot map
     } catch (Exception e) { 
       System.out.println(e); e.printStackTrace();
       System.out.println("ERROR: something wrong with method map :) ");
-      return new BootMapExternal(this);                        // create a dummy boot map
+      return new BootMapExternal(this, debugger);                        // create a dummy boot map
     }
 
   }

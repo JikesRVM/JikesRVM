@@ -50,8 +50,11 @@ public class VM_CompiledMethods {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-      VM._assert(0 < compiledMethodId);
-      VM._assert(compiledMethodId <= currentCompiledMethodId);
+	if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
+	    VM.sysWrite(compiledMethodId, true);
+	    VM.sysWrite("\n");
+	    VM._assert(false);
+	}
     }
 
     return compiledMethods[compiledMethodId];

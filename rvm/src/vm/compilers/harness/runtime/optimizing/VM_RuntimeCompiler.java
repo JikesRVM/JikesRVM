@@ -3,7 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+
 import com.ibm.JikesRVM.opt.*;
+
+import java.util.*;
 
 /**
  * Use optimizing compiler to compile code at run time.
@@ -20,6 +23,10 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     VM.sysWrite("VM_RuntimeCompiler: boot (opt compiler)\n");
     try {
       VM_RuntimeOptCompilerInfrastructure.boot(); 
+
+      // boot() has set compilerEnabled to true
+      Iterator i = earlyArgs.iterator();
+      while (i.hasNext()) processCommandLineArg( (String) i.next() );
     }
     catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_RuntimeCompiler: OPT_Compiler failed during initialization: "+e+"\n";
@@ -39,6 +46,9 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   }
 
 
+
+    private static final HashSet earlyArgs = new HashSet(5);
+
   // This method is called if there are some command-line arguments to be processed.
   // It is not guaranteed to be called.
   public static void processCommandLineArg(String arg) {
@@ -52,8 +62,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	VM.sysExit(1);
       }
     } else {
-      VM.sysWrite("VM_RuntimeCompiler: Compiler not enabled; unable to process command line argument: "+arg+"\n");
-      VM.sysExit(1);
+	earlyArgs.add( arg );
     }
   }
 

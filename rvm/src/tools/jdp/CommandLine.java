@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
@@ -951,6 +951,9 @@ class CommandLine implements JDPCommandInterface
    * @param name a string
    * @return the class name, or empty String if there is no class name
    * @see BootMap.findAddress()
+   * @deprecated this method cannot deal with the ambiguity between
+   *   "package.class" and "class.method"; use
+   *   {@link #breakpointParse breakpointParse()} method instead
    */
   public static String breakpointParseClass(String name) {
     int dot = name.lastIndexOf('.');
@@ -969,6 +972,9 @@ class CommandLine implements JDPCommandInterface
    * @param name a string
    * @return the method name, or empty String if there is no method name
    * @see BootMap.findAddress()
+   * @deprecated this method cannot deal with the ambiguity between
+   *   "package.class" and "class.method"; use
+   *   {@link #breakpointParse breakpointParse()} method instead
    */
   public static String breakpointParseMethod(String name) {
     int dot = name.lastIndexOf('.');
@@ -1008,6 +1014,96 @@ class CommandLine implements JDPCommandInterface
   }
 
   /**
+   * Class representing the parsed form of a symbolic breakpoint.
+   */
+  public static class BreakpointLocation {
+    public final String className;
+    public final String methodName;
+    public final int line;
+
+    public BreakpointLocation(String className, String methodName, int line) {
+      this.className = className;
+      this.methodName = methodName;
+      this.line = line;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("Class=");
+      buf.append(className);
+      if (methodName != null) {
+	buf.append(", method=");
+	buf.append(methodName);
+      }
+      if (line >= 0) {
+	buf.append(", line=");
+	buf.append(line);
+      }
+
+      return buf.toString();
+    }
+  }
+
+  /**
+   * Based on the symbolic name of a breakpoint, return an array of potential
+   * ways to interpret that breakpoint.  An ambiguity can arise where we're
+   * not sure whether the last element of a compound name is a method or
+   * part of a class name.  This method makes this ambiguity explicit
+   * by returning both possibilities.
+   * 
+   * @param name the symbolic name (location) of the breakpoint
+   * @param isMethod true if the breakpoint is definitely known to be a method
+   * @return array of BreakpointLocation objects specifying the
+   *   possible ways the breakpoint could be interpreted
+   */
+  public static BreakpointLocation[] breakpointParse(String name, boolean isMethod)
+    throws BmapNotFoundException {
+
+    String origName = name;
+
+    // Parse line number
+    int line = -1;
+    int colon = name.indexOf(':');
+    if (colon >= 0) {
+      try {
+	line = Integer.parseInt(name.substring(colon + 1));
+      }
+      catch (NumberFormatException e) {
+	throw new BmapNotFoundException("Bad line number in breakpoint location: " + origName);
+      }
+      name = name.substring(0, colon);
+    }
+
+    if (name.length() == 0) {
+      throw new BmapNotFoundException("Breakpoint location does not specify any class or method: " + origName);
+    }
+
+    // Find possible point of sepration between class and method
+    int dot = name.lastIndexOf('.');
+    if (dot < 0 && isMethod) {
+      throw new BmapNotFoundException("Breakpoint location cannot be a method: " + origName);
+    }
+
+    // Enumerate possible interpretations
+
+    Vector interpretationList = new Vector();
+    // Make sure that there was a dot before splitting 'name'
+    if (dot != -1) {
+      interpretationList.add(new BreakpointLocation(name.substring(0, dot), name.substring(dot + 1), line));
+    }
+    // We check whether isMethod and dot == -1, because a class name
+    // can be just one word, without a '.'
+    if (!isMethod || dot == -1) {
+      interpretationList.add(new BreakpointLocation(name, null, line));
+    }
+
+    BreakpointLocation[] result = new BreakpointLocation[interpretationList.size()];
+    interpretationList.copyInto(result);
+
+    return result;
+  }
+
+  /**
    * Parse the stack frame number from a string of the form frame:local.field...
    * @param expr the expression
    * @return the stack frame number, or -1 if there is none
@@ -1044,6 +1140,11 @@ class CommandLine implements JDPCommandInterface
   }
 
   // to implement JDPCommandInterface
+
+  /**
+   * Empty
+   */
+  public void writeCommand(String command) {}
 
   /**
    * write the output to the screen if it is a

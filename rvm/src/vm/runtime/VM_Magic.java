@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -36,6 +36,12 @@ public class VM_Magic {
   public static VM_Address getTocPointer() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
+  }
+
+  /** Set contents of "jtoc" register. */
+  public static void setTocPointer(VM_Address addr) {
+    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    //TODOreturn VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
   }
 
   /** Get contents of "jtoc" register as an int[] */

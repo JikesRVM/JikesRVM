@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ ===========================================================================
+ IBM Confidential
+ Software Group 
+ Eclipse/Jikes
+ (C) Copyright IBM Corp., 2002.
+ The source code for this program is not published or otherwise divested of
+ its trade secrets, irrespective of what has been deposited with the U.S.
+ Copyright office.
+ ==========
+ $Source$
+ $Revision$
+ $Date$
+ $Author$
+-->
+<plugin
+   id="com.ibm.jikesrvm.eclipse.jdt.launching"
+   name="%pluginName"
+   version="1.0"
+   provider-name="Object Technology International, Inc."
+   class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
+
+  <!-- Required plugins -->
+  <requires>
+     <import plugin="org.eclipse.core.runtime"/>
+     <import plugin="org.eclipse.ui"/>
+     <import plugin="org.eclipse.jdt.debug"/>
+     <import plugin="org.eclipse.debug.core"/>
+     <import plugin="org.eclipse.core.resources"/>
+     <import plugin="org.eclipse.jdt.core"/>
+     <import plugin="org.eclipse.jdt.launching"/>
+     <import plugin="org.eclipse.swt"/>
+     <import plugin="org.eclipse.jdt.ui"/>
+  </requires>
+  
+  <!-- Runtime -->
+  <runtime>
+     <library name="jikesrvm2launching.jar">
+     </library>
+  </runtime>
+  
+  <!-- Extensions -->
+  <!-- Extension points -->
+  <extension point="org.eclipse.jdt.launching.vmInstallTypes">  
+     <vmInstallType
+           class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMInstallType"
+           id="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMType">
+     </vmInstallType>
+  </extension>
+
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage"
+          name="Jikes RVM"
+	  class="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage">
+    </page>
+  </extension>
+
+</plugin>
+  

@@ -16,7 +16,7 @@ import java.lang.Thread;
  * @author Ton Ngo 
  * @date October 24 2000
  */
-class JNIServiceThread extends Thread   {
+class JNIServiceThread extends VM_Thread   {
   // constant must match #define in libjni.C
   static final int ATTACHREQUEST  = 0;     
   static final int DETACHREQUEST  = 1;

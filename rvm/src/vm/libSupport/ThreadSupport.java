@@ -1,11 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
 
 package com.ibm.JikesRVM.librarySupport;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Wait;
 
 /**
  * This class provides a set of static method entrypoints used in the
@@ -19,7 +20,7 @@ public class ThreadSupport {
    * (or fraction).
    */ 
   public static void sleep (long millis) throws InterruptedException {
-    VM_Thread.sleep(millis);
+    VM_Wait.sleep(millis);
   }
 
   /**

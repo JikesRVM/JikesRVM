@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+
 /**
  * @author John Barton
  *
@@ -51,6 +52,8 @@ import java.util.*;
 import java.io.*;
 import com.ibm.JikesRVM.*;
 
+import java.lang.reflect.*;
+
 class mapVM implements JDPServiceInterface {
   // init flag
   static boolean initialized = false;
@@ -77,6 +80,8 @@ class mapVM implements JDPServiceInterface {
   static int FieldDictionary_values_index  ;  
   static int FieldDictionary_nextId_index  ;  
   static int FieldDictionary_chains_index  ;  
+  static int ClassLoader_compiledMethods_index          ;  
+  static int ClassLoader_currentCompiledMethodId_index  ;  
 
   // These offset constants are identical for both the mapped JVM and the external 
   // VM_* data structures, so they are precomputed for use later
@@ -107,6 +112,8 @@ class mapVM implements JDPServiceInterface {
   static int FieldDictionary_values  ;  //  [Lcom/ibm/JikesRVM/VM_Field;
   static int FieldDictionary_nextId  ;  //  I
   static int FieldDictionary_chains  ;  //  [[I
+  static int ClassLoader_compiledMethods          ;  // [LVM_CompiledMethod;
+  static int ClassLoader_currentCompiledMethodId  ;  // I
 
   // these indicates the address space of the JVM
   // they are needed to support mixed stack frames of Java and native code
@@ -258,6 +265,10 @@ class mapVM implements JDPServiceInterface {
       	    FieldDictionary_nextId_index   = offset;  
       	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_FieldDictionary.chains")) {
       	    FieldDictionary_chains_index   = offset; 
+      	  } else if (fieldName.equals("VM_ClassLoader.compiledMethods")) {
+	    ClassLoader_compiledMethods_index = offset;
+      	  } else if (fieldName.equals("VM_ClassLoader.currentCompiledMethodId")) {
+	    ClassLoader_currentCompiledMethodId_index = offset;
 	  }
 
 	} catch (NumberFormatException e) {
@@ -391,6 +402,10 @@ class mapVM implements JDPServiceInterface {
       FieldDictionary_values  = Platform.readmem(toc + FieldDictionary_values_index*4);  
       FieldDictionary_nextId  = Platform.readmem(toc + FieldDictionary_nextId_index*4);   
       FieldDictionary_chains  = Platform.readmem(toc + FieldDictionary_chains_index*4);   
+      ClassLoader_compiledMethods          = Platform.readmem(toc + ClassLoader_compiledMethods_index*4);   
+      ClassLoader_currentCompiledMethodId  = Platform.readmem(toc + ClassLoader_currentCompiledMethodId_index*4);
+
+      // dumpCache();
 
     } catch (RuntimeException e) {
       System.out.println("mapVM.cachePointer:  cannot find JTOC register using the name JT, has the name been changed in VM_BaselineConstants.java?");
@@ -493,12 +508,17 @@ class mapVM implements JDPServiceInterface {
    * object is to be mapped)
    */
   public static boolean isMappedObject(Object obj) {
-    if (obj==null)
+    if (obj==null) {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedObject", obj + " is null");
       return false;
-    if (obj.getClass() == mapClass)
+    }
+    if (obj.getClass() == mapClass) {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedObject", obj + " is mapped");
       return true;
-    else
+    } else {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedObject", obj + " is NOT mapped");
       return false;
+    }
   }
 
   /**
@@ -506,10 +526,13 @@ class mapVM implements JDPServiceInterface {
    * class is to be mapped)
    */
   public static boolean isMappedClass(Class cls) {
-    if (cls == mapClass)
+    if (cls == mapClass) {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedClass", cls + " is mapped");
       return true;
-    else
+    } else {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedClass", cls + " is NOT mapped");
       return false;
+    }
   }
 
   /**
@@ -517,14 +540,17 @@ class mapVM implements JDPServiceInterface {
    * class is to be mapped)
    */
   public static boolean isMappedClass(VM_Class cls) {
-    if (cls == mapVMClass)
+    if (cls == mapVMClass) {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedClass", cls + " is mapped");
       return true;
-    else
+    } else {
+      if (InterpreterBase.traceInterpreter >= 2) InterpreterBase.log("mapVM.isMappedClass", cls + " is NOT mapped");
       return false;    
+    }
   }
     
   /**
-   * This method provides the entry to the mapped VM.  
+   *  This method provides the entry to the mapped VM.  
    * It intercepts calls to access methods for VM_ object, then
    * substitutes the object being accessed with a mapVM object 
    * that wraps this object for later use.
@@ -533,6 +559,7 @@ class mapVM implements JDPServiceInterface {
    *   VM_AtomDictionary.getChainsPointer() -> return mapped array of array of int
    *   VM_AtomDictionary.getValuesPointer() -> return mapped array of VM_Atom
    *   VM_TypeDictionary.getKeysPointer()   -> return mapped array
+   *   VM_ClassLoader.getCompiledMethods()  -> return mapped array of VM_CompiledMethod 
    *  Return null if the invocation target is not intercepted.
    */
   static Object getMapBase(VM_Class cls, VM_Method mth) {
@@ -543,6 +570,13 @@ class mapVM implements JDPServiceInterface {
 
     /* If a primitive value is to be returned, read it directly and return */
     /* If an object is to be returned, wrap it with the address and return */
+
+    if (clsName.equals("VM_ClassLoader")) {
+      if (mthName.equals("getCompiledMethods")) {
+	/* expect [LVM_CompiledMethod; */
+	return (Object) (new mapVM(returnType, ClassLoader_compiledMethods, PointerSize));
+      } 
+    }
 
     if (clsName.equals("com.ibm.JikesRVM.VM_AtomDictionary")) {
       if (mthName.equals("getKeysPointer")) {
@@ -613,14 +647,14 @@ class mapVM implements JDPServiceInterface {
   public void handleAbstractClass() {
     // get the pointer to the real VM_Type on the JVM side
     int typeAddress = VM_ObjectModel.getTIB(this,address);
-    typeAddress = Platform.readmem(typeAddress);           
+    typeAddress = Platform.readmem(typeAddress);  
 
     int descriptorAddress = Platform.readmem(typeAddress + VMTypeDescriptor_offset);
     String descriptor = getVMAtomString(descriptorAddress);
     String className = descriptor.substring(1, descriptor.length()-1).replace('/','.');
-    if (InterpreterBase.traceExtension)
-      System.out.println("invokevirtual:  abstract class " + 
-			  type.getName().toString() + " resolved to " + className);
+//      if (InterpreterBase.traceExtension)
+//        InterpreterBase.log("invokevirtual:  abstract class " + 
+//  			  type.getName().toString() + " resolved to " + className);
     try {
       javaClass = Class.forName(className);
       type = InterpreterBase.forName(className);
@@ -659,7 +693,7 @@ class mapVM implements JDPServiceInterface {
     } catch (BmapNotFoundException e2) {
       VM.sysWrite(e2 + "\n");
       e2.printStackTrace();
-      VM.sysExit(1);            
+      VM.sysExit(1);
     }
     int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset() );
 
@@ -686,18 +720,21 @@ class mapVM implements JDPServiceInterface {
     VM_Type elementType = arrayType.getElementType();
     int dim = arrayType.getDimensionality();
     if (dim>1) {
-      throw new Exception("don't know how to create multi dimensional array yet");
+      //throw new Exception("don't know how to create multi dimensional array yet");
+      //  System.err.println("they don't know how to create multi dimensional array yet");
     }
 
     // get the element count from the JVM side
     int count = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
+
+    boolean debug = false; //true;
 
     // fill up the array with contents from the JVM side
     int address = mappedArray.getAddress();
     int size = mappedArray.getSize();
     int value, value1;
     if (InterpreterBase.traceExtension)
-      System.out.println("getMappedArray: count " + count + ", size " + size + ", at " +
+      InterpreterBase.log("getMappedArray: count " + count + ", size " + size + ", at " +
 		         Integer.toHexString(address));
     if (elementType.isBooleanType()) {
       boolean cloneArray[] = new boolean[count];
@@ -767,13 +804,73 @@ class mapVM implements JDPServiceInterface {
 	cloneArray[i] = (short) Platform.readmem(address + i*size);
       }
       return ((Object) cloneArray);
+    }
+
+    else if (elementType.isShortType()) {
+      if (debug) System.out.println(" -- getMappedArray: isShortType");
+      short cloneArray[] = new short[count];
+      for (int i=0; i<count; i++) {
+	cloneArray[i] = (short) Platform.readmem(address + i*size);
+      }
+      return ((Object) cloneArray);
     } 
+
+    else if (elementType.isArrayType()) {
+      if (debug) System.out.println(" -- getMappedArray: isArrayType");
+
+      if (debug) System.out.println(" >> getMappedArray: arrayType=" + arrayType);
+      if (debug) System.out.println(" >> getMappedArray: array=" + elementType);
+      if (debug) System.out.println(" >> getMappedArray: count=" + count);
+      
+
+//        if (count == -1) {
+//  	if (debug) System.out.println(" >> getMappedArray: returning null");
+//  	return null;
+//        }
+
+      Object cloneArray = constructNewArray(elementType, count);
+
+      if (debug) System.out.println(" >> getMappedArray: cloneArray=" + cloneArray);
+
+      VM_Type newElementType = elementType.asArray();
+
+      if (debug) System.out.println(" >> getMappedArray: newElementType=" + newElementType);
+
+      debug = false;
+
+      for (int i = 0; i < count; i++) {
+
+	int elementAddress = address + i*size;
+	int elementPointer = Platform.readmem(elementAddress);
+
+	if (debug) System.out.println(" >> getMappedArray: elementAddress(" + elementAddress + ")[" + i + "] =" + elementPointer);
+
+	mapVM  elementMapVM = new mapVM(newElementType, elementPointer, size);
+
+	if (debug) System.out.println(" >> getMappedArray: [" + i + "] elementMapVM=" + elementMapVM);
+
+	Object elementArray = elementPointer == 0 ? null : getMappedArray(elementMapVM);
+
+	if (debug) System.out.println(" >> getMappedArray: [" + i + "] elementArray=" + elementArray);
+	
+	if (debug) System.out.println(" >> getMappedArray: [" + i + "] setting " + i + " (start)");
+	Array.set(cloneArray, i, elementArray);
+	if (debug) System.out.println(" >> getMappedArray: [" + i + "] setting " + i + "  (done)");
+      }
+      return cloneArray;
+    }
 
     else { 
       System.out.println("getMappedArray: unknown type");
       throw new Exception("get unknown type for mapped array");      
     }
 
+  }
+
+  static Object constructNewArray(VM_Type arrayType, int length) {
+    Class javaClass = InterpreterBase.getClassForVMType(arrayType);
+    Object newArray = Array.newInstance(javaClass, length);
+    return newArray;
   }
 
 
@@ -898,8 +995,11 @@ class mapVM implements JDPServiceInterface {
     System.out.println("com.ibm.JikesRVM.VM_Class constantPool = " + VMClassConstantPool_offset +
 		       ", name = " + VMClassName_offset +
 		       ", superclass = " + VMClassSuper_offset);
-    System.out.println("com.ibm.JikesRVM.VM_Atom val = " + VMAtomVal_offset);
-    System.out.println("com.ibm.JikesRVM.VM_Type descriptor = " + VMTypeDescriptor_offset);
+    System.out.println("VM_Atom val = " + VMAtomVal_offset);
+    System.out.println("VM_Type descriptor = " + VMTypeDescriptor_offset);
+    System.out.println("VM_ClassLoader compiledMethods = " + ClassLoader_compiledMethods);
+    System.out.println("VM_ClassLoader currentCompiledMethodId  = " +   
+		       ClassLoader_currentCompiledMethodId);
   }
 
   /**

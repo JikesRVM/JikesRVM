@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 /*
@@ -143,6 +143,12 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"                    physical cpu to which first virtual processor is bound\n");
   fprintf(SysTraceFile,"    -X:processors=<number|\"all\">\n");
   fprintf(SysTraceFile,"                    number of processors to use on a multiprocessor or use all\n");
+  fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
+  fprintf(SysTraceFile,"                    produce a report on compilation time\n");
+  fprintf(SysTraceFile,"    -X:measureClassLoading=<integer>\n");
+  fprintf(SysTraceFile,"                    produce a report on class loading time\n");
+  fprintf(SysTraceFile,"                    1 - Dump at the end of run\n");
+  fprintf(SysTraceFile,"                    2 - Dump at every load\n");
   fprintf(SysTraceFile,"    -X:traceClassLoading\n");
   fprintf(SysTraceFile,"                    produce a report on class loading activity\n");
   fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
@@ -435,6 +441,8 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	!strncmp(token, "-X:cpuAffinity=", 15) ||
 	!strncmp(token, "-X:processors=", 14)  ||
 	!strncmp(token, "-X:wbsize=", 10)      ||
+	!strncmp(token, "-X:measureCompilation=", 22) ||  
+	!strncmp(token, "-X:measureClassLoading=", 23) ||     
 	!strncmp(token, "-X:verify=", 10)      ||
 	!strncmp(token, "-X:measureCompilation=", 22)      
        ) {

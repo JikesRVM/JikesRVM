@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
@@ -187,14 +187,11 @@ public class SystemSupport {
     else if (src instanceof double[])  VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
     else                               VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
   }
-
-    public static Process createProcess(String program, String[] args) {
-	return new VM_Process(program, args);
-    }
     
-    public static Process createProcess(String program, String[] args, String[] env) {
-	return new VM_Process(program, args, env);
-    }
+  public static Process createProcess(String program, String[] args, String[] env, java.io.File dir) {
+    String dirPath = (dir != null) ? dir.getPath() : null;
+    return new VM_Process(program, args, env, dirPath);
+  }
 
 }
 	

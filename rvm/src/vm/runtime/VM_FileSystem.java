@@ -1,18 +1,49 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 /**
  * Interface to filesystem of underlying operating system.
- * !!TODO: think about how i/o operations should interface with thread 
- * scheduler.
+ * These methods use nonblocking I/O for reads and writes and, if necessary,
+ * use the VM_Processor's IO queue (via the VM_Wait.ioWaitRead()
+ * and VM_Wait.ioWaitWrite() methods) to suspend the calling thread
+ * until the underlying file descriptor is ready.
+ *
+ * <p> Originally, some of these methods returned a special value
+ * to indicate that the operation would block.  Because all<sup>*</sup>
+ * file descriptors are nonblocking now, this is no longer necessary.
+ *
+ * <p> <sup>*</sup> due to Unix brain damage, we can not actually
+ * make every file descriptor nonblocking.  The problem is for stdin,
+ * stdout, and stderr, which we must sometimes share with other
+ * processes.  The <code>O_NONBLOCK</code> flag is a sticky property
+ * of the <em>file</em>, not the file descriptor.  Hence, every
+ * file descriptor sharing the same file (even those copied with
+ * <code>dup()</code> or <code>fork()</code>) shares the blocking
+ * mode.  Thus, if we make stdin nonblocking, and stdin is a tty shared
+ * with another process, we will hose the other process.
+ *
+ * <p> The current "solution" for this problem is to special case
+ * file descriptors 0, 1, and 2 for reads and writes.  When they are not
+ * connected to a tty, we assume they're private, and set them to nonblocking.
+ * If they are connected to a tty, then we kluge our read and write
+ * functions to perform a preemptive IO wait, which hopefully prevents
+ * them from blocking in the OS.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
 public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
+
+  /** 
+   * Keep track of whether or not we were able to make
+   * the stdin, stdout, and stderr file descriptors nonblocking.
+   * By default, we assume that these descriptors ARE blocking,
+   * and we kluge around this problem when we read or write them.
+   */
+  private static boolean[] standardFdIsNonblocking = new boolean[3];
 
   /**
    * Get file status.
@@ -34,6 +65,23 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
+  }
+
+  /**
+   * Set the modification time on given file.
+   */
+  public static boolean setLastModified(String fileName, long time) {
+    byte[] asciiName = new byte[fileName.length() + 1];
+    fileName.getBytes(0, fileName.length(), asciiName, 0);
+
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    int rc = VM.sysCall2(
+      bootRecord.sysUtimeIP,
+      VM_Magic.objectAsAddress(asciiName).toInt(),
+      (int) (time / 1000)	// convert milliseconds to seconds
+    );
+
+    return (rc == 0);
   }
 
   /**
@@ -59,35 +107,156 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   }
 
   /**
+   * Is the given fd returned from an ioWaitRead() or ioWaitWrite()
+   * ready?
+   */
+  private static boolean isFdReady(int fd) throws VM_PragmaInline  {
+    return (fd & VM_ThreadIOConstants.FD_READY_BIT) != 0;
+  }
+
+  /**
+   * Hack to cope with the fact that we sometimes cannot
+   * make the standard file descriptors nonblocking.
+   * If called on the stdin file descriptor when we couldn't
+   * set it to nonblocking, it will try to block the calling
+   * thread until the file descriptor is ready (so the read
+   * will hopefully complete without blocking).
+   *
+   * @return true if the wait was successful and the file descriptor
+   *    is ready, or false if an error occurred (and the read should
+   *    be avoided)
+   */
+  private static boolean blockingReadHack(int fd) throws VM_PragmaInline {
+    if (fd >= 3 || standardFdIsNonblocking[fd])
+      return true;
+
+    VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
+    return isFdReady(waitData.readFds[0]);
+  }
+
+  /**
+   * Hack to cope with the fact that we sometimes cannot
+   * make the standard file descriptors nonblocking.
+   * If called on the stdout or stderr file descriptors when we couldn't
+   * set them to nonblocking, it will try to block the calling
+   * thread until the file descriptor is ready (so the write
+   * will hopefully complete without blocking).
+   *
+   * @return true if the wait was successful and the file descriptor
+   *    is ready, or false if an error occurred (and the write should
+   *    be avoided)
+   */
+  private static boolean blockingWriteHack(int fd) throws VM_PragmaInline {
+    if (fd >= 3 || standardFdIsNonblocking[fd])
+      return true;
+
+    VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+    return isFdReady(waitData.writeFds[0]);
+  }
+
+  /**
    * Read single byte from file.
+   * FIXME: should throw an IOException to indicate an error?
+   * 
    * @param fd file descriptor
    * @return byte that was read (< -1: i/o error, -1: eof, >= 0: data)
    */ 
   public static int readByte(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysReadByteIP, fd);
+
+    if (!blockingReadHack(fd))
+      return -2;
+
+    // See readBytes() method for an explanation of how the read loop works.
+
+    for (;;) {
+      int b = VM.sysCall1(bootRecord.sysReadByteIP, fd);
+      if (b >= -1)
+	// Either a valid read, or we reached EOF
+	return b;
+      else if (b == -2) {
+	// Operation would have blocked
+	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
+	if (!isFdReady(waitData.readFds[0]))
+	  // Hmm, the wait returned, but the fd is not ready.
+	  // Assume an error was detected (such as the fd becoming invalid).
+	  return -2;
+	else
+	  // Fd seems to be ready now, so retry the read
+	  continue;
+      }
+      else
+	// Read returned with a genuine error
+	return -2;
+    }
   }
 
   /**
    * Write single byte to file.
+   * FIXME: should throw an IOException to indicate an error?
+   *
    * @param fd file descriptor
    * @param b  byte to be written
    * @return  -1: i/o error
    */ 
   public static int writeByte(int fd, int b) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall2(bootRecord.sysWriteByteIP, fd, b);
+
+    if (!blockingWriteHack(fd))
+      return -1;
+
+    // See writeBytes() for an explanation of how the write loop works
+
+    for (;;) {
+      int rc = VM.sysCall2(bootRecord.sysWriteByteIP, fd, b);
+      if (rc == 0)
+	return 0; // success
+      else if (rc == -2) {
+	// Write would have blocked.
+	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+	if (!isFdReady(waitData.writeFds[0]))
+	  // Looks like an error occurred.
+	  return -1;
+	else
+	  // Fd looks like it's ready, so retry the write
+	  continue;
+      }
+      else
+	// The write returned with an error.
+	return -1;
+    }
+  }
+
+  /**
+   * Version of <code>readBytes()</code> which does not support timeouts.
+   * Will block indefinitely until data can be read.
+   * @see {@link #readBytes(int,byte[],int,int,double)}
+   */
+  public static int readBytes(int fd, byte buf[], int off, int cnt) {
+    try {
+      return readBytes(fd, buf, off, cnt, VM_ThreadEventConstants.WAIT_INFINITE);
+    }
+    catch (VM_TimeoutException e) {
+      if (VM.VerifyAssertions) VM._assert(false); // impossible
+      return -2;
+    }
   }
 
   /**
    * Read multiple bytes from file or socket.
+   * FIXME: should throw an IOException to indicate an error?
+   *
    * @param fd file or socket descriptor
    * @param buf buffer to be filled
    * @param off position in buffer
    * @param cnt number of bytes to read
-   * @return number of bytes read (-2: error, -1: socket would have blocked)
+   * @param totalWaitTime number of seconds caller is willing to wait
+   * @return number of bytes read (-2: error)
+   * @throws VM_TimeoutException if the read times out
    */ 
-  public static int readBytes(int fd, byte buf[], int off, int cnt) {
+  public static int readBytes(int fd, byte buf[], int off, int cnt, double totalWaitTime)
+    throws VM_TimeoutException {
+
     if (off < 0)
       throw new IndexOutOfBoundsException();
 
@@ -98,22 +267,69 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     if (off + cnt > buf.length)
       cnt = buf.length - off;
 
-    // PIN(buf);
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd, 
-                         VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
-    // UNPIN(buf);
+    // The canonical read loop.  Try the read repeatedly until either
+    //   - it succeeds,
+    //   - it returns EOF, or
+    //   - it returns with an error.
+    // If the read fails because it would have blocked, then
+    // put this thread on the IO queue, then try again if it
+    // looks like the fd is ready.
 
-    return rc;
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    boolean hasTimeout = (totalWaitTime >= 0.0);
+    double lastWaitTime = hasTimeout ? VM_Time.now() : 0.0;
+
+    if (!blockingReadHack(fd))
+      return -2;
+
+    for (;;) {
+      int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd,
+                         VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
+
+      if (rc >= 0)
+	// Read succeeded, or EOF was reached
+	return rc;
+      else if (rc == -1) {
+	// Read would have blocked: put thread on IO wait queue
+	if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
+	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
+
+	// Did the wait time out?
+	if (waitData.timedOut())
+	  throw new VM_TimeoutException("read timed out");
+
+	// Did the file descriptor become ready?
+	if (!isFdReady(waitData.readFds[0]))
+	  // Fd not ready; presumably an error was detected while on the IO queue
+	  return -2;
+	else {
+	  // Fd appears to be ready, so update the wait time (if necessary)
+	  // and try the read again.
+	  if (hasTimeout) {
+	    double now = VM_Time.now();
+	    totalWaitTime -= (now - lastWaitTime);
+	    if (totalWaitTime < 0.0)
+	      throw new VM_TimeoutException("read timed out");
+	    lastWaitTime = now;
+	  }
+	  continue;
+	}
+      }
+      else
+	// Read returned an error
+	return -2;
+    }
   }
 
   /**
    * Write multiple bytes to file or socket.
+   * FIXME: should throw an IOException to indicate an error?
+   *
    * @param fd file or socket descriptor
    * @param buf buffer to be written
    * @param off position in buffer
    * @param cnt number of bytes to write
-   * @return number of bytes written (-2: error, -1: socket would have blocked)
+   * @return number of bytes written (-2: error)
    */ 
   public static int writeBytes(int fd, byte buf[], int off, int cnt) {
     if (off < 0)
@@ -126,13 +342,37 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     if (off + cnt > buf.length)
       cnt = buf.length - off;
 
-    // PIN(buf);
+    // The canonical write loop.  Try the write repeatedly until
+    //   - it succeeds, or
+    //   - it returns an error
+    // If the write would have blocked, put this thread on the 
+    // IO queue, then try again if it looks like the fd is ready.
+
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM_Address start = VM_Magic.objectAsAddress(buf).add(off);
-    int rc = VM.sysCall3(bootRecord.sysWriteBytesIP, fd, start.toInt(), cnt);
-    // UNPIN(buf);
 
-    return rc;
+    if (!blockingWriteHack(fd))
+      return -2;
+
+    for (;;) {
+      int rc = VM.sysCall3(bootRecord.sysWriteBytesIP, fd, start.toInt(), cnt);
+      if (rc >= 0)
+	// Write succeeded
+	return rc;
+      else if (rc == -1) {
+	// Write would have blocked
+	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+	if (!isFdReady(waitData.writeFds[0]))
+	  // Fd is not ready, so presumably an error occurred while on IO queue
+	  return -2;
+	else
+	  // Fd apprears to be ready, so try write again
+	  continue;
+      }
+      else
+	// Write returned with an error
+	return -2;
+    }
   }
 
   /**
@@ -293,4 +533,111 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall1(bootRecord.sysBytesAvailableIP, fd);
   }	   
+
+  /**
+   * File descriptor registration hook.
+   * All (valid) FileDescriptor objects created in the system should
+   * pass their underlying OS file descriptors to this method,
+   * so we can set them to nonblocking mode.
+   *
+   * <p>No file descriptors should be created before the
+   * VM is booted sufficiently that thread switching is enabled.
+   * The reason is that all Java streams use nonblocking file descriptors,
+   * and we use the VM rather than the OS to block threads until their
+   * streams are ready.
+   *
+   * @param fd the file descriptor
+   * @param shared true if the file descriptor will be shared,
+   *   false otherwise; we set the close-on-exec flag for non-shared fds,
+   *   to prevent child processes from accessing them
+   */
+  public static void onCreateFileDescriptor(int fd, boolean shared) {
+    // The most likely reason for this assertion to be triggered is that
+    // some code caused class loading before VM_Scheduler.boot()
+    // finished initializing the virtual processors.  It should generally
+    // be possible to move such code later in the initialization sequence.
+    if (VM.VerifyAssertions)
+      VM._assert(VM_Scheduler.allProcessorsInitialized, "fd used before system is fully booted\n");
+
+    int rc;
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+
+    // Set the file descriptor to be nonblocking.
+    rc = VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
+    if (rc < 0)
+      VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+
+    // Note: it is conceivable that file descriptor 0, 1, or 2 could
+    // get passed to this method.  For example, a program could close
+    // stdin, then open a new FileInputStream, which might get assigned
+    // fd 0.  Unlikely, but possible.  If this does happen, it's OK for
+    // us to make the file descriptor nonblocking, because we don't share
+    // such file descriptors with other processes.
+    if (fd < 3)
+      standardFdIsNonblocking[fd] = (rc == 0);
+
+    // If file descriptor will not be shared, set close-on-exec flag
+    if (!shared) {
+      rc = VM.sysCall1(bootRecord.sysSetFdCloseOnExecIP, fd);
+      if (rc < 0) {
+	VM.sysWrite("VM: warning: could not set close-on-exec flag " +
+	  "for fd " + fd);
+      }
+    }
+  }
+
+  /**
+   * Return the file descriptor for standard input.
+   * To be used to create System.in.
+   */
+  public static int getStdinFileDescriptor() {
+    prepareStandardFd(0);
+    return 0;
+  }
+
+  /**
+   * Return the file descriptor for standard output.
+   * To be used to create System.out.
+   */
+  public static int getStdoutFileDescriptor() {
+    prepareStandardFd(1);
+    return 1;
+  }
+
+  /**
+   * Return the file descriptor for standard error.
+   * To be used to create System.err.
+   */
+  public static int getStderrFileDescriptor() {
+    prepareStandardFd(2);
+    return 2;
+  }
+
+  /**
+   * Prepare a standard file descriptor (stdin, stdout, or stderr)
+   * for use in a Java IO stream.  Basically, we try to set it
+   * to be nonblocking if we think it wouldn't cause problems.
+   * (See the javadoc comment for this class.)  If we have to leave
+   * it as blocking, then we enable a kluge that will allow us
+   * to cope later on.
+   */
+  private static void prepareStandardFd(int fd) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+
+    int isTTY = VM.sysCall1(bootRecord.sysIsTTYIP, fd);
+    if (isTTY == 0) {
+      // This file descriptor is not connected to a tty, so we ASSUME
+      // that our reference to the actual file is private, and that
+      // we can safely set it to be nonblocking without confusing anyone.
+      // (Generally, it is only terminals that are shared with other
+      // processes.)
+      int rc = VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
+      if (rc == 0) {
+	// Groovy
+	standardFdIsNonblocking[fd] = true;
+      }
+      else
+	VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+    }
+  }
 }

@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * Maintain a list of breakpoints:
  * If used for thread stepping breakpoint, the index is the thread index
@@ -437,7 +438,7 @@ class breakpointList extends Vector implements jdpConstants {
   }
 
   /**
-   * Check if a breakpoint is set for this address
+   * Check if a brexakpoint is set for this address
    * @param address a random address
    * @return true if a breakpoint is set at this address, false otherwise
    * @exception

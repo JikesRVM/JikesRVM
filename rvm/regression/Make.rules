@@ -12,6 +12,19 @@ default:	sanity
 
 
 #
+# using classpath libraries
+#
+ifneq (x$(CLASSPATH_SRC),x)
+  CLASSPATH_LIBRARIES=YES
+else 
+ifneq (x$(CLASSPATH_LIB),x)
+  CLASSPATH_LIBRARIES=YES
+else
+  CLASSPATH_LIBRARIES=NO
+endif
+endif
+
+#
 # where to find source code
 #
 BENCH_SOURCE_CP = $(shell echo $(strip $(BENCH_SOURCE_PATH)) | sed s/\ /:/g)
@@ -40,11 +53,26 @@ vpath %.class		$(BENCH_CLASS_CP)
 #
 # how to compile
 #
-ALL_PATH = $(BENCH_SOURCE_PATH) \
-	   $(BENCH_CLASS_PATH) \
-	   $(JAL_BUILD)/RVM.classes \
-	   $(JAL_BUILD)/RVM.classes/rvmrt.jar \
-	   $(HOST_REPOSITORIES)
+ifneq (x$(CLASSPATH_SRC),x)
+  ALL_PATH = $(BENCH_SOURCE_PATH) \
+	     $(BENCH_CLASS_PATH) \
+	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
+	     $(CLASSPATH_SRC)/lib/glibj.zip
+else 
+ifneq (x$(CLASSPATH_LIB),x)
+  ALL_PATH = $(BENCH_SOURCE_PATH) \
+	     $(BENCH_CLASS_PATH) \
+	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
+	     $(CLASSPATH_LIB)//glibj.zip
+else
+  ALL_PATH = $(BENCH_SOURCE_PATH) \
+	     $(BENCH_CLASS_PATH) \
+	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
+	     $(JAL_BUILD)/RVM.classes/rvmrt.jar \
+	     $(HOST_REPOSITORIES)
+endif
+endif
+
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
 %.class:		%.java $(WORKING)/cp
@@ -195,7 +223,7 @@ do-sanity-compare:
 	@$(MAKE) JVM=rvm bench
 	@$(MAKE) OUT=$(OUT).jdk JVM=jdk bench
 	@$(DIFF) -bB $(OUT) $(OUT).jdk
-	
+
 do-sanity-finish:
 ifeq ($(MODE),PERFORMANCE)
 	echo "RESULT: $(BOOTNAME) $(BENCH_NAME) $(OPT_LEVEL)" >> $(PERF_LOG)

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -67,6 +67,8 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     this.transferQueue     = new VM_GlobalThreadQueue(VM_EventLogger.TRANSFER_QUEUE, this.transferMutex);
     this.readyQueue        = new VM_ThreadQueue(VM_EventLogger.READY_QUEUE);
     this.ioQueue           = new VM_ThreadIOQueue(VM_EventLogger.IO_QUEUE);
+    this.processWaitQueue  = new VM_ThreadProcessWaitQueue(VM_EventLogger.PROCESS_WAIT_QUEUE);
+    this.processWaitQueueLock = new VM_ProcessorLock();
     this.idleQueue         = new VM_ThreadQueue(VM_EventLogger.IDLE_QUEUE);
     this.lastLockIndex     = -1;
     this.isInSelect        = false;
@@ -229,6 +231,24 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
         if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
         return t;
       }
+    }
+
+    // FIXME - Need to think about whether we want a more
+    // intelligent way to do this; for example, handling SIGCHLD,
+    // and using that to implement the wakeup.  Polling is considerably
+    // simpler, however.
+    if ((epoch % NUM_TICKS_BETWEEN_WAIT_POLL) == id) {
+      VM_Thread result = null;
+
+      processWaitQueueLock.lock();
+      if (processWaitQueue.isReady()) {
+	VM_Thread t = processWaitQueue.dequeue();
+	if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+	result = t;
+      }
+      processWaitQueueLock.unlock();
+      if (result != null)
+	return result;
     }
 
     if (!readyQueue.isEmpty()) {
@@ -497,6 +517,30 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
 
   } // createNativeProcessor
 
+  //----------------------------------//
+  // System call interception support //
+  //----------------------------------//
+
+  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  //-#else
+  /**
+   * Called during thread startup to stash the ID of the
+   * {@link VM_Processor} in its pthread's thread-specific storage,
+   * which will allow us to access the VM_Processor from
+   * arbitrary native code.  This is enabled IFF we are intercepting
+   * blocking system calls.
+   */
+  void stashProcessorInPthread() {
+    // Store ID of the VM_Processor in thread-specific storage,
+    // so we can access it later on from aribitrary native code.
+/*
+    VM.sysWrite("stashProcessorInPthread: my address = " +
+      Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) + "\n");
+*/
+    VM.sysCall1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
+      this.id);
+  }
+  //-#endif
 
   //---------------------//
   // Garbage Collection  //
@@ -696,7 +740,23 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   /**
    * threads waiting for a timeslice in which to run
    */
-  public VM_ThreadQueue   readyQueue;    
+  VM_ThreadQueue   readyQueue;    
+  /**
+   * Threads waiting for a subprocess to exit.
+   */
+  VM_ThreadProcessWaitQueue processWaitQueue;
+
+  // public VM_ThreadQueue   readyQueue;    
+    
+  /**
+   * Lock protecting a process wait queue.
+   * This is needed because a thread may need to switch
+   * to a different <code>VM_Processor</code> in order to perform
+   * a waitpid.  (This is because of Linux's weird pthread model,
+   * in which pthreads are essentially processes.)
+   */
+  VM_ProcessorLock processWaitQueueLock;
+
   /**
    * threads waiting for i/o
    */
@@ -791,7 +851,18 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   public static int[]  vpStatus = new int[VP_STATUS_SIZE];  // must be in pinned memory !!                 
 
   // count timer interrupts to round robin early checks to ioWait queue.
+  // This is also used to activate checking of the processWaitQueue.
   static int epoch = 0;
+
+  /**
+   * Number of timer ticks between checks of the process wait
+   * queue.  Assuming a tick frequency of 10 milliseconds, we will
+   * check about twice per second.  Waiting for processes
+   * to die is almost certainly not going to be on a performance-critical
+   * code path, and we don't want to add unnecessary overhead to
+   * the thread scheduler.
+   */
+  public static final int NUM_TICKS_BETWEEN_WAIT_POLL = 50;
 
   /**
    * index of this processor's status word in vpStatus array
@@ -846,6 +917,8 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     if (readyQueue!=null) readyQueue.dump();
     VM_Scheduler.writeString(" ioQueue:");
     if (ioQueue!=null) ioQueue.dump();
+    VM_Scheduler.writeString(" processWaitQueue:");
+    if (processWaitQueue!=null) processWaitQueue.dump();
     VM_Scheduler.writeString(" idleQueue:");
     if (idleQueue!=null) idleQueue.dump();
     if ( processorMode == RVM) VM_Scheduler.writeString(" mode: RVM\n");

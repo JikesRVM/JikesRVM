@@ -213,7 +213,8 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
         return middle;
       } else if (MCOffset > offset) {
         // middle is too small, shift interval to the right
-        left = middle + 1; 
+	left = middle + 1; 
+	if (left >= MCInformation.length) return -1;
 	while ((MCInformation[left] & START_OF_ENTRY) != START_OF_ENTRY) {
 	  // if necessary, step forward to find next entry, but not passed end
 	  // Need to do this to avoid finding middle again

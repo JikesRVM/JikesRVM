@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  *  Extension to the VM_TypeDictionary and VM_AtomDictionary to look up 
  * an entry without having to create an Atom.  This is mostly taken from 
@@ -92,6 +93,12 @@ class dictionaryExtension
     int hash = hashName(keyByte);
 
     int chainIndex = (hash & 0x7fffffff) % chains.length;
+
+//      System.out.println(" >> hash=" + hash);
+//      System.out.println(" >> chainIndex=" + chainIndex);
+//      System.out.println(" >> chains=" + chains);
+
+
     int[] chain = chains[chainIndex];
     
     // no chain - key not present in dictionary

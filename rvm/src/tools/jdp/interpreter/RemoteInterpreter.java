@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+
 /**
  *   This class extends the InterpreterBase by adding methods that are specific
  * to environment, e.g. access methods through ptrace for remote process or 
@@ -83,7 +84,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     
     RemoteInterpreter interpreter = new RemoteInterpreter();
     
-    if (traceInterpreter >= 1) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
+    if (traceInterpreter >= 1) log("ReflectiveInterpreter: interpreting "+mainMethod);
     
     interpreter.interpretMethod(mainMethod, mainArgs);
     
@@ -104,7 +105,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   //
   protected int getStaticWord(int index) {
     if (traceInterpreter >= 1) 
-      System.out.println("RemoteInterpreter: VM_Statics.getSlotContentsAsInt("+index+") (" +
+      log("RemoteInterpreter: VM_Statics.getSlotContentsAsInt("+index+") (" +
 			 VM_Statics.getSlotDescriptionAsString(index)+")");
     return VM_Statics.getSlotContentsAsInt(index);
   }
@@ -151,7 +152,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   Object X_newarray(int num) {
     if (traceExtension)
-      System.out.println("X_newarray:  array of mapped object, " + num);
+      log("X_newarray:  array of mapped object, " + num);
     return java.lang.reflect.Array.newInstance(mapVM.mapClass, num);   
   }
 
@@ -227,6 +228,9 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   protected void invokeReflective(Class calledJavaClass, VM_Method calledMethod) {
     String calledMethodName = calledMethod.getName().toString();
+
+    if (traceInterpreter >= 2) log("RemoteInterpreter.invokeReflective " + 
+				   calledJavaClass + "." + calledMethod);
  
     // Convert the list of argument from VM_Types to Java classes 
     VM_Type callArgTypes[] = calledMethod.getParameterTypes();
@@ -242,7 +246,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       java.lang.reflect.Method javaMethod = getMethodAnywhere(calledJavaClass, calledMethodName, javaTypes);
       if (javaMethod==null)
 	throw new NoSuchMethodException();
-      // System.out.println("invokeReflective: method " + javaMethod);
+//         System.out.println("invokeReflective: method " + javaMethod);
       
       // build the parameter array from the stack
       Object invokeArgs[] = new Object[callArgTypes.length];
@@ -260,6 +264,8 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 
       // invoke the method by reflection
       Object result = javaMethod.invoke(objectInstance, invokeArgs);
+
+//        System.out.println("invokeReflective: got a result");
 
       // if we have value returned, put it back on the stack
       // System.out.println("invokeReflective: " + javaMethod + " returns " + result);
@@ -279,12 +285,12 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       // the reflected method throws an exception
       // unwrap the exception and pass it on to the program 
       if (traceInterpreter >= 1)
-	println("exception caught in invokeReflective " + calledMethodName + ", " + e2.getTargetException());
+	log("exception caught in invokeReflective " + calledMethodName + ", " + e2.getTargetException());
       Throwable realEx = e2.getTargetException();
       _throwException(realEx);
 
     } catch (NoSuchMethodException e3) {
-      System.out.println("invokeReflective: no method matching " + calledMethod + ", NoSuchMethodException " + e3.getMessage());
+      log("invokeReflective: no method matching " + calledMethod + ", NoSuchMethodException " + e3.getMessage());
     }
 
   }
@@ -298,7 +304,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   protected void invokeMagic(VM_Method called_method)    {
       if (sysCall1 == null) super.initInterpreterBase();  /// TODO: convince VM to do this
 
-      if (traceInterpreter >= 1) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
+      if (traceInterpreter >= 1) log("RemoteInterpreter: invokeMagic on "+called_method);
       
       VM_Atom methodName = called_method.getName();
      
@@ -443,14 +449,14 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   void X_ldc(VM_Class cls, int poolIndex) {
     if (traceInterpreter >= 2) 
-      System.out.println("X_ldc: load from constant pool index " + poolIndex);
+      log("X_ldc: load from constant pool index " + poolIndex);
 
     VM_Class currentClass = getCurrentClass();
 
     // (1) Find the VM_Class from the dictionary
     String currentClassName = currentClass.getDescriptor().toString();
     if (traceExtension)	
-      System.out.println("X_ldc: " + currentClassName);
+      log("X_ldc: " + currentClassName);
     int addr = mapVM.manualTypeSearch(currentClassName);
     // System.out.println("X_ldc: dictionary look up, VM_Class @" + Integer.toHexString(addr));
 
@@ -497,14 +503,14 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   void X_ldc2_w(VM_Class cls, int poolIndex) {
     if (traceInterpreter >= 2) 
-      System.out.println("X_ldc2_w: new implementation");
+      log("X_ldc2_w: new implementation");
 
     VM_Class currentClass = getCurrentClass();
 
     // (1) Find the VM_Class from the dictionary
     String currentClassName = currentClass.getDescriptor().toString();
     if (traceExtension)	
-      System.out.println("X_ldc2_w: " + currentClassName);
+      log("X_ldc2_w: " + currentClassName);
     int addr = mapVM.manualTypeSearch(currentClassName);
     // System.out.println("X_ldc2_w: dictionary look up, VM_Class @" + Integer.toHexString(addr));
 
@@ -529,13 +535,13 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     if (desc == VM_Statics.DOUBLE_LITERAL) {
       double mappedFieldValue = Platform.readDouble(addr);
       if (InterpreterBase.traceExtension)
-	System.out.println("X_ldc2_w: double ");
+	log("X_ldc2_w: double ");
       stack.push(mappedFieldValue);
       // stack.pushDoubleBits(mappedFieldValue, mappedFieldValue1);
     } else if (desc == VM_Statics.LONG_LITERAL) {
       long mappedFieldValue = Platform.readLong(addr);
       if (InterpreterBase.traceExtension)
-	System.out.println("X_ldc2_w: long ");
+	log("X_ldc2_w: long ");
       stack.push(mappedFieldValue);
       // stack.pushLongBits(mappedFieldValue, mappedFieldValue1);
     } else {
@@ -554,7 +560,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   void X_arrayload(int opcode, Object mArray, int index) {
     mapVM mappedArray = (mapVM) mArray;
     // if (traceExtension)
-    // System.out.println("X_arrayload: " + mappedArray + " at index " + index);
+//       log("X_arrayload: " + mappedArray + " at index " + index);
 
     if (mappedArray.getAddress() == 0) 
       _throwException( new NullPointerException());
@@ -563,8 +569,15 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     if (index<0)
       _throwException(new ArrayIndexOutOfBoundsException("negative index"));    
     int realArrayLength = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
-    if (index >= realArrayLength)
-      _throwException(new ArrayIndexOutOfBoundsException("index="+index+" >= "+realArrayLength));
+    if (index >= realArrayLength) {
+      String msg = "index="+index+" >= "+realArrayLength + "\n";
+      msg += "Here is the array from the pointer 0x" + Integer.toHexString(mappedArray.getAddress()) + "\n";
+      for (int i = 0; i < 10; i++) {
+	msg += " [" + i + "] " + Platform.readmem(mappedArray.getAddress() + i*4) + "\n";
+      }
+      System.err.println(msg);
+      _throwException(new ArrayIndexOutOfBoundsException(msg));
+    }
 
     // Get element from the VM side
     
@@ -573,7 +586,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x2e:  /* --- iaload --- */ { 
 	// array of int:  get the 4-bytes integer value
 	if (traceExtension)	
-	  System.out.println("X_arrayload: iaload " + mappedArray + " at index " + index);
+	  log("X_arrayload: iaload " + mappedArray + " at index " + index);
 	int   element = Platform.readmem(mappedArray.getAddress() + index*4);
 	stack.push(element);	       
 	break; 			       
@@ -581,7 +594,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x2f:  /* --- laload --- */ { 
 	// array of long:  get the 8-bytes value and convert to long
 	if (traceExtension)	
-	  System.out.println("X_arrayload: laload " + mappedArray + " at index " + index);
+	  log("X_arrayload: laload " + mappedArray + " at index " + index);
 	int loword = Platform.readmem(mappedArray.getAddress() + index*8);
 	int hiword = Platform.readmem(mappedArray.getAddress() + index*8 + 4);
 	long element = twoIntsToLong(hiword, loword);
@@ -591,7 +604,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x30:  /* --- faload --- */ { 
 	// array of float:  get the 4-bytes value and convert to float
 	if (traceExtension)	
-	  System.out.println("X_arrayload: faload " + mappedArray + " at index " + index);
+	  log("X_arrayload: faload " + mappedArray + " at index " + index);
 	int   data = Platform.readmem(mappedArray.getAddress() + index*4);
 	float element = Float.intBitsToFloat(data);
 	stack.push(element);	       
@@ -600,7 +613,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x32:  /* --- aaload --- */ { 
 	// array of object:  update the mapVM wrapper and put it back on the stack
 	if (traceExtension)	
-	  System.out.println("X_arrayload: aaload " + mappedArray + " at index " + index);
+	  log("X_arrayload: aaload " + mappedArray + " at index " + index);
 	mapVM newMapped = new mapVM(mappedArray.getType().asArray().getElementType(),
 				    Platform.readmem(mappedArray.getAddress() + index*4),
 				    mapVM.PointerSize);
@@ -609,7 +622,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x31:  /* --- daload --- */ { 
 	// array of double:  get the 8-bytes value and convert to double
 	if (traceExtension)	
-	  System.out.println("X_arrayload: daload " + mappedArray + " at index " + index);
+	  log("X_arrayload: daload " + mappedArray + " at index " + index);
 	int loword = Platform.readmem(mappedArray.getAddress() + index*8);
 	int hiword = Platform.readmem(mappedArray.getAddress() + index*8 + 4);
 	double element = Double.longBitsToDouble(twoIntsToLong(hiword, loword));
@@ -619,7 +632,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x33:  /* --- baload --- */ {
 	// array of byte or boolean:  get one byte value
 	if (traceExtension)	
-	  System.out.println("X_arrayload: baload " + mappedArray + " at index " + index);
+	  log("X_arrayload: baload " + mappedArray + " at index " + index);
 	byte element = Platform.readByte(mappedArray.getAddress() + index);
 	if (mappedArray.getType().asArray().getElementType().isBooleanType()) { 
 	  stack.push(element==0?0:1);	
@@ -631,7 +644,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x34:  /* --- caload --- */ { 
 	// array of char:  get one byte value
 	if (traceExtension)	
-	  System.out.println("X_arrayload: caload " + mappedArray + " at index " + index);
+	  log("X_arrayload: caload " + mappedArray + " at index " + index);
 	char element = (char) Platform.readByte(mappedArray.getAddress() + index);
 	stack.push(element);	
 	break; 
@@ -639,7 +652,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       case 0x35:  /* --- saload --- */ { 
 	// array of short:  get 2-bytes value
 	if (traceExtension)	
-	  System.out.println("X_arrayload: saload " + mappedArray + " at index " + index);
+	  log("X_arrayload: saload " + mappedArray + " at index " + index);
 	short element = Platform.readShort(mappedArray.getAddress() + index*2);
 	stack.push(element);	
 	break; 
@@ -653,7 +666,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   boolean X_if_acmpeq(Object val1, Object val2) {
     if (traceExtension)	
-      System.out.println("X_if_acmpeq: " + val1 + ", " + val2);    
+      log("X_if_acmpeq: " + val1 + ", " + val2);    
     if (((mapVM) val1).getAddress() == ((mapVM) val2).getAddress())
       return true;
     else
@@ -694,9 +707,9 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     // (1) Find the VM_Class from the dictionary
     String currentClassName = currentClass.getDescriptor().toString();
     if (traceExtension)	
-      System.out.println("X_getstatic: " + currentClassName);
+      log("X_getstatic: " + currentClassName);
     int addr = mapVM.manualTypeSearch(currentClassName);
-    // System.out.println("X_getstatic: dictionary look up, VM_Class @" + Integer.toHexString(addr));
+    // log("X_getstatic: dictionary look up, VM_Class @" + Integer.toHexString(addr));
 
     // (2) Compute pointer to the class constant pool array
     addr = Platform.readmem(addr + mapVM.VMClassConstantPool_offset);
@@ -779,8 +792,8 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   void X_getfield(Object ref) {
     int index = byte_codes.fetch2BytesUnsigned();      
     mapVM mappedObject = (mapVM)ref;
-    // if (traceInterpreter >= 2) 
-    // System.out.println("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
+    if (traceInterpreter >= 2) 
+      log("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
 
     // (1) Compute pointer to the VM_Type, which should be VM_Class since we expect an object
     int addr = mapVM.manualTypeSearch(getCurrentClass().getDescriptor().toString());
@@ -849,7 +862,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       mapVM newMappedReference = new mapVM(fieldType, mappedFieldValue, mapVM.PointerSize);
       stack.push(newMappedReference);
       if (traceExtension)	
-	System.out.println("X_getfield: reference @ " + Integer.toHexString(mappedFieldValue));
+	log("X_getfield: reference @ " + Integer.toHexString(mappedFieldValue));
       return;
     } 
 
@@ -863,7 +876,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
       mapVM newMappedReference = new mapVM(fieldType, mappedFieldValue, size);
       stack.push(newMappedReference);
       if (traceExtension)	
-        System.out.println("X_getfield: array @ " + Integer.toHexString(mappedFieldValue));
+        log("X_getfield: array @ " + Integer.toHexString(mappedFieldValue));
       return;
     }
 
@@ -894,7 +907,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   void X_putfield() {
     // if (traceInterpreter >= 2) 
-    System.out.println("X_putfield: not implemented yet");
+    log("X_putfield: not implemented yet");
     debug();
   }
 
@@ -905,7 +918,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     mapVM mappedObj = (mapVM) obj;
     int length = Platform.readmem(mappedObj.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
     if (traceExtension)	
-      System.out.println("X_arraylength: array length for " + mappedObj + ", " + length);
+      log("X_arraylength: array length for " + mappedObj + ", " + length);
     return length;
   } 
 
@@ -945,7 +958,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   boolean X_ifnull(Object ref) {
     mapVM mappedObj = (mapVM) ref;
     if (traceExtension)	
-      System.out.println("X_ifnull: " + mappedObj);
+      log("X_ifnull: " + mappedObj);
     // int pointer = Platform.readmem(mappedObj.getAddress());
     // checking the address itself is good enough 
     int pointer = mappedObj.getAddress();
@@ -968,7 +981,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     mapVM mappedObj = (mapVM) ref;
     String mthName = mth.getName().toString();
     if (traceExtension)     
-      System.out.println("X_invokevirtual: " + mthName + " on " + mappedObj);
+      log("X_invokevirtual: " + mthName + " on " + mappedObj);
     if (mappedObj.getType().getName().equals("com.ibm.JikesRVM.VM_Atom") && 
 	mthName.equals("getBytes"))
        
@@ -992,7 +1005,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   boolean X_invokestatic(VM_Class calledClass, VM_Method calledMethod) {
     if (traceExtension)     
-      System.out.println("X_invokestatic: " + calledClass.getName() + 
+      log("X_invokestatic: " + calledClass.getName() + 
 		       " " + calledMethod.getName());
 
     Object mappedObj = mapVM.getMapBase(calledClass, calledMethod);

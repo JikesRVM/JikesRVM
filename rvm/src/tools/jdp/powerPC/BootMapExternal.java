@@ -1,11 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+
 /**
  * External implementation for BootMap.
  * Load the method map for the JVM boot image from disk
@@ -69,11 +70,12 @@ class BootMapExternal extends BootMap {
    * @see BootMap
    */
   public BootMapExternal(OsProcess process, String mainClass, 
-			 String classesNeededFilename, String classpath) 
+			 String classesNeededFilename, String classpath,
+			 Debugger debugger) 
     throws BootMapCorruptException, Exception   {
 
     // superclass: BootMap constructor
-    super(process);
+    super(process, debugger);
 
     // If we are running under the mapping interpreter, it has already
     // set up the JVM data structure in its layer
@@ -113,10 +115,10 @@ class BootMapExternal extends BootMap {
    * @return
    * @see
    */
-  public BootMapExternal(OsProcess process) {   
+  public BootMapExternal(OsProcess process, Debugger debugger) {   
 
     // superclass: BootMap constructor
-    super(process);
+    super(process, debugger);
 
   }
 
@@ -992,7 +994,9 @@ class BootMapExternal extends BootMap {
     }
   }
 
-
+  public com.ibm.jikesrvm.jdi.jdwp.Debugger createDebugger() { 
+    return null;
+  }
 }
 
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 
@@ -87,6 +87,26 @@ public class SocketSupport {
   }  
 
   /**
+   * Close the input side of the given socket file descriptor.
+   * The output side is unaffected.
+   *
+   * @param		aFD		the socket descriptor
+   */
+  public static void socketCloseInputImpl(FileDescriptor aFD) throws IOException {
+    VM_SocketImpl.socketCloseInputImpl(aFD);
+  }
+
+  /**
+   * Close the output side of the given socket file descriptor.
+   * The input side is unaffected.
+   *
+   * @param		aFD		the socket descriptor
+   */
+  public static void socketCloseOutputImpl(FileDescriptor aFD) throws IOException {
+    VM_SocketImpl.socketCloseOutputImpl(aFD);
+  }
+
+  /**
    * Answer the result of attempting to accept a connection request
    * to this stream socket in the IP stack.
    *
@@ -100,7 +120,8 @@ public class SocketSupport {
    */
   public static FileDescriptor acceptStreamSocketImpl(FileDescriptor fdServer,
                                                       SocketImpl newSocket,
-                                                      int timeout) throws SocketException {
+                                                      int timeout)
+      throws SocketException, SocketTimeoutException {
     return VM_SocketImpl.acceptStreamSocketImpl(fdServer,newSocket,timeout);
   }  
 
@@ -158,7 +179,8 @@ public class SocketSupport {
    *						before requests are rejected
    * @exception	SocketException	if an error occurs while listening
    */
-  public static void listenStreamSocketImpl(FileDescriptor aFD, int backlog) throws SocketException {
+  public static void listenStreamSocketImpl(FileDescriptor aFD, int backlog)
+    throws SocketException, SocketTimeoutException {
     VM_SocketImpl.listenStreamSocketImpl(aFD,backlog);
   }  
 

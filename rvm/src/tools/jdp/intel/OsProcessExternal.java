@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /**
  * This is the implemetation for the abstract portion of OsProcess
  * This process can execute any compiled program
@@ -10,7 +11,7 @@ import com.ibm.JikesRVM.*;
  */
 import java.io.*;
 
-class OsProcessExternal extends OsProcess implements VM_Constants, VM_ThinLockConstants {
+public class OsProcessExternal extends OsProcess implements VM_Constants, VM_ThinLockConstants {
 
   /**
    * Constructor for external implementation of OsProcess
@@ -31,10 +32,14 @@ class OsProcessExternal extends OsProcess implements VM_Constants, VM_ThinLockCo
    * @exception
    * @see
    */
-   public OsProcessExternal(String ProgramName, String args[], 
-		   String mainClass, String classesNeededFilename, String classpath)
+   public OsProcessExternal(String ProgramName, 
+			    String args[], 
+			    String mainClass, 
+			    String classesNeededFilename, 
+			    String classpath,
+			    Debugger debugger)
   {
-    super(ProgramName, args, mainClass, classesNeededFilename, classpath);
+    super(ProgramName, args, mainClass, classesNeededFilename, classpath, debugger);
 
     // pass the register mapping to the native code
     init(SP, 
@@ -69,8 +74,9 @@ class OsProcessExternal extends OsProcess implements VM_Constants, VM_ThinLockCo
    * @see
    */
   public OsProcessExternal(int processID, String mainClass,
-			   String classesNeededFilename, String classpath) throws OsProcessException {
-    super(processID, mainClass, classesNeededFilename, classpath);
+			   String classesNeededFilename, String classpath,
+			   Debugger debugger) throws OsProcessException {
+    super(processID, mainClass, classesNeededFilename, classpath, debugger);
     // pass the register mapping to the native code
     init(SP, 
 	 GPR_NAMES,

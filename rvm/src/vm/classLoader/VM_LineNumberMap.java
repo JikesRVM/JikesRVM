@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -22,17 +22,31 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
    * bytecode offset at which each instruction sequence begins
    * 0-indexed from start of method's bytecodes[]     
    */
-  int[] startPCs;    
+  final int[] startPCs;    
 
   /** 
    * line number at which each instruction sequence begins
    * 1-indexed from start of method's source file
    */
-  int[] lineNumbers;
-   
+  final int[] lineNumbers;
+
   VM_LineNumberMap(int n) {
     startPCs    = new int[n];
     lineNumbers = new int[n];
+  }
+
+  /**
+   * Sets directly the two arrays.  This was added so these could be
+   * mapped in JDP.
+   *
+   * @param startPCs    the int array of startPCs to use
+   * @param lineNumbers the int array of lineNumbers to use
+   * @author Jeffrey Palm
+   * @since  28 Jul 2002
+   */
+  VM_LineNumberMap(int[] startPCs, int[] lineNumbers) {
+    this.startPCs = startPCs;
+    this.lineNumbers = lineNumbers;
   }
 
   VM_LineNumberMap(DataInputStream input, int n) throws IOException {

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- File written by PDE 1.0 -->
+<plugin
+   id="org.eclipse.jdt.launching.jikesrvm"
+   name="%pluginName"
+   version="1.0"
+   provider-name="Object Technology International, Inc."
+   class="org.eclipse.jdt.internal.launching.jikesrvm.JikesRVMLaunchingPlugin">
+
+  <!-- Required plugins -->
+  <requires>
+     <import plugin="org.eclipse.core.runtime"/>
+     <import plugin="org.eclipse.ui"/>
+     <import plugin="org.eclipse.jdt.debug"/>
+     <import plugin="org.eclipse.debug.core"/>
+     <import plugin="org.eclipse.core.resources"/>
+     <import plugin="org.eclipse.jdt.core"/>
+     <import plugin="org.eclipse.jdt.launching"/>
+     <import plugin="org.eclipse.swt"/>
+     <import plugin="org.eclipse.jdt.ui"/>
+  </requires>
+  
+  <!-- Runtime -->
+  <runtime>
+     <library name="jikesrvmlaunching.jar">
+     </library>
+  </runtime>
+  
+  <!-- Extensions -->
+  <!-- Extension points -->
+  <extension point="org.eclipse.jdt.launching.vmInstallTypes">  
+     <vmInstallType
+           class="org.eclipse.jdt.internal.launching.jikesrvm.JikesRVMInstallType"
+           id="org.eclipse.jdt.internal.launching.jikesrvm.JikesRVMType">
+     </vmInstallType>
+  </extension>
+
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="org.eclipse.ui.jikesrvm.JikesRVMPreferencePage"
+          name="Jikes RVM"
+	  class="org.eclipse.ui.jikesrvm.JikesRVMPreferencePage">
+    </page>
+  </extension>
+
+</plugin>
+  

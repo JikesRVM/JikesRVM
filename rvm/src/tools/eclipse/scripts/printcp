@@ -1,0 +1,20 @@
+#! /usr/bin/perl
+
+# (C) Copyright IBM Corp. 2002
+# $Id$
+
+# Read files from stdin, and combine them into a path
+# string that can be used as a classpath.
+
+my $BASEDIR = shift @ARGV;
+(defined $BASEDIR) || die;
+
+my $cp;
+while (<>) {
+    chop;
+    s,^\./,,;
+    $cp = "$BASEDIR/$_:$cp";
+}
+
+chop $cp;
+print "$cp\n";

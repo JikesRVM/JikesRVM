@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -25,9 +25,11 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param classPath path specification in standard "classpath" format
    */
   public static void setVmRepositories(String classPath) {
-    VM_SystemClassLoader cl = VM_SystemClassLoader.getVMClassLoader();
-    cl.classPath = classPath;
-    cl.parsePath();
+      vmRepositories = classPath;
+  }
+
+  public static String getVmRepositories() {
+      return vmRepositories;
   }
 
   /**
@@ -35,19 +37,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param classPath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classPath) {
-    VM_StringVector vec = new VM_StringVector();
-
-    if (applicationRepositories != null)
-      for(int i  = 0; i < applicationRepositories.length; i++)
-        vec.addElement( applicationRepositories[i]);
-
-    for (StringTokenizer st = new StringTokenizer(classPath, System.getProperty("path.separator"), false); st.hasMoreTokens(); )
-      vec.addElement(st.nextToken());
-
-    applicationRepositories = vec.finish();
-    //-#if RVM_WITH_GNU_CLASSPATH
-    VM_SystemClassLoader.getVMClassLoader().classPath = classPath;
-    //-#endif
+      System.setProperty("java.class.path", classPath);
+      applicationRepositories = classPath;
   }
 
   /**
@@ -55,7 +46,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */ 
-  public static String[] getApplicationRepositories() {
+  public static String getApplicationRepositories() {
     return applicationRepositories;
   }
 
@@ -107,11 +98,10 @@ implements VM_Constants, VM_ClassLoaderConstants {
   static int findOrCreateTypeId(VM_Atom descriptor, ClassLoader classloader) {
     int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
     VM_Type type   = VM_TypeDictionary.getValue(typeId);
-
-    if (type != null)
-      return typeId;
-
-    if (descriptor.isArrayDescriptor()) { // new array type
+    if (type != null) {
+	if (VM.runningVM && ! type.isLoaded()) type.setClassLoader(classloader);
+	return typeId;
+    } else if (descriptor.isArrayDescriptor()) { // new array type
       VM_Array ary = new VM_Array(descriptor, typeId, classloader);
       VM_TypeDictionary.setValue(typeId, ary);
       return typeId;
@@ -289,7 +279,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
 
   // Places from which to load .class files.
   //
-  private static String[] applicationRepositories;
+  private static String applicationRepositories;
+  private static String vmRepositories;
 
   // Names of special methods.
   //
@@ -324,7 +315,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Index of most recently allocated slot in dynamicLibraries.
    */
-  private static int currentDynamicLibraryId;
+  private static int currentDynamicLibraryId = 0;
 
   /**
    * Initialize for bootimage.
@@ -334,6 +325,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
     //
     setVmRepositories(vmClassPath);
     applicationRepositories = null;
+    VM_SystemClassLoader.boot();
 
     // create special method- and attribute- names
     //
@@ -376,10 +368,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
    */
   static void boot(String vmClasses) {
     setVmRepositories( vmClasses );
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
-    com.ibm.oti.vm.AbstractClassLoader.resCache.cache.clear();
-    //-#endif
+    currentDynamicLibraryId = 0;
+    dynamicLibraries = new VM_DynamicLibrary[0];
   }
 
   /**
@@ -435,7 +425,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
 
 
   public static final void resolveClassInternal(Class clazz) {
-    VM_Type cls = clazz.getVMType();
+    VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass( clazz );
     try {
       cls.resolve();
     } catch (VM_ResolutionException e) { 
@@ -452,10 +442,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
                                                 ClassLoader classloader, 
                                                 ProtectionDomain pd) throws ClassFormatError {
     Class c = defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
-    c.pd = pd;
-    //-#endif
+    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
     return c;
   }
 
@@ -472,38 +459,26 @@ implements VM_Constants, VM_ClassLoaderConstants {
                                                 ClassLoader classloader, 
                                                 ProtectionDomain pd) throws ClassFormatError {
     Class c = defineClassInternal(className, is, classloader);
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
-    c.pd = pd;
-    //-#endif
+    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
     return c;
   }
-
 
   public static final Class defineClassInternal(String className, 
                                                 InputStream is, 
                                                 ClassLoader classloader) throws ClassFormatError {
-    if (className == null) {
-      VM.sysFail("ClassLoader.defineClass class name == null not implemented"); //!!TODO
-      return null;
-    }
 
-    VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
+    VM_Atom classDescriptor = null;
+    if (className != null)
+	classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
 
-    if (!cls.isLoaded()) {
-      if (VM.TraceClassLoading  && VM.runningVM)
-        VM.sysWrite("loading " + cls + " with " + classloader);
-
-      cls.classloader = classloader;
-      try {
-        cls.load(new DataInputStream(is));
-      } catch (IOException e) {
+    if (VM.TraceClassLoading  && VM.runningVM)
+	VM.sysWrite("loading " + classDescriptor + " with " + classloader);
+      
+    try {
+	return VM_Class.load(new DataInputStream(is), classloader, classDescriptor).getClassForType();
+    } catch (IOException e) {
         throw new ClassFormatError(e.getMessage());
-      }
     }
-
-    return cls.getClassForType();
   }
 
   /**
@@ -560,6 +535,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
         }
       }
     }
+    VM.sysWrite(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
     throw new NoSuchMethodError(m.getDeclaringClass()+": "+name+" " +desc+" no such method found");
   }
 

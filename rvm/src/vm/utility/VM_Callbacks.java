@@ -940,8 +940,9 @@ public final class VM_Callbacks {
    */
   private static VM_Atom getClass(Object o) {
     if (VM.runningVM)
-      return o.getClass().getVMType().getDescriptor();
-    return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+	return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
+    else
+	return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
   }
 
   /**

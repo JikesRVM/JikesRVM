@@ -34,6 +34,11 @@ function do_install
   print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
   cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
   cp -f rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
+
+  # install security properties file for classpath
+  print "$ME: Installing security properties file in $RVM_ROOT/lib/security"
+  mkdir -p $RVM_ROOT/lib/security
+  echo "security.provider.1=gnu.java.security.provider.Gnu" > $RVM_ROOT/lib/security/classpath.security
 }
 
 ##
@@ -91,6 +96,11 @@ if [[ x$installOnly = xy ]] ; then
   exit 0
 fi
 
+# we need classpath.jar because our libraries are very incomplete
+#
+if [[ ! -e $RVM_ROOT/support/lib/classpath.jar ]]; then
+  jBuildClasspathJar
+fi
 
 # Create a temporary build directory
 $RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseSemispace
@@ -99,15 +109,19 @@ cd $RVM_BUILD
 ./jbuild.copy
 
 # Copy the library sources 
+# We're now copying the source paths from jikes-src
 cp -r $RVM_ROOT/support/lib/src/* $RVM_BUILD/RVM.classes
 
 # Compile the RVM sources
 ./jbuild.compile
 
 # Compile the library sources
+# Looking for  the following extensions: java, javax, com, gnu, org
 cd $RVM_BUILD/RVM.classes
-$FIND com -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
-$FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
+TOP_LEVEL_PACKAGES="java com/ibm/oti"
+for p in $TOP_LEVEL_PACKAGES; do
+    $FIND $p -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
+done
 
 cd $RVM_BUILD/RVM.classes
 
@@ -116,10 +130,12 @@ echo "R-`date -u +"%Y-%m-%d-%H-%M-%S"`" > rvmrt.id
 
 # Create the jar file
 $FIND . -type f | $GREP -v \.class\$ | $GREP -v \.properties\$ | $GREP -v rvmrt.id | $XARGS rm -f
-$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar rvmrt.id com java
+$FIND . -type d -a -name CVS | $XARGS rm -rf
+$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar rvmrt.id $TOP_LEVEL_PACKAGES
 
 
 # Install the new jar file?
+# Don't want to ask this
 if tty -s; then # keyboard is live (ie. this is not an automated build)
   print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
   read install

@@ -1,9 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //VM_BuildReferenceMaps.java
 //$Id$
 package com.ibm.JikesRVM;
+
 /** 
  * This class builds the reference and non-reference maps for a given method.
  * The maps are recorded with VM_ReferenceMaps. This class works with the baseline
@@ -1574,9 +1575,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
        else 
          break;
      }
-     if (i == tryHandlerLength)
-       handlersAllDone = true;
-     else {
+     if (i == tryHandlerLength) {
+	 handlersAllDone = true;
+     } else {
        int considerIndex = i;
 
        while (i != tryHandlerLength) {
@@ -1594,6 +1595,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	      tryHandlerPC[i] < tryEnd &&
 	      bbMaps[byteToBlockMap[tryHandlerPC[i]]] != null)
 	     break;
+
 	 if (i != tryHandlerLength)
 	   considerIndex = i;
        }

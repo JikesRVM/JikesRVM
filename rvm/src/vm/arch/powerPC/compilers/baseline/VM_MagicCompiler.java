@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -110,7 +110,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.sysCallSigWait) {
       int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
       int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
- 
       asm.emitL   (T0, 0, SP);	// t0 := address of VM_Registers object
       asm.emitCAL (SP, 4, SP);	// pop address of VM_Registers object
       VM_ForwardReference fr1 = asm.emitForwardBL();
@@ -363,7 +362,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          
       // restore link register
       asm.emitL(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
-      asm.emitMTLR(S0);
+     asm.emitMTLR(S0);
 
       asm.emitBCTR(); // branch always, through count register
     } else if (methodName == VM_MagicNames.objectAsAddress         ||

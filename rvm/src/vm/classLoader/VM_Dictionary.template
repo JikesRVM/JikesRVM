@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 
 package com.ibm.JikesRVM;
@@ -216,7 +216,7 @@ public class CCC {
   private static KKK[]   keys   = new KKK[20];    // dictionary keys
   private static VVV[]   values = new VVV[20];    // dictionary values
   private static int     nextId = 1;              // index of next free slot in keys[]/values[]
-  private static int[][] chains = new int[201][]; // hash table for quickly determining presence of key in dictionary
+  private static int[][] chains = new int[7919][]; // hash table for quickly determining presence of key in dictionary
   // - chains[i] is initial hash probe
   // - chains[][j] is index into keys[]/values[]
 

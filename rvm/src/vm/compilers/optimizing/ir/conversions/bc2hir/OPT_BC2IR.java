@@ -1516,6 +1516,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
 	      }
+
 	      throw e;
 	    }
 	  }
@@ -1639,7 +1640,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
 	      }
-	      throw e;
+	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
+		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
+		// CALL must be treated as potential throw of anything
+		rectifyStateWithExceptionHandlers();
+		break;
+	      } else {
+		throw  (e);
+	      }
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
@@ -1719,6 +1727,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      }
 	    } else {
 	      meth = resolvedMethodRef;
+	      Call.setMethod(s, OPT_MethodOperand.INTERFACE(meth, false));
 	    }
 	  } catch (Exception e) {
 	      // bogus catch of VM_ResolutionException to keep java happy
@@ -1939,23 +1948,24 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 
-	  OPT_RegisterOperand reg = (OPT_RegisterOperand)op2;
+	  // OPT_RegisterOperand reg = (OPT_RegisterOperand)op2;
 	  if (gc.options.NO_CHECKCAST) {
 	    // Unsafely eliminate all checkcasts
 	  } else {
 	    if (classLoading) {
-	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, reg, typeOp);
+	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, typeOp);
 	    } else {
-	      if (isNonNull(reg)) {
-		s = TypeCheck.create(CHECKCAST_NOTNULL, reg, typeOp, getGuard(reg));
+	      if (isNonNull(op2)) {
+		s = TypeCheck.create(CHECKCAST_NOTNULL, op2, typeOp, getGuard(op2));
 	      } else {
-		s = TypeCheck.create(CHECKCAST, reg, typeOp);
+		s = TypeCheck.create(CHECKCAST, op2, typeOp);
 	      }
 	    }
 	  }
-	  reg = reg.copyU2U();
-	  reg.type = typeRef;
-	  push(reg);
+	  op2 = op2.copy();
+	  if (op2 instanceof OPT_RegisterOperand)
+	      ((OPT_RegisterOperand)op2).type = typeRef;
+	  push(op2);
 	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
 	  rectifyStateWithExceptionHandler(et);
 	  if (classLoading) rectifyStateWithErrorHandler();

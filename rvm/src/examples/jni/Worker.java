@@ -7,8 +7,8 @@
  */
 class Worker extends Thread  {
   private String name;
-  volatile boolean readyFlag = false;
-  volatile boolean doneFlag = false;
+  boolean readyFlag = false;
+  boolean doneFlag = false;
   Object theLock;
   int rc;
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
@@ -19,6 +19,12 @@ public class ByteCodeContext
   {    
     method = method_in;
     bcodes = method.getBytecodes();
+
+//      // Make sure this method's declaring class is instantiated
+//      // This is needed to walk up any catch blocks
+//      if (!method.getDeclaringClass().isInstantiated()) {
+//        method.getDeclaringClass().instantiate();
+//      }
   }
 
   boolean hasMoreElements() { return bindex < bcodes.length; }

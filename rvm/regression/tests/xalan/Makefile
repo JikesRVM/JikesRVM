@@ -12,11 +12,11 @@ include         $(RVM_BUILD)/Make.rules
 BENCH_NAME=Xalan
 include		$(JAL_ROOT)/rvm/regression/Local.rules
 
-HEAPSIZE=150
+HEAPSIZE=250
 
 DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
 BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
-BENCH_CLASS_PATH=$(BENCH_HOME)/bin/xalan.jar:$(BENCH_HOME)/bin/xercesImpl.jar:$(BENCH_HOME)/bin/xml-apis.jar:$(BENCH_HOME)/bin/xalansamples.jar
+BENCH_CLASS_PATH=$(BENCH_HOME)/bin/xalan.jar:$(BENCH_HOME)/bin/xercesImpl.jar:$(BENCH_HOME)/bin/xml-apis.jar:$(BENCH_HOME)/bin/xalansamples.jar:$(BENCH_HOME)/bin/xsltc.jar
 
 ifeq ($(MODE),PERFORMANCE)
   ITERATIONS=11
@@ -26,6 +26,9 @@ endif
 
 START_NAME=Driver
 START_ARGS=$(ITERATIONS) SimpleTransform main $(INPUT_FILES)
+BENCH_RVM_ARGS=-Djavax.xml.transform.TransformerFactory=org.apache.xalan.xsltc.trax.TransformerFactoryImpl -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl
+
+default:	sanity
 
 $(WORKING)/birds.xsl:		$(WORKING)
 ifneq ($(WORKING),.)

@@ -1,8 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 import com.ibm.JikesRVM.*;
+
 /*
  *   A string buffer that holds jdp command for macro processing
  *   This can be nested for nested macro
@@ -29,7 +30,7 @@ public class jdpMacro extends SourceSnapshot {
   public void load(String macroName) {
     name = macroName;
     curr_line = 0;
-    String myline = super.getSourceLine(macroName, 1);
+    String myline = super.getSourceLine("", macroName, 1);
     // System.out.println("Loading macro: " + macroName);
     // System.out.println("Got: " + myline);
   }
@@ -45,14 +46,14 @@ public class jdpMacro extends SourceSnapshot {
 
       // parse line into words
       //
-      String str = new String(super.getSourceLine(name, curr_line));
+      String str = new String(super.getSourceLine("", name, curr_line));
       while (str.startsWith("#")) {
 	if (curr_line==super.getLineCount()) {
 	  super.resetBuffer();
 	  return false;
 	} else {
 	  curr_line++;
-	  str = new String(super.getSourceLine(name, curr_line));
+	  str = new String(super.getSourceLine("", name, curr_line));
 	}
       }
 

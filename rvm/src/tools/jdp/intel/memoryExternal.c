@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 /*$Id$
  * Intel native implementation to access memory of a process
@@ -37,8 +37,13 @@ JNIEXPORT jint JNICALL Java_Platform_readmem1
   jclass eclass;
 
   memdata = ptrace(PTRACE_PEEKDATA, debuggee_pid, (int *) addr, 0);
-  if (memdata==-1 && errno==EIO) {
-    printf("CAUTION, address not accessible: 0x%08x\n", addr);
+  if (memdata==-1 && (errno==EPERM  ||
+		      errno==EIO    ||
+		      errno==ESRCH  ||
+		      errno==EFAULT)
+      ) {
+    printf("CAUTION, address not accessible: 0x%08x pid=%d\n", addr, debuggee_pid);
+    printf("ERROR, %s\n", strerror(errno));
     eclass = (*env) -> FindClass(env, "java/lang/Exception");
     if (eclass!=NULL)
       (*env) -> ThrowNew(env, eclass, "Memory read, address not accessible");

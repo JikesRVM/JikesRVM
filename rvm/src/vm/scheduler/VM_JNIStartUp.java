@@ -229,7 +229,7 @@ public class VM_JNIStartUp implements Runnable {
     // we need to do this in the main Java thread because new Java threads created
     // by JNIServiceThread for AttachCurrentThread needs to be from the "main" thread
     // group 
-    Thread j = new JNIServiceThread();
+    VM_Thread j = new JNIServiceThread();
     j.start();
     // wait for the service thread to start up and go into its attachThreadQueue
     while (VM_Scheduler.attachThreadQueue.isEmpty()) {

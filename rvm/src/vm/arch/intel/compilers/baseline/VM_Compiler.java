@@ -1708,7 +1708,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
 
-    if (compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
       edgeCounterIdx += (n + 1);
 
@@ -1754,7 +1754,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int offset  = fetch4BytesSigned();
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      if (compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
 	// Flip conditions so we can jump over the increment of the taken counter.
 	VM_ForwardReference fr = asm.forwardJcc(asm.NE);
 	incEdgeCounter(S0, edgeCounterIdx++);
@@ -1766,7 +1766,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    if (compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
       incEdgeCounter(S0, edgeCounterIdx++); // increment default counter
     }
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
@@ -2382,7 +2382,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // establish the JTOC register
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
-      if (compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
 	// use (nonvolatile) EBX to hold base of this methods counter array
 	asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
 	asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
@@ -2485,7 +2485,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
-    if (options.ANNOTATIONS &&
+    if (!VM.runningTool && 
+	options.ANNOTATIONS &&
 	method.queryAnnotationForBytecode(biStart, VM_Method.annotationBoundsCheck)) {
       return;
     }
@@ -2508,7 +2509,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   private final void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
-    if (compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
       // Allocate two counters: taken and not taken
       int entry = edgeCounterIdx;
       edgeCounterIdx += 2;

@@ -95,6 +95,17 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
     return constantValueIndex;
   }
 
+  public final int getModifiers() {
+      return modifiers & 
+	  (ACC_PUBLIC | 
+	   ACC_PRIVATE |
+	   ACC_PROTECTED |
+	   ACC_STATIC | 
+	   ACC_FINAL |
+	   ACC_VOLATILE |
+	   ACC_TRANSIENT);
+  }
+
   //--------------------------------------------------------------------//
   //                         Section 2.                                 //
   // The following are available after the declaring class has been     //
@@ -442,7 +453,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   VM_Field(VM_Class declaringClass, VM_Atom name, 
 	   VM_Atom descriptor, int dictionaryId) {
     super(declaringClass, name, descriptor, dictionaryId);
-    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.classloader);
+    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.getClassLoader());
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 

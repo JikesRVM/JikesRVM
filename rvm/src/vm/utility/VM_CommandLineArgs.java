@@ -1,8 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -12,9 +15,6 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
 import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
 //-#endif
-
-import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 /**
  * Command line option processing.
@@ -85,8 +85,9 @@ public class VM_CommandLineArgs {
   public static final int BASE_ARG             = 27;
   public static final int OPT_ARG              = 28;
   public static final int OPT_HELP_ARG         = 29;
-  public static final int PROF_ARG             = 30;
-  public static final int VERIFY_ARG           = 31;
+  public static final int MEASURE_CLOD_ARG     = 30;
+  public static final int PROF_ARG             = 31;
+  public static final int VERIFY_ARG           = 32;
   /**
    * A catch-all prefix to find application name.
    */
@@ -148,6 +149,7 @@ public class VM_CommandLineArgs {
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
+    new Prefix("-X:measureClassLoading=",MEASURE_CLOD_ARG),
     new Prefix("-X:prof:",              PROF_ARG),
     new Prefix("-X:verify=",            VERIFY_ARG),
     app_prefix
@@ -608,6 +610,23 @@ public class VM_CommandLineArgs {
 	  VM.MeasureCompilation = false;
 	} else {
 	  VM.sysWrite("vm: -X:measureCompilation=<option>, where option is true or false\n");
+	  VM.sysExit(1);
+	}
+	break;
+
+        // -------------------------------------------------------------------
+        // Access runtime compiler to support class loading time measure.
+        // -------------------------------------------------------------------
+      case MEASURE_CLOD_ARG:
+	try {
+	  VM.MeasureClassLoading = Integer.parseInt(arg);
+	} catch (Throwable t) {} // don't worry
+	if (VM.MeasureClassLoading == 1 |
+	    VM.MeasureClassLoading == 2) {
+	  VM_SystemClassLoader.initializeMeasureClassLoading();
+	} else if (VM.MeasureClassLoading != 0) {
+	  VM.sysWrite("vm: -X:measureClassLoading=<option>, " +
+		      "where option is 1 or 2\n");
 	  VM.sysExit(1);
 	}
 	break;
