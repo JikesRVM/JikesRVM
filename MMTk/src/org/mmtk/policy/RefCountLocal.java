@@ -112,6 +112,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
+    Assert._assert(LAZY_SWEEP);
     oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     oldRootPool.newClient();
 
@@ -260,24 +261,6 @@ public final class RefCountLocal extends SegregatedFreeList
         processRootBufs();
     }
     restoreFreeLists();
-  }
-
-  /**
-   * Sweep all blocks for free objects. 
-   */
-  private final void sweepBlocks() {
-    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      Address block = firstBlock.get(sizeClass);
-      Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-      while (!block.isZero()) {
-        /* check to see if block is completely free and if possible
-         * free the entire block */
-        Address next = BlockAllocator.getNextBlock(block);
-        if (isEmpty(block, blockSize))
-          freeBlock(block, sizeClass);
-        block = next;
-      }
-    }
   }
 
   /**

@@ -57,8 +57,6 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private static int MS_MUST_COLLECT_THRESHOLD = 1<<30;
   private static long used[];
 
-  private static final boolean LAZY_SWEEP = true;
-
   /****************************************************************************
    *
    * Instance variables
@@ -179,26 +177,6 @@ public final class MarkSweepLocal extends SegregatedFreeList
     restoreFreeLists();
     if (Options.fragmentationStats)
       fragmentationStatistics(false);
-  }
-
-  /**
-   * Sweep all blocks for free objects. 
-   */
-  private final void sweepBlocks() {
-    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      Address block = firstBlock.get(sizeClass);
-      Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-      while (!block.isZero()) {
-        /* first check to see if block is completely free and if possible
-         * free the entire block */
-        Address next = BlockAllocator.getNextBlock(block);
-        if (isEmpty(block, blockSize))
-          freeBlock(block, sizeClass);
-	else if (!LAZY_SWEEP)
-	  setFreeList(block, makeFreeListFromLiveBits(block, sizeClass));
-        block = next;
-      }
-    }
   }
 
 

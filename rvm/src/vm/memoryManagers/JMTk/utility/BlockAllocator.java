@@ -138,9 +138,9 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       } else {
         /* add it to the appropriate free list */
         Address next = freeList.get(blockSizeClass);
-        setNext(block, next);
+        setNextBlock(block, next);
         if (!next.isZero())
-          setPrev(next, block);
+          setPrevBlock(next, block);
         freeList.set(blockSizeClass, block);
       }
     } else // whole page or pages, so simply return it to the resource
@@ -166,7 +166,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       incInUseCount(rtn);
       freeList.set(blockSizeClass, next);
       if (!next.isZero())
-	setPrev(next, Address.zero());
+	setPrevBlock(next, Address.zero());
     }
     return rtn;
   }
@@ -215,14 +215,14 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     Address block = start.add(blockSize);
     Address next = freeList.get(blockSizeClass);
     while (block.LT(end)) {
-      setNext(block, next);
+      setNextBlock(block, next);
       if (!next.isZero())
-	setPrev(next, block);
+	setPrevBlock(next, block);
       next = block;
       block = block.add(blockSize);
     }
     freeList.set(blockSizeClass, next);
-    setPrev(next, Address.zero());
+    setPrevBlock(next, Address.zero());
   }
 
   /**
@@ -386,11 +386,11 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     Address next = getNextBlock(block);
     Address prev = getPrevBlock(block);
     //    if (Assert.VERIFY_ASSERTIONS) {
-      setNext(block, Address.zero());
-      setPrev(block, Address.zero());
+      setNextBlock(block, Address.zero());
+      setPrevBlock(block, Address.zero());
       //    }
-    if (!prev.isZero()) setNext(prev, next);
-    if (!next.isZero()) setPrev(next, prev);
+    if (!prev.isZero()) setNextBlock(prev, next);
+    if (!next.isZero()) setPrevBlock(next, prev);
   }
 
   /**
@@ -405,12 +405,12 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     Address next;
     if (!prev.isZero()) {
       next = getNextBlock(prev);
-      setNext(prev, block);
+      setNextBlock(prev, block);
     } else
       next = Address.zero();
-    setPrev(block, prev);
-    setNext(block, next);
-    if (!next.isZero()) setPrev(next, block);
+    setPrevBlock(block, prev);
+    setNextBlock(block, next);
+    if (!next.isZero()) setPrevBlock(next, block);
   }
   
   /**
@@ -419,7 +419,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param address The address of interest
    * @param prev The value to which this field is to be set
    */
-  private static final void setPrev(Address address, Address prev) 
+  static final void setPrevBlock(Address address, Address prev) 
     throws InlinePragma {
     getMetaAddress(address, PREV_OFFSET).store(prev);
   }
@@ -441,7 +441,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param address The address of interest
    * @param next The value to which this field is to be set
    */
-  private static final void setNext(Address address, Address next) 
+  static final void setNextBlock(Address address, Address next) 
     throws InlinePragma {
     getMetaAddress(address, NEXT_OFFSET).store(next);
   }

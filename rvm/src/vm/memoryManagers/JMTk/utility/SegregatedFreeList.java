@@ -46,7 +46,10 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * Class variables
    */
+  protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
+  private static final boolean SORT_FREE_BLOCKS = false;
+  private static final int BLOCK_BUCKETS = 3;
   protected static final Address DEBUG_BLOCK = Address.max();  // 0x5b098008
   protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
   protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
@@ -95,6 +98,8 @@ public abstract class SegregatedFreeList extends Allocator
   protected AddressArray firstBlock;
   protected AddressArray lastBlock;
   protected AddressArray currentBlock;
+  private AddressArray blockBucketHead; 
+  private AddressArray blockBucketTail; 
   protected int [] cellsInUse;
 
   /****************************************************************************
@@ -109,7 +114,6 @@ public abstract class SegregatedFreeList extends Allocator
    * allocator will acquire virtual memory.
    * @param mr The memory resource against which memory consumption
    * for this free list allocator will be accounted.
-   * @param plan The plan with which this instance is associated.
    */
   public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr) {
     blockAllocator = new BlockAllocator(vmr, mr);
@@ -117,6 +121,8 @@ public abstract class SegregatedFreeList extends Allocator
     firstBlock = AddressArray.create(SIZE_CLASSES);
     lastBlock = AddressArray.create(SIZE_CLASSES);
     currentBlock = AddressArray.create(SIZE_CLASSES);
+    blockBucketHead = AddressArray.create(BLOCK_BUCKETS);
+    blockBucketTail = AddressArray.create(BLOCK_BUCKETS);
   }
 
   /****************************************************************************
@@ -580,6 +586,109 @@ public abstract class SegregatedFreeList extends Allocator
     BlockAllocator.setFreeListMeta(block, cell);
   }
 
+
+  /****************************************************************************
+   *
+   * Collection
+   */
+
+  /**
+   * Sweep all blocks for free objects. 
+   */
+  protected final void sweepBlocks() {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
+      Address block = firstBlock.get(sizeClass);
+      clearBucketList();
+      Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      while (!block.isZero()) {
+	/* first check to see if block is completely free and if possible
+	 * free the entire block */
+	Address next = BlockAllocator.getNextBlock(block);
+	int liveness = getLiveness(block, blockSize, SORT_FREE_BLOCKS);
+	if (liveness == 0)
+	  freeBlock(block, sizeClass);
+	else if (!LAZY_SWEEP)
+	  setFreeList(block, makeFreeListFromLiveBits(block, sizeClass));
+	else if (SORT_FREE_BLOCKS)
+	  addToBlockBucket(block, liveness);
+	block = next;
+      }
+      if (SORT_FREE_BLOCKS) reestablishBlockFreeList(sizeClass);
+    }
+  }
+
+  /**
+   * Add a block to a liveness bucket according to the specified
+   * liveness.  This allows a cheap approximation to sorting the
+   * blocks by liveness.
+   *
+   * @param block the block to be added to a bucket
+   * @param liveness the liveness of the block that is to be added
+   */
+  private final void addToBlockBucket(Address block, int liveness) {
+    int bucket = (liveness >= BLOCK_BUCKETS) ? BLOCK_BUCKETS - 1 : liveness;
+    if (blockBucketHead.get(bucket).isZero())
+      blockBucketHead.set(bucket, block);
+    Address tail = blockBucketTail.get(bucket);
+    BlockAllocator.setPrevBlock(block, tail);
+    if (!tail.isZero()) BlockAllocator.setNextBlock(tail, block);
+    blockBucketTail.set(bucket, block);
+  }
+
+  /**
+   * Clear the list of block buckets prior to re-using it
+   */
+  private final void clearBucketList() {
+    for (int bucket = 0; bucket < BLOCK_BUCKETS; bucket++) {
+      blockBucketHead.set(bucket, Address.zero());
+      blockBucketTail.set(bucket, Address.zero());
+    }
+  }
+  
+  /**
+   * Reestablish a free block list based on the ordering of buckets,
+   * taking the lists of blocks from the buckets and composing them
+   * into a new free list of blocks for a given sizeclass.  The new
+   * free list is built up in LIFO (stack) orderr, starting with the
+   * blocks that will be used last, and finishing with the blocks that
+   * should be used first by the allocator.
+   *
+   * @param sizeClass The sizeclass whose free block list is being
+   * composed
+   */
+  private final void reestablishBlockFreeList(int sizeClass) {
+    Address head = Address.zero();
+    for (int bucket = 0; bucket < BLOCK_BUCKETS; bucket++)
+      head = addToFreeBlockList(sizeClass, head, bucket);
+    
+    if (!head.isZero()) BlockAllocator.setPrevBlock(head, Address.zero());
+    firstBlock.set(sizeClass, head);
+  }
+  
+  /**
+   * Add a bucket full of blocks to the front of the free block list
+   * for a given class.  This allows the LIFO (stack order)
+   * construction of new free lists using buckets.
+   *
+   * @param sizeClass The size class whose frelist is being built
+   * @param head The current head of the free block list for this sizeclass
+   * @param bucket The index of the bucket to be added to the front of
+   * this free block list.
+   */
+  private final Address addToFreeBlockList(int sizeClass, Address head, 
+					   int bucket) throws InlinePragma {
+    Address tail = blockBucketTail.get(bucket);
+    if (!tail.isZero()) {
+      if (head.isZero()) 
+	lastBlock.set(sizeClass, tail);
+      else
+	BlockAllocator.setPrevBlock(head, tail);
+      BlockAllocator.setNextBlock(tail, head);
+      head = blockBucketHead.get(bucket);
+    }
+    return head;
+  }
+
   /****************************************************************************
    *
    * Live bit manipulation
@@ -679,37 +788,35 @@ public abstract class SegregatedFreeList extends Allocator
   }
 
   /**
-   * Walk through a set of live bitmaps for a block, and if all cells
-   * are unused, return true.
+   * Walk through a set of live bitmaps for a block, checking which
+   * are alive.  If <code>SORT_FREE_BLOCKS</code>and if all cells are
+   * unused, return true.
    *
    * @param block The block
    * @param blockSize The size of the block
-   * @return True if all cells for this block are not live and
-   * therfore should be freed enmasse.
+   * @param count If true return a count of all non zero words,
+   * otherwise just return 1 if any live word exists
+   * @return If <code>count</code> is true, return a count of all
+   * non-zero words, otherwise return 1 if any live word exists, zero
+   * otherwise.
    */
-  protected final boolean isEmpty(Address block,  Extent blockSize)
-    throws InlinePragma {
+  private static final int getLiveness(Address block,  Extent blockSize,
+				       boolean count) throws InlinePragma {
+    int liveWords = 0;
     Assert._assert(alignToLiveStride(block).EQ(block));
-    return isNonLive(block, block.add(blockSize));
-  }
-
-  /**
-   * Return true if the specified region contains no set live bits
-   *
-   * @param start The start of the region whose live bits are to be checked
-   * @param end The end of the region whose live bits are to be checked
-   * @return True if no live bits are set for the specified region
-   */
-  protected static final boolean isNonLive(Address start, Address end) {
-    Address cursor = getLiveWordAddress(start);
-    Address sentinel = getLiveWordAddress(end);
-    while (cursor.LT(sentinel)) {
+    Address cursor = getLiveWordAddress(block);
+    Address sentinel = getLiveWordAddress(block.add(blockSize.sub(1)));
+    while (cursor.LE(sentinel)) {
       Word live = cursor.loadWord();
-      if (!live.isZero())
-        return false;
+      if (!live.isZero()) {
+	if (count)
+	  liveWords++;
+	else
+	  return 1;
+      }
       cursor = cursor.add(BYTES_IN_WORD);
     }
-    return true;
+    return liveWords;
   }
 
   /**
