@@ -9,7 +9,6 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_EdgeCounts;
-import com.ibm.JikesRVM.VM_Scheduler;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -166,27 +165,13 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   }
 
   /**
-   * prints the current recompilation and thread stats to the log file 
-   */
-  private void recordStats() {
-    VM_ControllerMemory.printFinalMethodStats(VM_AOSLogging.getLog());
-
-    for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-      VM_Thread t = VM_Scheduler.threads[i];
-      if (t != null) {
-        VM_AOSLogging.threadExiting(t);
-      }
-    }
-  }
-
-  /**
    * To be called when the application starts
    * @app the application name
    */
   public void notifyAppStart(String app) {
     if (VM.LogAOSEvents) {
       VM_AOSLogging.appStart(app);
-      recordStats();
+      VM_AOSLogging.recordRecompAndThreadStats();
     }
   }
 
@@ -197,7 +182,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public void notifyAppComplete(String app) {
     if (VM.LogAOSEvents) {
       VM_AOSLogging.appComplete(app);
-      recordStats();
+      VM_AOSLogging.recordRecompAndThreadStats();
     }
   }
 
@@ -209,7 +194,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public void notifyAppRunStart(String app, int run) {
     if (VM.LogAOSEvents) {
       VM_AOSLogging.appRunStart(app, run);
-      recordStats();
+      VM_AOSLogging.recordRecompAndThreadStats();
     }
   }
 
@@ -221,7 +206,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public void notifyAppRunComplete(String app, int run) {
     if (VM.LogAOSEvents) {
       VM_AOSLogging.appRunComplete(app, run);
-      recordStats();
+      VM_AOSLogging.recordRecompAndThreadStats();
     }
   }
 

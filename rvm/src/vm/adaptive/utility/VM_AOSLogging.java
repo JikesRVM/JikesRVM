@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -94,6 +96,10 @@ public class VM_AOSLogging {
       }
     }
     booted = true;
+  }
+
+  private static String getTime() {
+    return VM_Controller.controllerClock + ":" + VM_Time.cycles();
   }
 
   ////////////////////////////////////////////////////////////////
@@ -425,6 +431,22 @@ public class VM_AOSLogging {
     }
   }
 
+  /**
+   * prints the current recompilation and thread stats to the log file 
+   */
+  public static void recordRecompAndThreadStats() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      VM_ControllerMemory.printFinalMethodStats(VM_AOSLogging.getLog());
+
+      for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
+        VM_Thread t = VM_Scheduler.threads[i];
+        if (t != null) {
+          VM_AOSLogging.threadExiting(t);
+        }
+      }
+    }
+  }
+
   ////////////////////////////////////////////////////////////////
   // Logging level 2
   ////////////////////////////////////////////////////////////////
@@ -468,7 +490,9 @@ public class VM_AOSLogging {
   public static void recompilationCompleted(OPT_CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-        log.println(VM_Controller.controllerClock +"  Recompiled (at level "+
+        //        log.println(VM_Controller.controllerClock +"  Recompiled (at level "+
+        //                    plan.options.getOptLevel() +") " +plan.method);
+        log.println(getTime() +"  Recompiled (at level "+
                     plan.options.getOptLevel() +") " +plan.method);
       }
     }
