@@ -597,12 +597,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
 
-    /** The following line often causes a hang and prevents overnight sanity tests from finishing.
-	So, for the moment, I commented it out. Maybe someday we can come up with some sort of
-	of dead man timer that will expire and kill us if we take too long to finish. [--DL]
-    */
-    // ... I believe that day has arrived; whee!  Uncommenting it. --Steve Augart, July 2003
-    dumpVirtualMachine();
+//     writeString("Here comes a Virtual Machine dump.  This can run to\n");
+    
+//     writeString("thousands of lines, but it is sometimes useful.  Besides,\n");
+//     writeString("you wouldn't have gotten here unless something were broken.\n");
+//     /* I'm open to taking this out; it was a marginal decision.  --Steve
+//        Augart */
+//     dumpVirtualMachine();
   }
 
   /**
@@ -749,7 +750,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /**
    * Dump state of virtual machine.
    */ 
-  public static void dumpVirtualMachine() throws VM_PragmaInterruptible {
+  public static void dumpVirtualMachine() 
+    throws VM_PragmaInterruptible
+  {
     VM_Processor processor;
     writeString("\n-- Processors --\n");
     for (int i = 1; i <= numProcessors; ++i) {
