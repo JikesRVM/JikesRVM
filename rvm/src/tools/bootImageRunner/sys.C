@@ -789,7 +789,7 @@ extern "C" void processTimerTick(void) {
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    unsigned VmToc = (unsigned)getJTOC();
+    VM_Address VmToc = (VM_Address) getJTOC();
     int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
@@ -805,8 +805,8 @@ extern "C" void processTimerTick(void) {
      * interrupted C-library code, so we use boot image 
      * jtoc address (== VmToc) instead. 
      */
-    unsigned *processors 
-	= *(unsigned **) ((char *) VmToc + getProcessorsOffset());
+    VM_Address *processors 
+	= *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
     for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
@@ -1541,20 +1541,23 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    int jtoc	= ((int *)args)[0];
-    int pr	= ((int *)args)[1];
-    int ti_or_ip	= ((int *)args)[2];
-    int fp	= ((int *)args)[3];
+    VM_Address jtoc	= ((VM_Address *)args)[0];
+    VM_Address pr	= ((VM_Address *)args)[1];
+    VM_Address ti_or_ip	= ((VM_Address *)args)[2];
+    VM_Address fp	= ((VM_Address *)args)[3];
 
     if (VERBOSE_PTHREAD)
+#ifdef RVM_FOR_64_ADDR
+	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ti_or_ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ti_or_ip, fp);
+#else
 	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ti_or_ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ti_or_ip, fp);
-
+#endif
     // branch to vm code
     //
 #ifdef RVM_FOR_IA32
     {
-	*(unsigned *) (pr + VM_Processor_framePointer_offset) = fp;
-	int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
+	*(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
+	VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
 	bootThread(ti_or_ip, jtoc, pr, sp);
     }
 #else
@@ -2221,8 +2224,13 @@ sysMMapNonFile(char *start, char *length, int protection, int flags)
 {
     void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
     if (res == (void *) -1) {
+#if RVM_FOR_32_ADDR
 	fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
-		(unsigned) start, (unsigned) length, protection, flags, errno);
+		(VM_Address) start, (unsigned) length, protection, flags, errno);
+#else
+	fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
+		(VM_Address) start, (unsigned) length, protection, flags, errno);
+#endif		
 	perror(NULL);
 	return (void *) errno;
     }
@@ -2344,7 +2352,11 @@ findMappable()
 	int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
 	void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
 	int fail = (result == (void *) -1);
-	printf("0x%x: ", (unsigned) start);
+#if RVM_FOR_32_ADDR
+	printf("0x%x: ", (VM_Address) start);
+#else	
+	printf("0x%llx: ", (VM_Address) start);
+#endif	
 	if (fail) {
 	    printf("FAILED with errno %d: %s\n", errno, strerror(errno));
 	} else {
@@ -2363,7 +2375,7 @@ findMappable()
 // Taken:
 // Returned: a handler for this library, null if none loaded
 //
-extern "C" int
+extern "C" void*
 sysDlopen(char *libname)
 {
 #if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
@@ -2379,10 +2391,10 @@ sysDlopen(char *libname)
 	fprintf(SysErrorFile,
 		"%s: error loading library %s: %s\n", Me,
 		libname, dlerror());
-	return 0;
+//	return 0;
     }
 
-    return (int)libHandler;
+    return libHandler;
 #endif
 }
 
@@ -2391,7 +2403,7 @@ sysDlopen(char *libname)
 // Returned:
 //
 extern "C" void*
-sysDlsym(int libHandler, char *symbolName)
+sysDlsym(VM_Address libHandler, char *symbolName)
 {
 #if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
    fprintf(SysTraceFile, "sys: dlsym not implemented yet\n");
@@ -3296,5 +3308,5 @@ sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
 extern "C" int
 getArrayLength(void* ptr)
 {
-    return *(int*)(((unsigned)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
+    return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }

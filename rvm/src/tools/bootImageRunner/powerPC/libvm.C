@@ -1436,7 +1436,7 @@ getProcessorsOffset()
 
 
 // We do not have this yet on the PowerPC
-extern int 
+extern VM_Address
 createJavaVM()
 {
     fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");

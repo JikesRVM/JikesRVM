@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  */
 public class VM_DynamicLibrary implements VM_SizeConstants{
   private String libName;
-  private int libHandler;
+  private VM_Address libHandler;
 
   /**
    * Load a dynamic library and maintain it in this object.
@@ -41,7 +41,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
 
     libHandler = VM_SysCall.sysDlopen(asciiName);
 
-    if (libHandler==0) {
+    if (libHandler.isZero()) {
       VM.sysWrite("error loading library: " + libraryName);
       VM.sysWrite("\n");
       throw new UnsatisfiedLinkError();

@@ -3408,7 +3408,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
 
       // (2) Call it
-      int paramBytes = paramWords * BYTES_IN_STACKSLOT;
+      int paramBytes = (VM.BuildFor64Addr? args.length : paramWords) * BYTES_IN_STACKSLOT;
       VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
       generateSysCall(paramBytes, ip);
 

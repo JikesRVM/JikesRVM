@@ -106,7 +106,7 @@ isLongWait(struct timeval *timeout)
 
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 // Address of the single VM_Processor object.
-static int VmProcessor;
+static VM_Address VmProcessor;
 #endif
 
 // Return the number of file descriptors which are set in given
@@ -404,13 +404,13 @@ struct JNIInvokeInterface_ externalJNIFunctions = {
     GetEnv
 };
 
-int 
+VM_Address 
 createJavaVM(void)
 {
     JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
     theJikesRVM->functions = &externalJNIFunctions;
 
-    return (int) theJikesRVM;
+    return (VM_Address) theJikesRVM;
 }
 
 /*

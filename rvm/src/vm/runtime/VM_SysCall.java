@@ -187,9 +187,9 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static long sysGetTimeOfDay() { return 0; }
 
   // shared libraries
-  public static int sysDlopen(byte[] libname) { return 0; }
+  public static VM_Address sysDlopen(byte[] libname) { return null; }
   public static void sysDlclose() {}
-  public static VM_Address sysDlsym(int libHandler, byte[] symbolName) { return null; }
+  public static VM_Address sysDlsym(VM_Address libHandler, byte[] symbolName) { return null; }
   public static void sysSlibclean() {}
 
   // network
