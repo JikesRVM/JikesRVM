@@ -191,7 +191,16 @@ public class VM_StackTrace implements VM_Constants {
       printDegradingToVMSysWrite(out, trigger);
     } catch (Throwable e) {
       trigger.tallyWeirdError();
-      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace.  I can't go on; this is too strange.");
+      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace");
+      VM.sysWrite("    The Throwable was: ");
+      e.sysWrite();
+      if (out.isVMSysWriteln())
+	VM.sysWriteln("I can't go on; this is too strange.");
+      else {
+	VM.sysWrite("The original trigger was: ");
+	print4Real(PrintContainer.readyPrinter, trigger);
+      }
+      
     }
   }
 
@@ -307,6 +316,8 @@ public class VM_StackTrace implements VM_Constants {
 	      VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
 	    } else {
 	      VM.sysWriteln("VM_StackTrace.print4Real(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
+	      VM.sysWriteln("VM_StackTrace.print4Real(): Relaunching the error");
+	      
 	      throw e;		// launch again, for our caller.
 	    }
 	  }
