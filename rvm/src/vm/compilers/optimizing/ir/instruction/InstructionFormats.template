@@ -169,7 +169,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   }
   /**
    * InstructionFormat identification method for OPTYPE.NAME.
-   * @param i an instruction
+   * @param o an instruction
    * @return <code>true</code> if the InstructionFormat of the argument
    *         operator is OPTYPE.NAME or <code>false</code>
    *         if it is not.
