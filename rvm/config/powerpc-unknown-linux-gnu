@@ -54,7 +54,7 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
 # sources for GNU Classpath 0.06 (current stable version of Classpath)
-# Uncomment this line only if you have the Classpath sources downloaded.
+# Uncomment this line only if you manually downloaded the Classpath sources.
 # export CLASSPATH_ROOT=/opt/classpath-0.06
 
 # path for GNU make

@@ -13,7 +13,3 @@ export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
 export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06
 export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
 export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
-
-# Used for the Emacs spell-checker
-#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
-#  LocalWords:  bnoentry SRE lc bE
