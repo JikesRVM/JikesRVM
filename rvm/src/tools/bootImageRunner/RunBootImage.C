@@ -93,7 +93,7 @@ usage(void)
 {
     fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
-    fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",Me);
+    fprintf(SysTraceFile,"   or  %s [-options] -jar jarfile [args...]\n",Me);
     fprintf(SysTraceFile,"          (to execute a jar file)\n");
     fprintf(SysTraceFile,"\nwhere options include:\n");
     fprintf(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
