@@ -69,16 +69,16 @@ public class Util implements Uninterruptible, Constants {
   
   // From VM.java
   private static int sysWriteLock = 0;
-  private static int sysWriteLockOffset = -1;
+  private static Offset sysWriteLockOffset = Offset.max();
 
   private static final void swLock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
       ;
   }
 
   private static final void swUnlock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
   }
 

@@ -366,7 +366,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static long getSlotContentsAsLong(int slot) throws UninterruptiblePragma {  
     if (VM.runningVM) {
-      return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT);
+      return VM_Magic.getLongAtOffset(slots, Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_INT));
     } else {
       long result;
       if (VM.LittleEndian) {
@@ -414,7 +414,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static void setSlotContents(int slot, long value) throws UninterruptiblePragma {
     if (VM.runningVM) {
-      VM_Magic.setLongAtOffset(slots, slot << LOG_BYTES_IN_INT , value);
+      VM_Magic.setLongAtOffset(slots, Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_INT) , value);
     } else {
       if (VM.LittleEndian) {
         slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
@@ -431,7 +431,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static void setSlotContents(int slot, Object object) throws UninterruptiblePragma {
     if (VM.runningVM) {
-      VM_Magic.setObjectAtOffset(slots, slot << LOG_BYTES_IN_INT , object);
+      VM_Magic.setObjectAtOffset(slots, Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_INT) , object);
     } else {
       //-#if RVM_FOR_64_ADDR
       setSlotContents(slot, VM_Magic.objectAsAddress(object).toLong());

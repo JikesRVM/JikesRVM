@@ -228,7 +228,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   private final void emitLFtoc(OPT_Operator operator, 
                                OPT_Register RT, VM_Field field) {
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
-    int offset = field.getOffset();
+    int offset = field.getOffsetAsInt();
     int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
     OPT_Instruction s;
     if (valueHigh == 0) {
@@ -2220,7 +2220,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   private final void mutateTrapToCall(OPT_Instruction s, 
                                       VM_Method target) {
-    int offset = target.getOffset();
+    int offset = target.getOffsetAsInt();
     OPT_RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     OPT_MethodOperand meth = OPT_MethodOperand.STATIC(target);

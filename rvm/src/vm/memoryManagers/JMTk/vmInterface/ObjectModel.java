@@ -253,7 +253,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @return the offset, relative the object reference address
    */
   /* AJG: Should this be a variable rather than method? */
-  public static int GC_HEADER_OFFSET() {
+  public static Offset GC_HEADER_OFFSET() {
     return VM_ObjectModel.GC_HEADER_OFFSET;
   }
 
@@ -291,7 +291,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Object type;
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     if (true) {  // necessary to avoid an odd compiler bug
-      type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
+      type = VM_Magic.getObjectAtOffset(tib, Offset.fromIntZeroExtend(TIB_TYPE_INDEX));
     } else {
       type = tib[TIB_TYPE_INDEX];
     }

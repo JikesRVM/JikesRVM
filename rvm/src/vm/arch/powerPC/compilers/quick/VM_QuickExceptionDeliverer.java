@@ -78,31 +78,28 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
     }
     // restore non-volatile registers
     Address fp = registers.getInnermostFramePointer();
-    int frameOffset = VM_QuickCompiler.getCallerSaveOffset(method);
+    Offset frameOffset = Offset.fromIntSignExtend(VM_QuickCompiler.getCallerSaveOffset(method));
     int limit;
-    int registerSize = BYTES_IN_ADDRESS;
 
-    for (int i = qcm.firstGPR; i <= qcm.lastGPR; i++, frameOffset-=registerSize) {
-      registers.gprs.set(i, fp.add(frameOffset).loadWord());
+    for (int i = qcm.firstGPR; i <= qcm.lastGPR; i++, frameOffset = frameOffset.sub(BYTES_IN_ADDRESS)) {
+      registers.gprs.set(i, fp.loadWord(frameOffset));
     }
   
     registers.gprs.set(VM_QuickCompiler.S1,
-                       fp.add(frameOffset).loadWord());
-    frameOffset-=registerSize;
+                       fp.loadWord(frameOffset));
+    frameOffset = frameOffset.sub(BYTES_IN_ADDRESS);
     registers.gprs.set(VM_QuickCompiler.S0,
-                       fp.add(frameOffset).loadWord());
-    frameOffset-=registerSize;
+                       fp.loadWord(frameOffset));
+    frameOffset = frameOffset.sub(BYTES_IN_ADDRESS);
 
     registerSize = BYTES_IN_DOUBLE;           // fprs are 8 bytes wide
-    for (int i = qcm.firstFPR; i <= qcm.lastFPR ; i++,frameOffset-=registerSize ) {
-      long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp),
-                                           frameOffset);
+    for (int i = qcm.firstFPR; i <= qcm.lastFPR ; i++,frameOffset = frameOffset.sub(BYTES_IN_DOUBLE)) {
+      long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
         registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
     }
 
-    long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp),
-                                         frameOffset);
-    frameOffset-=registerSize;
+    long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
+    frameOffset = frameOffset.sub(BYTES_IN_DOUBLE);
     registers.fprs[VM_QuickCompiler.SF0] = VM_Magic.longBitsAsDouble(temp);
 
     registers.unwindStackFrame();

@@ -1451,13 +1451,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           VM_TypeReference fieldType = ref.getFieldContentsType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
             VM_Field field = ref.peekResolvedField();
-            offsetOp = new OPT_IntConstantOperand(field.getOffset());
+            offsetOp = new OPT_AddressConstantOperand(field.getOffset());
           
             // use results of field analysis to refine type of result
             VM_Type ft = fieldType.peekResolvedType();
@@ -1533,13 +1533,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
           OPT_Operand offsetOp;
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
             VM_Field field = ref.peekResolvedField();
-            offsetOp = new OPT_IntConstantOperand(field.getOffset());
+            offsetOp = new OPT_AddressConstantOperand(field.getOffset());
           }
 
           VM_TypeReference fieldType = ref.getFieldContentsType();
@@ -1558,13 +1558,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           VM_TypeReference fieldType = ref.getFieldContentsType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
             VM_Field field = ref.peekResolvedField();
-            offsetOp = new OPT_IntConstantOperand(field.getOffset());
+            offsetOp = new OPT_AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type.
             VM_Type ft = fieldType.peekResolvedType();
@@ -1601,13 +1601,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           VM_TypeReference fieldType = ref.getFieldContentsType();
           OPT_Operand offsetOp;
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
             VM_Field field = ref.peekResolvedField();
-            offsetOp = new OPT_IntConstantOperand(field.getOffset());
+            offsetOp = new OPT_AddressConstantOperand(field.getOffset());
           }
           
           OPT_Operand val = pop(fieldType);
@@ -1649,13 +1649,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
           // Handle possibility of dynamic linking. Must be done before null_check!
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
             Call.setAddress(s, offsetrop);
             rectifyStateWithErrorHandler();
           } else {
             if (VM.VerifyAssertions) VM._assert(target != null);
-            Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
+            Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
           }
 
           // null check receiver
@@ -1727,12 +1727,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           // Handle possibility of dynamic linking. Must be done before null_check!
           // NOTE: different definition of unresolved due to semantics of invokespecial.
           if (target == null) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
             Call.setAddress(s, offsetrop);
             rectifyStateWithErrorHandler();
           } else {
-            Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
+            Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
           }
 
           // null check receiver
@@ -1782,12 +1782,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           
           // Handle possibility of dynamic linking.
           if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
             Call.setAddress(s, offsetrop);
             rectifyStateWithErrorHandler();
           } else {
-            Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
+            Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
           }
 
           // Consider inlining it. 
@@ -1855,7 +1855,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
               VM_Method target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
               OPT_Instruction callCheck =
-                Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+                Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()), 
                              OPT_MethodOperand.STATIC(target),
                              new OPT_IntConstantOperand(ref.getId()),
                              tibPtr.copyD2U());
@@ -1909,12 +1909,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             Call.setMethod(s, mop);
             boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
             if (unresolved) {
-              OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+              OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
               appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
               Call.setAddress(s, offsetrop);
               rectifyStateWithErrorHandler();
             } else {
-              Call.setAddress(s, new OPT_IntConstantOperand(vmeth.getOffset()));
+              Call.setAddress(s, new OPT_AddressConstantOperand(vmeth.getOffset()));
             }
 
             
@@ -2384,7 +2384,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
 
           s = _callHelper(meth.getMemberRef().asMethodReference(), OPT_MethodOperand.STATIC(meth));
-          Call.setAddress(s, new OPT_IntConstantOperand(meth.getOffset()));
+          Call.setAddress(s, new OPT_AddressConstantOperand(meth.getOffset()));
 
           /* try to set the type of return register */
           if (targetidx == GETREFAT) {
@@ -2415,7 +2415,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
           /* the bcIndex should be adjusted to the original */ 
           s = _callHelper(meth.getMemberRef().asMethodReference(),
-                          OPT_MethodOperand.COMPILED(meth, cm.getOsrJTOCoffset()));
+                          OPT_MethodOperand.COMPILED(meth, Offset.fromIntZeroExtend(cm.getOsrJTOCoffset())));
 
           // adjust the bcindex of s to the original bytecode's index
           // it should be able to give the correct exception handling

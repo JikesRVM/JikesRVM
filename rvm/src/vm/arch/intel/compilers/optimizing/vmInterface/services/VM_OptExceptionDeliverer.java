@@ -48,7 +48,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
       //  drop the exceptionObject on the floor).
-      VM_Magic.setObjectAtOffset(VM_Magic.addressAsObject(fp), -offset, exceptionObject);
+      VM_Magic.setObjectAtOffset(VM_Magic.addressAsObject(fp), Offset.fromIntSignExtend(-offset), exceptionObject);
       if (TRACE) {
         VM.sysWrite("Storing exception object ");
         VM.sysWrite(VM_Magic.objectAsAddress(exceptionObject));

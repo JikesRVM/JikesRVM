@@ -131,7 +131,7 @@ public class VM_Runtime implements VM_Constants {
    * @return <code>true</code> iff  <code>object</code> is instance of the
    *         target type
    */
-  static boolean instanceOfFinal(Object object, int targetTibOffset) throws UninterruptiblePragma {
+  static boolean instanceOfFinal(Object object, Offset targetTibOffset) throws UninterruptiblePragma {
     if (object == null)
       return false; // null is not an instance of any type
 
@@ -188,14 +188,14 @@ public class VM_Runtime implements VM_Constants {
   /**
    * quick version for final classes, array of final class or array of primitives
    */
-  static void checkcastFinal(Object object, int targetTibOffset) throws UninterruptiblePragma {
+  static void checkcastFinal(Object object, Offset targetTibOffset) throws UninterruptiblePragma {
     if (object == null) return; // null can be cast to any type
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib= VM_ObjectModel.getTIB(object);
     if (lhsTib != rhsTib) {
-      VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,TIB_TYPE_INDEX));
-      VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,TIB_TYPE_INDEX));
+      VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,Offset.fromIntZeroExtend(TIB_TYPE_INDEX<<LOG_BYTES_IN_ADDRESS)));
+      VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,Offset.fromIntZeroExtend(TIB_TYPE_INDEX<<LOG_BYTES_IN_ADDRESS)));
       raiseCheckcastException(lhsType, rhsType);
     }
   }
@@ -468,13 +468,13 @@ public class VM_Runtime implements VM_Constants {
           f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
         } else if (ft.isLongType() || ft.isDoubleType() ||
                    (VM.BuildFor64Addr && ft.isWordType())) {
-          int offset = f.getOffset();
+          Offset offset = f.getOffset();
           long bits = VM_Magic.getLongAtOffset(obj, offset);
           VM_Magic.setLongAtOffset(newObj, offset, bits);
         } else {
           // NOTE: assumes that all other types get 32 bits.
           //       This is currently true, but may change in the future.
-          int offset = f.getOffset();
+          Offset offset = f.getOffset();
           int bits = VM_Magic.getIntAtOffset(obj, offset);
           VM_Magic.setIntAtOffset(newObj, offset, bits);
         }
@@ -755,13 +755,13 @@ public class VM_Runtime implements VM_Constants {
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
       VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
-      VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
+      VM_Entrypoints.deliverHardwareExceptionMethod.getOffsetAsInt();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     VM_BootRecord.the_boot_record.debugRequestedOffset = 
-      VM_Entrypoints.debugRequestedField.getOffset();
+      VM_Entrypoints.debugRequestedField.getOffsetAsInt();
   }
 
   /**

@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class contains PowerPC Calling conventions.
@@ -67,7 +68,7 @@ implements OPT_PhysicalRegisterConstants {
    * Calling convention to implement calls to 
    * native (C) routines using the AIX linkage conventions
    */
-  public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
+   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ip = null;
     OPT_RegisterOperand t1 = 
       OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
@@ -107,22 +108,21 @@ implements OPT_PhysicalRegisterConstants {
     // we are restoring the methodID after a sysCall. 
     OPT_Instruction s2 = Store.create(REF_STORE, ir.regpool.makeJTOCOp(ir,s), 
                                       ir.regpool.makeFPOp(), 
-                                      IC(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
+                                      AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
     s.insertBack(s2);
     s.insertBack(Move.create(REF_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
     s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
-                     IC(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
+                     AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
     s.insertFront(s2);
     OPT_RegisterOperand temp = ir.regpool.makeTempInt();
     s2 = Move.create(INT_MOVE, temp, IC(ir.compiledMethod.getId()));
     OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
                                       ir.regpool.makeFPOp(), 
-                                      IC(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
+                                      AC(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)), null);  // TODO: valid location?
     s.insertFront(s3);
     s.insertFront(s2);
   }
-
 
   /////////////////////
   // Implementation

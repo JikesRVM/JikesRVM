@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 //BEGIN HRM
 import com.ibm.JikesRVM.classloader.VM_Method;
@@ -34,7 +35,7 @@ import com.ibm.JikesRVM.classloader.VM_Method;
  * @date 2/6/2003
  * @modified Matthias Hauswirth (8/8/2003) added support to collect method IDs
  */
-public class VM_HardwarePerformanceMonitor implements Uninterruptible
+public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeConstants
 {
   /*
    * My consumer.
@@ -160,7 +161,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
       buffer_1 = new byte[OUTPUT_BUFFER_SIZE];
       buffer_2 = new byte[OUTPUT_BUFFER_SIZE];
       // start with buffer ONE.
-      buffer_code = ONE; index_1 = 0;
+      buffer_code = ONE; index_1 = Offset.zero();
     }
   }
   
@@ -247,13 +248,13 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   static private byte    TWO   = 0;                     // second buffer
   private byte    buffer_code = ONE;    // name of buffer to use.
   private byte[]  buffer      = null;   // buffer to use
-  private int     index       = 0;      // index into buffer
+  private Offset  index       = Offset.zero();      // index into buffer
 
   // double buffer output
   private byte[]  buffer_1            = null;   // output buffer for HPM counter values
-  private int     index_1             = 0;      // output buffer index
+  private Offset  index_1             = Offset.zero();      // output buffer index
   private byte[]  buffer_2            = null;   // output buffer for HPM counter values
-  private int     index_2             = 0;      // output buffer index
+  private Offset  index_2             = Offset.zero();      // output buffer index
 
   /**
    * Record HPM counter values.
@@ -365,8 +366,8 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
     if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.trace_verbose == vpid) {
       if (threadSwitch) VM.sysWrite(" ");
       else              VM.sysWrite("*");
-      VM.sysWrite(index,": ");
-      VM.sysWrite(TRACE_FORMAT);
+      VM.sysWrite(index);
+      VM.sysWrite(": " + TRACE_FORMAT);
       VM.sysWrite(" BC ",buffer_code);
       VM.sysWrite(" PID ", vpid);  
       //      VM.sysWrite(" ("); VM.sysWriteHex(encoding); VM.sysWrite(")");
@@ -383,18 +384,18 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
     if (buffer != null) { // write record header
       n_records++;
       VM_Magic.setIntAtOffset( buffer, index, encoding);        // encoding
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer, index, global_tid);      // globally unique tid  
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       VM_Magic.setLongAtOffset(buffer, index, startOfWallTime); // start of global time
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
+      index = index.add(BYTES_IN_LONG);
       VM_Magic.setLongAtOffset(buffer, index,   endOfWallTime); // end   of global time
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
+      index = index.add(BYTES_IN_LONG);
       //BEGIN HRM
       VM_Magic.setIntAtOffset( buffer, index, callee_MID);      // callee MID
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer, index, caller_MID);      // caller MID
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       //END HRM
     }
     for(int i=1; i<n_values; i++) {
@@ -404,7 +405,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
       }
       if (buffer != null) { // write HPM counter values
         VM_Magic.setLongAtOffset(buffer, index, value);           
-        index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
+        index = index.add(BYTES_IN_LONG);
       }
     }
     if (VM_HardwarePerformanceMonitors.verbose>=5 || 
@@ -429,7 +430,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   private boolean pickBuffer(int record_size) 
   {
     if (buffer_code == ONE) {
-      if (index_1 + record_size > OUTPUT_BUFFER_SIZE) {
+      if (index_1.toInt() + record_size > OUTPUT_BUFFER_SIZE) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_2; index = index_2; buffer_code = TWO; 
@@ -447,7 +448,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
         return true;
       }
     } else if (buffer_code == TWO) { 
-      if (index_2 + record_size > OUTPUT_BUFFER_SIZE) {
+      if (index_2.toInt() + record_size > OUTPUT_BUFFER_SIZE) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_1; index = index_1; buffer_code = ONE; 
@@ -584,7 +585,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   private void writeApp(int FORMAT, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);                                    // format
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
 
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);     // app name
 
@@ -601,10 +602,10 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   private void writeAppRun(int FORMAT, int run, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);                                    // format
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
     
     VM_Magic.setIntAtOffset( buffer, index, run);                                       // run
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
     
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);     // app name
 
@@ -635,17 +636,18 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
     }
     byte pad = 0;
     VM_Magic.setIntAtOffset( buffer, index, PADDING_FORMAT);                            // format
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
 
     VM_Magic.setIntAtOffset( buffer, index, padding);                                   // length
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
 
     for (int i=0; i<padding; i++) {                                                     // add padding
       VM_Magic.setByteAtOffset( buffer, index, pad);    
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_BYTE;
+      index = index.add(BYTES_IN_BYTE);
     }
     if (VM_HardwarePerformanceMonitors.verbose>=3) {
-      VM.sysWriteln("addPadding(",padding,") index ", index);
+      VM.sysWrite("addPadding(",padding);
+      VM.sysWriteln(") index ", index);
     }
     n_records++;
   }
@@ -747,7 +749,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   /**
    * Called from consumer to flush buffer at notifyExit time.
    */
-  public int getCurrentIndex() throws LogicallyUninterruptiblePragma
+  public Offset getCurrentIndex() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return index_1; } 
     else if (buffer_code == TWO) { return index_2; } 
@@ -755,15 +757,15 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
       VM.sysWrite("***VM_HPM.getCurrentIndex() buffer_code = ",buffer_code,", but must be 1 or 2!***");
       VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
     }
-    return -1; 
+    return Offset.max(); 
   }
   /**
    * Called from consumer after trace file is opened.
    */
   public void resetCurrent() throws LogicallyUninterruptiblePragma
   {
-    if      (buffer_code==ONE) { index_1 = 0; }
-    else if (buffer_code==TWO) { index_2 = 0; }
+    if      (buffer_code==ONE) { index_1 = Offset.zero(); }
+    else if (buffer_code==TWO) { index_2 = Offset.zero(); }
     else {
       VM.sysWrite("***VM_HPM.resetCurrent() buffer_code = ",buffer_code,", but must be 1 or 2!***");
     }
@@ -795,7 +797,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
   /**
    * Called from consumer to get end of full buffer.
    */
-  public int getFullIndex() throws LogicallyUninterruptiblePragma
+  public Offset getFullIndex() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return index_2; } 
     else if (buffer_code == TWO) { return index_1; } 
@@ -803,15 +805,15 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible
       VM.sysWrite("***VM_HPM.getFullIndex() buffer_code = ",buffer_code,", but must be 1 or 2!***");
       VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
     }
-    return -1; 
+    return Offset.max(); 
   }
   /*
    * Called from consumer to reset full buffer index.
    */
   public void resetFull() throws LogicallyUninterruptiblePragma
   {
-    if      (buffer_code==ONE) { index_2  = 0; }
-    else if (buffer_code==TWO) { index_1  = 0; }
+    if      (buffer_code==ONE) { index_2  = Offset.zero(); }
+    else if (buffer_code==TWO) { index_1  = Offset.zero(); }
     else {
       VM.sysWrite("***VM_HPM.resetFull() buffer_code = ",buffer_code,", but must be 1 or 2!***");
     }

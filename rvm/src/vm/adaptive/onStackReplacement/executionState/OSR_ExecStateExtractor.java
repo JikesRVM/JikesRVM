@@ -37,11 +37,11 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    * @param cmid the compiled method id of ypTaken
    */
   public abstract OSR_ExecutionState extractState(VM_Thread thread, 
-                                           int tsFromFPoff,
-                                           int ypTakenFPoff,
+                                           Offset tsFromFPoff,
+                                           Offset ypTakenFPoff,
                                            int cmid);
 
-  public static void printStackTraces(int[] stack, int osrFPoff) {
+  public static void printStackTraces(int[] stack, Offset osrFPoff) {
 
     VM.disableGC();
 

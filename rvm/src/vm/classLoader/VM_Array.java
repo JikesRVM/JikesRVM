@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Description of a java "array" type. <p>
@@ -664,8 +665,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
                                     int dstIdx, int len) {
 
     boolean loToHi = (srcIdx > dstIdx);  // direction of copy
-    int srcOffset = srcIdx << LOG_BYTES_IN_ADDRESS;
-    int dstOffset = dstIdx << LOG_BYTES_IN_ADDRESS;
+    Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_ADDRESS);
+    Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_ADDRESS);
     int bytes = len << LOG_BYTES_IN_ADDRESS;
     
     if ((src != dst) || loToHi) {
@@ -682,8 +683,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       if (loToHi)
         increment = BYTES_IN_ADDRESS;
       else {
-        srcOffset += (bytes - BYTES_IN_ADDRESS);
-        dstOffset += (bytes - BYTES_IN_ADDRESS);
+        srcOffset = srcOffset.add(bytes - BYTES_IN_ADDRESS);
+        dstOffset = dstOffset.add(bytes - BYTES_IN_ADDRESS);
         increment = -BYTES_IN_ADDRESS;
       } 
 
@@ -691,11 +692,11 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       while (len-- != 0) {
         Object value = VM_Magic.getObjectAtOffset(src, srcOffset);
         if (MM_Interface.NEEDS_WRITE_BARRIER)
-          MM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>LOG_BYTES_IN_ADDRESS, value);
+          MM_Interface.arrayStoreWriteBarrier(dst, dstOffset.toInt()>>LOG_BYTES_IN_ADDRESS, value);
         else
           VM_Magic.setObjectAtOffset(dst, dstOffset, value);
-        srcOffset += increment;
-        dstOffset += increment;
+        srcOffset = srcOffset.add(increment);
+        dstOffset = dstOffset.add(increment);
       }
     }
   }

@@ -33,11 +33,11 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
   public OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-      index = VM_Entrypoints.zeroFloatField.getOffset() >> LOG_BYTES_IN_INT;
+      index = VM_Entrypoints.zeroFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
     } else if (v == 1.f) {
-      index = VM_Entrypoints.oneFloatField.getOffset() >> LOG_BYTES_IN_INT;
+      index = VM_Entrypoints.oneFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
     } else if (v == 2.f) {
-      index = VM_Entrypoints.twoFloatField.getOffset() >> LOG_BYTES_IN_INT;
+      index = VM_Entrypoints.twoFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
     }
   }
 

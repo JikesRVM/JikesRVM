@@ -63,11 +63,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEW_opcode: { 
         OPT_TypeOperand Type = New.getClearType(inst);
         VM_Class cls = (VM_Class)Type.getVMType();
-        OPT_IntConstantOperand hasFinalizer = IC(cls.hasFinalizer() ? 1 : 0);
+        OPT_IntConstantOperand hasFinalizer = OPT_IRTools.IC(cls.hasFinalizer() ? 1 : 0);
         VM_Method callSite = inst.position.getMethod();
-        OPT_IntConstantOperand allocator = IC(MM_Interface.pickAllocator(cls, callSite));
-        OPT_IntConstantOperand align = IC(VM_ObjectModel.getAlignment(cls));
-        OPT_IntConstantOperand offset = IC(VM_ObjectModel.getOffsetForAlignment(cls));
+        OPT_IntConstantOperand allocator = OPT_IRTools.IC(MM_Interface.pickAllocator(cls, callSite));
+        OPT_IntConstantOperand align = OPT_IRTools.IC(VM_ObjectModel.getAlignment(cls));
+        OPT_IntConstantOperand offset = OPT_IRTools.IC(VM_ObjectModel.getOffsetForAlignment(cls));
         OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type);
         if (VM.BuildForIA32 && VM.runningVM) {
           // shield BC2IR from address constants
@@ -77,9 +77,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         }
         VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
         Call.mutate6(inst, CALL, New.getClearResult(inst), 
-                     IC(target.getOffset()),
+                     OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
-                     IC(cls.getInstanceSize()),
+                     OPT_IRTools.IC(cls.getInstanceSize()),
                      tib,
                      hasFinalizer,
                      allocator,
@@ -99,9 +99,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         int typeRefId = New.getType(inst).getTypeRef().getId();
         VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
         Call.mutate1(inst, CALL, New.getClearResult(inst), 
-                     IC(target.getOffset()),
+                     OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
-                     IC(typeRefId));
+                     OPT_IRTools.IC(typeRefId));
       }
       break;
 
@@ -110,12 +110,12 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         VM_Array array = (VM_Array)Array.getVMType();
         OPT_Operand numberElements = NewArray.getClearSize(inst);
         boolean inline = numberElements instanceof OPT_IntConstantOperand;
-        OPT_Operand width = IC(array.getLogElementSize());
-        OPT_Operand headerSize = IC(VM_ObjectModel.computeArrayHeaderSize(array));
+        OPT_Operand width = OPT_IRTools.IC(array.getLogElementSize());
+        OPT_Operand headerSize = OPT_IRTools.IC(VM_ObjectModel.computeArrayHeaderSize(array));
         VM_Method callSite = inst.position.getMethod();
-        OPT_IntConstantOperand allocator = IC(MM_Interface.pickAllocator(array, callSite));
-        OPT_IntConstantOperand align = IC(VM_ObjectModel.getAlignment(array));
-        OPT_IntConstantOperand offset = IC(VM_ObjectModel.getOffsetForAlignment(array));
+        OPT_IntConstantOperand allocator = OPT_IRTools.IC(MM_Interface.pickAllocator(array, callSite));
+        OPT_IntConstantOperand align = OPT_IRTools.IC(VM_ObjectModel.getAlignment(array));
+        OPT_IntConstantOperand offset = OPT_IRTools.IC(VM_ObjectModel.getOffsetForAlignment(array));
         OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array);
         if (VM.BuildForIA32 && VM.runningVM) {
           // shield BC2IR from address constants
@@ -125,7 +125,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         }
         VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
         Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
-                     IC(target.getOffset()),
+                     OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      numberElements, 
                      width,
@@ -149,10 +149,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         OPT_Operand numberElements = NewArray.getClearSize(inst);
         VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
         Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
-                     IC(target.getOffset()),
+                     OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      numberElements, 
-                     IC(typeRefId));
+                     OPT_IRTools.IC(typeRefId));
       }
       break;
 
@@ -161,11 +161,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
         VM_Method callSite = inst.position.getMethod();
         Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
-                     IC(target.getOffset()),
+                     OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
-                     IC(callSite.getId()),
+                     OPT_IRTools.IC(callSite.getId()),
                      NewArray.getClearSize(inst),
-                     IC(typeRefId));
+                     OPT_IRTools.IC(typeRefId));
       }
       break;
         
@@ -173,7 +173,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         VM_Method target = VM_Entrypoints.athrowMethod;
         OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
         methodOp.setIsNonReturningCall(true);   // Record the fact that this is a non-returning call.
-        Call.mutate1(inst, CALL, null, IC(target.getOffset()),
+        Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
                      methodOp, Athrow.getClearValue(inst));
       }
       break;
@@ -184,13 +184,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         } else {
           OPT_Operand ref = MonitorOp.getClearRef(inst);
           VM_Type refType = ref.getType().peekResolvedType();
-          if (refType != null && refType.getThinLockOffset() != -1) {
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
             VM_Method target = VM_Entrypoints.inlineLockMethod;
-            Call.mutate2(inst, CALL, null, IC(target.getOffset()),
+            Call.mutate2(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
                          OPT_MethodOperand.STATIC(target),
                          MonitorOp.getClearGuard(inst), 
                          ref,
-                         IC(refType.getThinLockOffset()));
+                         OPT_IRTools.AC(refType.getThinLockOffset()));
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -198,7 +198,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
             }
           } else {
             VM_Method target = VM_Entrypoints.lockMethod;
-            Call.mutate1(inst, CALL, null, IC(target.getOffset()), 
+            Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()), 
                          OPT_MethodOperand.STATIC(target),
                          MonitorOp.getClearGuard(inst), 
                          ref);
@@ -213,13 +213,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         } else {
           OPT_Operand ref = MonitorOp.getClearRef(inst);
           VM_Type refType = ref.getType().peekResolvedType();
-          if (refType != null && refType.getThinLockOffset() != -1) {
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
             VM_Method target = VM_Entrypoints.inlineUnlockMethod;
-            Call.mutate2(inst, CALL, null, IC(target.getOffset()), 
+            Call.mutate2(inst, CALL, null, OPT_IRTools.AC(target.getOffset()), 
                          OPT_MethodOperand.STATIC(target),
                          MonitorOp.getClearGuard(inst), 
                          ref,
-                         IC(refType.getThinLockOffset()));
+                         OPT_IRTools.AC(refType.getThinLockOffset()));
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -227,7 +227,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
             }
           } else {
             VM_Method target = VM_Entrypoints.unlockMethod;
-            Call.mutate1(inst, CALL, null, IC(target.getOffset()),
+            Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
                          OPT_MethodOperand.STATIC(target),
                          MonitorOp.getClearGuard(inst), 
                          ref);
@@ -240,7 +240,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         if (MM_Interface.NEEDS_WRITE_BARRIER) {
           VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
           OPT_Instruction wb =
-            Call.create3(CALL, null, IC(target.getOffset()),
+            Call.create3(CALL, null, OPT_IRTools.AC(target.getOffset()),
                          OPT_MethodOperand.STATIC(target),
                          AStore.getArray(inst).copy(), 
                          AStore.getIndex(inst).copy(), 
@@ -262,12 +262,12 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           if (!field.getFieldContentsType().isPrimitiveType()) {
             VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
             OPT_Instruction wb = 
-              Call.create4(CALL, null, IC(target.getOffset()), 
+              Call.create4(CALL, null, OPT_IRTools.AC(target.getOffset()), 
                            OPT_MethodOperand.STATIC(target),
                            PutField.getRef(inst).copy(), 
                            PutField.getOffset(inst).copy(),
                            PutField.getValue(inst).copy(),
-                           IC(field.getId()));
+                           OPT_IRTools.IC(field.getId()));
             wb.bcIndex = RUNTIME_SERVICES_BCI;
             wb.position = inst.position;
             inst.replace(wb);
@@ -336,6 +336,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 
-  private final OPT_IntConstantOperand IC(int x) { return new OPT_IntConstantOperand(x); }
+  //private final OPT_IntConstantOperand OPT_IRTools.IC(int x) { return OPT_IRTools.OPT_IRTools.IC(x); }
+  //private final OPT_AddressConstantOperand OPT_IRTools.AC(Address x) { return OPT_IRTools.OPT_IRTools.AC(x); }
+  //private final OPT_AddressConstantOperand OPT_IRTools.AC(Offset x) { return OPT_IRTools.OPT_IRTools.AC(x); }
   
 }

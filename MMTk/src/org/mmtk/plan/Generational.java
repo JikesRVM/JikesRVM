@@ -597,7 +597,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, int metaDataA, 
+                                 ObjectReference tgt, Offset metaDataA, 
                                  int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -629,12 +629,12 @@ public abstract class Generational extends StopTheWorldGC
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public final boolean writeBarrier(ObjectReference src, int srcOffset,
-                                    ObjectReference dst, int dstOffset,
+  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                                    ObjectReference dst, Offset dstOffset,
                                     int bytes) throws InlinePragma {
     if (dst.toAddress().LT(NURSERY_START))
       arrayRemset.insert(dst.toAddress().add(dstOffset), 
-                         dst.toAddress().add(dstOffset + bytes));
+                         dst.toAddress().add(dstOffset.add(bytes)));
     return false;
   }
 

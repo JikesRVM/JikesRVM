@@ -84,7 +84,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         if (mo.isInterface()) {
           VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
           OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(phys.getPR()), 
-                                                     VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
+                                                     VM_Entrypoints.hiddenSignatureIdField.getOffsetAsInt(), 
                                                      (byte)WORDSIZE, null, null);
           call.insertBefore(MIR_Move.create(IA32_MOV,M,IC(sig.getId())));
         }

@@ -31,6 +31,16 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   }
 
   /**
+   * Constructs a new address constant operand with the specified offset value.
+   *
+   * @param v value
+   * TODO: make a separte OPT_OffsetConstantOperand 
+	*/
+  public OPT_AddressConstantOperand(Offset v) {
+    value = v.toWord().toAddress();
+  }
+
+  /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
    * 
    * @return a copy of <code>this</code>

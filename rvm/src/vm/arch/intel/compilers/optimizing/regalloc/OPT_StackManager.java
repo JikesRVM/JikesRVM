@@ -316,7 +316,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt(), 
                            (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
@@ -350,7 +350,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt(), 
                            (byte)WORDSIZE, null, null);
     plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
 
@@ -382,7 +382,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR),
-                           VM_Entrypoints.framePointerField.getOffset(),
+                           VM_Entrypoints.framePointerField.getOffsetAsInt(),
                            (byte)WORDSIZE, null, null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
@@ -561,7 +561,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffsetAsInt(),
                            (byte)WORDSIZE, null, null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }

@@ -759,7 +759,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       byte b2 = code.get(patchOffset);
       int patch = (((int)p1&0xff) << 24) | (((int)p0&0xff) << 16) | 
 	          (((int)b1&0xff) << 8)  |  ((int)b2&0xff);
-      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+      VM_Magic.setIntAtIntOffset(code, patchOffset, patch);
     } else {
       // (a) lay down p4
       // (b) lay down p0p1p2p3 as a word
@@ -767,7 +767,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       patchOffset -= 3; // skip over p0p1p2p3
       int patch = (((int)p3&0xff) << 24) | (((int)p2&0xff) << 16) |
         	  (((int)p1&0xff) << 8)  |  ((int)p0&0xff);
-      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+      VM_Magic.setIntAtIntOffset(code, patchOffset, patch);
     }
   }
 

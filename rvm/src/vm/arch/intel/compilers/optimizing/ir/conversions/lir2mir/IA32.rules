@@ -2625,7 +2625,7 @@ r:	GET_JTOC(r)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), \
-                     MO_BD(Unary.getVal(P(p)), VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
+                     MO_BD(Unary.getVal(P(p)), VM_Entrypoints.jtocField.getOffsetAsInt(), DW, null, null)));
 
 #####
 # BYTE_LOAD

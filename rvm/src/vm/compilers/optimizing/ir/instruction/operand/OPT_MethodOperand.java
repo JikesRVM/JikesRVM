@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_SpecializedMethod;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Refers to a method. Used for method call instructions.
@@ -66,7 +67,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
 
   //-#if RVM_WITH_OSR
   private boolean designatedOffset = false;
-  public int jtocOffset;
+  public Offset jtocOffset;
   //-#endif
 
   /**
@@ -97,7 +98,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * @param offset designated jtop offset of compiled method of callee
    * @return the method operand
    */
-  public static OPT_MethodOperand COMPILED(VM_Method callee, int offset) {
+  public static OPT_MethodOperand COMPILED(VM_Method callee, Offset offset) {
     byte type = callee.isStatic()?STATIC:VIRTUAL;
     OPT_MethodOperand op = new OPT_MethodOperand(callee.getMemberRef(), callee, type);
     op.jtocOffset = offset;

@@ -42,7 +42,7 @@ public class Barriers {
    * @param mode The context in which the write is occuring
    */
   public static void performWriteInBarrier(ObjectReference ref, Address slot, 
-                                           ObjectReference target, int offset, 
+                                           ObjectReference target, Offset offset, 
                                            int locationMetadata, int mode) 
     {
   }
@@ -61,7 +61,7 @@ public class Barriers {
    */
   public static ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           ObjectReference target, int offset,
+                                           ObjectReference target, Offset offset,
                                            int locationMetadata, int mode) {
     return null;
   }

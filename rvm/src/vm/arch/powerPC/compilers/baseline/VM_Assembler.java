@@ -1313,20 +1313,36 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
     
   //prefer to use emitLIntToc or emitLAddrToc instead
+  public final void emitLDtoc (int RT, Offset offset) {
+    emitLDtoc (RT, offset.toInt()) ;
+  }
+  //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLDtoc (int RT, int offset) {
     emitLDoffset(RT, JTOC, offset); 
   }
 
+  //prefer to use emitLIntToc or emitLAddrToc instead
+  public final void emitLWAtoc (int RT, Offset offset) {
+    emitLWAtoc (RT, offset.toInt()) ;
+  }
   //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLWAtoc (int RT, int offset) {
     emitLWAoffset(RT, JTOC, offset);
   }
 
   //prefer to use emitLIntToc or emitLAddrToc instead
+  public final void emitLWZtoc (int RT, Offset offset) {
+    emitLWZtoc (RT, offset.toInt()); 
+  }
+  //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLWZtoc (int RT, int offset) {
     emitLWZoffset(RT, JTOC, offset);
   }
 
+  public final void emitSTDtoc (int RT, Offset offset, int Rz) {
+    emitSTDtoc (RT, offset.toInt(), Rz);
+  }
+  
   public final void emitSTDtoc (int RT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitSTD(RT, offset, JTOC);
@@ -1339,6 +1355,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   } 
 
+  public final void emitSTWtoc (int RT, Offset offset, int Rz) {
+    emitSTWtoc (RT, offset.toInt(), Rz);
+  }
+  
   public final void emitSTWtoc (int RT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitSTW(RT, offset, JTOC);
@@ -1363,6 +1383,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
+  public final void emitLFDtoc (int FRT, Offset offset, int Rz) {
+    emitLFDtoc (FRT, offset.toInt(), Rz); 
+  }
+  
   public final void emitLFDtoc (int FRT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitLFD(FRT, offset, JTOC);
@@ -1375,6 +1399,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
+  public final void emitSTFDtoc (int FRT, Offset offset, int Rz) {
+    emitSTFDtoc (FRT, offset.toInt(), Rz);
+  }
+  
   public final void emitSTFDtoc (int FRT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitSTFD(FRT, offset, JTOC);
@@ -1387,6 +1415,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
+  public final void emitLFStoc (int FRT, Offset offset, int Rz) {
+    emitLFStoc (FRT, offset.toInt(),  Rz);
+  }
+  
   public final void emitLFStoc (int FRT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitLFS(FRT, offset, JTOC);
@@ -1399,6 +1431,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
+  public final void emitSTFStoc (int FRT, Offset offset, int Rz) {
+    emitSTFStoc (FRT, offset.toInt(), Rz);
+  }
+  
   public final void emitSTFStoc (int FRT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitSTFS(FRT, offset, JTOC);
@@ -1409,6 +1445,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitADDIS ( Rz, JTOC, (offset>>16)+1);
       emitSTFS(FRT, offset|0xFFFF0000, Rz);
     }
+  }
+
+  public final void emitLVALAddr (int RT, Offset off) {
+    emitLVALAddr (RT, off.toWord().toAddress()); 
   }
 
   public final void emitLVALAddr (int RT, Address addr) {
@@ -2013,6 +2053,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitLWZU(dest_reg, offset, src_reg);                         
   }
 
+  public final void emitLAddrToc(int dest_reg, Offset TOCoffset){           
+     emitLAddrToc(dest_reg, TOCoffset.toInt());           
+  }
+
   public final void emitLAddrToc(int dest_reg, int TOCoffset){            
 
     if (VM.BuildFor64Addr) 
@@ -2045,6 +2089,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitLWZX(dest_reg, offset_reg, src_reg);                         
   }
 
+  public final void emitLIntToc(int dest_reg, Offset TOCoffset){            
+   emitLIntToc(dest_reg, TOCoffset.toInt());            
+  }
+  
   public final void emitLIntToc(int dest_reg, int TOCoffset){            
 
     if (VM.BuildFor64Addr) 
@@ -2080,7 +2128,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   //
 
   public void emitStackOverflowCheck (int frameSize) {
-    emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
+    emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
@@ -2106,21 +2154,21 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // After:    R0, S0 destroyed
   //
   public void emitNativeStackOverflowCheck (int frameSize) {
-    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
-    emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
-    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffsetAsInt(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffsetAsInt(), S0);      // S0 := thread.jniEnv
+    emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(),S0);   // R0 := thread.jniEnv.JNIRefsTop
+    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffsetAsInt(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                    // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
-    emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffsetAsInt(), S0);  // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
     fr1.resolve(this);
-    emitLAddr (0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitLAddr (0,  VM_Entrypoints.stackLimitField.getOffsetAsInt(), S0);  // R0 := &stack guard page
     emitLVAL  (S0, STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
 

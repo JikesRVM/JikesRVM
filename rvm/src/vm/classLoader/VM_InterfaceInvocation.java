@@ -316,7 +316,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         vm.compile();
         iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffsetAsInt()>>LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -405,7 +405,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     // Convert from the internally visible IMTOffset to an index
     // into my internal data structure.
     private int getIndex(VM_InterfaceMethodSignature sig) {
-      int idx = sig.getIMTOffset() >> LOG_BYTES_IN_ADDRESS;
+      int idx = sig.getIMTOffset().toInt() >> LOG_BYTES_IN_ADDRESS;
       if (VM.BuildForEmbeddedIMT) {
         idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
       }
@@ -460,7 +460,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
             target.compile();
             IMT[extSlot] = target.getCurrentInstructions();
           } else {
-            IMT[extSlot] = (VM_CodeArray) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
+            IMT[extSlot] = (VM_CodeArray) tib[target.getOffsetAsInt()>>LOG_BYTES_IN_ADDRESS];
             if (klass.noIMTConflictMap == null) {
               klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
             }

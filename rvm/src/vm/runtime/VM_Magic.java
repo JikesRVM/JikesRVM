@@ -178,7 +178,7 @@ public class VM_Magic {
    * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
    * (In other words, mask off all but the lower 8 bits before using the value).
    */
-  public static byte getByteAtOffset(Object object, int offset) {
+  public static byte getByteAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -189,7 +189,7 @@ public class VM_Magic {
    * it is loaded.  (In other words, mask off all but the lower 16
    * bits before using the value).
    */
-  public static char getCharAtOffset(Object object, int offset) {
+  public static char getCharAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return (char)-1;
   }
@@ -198,7 +198,7 @@ public class VM_Magic {
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryInt(objectAsAddress(obj)+ofs)
    */
-  public static int getIntAtOffset(Object object, int offset) {
+  public static int getIntAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -207,7 +207,7 @@ public class VM_Magic {
    * Get Word at arbitrary (byte) offset from object.
    * Use getWordAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
    */
-  public static Word getWordAtOffset(Object object, int offset) {
+  public static Word getWordAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return Word.max();
   }
@@ -217,7 +217,7 @@ public class VM_Magic {
    * Use getObjectAtOffset(obj, ofs) instead of 
    * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
    */
-  public static Object getObjectAtOffset(Object object, int offset) {
+  public static Object getObjectAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -227,7 +227,7 @@ public class VM_Magic {
    * Use getObjectArrayAtOffset(obj, ofs) instead of 
    * (Object[])addressAsObject(getMemoryAddr(objectAsAddress(obj)+ofs))
    */
-  public static Object[] getObjectArrayAtOffset(Object object, int offset) {
+  public static Object[] getObjectArrayAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -236,7 +236,7 @@ public class VM_Magic {
    * Get long at arbitrary (byte) offset from object.
    * Use getlongAtOffset(obj, ofs) instead of two getIntAtOffset
    */
-  public static long getLongAtOffset(Object object, int offset) {
+  public static long getLongAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -245,7 +245,7 @@ public class VM_Magic {
    * Get double at arbitrary (byte) offset from object.
    * Use getDoubleAtOffset(obj, ofs) instead of two getIntAtOffset
    */
-  public static double getDoubleAtOffset(Object object, int offset) {
+  public static double getDoubleAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -253,14 +253,14 @@ public class VM_Magic {
   /**
    * Set byte at arbitrary (byte) offset from object.
    */ 
-  public static void setByteAtOffset(Object object, int offset, byte newvalue) {
+  public static void setByteAtOffset(Object object, Offset offset, byte newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Set char at arbitrary (byte) offset from object.
    */ 
-  public static void setCharAtOffset(Object object, int offset, char newvalue) {
+  public static void setCharAtOffset(Object object, Offset offset, char newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -268,15 +268,23 @@ public class VM_Magic {
    * Set int at arbitrary (byte) offset from object.
    * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
-  public static void setIntAtOffset(Object object, int offset, int newvalue) {
+  public static void setIntAtOffset(Object object, Offset offset, int newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set int at arbitrary (byte) offset from object.
+   * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
+   */ 
+  public static void setIntAtIntOffset(Object object, int offset, int newvalue) {
+    setIntAtOffset(object, Offset.fromIntSignExtend(offset), newvalue);
   }
 
   /**
    * Set word at arbitrary (byte) offset from object.
    * Use setWordAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
-  public static void setWordAtOffset(Object object, int offset, Word newvalue) {
+  public static void setWordAtOffset(Object object, Offset offset, Word newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -284,14 +292,14 @@ public class VM_Magic {
    * Set Object at arbitrary (byte) offset from object.
    * Use setObjectAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, objectAsAddress(new))
    */ 
-  public static void setObjectAtOffset(Object object, int offset, Object newvalue) {
+  public static void setObjectAtOffset(Object object, Offset offset, Object newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Set Object at arbitrary (byte) offset from object.
    */
-  public static void setObjectAtOffset(Object object, int offset, Object newvalue, int locationMetadata) {
+  public static void setObjectAtOffset(Object object, Offset offset, Object newvalue, int locationMetadata) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -299,7 +307,7 @@ public class VM_Magic {
    * Set long at arbitrary (byte) offset from object.
    * Use setlongAtOffset(obj, ofs) instead of two setIntAtOffset
    */ 
-  public static void setLongAtOffset(Object object, int offset, long newvalue) {
+  public static void setLongAtOffset(Object object, Offset offset, long newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -307,7 +315,7 @@ public class VM_Magic {
    * Set double at arbitrary (byte) offset from object.
    * Use setDoubleAtOffset(obj, ofs) instead of two setIntAtOffset
    */ 
-  public static void setDoubleAtOffset(Object object, int offset, double newvalue) {
+  public static void setDoubleAtOffset(Object object, Offset offset, double newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -326,7 +334,7 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  public static int prepareInt(Object object, int offset) {
+  public static int prepareInt(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -334,7 +342,7 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  public static Object prepareObject(Object object, int offset) {
+  public static Object prepareObject(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -342,7 +350,7 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  public static Address prepareAddress(Object object, int offset) {
+  public static Address prepareAddress(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return Address.max();
   }
@@ -350,7 +358,7 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  public static Word prepareWord(Object object, int offset) {
+  public static Word prepareWord(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return Word.max();
   }
@@ -361,7 +369,7 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  public static boolean attemptInt(Object object, int offset, int oldValue, int newValue) {
+  public static boolean attemptInt(Object object, Offset offset, int oldValue, int newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -372,7 +380,7 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  public static boolean attemptObject(Object object, int offset, Object oldValue, Object newValue) {
+  public static boolean attemptObject(Object object, Offset offset, Object oldValue, Object newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -383,7 +391,7 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  public static boolean attemptAddress(Object object, int offset, Address oldValue, Address newValue) {
+  public static boolean attemptAddress(Object object, Offset offset, Address oldValue, Address newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -394,7 +402,7 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  public static boolean attemptWord(Object object, int offset,
+  public static boolean attemptWord(Object object, Offset offset,
                                     Word oldValue, Word newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;

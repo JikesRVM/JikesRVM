@@ -393,7 +393,7 @@ implements Uninterruptible, VM_Constants {
   public boolean unblockIfBlockedInC () {
     int newState, oldState;
     boolean result = true;
-    int offset = VM_Entrypoints.vpStatusField.getOffset();
+    Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
       if (oldState != BLOCKED_IN_NATIVE) {
@@ -411,7 +411,7 @@ implements Uninterruptible, VM_Constants {
    */ 
   public boolean lockInCIfInC () {
     int oldState;
-    int offset = VM_Entrypoints.vpStatusField.getOffset();
+    Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;

@@ -7,6 +7,7 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.*;
 import java.io.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
@@ -47,7 +48,8 @@ import org.vmmagic.pragma.*;
 class VM_TraceWriter extends VM_Thread 
   implements   VM_Callbacks.StartupMonitor,     VM_Callbacks.ExitMonitor,
                VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
-               VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
+               VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor,
+               VM_SizeConstants
 {
 
   /**
@@ -181,7 +183,7 @@ class VM_TraceWriter extends VM_Thread
     if(VM_HardwarePerformanceMonitors.verbose>=4)
       VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
     byte[] buffer = hpm.getFullBuffer();
-    int    index  = hpm.getFullIndex();
+    Offset index  = hpm.getFullIndex();
     writeFileOutputStream(buffer, index);
     hpm.resetFull();    
   }
@@ -234,7 +236,7 @@ class VM_TraceWriter extends VM_Thread
     if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.writeHeader() PID ",pid); }
 
     byte[] buffer   = new byte[32+(10*100)];    // temporary buffer
-    int    index    = 0;
+    Offset index    = Offset.zero();
     
     // write version number 
     int version_number = HPM_info.version_number;
@@ -246,7 +248,7 @@ class VM_TraceWriter extends VM_Thread
     } else {
       VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(version_number));
     }
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
     // write name of header file
     if(VM_HardwarePerformanceMonitors.verbose>=4) {
       VM.sysWriteln("VM_TraceWriter.writeHeader() write headerFilename \"",HPM_info.headerFilename(),"\"");
@@ -268,10 +270,10 @@ class VM_TraceWriter extends VM_Thread
    * @param buffer bytes to write to file
    * @param length number of bytes to write 
    */
-  public void writeFileOutputStream(byte[] buffer, int length)
+  public void writeFileOutputStream(byte[] buffer, Offset length)
   {
     if(VM_HardwarePerformanceMonitors.verbose>=4)VM.sysWriteln("VM_TraceWriter.writeFileOutputStream(buffer, 0, ",length,")");
-    if (length <= 0) return;
+    if (length.sLE(Offset.zero())) return;
     if (trace_file == null) {   // constraint
       VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE)***");
       VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
@@ -279,7 +281,7 @@ class VM_TraceWriter extends VM_Thread
     try {
       // allow only one writer at a time to trace file.
       synchronized(trace_file) {
-        trace_file.write(buffer, 0, length);
+        trace_file.write(buffer, 0, length.toInt());
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
@@ -380,16 +382,16 @@ class VM_TraceWriter extends VM_Thread
       hpm.passivate();
 
       byte[] buffer = hpm.getCurrentBuffer();
-      int    index  = hpm.getCurrentIndex();
+      Offset index  = hpm.getCurrentIndex();
       writeFileOutputStream(buffer, index);
 
       // write Exit record
-      index = 0;
+      index = Offset.zero();
       byte[] buffer2 = new byte[10];
       VM_Magic.setIntAtOffset( buffer2, index, VM_HardwarePerformanceMonitor.EXIT_FORMAT);// format
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer2, index, value);                                  // value
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
       writeFileOutputStream(buffer2, index);
 
       if (VM_HardwarePerformanceMonitors.verbose>=3) {

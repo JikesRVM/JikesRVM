@@ -581,7 +581,7 @@ public abstract class BasePlan
    * @param mode The context in which the store occured
    */
   public void writeBarrier(ObjectReference src, Address slot,
-                           ObjectReference tgt, int metaDataA, int metaDataB,
+                           ObjectReference tgt, Offset metaDataA, int metaDataB,
                            int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
@@ -606,8 +606,8 @@ public abstract class BasePlan
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(ObjectReference src, int srcOffset,
-                              ObjectReference dst, int dstOffset,
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                              ObjectReference dst, Offset dstOffset,
                               int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called

@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.*;
  */
 public class VM_Synchronization implements Uninterruptible {
 
-  public static final boolean tryCompareAndSwap(Object base, int offset, int testValue, int newValue) throws InlinePragma {
+  public static final boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) throws InlinePragma {
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -26,7 +26,7 @@ public class VM_Synchronization implements Uninterruptible {
     return true;
   }
 
-  public static final boolean testAndSet(Object base, int offset, int newValue) throws InlinePragma {
+  public static final boolean testAndSet(Object base, Offset offset, int newValue) throws InlinePragma {
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -35,7 +35,7 @@ public class VM_Synchronization implements Uninterruptible {
     return true;
   }
 
-  public static final int fetchAndStore(Object base, int offset, int newValue) throws InlinePragma {
+  public static final int fetchAndStore(Object base, Offset offset, int newValue) throws InlinePragma {
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -43,7 +43,7 @@ public class VM_Synchronization implements Uninterruptible {
     return oldValue;
   }
 
-  public static final Address fetchAndStoreAddress(Object base, int offset, Address newValue) throws InlinePragma {
+  public static final Address fetchAndStoreAddress(Object base, Offset offset, Address newValue) throws InlinePragma {
     Address oldValue;
     do {
       oldValue = VM_Magic.prepareAddress(base, offset);
@@ -51,7 +51,7 @@ public class VM_Synchronization implements Uninterruptible {
     return oldValue;
   }
 
-  public static final int fetchAndAdd(Object base, int offset, int increment) throws InlinePragma {
+  public static final int fetchAndAdd(Object base, Offset offset, int increment) throws InlinePragma {
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -59,7 +59,7 @@ public class VM_Synchronization implements Uninterruptible {
     return oldValue;
   }
 
-  public static final int fetchAndDecrement(Object base, int offset, int decrement) throws InlinePragma {
+  public static final int fetchAndDecrement(Object base, Offset offset, int decrement) throws InlinePragma {
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -70,8 +70,8 @@ public class VM_Synchronization implements Uninterruptible {
   public static final Address fetchAndAddAddress(Address addr, int increment) throws InlinePragma {
     Address oldValue;
     do {
-      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), 0);
-    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), 0, oldValue, oldValue.add(increment)));
+      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
+    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, oldValue.add(increment)));
     return oldValue;
   }
 
@@ -79,10 +79,10 @@ public class VM_Synchronization implements Uninterruptible {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
-      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), 0);
+      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
       newValue = oldValue.add(increment);
       if (newValue.GT(bound)) return Address.max();
-    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), 0, oldValue, newValue));
+    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, newValue));
     return oldValue;
   }
 
@@ -90,14 +90,14 @@ public class VM_Synchronization implements Uninterruptible {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
-      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), 0);
+      oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
       newValue = oldValue.sub(decrement);
       if (newValue.LT(bound)) return Address.max();
-    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), 0, oldValue, newValue));
+    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, newValue));
     return oldValue;
   }
 
-  public static final Address fetchAndAddAddressWithBound(Object base, int offset, 
+  public static final Address fetchAndAddAddressWithBound(Object base, Offset offset, 
                                                              int increment, Address bound) throws InlinePragma {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
@@ -109,7 +109,7 @@ public class VM_Synchronization implements Uninterruptible {
     return oldValue;
   }
 
-  public static final Address fetchAndSubAddressWithBound(Object base, int offset, 
+  public static final Address fetchAndSubAddressWithBound(Object base, Offset offset, 
                                                              int decrement, Address bound) throws InlinePragma {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);

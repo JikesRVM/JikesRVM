@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.*;
 /**
  * Expansion of Dynamic Type Checking operations.
  *
@@ -277,7 +277,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
     OPT_RegisterOperand entry = 
       InsertLoadOffset(s, ir, INT_LOAD, VM_TypeReference.Int,
-                       doesImpl, interfaceIndex << 2, 
+                       doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                        new OPT_LocationOperand(VM_TypeReference.Int), 
                        TG());
     OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
@@ -440,6 +440,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand lhsDepthOffset = 
               InsertBinary(curBlock.lastInstruction(), ir, INT_SHL, VM_TypeReference.Int,
                            lhsElemDepth.copyD2U(), IC(1));
+            lhsDepthOffset = InsertUnary(curBlock.lastInstruction(), ir, INT_2ADDRZerExt, VM_TypeReference.Offset, lhsDepthOffset.copy());
             curBlock.appendInstruction(Load.create(USHORT_LOAD, refCandidate, 
                                                    rhsSuperclassIds, 
                                                    lhsDepthOffset, loc, TG()));
@@ -464,7 +465,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
     // Call VM_Runtime.checkstore.
     VM_Method target = VM_Entrypoints.checkstoreMethod;
-    OPT_Instruction call = Call.create2(CALL, null, IC(target.getOffset()),
+    OPT_Instruction call = Call.create2(CALL, null, AC(target.getOffset()),
                                         OPT_MethodOperand.STATIC(target),
                                         rhsGuard.copy(), arrayRef.copy(), elemRef.copy());
     call.copyPosition(s);
@@ -513,7 +514,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                         VM_TypeReference.IntArray, RHStib);
           OPT_RegisterOperand entry = 
             InsertLoadOffset(s, ir, INT_LOAD, VM_TypeReference.Int, 
-                             doesImpl, interfaceIndex << 2, 
+                             doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                              new OPT_LocationOperand(VM_TypeReference.Int), 
                              TG());
           OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int,
@@ -560,7 +561,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                           VM_TypeReference.ShortArray, RHStib);
             OPT_RegisterOperand refCandidate = 
               InsertLoadOffset(s, ir, USHORT_LOAD, VM_TypeReference.Short, 
-                               superclassIds, LHSDepth << 1, 
+                               superclassIds, Offset.fromIntZeroExtend(LHSDepth << 1), 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
                            //save to use the cheaper ADDR version of BOOLEAN_CMP
@@ -593,7 +594,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         // We expect these to be extremely uncommon in opt code in AOS.
         // Mutate s into a call to VM_Runtime.instanceOf
         VM_Method target = VM_Entrypoints.instanceOfMethod;
-        Call.mutate2(s, CALL, result, IC(target.getOffset()), 
+        Call.mutate2(s, CALL, result, AC(target.getOffset()), 
                      OPT_MethodOperand.STATIC(target),
                      RHSobj, IC(LHStype.getId()));
         return callHelper(s, ir);
@@ -727,7 +728,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           }
           OPT_RegisterOperand entry = 
             InsertLoadOffset(continueAt, ir, INT_LOAD, VM_TypeReference.Int,
-                             doesImpl, interfaceIndex << 2, 
+                             doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                              new OPT_LocationOperand(VM_TypeReference.Int), 
                              TG());
           OPT_RegisterOperand bit = 
@@ -774,7 +775,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             }
             OPT_RegisterOperand refCandidate = 
               InsertLoadOffset(continueAt, ir, USHORT_LOAD, VM_TypeReference.Short,
-                               superclassIds, LHSDepth << 1, 
+                               superclassIds, Offset.fromIntZeroExtend(LHSDepth << 1), 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
             continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
@@ -791,7 +792,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         // VM_Runtime.instance
         OPT_RegisterOperand result = ir.regpool.makeTempInt();
         VM_Method target = VM_Entrypoints.instanceOfMethod;
-        OPT_Instruction call = Call.create2(CALL, result, IC(target.getOffset()),
+        OPT_Instruction call = Call.create2(CALL, result, AC(target.getOffset()),
                                             OPT_MethodOperand.STATIC(target),
                                             RHSobj, IC(LHStype.getId()));
         call.copyPosition(continueAt);
@@ -872,7 +873,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // Not a case we want to handle inline
       VM_Method target = VM_Entrypoints.instanceOfMethod;
       OPT_RegisterOperand callResult = ir.regpool.makeTempInt();
-      OPT_Instruction call = Call.create2(CALL, callResult, IC(target.getOffset()), OPT_MethodOperand.STATIC(target), 
+      OPT_Instruction call = Call.create2(CALL, callResult, AC(target.getOffset()), OPT_MethodOperand.STATIC(target), 
                                           RHSobj, IC(LHStype.getId()));
       call.copyPosition(continueAt);
       continueAt.insertBefore(call);

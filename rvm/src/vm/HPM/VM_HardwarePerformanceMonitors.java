@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_HPM
 import com.ibm.JikesRVM.Java2HPM;
@@ -38,7 +39,7 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
  * @author Dave Grove
  * @modified Matthias Hauswirth  August 2003
  */
-public class VM_HardwarePerformanceMonitors 
+public class VM_HardwarePerformanceMonitors implements VM_SizeConstants 
 {
 
   /**
@@ -74,9 +75,6 @@ public class VM_HardwarePerformanceMonitors
   /*
    * static fields required size calculations
    */
-  static public  int     SIZE_OF_BYTE       = 1;
-  static public  int     SIZE_OF_INT        = 4;
-  static public  int     SIZE_OF_LONG       = 8;
   //BEGIN HRM
   // (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), global_tid(int), startOfWallTime(long), endOfWallTime(long), mid1(int), mid2(int), counters(long)*
   static public  int     SIZE_OF_HEADER     = 32; 
@@ -449,7 +447,7 @@ public class VM_HardwarePerformanceMonitors
 
       if(trace) {
         // compute trace record size
-        record_size = SIZE_OF_HEADER + (HPM_info.getNumberOfValues() * SIZE_OF_LONG);
+        record_size = SIZE_OF_HEADER + (HPM_info.getNumberOfValues() * BYTES_IN_LONG);
 
         // open the trace header file
         openFileOutputStream(HPM_info.filenamePrefix+".headerFile");
@@ -561,24 +559,24 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWrite(HPM_info.isBigEndian()?"BIG_ENDIAN":"LITTLE_ENDIAN"); VM.sysWrite(")\n");
     }
     byte[] buffer   = new byte[100];    // temporary buffer
-    int    index    = 0;
+    Offset index    = Offset.zero();
   
     if (HPM_info.isBigEndian()) {
       // write version number 
-      VM_Magic.setIntAtOffset(buffer, index, HPM_info.version_number);     index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, HPM_info.version_number);     index = index.add(BYTES_IN_INT);
       // write endian
-      VM_Magic.setIntAtOffset(buffer, index, HPM_info.getEndian());        index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, HPM_info.getEndian());        index = index.add(BYTES_IN_INT);
     } else {
       // write in default BIG_ENDIAN manner
       // write version number 
-      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(HPM_info.version_number));index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(HPM_info.version_number));index = index.add(BYTES_IN_INT);
       // write endian
-      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(HPM_info.getEndian()));   index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(HPM_info.getEndian()));   index = index.add(BYTES_IN_INT);
     }
     // write number of events
-    VM_Magic.setIntAtOffset(buffer, index, HPM_info.getNumberOfValues());index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, HPM_info.getNumberOfValues());index = index.add(BYTES_IN_INT);
     // write mode
-    VM_Magic.setIntAtOffset(buffer, index, HPM_info.mode);               index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, HPM_info.mode);               index = index.add(BYTES_IN_INT);
 
     if(verbose>=4){
       VM.sysWrite("VM_HPMs.writeHeaderPrefix() header: version number ", HPM_info.version_number);
@@ -598,12 +596,12 @@ public class VM_HardwarePerformanceMonitors
    */
   static private void writeMachineType(String machine_type)
   {
-    int index = 0;
+    Offset index = Offset.zero();
     // don't think we need this!
     //    machine_type = wordAlignedString(machine_type);
     byte[] buffer = new byte[machine_type.length()+8];
     // write record format number
-    VM_Magic.setIntAtOffset(buffer, index, MACHINE_TYPE_RECORD);        index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, MACHINE_TYPE_RECORD);        index = index.add(BYTES_IN_INT);
     index = writeStringToBuffer(buffer, index, machine_type.getBytes());
     // write buffer to file
     writeHeaderFileOutputStream(buffer, index);
@@ -645,16 +643,16 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWrite  ("VM_HPMs.writeThread(",global_tid,",",tid);
       VM.sysWriteln(",",name,")");
     }
-    int index = 0;
+    Offset index = Offset.zero();
     // do we need this?
     //    name = wordAlignedString(name);
     byte[] buffer = new byte[name.length()+4+12];
     // write record format number
-    VM_Magic.setIntAtOffset(buffer, index, THREAD_RECORD);      index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, THREAD_RECORD);      index = index.add(BYTES_IN_INT);
     // write global thread id
-    VM_Magic.setIntAtOffset(buffer, index, global_tid);         index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, global_tid);         index = index.add(BYTES_IN_INT);
     // write local thread id
-    VM_Magic.setIntAtOffset(buffer, index, tid);                index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, tid);                index = index.add(BYTES_IN_INT);
     // write event name
     index = writeStringToBuffer(buffer, index, name.getBytes());
     // write buffer to file
@@ -677,15 +675,15 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWrite  (id,", length ",name.length());
       VM.sysWriteln(" ",name);
     }
-    int index = 0;
+    Offset index = Offset.zero();
     byte[] buffer = new byte[name.length()+16];
     // write record format number
 
-    VM_Magic.setIntAtOffset(buffer, index, EVENT_RECORD);       index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, EVENT_RECORD);       index = index.add(BYTES_IN_INT);
     // write counter number
-    VM_Magic.setIntAtOffset(buffer, index, counter);            index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, counter);            index = index.add(BYTES_IN_INT);
     // write event number
-    VM_Magic.setIntAtOffset(buffer, index, id);                 index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, id);                 index = index.add(BYTES_IN_INT);
     // write event name
     index = writeStringToBuffer(buffer, index, name.getBytes());
     // write buffer to file
@@ -716,15 +714,15 @@ public class VM_HardwarePerformanceMonitors
     final byte[] methodNameBytes = methodName.toByteArray();
     final byte[] methodDescriptorBytes = methodDescriptor.toByteArray();
 
-    int index = 0;
-    byte[] buffer = new byte[classNameBytes.length+methodNameBytes.length+methodDescriptorBytes.length+5*SIZE_OF_INT];
+    Offset index = Offset.zero();
+    byte[] buffer = new byte[classNameBytes.length+methodNameBytes.length+methodDescriptorBytes.length+5*BYTES_IN_INT];
 
     // write record format number
     if(verbose>=8){VM.sysWriteln(  "VM_HPMs.writeIntToBuffer() buffer index ",index," value ",METHOD_RECORD);}
-    VM_Magic.setIntAtOffset(buffer, index, METHOD_RECORD);      index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, METHOD_RECORD);      index = index.add(BYTES_IN_INT);
     // write mid
     if(verbose>=8){VM.sysWriteln(  "VM_HPMs.writeIntToBuffer() buffer index ",index," value ",mid);}
-    VM_Magic.setIntAtOffset(buffer, index, mid);                index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, mid);                index = index.add(BYTES_IN_INT);
     // write class name
     index = writeStringToBuffer(buffer, index, classNameBytes);
     // write method name
@@ -744,23 +742,24 @@ public class VM_HardwarePerformanceMonitors
    * @param index   index into buffer where to start writing string
    * @param bytes   array of bytes
    */
-  static public int writeStringToBuffer(byte[] buffer, int index, byte[] bytes)
+  static public Offset writeStringToBuffer(byte[] buffer, Offset index, byte[] bytes)
     throws UninterruptiblePragma 
   {
     if (VM.BuildForHPM && enabled) {
       int length = bytes.length;
       if(verbose>=8) {
-        VM.sysWrite(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ",length);
+        VM.sysWrite(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ");
+        VM.sysWrite(length);
       }
-      VM_Magic.setIntAtOffset(buffer, index, length);           index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, length);           index = index.add(BYTES_IN_INT);
       for (int i=0; i<length; i++) {
         VM_Magic.setByteAtOffset(buffer, index, bytes[i]);
-        index++;
+        index=index.add(1);
       }
       if(verbose>=8)VM.sysWriteln("    return index ",index);
       return index;
     } else {
-      return 0;
+      return Offset.zero();
     }
   }
 
@@ -773,23 +772,24 @@ public class VM_HardwarePerformanceMonitors
    * @param index   index into buffer where to start writing string
    * @param bytes   array of bytes
    */
-  static public int writeStringToBufferSwapBytes(byte[] buffer, int index, byte[] bytes)
+  static public Offset writeStringToBufferSwapBytes(byte[] buffer, Offset index, byte[] bytes)
     throws UninterruptiblePragma 
   {
     if (VM.BuildForHPM && enabled) {
       int length = bytes.length;
       if(verbose>=8) {
-        VM.sysWrite(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ",length);
+        VM.sysWrite(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ");
+        VM.sysWrite(length);
       }
-      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(length));   index += SIZE_OF_INT;
+      VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(length));   index = index.add(BYTES_IN_INT);
       for (int i=0; i<length; i++) {
         VM_Magic.setByteAtOffset(buffer, index, bytes[i]);
-        index++;
+        index=index.add(1);
       }
       if(verbose>=8)VM.sysWriteln("    return index ",index);
       return index;
     } else {
-      return 0;
+      return Offset.zero();
     }
   }
 
@@ -803,16 +803,16 @@ public class VM_HardwarePerformanceMonitors
    * @param buffer bytes to write to file
    * @param length number of bytes to write 
    */
-  static private synchronized void writeHeaderFileOutputStream(byte[] buffer, int length)
+  static private synchronized void writeHeaderFileOutputStream(byte[] buffer, Offset length)
   {
     if(verbose>=8)VM.sysWriteln("VM_HPMs.writeHeaderFileOutputStream(buffer, 0, ",length,")");
-    if (length <= 0) return;
+    if (length.sLE(Offset.zero())) return;
     if (header_trace_file == null) {    // constraint
       VM.sysWriteln("\n***VM_HPMs.writeHeaderFileOutputStream() header_trace_file == null!  Call VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE)***");
       VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
     }
     try {
-      header_trace_file.write(buffer, 0, length);
+      header_trace_file.write(buffer, 0, length.toInt());
     } catch (IOException e) {
       VM.sysWriteln("***VM_HPMs.writeHeaderFileOutputStream(",length,") throws IOException!***");
       e.printStackTrace(); VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);

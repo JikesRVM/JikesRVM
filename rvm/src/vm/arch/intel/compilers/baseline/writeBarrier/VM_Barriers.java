@@ -21,7 +21,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 4)
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffsetAsInt());
   }
 
   static void compilePutfieldBarrier (VM_Assembler asm, byte reg, int locationMetadata) {
@@ -32,7 +32,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 4);
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffsetAsInt());
   }
 
   static void compilePutfieldBarrierImm (VM_Assembler asm, int fieldOffset, int locationMetadata) {
@@ -43,7 +43,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 4);
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffsetAsInt());
   }
 
   static void compileModifyCheck (VM_Assembler asm, int offset) {
@@ -52,7 +52,7 @@ class VM_Barriers implements VM_BaselineConstants {
     // on exit: stack is the same  
     asm.emitPUSH_RegDisp(SP, offset);   // dup
     genParameterRegisterLoad(asm, 1);
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.modifyCheckMethod.getOffsetAsInt());
   }
 
   // currently do not have a "write barrier for putstatic, emit nothing, for now...

@@ -485,7 +485,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, int metaDataA, 
+                                 ObjectReference tgt, Offset metaDataA, 
                                  int metaDataB, int mode) throws InlinePragma {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
                                         src, slot, tgt);
@@ -510,8 +510,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(ObjectReference src, int srcOffset,
-                              ObjectReference dst, int dstOffset, int bytes) {
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                              ObjectReference dst, Offset dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */
     Address slot = dst.toAddress().add(dstOffset);

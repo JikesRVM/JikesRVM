@@ -472,7 +472,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   private final void writeBarrierInternal(ObjectReference src, Address slot,
-                                          ObjectReference tgt, int metaDataA, 
+                                          ObjectReference tgt, Offset metaDataA, 
                                   int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -502,7 +502,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
                                              ObjectReference tgt,
-                                             int metaDataA, int metaDataB,
+                                             Offset metaDataA, int metaDataB,
                                              int mode) 
     throws NoInlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -541,8 +541,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * left to the caller (this depends on which style of barrier is
    * being used).
    */
-  public boolean writeBarrier(ObjectReference src, int srcOffset, 
-                              ObjectReference dst, int dstOffset, int bytes) {
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset, 
+                              ObjectReference dst, Offset dstOffset, int bytes) {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (RefCountSpace.logRequired(dst))

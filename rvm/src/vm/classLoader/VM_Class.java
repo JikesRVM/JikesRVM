@@ -1329,7 +1329,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // compile <init> methods and put their addresses into jtoc
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+      VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
     }
 
     // compile static methods and put their addresses into jtoc
@@ -1339,7 +1339,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // This also avoids putting <clinit>s in the bootimage.
       VM_Method method = staticMethods[i];
       if (!method.isClassInitializer()) {
-        VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+        VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
       }
     }
 
@@ -1439,7 +1439,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i=0; i<fields.length; i++) {
       VM_Field f = fields[i];
       if (f.isFinal()) {
-        setFinalStaticJTOCEntry(f,f.getOffset());
+        setFinalStaticJTOCEntry(f,f.getOffsetAsInt());
       }
     }
   }
@@ -1525,7 +1525,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM._assert(isResolved());
     if (VM.VerifyAssertions) VM._assert(m.isStatic() || m.isObjectInitializer());
-    int slot = m.getOffset() >>> LOG_BYTES_IN_INT;
+    int slot = m.getOffsetAsInt() >>> LOG_BYTES_IN_INT;
     VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
   }
 
@@ -1542,7 +1542,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
       VM._assert(vm == m);
     }
-    int offset = m.getOffset() >>> LOG_BYTES_IN_ADDRESS;
+    int offset = m.getOffsetAsInt() >>> LOG_BYTES_IN_ADDRESS;
     typeInformationBlock[offset] = m.getCurrentInstructions();
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }

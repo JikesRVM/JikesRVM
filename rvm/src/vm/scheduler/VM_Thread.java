@@ -1383,7 +1383,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
            MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                                threadSlot, this);
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                                    threadSlot << LOG_BYTES_IN_ADDRESS, this);
+                                    Offset.fromIntZeroExtend(threadSlot << LOG_BYTES_IN_ADDRESS), this);
          return;
          }
        }
@@ -1414,7 +1414,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                           threadSlot, null);
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads, 
-                               threadSlot << LOG_BYTES_IN_ADDRESS, null);
+                               Offset.fromIntZeroExtend(threadSlot << LOG_BYTES_IN_ADDRESS), null);
     VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again
     if (VM.VerifyAssertions) threadSlot = -1; 
@@ -1520,10 +1520,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
   private static int dumpBufferLock = 0;
   /** Reset at boot time. */
-  private static int dumpBufferLockOffset = -1;
+  private static Offset dumpBufferLockOffset = Offset.max();
 
   public static char[] grabDumpBuffer() {
-    if (dumpBufferLockOffset != -1) {
+    if (!dumpBufferLockOffset.isMax()) {
       while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), 
                                             dumpBufferLockOffset, 1)) 
         ;
@@ -1532,7 +1532,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   public static void releaseDumpBuffer() {
-    if (dumpBufferLockOffset != -1) {
+    if (!dumpBufferLockOffset.isMax()) {
       VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), 
                                        dumpBufferLockOffset, 0);  
     }
@@ -1713,14 +1713,14 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /** The offset of {@link #intBufferLock} in this class's TIB.
    *  This is set properly at boot time, even though it's a
    *  <code>private</code> variable. . */
-  private static int intBufferLockOffset = -1;
+  private static Offset intBufferLockOffset = Offset.max();
 
   /**
    * Get exclusive access to {@link #intBuffer}, the buffer for building
    * string representations of integers. 
    */
   private static char [] grabIntBuffer() {
-    if (intBufferLockOffset != -1) {
+    if (!intBufferLockOffset.isMax()) {
       while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), 
                                             intBufferLockOffset, 1)) 
         ;
@@ -1733,7 +1733,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * representations of integers. 
    */
   private static void releaseIntBuffer() {
-    if (intBufferLockOffset != -1) {
+    if (!intBufferLockOffset.isMax()) {
       VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), 
                                        intBufferLockOffset, 0);  
     }
@@ -2041,8 +2041,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   // before call new instructions, we need a bridge to recover register
   // states from the stack frame.
   public VM_CodeArray bridgeInstructions = null;
-  public int fooFPOffset = 0;
-  public int tsFPOffset = 0;
+  public Offset fooFPOffset = Offset.zero();
+  public Offset tsFPOffset = Offset.zero();
 
   // flag to synchronize with osr organizer, the trigger sets osr requests
   // the organizer clear the requests

@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A field or method of a java class.
@@ -152,7 +153,21 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
    */ 
-  public final int getOffset() throws UninterruptiblePragma {
+  public final Offset getOffset() throws UninterruptiblePragma {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    return Offset.fromIntSignExtend(offset);
+  }
+
+  /**
+   * Offset of this field or method, in bytes.
+   * <ul>
+   * <li> For a static field:      offset of field from start of jtoc
+   * <li> For a static method:     offset of code object reference from start of jtoc
+   * <li> For a non-static field:  offset of field from start of object
+   * <li> For a non-static method: offset of code object reference from start of tib
+   * </ul>
+   */ 
+  public final int getOffsetAsInt() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     return offset;
   }

@@ -76,7 +76,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // create new frame
     //
     asm.emitMR    (S0,  FP);                  // S0 := old frame pointer
-    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
+    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T3); // T0 := number of spill words
     asm.emitADDI  (T3, -BYTES_IN_ADDRESS, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     int spillLoopLabel = asm.getMachineCodeIndex();
     asm.emitADDICr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
@@ -131,7 +131,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     setupFPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
-    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
+    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T2); // T0 := number of fprs to be loaded
     asm.emitADDI  (T3, VOLATILE_FPRS<<LG_INSTRUCTION_WIDTH,    T3); // T3 := address of first instruction following fpr loads
     asm.emitSLWI  (T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of fpr load instructions
     asm.emitSUBFC   (T3, T0, T3);                // T3 := address of instruction for highest numbered fpr to be loaded
@@ -141,7 +141,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     setupGPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
-    asm.emitLInt   (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
+    asm.emitLInt   (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T1); // T0 := number of gprs to be loaded
     asm.emitADDI  (T3, VOLATILE_GPRS<<LG_INSTRUCTION_WIDTH,    T3); // T3 := address of first instruction following gpr loads
     asm.emitSLWI  (T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of gpr load instructions
     asm.emitSUBFC   (T3, T0,T3);                  // T3 := address of instruction for highest numbered gpr to be loaded
@@ -166,9 +166,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
 
     // save return address
     // 
@@ -217,10 +217,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
+    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffsetAsInt();
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR (T3);                         // T3 gets return address
@@ -242,7 +242,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     // (2) Set currentThread.beingDispatched to false
     asm.emitLVAL(0, 0);                                       // R0 := 0
-    asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
+    asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffsetAsInt(), T0); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.
 
@@ -283,10 +283,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    int lrOffset   = VM_Entrypoints.registersLRField.getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
+    int lrOffset   = VM_Entrypoints.registersLRField.getOffsetAsInt();
 
     // restore LR
     //
@@ -377,14 +377,14 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // This pointer is an interior pointer to the VM_JNIEnvironment which is
     // currently in S0.
     //
-    asm.emitADDI (T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
+    asm.emitADDI (T0, VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt(), S0);
 
     //
     // change the vpstatus of the VP to IN_NATIVE
     //
-    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0);   
+    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), S0);   
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
-    asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffset(), PROCESSOR_REGISTER); 
+    asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffsetAsInt(), PROCESSOR_REGISTER); 
 
     // 
     // CALL NATIVE METHOD
@@ -410,18 +410,18 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitLAddr (S0, 0, S0);
     //-#endif
     asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
-    asm.emitLAddr (JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset(), PROCESSOR_REGISTER);      // load JTOC
-    asm.emitLAddr (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), PROCESSOR_REGISTER); // load PR
-    asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffset());
+    asm.emitLAddr (JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffsetAsInt(), PROCESSOR_REGISTER);      // load JTOC
+    asm.emitLAddr (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), PROCESSOR_REGISTER); // load PR
+    asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffsetAsInt());
     asm.emitLWARX (S0, S1, PROCESSOR_REGISTER);                 // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
     VM_ForwardReference fr = asm.emitForwardBC(NE);
     //
     // if blocked in native, call C routine to do pthread_yield
     //
-    asm.emitLAddr (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);  // T2 gets boot record address
-    asm.emitLAddr (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);           // load TOC for syscalls from bootrecord
-    asm.emitLAddr (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
+    asm.emitLAddr (T2, VM_Entrypoints.the_boot_recordField.getOffsetAsInt(), JTOC);  // T2 gets boot record address
+    asm.emitLAddr (JTOC, VM_Entrypoints.sysTOCField.getOffsetAsInt(), T2);           // load TOC for syscalls from bootrecord
+    asm.emitLAddr (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffsetAsInt(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBCLRL ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     (label1);                                    // retest the attempt to change status to IN_JAVAE

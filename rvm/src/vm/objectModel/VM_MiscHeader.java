@@ -28,7 +28,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
    */
 
-  private static final Offset MISC_HEADER_START = Offset.fromInt(VM_JavaHeaderConstants.MISC_HEADER_OFFSET);
+  private static final Offset MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
 
   /* offset from object ref to .oid field, in bytes */
   static final Offset OBJECT_OID_OFFSET   = VM.CompileForGCTracing ? MISC_HEADER_START : Offset.zero();
@@ -162,7 +162,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(ref,
-                                                               OBJECT_LINK_OFFSET.toInt()));
+                                                               OBJECT_LINK_OFFSET));
     else
       return ObjectReference.nullReference();
   }

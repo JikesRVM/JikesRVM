@@ -45,8 +45,7 @@ $$$$ END LET USE_OPT_LEVELS
     }
     return false;
   }    
-
-
+  
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");
     VM.sysWrite(prefix+"[help]\t\t\tPrint brief description of opt compiler's command-line arguments\n");

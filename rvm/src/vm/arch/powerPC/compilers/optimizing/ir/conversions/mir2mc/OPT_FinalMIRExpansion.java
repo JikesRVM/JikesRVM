@@ -125,7 +125,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           OPT_Register CTR = phys.getCTR();
           if (VM.VerifyAssertions) 
             VM._assert(p.bcIndex >= 0 && p.position != null);
-          int offset = VM_Entrypoints.optResolveMethod.getOffset();
+          int offset = VM_Entrypoints.optResolveMethod.getOffsetAsInt();
           if (OPT_Bits.fits(offset, 16)) {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(offset)));
           } else {
@@ -166,7 +166,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.takeYieldpointField.getOffset())));
+                                           IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
@@ -186,7 +186,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.takeYieldpointField.getOffset())));
+                                           IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
@@ -293,7 +293,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
     ir.cfg.addLastInCodeOrder(result);
     OPT_Register JTOC = phys.getJTOC();
     OPT_Register CTR = phys.getCTR();
-    int offset = meth.getOffset();
+    int offset = meth.getOffsetAsInt();
     if (OPT_Bits.fits(offset, 16)) {
       result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(offset)));
     } else {

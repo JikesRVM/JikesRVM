@@ -181,7 +181,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Return the offset of the array length field from an object reference
    * (in bytes)
    */
-  public static int getArrayLengthOffset() {
+  public static Offset getArrayLengthOffset() {
     return ARRAY_LENGTH_OFFSET;
   }
 
@@ -393,14 +393,14 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * Get the offset of the thin lock word in this object
    */
-  public static int getThinLockOffset(Object o) {
+  public static Offset getThinLockOffset(Object o) {
     return VM_JavaHeader.getThinLockOffset(o);
   }
 
   /**
    * what is the default offset for a thin lock?
    */
-  public static int defaultThinLockOffset() {
+  public static Offset defaultThinLockOffset() {
     return VM_JavaHeader.defaultThinLockOffset();
   }
 
@@ -726,7 +726,7 @@ public final class VM_ObjectModel implements Uninterruptible,
     int offset = getOffsetForAlignment(array);
     int ptr = bootImage.allocateStorage(size, align, offset);
     int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
-    bootImage.setFullWord(ref + getArrayLengthOffset(), numElements);
+    bootImage.setFullWord(ref + getArrayLengthOffset().toInt(), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;

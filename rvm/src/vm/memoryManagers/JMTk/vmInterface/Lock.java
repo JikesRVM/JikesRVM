@@ -42,10 +42,10 @@ import org.mmtk.utility.Log;
 public class Lock implements Uninterruptible {
 
   // Internal class fields
-  private static int dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
-  private static int servingFieldOffset = VM_Entrypoints.servingField.getOffset();
-  private static int threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
-  private static int startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
+  private static Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
+  private static Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
+  private static Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
+  private static Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
   private static long SLOW_THRESHOLD = Long.MAX_VALUE; // set to a real value by fullyBooted
   private static long TIME_OUT = Long.MAX_VALUE;       // set to a real value by fullyBooted
 

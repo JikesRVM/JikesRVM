@@ -228,7 +228,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param value the new value for the field
    * @param locationMetadata an int that encodes the source location being modified
    */
-  public static void putfieldWriteBarrier(Object ref, int offset, Object value,
+  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value,
                                           int locationMetadata)
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
@@ -246,7 +246,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
    */
-  public static void putstaticWriteBarrier(int offset, Object value)
+  public static void putstaticWriteBarrier(Offset offset, Object value)
     throws InlinePragma { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
@@ -271,7 +271,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                             Object value)
     throws InlinePragma {
     ObjectReference array = ObjectReference.fromObject(ref);
-    int offset = (index<<LOG_BYTES_IN_ADDRESS);
+    Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
     Plan.getInstance().writeBarrier(array,
                                     array.toAddress().add(offset),
                                     ObjectReference.fromObject(value),
@@ -296,8 +296,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public static boolean arrayCopyWriteBarrier(Object src, int srcOffset,
-                                              Object tgt, int tgtOffset,
+  public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset,
+                                              Object tgt, Offset tgtOffset,
                                               int bytes) 
     throws InlinePragma {
     return Plan.getInstance().writeBarrier(ObjectReference.fromObject(src),

@@ -142,7 +142,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * objects of this type?  A value of -1 indicates that the instances of
    * this type do not have inline thin locks.
    */
-  protected int thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
+  protected Offset thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
 
   /** The memory manager's notion of this type */
   private Object mmType;
@@ -265,8 +265,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
-  public final int getTibOffset() throws UninterruptiblePragma { 
-    return tibSlot << LOG_BYTES_IN_INT; 
+  public final Offset getTibOffset() throws UninterruptiblePragma { 
+    return Offset.fromIntZeroExtend(tibSlot << LOG_BYTES_IN_INT); 
   }
 
   /**
@@ -289,12 +289,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public final int getThinLockOffset() throws UninterruptiblePragma { 
+  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
     return thinLockOffset; 
   }
 
-  public final void setThinLockOffset(int offset) {
-    if (VM.VerifyAssertions) VM._assert (thinLockOffset == -1);
+  public final void setThinLockOffset(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
     thinLockOffset = offset;
   }
   

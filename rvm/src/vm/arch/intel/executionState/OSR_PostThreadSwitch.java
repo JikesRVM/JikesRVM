@@ -39,10 +39,10 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, Uninterruptib
       VM.sysWrite("osr post processing\n");
     }
         
-    Offset offset = Offset.fromInt(myThread.tsFPOffset + STACKFRAME_RETURN_ADDRESS_OFFSET);
+    Offset offset = myThread.tsFPOffset.add(STACKFRAME_RETURN_ADDRESS_OFFSET);
     VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
 
-    myThread.tsFPOffset = 0;
+    myThread.tsFPOffset = Offset.zero();
 
     myThread.isWaitingForOsr = false;
     myThread.bridgeInstructions = null;

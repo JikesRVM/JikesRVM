@@ -817,10 +817,10 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
-    int offset = meth.getOffset();
+    int offset = meth.getOffsetAsInt();
     OPT_Operand jtoc = 
       OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-                           VM_Entrypoints.jtocField.getOffset(), 
+                           VM_Entrypoints.jtocField.getOffsetAsInt(), 
                            (byte)4, null, TG());
     OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
@@ -840,7 +840,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.takeYieldpointField.getOffset();
+    int tsr = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, IC(0));
     s.insertBefore(compare);
@@ -879,10 +879,10 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
-    int offset = meth.getOffset();
+    int offset = meth.getOffsetAsInt();
     OPT_Operand jtoc = 
       OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-                           VM_Entrypoints.jtocField.getOffset(), 
+                           VM_Entrypoints.jtocField.getOffsetAsInt(), 
                            (byte)4, null, TG());
     OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));

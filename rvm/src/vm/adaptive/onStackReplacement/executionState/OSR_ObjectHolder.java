@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * OSR_ObjectHolder helps the specialized prologue to load reference
@@ -78,6 +79,6 @@ public class OSR_ObjectHolder implements Uninterruptible, VM_SizeConstants {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }
-    VM_Magic.setObjectAtOffset(refs, i<<LOG_BYTES_IN_ADDRESS, null); // refs[i] = null;
+    VM_Magic.setObjectAtOffset(refs, Offset.fromIntZeroExtend(i<<LOG_BYTES_IN_ADDRESS), null); // refs[i] = null;
   }
 }

@@ -35,9 +35,9 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
   public OPT_DoubleConstantOperand(double v) {
     value = v;
     if (v == 0.) {
-      index = VM_Entrypoints.zeroDoubleField.getOffset() >> LOG_BYTES_IN_INT;
+      index = VM_Entrypoints.zeroDoubleField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
     } else if (v == 1.) {
-      index = VM_Entrypoints.oneDoubleField.getOffset() >> LOG_BYTES_IN_INT;
+      index = VM_Entrypoints.oneDoubleField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
     }
   }
 

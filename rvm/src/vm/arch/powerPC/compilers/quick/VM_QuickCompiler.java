@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.jni.VM_JNICompiler;
 import com.ibm.JikesRVM.classloader.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * VM_QuickCompiler is a quicker compiler class for powerPC
@@ -2913,7 +2914,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   // Load/Store assist
   private int aloadSetup (int logSize, int indexRegister, int refRegister,
                            int offsetRegister) {
-    asm.emitLWZ   (offsetRegister,  VM_ObjectModel.getArrayLengthOffset(), refRegister);  
+    asm.emitLWZ   (offsetRegister,  VM_ObjectModel.getArrayLengthOffset().toInt(), refRegister);  
     asm.emitTWLLE(offsetRegister, indexRegister); // trap if index < 0
                                                   // or index >=
                                                   // length
@@ -2927,7 +2928,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   private int astoreSetup (int logSize, 
                             int indexRegister, int refRegister,
                             int offsetRegister) {
-    asm.emitLWZ   (offsetRegister,  VM_ObjectModel.getArrayLengthOffset(), refRegister);
+    asm.emitLWZ   (offsetRegister,  VM_ObjectModel.getArrayLengthOffset().toInt(), refRegister);
     asm.emitTWLLE(offsetRegister, indexRegister); // trap if index < 0 or index >= length
     if (logSize > 0) {
       asm.emitSLWI  (offsetRegister, indexRegister,  logSize); // convert index to offset
@@ -3050,14 +3051,14 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       } else {
         klass.getClassForType();
       }
-      int tibOffset = klass.getTibOffset();
+      Offset tibOffset = klass.getTibOffset();
       asm.emitLAddrToc(T0, tibOffset);
       asm.emitLAddr(T0, 0, T0);
-      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
+      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffsetAsInt(), T0); 
     } else { 
       asm.emitLAddr(T0, savedThisPtrOffset, FP);
     }
-    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffset(), JTOC); // call out...
+    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffsetAsInt(), JTOC); // call out...
     asm.emitMTCTR  (S0);                                  // ...of line lock
     asm.emitBCCTRL();
     lockOffset = BYTES_IN_INT*(asm.getMachineCodeIndex() - 1); // after this instruction, the method has the monitor
@@ -3068,14 +3069,14 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   //
   private void genSynchronizedMethodEpilogue () {
     if (method.isStatic()) { // put java.lang.Class for VM_Type into T0
-      int tibOffset = klass.getTibOffset();
+      Offset tibOffset = klass.getTibOffset();
       asm.emitLAddrToc(T0, tibOffset);
       asm.emitLAddr(T0, 0, T0);
-      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
+      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffsetAsInt(), T0); 
     } else { 
       asm.emitLAddr(T0, savedThisPtrOffset, FP);
     }
-    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);  // call out...
+    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffsetAsInt(), JTOC);  // call out...
     asm.emitMTCTR(S0);                                     // ...of line lock
     asm.emitBCCTRL();
   }
@@ -3923,7 +3924,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       pushFromRegister(OBJECT_TYPE, T0);                   // *sp := type
     } else if (methodName == VM_MagicNames.getArrayLength) {
       popToRegister(OBJECT_TYPE, T0);                   // get object pointer
-      asm.emitLInt(T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
+      asm.emitLInt(T0,  VM_ObjectModel.getArrayLengthOffset().toInt(), T0); // get array length field
       pushFromRegister(WORD_TYPE, T0);                   // *sp := length
     } else if (methodName == VM_MagicNames.sync) {
       asm.emitSYNC();
@@ -4202,7 +4203,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
 
     asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset()); // load sysTOC into JTOC
-    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffsetAsInt(), S0);
 
     asm.emitBCCTRL();                             // call the desired function
 
@@ -4285,8 +4286,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
     // acquire toc and ip from bootrecord
     asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
-    asm.emitLAddr(0, target.getOffset(), S0);
+    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffsetAsInt(), S0);
+    asm.emitLAddr(0, target.getOffsetAsInt(), S0);
 
     // call it
     asm.emitMTCTR(0);
@@ -4301,9 +4302,9 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   private void emitDynamicLinkingSequence(int reg, VM_MemberReference ref, boolean couldBeZero) {
     int memberId = ref.getId();
     int memberOffset = memberId << LOG_BYTES_IN_INT;
-    int tableOffset = VM_Entrypoints.memberOffsetsField.getOffset();
+    Offset tableOffset = VM_Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
-      int resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
+      Offset resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
       int label = asm.getMachineCodeIndex();
       
       // load offset table
@@ -4353,20 +4354,20 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     if (isInterruptible) {
       VM_ForwardReference fr;
       // yield if takeYieldpoint is non-zero.
-      asm.emitLInt(S0, VM_Entrypoints.takeYieldpointField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitLInt(S0, VM_Entrypoints.takeYieldpointField.getOffsetAsInt(), PROCESSOR_REGISTER);
       asm.emitCMPI(S0, 0); 
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
         fr = asm.emitForwardBC(EQ);
-        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset(), JTOC);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromPrologueMethod.getOffsetAsInt(), JTOC);
       } else if (whereFrom == VM_Thread.BACKEDGE) {
         // Take yieldpoint if yieldpoint flag is >0
         fr = asm.emitForwardBC(LE);
-        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset(), JTOC);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffsetAsInt(), JTOC);
       } else { // EPILOGUE
         // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
         fr = asm.emitForwardBC(EQ);
-        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset(), JTOC);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffsetAsInt(), JTOC);
       }
       asm.emitMTCTR(S0);
       asm.emitBCCTRL();
@@ -6394,15 +6395,15 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       assignRegisters(1, FLOAT_TYPE);
 
       asm.emitLFDtoc(SF0, VM_Entrypoints.IEEEmagicField.getOffset(), S0);// F0 is MAGIC
-      asm.emitSTFD  (SF0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER); // MAGIC in memory
-      asm.emitSTW   (sri0,  VM_Entrypoints.scratchStorageField.getOffset()+4, PROCESSOR_REGISTER); // if 0 <= X, MAGIC + X 
+      asm.emitSTFD  (SF0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER); // MAGIC in memory
+      asm.emitSTW   (sri0,  VM_Entrypoints.scratchStorageField.getOffsetAsInt()+4, PROCESSOR_REGISTER); // if 0 <= X, MAGIC + X 
       asm.emitCMPI  (sri0,  0);                   // is X < 0
       VM_ForwardReference fr1 = asm.emitForwardBC(GE);      // Now, handle X < 0
-      asm.emitLInt   (S0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);// S0 is top of MAGIC
+      asm.emitLInt   (S0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);// S0 is top of MAGIC
       asm.emitADDI   (S0, -1, S0);               // decrement top of MAGIC
-      asm.emitSTW   (S0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);  // MAGIC + X is in memory
+      asm.emitSTW   (S0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);  // MAGIC + X is in memory
       fr1.resolve(asm);
-      asm.emitLFD   (sro0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);  // output is MAGIC + X
+      asm.emitLFD   (sro0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);  // output is MAGIC + X
     //-#if RVM_WITH_QUICK_COMPILER_MOVE_ELIMINATION
     if (resultIsStackRegister)
       setRetargetable(returnValue, asm.getMachineCodeIndex());
@@ -6424,15 +6425,15 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       assignRegisters(1, DOUBLE_TYPE);
 
       asm.emitLFDtoc(SF0, VM_Entrypoints.IEEEmagicField.getOffset(), S0);// F0 is MAGIC
-      asm.emitSTFD  (SF0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER); // MAGIC in memory
-      asm.emitSTW   (sri0,  VM_Entrypoints.scratchStorageField.getOffset()+4, PROCESSOR_REGISTER); // if 0 <= X, MAGIC + X 
+      asm.emitSTFD  (SF0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER); // MAGIC in memory
+      asm.emitSTW   (sri0,  VM_Entrypoints.scratchStorageField.getOffsetAsInt()+4, PROCESSOR_REGISTER); // if 0 <= X, MAGIC + X 
       asm.emitCMPI  (sri0,  0);                   // is X < 0
       VM_ForwardReference fr1 = asm.emitForwardBC(GE);      // Now, handle X < 0
-      asm.emitLInt   (S0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);// S0 is top of MAGIC
+      asm.emitLInt   (S0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);// S0 is top of MAGIC
       asm.emitADDI   (S0, -1, S0);               // decrement top of MAGIC
-      asm.emitSTW   (S0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);  // MAGIC + X is in memory
+      asm.emitSTW   (S0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);  // MAGIC + X is in memory
       fr1.resolve(asm);
-      asm.emitLFD   (sro0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);  // output is MAGIC + X
+      asm.emitLFD   (sro0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);  // output is MAGIC + X
     //-#if RVM_WITH_QUICK_COMPILER_MOVE_ELIMINATION
     if (resultIsStackRegister)
       setRetargetable(returnValue, asm.getMachineCodeIndex());
@@ -6489,8 +6490,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       // XXX CJH TODO: pushLowDoubleAsInt(F0);
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     } else {
-      asm.emitSTFD  (F0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);
-      asm.emitLWZ   (S0, VM_Entrypoints.scratchStorageField.getOffset() + 4, PROCESSOR_REGISTER);
+      asm.emitSTFD  (F0, VM_Entrypoints.scratchStorageField.getOffsetAsInt(), PROCESSOR_REGISTER);
+      asm.emitLWZ   (S0, VM_Entrypoints.scratchStorageField.getOffsetAsInt() + 4, PROCESSOR_REGISTER);
     }
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
@@ -7337,7 +7338,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     byte javaStackType =  VM_BuildBB.getJavaStackType(fieldRef.getFieldContentsType());
     assignRegisters(0, javaStackType);
 
-    int fieldOffset = fieldRef.peekResolvedField().getOffset();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
         
     switch (javaStackType) {
     case FLOAT_TYPE:
@@ -7348,7 +7349,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       break;
     case LONG_TYPE:
       asm.emitLWZtoc(sro0,      fieldOffset);
-      asm.emitLWZtoc(sro0+1,    fieldOffset+4);
+      asm.emitLWZtoc(sro0+1,    fieldOffset.add(4));
       break;
     default:
       asm.emitLWZtoc (sro0, fieldOffset);
@@ -7403,7 +7404,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     byte javaStackType =  VM_BuildBB.getJavaStackType(fieldRef.getFieldContentsType());
     assignRegisters(1, VOID_TYPE);
 
-    int fieldOffset = fieldRef.peekResolvedField().getOffset();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     // putstatic barrier currently unsupported
     //     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
     //       VM_Barriers.compilePutstaticBarrierImm(this, fieldOffset);
@@ -7417,7 +7418,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       break;
     case LONG_TYPE:
       asm.emitSTWtoc(sri0,      fieldOffset,   S0);
-      asm.emitSTWtoc(sri0+1,    fieldOffset+4, S0);
+      asm.emitSTWtoc(sri0+1,    fieldOffset.add(4), S0);
       break;
     default:
       asm.emitSTWtoc(sri0, fieldOffset, S0);
@@ -7475,7 +7476,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     if (unreachableBytecode) return;
     byte javaStackType =  VM_BuildBB.getJavaStackType(fieldRef.getFieldContentsType());
-    int fieldOffset = fieldRef.peekResolvedField().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
     assignRegisters(1, javaStackType);
     switch (javaStackType) {
     case FLOAT_TYPE:
@@ -7550,7 +7551,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // sri0 -- value
     // sri1 -- object
 
-    int fieldOffset = fieldRef.peekResolvedField().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
     if (MM_Interface.NEEDS_WRITE_BARRIER &&
         !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_QuickBarriers.compilePutfieldBarrierImm(asm, fieldOffset,
@@ -7617,7 +7618,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       methodRefParameterWords;
     peekToRegister(OBJECT_TYPE, thisOffset, T0); // load this
     VM_ObjectModel.baselineEmitLoadTIB(asm, S1, T0); // load TIB
-    int methodOffset = methodRef.peekResolvedMethod().getOffset();
+    int methodOffset = methodRef.peekResolvedMethod().getOffsetAsInt();
     asm.emitLAddr(S1, methodOffset, S1);
     asm.emitMTCTR(S1);
     genMoveParametersToRegisters(true, true, methodRef);
@@ -7638,7 +7639,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     } else { // invoke via class's tib slot
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       asm.emitLAddrToc(S0, target.getDeclaringClass().getTibOffset());
-      asm.emitLAddr(S0, target.getOffset(), S0);
+      asm.emitLAddr(S0, target.getOffsetAsInt(), S0);
     }
     asm.emitMTCTR(S0);
     genMoveParametersToRegisters(true, false, methodRef);
@@ -7686,7 +7687,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    */
   protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
     if (unreachableBytecode) return;
-    int methodOffset = methodRef.peekResolvedMethod().getOffset();
+    Offset methodOffset = methodRef.peekResolvedMethod().getOffset();
     asm.emitLAddrToc(S0, methodOffset);
     asm.emitMTCTR(S0);
     genMoveParametersToRegisters(false, false, methodRef);
@@ -7740,7 +7741,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // (2) Emit interface invocation sequence.
     if (VM.BuildForIMTInterfaceInvocation) {
       VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methodRef);
-      int offset = sig.getIMTOffset();
+      int offset = sig.getIMTOffset().toInt();
       genMoveParametersToRegisters(true, false, methodRef); // T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
       if (VM.BuildForIndirectIMT) {
@@ -7815,7 +7816,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_resolved_new(VM_Class typeRef) {
     if (unreachableBytecode) return;
     int instanceSize = typeRef.getInstanceSize();
-    int tibOffset = typeRef.getTibOffset();
+    Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
@@ -7851,7 +7852,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_resolved_newarray(VM_Array array) {
     if (unreachableBytecode) return;
     int width      = array.getLogElementSize();
-    int tibOffset  = array.getTibOffset();
+    Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     int align = VM_ObjectModel.getAlignment(array);
@@ -7928,7 +7929,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_arraylength() {
     if (unreachableBytecode) return;
     assignRegisters(1, ARRAY_TYPE);
-    asm.emitLInt(sro0, VM_ObjectModel.getArrayLengthOffset(), sri0);
+    asm.emitLInt(sro0, VM_ObjectModel.getArrayLengthOffset().toInt(), sri0);
     cleanupRegisters();
   }
 
@@ -7992,7 +7993,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       // afterwords for vm, so ensure object is both on top of stack
       // AND is in the proper register for the subroutine call.
     peekToRegister(OBJECT_TYPE, currentStackHeight-1, T0);
-    asm.emitLVAL(T1, type.getTibOffset());
+    asm.emitLVALAddr(T1, type.getTibOffset());
     asm.emitBCCTRL();               // but obj remains on stack
                                     // afterwords
   }
@@ -8034,7 +8035,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     asm.emitLAddrToc(S0,  VM_Entrypoints.instanceOfFinalMethod.getOffset());
     asm.emitMTCTR(S0);
     popToRegister(OBJECT_TYPE, T0);
-    asm.emitLVAL(T1, type.getTibOffset());
+    asm.emitLVALAddr(T1, type.getTibOffset());
     asm.emitBCCTRL();
     pushFromRegister(OBJECT_TYPE, T0);
   }
@@ -8045,7 +8046,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_monitorenter() {
     if (unreachableBytecode) return;
     popToRegister(OBJECT_TYPE, T0); 
-    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffset(), JTOC);
+    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffsetAsInt(), JTOC);
     asm.emitMTCTR(S0);
     asm.emitBCCTRL();
   }
@@ -8056,7 +8057,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
   protected final void emit_monitorexit() {
     if (unreachableBytecode) return;
     popToRegister(OBJECT_TYPE, T0); 
-    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);
+    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffsetAsInt(), JTOC);
     asm.emitMTCTR(S0);
     asm.emitBCCTRL();
   }

@@ -155,7 +155,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     } else {
       OPT_Operand jtoc = 
         OPT_MemoryOperand.BD(R(regpool.getPhysicalRegisterSet().getPR()),
-                             VM_Entrypoints.jtocField.getOffset(), 
+                             VM_Entrypoints.jtocField.getOffsetAsInt(), 
                              (byte)4, null, TG());
       OPT_RegisterOperand regOp = regpool.makeTempInt();
       EMIT(MIR_Move.create(IA32_MOV, regOp, jtoc));
@@ -307,15 +307,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
       EMIT(MIR_Move.create(IA32_MOV, 
                                   R(jtoc), 
                                   MO_BD(R(regpool.getPhysicalRegisterSet().getPR()),
-                                        VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
+                                        VM_Entrypoints.jtocField.getOffsetAsInt(), DW, null, null)));
     }
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.maxintField.getOffset()).toInt(),
+      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.maxintField.getOffsetAsInt()).toInt(),
                               QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintField.getOffset(), QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintField.getOffsetAsInt(), QW, null, null);
     }
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
@@ -329,10 +329,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.minintField.getOffset()).toInt(),
+      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.minintField.getOffsetAsInt()).toInt(),
                               QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintField.getOffset(), QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintField.getOffsetAsInt(), QW, null, null);
     }
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value
@@ -404,14 +404,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     // load the JTOC into a register
     OPT_RegisterOperand PR = R(regpool.getPhysicalRegisterSet().
                                getPR());
-    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocField.getOffset(), 
+    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocField.getOffsetAsInt(), 
                                             DW, null, null);
     OPT_RegisterOperand regOp = regpool.makeTempInt();
     EMIT(MIR_Move.create(IA32_MOV, regOp, jtoc));
 
     // Store the FPU Control Word to a JTOC slot
     OPT_MemoryOperand M = OPT_MemoryOperand.BD
-      (regOp.copyRO(), VM_Entrypoints.FPUControlWordField.getOffset(), W, null, null);
+      (regOp.copyRO(), VM_Entrypoints.FPUControlWordField.getOffsetAsInt(), W, null, null);
     EMIT(MIR_UnaryNoRes.create(IA32_FNSTCW, M));
     // Set the bits in the status word that control round to zero.
     // Note that we use a 32-bit and, even though we only care about the
@@ -1271,7 +1271,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod.getOffset());
+    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod.getOffsetAsInt());
     EMIT(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
                                          null, null,  target, 
                                          OPT_MethodOperand.STATIC(VM_Entrypoints.optResolveMethod))));

@@ -459,7 +459,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
  
     if (yp) {
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR),
-                                       IC(VM_Entrypoints.takeYieldpointField.getOffset()))); // 2
+                                       IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt()))); // 2
     }
 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
@@ -468,7 +468,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     if (stackOverflow) {
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0),
                                        A(phys.getPR()), 
-                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffset()))); // 4
+                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt()))); // 4
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
@@ -534,7 +534,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), 
                                         IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), 
-                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffset())));
+                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt())));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), 
                         IC(frameSize)));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), 
@@ -585,7 +585,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // Threadswitch
     if (yp) {
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), 
-                                       IC(VM_Entrypoints.takeYieldpointField.getOffset())));
+                                       IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));

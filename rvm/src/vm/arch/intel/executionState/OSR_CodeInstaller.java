@@ -27,11 +27,11 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     VM_Thread thread = state.getThread();
     byte[] stack = thread.stack;
     
-    int tsfromFPOffset = state.getTSFPOffset();
-    int fooFPOffset    = state.getFPOffset();
+    Offset tsfromFPOffset = state.getTSFPOffset();
+    Offset fooFPOffset    = state.getFPOffset();
 
     int foomid = VM_Magic.getIntAtOffset(stack,
-                                         fooFPOffset + STACKFRAME_METHOD_ID_OFFSET);
+                   fooFPOffset.add(STACKFRAME_METHOD_ID_OFFSET));
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
@@ -41,7 +41,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     // this offset is used to adjust SP to FP right after return
     // from a call. 4 bytes for return address and 
     // 4 bytes for saved FP of tsfrom.
-    int sp2fpOffset = fooFPOffset - tsfromFPOffset - 2*SW_WIDTH;
+    int sp2fpOffset = fooFPOffset.toInt() - tsfromFPOffset.toInt() - 2*SW_WIDTH;
 
     // should given an estimated length, and print the instructions 
     // for debugging
@@ -59,7 +59,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
           // to use the true JTOC to get target address
           // use scratch register S0 to hold the address
           // ASSUMPTION: JTOC is really a JTOC, it is true for baseline compiler
-//        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+//        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
           asm.emitMOV_Reg_RegDisp(S0, JTOC, cm.getOsrJTOCoffset());
           
       // restore the caller's JTOC
@@ -67,7 +67,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
       // donot pop return address and parameters, 
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
@@ -97,11 +97,11 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       // adjust SP to frame pointer
       asm.emitADD_Reg_Imm(SP, sp2fpOffset);
       // restore frame pointer 
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
 
           // we need a scratch registers here, using scratch register here
       // get JTOC content into S0 (ECX)
-      asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.jtocField.getOffset());
+      asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.jtocField.getOffsetAsInt());
           // move the address to S0
           asm.emitMOV_Reg_RegDisp(S0, S0, cm.getOsrJTOCoffset());
       // branch to the newly compiled instructions
@@ -119,8 +119,8 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       VM.sysWriteHex(VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister()));
       VM.sysWriteln();
       
-      VM.sysWriteln("tsfromFPOffset "+Integer.toHexString(tsfromFPOffset));
-      VM.sysWriteln("fooFPOffset " + Integer.toHexString(fooFPOffset));
+      VM.sysWriteln("tsfromFPOffset "+Integer.toHexString(tsfromFPOffset.toInt()));
+      VM.sysWriteln("fooFPOffset " + Integer.toHexString(fooFPOffset.toInt()));
       VM.sysWriteln("SP + "+ (sp2fpOffset+4));
     }
         

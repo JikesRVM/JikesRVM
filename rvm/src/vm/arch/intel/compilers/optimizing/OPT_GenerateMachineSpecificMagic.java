@@ -61,7 +61,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr.copy(),
-                                              new OPT_IntConstantOperand(f.getOffset()),
+                                              new OPT_IntConstantOperand(f.getOffsetAsInt()),
                                               new OPT_LocationOperand(f), 
                                               new OPT_TrueGuardOperand()));
       bc2ir.push(val.copyD2U());

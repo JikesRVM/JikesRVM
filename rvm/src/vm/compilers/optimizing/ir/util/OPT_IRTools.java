@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
-import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.*;
 
 /**
  * This abstract class contains a bunch of useful static methods for
@@ -120,6 +120,10 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return address constant operand
    */
   public static final OPT_AddressConstantOperand AC(Address value) {
+    return new OPT_AddressConstantOperand(value);
+  }
+  
+  public static final OPT_AddressConstantOperand AC(Offset value) {
     return new OPT_AddressConstantOperand(value);
   }
   

@@ -111,7 +111,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * logically equivalent to ParamaterRegisterUnload in the compiler
      */
     int gprs;
-    int fpOffset = VM_Entrypoints.framePointerField.getOffset();
+    int fpOffset = VM_Entrypoints.framePointerField.getOffsetAsInt();
     byte T = T0;
     gprs = NUM_PARAMETER_GPRS;
     int offset = 4 << LG_WORDSIZE;              // we have exactly 4 paramaters
@@ -143,7 +143,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
-    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- Parameters.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset().toInt());    // T1 <- Parameters.length()
     asm.emitCMP_Reg_Imm     (T1, 0);                    // length == 0 ?
 
     int parameterLoopLabel = asm.getMachineCodeIndex();
@@ -159,7 +159,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     /* write fprs onto fprs registers */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, FPRS_FP_OFFSET);   // S0 <- FPRs
-    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- FPRs.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset().toInt());    // T1 <- FPRs.length()
     asm.emitSHL_Reg_Imm (T1, LG_WORDSIZE + 1 );         // length in bytes
     asm.emitADD_Reg_Reg (S0, T1);                       // S0 <- last FPR + 8
     asm.emitCMP_Reg_Imm (T1, 0);                        // length == 0 ?
@@ -177,7 +177,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     /* write gprs: S0 = Base address of GPRs[], T1 = GPRs.length */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, GPRS_FP_OFFSET);   // S0 <- GPRs
-    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- GPRs.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset().toInt());    // T1 <- GPRs.length()
     asm.emitCMP_Reg_Imm (T1, 0);                        // length == 0 ?
     VM_ForwardReference fr3 = asm.forwardJcc(asm.EQ);   // result 0 --> branch to end
     asm.emitMOV_Reg_RegInd (T0, S0);                    // T0 <- GPRs[0]
@@ -222,10 +222,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset()); 
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
+    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffsetAsInt()); 
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg        (T1);                      // T1 := return address 
     asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
@@ -259,15 +259,15 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
+    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffsetAsInt();
 
     // (1) Save hardware state of thread we are switching off of.
     asm.emitMOV_Reg_RegDisp  (S0, T0, regsOffset);      // S0 = T0.contextRegisters
     asm.emitPOP_RegDisp      (S0, ipOffset);            // T0.contextRegisters.ip = returnAddress
-    asm.emitPUSH_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset()); // push PR.framePointer
+    asm.emitPUSH_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffsetAsInt()); // push PR.framePointer
     asm.emitPOP_RegDisp      (S0, fpOffset);            // T0.contextRegisters.fp = pushed framepointer
     asm.emitADD_Reg_Imm      (SP, 8);                   // discard 2 words of parameters (T0, T1)
     asm.emitMOV_Reg_RegDisp  (S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
@@ -277,11 +277,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     }
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedField.getOffset(), 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
+    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedField.getOffsetAsInt(), 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
     
     // (3) Restore hardware state of thread we are switching to.
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), S0); // PR.framePointer = restoreRegs.fp
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffsetAsInt(), S0); // PR.framePointer = restoreRegs.fp
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
     asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := restoreRegs.gprs[#SP]
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
@@ -308,14 +308,14 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffsetAsInt();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerField.getOffset(),
+                                              VM_Entrypoints.framePointerField.getOffsetAsInt(),
                                               S0);
 
     // Restore SP
@@ -356,7 +356,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     // change processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), 
+    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffsetAsInt(), 
                                               VM_Processor.IN_NATIVE);
     
     // make the call...
@@ -376,23 +376,23 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
 
     // reload processor register from JNIEnvironment
-    VM_ProcessorLocalState.emitSetProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+    VM_ProcessorLocalState.emitSetProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt());
 
     // reload JTOC from vitual processor 
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocField.getOffset());
+                                              VM_Entrypoints.jtocField.getOffsetAsInt());
 
     // T0 gets PR.statusField
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.vpStatusField.getOffset());
+                                              VM_Entrypoints.vpStatusField.getOffsetAsInt());
 
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
     VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip over call to pthread yield
 
     // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
-    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
+    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());  // T0<-bootrecord addr
+    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffsetAsInt());
     asm.emitJMP_Imm (retryLabel);                          // retry from beginning
 
     fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
@@ -400,7 +400,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
     asm.emitMOV_Reg_Imm (T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
     VM_ProcessorLocalState.emitCompareAndExchangeField(asm, 
-                                                       VM_Entrypoints.vpStatusField.getOffset(),
+                                                       VM_Entrypoints.vpStatusField.getOffsetAsInt(),
                                                        T1); // atomic compare-and-exchange
     asm.emitJCC_Cond_Imm(asm.NE,retryLabel);
                                                                         

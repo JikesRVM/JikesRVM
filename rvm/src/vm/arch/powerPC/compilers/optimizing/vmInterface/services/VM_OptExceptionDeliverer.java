@@ -30,8 +30,8 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // store exception object for later retrieval by catch block
     VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
-    int offset = compiledMethod.getUnsignedExceptionOffset();
-    if (offset != 0) {
+    Offset offset = Offset.fromIntSignExtend(compiledMethod.getUnsignedExceptionOffset());
+    if (!offset.isZero()) {
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
       //  drop the exceptionObject on the floor).
@@ -59,24 +59,24 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
 
     // restore non-volatile registers
-    int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
+    Offset frameOffset = Offset.fromIntSignExtend(compiledMethod.getUnsignedNonVolatileOffset());
     int firstInteger = compiledMethod.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
       //-#if RVM_FOR_64_ADDR
-      frameOffset = (frameOffset + 7) & ~7;
+      frameOffset = frameOffset.add(7).toWord().and(Word.fromIntSignExtend(~7)).toOffset();
       //-#endif
       for (int i = firstInteger; i < 32; i++) {
-        registers.gprs.set(i, fp.add(frameOffset).loadWord());
-        frameOffset += BYTES_IN_ADDRESS;
+        registers.gprs.set(i, fp.loadWord(frameOffset));
+        frameOffset = frameOffset.add(BYTES_IN_ADDRESS);
       }
     }
     int firstFloat = compiledMethod.getFirstNonVolatileFPR();
     if (firstFloat >= 0) {
-      frameOffset = (frameOffset + 7) & ~7;  // align pointer for doubles
+      frameOffset = frameOffset.add(7).toWord().and(Word.fromIntSignExtend(~7)).toOffset();
       for (int i = firstFloat; i < 32; i++) {
         long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
         registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
-        frameOffset += BYTES_IN_DOUBLE;
+        frameOffset = frameOffset.add(BYTES_IN_DOUBLE);
       }
     }
 

@@ -610,7 +610,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(ObjectReference src, Address slot, 
-                                 ObjectReference tgt, int metaDataA, 
+                                 ObjectReference tgt, Offset metaDataA, 
                                  int metaDataB, int mode) throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(src))
@@ -638,8 +638,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public final boolean writeBarrier(ObjectReference src, int srcOffset,
-                                    ObjectReference dst, int dstOffset,
+  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                                    ObjectReference dst, Offset dstOffset,
                                     int bytes) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();

@@ -670,16 +670,16 @@ public class VM extends VM_Properties
   }
 
   private static int sysWriteLock = 0;
-  private static int sysWriteLockOffset = -1;
+  private static Offset sysWriteLockOffset = Offset.max();
 
   private static void swLock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
       ;
   }
 
   private static void swUnlock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
   }
 
@@ -743,7 +743,7 @@ public class VM extends VM_Properties
          *
          *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
          */  
-        write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+        write(VM_Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
       else
         write(value[i]);
     }
@@ -1026,6 +1026,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); swUnlock(); }
   public static void sysWriteln (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); swUnlock(); }
+  public static void sysWriteln (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); swUnlock(); }
   public static void sysWriteln (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); writeln(); swUnlock(); }
   public static void sysWrite   (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); swUnlock(); }
@@ -1040,6 +1042,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(  l1); swUnlock(); }
   public static void sysWriteln (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(l1); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); swUnlock(); }
+  public static void sysWriteln (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); swUnlock(); }
   public static void sysWriteln (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(  s3); swUnlock(); }

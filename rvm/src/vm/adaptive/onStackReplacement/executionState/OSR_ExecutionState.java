@@ -42,10 +42,10 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   public VM_Thread thread;
 
   /* the offset of frame pointer of the activation. */
-  public int fpOffset; 
+  public Offset fpOffset; 
 
   /* the callee (threadSwitch)'s frame pointer of this activation. */
-  public int tsFPOffset;
+  public Offset tsFPOffset;
 
   /* the compiled method id of the activation (a Java method
    * may have multiple version of compiled method */
@@ -56,10 +56,10 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   // initializer
   /////////////////////////////
   public OSR_ExecutionState(VM_Thread whichThread,
-                           int framePointerOffset,
+                           Offset framePointerOffset,
                            int compiledMethodID,
                            int pc,
-                           int tsFPOffset) {
+                           Offset tsFPOffset) {
     this.thread   = whichThread;
     this.fpOffset = framePointerOffset;
     this.cmid     = compiledMethodID;
@@ -89,7 +89,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     return this.thread;
   }
 
-  public int getFPOffset() {
+  public Offset getFPOffset() {
     return this.fpOffset;
   }
 
@@ -101,17 +101,17 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     return this.meth;
   }
 
-  public int getTSFPOffset() {
+  public Offset getTSFPOffset() {
     return this.tsFPOffset;
   }
 
   /* print the current state for debugging */
   public void printState() {
-    VM.sysWrite("Execution state of "+meth+"\n");
-    VM.sysWrite("    thread index : "+thread.getIndex()+"\n");
-    VM.sysWrite("       FP offset : "+fpOffset+"\n");
-    VM.sysWrite("            cmid : "+cmid+"\n");
-    VM.sysWrite("         bcIndex : "+bcIndex+"\n");
+    VM.sysWriteln("Execution state of "+meth);
+    VM.sysWriteln("    thread index : ",thread.getIndex());
+    VM.sysWriteln("       FP offset : ",fpOffset);
+    VM.sysWriteln("            cmid : ",cmid);
+    VM.sysWriteln("         bcIndex : ",bcIndex);
 
     for (int i=0, n=varElms.size(); i<n; i++) {
       OSR_VariableElement var = (OSR_VariableElement)varElms.get(i);

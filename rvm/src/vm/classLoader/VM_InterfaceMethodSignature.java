@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import java.util.HashMap;
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  *  An interface method signature is a pair of atoms: 
@@ -108,12 +109,12 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * 
    * @return offset in TIB/IMT
    */ 
-  public final int getIMTOffset() {
+  public final Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;
     if (VM.BuildForEmbeddedIMT) {
       slot += TIB_FIRST_INTERFACE_METHOD_INDEX;
     }
-    return slot << LOG_BYTES_IN_ADDRESS;
+    return Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_ADDRESS);
   }
 }

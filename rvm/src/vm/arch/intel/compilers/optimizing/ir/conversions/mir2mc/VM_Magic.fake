@@ -7,5 +7,5 @@ package com.ibm.JikesRVM;
  * @author Dave Grove 
  */
 class VM_Magic {
-  public static void setIntAtOffset(Object o, int x, int y) { } 
+  public static void setIntAtIntOffset(Object o, int x, int y) { } 
 }

@@ -162,7 +162,7 @@ class GenerateInterfaceDeclarations {
   private static class SortableField implements Comparable {
     final VM_Field f;
     final int offset;
-    SortableField (VM_Field ff) { f = ff; offset = f.getOffset(); }
+    SortableField (VM_Field ff) { f = ff; offset = f.getOffsetAsInt(); }
     public int compareTo (Object y) {
       if (y instanceof SortableField) {
         int offset2 = ((SortableField) y).offset;
@@ -204,7 +204,7 @@ class GenerateInterfaceDeclarations {
     // Header Space for objects
     int startOffset = VM_ObjectModel.objectStartOffset(cls);
     int current = startOffset;
-    for(int i = 0; current < fields[0].f.getOffset(); i++) {
+    for(int i = 0; current < fields[0].f.getOffsetAsInt(); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
       current += 4; 
     }
@@ -212,7 +212,7 @@ class GenerateInterfaceDeclarations {
     for (int i = 0; i<fields.length; i++) {
       VM_Field field = fields[i].f;
       VM_TypeReference t = field.getType();
-      int offset = field.getOffset();
+      int offset = field.getOffsetAsInt();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
       if (needsAlign && current + 4 == offset) {
@@ -478,7 +478,7 @@ class GenerateInterfaceDeclarations {
     // values in VM_ObjectModel
     //
     pln("static const int VM_ObjectModel_ARRAY_LENGTH_OFFSET = " + 
-                       VM_ObjectModel.getArrayLengthOffset() + "\n;");
+                       VM_ObjectModel.getArrayLengthOffset().toInt() + "\n;");
 
     // values in VM_Scheduler
     //
@@ -585,102 +585,101 @@ class GenerateInterfaceDeclarations {
     // fields in VM_Processor
     //
     int offset;
-    offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
+    offset = VM_Entrypoints.timeSliceExpiredField.getOffsetAsInt();
     p("static const int VM_Processor_timeSliceExpired_offset = "
         + offset + ";\n");
-    offset = VM_Entrypoints.takeYieldpointField.getOffset();
+    offset = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
     p("static const int VM_Processor_takeYieldpoint_offset = "
         + offset + ";\n");
-    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
-    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+    offset = VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt();
     p("static const int VM_Processor_activeThreadStackLimit_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.pthreadIDField.getOffset();
+    offset = VM_Entrypoints.pthreadIDField.getOffsetAsInt();
     p("static const int VM_Processor_pthread_id_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.timerTicksField.getOffset();
+    offset = VM_Entrypoints.timerTicksField.getOffsetAsInt();
     p("static const int VM_Processor_timerTicks_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
+    offset = VM_Entrypoints.reportedTimerTicksField.getOffsetAsInt();
     p("static const int VM_Processor_reportedTimerTicks_offset = "
                     + offset + ";\n");
-    offset = VM_Entrypoints.activeThreadField.getOffset();
+    offset = VM_Entrypoints.activeThreadField.getOffsetAsInt();
     p("static const int VM_Processor_activeThread_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.threadIdField.getOffset();
+    offset = VM_Entrypoints.threadIdField.getOffsetAsInt();
     p("static const int VM_Processor_threadId_offset = "
                      + offset + ";\n");
     //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.framePointerField.getOffset();
+    offset = VM_Entrypoints.framePointerField.getOffsetAsInt();
     p("static const int VM_Processor_framePointer_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.jtocField.getOffset();
+    offset = VM_Entrypoints.jtocField.getOffsetAsInt();
     p("static const int VM_Processor_jtoc_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
+    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffsetAsInt();
     p("static const int VM_Processor_arrayIndexTrapParam_offset = "
                      + offset + ";\n");
     //-#endif
 
     // fields in VM_Thread
     //
-    offset = VM_Entrypoints.threadStackField.getOffset();
+    offset = VM_Entrypoints.threadStackField.getOffsetAsInt();
     p("static const int VM_Thread_stack_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.stackLimitField.getOffset();
+    offset = VM_Entrypoints.stackLimitField.getOffsetAsInt();
     p("static const int VM_Thread_stackLimit_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
+    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffsetAsInt();
     p("static const int VM_Thread_hardwareExceptionRegisters_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.jniEnvField.getOffset();
+    offset = VM_Entrypoints.jniEnvField.getOffsetAsInt();
     p("static const int VM_Thread_jniEnv_offset = "
                      + offset + ";\n");
 
     // fields in VM_Registers
     //
-    offset = VM_Entrypoints.registersGPRsField.getOffset();
+    offset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
     p("static const int VM_Registers_gprs_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.registersFPRsField.getOffset();
+    offset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
     p("static const int VM_Registers_fprs_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.registersIPField.getOffset();
+    offset = VM_Entrypoints.registersIPField.getOffsetAsInt();
     p("static const int VM_Registers_ip_offset = " + offset + ";\n");
     //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.registersFPField.getOffset();
+    offset = VM_Entrypoints.registersFPField.getOffsetAsInt();
     p("static const int VM_Registers_fp_offset = " + offset + ";\n");
     //-#endif
     //-#if RVM_FOR_POWERPC
-    offset = VM_Entrypoints.registersLRField.getOffset();
+    offset = VM_Entrypoints.registersLRField.getOffsetAsInt();
     p("static const int VM_Registers_lr_offset = " + offset + ";\n");
     //-#endif
 
-    offset = VM_Entrypoints.registersInUseField.getOffset();
+    offset = VM_Entrypoints.registersInUseField.getOffsetAsInt();
     p("static const int VM_Registers_inuse_offset = " + 
                      offset + ";\n");
 
     // fields in VM_JNIEnvironment
-    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
+    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt();
     p("static const int VM_JNIEnvironment_JNIExternalFunctions_offset = " +
       offset + ";\n");
 
     // fields in java.net.InetAddress
     //
-    offset = VM_Entrypoints.inetAddressAddressField.getOffset();
+    offset = VM_Entrypoints.inetAddressAddressField.getOffsetAsInt();
     p("static const int java_net_InetAddress_address_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
+    offset = VM_Entrypoints.inetAddressFamilyField.getOffsetAsInt();
     p("static const int java_net_InetAddress_family_offset = "
                      + offset + ";\n");
 
     // fields in java.net.SocketImpl
     //
-    offset = VM_Entrypoints.socketImplAddressField.getOffset();
+    offset = VM_Entrypoints.socketImplAddressField.getOffsetAsInt();
     p("static const int java_net_SocketImpl_address_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.socketImplPortField.getOffset();
+    offset = VM_Entrypoints.socketImplPortField.getOffsetAsInt();
     p("static const int java_net_SocketImpl_port_offset = "
                      + offset + ";\n");
 
     // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
-    offset = VM_Entrypoints.gcStatusField.getOffset();
+    offset = VM_Entrypoints.gcStatusField.getOffsetAsInt();
     p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = "
                      + offset + ";\n");
   }

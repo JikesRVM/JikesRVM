@@ -146,7 +146,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
             }
             OPT_MemoryOperand mo = 
               OPT_MemoryOperand.BD(R(phys.getPR()),
-                                   VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
+                                   VM_Entrypoints.arrayIndexTrapParamField.getOffsetAsInt(),
                                    (byte)4, 
                                    null, 
                                    null);
@@ -369,7 +369,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // change thread switch instruction into call to thread switch routine
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
-    int offset = meth.getOffset();
+    int offset = meth.getOffsetAsInt();
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
@@ -384,7 +384,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.takeYieldpointField.getOffset();
+    int tsr = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, ypCond,
@@ -414,7 +414,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // change thread switch instruction into call to thread switch routine
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
-    int offset = meth.getOffset();
+    int offset = meth.getOffsetAsInt();
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 

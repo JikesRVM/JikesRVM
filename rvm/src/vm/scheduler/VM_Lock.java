@@ -323,8 +323,8 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     if (t != null) t.scheduleHighPriority();
     else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
       // Possible project: decide on a heuristic to control when lock should be deflated
-      int lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
-      if (lockOffset != -1) { // deflate heavy lock
+      Offset lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
+      if (!lockOffset.isMax()) { // deflate heavy lock
         deflate(o, lockOffset);
         deflated = true;
       }
@@ -342,7 +342,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    *
    * @param o the object from which this lock is to be disassociated
    */
-  private void deflate (Object o, int lockOffset) {
+  private void deflate (Object o, Offset lockOffset) {
     if (VM.VerifyAssertions) {
       VM._assert(lockedObject == o);
       VM._assert(recursionCount == 0);
@@ -591,7 +591,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     VM.sysWrite("Lock "); VM.sysWriteInt(index); VM.sysWrite(":\n");
     VM.sysWrite(" lockedObject: 0x"); VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject)); 
     VM.sysWrite("   thin lock = "); 
-    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset()).loadAddress());
+    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject).loadAddress(VM_ObjectModel.defaultThinLockOffset()));
     VM.sysWrite("\n");
 
     VM.sysWrite(" ownerId: "); VM.sysWriteInt(ownerId); VM.sysWrite(" recursionCount: "); VM.sysWriteInt(recursionCount); VM.sysWrite("\n");
@@ -632,8 +632,8 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    */
   static boolean owns(Object o, int tid) {
     com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);
-    int thinLockOffset = t.getThinLockOffset();
-    if (thinLockOffset == -1) {
+    Offset thinLockOffset = t.getThinLockOffset();
+    if (thinLockOffset.isMax()) {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);
       return l != null && l.ownerId == tid;
     } else {

@@ -233,7 +233,7 @@ public class ReferenceGlue implements Uninterruptible {
    * @return the referent address
    */
   public static ObjectReference getReferent(Address addr) {
-    return addr.loadObjectReference(Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
+    return addr.loadObjectReference(VM_Entrypoints.referenceReferentField.getOffset());
   }
   
   /**
@@ -243,16 +243,16 @@ public class ReferenceGlue implements Uninterruptible {
    * @param referent the referent address
    */
   public static void setReferent(Address addr, ObjectReference referent) {
-    addr.store(referent, Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
+    addr.store(referent, VM_Entrypoints.referenceReferentField.getOffset());
   }
   
   private static Address getNextReferenceAsAddress(Address ref) {
-    return ref.loadAddress(Offset.fromInt(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
+    return ref.loadAddress(VM_Entrypoints.referenceNextAsAddressField.getOffset());
   }
   
   private static void setNextReferenceAsAddress(Address ref,
                                                 Address next) {
-    ref.store(next, Offset.fromInt(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
+    ref.store(next, VM_Entrypoints.referenceNextAsAddressField.getOffset());
   }
 
   /***********************************************************************

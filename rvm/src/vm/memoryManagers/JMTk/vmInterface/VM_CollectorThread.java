@@ -318,7 +318,7 @@ public class VM_CollectorThread extends VM_Thread {
       
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
-      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
+      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
       long startCycles = VM_Time.cycles();
       
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);

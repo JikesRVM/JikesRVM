@@ -608,7 +608,7 @@ public class BootImageWriter extends BootImageWriterMessages
                                                           startupStack.length);
     bootRecord.ipRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupCode.getBacking()));
 
-    bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
+    bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffsetAsInt();
 
     bootRecord.bootImageStart = bootImageAddress;
     bootRecord.bootImageEnd   = bootImageAddress.add(bootImage.getSize());
@@ -629,10 +629,10 @@ public class BootImageWriter extends BootImageWriterMessages
 
     //-#if RVM_WITH_GCTRACE
     /* Set the values in fields updated during the build process */
-    int prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
+    int prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffsetAsInt();
     bootImage.setAddressWord(jtocImageOffset + prevAddrOffset, 
                              VM_MiscHeader.getBootImageLink().toWord());
-    int oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
+    int oIDOffset = VM_Entrypoints.traceOIDField.getOffsetAsInt();
     bootImage.setAddressWord(jtocImageOffset + oIDOffset, 
                              VM_MiscHeader.getOID());
     //-#endif
@@ -1104,7 +1104,7 @@ public class BootImageWriter extends BootImageWriterMessages
         for (int j = 0; j < rvmFields.length; ++j) {
           VM_Field rvmField     = rvmFields[j];
           VM_TypeReference rvmFieldType = rvmField.getType();
-          int      rvmFieldSlot = (rvmField.getOffset() >>> 2);
+          int      rvmFieldSlot = (rvmField.getOffsetAsInt() >>> 2);
           String   rvmFieldName = rvmField.getName().toString();
           Field    jdkFieldAcc  = null;
 
@@ -1482,7 +1482,7 @@ public class BootImageWriter extends BootImageWriterMessages
         for (int i = 0, n = rvmFields.length; i < n; ++i) {
           VM_Field rvmField       = rvmFields[i];
           VM_TypeReference rvmFieldType   = rvmField.getType();
-          int      rvmFieldOffset = scalarImageOffset + rvmField.getOffset();
+          int      rvmFieldOffset = scalarImageOffset + rvmField.getOffsetAsInt();
           String   rvmFieldName   = rvmField.getName().toString();
           Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
 
@@ -1889,7 +1889,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // written.
 
     VM_Member remapper = VM_Entrypoints.magicObjectRemapperField;
-    int remapperIndex = remapper.getOffset() >>> 2;
+    int remapperIndex = remapper.getOffsetAsInt() >>> 2;
     VM_Statics.setSlotContents(remapperIndex, 0);
   }
 
@@ -1961,7 +1961,7 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_Field rvmFields[] = types[i].getStaticFields();
       for (int j = 0; j < rvmFields.length; ++j) {
         VM_Field rvmField = rvmFields[j];
-        if ((rvmField.getOffset() >>> 2) == jtocSlot)
+        if ((rvmField.getOffsetAsInt() >>> 2) == jtocSlot)
           return rvmField.getDeclaringClass() + "." + rvmField.getName();
       }
     }
