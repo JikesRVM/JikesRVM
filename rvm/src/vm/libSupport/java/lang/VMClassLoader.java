@@ -23,18 +23,19 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 final class VMClassLoader {
 
   static final Class defineClass(ClassLoader cl, String name, 
-                                 byte[] data, int offset, int len) 
-    throws ClassFormatError {
+                                 byte[] data, int offset, int len,
+                                 ProtectionDomain pd) 
+    throws ClassFormatError 
+  {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
-    return vmType.getClassForType();
+    return vmType.createClassForType(pd);
   }
 
   static final Class defineClass(ClassLoader cl, String name,
-                                 byte[] data, int offset, int len,
-                                 ProtectionDomain pd) throws ClassFormatError {
-    Class c = defineClass(cl, name, data, offset, len);
-    JikesRVMSupport.setClassProtectionDomain(c, pd);
-    return c;
+                                 byte[] data, int offset, int len)
+    throws ClassFormatError 
+  {
+    return defineClass(cl, name, data, offset, len, null);
   }
 
   static final void resolveClass(Class c) {
