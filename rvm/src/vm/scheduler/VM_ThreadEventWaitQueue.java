@@ -52,14 +52,14 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
   /**
    * Dump state for debugging.
    */
-  void dump() {
+  void dump() throws VM_PragmaInterruptible {
     dump(" ");
   }
  
   /**
    * Dump state for debugging.
    */
-  void dump(String prefix) {
+  void dump(String prefix) throws VM_PragmaInterruptible {
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
       VM.sysWrite(t.getIndex(), false);
@@ -73,13 +73,13 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
-  abstract void dumpWaitDescription(VM_Thread thread);
+  abstract void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
 
   /**
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  abstract String getWaitDescription(VM_Thread thread);
+  abstract String getWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
 
   /**
    * Check to see if any threads are ready to run, either because

@@ -4,7 +4,6 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.classloader.*;
@@ -642,7 +641,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
 	      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
 		int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-		method = VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+		method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
 		VM_LineNumberMap lmap = method.getLineNumberMap();
 		lineNumber = (lmap == null) ? 0 : lmap.getLineNumberForBCIndex(bci);
 		writeString("   ");
@@ -709,7 +708,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /**
    * Dump state of virtual machine.
    */ 
-  public static void dumpVirtualMachine() {
+  public static void dumpVirtualMachine() throws VM_PragmaInterruptible {
     VM_Processor processor;
     writeString("\n-- Processors --\n");
     for (int i = 1; i <= numProcessors; ++i) {
