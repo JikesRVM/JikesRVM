@@ -116,34 +116,6 @@ public class MarkSweepHeader {
   }
 
   /**
-   * Write a given value in the mark bit of an object
-   *
-   * @param ref The object whose mark bit is to be written
-   * @param value The value to which the mark bit will be set
-   */
-  public static void writeMarkBit(VM_Address ref, VM_Word value)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Word oldValue = VM_Interface.readAvailableBitsWord(ref);
-    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(value);
-    VM_Interface.writeAvailableBitsWord(ref,newValue);
-  }
-
-  /**
-   * Atomically write a given value in the mark bit of an object
-   *
-   * @param ref The object whose mark bit is to be written
-   * @param value The value to which the mark bit will be set
-   */
-  public static void atomicWriteMarkBit(VM_Address ref, VM_Word value)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Word oldValue, newValue;
-    do {
-      oldValue = VM_Interface.prepareAvailableBits(ref);
-      newValue = oldValue.and(MARK_BIT_MASK.not()).or(value);
-    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,newValue));
-  }
-
-  /**
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
    *

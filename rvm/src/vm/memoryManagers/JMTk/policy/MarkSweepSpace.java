@@ -145,23 +145,22 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
-    if (MarkSweepHeader.testAndMark(object, markState)) {
+    if (MarkSweepLocal.testAndMarkLiveObject(object)) {
       if (Plan.GATHER_MARK_CONS_STATS)
 	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
-      MarkSweepLocal.liveObject(object);
       VM_Interface.getPlan().enqueue(object);
     }
     return object;
   }
-
+  
   /**
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(VM_Address obj)
+   public boolean isLive(VM_Address object)
     throws VM_PragmaInline {
-     return MarkSweepHeader.testMarkBit(obj, markState);
+     return MarkSweepLocal.isLiveObject(object);
    }
 
   /****************************************************************************
