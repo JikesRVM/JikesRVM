@@ -2523,7 +2523,7 @@ function run () {
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "function run_booter_cxx () { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 \$CC_DEFINES \"\$@\"; }"
+	echo "function run_booter_cxx () { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES \"\$@\"; }"
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
     fi
