@@ -142,10 +142,15 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
      return false;
      }
      
-  public void dump()
-     {
-     for (VM_Thread t = head; t != null; t = t.next)
-        t.dump();
-     VM.sysWrite("\n");
-     }
+  public void dump() {
+    // We shall space-separate them, for compactness.  
+    // I hope this is a good decision.
+    boolean pastFirst = false;
+    for (VM_Thread t = head; t != null; t = t.next) {
+      if (pastFirst)
+	VM.sysWrite(" ");
+      t.dump();
+      pastFirst = true;
+    }
+    VM.sysWrite("\n");
 }
