@@ -114,7 +114,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public boolean processAsOption(String prefix, String arg) {
+  public boolean processAsOption(String prefix, String arg)  throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -317,7 +317,7 @@ $$$$ END LOOP
     VM.sysWrite(toString());
   }
 
-  public String toString() {
+  public String toString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
     String s = printToStringHeader();
     //Begin generated option value printing 
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
