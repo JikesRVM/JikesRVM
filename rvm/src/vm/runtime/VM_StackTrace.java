@@ -184,7 +184,6 @@ public class VM_StackTrace implements VM_Constants {
    *  If null, then we print a full stack trace, without eliding the
    *  methods used internally to gather the stack trace.
    */
-
   public void print(PrintLN out, Throwable trigger) {
     //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
 
@@ -197,7 +196,11 @@ public class VM_StackTrace implements VM_Constants {
     // --> at com.ibm.JikesRVM.VM_Thread.startoff (VM_Thread.java:710)
     // so we can skip them, right?  If this was not the right thing to do,
     // please tell me. --Steve Augart
-    lastFrame -= 2;
+    // True for main thread, but if the program spawns other threads than
+    // this isn't the case. We can always cut the VM_Thread.startoff frame
+    // every thread (I think), but for threads other than the main thread, 
+    // the second frame is actually interesting. --dave
+    lastFrame -= 1;
     
     if (trigger != null) {
       Class triggerClass = trigger.getClass();
@@ -220,6 +223,14 @@ public class VM_StackTrace implements VM_Constants {
     }
     /* foundTriggerAt should either be between 0 and lastFrame
        or it should be -1. */
+
+    /* Now check to see if the triggering frame is VM_Runtime.deliverHardwareException.
+       If it is, then skip two more frames to avoid showing it and the
+       <hardware trap> frame that called it */
+    VM_CompiledMethod bottom = compiledMethods[foundTriggerAt +1];
+    if (bottom.getMethod() == VM_Entrypoints.deliverHardwareExceptionMethod) {
+      foundTriggerAt += 2;
+    }
 
     /* Now we can start printing frames. */
     int nPrinted = 0;		// how many frames have we printed?
