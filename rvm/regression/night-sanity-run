@@ -337,7 +337,11 @@ elif (( numfailed == 0 )); then
 else
     subject="Failed $numfailed tests"
 fi
-machineArch=`uname-p`
+if [[ $ARCH = 'AIX' ]]; then
+  machineArch=`uname -p`
+else
+  machineArch=`uname -m`
+fi
 subject="[$ARCH/$machineArch] regression $subject"
 if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
