@@ -58,9 +58,8 @@ class Exhaust {
       junk[cursor++] = new byte[(int) size];
       tot += size;
       wasAllocating = 0;
-      o.println("growthFactor = " + growthFactor);
       size *= growthFactor;
-      o.println("Size = " + size);
+      o.println("growthFactor = " + growthFactor + "     Size = " + size);
     }
     return size;
   }
