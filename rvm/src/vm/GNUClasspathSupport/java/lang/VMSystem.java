@@ -4,6 +4,11 @@
 //$Id$
 package java.lang;
 
+import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.classloader.VM_Atom;
+import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_Field;
+
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
 
 import java.lang.reflect.Field;
@@ -41,8 +46,13 @@ final class VMSystem
 
   static void setIn(InputStream in) {
       try {
-	  Field inField = Class.forName("java.lang.System").getField("in");
-	  inField.set(null, in);
+	  VM_Field inField = 
+	      ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+	          .findDeclaredField( 
+		      VM_Atom.findOrCreateUnicodeAtom("in"), 
+		      VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
+
+	  inField.setObjectValue(null, in);
       } catch (Exception e) {
 	  throw new Error( e.toString() );
       }
@@ -50,8 +60,13 @@ final class VMSystem
 
   static void setOut(PrintStream out) {
       try {
-	  Field outField = Class.forName("java.lang.System").getField("out");
-	  outField.set(null, out);
+	  VM_Field outField = 
+	      ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+	          .findDeclaredField( 
+		      VM_Atom.findOrCreateUnicodeAtom("out"), 
+		      VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
+
+	  outField.setObjectValue(null, out);
       } catch (Exception e) {
 	  throw new Error( e.toString() );
       }
@@ -59,8 +74,13 @@ final class VMSystem
 
   static void setErr(PrintStream err) {
       try {
-	  Field errField = Class.forName("java.lang.System").getField("err");
-	  errField.set(null, err);
+	  VM_Field errField = 
+	      ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+	          .findDeclaredField( 
+		      VM_Atom.findOrCreateUnicodeAtom("err"), 
+		      VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
+
+	  errField.setObjectValue(null, err);
       } catch (Exception e) {
 	  throw new Error( e.toString() );
       }
@@ -71,5 +91,16 @@ final class VMSystem
     static PrintStream makeStandardOutputStream() { return null; }
 
     static PrintStream makeStandardErrorStream() { return null; }
+
+    static String internString(String string) {
+	try {
+	    return (String)
+		VM_Statics.getSlotContentsAsObject( 
+		    VM_Statics.findOrCreateStringLiteral( 
+			VM_Atom.findOrCreateUnicodeAtom( string ) ) );
+	} catch (UTFDataFormatException ex) {
+	    throw new InternalError( ex.toString() );
+	}
+    }
 
 }

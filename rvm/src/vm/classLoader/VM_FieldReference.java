@@ -88,7 +88,13 @@ public final class VM_FieldReference extends VM_MemberReference {
    * For use by VM_Field constructor
    */
   final void setResolvedMember(VM_Field it) {
-    if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
+      
+      if (it.toString().startsWith("javax.naming.NamingException.rootException")) (new Throwable()).printStackTrace();
+
+    if (VM.VerifyAssertions && resolvedMember != null)
+	VM._assert(false,
+		   "non-null " + resolvedMember + " of " + this + 
+		   " when trying to set it to " + it);
     resolvedMember = it;
   }
 

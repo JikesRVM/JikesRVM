@@ -111,39 +111,90 @@ public final class Field extends AccessibleObject implements Member {
 	return getName().hashCode();
     }
 
-    public void set(Object object, Object value) throws IllegalAccessException, IllegalArgumentException {
-	ReflectionSupport.setField(this,object,value);
+    private void checkWriteAccess(Object obj) 
+	throws IllegalAccessException, IllegalArgumentException 
+    {
+	if (! field.isStatic()) {
+	    if (obj == null)
+		throw new NullPointerException();
+
+	    if (!field.getDeclaringClass().getClassForType().isInstance(obj))
+		throw new IllegalArgumentException();
+	}
+
+	if (field.isFinal())
+	    throw new IllegalAccessException();
     }
 
-    public void setBoolean(Object object, boolean value) throws IllegalAccessException, IllegalArgumentException {
+    public void set(Object object, Object value) 
+	throws IllegalAccessException, IllegalArgumentException 
+    {
+	checkWriteAccess(object);
+	
+	ReflectionSupport.setField(this,object,value);
+    }
+    
+    public void setBoolean(Object object, boolean value) 
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setBooleanValue( object, value );
     }
 
-    public void setByte(Object object, byte value) throws IllegalAccessException, IllegalArgumentException {
+    public void setByte(Object object, byte value) 
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setByteValue( object, value );
     }
 
-    public void setChar(Object object, char value) throws IllegalAccessException, IllegalArgumentException {
+    public void setChar(Object object, char value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setCharValue( object, value );
     }
 
-    public void setDouble(Object object, double value) throws IllegalAccessException, IllegalArgumentException {
+    public void setDouble(Object object, double value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setDoubleValue( object, value );
     }
 
-    public void setFloat(Object object, float value) throws IllegalAccessException, IllegalArgumentException {
+    public void setFloat(Object object, float value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setFloatValue( object, value );
     }
 
-    public void setInt(Object object, int value) throws IllegalAccessException, IllegalArgumentException {
+    public void setInt(Object object, int value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setIntValue( object, value );
     }
 
-    public void setLong(Object object, long value) throws IllegalAccessException, IllegalArgumentException {
+    public void setLong(Object object, long value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setLongValue( object, value );
     }
 
-    public void setShort(Object object, short value) throws IllegalAccessException, IllegalArgumentException {
+    public void setShort(Object object, short value)
+	throws IllegalAccessException, IllegalArgumentException
+    {
+	checkWriteAccess(object);
+
 	field.setShortValue( object, value );
     }
 
