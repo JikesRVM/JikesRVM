@@ -1244,6 +1244,29 @@ implements OPT_Operators {
   }
 
   /**
+   * Return a FPR that does not appear in instruction s, and is dead
+   * before instruction s.
+   * Except, do NOT
+   * return any register that is a member of the reserved set.
+   *
+   * Return null if none found
+   */ 
+  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Instruction s, 
+                                                HashSet reserved) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+
+    // first try the volatiles
+    for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
+        if (isDeadBefore(r,s)) return r;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Return a GPR that does not appear in instruction s.  
    * Except, do NOT
    * return any register that is a member of the reserved set.
@@ -1271,6 +1294,36 @@ implements OPT_Operators {
     }
     OPT_OptimizingCompilerException.TODO(
                                          "Could not find a free GPR in spill situation");
+    return null;
+  }
+
+  /**
+   * Return a GPR that does not appear in instruction s, and is dead
+   * before instruction s.  
+   * Except, do NOT
+   * return any register that is a member of the reserved set.
+   *
+   * return null if none found
+   */ 
+  private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Instruction s, 
+                                                HashSet reserved) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    // first try the volatiles
+    for (Enumeration e = phys.enumerateVolatileGPRs();
+         e.hasMoreElements(); ) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
+        if (isDeadBefore(r,s)) return r;
+      }
+    }
+    // next try the non-volatiles
+    for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+         e.hasMoreElements(); ) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
+        if (isDeadBefore(r,s)) return r;
+      }
+    }
     return null;
   }
 
@@ -1478,9 +1531,26 @@ implements OPT_Operators {
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
-      phys = getFirstFPRNotUsedIn(s,reservedScratch);
+      phys = getFirstDeadFPRNotUsedIn(s,reservedScratch);
     } else {
-      phys = getFirstGPRNotUsedIn(s,reservedScratch);
+      phys = getFirstDeadGPRNotUsedIn(s,reservedScratch);
+    }
+    // The following is a horrendous hack.  For unknown reasons, applying this
+    // optimization to a boot image with assertions turned off causes the
+    // resultant image to crash.  TODO: come back and address this problem
+    // when jdp works and problems with building FastBase images are
+    // fixed.
+    if (VM.writingBootImage && !VM.VerifyAssertions) {
+      phys = null;
+    }
+
+    // if the version above failed, default to the dumber heuristics
+    if (phys == null) {
+      if (r.isFloatingPoint()) {
+        phys = getFirstFPRNotUsedIn(s,reservedScratch);
+      } else {
+        phys = getFirstGPRNotUsedIn(s,reservedScratch);
+      }
     }
     return createScratchBefore(s,phys,r);
   }
