@@ -101,12 +101,18 @@ No. This project is not supported.
 \link{The {\tt jdp} debugger is no longer maintained.}[ See
 Section~\Ref{} (page~\Pageref) for more details.]{section:debugging}
 
+\xname{faq_building}
 \subsection{Building \jrvm}
 
 
 \subsubsection{What's the right value to use for
 \varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} }%
-\label{singleProcessorQuestion}
+\label{singleProcessorQuestion}%
+\cindex[varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR}]{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR}%
+\cindex[m-to-n threading]{$m$-to-$n$ threading}%
+\index{threading}%
+\index{GS Segment register}
+
 
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
 threading.  In $m$-to-$n$ threading
@@ -160,15 +166,25 @@ option to use the GS segment register to address certain pthread-specific
 state.  Otherwise, \texttt{glibc} attempts to use stack-pointer
 arithmetic to find pthread-specific state, which fails once we bash the stack.
 
-On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, \texttt{glibc} is built with this option by
-default, but it is possible that other Linux distributions do not do
-this.  On Red Hat Linux, the libs built with GS segment addressing are
+On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, \texttt{glibc} is
+built with this option by default.  On
+Debian\Rweb{} GNU/Linux, as of this writing (6 May 2004), the version of x86
+\texttt{libc6} in the Debian Woody distribution does not use
+GS-segment addressing.  Debian/Sarge will use GS-segment addressing on
+2.6 Linux kernels, but will not use it on 2.4 and 2.2 kernels.  If you have
+information on whether other Linux distributions do this, please
+send it to us for inclusion in this user's guide.  On Red Hat Linux, the libs built with GS segment addressing are
 located in /lib/i686/*.so, and one can use ``\texttt{ldd
   \$RVM\_BUILD/JikesRVM}'' to check whether the \texttt{JikesRVM} boot
-image runner is linked against those libraries or not.
+image runner is linked against those libraries or not.  
 
 \subsubsection{How do I know if my x86 \texttt{glibc} uses the GS
-  segment register to access pthread-specific state?}
+  segment register to access pthread-specific state?}%
+\cindex[glibc version]{\texttt{glibc} version}%
+\index{GS-Segment addressing}%
+\index{thread-specific state}%
+\index{pthread-specific state}
+
 
 Start by trying to determine whether your \texttt{glibc} has been
 built to use the GS segment 
@@ -179,8 +195,7 @@ anything that looks like it is using GS-segment addressing, such as:
 mov %gs:0x50,%eax
 \end{verbatim}
 If it does not, then you have a bad version of \texttt{glibc}.   You
-can use \texttt{objdump} to disassemble.
-
+can use \texttt{objdump} to perform disassembly.
 
 \subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.19
