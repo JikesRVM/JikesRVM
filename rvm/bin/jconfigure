@@ -1265,7 +1265,6 @@ function emitCompiler
    fi
    print '   print -n "(classes compiled) "'
    print ""
-   . $RVM_HOST_CONFIG
    print "   rm -f jksvm.jar"
    print "   $HOST_JAR cvf0 jksvm.jar Dummy.class > /dev/null 2>&1"
    print "   $FIND . -name '*.class' | xargs $HOST_JAR uvf0 jksvm.jar > /dev/null 2>&1"
