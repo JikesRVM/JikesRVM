@@ -384,6 +384,22 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     if (VM_Processor.getCurrentProcessor().timeSliceExpired != 0) {
       VM_Processor.getCurrentProcessor().timeSliceExpired = 0;
       
+      if (VM.CBSCallSamplesPerTick > 0) {
+        VM_Processor.getCurrentProcessor().yieldForCBSCall = true;
+        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
+        VM_Processor.getCurrentProcessor().firstCBSCallSample = (++VM_Processor.getCurrentProcessor().firstCBSCallSample) % VM.CBSCallSampleStride;
+        VM_Processor.getCurrentProcessor().countdownCBSCall = VM_Processor.getCurrentProcessor().firstCBSCallSample;
+        VM_Processor.getCurrentProcessor().numCBSCallSamples = VM.CBSCallSamplesPerTick;
+      }
+      
+      if (VM.CBSMethodSamplesPerTick > 0) {
+        VM_Processor.getCurrentProcessor().yieldForCBSMethod = true;
+        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
+        VM_Processor.getCurrentProcessor().firstCBSMethodSample = (++VM_Processor.getCurrentProcessor().firstCBSMethodSample) % VM.CBSMethodSampleStride;
+        VM_Processor.getCurrentProcessor().countdownCBSMethod = VM_Processor.getCurrentProcessor().firstCBSMethodSample;
+        VM_Processor.getCurrentProcessor().numCBSMethodSamples = VM.CBSMethodSamplesPerTick;
+      }
+      
       if (++VM_Processor.getCurrentProcessor().interruptQuantumCounter >= VM.schedulingMultiplier) {
         threadSwitch = true;
         VM_Processor.getCurrentProcessor().interruptQuantumCounter = 0;
@@ -418,14 +434,75 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       VM_RuntimeMeasurements.takeTimerSample(whereFrom);
       //-#endif
 
+      if (threadSwitch && (VM_Processor.getCurrentProcessor().yieldForCBSMethod ||
+			   VM_Processor.getCurrentProcessor().yieldForCBSCall)) {
+        // want to sample the current thread, not the next one to be scheduled
+        // So, defer actual threadswitch until we take all of our samples
+        VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = true;
+        threadSwitch = false;
+      }
+
       //-#if RVM_WITH_OSR
       threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
+      if (threadSwitch) {
+        VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
+        VM_Processor.getCurrentProcessor().yieldForCBSCall = false; 
+        VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
+      }        
       //-#endif
     }
 
+    if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
+      if (!(whereFrom == BACKEDGE || whereFrom == OSROPT)) {
+        if (--VM_Processor.getCurrentProcessor().countdownCBSCall <= 0) {
+          // take CBS sample
+          //-#if RVM_WITH_ADAPTIVE_SYSTEM
+          VM_RuntimeMeasurements.takeCBSCallSample(whereFrom);
+          //-#endif
+          VM_Processor.getCurrentProcessor().countdownCBSCall = VM.CBSCallSampleStride;
+          VM_Processor.getCurrentProcessor().numCBSCallSamples--;
+          if (VM_Processor.getCurrentProcessor().numCBSCallSamples <= 0) {
+            VM_Processor.getCurrentProcessor().yieldForCBSCall = false;
+            if (!VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
+              VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
+              threadSwitch = true;
+            }
+          
+          }
+        }
+      }
+      if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
+        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
+      }
+    }
+    
+    if (VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
+      if (--VM_Processor.getCurrentProcessor().countdownCBSMethod <= 0) {
+        // take CBS sample
+        //-#if RVM_WITH_ADAPTIVE_SYSTEM
+        VM_RuntimeMeasurements.takeCBSMethodSample(whereFrom);
+        //-#endif
+        VM_Processor.getCurrentProcessor().countdownCBSMethod = VM.CBSMethodSampleStride;
+        VM_Processor.getCurrentProcessor().numCBSMethodSamples--;
+        if (VM_Processor.getCurrentProcessor().numCBSMethodSamples <= 0) {
+          VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
+          if (!VM_Processor.getCurrentProcessor().yieldForCBSCall) {
+            VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
+            threadSwitch = true;
+          }
+        }
+      }
+      if (VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
+        VM_Processor.getCurrentProcessor().takeYieldpoint = 1;
+      }
+    }
+    
     // Process request to initiate GC by forcing a thread switch.
     if (VM_Processor.getCurrentProcessor().yieldToGCRequested) {
       VM_Processor.getCurrentProcessor().yieldToGCRequested = false;
+      VM_Processor.getCurrentProcessor().yieldForCBSCall = false;
+      VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
+      VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
       VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
       threadSwitch = true;
     }

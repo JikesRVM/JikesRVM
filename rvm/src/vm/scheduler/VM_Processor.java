@@ -523,6 +523,51 @@ implements Uninterruptible, VM_Constants {
    * Is the next taken yieldpoint in response to a request to perform OSR?
    */
   public boolean yieldToOSRRequested;
+
+    /**
+   * Is CBS enabled for 'call' yieldpoints?
+   */
+  boolean yieldForCBSCall;
+  
+  /**
+   * Is CBS enabled for 'method' yieldpoints?
+   */
+  boolean yieldForCBSMethod;
+
+  /**
+   * Should we threadswitch when all CBS samples are taken for this window?
+   */
+  boolean threadSwitchWhenCBSComplete;
+  
+  /**
+   * Number of CBS samples to take in this window
+   */
+  int numCBSCallSamples;
+  
+  /**
+   * Number of call yieldpoints between CBS samples
+   */
+  int countdownCBSCall;
+
+  /**
+   * round robin starting point for CBS samples
+   */
+  int firstCBSCallSample;
+  
+  /**
+   * Number of CBS samples to take in this window
+   */
+  int numCBSMethodSamples;
+  
+  /**
+   * Number of counter ticks between CBS samples
+   */
+  int countdownCBSMethod;
+
+  /**
+   * round robin starting point for CBS samples
+   */
+  int firstCBSMethodSample;
   
   //-#if RVM_FOR_POWERPC
   /**

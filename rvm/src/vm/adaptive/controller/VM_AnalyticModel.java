@@ -333,6 +333,10 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       // as it actually deserves).
       timePerSample /=  2.0;
     }
+    if (VM_Controller.options.mlCBS()) {
+      // multiple method samples per timer interrupt. Divide accordingly.
+      timePerSample /= (double)VM.CBSMethodSamplesPerTick;
+    }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;
   }

@@ -24,6 +24,16 @@ Selection of mechanism for identifying methods for optimizing recompilation
 "RS_SAMPLING sampling sampling" \
 "RS_COUNTERS counters counters"
 
+E METHOD_LISTENER_TRIGGER byte ML_TIMER
+What triggers us to take a method sample?
+"ML_TIMER mlTimer timer" \
+"ML_CBS mlCBS cbs"
+
+E CALL_GRAPH_LISTENER_TRIGGER byte CGL_TIMER
+What triggers us to take a method sample?
+"CGL_TIMER cgTimer timer" \
+"CGL_CBS cgCBS cbs"
+
 V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
 
@@ -90,4 +100,20 @@ What is the sample interval for counter-based sampling
 
 V AI_CONTROL_POINT double 0.01
 Tuning param for new inliner function
+
+
+V CBSCallSamplesPerTick int 0
+How many CBS call samples (Prologue/Epilogue) should we take per time tick
+
+
+V CBSCallSampleStride int 7
+Stride between each CBS call sample (Prologue/Epilogue) within a sampling window
+
+
+V CBSMethodSamplesPerTick int 0
+How many CBS method samples (any yieldpoint) should we take per time tick
+
+
+V CBSMethodSampleStride int 3
+Stride between each CBS method sample (any yieldpoint) within a sampling window
 
