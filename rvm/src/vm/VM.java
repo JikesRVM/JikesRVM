@@ -198,8 +198,11 @@ public class VM extends VM_Properties
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("java.lang.Runtime");
-    runClassInitializer("java.lang.System");
-    runClassInitializer("java.io.File");
+    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#else
+    runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
+    //-#endif
     runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
@@ -236,9 +239,9 @@ public class VM extends VM_Properties
     // Possibly fix VMAccessController's contexts and inGetContext fields
     runClassInitializer("java.security.VMAccessController");
     
-    runClassInitializer("gnu.java.io.EncodingManager");
 
-    runClassInitializer("java.io.PrintWriter");
+    runClassInitializer("java.io.File"); // needed for when we initialize the
+                                         // system/application class loader.
     runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
     runClassInitializer("java.lang.VMString");
@@ -248,7 +251,16 @@ public class VM extends VM_Properties
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
-    runClassInitializer("java.lang.ClassLoader");
+    // Calls System.getProperty().  However, the only thing it uses the
+    // property for is to set the default protection domain, and THAT is only
+    // used in defineClass.  so, since we haven't needed to call defineClass
+    // up to this point, we are OK deferring its proper re-initialization.
+    runClassInitializer("java.lang.ClassLoader"); 
+    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
+    //-#endif
+    runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
+    runClassInitializer("java.io.PrintWriter"); // Uses system.getProperty
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");

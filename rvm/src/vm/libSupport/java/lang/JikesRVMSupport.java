@@ -97,4 +97,15 @@ public class JikesRVMSupport {
     return new Thread(vmdata, myName);
   }
 
+  //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+  public static void javaLangSystemEarlyInitializers() {
+    System.initLoadLibrary();
+    System.initProperties();
+  }
+
+  public static void javaLangSystemLateInitializers() {
+    System.initSystemClassLoader();
+    System.initSecurityManager();    // Includes getting the class loader.
+  }
+  //-#endif
 }
