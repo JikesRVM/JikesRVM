@@ -444,7 +444,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      int offset = fc.offset;
+      int offset = fc.index << 2;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+offset, DW, loc, TG());
@@ -453,7 +453,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      int offset = dc.offset;
+      int offset = dc.index << 2;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+offset, QW, loc, TG());

@@ -14,18 +14,23 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
   /**
    * The string value
    */
-  OPT_ClassLoaderProxy.StringWrapper value;
+  String value;
 
+  /**
+   * Index in JTOC where this string constant lives.
+   */
+  int index;
 
   /**
    * Construct a new string constant operand
    *
-   * @param val the string
+   * @param v the string constant
+   * @param i JTOC index of the string constant
    */
-  OPT_StringConstantOperand(OPT_ClassLoaderProxy.StringWrapper val) {
-    value = val;
+  OPT_StringConstantOperand(String v, int i) {
+    value = v;
+    index = i;
   }
-
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
@@ -33,7 +38,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   OPT_Operand copy() {
-    return new OPT_StringConstantOperand(value);
+    return new OPT_StringConstantOperand(value, index);
   }
 
   /**
@@ -46,7 +51,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    */
   boolean similar(OPT_Operand op) {
     return (op instanceof OPT_StringConstantOperand) &&
-           (value.equals(((OPT_StringConstantOperand)op).value));
+      (value.equals(((OPT_StringConstantOperand)op).value));
   }
 
   /**
@@ -55,7 +60,6 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return value.toString();
+    return "\""+ value + "\"";
   }
-
 }

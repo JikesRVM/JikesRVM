@@ -184,90 +184,89 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
   // Constant pool access
   // --------------------------------------------------------------------------
   /**
-   * Get the integer stored at a particular index of a class's constant
-   * pool.
+   * Create a ConstantOperand for the the integer 
+   * stored at a particular index of a class's constant pool.
+   * <p>
+   * @param klass The class whose constant pool is being accessed.
+   * @param index The number of the constant pool entry 
+   * @return the ConstantOperand for the specififed constant
    */
-  public OPT_IntConstantOperand getIntFromConstantPool (VM_Class klass, 
-							int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val = VM_Statics.getSlotContentsAsInt(offset);
+  public OPT_IntConstantOperand getIntFromConstantPool(VM_Class klass, int index) {
+    int slot = klass.getLiteralOffset(index) >> 2;
+    int val = VM_Statics.getSlotContentsAsInt(slot);
     return new OPT_IntConstantOperand(val);
   }
 
   /**
-   * Get the double stored at a particular index of a class's constant
-   * pool.
+   * Create a ConstantOperand for the the float
+   * stored at a particular index of a class's constant pool.
+   * <p>
+   * @param klass The class whose constant pool is being accessed.
+   * @param index The number of the constant pool entry 
+   * @return the ConstantOperand for the specififed constant
    */
-  public OPT_DoubleConstantOperand getDoubleFromConstantPool (VM_Class klass, 
-							      int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
-    double val = Double.longBitsToDouble(val_raw);
-    return new OPT_DoubleConstantOperand(val, offset);
-  }
-
-  /**
-   * Get the float stored at a particular index of a class's constant
-   * pool.
-   */
-  public OPT_FloatConstantOperand getFloatFromConstantPool (VM_Class klass, 
-							    int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
+  public OPT_FloatConstantOperand getFloatFromConstantPool(VM_Class klass, int index) {
+    int slot = klass.getLiteralOffset(index) >> 2;
+    int val_raw = VM_Statics.getSlotContentsAsInt(slot);
     float val = Float.intBitsToFloat(val_raw);
-    return new OPT_FloatConstantOperand(val, offset);
+    return new OPT_FloatConstantOperand(val, slot);
   }
 
   /**
-   * Get the long stored at a particular index of a class's constant
-   * pool.
+   * Create a ConstantOperand for the the long 
+   * stored at a particular index of a class's constant pool.
+   * <p>
+   * @param klass The class whose constant pool is being accessed.
+   * @param index The number of the constant pool entry 
+   * @return the ConstantOperand for the specififed constant
    */
-  public OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, 
-							  int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val = VM_Statics.getSlotContentsAsLong(offset);
-    return new OPT_LongConstantOperand(val, offset);
+  public OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, int index) {
+    int slot = klass.getLiteralOffset(index) >> 2;
+    long val = VM_Statics.getSlotContentsAsLong(slot);
+    return new OPT_LongConstantOperand(val, slot);
   }
 
   /**
-   * Get the String stored at a particular index of a class's constant
-   * pool.
+   * Create a ConstantOperand for the the double
+   * stored at a particular index of a class's constant pool.
+   * <p>
+   * @param klass The class whose constant pool is being accessed.
+   * @param index The number of the constant pool entry 
+   * @return the ConstantOperand for the specififed constant
    */
-  public OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, 
-							      int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    StringWrapper str = new RVMStringWrapper(offset);
-    return new OPT_StringConstantOperand(str);
+  public OPT_DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass, int index) {
+    int slot = klass.getLiteralOffset(index) >> 2;
+    long val_raw = VM_Statics.getSlotContentsAsLong(slot);
+    double val = Double.longBitsToDouble(val_raw);
+    return new OPT_DoubleConstantOperand(val, slot);
   }
 
   /**
-   * A wrapper around String constants in the RVM
+   * Create a ConstantOperand for the the string literal
+   * stored at a particular index of a class's constant pool.
+   * <p>
+   * @param klass The class whose constant pool is being accessed.
+   * @param index The number of the constant pool entry 
+   * @return the ConstantOperand for the specififed constant
    */
-  public static final class RVMStringWrapper extends StringWrapper {
-    private int offset;         // offset in JTOC
-
-    /**
-     * @param     int off JTOC offset of the STring constant
-     */
-    RVMStringWrapper (int off) {
-      offset = off;
+  public OPT_StringConstantOperand getStringFromConstantPool(VM_Class klass, int index) {
+    int slot = klass.getLiteralOffset(index) >> 2;
+    String val;
+    if (VM.runningVM) {
+      val = (String)VM_Statics.getSlotContentsAsObject(slot);
+    } else {
+      // Sigh. What we really want to do is acquire the 
+      // String object from the class constant pool.
+      // But, we aren't set up to do that.  The following
+      // isn't strictly correct, but is closer than the completely bogus
+      // thing we were doing before. 
+      // TODO: Fix this to do the right thing. 
+      //       This will be wrong if someone is comparing string constants
+      //       using ==, != since we're very unlikely to get the aliasing right.
+      //       Then again, if you are using ==, != with strings and one of them
+      //       isn't <null>, perhaps you deserve what you get.
+      val = ("BootImageStringConstant "+slot).intern();
     }
-
-    public boolean equals (Object str) {
-      if (!(str instanceof RVMStringWrapper))
-        return false;
-      return offset == ((RVMStringWrapper)str).offset;
-    }
-
-    public String toString () {
-      return "string constant @" + offset;
-    }
-
-    /**
-     * @return the JTOC offset of this String constant
-     */
-    public int offset () {
-      return offset;
-    }
+    return new OPT_StringConstantOperand(val, slot);
   }
 }

@@ -17,10 +17,10 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   float value;
 
   /**
-   * Offset in JTOC where this float constant lives (-1 for constants
+   * Index in JTOC where this float constant lives (0 for constants
    * generated from constant folding).
    */
-  int offset;
+  int index;
 
   /**
    * Constructs a new float constant operand with the specified value.
@@ -30,23 +30,23 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-       offset = VM_Entrypoints.zeroFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.zeroFloatField.getOffset() >> 2;
     } else if (v == 1.f) {
-       offset = VM_Entrypoints.oneFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.oneFloatField.getOffset() >> 2;
     } else if (v == 2.f) {
-       offset = VM_Entrypoints.twoFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.twoFloatField.getOffset() >> 2;
     }
   }
 
   /**
-   * Constructs a new float constant operand with the specified value and JTOC offset.
+   * Constructs a new float constant operand with the specified value and JTOC index.
    *
    * @param v value
-   * @param i offset in the jtoc
+   * @param i index in the jtoc
    */
   OPT_FloatConstantOperand(float v, int i) {
-    value  = v;
-    offset = i;
+    value = v;
+    index = i;
   }
 
   /**
@@ -55,7 +55,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   OPT_Operand copy() {
-    return new OPT_FloatConstantOperand(value,offset);
+    return new OPT_FloatConstantOperand(value,index);
   }
 
   /**
@@ -79,5 +79,4 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   public String toString() {
     return Float.toString(value);
   }
-
 }

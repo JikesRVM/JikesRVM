@@ -19,10 +19,10 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
   double value;
 
   /**
-   * Offset in JTOC where this double constant lives. (-1 for constants
+   * Index in JTOC where this double constant lives. (0 for constants
    * obtained from constant folding)
    */
-  int offset;
+  int index;
 
   /**
    * Constructs a new double constant operand with the specified value.
@@ -31,23 +31,22 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    */
   OPT_DoubleConstantOperand(double v) {
     value = v;
-    offset= -1;
     if (v == 0.) {
-       offset = VM_Entrypoints.zeroDoubleField.getOffset() >> 2;
+      index = VM_Entrypoints.zeroDoubleField.getOffset() >> 2;
     } else if (v == 1.) {
-       offset = VM_Entrypoints.oneDoubleField.getOffset() >> 2;
+      index = VM_Entrypoints.oneDoubleField.getOffset() >> 2;
     }
   }
 
   /**
-   * Constructs a new double constant operand with the specified value and JTOC offset.
+   * Constructs a new double constant operand with the specified value and JTOC index.
    *
    * @param v value
-   * @param i offset in the jtoc
+   * @param i index in the jtoc
    */
   OPT_DoubleConstantOperand(double v, int i) {
-    value  = v;
-    offset = i;
+    value = v;
+    index = i;
   }
 
   /**
@@ -56,7 +55,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   OPT_Operand copy() {
-    return new OPT_DoubleConstantOperand(value, offset);
+    return new OPT_DoubleConstantOperand(value, index);
   }
 
   /**
@@ -78,7 +77,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "double "+Double.toString(value);
+    return Double.toString(value)+"D";
   }
 
 }

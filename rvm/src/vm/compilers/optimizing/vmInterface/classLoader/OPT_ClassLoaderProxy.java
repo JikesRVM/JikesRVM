@@ -54,6 +54,13 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
   static VM_Type InstructionArrayType;
   static VM_Type VM_ProcessorType;
 
+
+  /** Bogus "null type" to use to stand for the null constant */
+  public static interface OPT_DUMMYNullPointerType {}
+
+  /**  Bogus "validation type" to use for validation operands. */
+  public static interface OPT_DUMMYValidationType {}
+
   // --------------------------------------------------------------------------
   // Creating/finding instances of classloader classes
   // --------------------------------------------------------------------------
@@ -62,7 +69,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * Find (creating if it doesn't already exist) the VM_Type
    * object specified by the String
    */
-  public abstract VM_Type findOrCreateType (String str);
+  public abstract VM_Type findOrCreateType(String str);
 
   // --------------------------------------------------------------------------
   // Querry classloader data structures
@@ -74,7 +81,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * may be a conservative approximation (java.lang.Object).
    * If there is no common superclass, than null is returned.
    */
-  public VM_Type findCommonSuperclass (VM_Type t1, VM_Type t2) {
+  public VM_Type findCommonSuperclass(VM_Type t1, VM_Type t2) {
     if (t1 == t2)
       return t1;
     if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
@@ -199,7 +206,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * @param childType child type
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
-  public abstract byte includesType (VM_Type parentType, VM_Type childType);
+  public abstract byte includesType(VM_Type parentType, VM_Type childType);
 
   // --------------------------------------------------------------------------
   // Constant pool access
@@ -211,8 +218,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * @param klass The class whose constant pool is being accessed.
    * @param cpIx  The number of the constant pool entry 
    */
-  public abstract OPT_IntConstantOperand getIntFromConstantPool 
-                                        (VM_Class klass, int cpIx);
+  public abstract OPT_IntConstantOperand getIntFromConstantPool(VM_Class klass, int cpIx);
 
   /**
    * Create a double constant operand to represent the specified constant 
@@ -220,8 +226,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * @param klass The class whose constant pool is being accessed.
    * @param cpIx  The number of the constant pool entry (in the class).
    */
-  public abstract OPT_DoubleConstantOperand getDoubleFromConstantPool 
-                                        (VM_Class klass, int cpIx);
+  public abstract OPT_DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass, int cpIx);
 
   /**
    * Create a float constant operand to represent the specified 
@@ -230,47 +235,21 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    * @param klass The class whose constant pool is being accessed.
    * @param cpIx  The number of the constant pool entry (in the class).
    */
-  public abstract OPT_FloatConstantOperand getFloatFromConstantPool 
-                                        (VM_Class klass, int cpIx);
+  public abstract OPT_FloatConstantOperand getFloatFromConstantPool(VM_Class klass, int cpIx);
 
   /**
    * Create a long constant operand to represent the specified 
-   * constant pool entry
-   * Gets a long from the constant pool
+   * constant pool entry.
    * @param klass The class whose constant pool is being accessed.
    * @param cpIx  The number of the constant pool entry (in the class).
    */
-  public abstract OPT_LongConstantOperand getLongFromConstantPool 
-                                        (VM_Class klass, int cpIx);
+  public abstract OPT_LongConstantOperand getLongFromConstantPool(VM_Class klass, int cpIx);
 
   /**
    * Create a string constant operand to represent the specified constant 
-   * pool entry
-   * Gets a string from the constant pool
+   * pool entry.
    * @param klass The class whose constant pool is being accessed.
    * @param cpIx  The number of the constant pool entry (in the class).
    */
-  public abstract OPT_StringConstantOperand getStringFromConstantPool 
-                                        (VM_Class klass, int cpIx);
-
-  /**
-   * Abstraction of a StringConstant (used in StringConstantOperand)
-   */
-  public static abstract class StringWrapper {
-
-    public abstract boolean equals (Object str);
-
-    public abstract String toString ();
-
-    public abstract int offset ();
-  }
-
-  /** Bogus "null type" to use to stand for the null constant */
-  interface OPT_DUMMYNullPointerType {}
-
-  /**  Bogus "validation type" to use for validation operands. */
-  interface OPT_DUMMYValidationType {}
+  public abstract OPT_StringConstantOperand getStringFromConstantPool(VM_Class klass, int cpIx);
 }
-
-
-

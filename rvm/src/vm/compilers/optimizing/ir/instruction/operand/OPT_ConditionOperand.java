@@ -309,9 +309,9 @@ public final class OPT_ConditionOperand extends OPT_Operand {
     } else if (v1.isStringConstant()) {
       if (v2.isStringConstant()) {
 	if (isEQUAL()) {
-          return v1.asStringConstant().value.equals(v2.asStringConstant().value);
+          return v1.asStringConstant().value == v2.asStringConstant().value;
 	} else if (isNOT_EQUAL()) {
-          return !v1.asStringConstant().value.equals(v2.asStringConstant().value);
+          return v1.asStringConstant().value != v2.asStringConstant().value;
 	}
       } else if (v2.isNullConstant() ||
 		 (v2.isIntConstant() && v2.asIntConstant().value == 0)) {

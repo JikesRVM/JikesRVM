@@ -17,10 +17,10 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   long value;
 
   /**
-   * Offset in JTOC where this long constant lives. (-1 for constants
+   * Index in JTOC where this long constant lives. (0 for constants
    * obtained from constant folding)
    */
-  int offset;
+  int index;
 
   /**
    * Constructs a new long constant operand with the specified value.
@@ -32,14 +32,14 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   }
 
   /**
-   * Constructs a new long constant operand with the specified value and JTOC offset.
+   * Constructs a new long constant operand with the specified value and JTOC index.
    *
    * @param v value
-   * @param i offset in the jtoc
+   * @param i index in the jtoc
    */
   OPT_LongConstantOperand(long v, int i) {
     value = v;
-    offset= i;
+    index = i;
   }
 
   /**
@@ -62,7 +62,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   OPT_Operand copy() {
-    return new OPT_LongConstantOperand(value, offset);
+    return new OPT_LongConstantOperand(value, index);
   }
 
   /**

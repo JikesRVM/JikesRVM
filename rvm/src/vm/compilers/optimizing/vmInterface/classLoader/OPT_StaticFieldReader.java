@@ -28,22 +28,22 @@ abstract class OPT_StaticFieldReader {
     if (VM.VerifyAssertions) VM.assert(field.isStatic());
 
     VM_Type fieldType = field.getType();
+    int slot = field.getOffset() >>> 2;
     if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);
     } else if (fieldType.isLongType()) {
       long val = getLongStaticFieldValue(field);
-      return new OPT_LongConstantOperand(val);
+      return new OPT_LongConstantOperand(val, slot);
     } else if (fieldType.isFloatType()) {
       float val = getFloatStaticFieldValue(field);
-      return new OPT_FloatConstantOperand(val);
+      return new OPT_FloatConstantOperand(val, slot);
     } else if (fieldType.isDoubleType()) {
       double val = getDoubleStaticFieldValue(field);
-      return new OPT_DoubleConstantOperand(val);
+      return new OPT_DoubleConstantOperand(val, slot);
     } else if (fieldType == VM_Type.JavaLangStringType) {
-      int slot = field.getOffset() >>> 2;
-      OPT_ClassLoaderProxy.StringWrapper sw = new OPT_RVMClassLoaderProxy.RVMStringWrapper(slot);
-      return new OPT_StringConstantOperand(sw);
+      String val = (String)getObjectStaticFieldValue(field);
+      return new OPT_StringConstantOperand(val, slot);
     } else {
       // TODO: Add array and scalar reference constant operands
       throw new OPT_OptimizingCompilerException("Unsupported type");
@@ -111,11 +111,10 @@ abstract class OPT_StaticFieldReader {
   }
 
   /**
-   * Returns a constant operand with the current value of a long
-   * static field.
+   * Returns the current contents of a long static field.
    *
    * @param field a static field
-   * @return a constant operand representing the current value of the field
+   * @return the current value of the field
    */
   static final long getLongStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
@@ -134,11 +133,10 @@ abstract class OPT_StaticFieldReader {
   }
 
   /**
-   * Returns a constant operand with the current value of a double
-   * static field.
+   * Returns the current contents of a double static field.
    *
    * @param field a static field
-   * @return a constant operand representing the current value of the field
+   * @return the current value of the field
    */
   static final double getDoubleStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
@@ -158,6 +156,29 @@ abstract class OPT_StaticFieldReader {
   }
 
   /**
+   * Returns the current contents of a reference static field.
+   *
+   * @param field a static field
+   * @return the current value of the field
+   */
+  static final Object getObjectStaticFieldValue(VM_Field field) 
+    throws NoSuchFieldException {
+    if (VM.runningVM) {
+      int slot = field.getOffset() >>> 2;
+      return VM_Statics.getSlotContentsAsObject(slot);
+    } else {
+      try {
+	return getJDKField(field).get(null);
+      } catch (IllegalAccessException e) {
+	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+      } catch (IllegalArgumentException e) {
+	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+      }
+    }
+  }
+
+
+  /**
    * Does a static field null contain null?
    *
    * @param field a static field
@@ -165,19 +186,7 @@ abstract class OPT_StaticFieldReader {
    */
   static final boolean isStaticFieldNull(VM_Field field) 
     throws NoSuchFieldException {
-    if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
-      Object it = VM_Statics.getSlotContentsAsObject(slot);
-      return it == null;
-    } else {
-      try {
-	return getJDKField(field).get(null) == null;
-      } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
-      } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
-      }
-    }      
+    return getObjectStaticFieldValue(field) == null;
   }
 
   /**
@@ -188,33 +197,21 @@ abstract class OPT_StaticFieldReader {
    */
   static final VM_Type getTypeFromStaticField (VM_Field field) 
     throws NoSuchFieldException {
+    Object o = getObjectStaticFieldValue(field);
+    if (o == null) return OPT_ClassLoaderProxy.NULL_TYPE;
     if (VM.runningVM) {
-      int slot = field.getOffset() >>> 2;
-      Object it = VM_Statics.getSlotContentsAsObject(slot);
-      if (VM.VerifyAssertions) VM.assert(it != null);
-      return VM_Magic.getObjectType(it);
+      return VM_Magic.getObjectType(o);
     } else {
-      try {
-	Object o = getJDKField(field).get(null);
-	if (o == null) {
-	  return OPT_ClassLoaderProxy.NULL_TYPE;
-	} else {
-	  Class rc = o.getClass();
-	  String className = rc.getName();
-	  if (className.startsWith("[")) {
-	    // an array
-	    return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(className));
-	  } else {
-	    // a class
-	    VM_Atom classDescriptor = 
-	      VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-	    return VM_ClassLoader.findOrCreateType(classDescriptor);
-	  }
-	}
-      } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
-      } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+      Class rc = o.getClass();
+      String className = rc.getName();
+      if (className.startsWith("[")) {
+	// an array
+	return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(className));
+      } else {
+	// a class
+	VM_Atom classDescriptor = 
+	  VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+	return VM_ClassLoader.findOrCreateType(classDescriptor);
       }
     }
   }
