@@ -173,12 +173,6 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
 	recvClass.updateTIBEntry(targetMethod);
       }
-
-      // check to see if we need to breakpoint for jdp
-      if (VM_BaselineCompiler.options.hasMETHOD_TO_BREAK() &&
-	  VM_BaselineCompiler.options.fuzzyMatchMETHOD_TO_BREAK(targetMethod.toString())) {
-	VM_Services.breakStub();  // invoke stub used for breaking in jdp
-      }
     }
   }
 }

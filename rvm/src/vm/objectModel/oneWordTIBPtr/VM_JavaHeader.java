@@ -85,16 +85,6 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   }
 
   /**
-   * Get a reference to the TIB for an object.
-   *
-   * @param jdpService
-   * @param address address of the object
-   */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) throws VM_PragmaInterruptible {
-    return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
-  }
-
-  /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
    *

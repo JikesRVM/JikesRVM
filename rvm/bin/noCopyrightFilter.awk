@@ -21,7 +21,6 @@
 /\/tools\/bootImageRunner\/VM_0005fInetAddress.h/ { next }
 /\/tools\/bootImageWriter\/rvm.security/ { next }
 /\/tools\/jburg\/COPYRIGHT/ { next }
-/\/tools\/jdp\/sanityTest.jdp/ { next }
 
 /\/ReleaseNotes-/ { next }
 

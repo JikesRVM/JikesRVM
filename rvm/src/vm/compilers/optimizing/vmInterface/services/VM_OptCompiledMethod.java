@@ -424,7 +424,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
   /**
    * Create the final machine code map for the compiled method.
-   * Remember the offset for the end of prologue too for jdp
+   * Remember the offset for the end of prologue too for debugger.
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */

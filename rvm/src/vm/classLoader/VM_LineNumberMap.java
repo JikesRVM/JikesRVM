@@ -35,20 +35,6 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
     lineNumbers = new int[n];
   }
 
-  /**
-   * Sets directly the two arrays.  This was added so these could be
-   * mapped in JDP.
-   *
-   * @param startPCs    the int array of startPCs to use
-   * @param lineNumbers the int array of lineNumbers to use
-   * @author Jeffrey Palm
-   * @since  28 Jul 2002
-   */
-  VM_LineNumberMap(int[] startPCs, int[] lineNumbers) {
-    this.startPCs = startPCs;
-    this.lineNumbers = lineNumbers;
-  }
-
   VM_LineNumberMap(DataInputStream input, int n) throws IOException {
     this(n);
     for (int i = 0; i < n; ++i) {

@@ -58,12 +58,6 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 # getting security exceptions.  That is what command line flag 
 # -Xbootclasspath/a:$(LIB_JAR) does.  ugh.
 #
-# Note: $(UTIL_KLUDGE_JAR) is now *also* used as a hack to provide
-# RVM-compatible classes for jdp's use, even if jdp is running in
-# in a commercial VM (such as the IBM product JDK) which uses different
-# class libraries.  Jdp gets unhappy if its own classes aren't the same
-# as the ones being used by the remote RVM process.
-#
 
 # Create a boot image.
 # Parameters from 'make' command line are:

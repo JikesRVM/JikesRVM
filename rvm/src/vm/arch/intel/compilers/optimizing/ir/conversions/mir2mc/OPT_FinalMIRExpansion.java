@@ -235,7 +235,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 	break;
 
       case IR_ENDPROLOGUE_opcode:
-	// Remember where the end of prologue is for jdp
+	// Remember where the end of prologue is for debugger
 	p.remove();
 	ir.MIRInfo.instAfterPrologue = next;
 	break;

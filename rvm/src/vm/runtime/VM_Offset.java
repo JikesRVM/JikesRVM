@@ -24,7 +24,6 @@ final public class VM_Offset {
 
   private int value;
 
-  // must be public for jdp's sake
   public VM_Offset(int offset) {  
       if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
       value = offset;

@@ -631,7 +631,6 @@ public class BootImageWriter extends BootImageWriterMessages
 
   /**
    * Read list of type names from a file.
-   * Note: this method is also used by jdp debugger
    * @param fileName the name of the file containing type names
    * @return list type names
    */
@@ -655,24 +654,6 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Wrapper for call from jdp, when the boot image repository name has not
-   * been specified.
-   * @param typeNames names of rvm classes whose static fields will contain
-   *                  the objects comprising the virtual machine bootimage
-   * @param bootImageRepositories places to look for classes when
-   *                              writing and executing bootimage
-   */
-  public static void createBootImageObjects(Vector typeNames,
-                                            String bootImageRepositories)
-    throws VM_ResolutionException, IllegalAccessException
-  {
-    bootImageRepositoriesAtExecutionTime = bootImageRepositories;
-    bootImageRepositoriesAtBuildTime     = bootImageRepositories;
-    // trace = true;
-    createBootImageObjects(typeNames);
-  }
-
-  /**
    * Create (in host jdk address space) the rvm objects that will be
    * needed at run time to execute enough of the virtual machine
    * to dynamically load and compile the remainder of itself.
@@ -680,7 +661,6 @@ public class BootImageWriter extends BootImageWriterMessages
    * Side effect: rvm objects are created in host jdk address space
    *              VM_Statics is populated
    *              "bootImageTypes" dictionary is populated with name/type pairs
-   * Note:        this method is also used by jdp debugger
    *
    * @param typeNames names of rvm classes whose static fields will contain
    *                  the objects comprising the virtual machine bootimage

@@ -2433,8 +2433,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       if (method.isSynchronized()) genMonitorEnter();
 
       genThreadSwitchTest(VM_Thread.PROLOGUE);
-
-      asm.emitNOP();                                      // mark end of prologue for JDP
     }
   }
   

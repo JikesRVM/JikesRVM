@@ -1366,7 +1366,6 @@ function emitImageLinker
    # skip: needed to build bootimage, but not to run it
 #   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
    print "   print BootImageInterface               > $EXCLUDED_CLASSES_STR"
-   print "   print JDPServiceInterface              >> $EXCLUDED_CLASSES_STR"
    print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
    print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
 
@@ -2187,82 +2186,6 @@ function emitToolCompiler
      print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    fi
    }
-#
-# Emit script to build jdp when it is invoked
-#
-function emitJDPBuilder
-   {
-   print '#! /bin/ksh'
-   print ' '
-   print '# Build jdp.'
-   print '# This is invoked by the jdp script with no arguments, to ensure'
-   print '# that the jdp classes have been compiled.  It may also be invoked'
-   print '# directly from the command line. If the flag -force is specified as the'
-   print '# first argument, then the jdp classes will be compiled unconditionally,'
-   print '# which is useful if you are hacking on jdp and you want to recompile it.'
-   print ' '
-   print '. $RVM_BUILD/environment'
-   print 'set -e'
-   print 'CURRENT_DIR=`pwd`'
-   print 'if [[ ! -a $RVM_BUILD/RVM.tools/jdp.class || "$1" = "-force" ]];'
-   print 'then'
-   print ' '
-   print ' echo "JDP classes are not compiled yet, compiling now ..."'
-   print ' '
-   print ' # Make sure we are in the RVM_BUILD directory'
-   print ' cd $RVM_BUILD'
-   print ' '
-   print ' # Make sure RVM.tools directory exists'
-   print ' if [[ ! -a $RVM_BUILD/RVM.tools ]];'
-   print '   then'
-   print '   mkdir RVM.tools'
-   print ' fi'
-   print ' '
-   print ' # Generate preprocessed source files, in case they have changed.'
-   print ' FILES=`/bin/ls ' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/interpreter/mapVM.java' $ROOT_DIRECTORY_STR'/rvm/src/tools/jdp/'$ARCH_DIR'/BootMapExternal.java`'
-   print ' ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES || true'
-   print ' '
-   print ' # In case we were not invoked by the jdp script, set $ARCH'
-   print ' if [[ "$ARCH" = "" ]]; then'
-   print '   export HOST_OS=`uname`'
-   print '   if [[ "$HOST_OS" = "AIX" ]]; then'
-   print '     export ARCH=powerPC'
-   print '   else'
-   print '     if [[ "$HOST_OS" = "Linux" ]]; then'
-   print '       proc=`uname -m`'
-   print '       case $proc in'
-   print '         i[3456]86)'
-   print '           export ARCH=intel'
-   print '           ;;'
-   print '         ppc)'
-   print '           export ARCH=powerPC'
-   print '           ;;'
-   print '         *)'
-   print '           echo "Unsupported processor type $proc. Sorry."'
-   print '           exit 1'
-   print '           ;;'
-   print '       esac'
-   print '     fi'
-   print '   fi'
-   print ' fi'
-   print ' '
-   print ' cd $RVM_ROOT/rvm/src/tools/jdp'
-   print ' $GNU_MAKE copy_$ARCH OBJECT_MODEL_PATH='$OBJECT_MODEL_PATH_STR
-   print ' if [[ $? != 0 ]]'
-   print '  then'
-   print '   echo "Could not copy jdp files."'
-   print '   exit 1'
-   print ' fi'
-   print ' cd $RVM_BUILD/RVM.tools'
-   print ' $GNU_MAKE compile'
-   print ' if [[ $? != 0 ]]'
-   print '   then'
-   print '    echo "Could not compile jdp."'
-   print '    exit 1'
-   print ' fi'
-   print ' cd $CURRENT_DIR'
-   print 'fi' 
-   }
   
 #----------------------#
 # SECTION 6 - MAINLINE #
@@ -2339,9 +2262,6 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
 
 emitToolCompiler              >$BUILD_DIRECTORY/jbuild.tool
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
-
-emitJDPBuilder                >$BUILD_DIRECTORY/jbuild.buildJDP
-chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.buildJDP
 
 # write the environment specific configuration files
 #

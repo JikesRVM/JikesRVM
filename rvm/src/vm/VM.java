@@ -603,8 +603,6 @@ public class VM extends VM_Properties
    * @param value  value to pass to host o/s
    */
   public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
-    // SJF: I don't want this method inlined, since I use it as a
-    // breakpoint for the jdp regression test.
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -1014,9 +1012,8 @@ public class VM extends VM_Properties
    * Place to set breakpoints (called by compiled code).
    */
   public static void debugBreakpoint() throws VM_PragmaNoInline {
-    // the following forces this method to have a prologue.
-    // In general, jdp cannot set breakpoints in opt methods that
-    // have no prologues.
+    // the following forces this method to have a full prologue
+    // because it is baseline compiled.
     VM_Magic.pragmaNoOptCompile();
   }
 }

@@ -137,8 +137,7 @@ public abstract class VM_BaselineCompiler {
     // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
     // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
     // for the check.
-    if ((setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) || 
-	(setUpOptions.hasMETHOD_TO_BREAK() && setUpOptions.fuzzyMatchMETHOD_TO_BREAK("???"))) {
+    if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
     //-#if !RVM_WITH_ADAPTIVE_SYSTEM
@@ -179,12 +178,7 @@ public abstract class VM_BaselineCompiler {
    */
   public static synchronized VM_CompiledMethod compile (VM_Method method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
-    if (VM.runningAsJDPRemoteInterpreter) {
-      // "fake" compilation
-      cm.compileComplete(null);
-    } else {
-      new VM_Compiler(cm).compile();
-    }
+    new VM_Compiler(cm).compile();
     return cm;
   }
 

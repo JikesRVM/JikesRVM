@@ -921,16 +921,4 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     }
 
   }
-
-  // ----------------------------------------------------------------------
-  // Support added for JDP
-  // ----------------------------------------------------------------------
-
-  public final int[] startPCs() {
-    return lineNumberMap.startPCs;
-  }
-
-  public final int[] lineNumbers() {
-    return lineNumberMap.lineNumbers;
-  }
 }

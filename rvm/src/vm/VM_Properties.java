@@ -56,9 +56,6 @@ public class VM_Properties extends VM_Configuration {
 	//-#endif
 	//-#endif
 
-  // suppress code gen when system is running on remote interpreter portion of jdp.
-  public static boolean runningAsJDPRemoteInterpreter;
-
   /**
    * The following is set on by -verbose:class command line arg.
    * When true, it generates messages to the sysWrite stream summarizing

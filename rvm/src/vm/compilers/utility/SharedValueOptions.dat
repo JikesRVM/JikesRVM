@@ -17,7 +17,3 @@ S METHOD_TO_PRINT String
 Only apply print options against methods whose name contains this string
 
 
-S METHOD_TO_BREAK String
-Invoke breakStub for jdp's benefit after compiling methods whose name contains this string
-
-

@@ -23,7 +23,6 @@
 /\/src\/tools\/bootImageRunner\/VM_0005fInetAddress.h/ { next }
 /\/src\/tools\/bootImageWriter\/rvm.security/ { next }
 /\/src\/tools\/jburg\/COPYRIGHT/ { next }
-/\/src\/tools\/jdp\/sanityTest.jdp/ { next }
 /\/src\/tools\/jburg/ { next }
 /\/src\/tools\/preprocessor\/testFancy.preprocessor/ { next }
 /\/src\/tools\/preprocessor\/testSimple.preprocessor/ { next }

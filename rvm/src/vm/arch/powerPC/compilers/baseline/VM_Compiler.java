@@ -2492,10 +2492,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     //
     if (method.isSynchronized()) 
       genSynchronizedMethodPrologue();
-
-    // Mark start of code for which source lines exist (for jdp debugger breakpointing).
-    //
-    asm.emitSENTINAL(); 
   }
 
   // Emit code to acquire method synchronization lock.

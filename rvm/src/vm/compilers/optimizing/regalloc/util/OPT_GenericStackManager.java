@@ -911,7 +911,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
   /**
-   *  Insert end prologue to show jdp where the end of the
+   *  Insert end prologue to show debugger where the end of the
    *  prologue is
    */
   private void insertEndPrologue() {

@@ -274,16 +274,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get a reference to the TIB for an object.
-   *
-   * @param jdpService
-   * @param address address of the object
-   */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) throws VM_PragmaInterruptible {
-    return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
-  }
-
-  /**
    * Get the hash code of an object.
    */
   public static int getObjectHashCode(Object o) { 

@@ -1097,14 +1097,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int SENTINALtemplate = 19<<26 | 0x1F<<21 | 0x1F<<16 | 0x1F<<11 | 449<<1;
-
-  final void emitSENTINAL () {
-    INSTRUCTION mi = SENTINALtemplate;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
   // branch conditional -- don't thread switch
   static final int BNTStemplate = BCtemplate | GE | THREAD_SWITCH_BIT<<16;
   final VM_ForwardReference emitBNTS () {

@@ -109,25 +109,6 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     VM._assert(false);  // hard to match default model - fix this later
   }
 
-  /**
-   * Get a reference to the TIB for an object.
-   *
-   * @param jdpService
-   * @param address address of the object
-   */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
-    int tibWord = jdpService.readMemory(ptr.add(TIB_OFFSET).toInt());
-    if (VM_Collector.MOVES_OBJECTS) {
-      int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
-      if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
-	int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
-	tibWord = jdpService.readMemory(forwardPtr + TIB_OFFSET);
-      }
-    }      
-    tibWord &= TIB_MASK;
-    return VM_Address.fromInt(tibWord);
-  }
-
   /*
    * NOTE: 
    * The collector may have laid down a forwarding pointer 
