@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -559,25 +559,36 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
    * as possible (eg. use no bytecodes that require VM_Runtime support).
    */
   static void traceback(String message) {
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-    lockOutput();
+    if (VM.runningVM) {
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      lockOutput();
+    }
     VM.sysWriteln(message);
     tracebackWithoutLock();
-    unlockOutput();
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (VM.runningVM) {
+      unlockOutput();
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
   }
   static void traceback(String message, int number) {
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-    lockOutput();
+    if (VM.runningVM) {
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      lockOutput();
+    }
     VM.sysWriteln(message, number);
     tracebackWithoutLock();
-    unlockOutput();
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (VM.runningVM) {
+      unlockOutput();
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
   }
 
   static void tracebackWithoutLock() {
 
-    dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    if (VM.runningVM)
+      dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    else
+      dumpStack();
 
 //     VM.sysWrite("Here comes a Virtual Machine dump.  This can run to\n");
     
@@ -592,7 +603,11 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
    * Dump stack of calling thread, starting at callers frame
    */
   public static void dumpStack () {
-    dumpStack(VM_Magic.getFramePointer());
+    if (VM.runningVM)
+      dumpStack(VM_Magic.getFramePointer());
+    else
+      (new Throwable("--traceback from Jikes RVM's VM_Scheduler class--"))
+        .printStackTrace();
   }
 
   /**

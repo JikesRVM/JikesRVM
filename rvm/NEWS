@@ -55,6 +55,11 @@ Similarly, java.specification.version is up to 1.4 and
 java.vm.version is at 1.4.2.
 
 *Bug Fixes after the Jikes RVM 2.3.4 release:
+**Calling VM.sysFail during boot image writing no longer generates a bogus "vm internal error" message.
+***VM_Scheduler.traceback and VM_Scheduler.dumpStack now work properly
+even when Jikes RVM is writing the boot image.  This, in turn, means
+that we no longer generate internal errors if we have to call
+VM.sysFail during boot image writing time.
 
 *Internal Changes after the Jikes RVM 2.3.4 release:
 
