@@ -105,7 +105,19 @@ sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
 		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
 		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
-		"-Dos.arch=\"$(uname -m)\"" )
+		"-Dos.arch=\"$(uname -m)\""				\
+ )
+
+## This implementation is dependent upon subsequent uses of -cp and -classpath
+## overriding previous uses.  This allows us to maintain the semantics that
+## the CLASSPATH envar is overridden by any user-specified arguments.
+declare -a classpath_args
+
+if [[ ${CLASSPATH-UNSET} = UNSET ]]; then
+    classpath_arg=();
+else
+    classpath_arg=('-classpath' "${CLASSPATH}");
+fi
 
 # Now execute the VM
 prog="$rvm_build/JikesRVM"
@@ -121,8 +133,9 @@ prog="$rvm_build/JikesRVM"
 ## /home/augart/JikesRVM/Clean//rvm/bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: Success
 ## Now we can at least append a message saying "FAIL" after the
 ## misleading message.
-
 shopt -s execfail
-exec "$prog" "${sys_args[@]}" "${user_args[@]}"
-echo  "$ME: FAILed to execute $prog; can't run Jikes RVM"
-exit 1
+
+exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+declare -r -i status=$?
+echo  "$ME: Failed to execute $prog; can't run Jikes RVM"
+exit $status
