@@ -42,6 +42,7 @@
 extern "C" char *sys_siglist[];
 #endif
 #include "RunBootImage.h"
+#include "cmdLine.h"
 
 // Interface to VM data structures.
 //
@@ -96,7 +97,7 @@ char * emptyString = "";
  */
 void usage() 
 {
-  fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n",me);
+  fprintf(SysTraceFile,"Usage: rvm [-options] class [args...]\n");
   fprintf(SysTraceFile,"          (to execute a class)\n");
   //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",me);
   //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
@@ -129,42 +130,10 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",me);
   fprintf(SysTraceFile,"          (to execute a class)\n");
   fprintf(SysTraceFile,"where options include\n");
-  fprintf(SysTraceFile,"    -X:h=<number>   allocate <number> megabytes of small object heap (default=%d)\n",small_heap_default_size);
-  fprintf(SysTraceFile,"    -Xmx<number>    allocate <number> megabytes of small object heap (default=%d)\n",small_heap_default_size);
-  fprintf(SysTraceFile,"    -X:lh=<number>  allocate <number> megabytes of large object heap (default=10)\n");
-  fprintf(SysTraceFile,"    -X:nh=<number>  allocate <number> megabytes of nursery object heap (default=10)\n");
-  fprintf(SysTraceFile,"    -X:ph=<number>  allocate <number> megabytes of permanent object heap (default=0)\n");
-  fprintf(SysTraceFile,"    -X:i=<filename> read boot image from <filename>\n");
-  fprintf(SysTraceFile,"    -X:sysLogfile=<filename>\n");
-  fprintf(SysTraceFile,"                    writes standard error message to <filename>\n");
-  fprintf(SysTraceFile,"    -X:vmClasses=<filename>\n");
-  fprintf(SysTraceFile,"                    load classes from <filename>\n");
-  fprintf(SysTraceFile,"    -X:cpuAffinity=<number>\n");
-  fprintf(SysTraceFile,"                    physical cpu to which first virtual processor is bound\n");
-  fprintf(SysTraceFile,"    -X:processors=<number|\"all\">\n");
-  fprintf(SysTraceFile,"                    number of processors to use on a multiprocessor or use all\n");
-  fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
-  fprintf(SysTraceFile,"                    produce a report on compilation time\n");
-  fprintf(SysTraceFile,"    -X:measureClassLoading=<integer>\n");
-  fprintf(SysTraceFile,"                    produce a report on class loading time\n");
-  fprintf(SysTraceFile,"                    1 - Dump at the end of run\n");
-  fprintf(SysTraceFile,"                    2 - Dump at every load\n");
-  fprintf(SysTraceFile,"    -X:traceClassLoading\n");
-  fprintf(SysTraceFile,"                    produce a report on class loading activity\n");
-  fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
-  fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by the initial runtime compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:base[:help]  print options supported by the baseline compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:base:<option> pass <option> on to the baseline compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt[:help]   print options supported by the optimizing compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
-  fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
-  fprintf(SysTraceFile,"    -X:measure_compilation=<true|false>  measure compilation times?\n");
-  fprintf(SysTraceFile,"    -X:verify=<true|false>  verify bytecodes?\n");
-  fprintf(SysTraceFile,"\n");
+  for (int i=0; i<numNonStandardUsageLines; i++) {
+     fprintf(SysTraceFile,nonStandardUsage[i]);
+     fprintf(SysTraceFile,"\n");
+  }
 }
 
 /**
@@ -303,11 +272,11 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       *fastExit = 1;
       break;
     }
-    if (!strcmp(token, "-X")) {
+    if (!strcmp(token, nonStandardArgs[HELP_INDEX])) {
       nonstandard_usage();
       *fastExit = 1; break;
     }
-    if (!strcmp(token, "-X:verbose")) {
+    if (!strcmp(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++lib_verbose;
       //      JCLAs[n_JCLAs++]=token;
       continue;
@@ -341,7 +310,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }
       continue;
     }
-    if (!strncmp(token, "-X:h=", 5)) {
+    if (!strncmp(token, nonStandardArgs[SMALL_HEAP_INDEX], 5)) {
       subtoken = token + 5;
       smallHeapSize = atoi(subtoken) * 1024 * 1024;
       if (smallHeapSize <= 0) {
@@ -351,7 +320,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-Xmx", 4)) {
+    if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
       subtoken = token + 4;
       smallHeapSize = atoi(subtoken) * 1024 * 1024;
       if (smallHeapSize <= 0) {
@@ -361,7 +330,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-X:lh=", 6)) {
+    if (!strncmp(token, nonStandardArgs[LARGE_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       largeHeapSize = atoi(subtoken) * 1024 * 1024;
       if (largeHeapSize <= 0) {
@@ -371,7 +340,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, "-X:nh=", 6)) {
+    if (!strncmp(token, nonStandardArgs[NURSERY_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       nurserySize = atoi(subtoken) * 1024 * 1024;
       if (nurserySize <= 0) {
@@ -380,7 +349,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }
       continue;
     }
-    if (!strncmp(token, "-X:ph=", 6)) {
+    if (!strncmp(token, nonStandardArgs[PERM_HEAP_INDEX], 6)) {
       subtoken = token + 6;
       permanentHeapSize = atoi(subtoken) * 1024 * 1024;
       if (permanentHeapSize <= 0) {
@@ -390,7 +359,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     } 
       
-    if (!strncmp(token, "-X:sysLogfile=",14)) {
+    if (!strncmp(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
       subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
@@ -406,12 +375,12 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }	
       continue;
     }
-    if (!strncmp(token, "-X:i=", 5)) {
+    if (!strncmp(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
       bootFilename = token + 5;
       continue;
     }
 
-    if (!strncmp(token, "-X:traceClassLoading", 10)) {
+    if (!strncmp(token, nonStandardArgs[TCL_INDEX], 10)) {
       traceClassLoading = 1;
       continue;
     } 
@@ -435,20 +404,21 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     //
 
     // All VM directives that take one token
-    if (!strncmp(token, "-D", 2) || !strncmp(token, "-X:gc", 5) ||
-	!strncmp(token, "-X:aos",6)   || !strncmp(token, "-X:irc", 6) ||
-	!strncmp(token, "-X:base",7)  || !strncmp(token, "-X:opt", 6) ||
-	!strncmp(token, "-X:prof",7)  ||
+    if (!strncmp(token, "-D", 2) || !strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
+	!strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
+        !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
+	!strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
+        !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
+	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
 	!strcmp(token, "-verbose:gc") ||
-	!strncmp(token, "-X:vmClasses=", 13)  || 
-	!strncmp(token, "-X:cpuAffinity=", 15) ||
-	!strncmp(token, "-X:processors=", 14)  ||
-	!strncmp(token, "-X:wbsize=", 10)      ||
-	!strncmp(token, "-X:measureCompilation=", 22) ||  
-	!strncmp(token, "-X:measureClassLoading=", 23) ||     
-	!strncmp(token, "-X:verify=", 10)      ||
-	!strncmp(token, "-X:measureCompilation=", 22)      
+	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
+	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
+	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||
+	!strncmp(token, nonStandardArgs[WBSIZE_INDEX], 10)      ||
+	!strncmp(token, nonStandardArgs[MEASURE_COMPILATION_INDEX], 22) ||  
+	!strncmp(token, nonStandardArgs[MEASURE_CLASS_LOADING_INDEX], 23) ||     
+	!strncmp(token, nonStandardArgs[VERIFY_INDEX], 10)  
        ) {
       JCLAs[n_JCLAs++]=token;
       continue;
