@@ -52,6 +52,11 @@ final public class VM_Offset {
     return value;
   }
 
+  public long toLong () {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return 0x00000000ffffffffL & ((long) value);
+  }
+
   public VM_Offset add (int byteSize) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Offset(value + byteSize);
