@@ -47,12 +47,14 @@ abstract class VM_RecompilationChoice {
    * @param prevCompiler The previous compiler
    * @param prevTimeFormethod The estimated future time had nothing been done
    * @param bestActionTime The estimated total time implementing this choice
+   * @param bestCost The estimated compilation cost implementing this choice
    * @return The controller plan implementing this recompilation choice
    */
   abstract VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,
 						int prevCompiler,
 						double prevTimeFormethod,
-						double bestActionTime);
+						double bestActionTime,
+						double bestCost);
 
 }
 
