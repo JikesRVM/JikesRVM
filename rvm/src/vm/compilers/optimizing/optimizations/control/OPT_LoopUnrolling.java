@@ -54,7 +54,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_DefUse.computeDU (ir);
 
     ir.setInstructionScratchWord(0);
-    
+
     unrollLoops(ir);
     
     OPT_CFGTransformations.splitCriticalEdges(ir);
@@ -66,6 +66,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    */
   private static void unrollLoops(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    
     for (int i = 1;  lstg != null && i <= 1;  ++i) {
       unrollLoopTree((OPT_LSTNode)lstg.firstNode(), ir, i);
       (new OPT_BuildLST()).perform(ir);
@@ -107,7 +108,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   
   static boolean unrollLeaf(OPT_LSTNode t, OPT_IR ir) {
     int instructionsInLoop = 0;
-    OPT_BasicBlock exitBlock = null, succBlock = null, predBlock = null;
+    OPT_BasicBlock exitBlock = null, backEdgeBlock = null, succBlock = null, predBlock = null;
     OPT_BitVector nloop = t.loop;
     OPT_BasicBlock header = t.header;
     OPT_Instruction tmp;
@@ -150,24 +151,40 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	    if (predBlock == null) predBlock = o;
 	    else {report ("3 multi entry header.\n"); return true;}
 	  } else {
-	    if (exitBlock == null) exitBlock = o;
+	    if (backEdgeBlock == null) backEdgeBlock = o;
 	    else {report ("4 multiple back edges.\n"); return true;}
 	  }
 	}
       }      
+
+      // look at the out edges to find loop exits
+      e = b.getOut();
+      while (e.hasMoreElements()) {
+	OPT_BasicBlock out = e.next();
+	if (!OPT_CFGTransformations.inLoop (out, nloop)) {
+	  if (exitBlock == null) {
+	    exitBlock = out;
+	  } else {
+	    report("5 multiple exit blocks.\n"); return true;
+	  }
+	}
+      }
     }
+
+    // exitBlock must equal backEdgeBlock
+    if (exitBlock == null) {
+      report("6 no exit block found...infinite loop?");
+      return true;
+    }
+    if (exitBlock != backEdgeBlock) {
+      report("7 exit block is not immediate predecessor of loop head");
+      return true;
+    }
+
     // exitBlock must exit (skip over pads in critical edges)
     while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1)
       exitBlock = exitBlock.getIn().next();
   
-    OPT_BasicBlockEnumeration e = exitBlock.getOut();
-    boolean exits = false;
-    while (e.hasMoreElements()) {
-      OPT_BasicBlock b = e.next();
-      if (!OPT_CFGTransformations.inLoop (b, nloop)) {exits = true; break;}
-    }
-    if (!exits) {report ("5 exitBlock doesn't exit\n"); return true;}
-
     if (exitBlock == header && blocks > 1) {
       report("6 while loop? ("+blocks+")\n"); return true;}
 
@@ -240,7 +257,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	} else {report("12 iterator not unique.\n"); return true;}
       }
     }
-    
+
     if (iterator == null) {report ("15 iterator not found.\n"); return true;}
 
       
