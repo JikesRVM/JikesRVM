@@ -24,6 +24,14 @@
 # @author Steven Augart (Bash version)
 # @date 17 May 2003
 
+## Exit statuses:
+
+## We exit with status 0 upon success, as is conventional.
+## In case of trouble, we exit with the triggering exit status (if invoked via 'set -e'.
+## Exit status 33: Invalid arguments.
+## Exit status 2: trouble (configuration, etc.)
+## exit status 1: misc. complaints.
+
 #----------------------#
 # SECTION 0 - Setup    #
 #----------------------#
@@ -46,9 +54,9 @@ fi
 # Stop immediately if any programs we call return errors.
 #
 ## Check if the command does not support the ERR trap.
-unset xited
-if trap -- 'xited=$?; echo >&2 "$ME: some command we just ran (probably with a
-      final argument of \"$_\") exited with status $xited, possibly in source
+unset xited || :
+if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME: some command we just ran (probably with a
+      final argument of \"$finalarg\") exited with status $xited, possibly in source
       file line # $LINENO ${FUNCNAME+'"'"'and function '"'"'}$FUNCNAME
       I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT' ERR
 then
@@ -58,7 +66,7 @@ else
     ($BASH_VERSION; probably pre-2.05) that
     does not support
     the ERR trap.  You may not get as much diagnostic info as you would like."
-    unset have_err_trap
+    unset have_err_trap || :
 fi
 
 trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit status was ${xited:-$?}.
@@ -67,7 +75,7 @@ trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit stat
 set -e;
 
 ## Complain
-function croak_nousage () {
+function croak_nonusage () {
     # Display the error message.  If it's a multi-line error message, indent
     # the second and subsequent lines by a few spaces.
     echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
@@ -414,21 +422,21 @@ do
 done
 
 
-function croak () {
+function croak_usage () {
     # Display the error message.  If it's a multi-line error message, indent
     # the second and subsequent lines by a few spaces.
     echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
     echo >&2 "${ME}: Type \"${ME} -help\" for usage information."
     trap '' EXIT
-    exit 1
+    exit 33
 }
 
-[[ "${CONFIGURATION_NAME}" ]] || croak "Please specify <configuration-name>"
+[[ "${CONFIGURATION_NAME}" ]] || croak_usage "Please specify <configuration-name>"
 
 if [[ -f "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" ]]; then
     . "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" "${CONFIGURATION_FILE_SOURCE}"
 else
-    croak "Unknown configuration ${CONFIGURATION_NAME}"
+    croak_usage "Unknown configuration ${CONFIGURATION_NAME}"
 fi
 
 # set the relative path to the object model.
@@ -491,7 +499,7 @@ function checkConfigurationOptions {
     if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )) \
 	&& (( RVM_WITH_NATIVE_DAEMON_PROCESSOR ))
     then
-	croak_nousage "\
+	croak_nonusage "\
 If RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS is not specified,\
 then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified";
     fi
@@ -753,8 +761,8 @@ function emit_enable_exit_on_error () {
 	EOF
     if [ "$have_err_trap" ]; then
 	cat <<- 'EOF'
-	if trap -- 'xited=$?; echo >&2 "$ME: some command we just ran (probably with a
-	      final argument of \"$_\") exited with status $xited, possibly in source
+	if trap -- 'finalarg="$_" xited=$?; set +vx; echo >&2 "$ME: some command we just ran (probably with a
+	      final argument of \"$finalarg\") exited with status $xited, possibly in source
 	      file line # $LINENO${FUNCNAME+'"'"' and function '"'"'\"}$FUNCNAME${FUNCNAME+\"}
 	      I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT' ERR
 	then
@@ -764,7 +772,7 @@ function emit_enable_exit_on_error () {
 	    ($BASH_VERSION; probably pre-2.05) that
 	    does not support
 	    the ERR trap.  You may not get as much diagnostic info as you would like."
-	    unset have_err_trap
+	    unset have_err_trap || :
 	fi
 	EOF
 	if false; then
@@ -843,7 +851,7 @@ function emitEnvironmentBash () {
     echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
     echo ""
     echo "export CLASSPATH_LIBRARIES=YES"
-    if [[ x$CLASSPATH_ROOT != x ]]; then
+    if [[ $CLASSPATH_ROOT ]]; then
         echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
     fi
     echo ""
@@ -964,19 +972,17 @@ function emitMakefile () {
 
 
 # Emit a script to run each phase of vm builder in turn.
-#
+
 function emitController () {
-    cat <<- 'EOF'
+    cat <<- EOF
 	#!/bin/bash
 
 	# Run all phases of vm builder.
 
-	EOF
-    emitBoilerplate
-    cat <<- 'EOF'
+	$(emitBoilerplate)
 
-	# timeit() $1: The command to run
-	#	   $2: That command's arguments.
+	# timeit() \$1: The command to run
+	#	   \$2: That command's arguments.
 
 	# The old (until 2003 June) KSH script displayed
 	# seconds of precision to three decimal places.  The
@@ -987,119 +993,118 @@ function emitController () {
 	    # We can either do some modifications to the output
 	    # format, and use TIMEFORMAT instead of SECONDS...
 	    # TIMEFORMAT="%3lR"
-	    # time "$@"		
+	    # time "\$@"		
 	    # ...Or we can just deal.with integer seconds.  Since the SECONDS
 	    # variable is cumulative, it is compatible with the way we used to
 	    # do this.
 
 	    # Disable exit-on-error; inside "timeit", we can get a better
 	    # exit message than the default one.
-EOF
-    emit_disable_exit_on_error;
-    cat <<- 'EOF'
-	    "$@"
-	    local status=$?
-EOF
-    emit_enable_exit_on_error
-    cat <<- 'EOF'
-	    echo "$SECONDS s"
-	    if [ $status != 0 ]; then
-		echo >&2 "$ME: Trouble while running \"$*\" (exit status $status); aborting execution"
+    $(emit_disable_exit_on_error)
+	    local cmd="\$1"
+	    shift
+	    "\${cmd}" \$TRACE_FLAG \$VFLAG \$XFLAG "\$@"
+	    local status=\$?
+    $(emit_enable_exit_on_error)
+	    echo "\$SECONDS s"
+	    if [ \$status != 0 ]; then
+		echo >&2 "\$ME: Trouble while running \"\$*\" (exit status \$status); aborting execution"
 		trap '' EXIT
-		exit $status;
+		exit \$status;
 	    fi
-	    return $status;	# will always return 0
+	    return \$status;	# will always return 0
 	}
 
-	while [[ $# != 0 ]]; do
-	    if [[ $1 = -trace ]]; then
+	while (( \$# > 0 )); do
+	    if [[ \$1 = -trace ]]; then
 	        TRACE_FLAG=-trace
-	    elif [[ $1 = -demographics ]]; then
+	    elif [[ \$1 = -v ]]; then
+	       VFLAG=-v
+	    elif [[ \$1 = -x ]]; then
+	       XFLAG=-x
+	    elif [[ \$1 = -demographics ]]; then
 	        DEMOGRAPHICS_FLAG=-demographics
-	    elif [[ $1 = -clean ]]; then
+	    elif [[ \$1 = -clean ]]; then
 	        CLEAN_FLAG=-clean
-	    elif [[ $1 = -recompile ]]; then
+	    elif [[ \$1 = -recompile ]]; then
 	        RECOMPILE_FLAG=-recompile
-	    elif [[ $1 = -nolink ]]; then
+	    elif [[ \$1 = -nolink ]]; then
 	        NOLINK_FLAG=-nolink
-	    elif [[ $1 = -nobooter ]]; then
+	    elif [[ \$1 = -nobooter ]]; then
 	        NOBOOTER_FLAG=-nobooter
-	    elif [[ $1 = -booter ]]; then
+	    elif [[ \$1 = -booter ]]; then
 	        NOLINK_FLAG=-nolink
 	        BOOTER_FLAG=-booter
 	    else
-	         echo >&2 "Usage: $ME [-trace] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"
+	         echo >&2 "Usage: \$ME [[-trace [-v] [-x]] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"
+		echo >&2 "    -trace: Some debugging information.  Make is no longer run with --silent."
+		echo >&2 "    -v, -x: Turn on the -v and/or -x debugging flags in the subshells we spawn."
 		trap '' EXIT
-	         exit 1
+	        exit 33
 	    fi
 	    shift
 	done
 
 	
-	if [[ $BOOTER_FLAG = -booter ]]; then
+	if [[ \$BOOTER_FLAG = -booter ]]; then
 	  . ./environment
 	else
 	  . ./jbuild.environment
 	fi
 	
+	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
 	# Ensure that we have the right version of the class libraries
-	$JAL_ROOT/rvm/bin/jBuildClasspathJar --check
+	\$JAL_ROOT/rvm/bin/jBuildClasspathJar --check
 	
-	if [[ $CLEAN_FLAG = -clean ]]; then
-EOF
-    echo "    rm -rf $TOOL_DIRECTORY_STR"
-    cat <<- 'EOF'
-	    timeit ./jbuild.expand     $TRACE_FLAG -clean
-	    timeit ./jbuild.copy       $TRACE_FLAG -clean
-	    timeit ./jbuild.compile    $TRACE_FLAG -clean
-	    timeit ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean
-	    timeit ./jbuild.linkBooter $TRACE_FLAG -clean
+	if [[ \$CLEAN_FLAG = -clean ]]; then
+	    rm -rf \$TOOL_DIRECTORY_STR
+	    timeit ./jbuild.expand     \$TRACE_FLAG -clean
+	    timeit ./jbuild.copy       \$TRACE_FLAG -clean
+	    timeit ./jbuild.compile    \$TRACE_FLAG -clean
+	    timeit ./jbuild.linkImage  \$TRACE_FLAG \$DEMOGRAPHICS_FLAG -clean
+	    timeit ./jbuild.linkBooter \$TRACE_FLAG -clean
 	    trap '' EXIT
 	    exit 0
 	fi
 
-	if [[ $RECOMPILE_FLAG = -recompile ]]; then
-	    timeit ./jbuild.compile $TRACE_FLAG -clean
+	if [[ \$RECOMPILE_FLAG = -recompile ]]; then
+	    timeit ./jbuild.compile \$TRACE_FLAG -clean
 	fi
 
-EOF
-    echo "if [[ -e $CLEANSE_STATUS_STR ]]; then"
-    echo "   rm -rf $TOOL_DIRECTORY_STR"
-    cat <<- 'EOF'
-	    timeit ./jbuild.expand     $TRACE_FLAG -clean
-	    timeit ./jbuild.copy       $TRACE_FLAG -clean
-	    timeit ./jbuild.compile    $TRACE_FLAG -clean
-	    timeit ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean
-	    timeit ./jbuild.linkBooter $TRACE_FLAG -clean
-EOF
-    echo "    rm -f $CLEANSE_STATUS_STR"
-    cat <<- 'EOF'
-	elif [[ $NOLINK_FLAG != -nolink ]]; then
-	    timeit ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean
-	    timeit ./jbuild.linkBooter $TRACE_FLAG -clean
+	if [[ -e $CLEANSE_STATUS_STR ]]; then
+	    rm -rf $TOOL_DIRECTORY_STR
+	    timeit ./jbuild.expand     \$TRACE_FLAG -clean
+	    timeit ./jbuild.copy       \$TRACE_FLAG -clean
+	    timeit ./jbuild.compile    \$TRACE_FLAG -clean
+	    timeit ./jbuild.linkImage  \$TRACE_FLAG \$DEMOGRAPHICS_FLAG -clean
+	    timeit ./jbuild.linkBooter \$TRACE_FLAG -clean
+	    rm -f $CLEANSE_STATUS_STR
+	elif [[ \$NOLINK_FLAG != -nolink ]]; then
+	    timeit ./jbuild.linkImage  \$TRACE_FLAG \$DEMOGRAPHICS_FLAG -clean
+	    timeit ./jbuild.linkBooter \$TRACE_FLAG -clean
 	fi
-#
-# The script, jbuild.linkBooter, will optionally run
-# a command specified by the user of jbuildLinkBooter
-# in the enviroment variable RVM_BUILD_COPY.
-# For example, this variable could use rsh to run the linkBooter
-# command remotely on the target machine.
-	if [[ $BOOTER_FLAG = -booter ]]; then
-	    if [[ X"$RVM_BUILD_COPY" != X ]]; then
-	         timeit $RVM_BUILD_COPY
+
+	# This script, jbuild.linkBooter, will optionally run
+	# a command specified by the user of jbuildLinkBooter
+	# in the enviroment variable RVM_BUILD_COPY.
+	# For example, this variable could use rsh to run the linkBooter
+	# command remotely on the target machine.
+	if [[ \$BOOTER_FLAG = -booter ]]; then
+	    if [[ \$RVM_BUILD_COPY ]]; then
+	         timeit \$RVM_BUILD_COPY
 	    else
-	         timeit ./jbuild.linkBooter $TRACE_FLAG
+	         timeit ./jbuild.linkBooter \$TRACE_FLAG
 	    fi
 	else
-	    timeit ./jbuild.expand     $TRACE_FLAG
-	    timeit ./jbuild.copy       $TRACE_FLAG
-	    timeit ./jbuild.compile    $TRACE_FLAG
-	    if [[ $NOLINK_FLAG != -nolink ]]; then
-	         timeit ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG
-	         if [[ X"$RVM_BUILD_COPY" != X ]]; then
-	             timeit $RVM_BUILD_COPY
-	         elif [[ $NOBOOTER_FLAG != -nobooter ]]; then
-	             timeit  ./jbuild.linkBooter $TRACE_FLAG
+	    timeit ./jbuild.expand     \$TRACE_FLAG
+	    timeit ./jbuild.copy       \$TRACE_FLAG
+	    timeit ./jbuild.compile    \$TRACE_FLAG
+	    if [[ \$NOLINK_FLAG != -nolink ]]; then
+	         timeit ./jbuild.linkImage  \$TRACE_FLAG \$DEMOGRAPHICS_FLAG
+	         if [[ \$RVM_BUILD_COPY ]]; then
+	             timeit \$RVM_BUILD_COPY
+	         elif [[ \$NOBOOTER_FLAG != -nobooter ]]; then
+	             timeit  ./jbuild.linkBooter \$TRACE_FLAG
 	         fi
 	    fi
 	fi
@@ -1113,61 +1118,73 @@ EOF
 # Returned: .java files in ${GENERATED_FILES_DIRECTORY}
 #
 function emitExpander () {
-    cat <<- 'EOF'
+    cat <<- EOF
 	#! /bin/bash
 	# Generate VM sources that derive from templates.
-	EOF
-    emitBoilerplate;
-    cat <<- 'EOF'
+	$(emitBoilerplate)
 	. ./jbuild.environment
 
 
+	# Process command-line args   
+	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
 	SILENT_MAKE=--silent
-	if [[ $1 = -trace ]]; then
-	    SILENT_MAKE=
+	while (( \$# > 0 )); do
+	    if [[ \$1 = -trace ]]; then
+	        TRACE_FLAG=-trace
+	        SILENT_MAKE=
+	    elif [[ \$1 = -v ]]; then
+	        VFLAG=-v
+	    elif [[ \$1 = -x ]]; then
+	        XFLAG=-x
+	    elif [[ \$1 = -clean ]]; then
+	        CLEAN_FLAG=-clean
+	    else
+	        echo >&2 "\$ME: Unknown argument: \$1"
+		trap '' EXIT
+	        exit 33
+	    fi
 	    shift
-	fi
+	done
 
-	echo -n "${ME}: "
+	echo -n "\${ME}: "
 
-	if [[ $1 = -clean ]]; then
-	EOF
-    cat <<- EOF
+	! [[ \$TRACE_FLAG ]] || XFLAG=-x
+	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+	if [[ \$CLEAN_FLAG ]]; then
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
-	    echo *.* | xargs rm -f
+	    echo *.* | \$XARGS -r rm -f
 	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 	    cd ${GENERATED_FILES_DIRECTORY_STR}/instructionFormats
-	    echo *.* | xargs rm -f
+	    echo *.* | \$XARGS -r rm -f
 	EOF
     fi
-    echo '
-    echo -n "(templates cleaned) "
-    trap '' EXIT
-    exit 0
-fi
-    # Make the tools that we need to do template expansion
-'
-    echo "\
-${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+    cat <<- EOF
 
+	    echo -n "(templates cleaned) "
+	    trap '' EXIT
+	    exit 0
+	fi
+	# Make the tools that we need to do template expansion
+	${GNU_MAKE_STR} \${SILENT_MAKE} -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
+EOF
     if (( RVM_WITH_OPT_COMPILER )); then
-        echo "\
+	echo "\
 ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}\
 "
     fi
 
     # build VM_Assembler on Intel
     if (( RVM_FOR_IA32 )); then
-        echo "\
+	echo "\
 ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
-        if (( RVM_WITH_OPT_COMPILER )); then
+	if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
 ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
-        fi
+	fi
     fi
 
     # Do the expansion
@@ -1185,7 +1202,7 @@ ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/op
 	fi
     fi
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-        echo "\
+	echo "\
 ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} IS_ADAPTIVE=${RVM_WITH_ADAPTIVE_SYSTEM}"
     fi
     
@@ -1204,39 +1221,55 @@ fi
 #
 # echo >&2  "HERE I AM! emitCopier" # DBG
 function emitCopier () {
-    cat <<- 'EOF'
+    cat <<- EOF
 	#! /bin/bash
 	# Copy or preprocess VM Java files from the source tree to 
 	# the build directory.
 	# Taken:    .java files in the source tree
 	# Returned: .java files in the build directory
 
-	EOF
-    emitBoilerplate;
-    cat <<- EOF
+	$(emitBoilerplate)
 	. ./jbuild.environment
 	
 
+	# Process command-line args   
+	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
 	SILENT_MAKE=--silent
-	if [[ \$1 = -trace ]]; then
-	    SILENT_MAKE=
-	    TRACE_FLAG=-trace
+	while (( \$# > 0 )); do
+	    if [[ \$1 = -trace ]]; then
+	        TRACE_FLAG=-trace
+	        SILENT_MAKE=
+	    elif [[ \$1 = -v ]]; then
+	        VFLAG=-v
+	    elif [[ \$1 = -x ]]; then
+	        XFLAG=-x
+	    elif [[ \$1 = -clean ]]; then
+	        CLEAN_FLAG=-clean
+	    else
+	        echo >&2 "\$ME: Unknown argument: \$1"
+		trap '' EXIT
+	        exit 33
+	    fi
 	    shift
-	fi
+	done
 
-	if [[ \$1 = -clean ]]; then
-	    echo -n "\${ME}:"
-	    [[ \$TRACE_FLAG ]] && echo " (nuking .java files in ${CLASSES_DIRECTORY_STR})"
+	echo -n "\${ME}: "
+
+	if [[ \$CLEAN_FLAG ]]; then
+	    if [[ \$TRACE_FLAG ]]; then
+		echo " (nuking .java files in ${CLASSES_DIRECTORY_STR})"
+	    fi
 	    find ${CLASSES_DIRECTORY_STR} -name "*.java" -exec rm {} \;
 	    echo "This file indicates that some or all classes need to be recompiled" > ${CLASSES_INVALID_STR}
-	    echo -n " (sources cleaned)"
+	    echo -n "(sources cleaned) "
 	    trap '' EXIT
 	    exit 0
 	fi
+	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
 	${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep
-	echo -n ' (preprocessor built)'
+	echo -n '(preprocessor built) '
 
 	# This may be reset in the loop below.
 	FILES_HAVE_CHANGED=0
@@ -1256,18 +1289,25 @@ EOF
     # the PREPROCESSOR_DEFINITIONS from a newline-separated list to a space-separated list.
     cat <<- EOF
 
-	    ${BUILD_DIRECTORY_STR}/jbuild.prep \${TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \${FILES}
+	    ## Approach abandoned because xargs will exit with status 123
+	    ## upon nonzero exit status from jbuild.prep, but 
+	    ## jbuild.prep will exit with status 1 when files are modified.
+	    ## So, all the non-zero return values get mapped to 123, and we 
+	    ## want to distinguish 1 (OK) 
+	    ## from other non-zero return values (trouble).
+	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
+	    ${BUILD_DIRECTORY_STR}/jbuild.prep \${TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
 	    status=\$?
 EOF
     emit_enable_exit_on_error
     echo '
     if (( status == 1 )); then
-        FILES_HAVE_CHANGED=1
+	FILES_HAVE_CHANGED=1
     elif (( status != 0 )); then
-        echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}).
+	echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}).
     Aborting execution."
 	trap "" EXIT
-	exit 1
+	exit $status
     fi
     if [[ ${TRACE_FLAG} = -trace ]]; then
 	echo ""
@@ -1283,9 +1323,10 @@ if [[ ${TRACE_FLAG} = -trace ]]; then
 fi
 FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")'
     emit_disable_exit_on_error
-    echo '
-'${BUILD_DIRECTORY_STR}'/jbuild.prep ${TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}' ${FILES}
-status=$?'
+    ## See above comment on xargs.
+    # echo 'echo $FILES | $XARGS -r '${BUILD_DIRECTORY_STR}'/jbuild.prep ${TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}'
+    echo ${BUILD_DIRECTORY_STR}/jbuild.prep "\${TRACE_FLAG}" ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} "\${FILES}"
+    echo 'status=$?'
     emit_enable_exit_on_error
     echo '
 if [[ ${status} = 1 ]]; then
@@ -1339,18 +1380,32 @@ EOF
 	. ./jbuild.environment
 
 
-	if [[ \$1 = -trace ]]; then
-	    TRACE_FLAG=-trace
+	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
+	while (( \$# > 0 )); do
+	    if [[ \$1 = -trace ]]; then
+		TRACE_FLAG=-trace
+	    elif [[ \$1 = -v ]]; then
+	        VFLAG=-v
+	    elif [[ \$1 = -x ]]; then
+	        XFLAG=-x
+	    elif [[ \$1 = -clean ]]; then
+	        CLEAN_FLAG=-clean
+	    else
+	        echo >&2 "\$ME: Unknown argument: \$1"
+		trap '' EXIT
+	        exit 33
+	    fi
 	    shift
-	fi
+	done
 
 	echo -n "\${ME}: "
-	if [[ \$1 = -clean ]]; then
+	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+	if [[ \$CLEAN_FLAG ]]; then
 	    cd ${CLASSES_DIRECTORY_STR}
 	    # This avoids any limits on the size of the command-line arguments.
 	    # 'echo' is a bash builtin, and as such is unaffected by such O/S 
 	    # limits. 
-	    echo *.class | xargs rm -f
+	    echo *.class | \$XARGS -r rm -f
 	    touch ${CLASSES_INVALID_STR} 
 	    echo -n "(classes cleaned) "
 	    trap "" EXIT
@@ -1370,11 +1425,11 @@ EOF
     TOP_LEVEL_CLASSES="$(echo ${TOP_LEVEL_SOURCES}| sed 's@\.java@.class@g')"
 
     if (( RVM_FOR_POWERPC )); then
-        INSTRUCTION_TYPE="int"
+	INSTRUCTION_TYPE="int"
     elif (( RVM_FOR_IA32 )); then
-        INSTRUCTION_TYPE="byte"
+	INSTRUCTION_TYPE="byte"
     else
-        INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
+	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
     fi
     
     ADDRESS_TYPE="int"
@@ -1387,13 +1442,17 @@ EOF
 	    echo -n '(classes compiled) '
 
 	    rm -f jksvm.jar
-	    $HOST_JAR_STR cvf0 jksvm.jar Dummy.class > /dev/null 2>&1
-	    \$FIND . -name '*.class' | xargs $HOST_JAR_STR uvf0 jksvm.jar > /dev/null 2>&1
+	    ## The Sun JAR manual page claims that '-O' is the flag for
+	    ## no-compression.  It's actually '0' (zero), not the letter 'O'.
+	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class # > /dev/null 2>&1
+
+	    \$FIND . -name '*.class' | \$XARGS -r $HOST_JAR_STR -u0f jksvm.jar # > /dev/null 2>&1
 	    echo -n '(jksvm.jar built) '
 
 	    rm -f jksvmsrc.jar
-	    $HOST_JAR_STR cvf jksvmsrc.jar Dummy.java > /dev/null 2>&1
-	    \$FIND . -name '*.java' | xargs $HOST_JAR_STR uvf jksvmsrc.jar > /dev/null 2>&1
+	    $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java # > /dev/null 2>&1
+	    ## -r is the no-run-if-empty flag.
+	    \$FIND . -name '*.java' | \$XARGS -r $HOST_JAR_STR -u0f jksvmsrc.jar # > /dev/null 2>&1
 	    echo -n '(jksvmsrc.jar built) '
 
 	else
@@ -1411,38 +1470,47 @@ EOF
 
 # echo >&2  "HERE I AM! emitImageLinker" # DBG
 function emitImageLinker () {
-    cat <<- 'EOF'
+    cat <<- EOF
 	#! /bin/bash
 	# Generate the VM bootimage.
 	# Taken:    .class files in build directory
 	# Returned: PRIMORDIAL_CLASSES and bootimage in build directory
 	#            InterfaceDeclarations.h in bootImageRunner directory
 	#
-EOF
-    emitBoilerplate
+	$(emitBoilerplate)
 
-    cat <<- 'EOF'
 	. ./jbuild.environment
 
-    
-	TRACE_FLAG=
+	# Process command-line args
+	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG DEMOGRAPHICS_FLAG || :
 	SILENT_MAKE=--silent
-	if [[ $1 = -trace ]]; then
-	    TRACE_FLAG=-trace
-	    SILENT_MAKE=
+	while (( \$# > 0 )); do
+	    if [[ \$1 = -trace ]]; then
+	        TRACE_FLAG=-trace
+	        SILENT_MAKE=
+	    elif [[ \$1 = -v ]]; then
+	       VFLAG=-v
+	    elif [[ \$1 = -x ]]; then
+	       XFLAG=-x
+	    elif [[ \$1 = -demographics ]]; then
+	        DEMOGRAPHICS_FLAG=-demographics
+	    elif [[ \$1 = -clean ]]; then
+	        CLEAN_FLAG=-clean
+	    else
+	        echo >&2 "\$ME: Unknown argument: \$1"
+		trap '' EXIT
+	        exit 33
+	    fi
 	    shift
-	fi
-	if [[ $1 = -demographics ]]; then
-	    DEMOGRAPHICS_FLAG=-demographics
-	    shift
-	fi
+	done
 	
-	echo -n "${ME}: "
+	echo -n "\${ME}: "
+	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
 EOF
     
     BOOTIMAGE_WRITER_MAKEFILE=Makefile
 
-    echo "if [[ \$1 = -clean ]]; then"
+    echo "if [[ \$CLEAN_FLAG ]]; then"
     echo "    rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR $BOOTIMAGE_STR $BOOTIMAGE_MAP_STR"
     echo '    echo -n "(primordials cleaned) "'
     echo "    rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*"
@@ -1499,9 +1567,9 @@ EOF
     if (( RVM_WITH_ALL_CLASSES )); then
        echo "   \${FIND} . -name '*.class' -print > ${PRIMORDIAL_CLASSES_STR}.1"
     else
-        echo "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
-        echo "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+	echo "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
     fi
 
     # VM daemon threads that don't start with VM for historical reasons
@@ -1636,7 +1704,7 @@ EOF
     echo "    echo 'java/io/FileInputStream'   >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/io/FileDescriptor'    >> $PRIMORDIAL_CLASSES_STR.1"
     if (( RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH )); then
-        echo "    echo 'java/io/VMFileDescriptor'>> ${PRIMORDIAL_CLASSES_STR}.1"
+	echo "    echo 'java/io/VMFileDescriptor'>> ${PRIMORDIAL_CLASSES_STR}.1"
     fi
 
     # class loading from zip files
@@ -1698,18 +1766,18 @@ EOF
     echo "    echo 'java/io/ObjectStreamField'    >> $PRIMORDIAL_CLASSES_STR.1"
 
     if (( RVM_WITH_OSR )); then
-        # on stack replacement
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_ObjectHolder' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_EncodedOSRMap' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_SpecialCompiler' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/OSR/OSR_PostThreadSwitch' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan' >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OrganizerThread' >> $PRIMORDIAL_CLASSES_STR.1"
+	# on stack replacement
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_ObjectHolder' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_EncodedOSRMap' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_SpecialCompiler' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_PostThreadSwitch' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan' >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OrganizerThread' >> $PRIMORDIAL_CLASSES_STR.1"
     fi
 
     echo "    echo 'java/io/PrintWriter'        >> $PRIMORDIAL_CLASSES_STR.1"
@@ -1762,14 +1830,14 @@ EOF
 	fi
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-        echo "    echo 'com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan'       >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan'       >> $PRIMORDIAL_CLASSES_STR.1"
 	fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
-        echo "    echo 'com/ibm/JikesRVM/HPM_counters'       >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'com/ibm/JikesRVM/HPM_info'           >> $PRIMORDIAL_CLASSES_STR.1"
-        echo "    echo 'Lcom/ibm/JikesRVM/Java2HPM;'         >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/HPM_counters'       >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'com/ibm/JikesRVM/HPM_info'           >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "    echo 'Lcom/ibm/JikesRVM/Java2HPM;'         >> $PRIMORDIAL_CLASSES_STR.1"
     fi
     echo "\
 #
@@ -1856,18 +1924,18 @@ EOF
 	echo "    echo '[[C'                       >> $PRIMORDIAL_CLASSES_STR"
 	echo "    echo '[Ljava/util/HashSet;'      >> $PRIMORDIAL_CLASSES_STR"
 	if (( RVM_WITH_ALL_CLASSES )); then
-        echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
-        echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
-        echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
-        echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
+	echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
+	echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
+	echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
+	echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
 	fi
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-          echo "    echo '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
-          echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
-          echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
-          echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
+	  echo "    echo '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
+	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
+	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
+	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
+	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
 	fi
     fi
 
@@ -1875,7 +1943,7 @@ EOF
 # Add the configuration specific primordials
 #"
     for primordial in $CONF_SPECIFIC_PRIMORDIALS_LIST; do
-        echo "    echo '$primordial'			>> $PRIMORDIAL_CLASSES_STR"
+	echo "    echo '$primordial'			>> $PRIMORDIAL_CLASSES_STR"
     done
 
     echo '    echo -n "(primordials updated) "'
@@ -1916,7 +1984,7 @@ EOF
 	echo ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
     fi
 
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
+    echo "if [[ \$TRACE_FLAG ]]; then"
     echo '    OPT_ARGS="$OPT_ARGS -X:bc:verbose=true"'
     echo '    VERBOSE_STR="VERBOSE_ARG=-verbose:gc"'
     echo 'fi'
@@ -1925,12 +1993,19 @@ EOF
     # copy and preprocess BootImageWriter sources
     #
     echo ''
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
+    echo "if [[ \$TRACE_FLAG ]]; then"
     echo '    echo -n "$ME: '$BOOTIMAGE_WRITER_DIR_STR'"'
     echo 'fi'
-    echo "FILES=\$(/bin/ls $BOOTIMAGE_WRITER_DIR_STR/*.java)"
-    echo $BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
+    echo "FILES=\$(echo $BOOTIMAGE_WRITER_DIR_STR/*.java)"
+    echo "if ! [[ \$FILES ]]; then"
+    echo "    echo >&2 \$ME: Trouble: Cannot find any files in $BOOTIMAGE_WRITER_DIR_STR!"
+    echo "    trap '' EXIT"
+    echo "    exit 2"
+    echo "fi"
+    # See above comment in jconfigure on xargs.
+    echo "echo \$FILES | \$XARGS -r \"$BUILD_DIRECTORY_STR/jbuild.prep\" --disable-modification-exit-status \$TRACE_FLAG" $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR 
+    # echo $BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR "\$FILES"
+    echo "if [[ \$TRACE_FLAG ]]; then"
     echo '    echo ""'
     echo 'fi'
     echo ''
@@ -1938,19 +2013,26 @@ EOF
     # compile BootImageWriter.java
     #
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-          $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+	  $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  BootImageWriter.java"
 
     # copy and preprocess GenerateInterfaceDeclarations.java
     #
     echo ''
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
-    echo '    echo -n "$ME: '$BOOTIMAGE_RUNNER_DIR_STR'"'
-    echo 'fi'
-    echo "FILES=\$(/bin/ls $BOOTIMAGE_RUNNER_DIR_STR/GenerateInterfaceDeclarations.java)"
-    echo "$BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status \$TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILES"
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
+    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "    echo -n \"\$ME: $BOOTIMAGE_RUNNER_DIR_STR\""
+    echo "fi"
+    echo "FILE=$BOOTIMAGE_RUNNER_DIR_STR/GenerateInterfaceDeclarations.java"
+    echo "if ! [[ -f \$FILE ]]; then"
+    echo "    echo >&2 \$ME: Trouble: Cannot find \$FILE!"
+    echo "    trap '' EXIT"
+    echo "    exit 2"
+    echo "fi"
+    # We explicitly do not double-quote $PREPROCESSOR_DEFINITIONS, since we
+    # need the newlines in that string to be replaced with spaces.
+    echo "$BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status \$TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILE"
+    echo "if [[ \$TRACE_FLAG ]]; then"
     echo '    echo ""'
     echo 'fi'
     echo '
@@ -1958,7 +2040,7 @@ EOF
 # compile GenerateInterfaceDeclarations.java
 #'
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-          $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+	  $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
@@ -1967,28 +2049,28 @@ EOF
 #'
     echo "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
     echo "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
-          -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-          GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
+	  -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+	  GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 	  $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
     echo ""
 
     echo "cd $BOOTIMAGE_WRITER_DIR_STR"
 
     echo "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
-          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-          RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
-          RVM_BOOTIMAGE=$BOOTIMAGE_STR\
-          RVM_BOOTIMAGE_COMPILER_ARGS=\"\$OPT_ARGS\"\
-          RVM_BOOTIMAGE_WRITER_ARGS=\"$BOOTIMAGE_WRITER_ARGS\"\
-          SCRATCH_DIR=$SCRATCH_DIRECTORY_STR\
-          $BOOTIMAGE_STR"
+	  RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+	  RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
+	  RVM_BOOTIMAGE=$BOOTIMAGE_STR\
+	  RVM_BOOTIMAGE_COMPILER_ARGS=\"\$OPT_ARGS\"\
+	  RVM_BOOTIMAGE_WRITER_ARGS=\"$BOOTIMAGE_WRITER_ARGS\"\
+	  SCRATCH_DIR=$SCRATCH_DIRECTORY_STR\
+	  $BOOTIMAGE_STR"
 
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then"
+    echo "if [[ \$TRACE_FLAG ]]; then"
     echo '  echo ""'
     echo 'fi'
 }
 
-# Emit script to generate vm booter.
+# Emit script to generate jbuild.linkBooter, the vm booter, 
 # echo >&2  "HERE I AM! emitBooterLinker" # DBG
 function emitBooterLinker () {
     echo '#! /bin/bash'
@@ -2018,22 +2100,36 @@ function emitBooterLinker () {
     echo "$BUILD_DIRECTORY_STR1=\$ROOT_DIR"
     echo ""
 
+    echo 'unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :'
     echo 'SILENT_MAKE=--silent'
-    echo "if [[ \$1 = -trace ]]; then"
-    echo '    TRACE_FLAG=-trace'
-    echo '    SILENT_MAKE='
-    echo '    shift'
-    echo 'fi'
-
-    echo 'echo -n "$ME: "'
-    echo "if [[ \$TRACE_FLAG = -trace ]]; then set -x; fi"
+    echo "while (( \$# > 0 )); do"
+    echo "    if [[ \$1 = -trace ]]; then"
+    echo '        TRACE_FLAG=-trace'
+    echo '        SILENT_MAKE='
+    echo "    elif [[ \$1 = -v ]]; then"
+    echo "        VFLAG=-v"
+    echo "    elif [[ \$1 = -x ]]; then"
+    echo "        XFLAG=-x"
+    echo "    elif [[ \$1 = -clean ]]; then"
+    echo "        CLEAN_FLAG=-clean"
+    echo "    else"
+    echo "        echo >&2 \"\$ME: Unknown argument: \$1\""
+    echo "	 trap '' EXIT"
+    echo "        exit 33"
+    echo "    fi"
+    echo "    shift"
+    echo "done"
+ 
+    echo "echo -n \"\$ME: \""
+    echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
+    echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
 
     echo ""
     echo "rm -f libjni.a"
     echo "cd $SCRATCH_DIRECTORY_STR"
     echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles"
     echo 'echo -n "(booter cleaned) "'
-    echo "if [[ \$1 = -clean ]]; then"
+    echo "if [[ \$CLEAN_FLAG ]]; then"
 
     echo '    trap "" EXIT'
     echo '    exit 0'
@@ -2041,31 +2137,31 @@ function emitBooterLinker () {
     echo ""
 
     if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
-        echo "  \$JAL_ROOT/rvm/bin/jBuildClasspathJar --check"
+	echo "  \$JAL_ROOT/rvm/bin/jBuildClasspathJar --check"
     fi
 
     # copy native libraries
     if [[ $CLASSPATH_ROOT ]]; then
-        CPS=$CLASSPATH_ROOT
+	CPS=$CLASSPATH_ROOT
     else
-        CPS=$RVM_ROOT/classpath
+	CPS=$RVM_ROOT/classpath
     fi
     echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     ## AIX requires that dynamically loaded libraries end in .a, 
     ## so that dlopen() will find them.  Also, the classpath builder, on AIX,
     ## generates the files with the suffix ".so.0".  We transform one to the othr.
     if (( RVM_FOR_AIX )); then
-        echo 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
-        echo '    oldbase=$(basename ${_library} .so.0)'
-        echo '    dest_lib='${BUILD_DIRECTORY_STR}'/${oldbase}.a'
-        echo '    cp $_library $dest_lib'
-        echo 'done'
-        echo 'unset oldbase dest_lib _library'
+	echo 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
+	echo '    oldbase=$(basename ${_library} .so.0)'
+	echo '    dest_lib='${BUILD_DIRECTORY_STR}'/${oldbase}.a'
+	echo '    cp $_library $dest_lib'
+	echo 'done'
+	echo 'unset oldbase dest_lib _library || :'
     else
-        ## On Linux, on the other hand, dynamically loaded libraries end in 
-        ## .so.  The classpath builder conveniently generates them 
-        ## with this suffix.
-        echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
+	## On Linux, on the other hand, dynamically loaded libraries end in 
+	## .so.  The classpath builder conveniently generates them 
+	## with this suffix.
+	echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
     fi
     echo -e "\necho -n '(classpath native libraries copied) '"
 
@@ -2101,7 +2197,7 @@ function emitBooterLinker () {
 	    echo '    trap "" EXIT'
 	    echo '    exit 1'
 	    echo 'fi'
-        elif (( RVM_FOR_IA32 )); then
+	elif (( RVM_FOR_IA32 )); then
 	    echo "if [[ \$(uname -m) != i686 ]]; then"
 	    echo '    echo "please run me on Linux IA32"'
 	    echo '    trap "" EXIT'
@@ -2114,11 +2210,11 @@ function emitBooterLinker () {
     # build the JNI code for heavyweight networking calls
     echo "cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/"
     if (( RVM_FOR_AIX )); then
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a $JAL_BUILD/libjpninet.a'
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a $JAL_BUILD/libjpninet.a'
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
     else
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so '
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so '
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so '
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so '
     fi
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -2128,22 +2224,22 @@ function emitBooterLinker () {
     fi
 
     if (( RVM_FOR_32_ADDR )); then
-        CC_DEFINES="$CC_DEFINES -DRVM_FOR_32_ADDR -URVM_FOR_64_ADDR"
+	CC_DEFINES="$CC_DEFINES -DRVM_FOR_32_ADDR -URVM_FOR_64_ADDR"
     fi
     if (( RVM_FOR_64_ADDR )); then
-        CC_DEFINES="$CC_DEFINES -DRVM_FOR_64_ADDR -URVM_FOR_32_ADDR"
+	CC_DEFINES="$CC_DEFINES -DRVM_FOR_64_ADDR -URVM_FOR_32_ADDR"
     fi
   
     if (( RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
-        CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
+	CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
     fi
 
     # Build the blocking system call wrapper library, if requested
     if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
 	if (( RVM_FOR_AIX )); then
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.a CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.a'
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.a CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.a'
 	else
-        echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.so'
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.so'
 	fi
     fi
 
@@ -2219,22 +2315,22 @@ function emitBooterLinker () {
 	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
 	
 	echo 'echo -n "(build libhpm.a library)"'
-        echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
+	echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
 	    \$BOOTER_CC -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c"
-        echo "cd $SCRATCH_DIRECTORY_STR &&\
-                \$LDSHARED -o \$JAL_BUILD/libhpm.a  hpm.o -L\"$RVM_HPM_DIR\" -lpmapi"
+	echo "cd $SCRATCH_DIRECTORY_STR &&\
+	        \$LDSHARED -o \$JAL_BUILD/libhpm.a  hpm.o -L\"$RVM_HPM_DIR\" -lpmapi"
 
-        echo "cd $SCRATCH_DIRECTORY_STR &&\
+	echo "cd $SCRATCH_DIRECTORY_STR &&\
 	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS\
 	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm"
 
 	echo 'echo -n "(build libJava2HPM.a JNI library)"'
-        echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
+	echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
   		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
  		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C"
 
-        echo "cd $SCRATCH_DIRECTORY_STR &&\
-                \$LDSHARED -o \$JAL_BUILD/libJava2HPM.a  Java2HPM.o\
+	echo "cd $SCRATCH_DIRECTORY_STR &&\
+	        \$LDSHARED -o \$JAL_BUILD/libJava2HPM.a  Java2HPM.o\
 	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm > /dev/null 2>&1"
 	else
 	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
@@ -2261,7 +2357,7 @@ function emitBooterLinker () {
 		-o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S"
 	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
 		\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}\
-                -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
+	        -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
 		-o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C"
 	echo "cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler &&\
 		\${BOOTER_CC} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
@@ -2271,14 +2367,14 @@ function emitBooterLinker () {
 		-o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C"
 	echo "cd ${SCRATCH_DIRECTORY_STR} &&\
 	    \${BOOTER_CC} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o\
-                                   disasm.o ihnpdsm.o \${CCLIBS}"
+	                           disasm.o ihnpdsm.o \${CCLIBS}"
 	echo 'echo "(booter linked)"'
 	echo ""
 
     else
-        echo 'echo "dont know how to link booter"'
-        echo 'trap "" EXIT'
-        echo 'exit 1'
+	echo 'echo "dont know how to link booter"'
+	echo 'trap "" EXIT'
+	echo 'exit 1'
     fi
   
     echo "
@@ -2299,11 +2395,11 @@ function emitToolCompiler () {
     emitBoilerplate
     echo ". \${RVM_BUILD}/environment"
 
-    echo "if [[ \$# = 0 ]]; then"
-    echo '    echo 2>&1 "usage: ${ME} [ -classpath x:y:z ] java-file [ java-file... ]"'
+    echo "function usage () {"
+    echo '    echo 2>&1 "usage: ${ME} [ -trace ] [ -classpath x:y:z ] java-file [ java-file... ]"'
     echo '    trap "" EXIT'
-    echo '    exit 1'
-    echo 'fi'
+    echo '    exit 33'
+    echo '}'
 
     if (( RVM_FOR_POWERPC )); then
 	INSTRUCTION_TYPE="int"
@@ -2327,16 +2423,31 @@ function emitToolCompiler () {
     echo '    exit 1'
     echo 'fi'
 
-    echo "CPATH=${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
-    echo "if [[ \$1 = -classpath ]]; then"
-    echo '    CPATH=$2:${CPATH}'
-    echo '    shift'
-    echo '    shift'
-    echo 'else'
-    echo "    CPATH=.:\${CPATH}"
-    echo 'fi'
+    echo 'unset EXTRA_CPATH TRACE_FLAG XFLAG VFLAG || :'
+    echo 'while :; do'
+    echo "    if [[ \$1 = -classpath ]]; then"
+    echo '        (( $# > 1 )) || usage'
+    echo '        EXTRA_CPATH=$2${EXTRA_CPATH+:}${EXTRA_CPATH}'
+    echo '        shift'
+    echo '        shift'
+    echo "    elif [[ \$1 = -v ]]; then"
+    echo "        VFLAG=-v"
+    echo "    elif [[ \$1 = -x ]]; then"
+    echo "        XFLAG=-x"
+    echo '    elif [[ $1 = -trace ]]; then'
+    echo '        TRACE_FLAG=-trace'
+    echo '        shift'
+    echo '    elif [[ $1 == -* ]]; then'
+    echo '        usage'
+    echo '    else'
+    echo '        break'
+    echo '    fi'
+    echo 'done'
+    
+    echo "CPATH=\${EXTRA_CPATH-.}:${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
+    echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
+    echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
 
-    echo 'set -x'
     echo "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \"\$CPATH\" \"\$@\""
 }
   
@@ -2352,10 +2463,10 @@ function emitToolPreprocessor () {
     emitBoilerplate;
     echo '. "$RVM_BUILD/environment"'
 
-    echo "if [[ \$# = 0 ]]; then"
+    echo "if (( \$# == 0 )); then"
     echo '    echo >&2 "usage: $ME [ extra-preprocessor-flags...] output-directory java-file [ java-file... ]"'
     echo '    trap "" EXIT'
-    echo '    exit 1'
+    echo '    exit 33'
     echo 'fi'
 
     echo 'exec "$RVM_BUILD/jbuild.tool.prep"' $PREPROCESSOR_DEFINITIONS '"$@"'
@@ -2374,21 +2485,23 @@ EOF
 	. "${RVM_BUILD}/environment"
 
 	# allow user-specified Eclipse install to override env
-	if [[ x$1 != x ]]; then
+	if [[ $1 ]]; then
 	    ECLIPSE_INSTALL_DIR=$1
 	fi
 
 	# must have Eclipse for command line or env
-	if [[ x${ECLIPSE_INSTALL_DIR} = x ]]; then
-	    echo "must specify Eclipse home: either
-	    echo "  1: set it in ${RVM_TARGET_CONFIG}, or
-	    echo "  2: use jbuild.plugin <eclipse dir>"
+	if [[ ! ${ECLIPSE_INSTALL_DIR} ]]; then
+	    echo "$ME: must specify Eclipse's installation directory: do one of"
+	    echo "(in order of decreasing precedence):" 
+	    echo "  1: invoke this program as \$ME <eclipse install dir>"
+	    echo "  2: set ECLIPSE_INSTALL_DIR in ${RVM_TARGET_CONFIG}, or
+	    echo "  3: set the environment variable ECLIPSE_INSTALL_DIR"
 	    trap "" EXIT
 	    exit 2
 	fi
 
 	# must have Ant
-	if [[ x${ANT_CMD} = x ]]; then
+	if [[ ! ${ANT_CMD} ]]; then
 	    echo "must specify ANT_CMD in ${RVM_TARGET_CONFIG}"
 	    trap "" EXIT
 	    exit 2
