@@ -13,7 +13,7 @@ DONE (2) Figure out what the jazzlib story is (can we do automatically
 
 (2b)
     Also ack jazzlib in userguide/web pages?
-    JULIAN
+    Mike
 
 DONE? (3) Carefully read installation instructions and make sure all steps
     are still correct, dependent on jazzlib story.
@@ -37,7 +37,7 @@ DONE (6) Section 5 -- optimizing compiler details.  Exisiting text is
 
 (7) Section 6 -- memory management details. Needs to be completely
     rewritten. 
-    PERRY
+    PERRY will be done by Friday, June 7, 2002.
 
 DONE (8) Section 7 -- jdp.  Need to update with current status of jdp.
     Check to see what commands jdp actually understands and update
@@ -55,7 +55,7 @@ DONE (9) Check FAQ for accurarcy.  Some of these issues have been resolved
     of an extended section on VM_Magic that goes into more detail on
     how magic is really implemented and what one needs to do to add a new
     VM_Magic operation.
-    PERRY
+    PERRY will be done by Friday, June 7, 2002.
 
 DONE (12) Move brief subsection on AOS details out of optimizing compiler
      section into its own section.  We've diverged enough from the
@@ -66,5 +66,5 @@ DONE (12) Move brief subsection on AOS details out of optimizing compiler
 DONE (13) Add blurb about support for SOOT-style annotations. 
      MIKE
 
-(99) General proof reading -- defer until most of the other items are
+(14) General proof reading -- defer until most of the other items are
      done to avoid having to proof a section twice.
