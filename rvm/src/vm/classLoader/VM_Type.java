@@ -140,8 +140,13 @@
    */
   public int hashCode() { return dictionaryId; }
 
-  public int liveCount; 		// field for statistics: instance cnt
-  public int liveSpace;                // field for statistics: space
+  // Statistics by type
+  public int allocCount; 		// number of objects of this type allocated
+  public int allocBytes;                // total bytes of objs of this type allocated
+  public int copyCount; 		
+  public int copyBytes;                 
+  public int scanCount; 		
+  public int scanBytes;
  
   /**
    * Load status.
