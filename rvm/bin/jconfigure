@@ -248,7 +248,7 @@ integer GENERATE_MAP=1
 export GENERATE_MAP=1
 
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.2.1"
+JIKESRVM_VERSION="Jikes Research VM for Java post 2.2.1 (CVS)"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
