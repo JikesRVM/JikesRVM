@@ -423,10 +423,10 @@ consisting of:
 \item {\tt PRODUCTION}: the tree pattern to be matched.  The format of each
 pattern is explained below.
 \item {\tt COST}: the cost of matching the pattern as opposed to skipping
-it.  It is a Java\trademark expression that evaluates to an integer.
+it.  It is a Java\trademark\ expression that evaluates to an integer.
 \item {\tt FLAGS}: specifies whether the rule actually represents a sequence
 of instructions (1) or a transformation of operands (0)
-\item {\tt TEMPLATE}: Java\trademark code to emit
+\item {\tt TEMPLATE}: Java\trademark\ code to emit
 \end{itemize}
 
 Each production has a {\em non-terminal}, which denotes a value, followed
@@ -456,7 +456,7 @@ producing a register, {\tt riv} is a non-terminal that represents a register
 {\tt INT\_ADD\_ACC} and {\tt INT\_STORE} are operators ({\em terminals}).
 {\tt OTHER\_OPERAND} is just an abstraction to make the tree binary.
 
-There are multiple helper functions that can be used in Java\trademark code (both cost
+There are multiple helper functions that can be used in Java\trademark\ code (both cost
 expressions and generation templates).  In all code sequences the name
 {\tt p} is reserved for the current tree node.  Some of the helper methods
 are shortcuts for accessing properties of tree nodes:
@@ -501,7 +501,7 @@ Certain methods, known as "magic" methods and declared as static methods of
 {\tt VM\_Magic}, are treated differently by the 
 compiler. Because these methods access raw memory (such as portions of 
 object headers) or registers, or are operating system calls they cannot be
-implemented in Java\trademark code. Instead, for each of these methods, the Java\trademark 
+implemented in Java\trademark\ code. Instead, for each of these methods, the Java\trademark\ 
 instructions to generate the code is stored in 
 {\tt OPT\_GenerateMagic} (to generate HIR) and {\tt VM\_MagicCompiler}
 (to generate assembly code)\footnote{The optimizing compiler always uses the set
