@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.classloader.TypeDescriptorParsing;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import java.lang.ref.Reference;
 
@@ -275,7 +274,7 @@ public class VM extends VM_Properties implements VM_Constants,
       pleaseSpecifyAClass();
     }
     if (applicationArguments.length > 0 && 
-	! TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
+	! VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
       VM.sysWrite("\" is not a legal Java class name.\n");

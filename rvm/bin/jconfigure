@@ -1636,7 +1636,6 @@ com/ibm/JikesRVM/PrintLN
 com/ibm/JikesRVM/PrintContainer
 
 ## Classes involved with the process of class loading...
-com/ibm/JikesRVM/classloader/TypeDescriptorParsing
 # fundamental java classes
 #
 java/lang/Class

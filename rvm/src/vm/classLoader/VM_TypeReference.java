@@ -142,7 +142,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static synchronized VM_TypeReference findOrCreate(ClassLoader cl, VM_Atom tn) 
     throws IllegalArgumentException // does not need to be declared
   {
-    TypeDescriptorParsing.validateAsTypeDescriptor(tn);
+    VM_TypeDescriptorParsing.validateAsTypeDescriptor(tn);
     // Primitives, arrays of primitives, system classes and arrays of system
     // classes must use the system classloader.  Force that here so we don't
     // have to worry about it anywhere else in the VM.

@@ -20,8 +20,6 @@ import java.lang.Thread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.classloader.TypeDescriptorParsing;
-
 
 /**
  * Construct a RVM virtual machine bootimage.
@@ -704,8 +702,8 @@ public class BootImageWriter extends BootImageWriterMessages
       if (typeName.length() == 0)
         continue; // ignore comment-only and whitespace-only lines
       // debugging:
-      TypeDescriptorParsing.validateAsTypeDescriptor(typeName);
-      if (TypeDescriptorParsing.isValidTypeDescriptor(typeName))
+      VM_TypeDescriptorParsing.validateAsTypeDescriptor(typeName);
+      if (VM_TypeDescriptorParsing.isValidTypeDescriptor(typeName))
 	typeNames.addElement(typeName);
       else
 	fail(fileName + ":" + in.getLineNumber() 
