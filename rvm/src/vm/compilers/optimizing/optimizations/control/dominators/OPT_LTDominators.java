@@ -128,8 +128,8 @@ class OPT_LTDominators extends OPT_Stack {
     if (!forward) {
       if (DFSCounter != cfg.numberOfNodes()) {
 	  VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.getName()
-		    + " in class " + ir.method.getDeclaringClass().getName()
-		    + " has unreachable nodes.\n");
+		      + " in class " + ir.method.getDeclaringClass()
+		      + " has unreachable nodes.\n");
 	VM.sysWrite(" Assuming pessimistic results in dominators computation\n"
 		    + " for unreachable nodes.\n");
       }

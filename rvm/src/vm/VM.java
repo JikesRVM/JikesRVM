@@ -320,8 +320,11 @@ public class VM extends VM_Properties
    */
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
-	if (verbose >= 2) VM.sysWriteln( classObjects[i].getName() );
-	classObjects[i].getClassForType();
+      if (verbose >= 2) {
+	VM.sysWrite(classObjects[i]); 
+	VM.sysWriteln();
+      }
+      classObjects[i].getClassForType();
     }
   }
 
@@ -331,10 +334,10 @@ public class VM extends VM_Properties
    * @param className
    */
   static void runClassInitializer(String className) throws VM_PragmaInterruptible {
-      if (verbose >= 2) {
-	  sysWrite("running class intializer for ");
-	  sysWriteln( className );
-      }
+    if (verbose >= 2) {
+      sysWrite("running class intializer for ");
+      sysWriteln( className );
+    }
 
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
@@ -346,7 +349,6 @@ public class VM extends VM_Properties
       VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
-
   }
 
   //----------------------------------------------------------------------//
@@ -424,6 +426,14 @@ public class VM extends VM_Properties
    */
   public static void sysWrite(VM_Member value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     sysWrite(value.getMemberRef());
+  }
+
+  /**
+   * Low level print to console.
+   * @param value  what is printed
+   */
+  public static void sysWrite(VM_Type value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    sysWrite(value.toString());
   }
 
   /**

@@ -100,7 +100,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    */
   public String toString() {
     if (type != null) {
-      return type.getName().toString();
+      return type.toString();
     } else {
       return typeRef.getName().toString();
     }

@@ -994,13 +994,13 @@ implements BootImageWriterConstants {
       if (verbose >= 1) say("populating jtoc with static fields");
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type rvmType = (VM_Type) e.nextElement();
-        if (verbose >= 1) say("  jtoc for ", rvmType.getName());
+        if (verbose >= 1) say("  jtoc for ", rvmType.toString());
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
 
         Class jdkType = getJdkType(rvmType);
         if (jdkType == null && verbose >= 1) {
-          say("host has no class \"" + rvmType.getName() + "\"");
+          say("host has no class \"" + rvmType + "\"");
         }
 
         VM_Field rvmFields[] = rvmType.getStaticFields();
@@ -1625,7 +1625,7 @@ implements BootImageWriterConstants {
    */
   private static Class getJdkType(VM_Type rvmType) {
     try {
-      return Class.forName(rvmType.getName());
+      return Class.forName(rvmType.toString());
     } catch (Throwable x) {
       if (verbose >= 1) {
         say(x.toString());
@@ -1674,8 +1674,7 @@ implements BootImageWriterConstants {
       for (int j = 0; j < rvmFields.length; ++j) {
         VM_Field rvmField = rvmFields[j];
         if ((rvmField.getOffset() >>> 2) == jtocSlot)
-          return rvmField.getDeclaringClass().getName() + "." +
-            rvmField.getName();
+          return rvmField.getDeclaringClass() + "." + rvmField.getName();
       }
     }
     return VM_Statics.getSlotDescriptionAsString(jtocSlot) +

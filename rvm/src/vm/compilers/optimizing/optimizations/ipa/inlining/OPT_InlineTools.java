@@ -217,14 +217,13 @@ public abstract class OPT_InlineTools implements OPT_Constants {
 
 
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
-    if (!callee.getDeclaringClass().getName().startsWith("com.ibm.JikesRVM.VM_")) {
+    if (!callee.getDeclaringClass().toString().startsWith("com.ibm.JikesRVM.VM_")) {
       VM_Atom defn = caller.getDeclaringClass().getDescriptor();
       for(int i = 0; i < thirdRailClasses.length; i++) {
 	if (defn == thirdRailClasses[i])
 	  return true;
       }
     }
-
     return false;
   }
 }

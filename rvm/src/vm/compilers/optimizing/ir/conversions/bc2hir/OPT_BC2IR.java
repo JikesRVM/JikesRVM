@@ -3229,9 +3229,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.declaringClass().getName() + "."
+    VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
 		+ gc.method.getName() + ":" + val + "\n");
   }
+
   /**
    * Return a string representation of the current basic block set.
    */
@@ -5237,9 +5238,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Print a debug string to the sysWrite stream.
      * @param val string to print
      */
-    private final void db(String val) {
-      VM.sysWrite("IRGEN " + bcodes.declaringClass().getName() + "."
-		  + gc.method.getName() + ":" + val + "\n");
+   private final void db(String val) {
+      VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
+	          + gc.method.getName() + ":" + val + "\n");
     }
 
     /**

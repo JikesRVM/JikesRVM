@@ -128,7 +128,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
             mid = VM_Magic.getCompiledMethodID(fp);
             VM_Method m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
             String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
-            VM_Scheduler.trace(VM_Magic.getObjectType(o).getName(), s, -2-retries);
+            VM_Scheduler.trace(VM_Magic.getObjectType(o).toString(), s, -2-retries);
           }
           if (0 != retries && VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
             VM_Thread.yield(); // wait, hope o gets unlocked

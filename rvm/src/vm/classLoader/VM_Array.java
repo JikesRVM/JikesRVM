@@ -34,7 +34,7 @@ public final class VM_Array extends VM_Type
   /**
    * Name - something like "[I" or "[Ljava.lang.String;"
    */
-  public final String getName() { 
+  public final String toString() { 
     return descriptor.toString().replace('/','.');
   }
 
@@ -609,16 +609,14 @@ public final class VM_Array extends VM_Type
   //
   public final void initialize() { }
 
-
   static void init() {
-    arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfBooleanType = (VM_Array)VM_TypeReference.BooleanArray.resolve(true);
+    arrayOfCharType    = (VM_Array)VM_TypeReference.CharArray.resolve(true);
+    arrayOfFloatType   = (VM_Array)VM_TypeReference.FloatArray.resolve(true);
+    arrayOfDoubleType  = (VM_Array)VM_TypeReference.DoubleArray.resolve(true);
+    arrayOfByteType    = (VM_Array)VM_TypeReference.ByteArray.resolve(true);
+    arrayOfShortType   = (VM_Array)VM_TypeReference.ShortArray.resolve(true);
+    arrayOfIntType     = (VM_Array)VM_TypeReference.IntArray.resolve(true);
+    arrayOfLongType    = (VM_Array)VM_TypeReference.LongArray.resolve(true);
   }
-
 }

@@ -129,7 +129,7 @@ class MainThread extends Thread {
     mainMethod = cls.findMainMethod();
     if (mainMethod == null) { 
       // no such method
-      VM.sysWrite(cls.getName() + " doesn't have a \"public static void main(String[])\" method to execute\n");
+      VM.sysWrite(cls + " doesn't have a \"public static void main(String[])\" method to execute\n");
       return;
     }
 

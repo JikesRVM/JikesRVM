@@ -198,7 +198,7 @@ public class VM_CompiledMethods {
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];
-    VM_Array codeArray = VM_Type.CodeType.asArray();
+    VM_Array codeArray = VM_Type.InstructionArrayType.asArray();
     for (int i=0; i<compiledMethods.length; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;

@@ -90,7 +90,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
       VM_Address region = VM_Allocator.gc_getMatureSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeType) {
+      if (arrayType == VM_Type.InstructionArrayType) {
 	// sync all moved code arrays to get icache and dcache in sync immediately.
 	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
 	VM_Memory.sync(toRef, dataSize);

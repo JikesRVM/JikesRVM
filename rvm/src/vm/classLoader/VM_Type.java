@@ -95,14 +95,6 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   }
 
 
-  /**
-   * Name of this type.
-   * For a class, something like "java.lang.String".
-   * For an array, something like "[I" or "[Ljava.lang.String;".
-   * For a primitive, something like "int".
-   */ 
-  public abstract String getName();
-   
   /** 
    * Descriptor for this type.
    * For a class, something like "Ljava/lang/String;".
@@ -325,15 +317,16 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    */
   public static VM_Type JavaLangObjectType;
 
-  public static VM_Type JavaLangClassType;
-
   public static VM_Array JavaLangObjectArrayType;
   
-  public static VM_Type NativeBridgeType;
+  public static VM_Type JavaLangClassType;
+
   /**
    * supertype of all exception types
    */
   public static VM_Type JavaLangThrowableType; 
+
+  public static VM_Type NativeBridgeType;
   /**
    * "final" type that gets special language treatment
    */
@@ -359,7 +352,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   /**
    * type used to represent code - array of INSTRUCTION
    */
-  public static VM_Type CodeType;             
+  public static VM_Type InstructionArrayType;             
   /**
    * interface implemented to prevent compiler-inserted threadswitching
    */
@@ -526,27 +519,18 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
       (VM_Atom.findOrCreateAsciiAtom("char"),    
        VM_Atom.findOrCreateAsciiAtom("C"));
 
-    CodeType    =  VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom(VM.INSTRUCTION_ARRAY_SIGNATURE), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    InstructionArrayType = VM_TypeReference.InstructionArray.resolve(true);
 
-    // create additional, frequently used, type descriptions
+    // create additional, frequently used, types
     //
-    JavaLangObjectType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader());
-    JavaLangClassType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Class;"), VM_SystemClassLoader.getVMClassLoader());
-    JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    JavaLangThrowableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"), VM_SystemClassLoader.getVMClassLoader());
-    JavaLangStringType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader());
-    JavaLangCloneableType = (VM_Class) VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"), VM_SystemClassLoader.getVMClassLoader());
-    JavaIoSerializableType = (VM_Class) VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"), VM_SystemClassLoader.getVMClassLoader());
-    MagicType             = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Magic;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve(true);
+    JavaLangObjectArrayType = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve(true);
+    JavaLangClassType = VM_TypeReference.JavaLangClass.resolve(true);
+    JavaLangThrowableType = VM_TypeReference.JavaLangThrowable.resolve(true);
+    JavaLangStringType = VM_TypeReference.JavaLangString.resolve(true);
+    JavaLangCloneableType = (VM_Class)VM_TypeReference.JavaLangCloneable.resolve(true);
+    JavaIoSerializableType = (VM_Class)VM_TypeReference.JavaIoSerializable.resolve(true);
+    MagicType = VM_TypeReference.Magic.resolve(true);
     UninterruptibleType   = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Uninterruptible;"), VM_SystemClassLoader.getVMClassLoader());
     SynchronizedObjectType = VM_ClassLoader.findOrCreateType 
@@ -557,16 +541,11 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
       (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
     NativeBridgeType      = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
-    WordType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Word;"), VM_SystemClassLoader.getVMClassLoader());
-    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Address;"), VM_SystemClassLoader.getVMClassLoader());
-    OffsetType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Offset;"), VM_SystemClassLoader.getVMClassLoader());
+    WordType = VM_TypeReference.Word.resolve(true);
+    AddressType = VM_TypeReference.Address.resolve(true);
+    OffsetType = VM_TypeReference.Offset.resolve(true);
 
     VM_Array.init();
-
-  }
-
-  public final String toString() {
-    return getName().toString();
   }
 
   /**

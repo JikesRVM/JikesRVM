@@ -1309,7 +1309,7 @@ public class ReflectionSupport {
    * @return		the receiver's name.
    */
   public static String getName(Class C) {
-    return java.lang.JikesRVMSupport.getTypeForClass(C).getName();
+    return java.lang.JikesRVMSupport.getTypeForClass(C).toString();
   }
 
   /**
@@ -1317,8 +1317,7 @@ public class ReflectionSupport {
    *
    * @return		the name
    */
-  public static String getName(Method m)
-  {
+  public static String getName(Method m) {
     return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getName().toString();
   }
 

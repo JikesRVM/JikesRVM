@@ -68,7 +68,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       VM.sysWrite("VM_ReferenceMaps constructor. Method name is:");
       VM.sysWrite(method.getName());
       VM.sysWrite(" -Class name is :");
-      VM.sysWrite(method.getDeclaringClass().getName());
+      VM.sysWrite(method.getDeclaringClass());
       VM.sysWrite("\n");
       VM.sysWrite(" bytesPerMap = ");
       VM.sysWrite(bytesPerMap);
@@ -1589,7 +1589,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     int count;
 
     VM.sysWrite("-- Number of refs for method =  ");
-    VM.sysWrite(method.getDeclaringClass().getName());
+    VM.sysWrite(method.getDeclaringClass());
     VM.sysWrite(".");
     VM.sysWrite(method.getName());
     VM.sysWrite("---------------------------\n");

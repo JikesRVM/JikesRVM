@@ -40,7 +40,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Name - something like "java.lang.String".
    */ 
-  public final String getName() {
+  public final String toString() {
     return descriptor.classNameFromDescriptor();
   }
 
@@ -49,7 +49,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Returns the empty string if the class is a member of the unnamed package.
    */
   public final String getPackageName() {
-    String className = getName();
+    String className = toString();
     int lastDot = className.lastIndexOf(".");
     return (lastDot >= 0) ? className.substring(0, lastDot) : "";
   }
@@ -685,7 +685,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_Thread myThread;
     
     try {
-      classloader.loadClass(getName().toString());
+      classloader.loadClass(toString());
     } catch (ClassNotFoundException e) { 
       // no .class file
       throw new VM_ResolutionException(descriptor, 

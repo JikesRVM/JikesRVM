@@ -140,7 +140,7 @@ public class ClassLoaderSupport {
 	VM_Array cls = (VM_Array)VM_ClassLoader.findOrCreateType(d, cl);
 
 	if (! cls.getElementType().isPrimitiveType()) {
-	    Class k = cl.loadClass(cls.getElementType().getName());
+	    Class k = cl.loadClass(cls.getElementType().toString());
 	    if (resolveClass) try {
 		VM_Type x = java.lang.JikesRVMSupport.getTypeForClass(k);
 		x.resolve();

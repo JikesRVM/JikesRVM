@@ -105,7 +105,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   }
 
   public final String toString() {
-    return declaringClass.getName() + "." + getName() + " " + getDescriptor();
+    return declaringClass + "." + getName() + " " + getDescriptor();
   }
   
   /**

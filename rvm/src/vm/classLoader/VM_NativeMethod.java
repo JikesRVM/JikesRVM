@@ -107,7 +107,7 @@ public final class VM_NativeMethod extends VM_Method {
    */
   private String getMangledName(boolean sig) {
     String mangledClassName, mangledMethodName;
-    String className = declaringClass.getName().toString();
+    String className = declaringClass.toString();
     String methodName = getName().toString();
     int first, next;
 

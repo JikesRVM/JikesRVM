@@ -36,7 +36,7 @@ public final class VM_Primitive extends VM_Type
   /**
    * Name - something like "int".
    */ 
-  public final String getName() { 
+  public final String toString() { 
     return name.toString();
   }
 

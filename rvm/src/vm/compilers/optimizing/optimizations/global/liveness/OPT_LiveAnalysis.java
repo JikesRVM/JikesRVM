@@ -231,7 +231,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
 
       if (createGCMaps && dumpFinalMaps) {
         System.out.println("**** START OF IR for method: " + ir.method.getName()
-          + " in class: " + ir.method.getDeclaringClass().getName());
+          + " in class: " + ir.method.getDeclaringClass());
         ir.printInstructions();
         System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
 	
@@ -917,13 +917,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
         System.out.print("and GC Maps ");
       }
       System.out.println("for method: " + ir.method.getName() + " in class: "
-          + ir.method.getDeclaringClass().getName() + "\n");
+          + ir.method.getDeclaringClass() + "\n");
       System.out.println("  method has " 
           + ir.cfg.numberOfNodes() + " basic blocks");
     }
     if (debug || dumpFinalMaps) {
       System.out.println("**** START OF IR for method: " + ir.method.getName()
-          + " in class: " + ir.method.getDeclaringClass().getName());
+          + " in class: " + ir.method.getDeclaringClass());
       ir.printInstructions();
       System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
     }
@@ -959,7 +959,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    */
   private void printFixedPointResults(OPT_IR ir) {
     System.out.println("\n  ***** Fixed point results for IR-based GC Maps for "
-        + ir.method.getDeclaringClass().getName() + "." + ir.method.getName());
+        + ir.method.getDeclaringClass() + "." + ir.method.getName());
     int length = bbLiveInfo.length;
     for (int i = 0; i < length; i++) {
       System.out.println("Live Info for Block #" + i);
@@ -973,7 +973,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    */
   private void printFinalMaps(OPT_IR ir) {
     System.out.println("\n  =-=-=-=-=- Final IR-based GC Maps for " + 
-        ir.method.getDeclaringClass().getName() + "." + ir.method.getName());
+        ir.method.getDeclaringClass() + "." + ir.method.getName());
     map.dump();
     System.out.println("  =-=-=-=-=- End Final IR-based GC Maps\n");
   }
@@ -994,8 +994,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   private void printFinalLiveIntervals(OPT_IR ir) {
     ir.printInstructions();
     System.out.println("\n  *+*+*+*+*+ Final Live Intervals for " 
-        + ir.method.getDeclaringClass().getName()
-        + "." + ir.method.getName());
+		       + ir.method.getDeclaringClass() + "." + ir.method.getName());
     for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block
         != null; block = block.nextBasicBlockInCodeOrder()) {
       OPT_LiveInterval.printLiveIntervalList(block);
