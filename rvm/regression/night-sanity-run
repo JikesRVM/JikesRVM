@@ -77,12 +77,13 @@ else
   echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
 fi
 
+# Removed at Mike Hind's request
 # Describe where the information can be found
-echo "Further details of this run can be found in\n" >> $MSG
-echo "     run details: $RUN_LOG\n " >> $MSG
-echo "     build details: $BUILD_LOG\n " >> $MSG
-echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
-echo "     performance details: $PERF_LOG" >> $MSG
+# echo "Further details of this run can be found in\n" >> $MSG
+# echo "     run details: $RUN_LOG\n " >> $MSG
+# echo "     build details: $BUILD_LOG\n " >> $MSG
+# echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
+# echo "     performance details: $PERF_LOG" >> $MSG
 
 # Grab the bottom line performance and place it in a more visible place
 echo >> $MSG
