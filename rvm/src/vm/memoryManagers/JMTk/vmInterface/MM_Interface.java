@@ -76,7 +76,8 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void boot (VM_BootRecord theBootRecord) throws VM_PragmaInterruptible {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
-    Options.setDefaultHeapSizes(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
+    Options.initialHeapSize = theBootRecord.initialHeapSize;
+    Options.maxHeapSize = theBootRecord.maximumHeapSize;
     Util.boot(theBootRecord);
     Plan.boot();
     VMResource.boot();

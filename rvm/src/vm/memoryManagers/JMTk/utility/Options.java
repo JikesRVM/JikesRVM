@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -20,11 +20,8 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Options implements VM_Uninterruptible, Constants {
 
-  private static int initialHeapSize; 
-  private static int maxHeapSize;     
-  private static int currentHeapSize; 
-  private static double growThreshold = 0.8;  // grow heap when live ratio exceeds this
-  private static double growRatio     = 1.2;  // grow heap size by this ratio
+  public static int initialHeapSize; // set by MM_Interface.boot
+  public static int maxHeapSize;     // set by MM_Interface.boot
 
   static int minNurseryPages  = Plan.DEFAULT_MIN_NURSERY;
   static int maxNurseryPages  = Plan.DEFAULT_MAX_NURSERY;
@@ -41,36 +38,6 @@ public class Options implements VM_Uninterruptible, Constants {
 
   public static boolean noFinalizer = false;
   public static boolean noReferenceTypes = false;
-
-  public static int getCurrentHeapSize() {
-    return currentHeapSize;
-  }
-
-  public static void setDefaultHeapSizes(int initial, int max) {
-    initialHeapSize = initial;
-    max = maxHeapSize;
-    if (initialHeapSize > maxHeapSize) 
-      maxHeapSize = initialHeapSize;
-    // VM.sysWriteln("The boot record's heap sizes are inconsistent due to a faulty configuration file.");
-  }
-
-  public static boolean updateCurrentHeapSize(int usedHeapSize) {
-    double liveRatio = ((double) usedHeapSize) / currentHeapSize;
-    if (liveRatio > growThreshold) {
-      int newSize = (int) (growRatio * currentHeapSize);
-      if (newSize > 10 * (1<<20)) {
-	newSize = (newSize + (1<<20)) >> 20 << 20;
-      }
-      else 
-	newSize = (newSize + (1<<10)) >> 10 << 10;
-      if (newSize > maxHeapSize) newSize = maxHeapSize;
-      if (newSize > currentHeapSize) {
-	currentHeapSize = newSize;
-	return true;
-      }
-    }
-    return false;
-  }
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     if (arg.startsWith("noFinalizer")) {
@@ -105,18 +72,6 @@ public class Options implements VM_Uninterruptible, Constants {
       int size = Integer.parseInt(tmp);
       if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
       maxHeapSize = size * (1 << 20);
-    }
-    else if (arg.startsWith("growThreshold=")) {
-      String tmp = arg.substring(14);
-      double gt = Double.parseDouble(tmp);
-      if (gt <= 0.0 || gt >= 1.0) VM_Interface.sysFail("Unreasonable growThreshold " + tmp);
-      growThreshold = gt;
-    }
-    else if (arg.startsWith("growRatio=")) {
-      String tmp = arg.substring(10);
-      double gr = Double.parseDouble(tmp);
-      if (gr < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + tmp);
-      growRatio = gr;
     }
     else if (arg.startsWith("verbose=")) {
       String tmp = arg.substring(8);
@@ -172,7 +127,6 @@ public class Options implements VM_Uninterruptible, Constants {
 	VM_Interface.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ",(int) (Plan.MAX_SIZE.toInt() >>> 20)," Mb");
 	VM_Interface.sysFail("Max heap too large");
     }
-    currentHeapSize = initialHeapSize;
   }
 
 }

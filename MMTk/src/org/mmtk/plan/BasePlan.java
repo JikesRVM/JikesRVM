@@ -440,7 +440,7 @@ public abstract class BasePlan
    * management system, in bytes.
    */
   public static long totalMemory() throws VM_PragmaUninterruptible {
-    return Options.getCurrentHeapSize();
+    return Options.initialHeapSize;
   }
 
   /**
@@ -451,7 +451,7 @@ public abstract class BasePlan
    * management system, in pages.
    */
   public static int getTotalPages() throws VM_PragmaUninterruptible { 
-    int heapPages = Conversions.bytesToPages(Options.getCurrentHeapSize());
+    int heapPages = Conversions.bytesToPages(Options.initialHeapSize);
     return heapPages; 
   }
 
