@@ -1035,6 +1035,7 @@ declare -i RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access 
 declare -i RVM_WITH_DETERMINISTIC_THREAD_SWITCHING=0 # thread switch after n method calls, do not use interrupts to drive preemption
 declare -i RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING=0 # thread switch only at explicit yield and wait calls
 declare -i RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not just those needed for startup
+declare -i RVM_WITH_JAR_CLASSES=1   # include the classes we need to get the Application Class Loader working even if the user specifies the -jar argument.
 declare -i RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
@@ -3007,6 +3008,7 @@ java/util/WeakHashMap
 java/lang/ClassLoader
 java/lang/VMClassLoader
 java/lang/VMSecurityManager
+gnu/classpath/VMStackWalker
 gnu/java/io/PlatformHelper
 java/security/CodeSource
 java/security/Policy
@@ -3025,6 +3027,7 @@ java/net/URL			# Used by URLClassLoader's initializer
 ## loading is ever enabled:
 gnu/java/net/protocol/file/Handler # by java/net/URL
 gnu/java/net/protocol/jar/Handler # by java/net/URL
+gnu/java/net/protocol/jar/Connection # by gnu/java/net/protocol/jar/Handler
 
 # Not necessary, since we can class load from regular files at the
 # point it's needed, but used while booting, so including it should
@@ -3040,6 +3043,7 @@ java/io/FilterInputStream
 java/io/InputStream
 java/io/FileInputStream
 java/io/FileDescriptor
+java/io/VMFile
 gnu/java/nio/channels/FileChannelImpl
 EOF
 
@@ -3110,7 +3114,7 @@ EOF
 
     # the application class loader uses jar classes (which can be loaded or not)
 
-    if (( RVM_WITH_ALL_CLASSES )); then
+    if (( RVM_WITH_ALL_CLASSES )) || (( RVM_WITH_JAR_CLASSES)); then
 	cat <<- EOF
 java/util/jar/JarException
 java/util/jar/JarInputStream
