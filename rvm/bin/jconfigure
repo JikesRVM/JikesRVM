@@ -1934,6 +1934,9 @@ EOF
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	    echo "    \$FIND ./com/ibm/JikesRVM/opt -name '*.class'"
         fi
+	if (( RVM_WITH_OSR )); then
+	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
+        fi
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
@@ -2144,13 +2147,6 @@ EOF
     if (( RVM_WITH_OSR )); then
 	cat <<- EOF
 	# on stack replacement
-com/ibm/JikesRVM/OSR/OSR_ObjectHolder
-com/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor
-com/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor
-com/ibm/JikesRVM/OSR/OSR_EncodedOSRMap
-com/ibm/JikesRVM/OSR/OSR_SpecialCompiler
-com/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes
-com/ibm/JikesRVM/OSR/OSR_PostThreadSwitch
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan
