@@ -37,7 +37,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class BaseFreeList implements Constants, VM_Uninterruptible {
+abstract class BaseFreeList extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
   
   ////////////////////////////////////////////////////////////////////////////
@@ -122,12 +122,12 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     if (isSmall(sizeClass)) {
       VM_Address cell = allocCell(isScalar, sizeClass);
       if (!cell.isZero()) {
-	postAlloc(cell, isScalar, bytes, true, false, copy);
+	postAlloc(cell, isScalar, bytes, true, false);
 	Memory.zeroSmall(cell, bytes);
 	return cell;
       }
     }
-    return allocSlow(isScalar, bytes, copy);
+    return allocSlow(isScalar, bytes);
   }
 
   /**
@@ -143,21 +143,16 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  private final VM_Address allocSlow(boolean isScalar, EXTENT bytes,
-				     boolean copy) 
+  protected final VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes)
     throws VM_PragmaNoInline {
     int sizeClass = getSizeClass(isScalar, bytes);
     boolean large = isLarge(sizeClass);
     boolean small = isSmall(sizeClass);
-    VM_Address cell;
-    for (int count = 0; ; count++) {
-      cell = large ? allocLarge(isScalar, bytes) : allocCell(isScalar, sizeClass);
-      if (!cell.isZero()) break;
-      VM_Interface.getPlan().poll(true, memoryResource);
-      if (count > 2) VM.sysFail("Out of memory in BaseFreeList.alloc");
+    VM_Address cell = large ? allocLarge(isScalar, bytes) : allocCell(isScalar, sizeClass);
+    if (!cell.isZero()) {
+      postAlloc(cell, isScalar, bytes, small, large);
+      Memory.zero(cell, bytes);
     }
-    postAlloc(cell, isScalar, bytes, small, large, copy);
-    Memory.zero(cell, bytes);
     return cell;
   }
 
@@ -175,7 +170,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 
   abstract protected void postAlloc(VM_Address cell, boolean isScalar,
 				    EXTENT bytes, boolean small,
-				    boolean large, boolean copy);
+				    boolean large);
     
   /**
    * Allocate a cell. Cells are maintained on free lists (as opposed
