@@ -1579,16 +1579,12 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
     fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
-    int numCpus;
-
-    numCpus = sysconf(_SC_NPROCESSORS_ONLN);
+    int numCpus = sysconf(_SC_NPROCESSORS_ONLN);
     if (VERBOSE_PTHREAD)
       fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
-#endif
 
-    // Linux does not seem to have this
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-#else
+    // bindprocessor() seems to only be on AIX
+#if defined RVM_FOR_AIX
     if (numCpus == -1) {
 	fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
 	perror(NULL);
@@ -1606,7 +1602,7 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
-    //#endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 }
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
