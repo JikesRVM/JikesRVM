@@ -152,7 +152,7 @@ class InlineAllocation {
     }
 
     if (!fail) {
-      System.out.println("SUCCESS");
+      System.out.println("Overall: SUCCESS");
     }
   }
 
