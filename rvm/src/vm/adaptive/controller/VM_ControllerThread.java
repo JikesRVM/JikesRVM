@@ -101,8 +101,15 @@ class VM_ControllerThread extends VM_Thread {
     }
   }
 
-  // Now that we're done initializing, signal the sentinel object.
+  // Now that we're done initializing, Schedule all the organizer threads
+  // and signal the sentinel object.
   private void controllerInitDone() {
+    for (Enumeration e = VM_Controller.organizers.elements(); 
+	 e.hasMoreElements(); ) {
+      VM_Organizer o = (VM_Organizer)e.nextElement();
+      o.start();
+    }
+
     try {
       synchronized(sentinel) {
 	sentinel.notify();
@@ -196,16 +203,10 @@ class VM_ControllerThread extends VM_Thread {
       VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
     }
     
-    for (Enumeration e = VM_Controller.organizers.elements(); 
-	 e.hasMoreElements(); ) {
-      VM_Organizer o = (VM_Organizer)e.nextElement();
-      o.start();
-    }
-
-	//-#if RVM_WITH_OSR
-	VM_Controller.osrOrganizer = new OSR_OrganizerThread();
-	VM_Controller.osrOrganizer.start();
-	//-#endif
+    //-#if RVM_WITH_OSR
+    VM_Controller.osrOrganizer = new OSR_OrganizerThread();
+    VM_Controller.osrOrganizer.start();
+    //-#endif
   }
 
 
