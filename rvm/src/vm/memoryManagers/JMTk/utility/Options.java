@@ -9,6 +9,11 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
+/*
+ * Options including heap sizes.
+ *
+ * @author Perry Cheng
+ */
 public class Options implements VM_Uninterruptible {
 
   static int initialHeapSize = 100 * (1 << 20);

@@ -10,6 +10,11 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Memory;
 
+/*
+ * Conversions between different units.
+ *
+ * @author Perry Cheng
+ */
 public class Conversions implements Constants, VM_Uninterruptible {
 
   // Round up (if necessary)

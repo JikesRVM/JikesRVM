@@ -17,6 +17,11 @@ import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
 
+/*
+ * Simple locks with deadlock detection.
+ *
+ * @author Perry Cheng
+ */
 public class Lock implements VM_Uninterruptible {
 
   // Internal class fields

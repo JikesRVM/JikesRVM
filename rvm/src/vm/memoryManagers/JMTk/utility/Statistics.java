@@ -100,7 +100,9 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
    * @param value the exit value
    */
   public void notifyExit(int value) {
+VM.sysWriteln("statistics: notifyexit enter");
     printSummaryStatistics();
+VM.sysWriteln("statistics: notifyexit done");
   }
 
   /**
@@ -202,6 +204,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
   static void printSummaryStatistics () throws VM_PragmaUninterruptible {
 
+VM.sysWriteln("printsummarystatistics 1");
     if (VM_ObjectModel.HASH_STATS) {
       VM.sysWriteln("Hash operations:    ", VM_ObjectModel.hashRequests);
       VM.sysWriteln("Unhashed -> Hashed: ", VM_ObjectModel.hashTransition1);
@@ -209,7 +212,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     int np = VM_Scheduler.numProcessors;
-
+VM.sysWriteln("printsummarystatistics 2");
     // showParameter();
     if (VM_Interface.verbose() >= 1) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
@@ -238,7 +241,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
         }
       }
     }
-
+VM.sysWriteln("printsummarystatistics 3");
     if (COUNT_COLLISIONS && (gcCount>0) && (np>1)) {
       VM.sysWriteln("GC Summary:  avg number of collisions per collection = ",
                     collisionCount/gcCount);
@@ -276,7 +279,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWrite( avgFinishWait, " (us) Rendezvous Wait ");
       VM.sysWrite( avgRendezvousWait, " (us)\n\n");
     }
-
+VM.sysWriteln("printsummarystatistics 4");
     if (COUNT_ALLOCATIONS) {
       long bytes = 0, objects = 0, syncObjects = 0;
       VM_Processor st;
@@ -296,7 +299,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (COUNT_BY_TYPE)	printCountsByType();
-
+VM.sysWriteln("printsummarystatistics 5");
   } // printSummaryStatistics
 
   private static void printBytes(int fieldWidth, int bytes) throws VM_PragmaUninterruptible {
