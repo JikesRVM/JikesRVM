@@ -194,7 +194,44 @@ public class Platform implements jdpConstants {
     return new Integer(data).shortValue();
   }
 
+  /**
+   * Read a long (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static long readLong(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    long newlong;
+    newlong = mappedFieldValue1;
+    newlong = (newlong << 32);
+    newlong |= ((long)mappedFieldValue) & 0xFFFFFFFFL;;
+    return newlong;
+  }
 
+  /**
+   * Read a double (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static double readDouble(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    double newdouble;
+    long templong;
+    
+    templong = mappedFieldValue1;
+    templong = (templong << 32);
+    templong |= ((long)mappedFieldValue) & 0xFFFFFFFFL;;
+    newdouble = Double.longBitsToDouble(templong);
+    return newdouble;
+  }
+
+  
 
   /********************************************************************
    * for registerExternal.java 
