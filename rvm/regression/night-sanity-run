@@ -42,6 +42,14 @@ export PERF_LOG=$RVM_ROOT/results/performance.log
 
 umask 022
 
+# Determine architecture and set number of processors accordingly
+ARCH=`uname`
+if [[ $ARCH = 'Linux' ]] then
+  NUM_PROCS=4
+else
+  NUM_PROCS=2
+fi
+
 echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
 
 #This shouldn't be needed, but just in case
@@ -51,12 +59,12 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs 2 -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 . $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 # performance runs
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs 2 -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
 # Fix the permission bits because umask doesn't seem to be working correctly
 echo "fixing permission bits" >> $RUN_LOG
@@ -119,7 +127,6 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 # echo "mailing status to jikesrvm-regression@www-124.ibm.com"
 cat MSG >> $RUN_LOG
 
-ARCH=`uname`
 if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
   cat $MSG | mail -s "[$ARCH] regression SUCCEEDED" jikesrvm-regression@www-124.ibm.com
 else
