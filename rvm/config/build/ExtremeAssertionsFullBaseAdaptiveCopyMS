@@ -1,0 +1,4 @@
+. $1/gc/CopyMS
+. $1/compilers/BaseAdaptive
+export RVM_WITH_EXTREME_ASSERTIONS=1 
+export RVM_WITH_ALL_CLASSES=1 
