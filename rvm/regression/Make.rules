@@ -23,12 +23,10 @@ vpath %.java		$(BENCH_SOURCE_CP)
 #
 WORKING?=.
 
-$(WORKING):
-	@rm -rf $(WORKING)
+$(WORKING):	
 	mkdir -p $(WORKING)
 
 $(WORKING)/cp:	$(WORKING)
-	@rm -rf $(WORKING)/cp
 	mkdir -p $(WORKING)/cp
 
 #
