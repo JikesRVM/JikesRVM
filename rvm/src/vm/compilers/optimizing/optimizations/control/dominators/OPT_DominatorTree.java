@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -258,18 +258,19 @@ public class OPT_DominatorTree extends OPT_Tree {
    * basic block
    *
    * @param b the basic block in question
-   * @return b's depth
+   * @return <code>b</code>'s depth
    */
   public int depth(OPT_BasicBlock b) {
     return  dominatorInfoMap[b.getNumber()].getDepth();
   }
 
   /**
-   * Return the deepest common dominance ancestor of blocks a and b
+   * Return the deepest common dominance ancestor of blocks <code>a</code> and <code>b</code>
    *
-   * @param a first basic block
-   * @param a second basic block
-   * @return the deepest common dominance ancestor of blocks a and b
+   * @param a The first basic block
+   * @param b The second basic block
+   * @return the deepest common dominance ancestor of blocks <code>a</code> 
+   *        and <code>b</code>
    */
   public OPT_BasicBlock 
       deepestCommonAncestor(OPT_BasicBlock a, OPT_BasicBlock b) {
