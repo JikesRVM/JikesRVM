@@ -500,12 +500,7 @@ function runTests {
 #
 function main {
   if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
-     ARCH=`arch`
-     if [[ $ARCH = 'power' ]] then
-       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-powerpc
-     else
-       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-lintel
-     fi
+     exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity
      exit
   fi
 
