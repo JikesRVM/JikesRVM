@@ -1676,7 +1676,6 @@ sysPthreadSelf()
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
     int thread;
-    sigset_t input_set, output_set;
     int rc;
 
     thread = (int)pthread_self();
@@ -1684,12 +1683,6 @@ sysPthreadSelf()
     if (VERBOSE_PTHREAD)
         fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
-    /*
-     * block the CONT signal.  This makes the signal reach this
-     * pthread only when then pthread does a sigwai().  Maria
-     */
-    sigemptyset(&input_set);
-    sigaddset(&input_set, SIGCONT);
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     /*
@@ -1710,6 +1703,15 @@ sysPthreadSelf()
         return 1;
     }
 #endif
+
+    /*
+     * Block the CONT signal.  This makes SIGCONT reach this
+     * pthread only when this pthread performs a sigwait().
+     * --Maria
+     */
+    sigset_t input_set, output_set;
+    sigemptyset(&input_set);
+    sigaddset(&input_set, SIGCONT);
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
