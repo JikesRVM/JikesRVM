@@ -8,23 +8,30 @@ the best object model will maximize efficiency of frequent language
 operations while minimizing storage overhead. Jikes RVM's object model
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
+\paragraph{Overview}
 Values in the Java\trademark programming language are either {\em
 primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
 references} (that is, pointers) to objects.  Objects are either {\em
-arrays} having elements or {\em scalar objects} having fields.  RVM's
-object model is governed by the following criteria:
-\begin{itemize}
+arrays} having elements or {\em scalar objects} having fields.
+Objects are logically composed of two primary sections: an object
+header (described in more detail below) and the object's instance
+fields (or array elements). 
+
+The RVM object model is governed by the following criteria:
+\begin{description}
 \item{}
-field and array accesses should be as fast as possible,
+instance field and array accesses should be as fast as possible,
 \item{}
 null-pointer checks should be performed by the hardware if possible, 
 \item{}
-virtual method dispatch should be fast, and 
+virtual method dispatch should be fast,
 \item{}
-other (less frequent) Java operations should not be prohibitively slow.
+other (less frequent) Java operations should not be prohibitively
+slow, and
 \item{}
-per object storage overhead should be as small as possible
-\end{itemize}
+per object storage overhead (ie object header size) should be as small
+as possible.
+\end{description}
 
 \index{field access}
 \index{array access}
@@ -34,7 +41,7 @@ instruction.  To facilitate array access, the reference to an array
 points to the first (zeroth) element of an array and the remaining
 elements are laid out in ascending order.  The number of elements in
 an array, its {\em length}, is kept just before its first
-element. Elements of the array can be easily accessed via base +
+element. Thus, elements of the array can be easily accessed via base +
 scaled index addressing.
 
 \index{NullPointerException}
@@ -59,36 +66,64 @@ which is $-4$ bytes off the array reference.  A hardware null-pointer
 check for field accesses is effected by locating fields at negative
 offsets from the object reference.
 
-\JavaTMFooter
-
-\AIXTMFooter 
-
-\subsection{Object headers} \label{sssec:headers}
+\paragraph{Object Header}
 \index{object header}
-A two-word object header is associated with each object.  This header
-supports virtual method dispatch, dynamic type checking, memory
-management, synchronization, and hashing.  It is located $12$ bytes
-below the value of a reference to the object.  (This leaves room for
-the length field in case the object is an array, see
-figure~\ref{fig:objects}.)
-
-\index{locking}
-\index{hashing}
-One word of the header is a {\em status} word.  The status word is
-divided into three {\em bit-fields}.  The first bit-field is used for
-locking.  The second bit-field holds
-the default hash value of hashed objects.  The third bit-field is used
-by the memory management subsystem.  (The size of these bit-fields is
-determined by build-time constants.)
-
+Logically, every object header contains the following components:
+\begin{description}
+%
 \index{TIB}
 \index{superclass}
 \index{interfaces}
 \index{virtual methods}
-The other word of an object header is a reference to the {\em Type
-Information Block} (TIB) for the object's class. This structure describes
-the object's class including its superclass and the interfaces it implements
-as well as has pointers to the class' virtual methods.
+\item [TIB Pointer] The TIB (Type Information Block) holds information that
+applies to all objects of a type.  The structure of the TIB is defined by 
+\xlink{{\tt VM\_TIBLayoutConstants.java}}{\VMTIBLayoutConstantsURL}.
+A TIB includes the virtual method table, a pointer to an object
+representing the type, and pointers to a few data structures to
+facilitate efficient interface invocation and dynamic type checking.
+%
+\index{hashing}
+\item[Default Hash Code] Each Java object has a default hash code.
+%
+\index{locking}
+\item[Lock] Each Java object has an associated lock state.  This could be a
+pointer to a lock object or a direct representation of the lock.
+%
+\item[Array Length] Every array object provides a {\em length} field
+that contains the length (number of elements) of the array.
+%
+\item[Garbage Collection Information] Each Java object has associated
+information used by the memory management system.  Usually this consists of one
+or two mark bits, but this could also include some combination of a reference
+count, forwarding pointer, etc.
+%
+\item[Misc Fields] In experimental configurations, the object header
+can be expanded to add additional fields to every object, typically to
+support profiling. 
+\end{description}
+
+An implementation of this abstract header is defined by three files: 
+\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL}, which supports
+TIB access, default hash codes, and locking; 
+\xlink{{\tt VM\_AllocatorHeader.java}}{\VMAllocatorHeaderURL}, which
+supports garbage collection information; 
+and 
+\xlink{{\tt VM\_MiscHeader.java}}{\VMMiscHeaderURL}, which supports
+adding additional fields to all objects. 
+
+In Jikes RVM 2.1.0, there are four implementations of 
+\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL} that can be
+choosen at build time.  Not all implementions will work with all memory
+managers!  One (``default'') implementation defines a two word java
+header and works with all memory managers. The other three define one
+word java headers.  All three work with the markSweep allocator; two
+of the three ({\tt oneWordMaskTIB} and {\tt oneWordIndexTIB}) work
+with the semispace allocator.  Currently none of the one word java
+headers have been tested with any other memory manager, although it should
+be fairly straightforward to get either {\tt oneWordMaskTIB} or {\tt
+oneWordIndexTIB} to work with any of the Jikes RVM memory managers. 
+
+\JavaTMFooter
 
 \subsection{Methods and Fields}\label{sssec:methods}
 \index{methods}
@@ -119,15 +154,13 @@ methods.
 All of RVM's global data structures are stored in the JTOC. 
 Literals, numeric
 constants and references to String constants, are also stored there.
-To enable fast common-case dynamic type checking, the JTOC also
+The JTOC also
 contains references to the TIB for each class in the system.  
 Since these 
 structures can have many types and the JTOC is declared to be an array of 
 {\tt int}s  
 RVM uses a descriptor array, co-indexed with the JTOC, 
 to identify the entries containing references.
-A reference to the JTOC is maintained in a dedicated machine register 
-(the JTOC register).
 The JTOC
 is depicted in figure~\ref{fig:jtoc}.  
 
@@ -136,13 +169,10 @@ is depicted in figure~\ref{fig:jtoc}.
 A TIB contains pointers to the compiled method 
 bodies (executable code) for the virtual methods of its class. 
 Thus, the TIB serves as RVM's virtual method table.
-A
-virtual method dispatch entails loading the TIB pointer at a fixed
-offset off the object reference, loading the address of the method
-body at a given offset off the TIB pointer, moving this address to the
-PowerPC\PowerPCTMFootnote ``link-register'', and executing a
-branch-and-link --- four 
-instructions.
+A virtual method dispatch entails loading the TIB pointer from 
+the object reference, loading the address of the method
+body at a given offset off the TIB pointer, and making an indirect
+branch and link to it.
 
 \paragraph{Static Fields and Methods} 
 \index{static methods}
@@ -185,8 +215,8 @@ share the same offset into the IMT. In this case, a {\em conflict resolution
 stub} is inserted in the IMT. Conflict resolution stubs are
 custom-generated machine code sequences that test the value of a
 hidden parameter to dispatch to the desired interface method.
-
-\PowerPCTMFooter
+For more details, see
+\xlink{{\tt VM\_InterfaceInvocation.java}}{\VMInterfaceInvocationURL}.
 
 \subsection{VM Conventions}
 
@@ -298,6 +328,8 @@ The layout of the stackframe appears in a block comment in
   methods):
 
 \begin{enumerate}
+\item Execute a stackoverflow check, and grow the thread stack if necessary.
+
 \item Save the caller's next instruction pointer (callee's return address,
        from the Link Register).
 
@@ -307,7 +339,7 @@ The layout of the stackframe appears in a block comment in
 
 \item Store and update the frame pointer FP.
 
-\item Store callee's compiled method ID (eventually, this may not be needed).
+\item Store callee's compiled method ID 
 
 \item Check to see if the Java\trademark thread must yield the VM\_Processor
 (and yield if threadswitch was requested). 
