@@ -1,0 +1,11 @@
+<request-set>
+ <get-request url="http://localhost:8080/examples/servlet/HelloWorldExample"
+              desired="expected/HelloWorldExample" />
+ <get-request url="http://localhost:8080/examples/servlet/RequestInfoExample" />
+ <get-request url="http://localhost:8080/examples/servlet/RequestHeaderExample" />
+ <get-request url="http://localhost:8080/examples/servlet/RequestParamExample" />
+ <post-request url="http://localhost:8080/examples/servlet/RequestParamExample">
+   <form-param name="firstname" value="julian" />
+   <form-param name="lastname" value="dolby" />
+ </post-request>
+</request-set>
