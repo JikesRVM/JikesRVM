@@ -852,6 +852,7 @@ sysPthreadSelf()
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSelf: WARNING Unsupported operation with single virtual processor\n");
    sysExit(-1);
+   return -1; // will never execute
 #else
    int thread;
    sigset_t input_set, output_set;
@@ -971,6 +972,7 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSigWait: Unsupported operation with single virtual processor\n");
    sysExit(-1);
+   return -1; // will never execute
 #else 
    sigset_t input_set, output_set;
    int      sig;
