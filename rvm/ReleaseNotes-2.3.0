@@ -13,6 +13,7 @@ Highlights of this release include:
  + GC/Memory management:
    - MarkSweep and CopyMS Plans are considered stable
    - CopyMS is now recommended as the default memory manager
+   - RefCount plan is functional (does not support finalization or parallel GC)
    - heapsize dynamically grows/shrinks based on utilization and load
    - implementation of soft, weak, and phantom references from Chris Hoffman
    - numerous bug fixes and performance improvements
