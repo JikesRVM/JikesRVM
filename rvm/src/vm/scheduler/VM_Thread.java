@@ -322,7 +322,14 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
     //-#endif 
 
-    if (! threadSwitch) return;
+    if (! threadSwitch) {
+      //-#if RVM_WITH_HPM
+      // set start time of thread
+      getCurrentThread().startOfWallTime = VM_Magic.getTimeBase();
+      //-#endif
+
+      return;
+    }
 
     VM_Processor.getCurrentProcessor().interruptQuantumCounter = 0;
 
@@ -1564,30 +1571,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * (null --> any processor is ok).
    */ 
   public VM_Processor processorAffinity;
-
-  //-#if RVM_WITH_HPM  
-  /**
-   * This call sets the processor affinity of the thread that is
-   * passed as the first parameter to the virtual processor
-   * that is identified as the second parameter.
-   * ASSUMPTION: virtual processors are set up before this is called.
-   * Kludge for IVME'03.  Binds SPECjbb warehouses to virtual processors.
-   * Called from JBBmain.java.
-   *
-   * @param t    thread as an object to fool jikes at compile time.
-   * @param pid  virtual processor to bind thread to
-   */
-  static public void setProcessorAffinity(Object t, int pid) 
-  {
-    if(VM_HardwarePerformanceMonitors.verbose>=3) {
-      VM.sysWrite ("VM_Thread.setProcessorAffinity(",pid,")");
-    }
-    VM_Thread thread = (VM_Thread)t;
-    if (pid <= VM_Scheduler.numProcessors && pid > 0) {
-      thread.processorAffinity = VM_Scheduler.processors[pid];
-    }
-  }
-  //-#endif
 
   /**
    * Virtual Processor to run native methods for this thread
