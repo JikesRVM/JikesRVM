@@ -10,25 +10,25 @@
 # IMPORTANT: You need to modify this file to reflect your AIX environment!
 #
 
-export HOST_JAVA_HOME="/share/power/Java/aix/J1.3.0/java130"
+export HOST_JAVA_HOME="/homes/fury5/jalapeno/contrib/ca131-20011129"
 
-# the JDK1.3.0 java executable
-export HOST_JAVA="/share/power/Java/aix/J1.3.0/java130/jre/bin/java"
+# the JDK1.3.1 java executable
+export HOST_JAVA="/homes/fury5/jalapeno/contrib/ca131-20011129/jre/bin/java"
 
-# the JDK1.3.0 javac executable
-export HOST_JAVAC="/share/power/Java/aix/J1.3.0/java130/bin/javac"
+# the JDK1.3.1 javac executable
+export HOST_JAVAC="/homes/fury5/jalapeno/contrib/ca131-20011129/bin/javac"
 
-# the JDK1.3.0 javadoc executable
-export HOST_JAVADOC="/share/power/Java/aix/J1.3.0/java130/bin/javadoc"
+# the JDK1.3.1 javadoc executable
+export HOST_JAVADOC="/homes/fury5/jalapeno/contrib/ca131-20011129/bin/javadoc"
 
-# the JDK1.3.0 jar executable
-export HOST_JAR="/share/power/Java/aix/J1.3.0/java130/bin/jar"
+# the JDK1.3.1 jar executable
+export HOST_JAR="/homes/fury5/jalapeno/contrib/ca131-20011129/bin/jar"
 
-# the JDK1.3.0 standard library jar files
-export HOST_REPOSITORIES="/share/power/Java/aix/J1.3.0/java130/jre/lib/rt.jar"
+# the JDK1.3.1 standard library jar files
+export HOST_REPOSITORIES="/homes/fury5/jalapeno/contrib/ca131-20011129/jre/lib/rt.jar"
 
-# the JDK1.3.0 standard library jar files
-export HOST_TOOLS="/share/power/Java/aix/J1.3.0/java130/lib/tools.jar"
+# the JDK1.3.1 standard library jar files
+export HOST_TOOLS="/homes/fury5/jalapeno/contrib/ca131-20011129/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE="/homes/fury5/jalapeno/bin/jmake"
