@@ -67,7 +67,7 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include <InterfaceDeclarations.h>
-extern "C" void setLinkage(struct VM_BootRecord *):
+extern "C" void setLinkage(struct VM_BootRecord *);
 
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
