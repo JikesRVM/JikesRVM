@@ -21,7 +21,12 @@
 	  #'(lambda ()
 	      (turn-on-font-lock)
 	      (which-function-mode 1)
-	      (c-toggle-auto-hungry-state 1)
+	      ;; I like the auto-newline and hungry-delete-key features.
+	      ;; You can learn about them with C-h f c-toggle-auto-state and
+	      ;; C-h f c-toggle-hungry-state.  
+	      (c-toggle-auto-state 1)
+	      (c-toggle-hungry-state 1)
+
 	      ;; Guard the use of c-context-line-break, since it is not present
 	      ;; in GNU Emacs 20.7
 	      (if (fboundp 'c-context-line-break)
