@@ -1,5 +1,12 @@
 #! /bin/bash
-# Expand macros for the Debian implementation.
+#
+# $Id$
+#
+# Expand macros for installing Jikes RVM in /usr
+#
+# @author Steven Augart
+# @date 24 April 2004
+
 [ $# = 2 ] || { echo >&2 "Usage: $0 SRC DEST" ; exit 2 ; }
 src="$1"
 dest="$2"
