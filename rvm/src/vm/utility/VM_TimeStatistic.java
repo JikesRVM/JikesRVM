@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /**
  * Abstraction for a statistic that measures time spent in a phase.

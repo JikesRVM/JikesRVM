@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /*
  * Code to convert floating point number to ascii.
