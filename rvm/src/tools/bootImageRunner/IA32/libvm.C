@@ -23,7 +23,13 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
-#include <asm/ucontext.h>
+#ifndef __USE_GNU         // Deal with current ucontext ugliness.  The current
+#define __USE_GNU         // mess of asm/ucontext.h & sys/ucontext.h and their
+#include <sys/ucontext.h> // mutual exclusion on more recent versions of gcc
+#undef __USE_GNU          // dictates this ugly hack.
+#else
+#include <sys/ucontext.h>
+#endif
 #include <assert.h>
 #if (defined __linuxsmp__)
 #include <pthread.h>
@@ -164,21 +170,16 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   unsigned int instructionFollowing;
   char buf[100];
 
-  /*
-   * The "5" here was obtained by experiment.
-   * Perhaps it derives from our 3 parameters + saved fp + saved ip?
-   * !!TODO: Figure out how to get pointer via a documented interface.
-   * It seems likely that getcontext() would do the job, but gcc warns "not implemented".
-   */
-  // sigcontext *sc = (sigcontext *) ((char *) context + 5 * 4);
-  sigcontext *sc = &((ucontext *) context)->uc_mcontext;
+  ucontext_t *uc = (ucontext_t *) context;  // user context
+  mcontext_t *mc = &(uc->uc_mcontext);      // machine context
+  greg_t  *gregs = mc->gregs;               // general purpose registers
 
   /*
    * fill local working variables from context saved by OS trap handler
    * mechanism
    */
-  localInstructionAddress	= sc->eip;
-  localVirtualProcessorAddress	= sc->esi;
+  localInstructionAddress	= gregs[REG_EIP];
+  localVirtualProcessorAddress	= gregs[REG_ESI];
 
    // We are prepared to handle these kinds of "recoverable" traps:
    //
@@ -214,36 +215,35 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 		signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
 
     write (SysErrorFd, buf, sprintf (buf, "handler stack 0x%x\n", &buf));
-    write (SysErrorFd, buf, sprintf (buf, "gs            0x%08x\n", sc->gs));
-    write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", sc->fs));
-    write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", sc->es));
-    write (SysErrorFd, buf, sprintf (buf, "ds            0x%08x\n", sc->ds));
-    write (SysErrorFd, buf, sprintf (buf, "edi -- JTOC?  0x%08x\n", sc->edi));
-    write (SysErrorFd, buf, sprintf (buf, "esi -- PR/VP  0x%08x\n", sc->esi));
-    write (SysErrorFd, buf, sprintf (buf, "ebp -- FP?    0x%08x\n", sc->ebp));
-    write (SysErrorFd, buf, sprintf (buf, "esp -- SP     0x%08x\n", sc->esp));
-    write (SysErrorFd, buf, sprintf (buf, "ebx           0x%08x\n", sc->ebx));
-    write (SysErrorFd, buf, sprintf (buf, "edx -- T1?    0x%08x\n", sc->edx));
-    write (SysErrorFd, buf, sprintf (buf, "ecx -- S0?    0x%08x\n", sc->ecx));
-    write (SysErrorFd, buf, sprintf (buf, "eax -- T0?    0x%08x\n", sc->eax));
-    write (SysErrorFd, buf, sprintf (buf, "trapno        0x%08x\n", sc->trapno));
-    write (SysErrorFd, buf, sprintf (buf, "err           0x%08x\n", sc->err));
-    write (SysErrorFd, buf, sprintf (buf, "eip           0x%08x\n", sc->eip));
-    write (SysErrorFd, buf, sprintf (buf, "cs            0x%08x\n", sc->cs));
-    write (SysErrorFd, buf, sprintf (buf, "eflags        0x%08x\n", sc->eflags));
-    write (SysErrorFd, buf, sprintf (buf, "esp_at_signal 0x%08x\n", sc->esp_at_signal));
-    write (SysErrorFd, buf, sprintf (buf, "ss            0x%08x\n", sc->ss));
-    write (SysErrorFd, buf, sprintf (buf, "fpstate       0x%08x\n", sc->fpstate));	/* null if fp registers haven't been used yet */
-    write (SysErrorFd, buf, sprintf (buf, "oldmask       0x%08x\n", sc->oldmask));
-    write (SysErrorFd, buf, sprintf (buf, "cr2           0x%08x\n", sc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
+    write (SysErrorFd, buf, sprintf (buf, "gs            0x%08x\n", gregs[REG_GS]));
+    write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", gregs[REG_FS]));
+    write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", gregs[REG_ES]));
+    write (SysErrorFd, buf, sprintf (buf, "ds            0x%08x\n", gregs[REG_DS]));
+    write (SysErrorFd, buf, sprintf (buf, "edi -- JTOC?  0x%08x\n", gregs[REG_EDI]));
+    write (SysErrorFd, buf, sprintf (buf, "esi -- PR/VP  0x%08x\n", gregs[REG_ESI]));
+    write (SysErrorFd, buf, sprintf (buf, "ebp -- FP?    0x%08x\n", gregs[REG_EBP]));
+    write (SysErrorFd, buf, sprintf (buf, "esp -- SP     0x%08x\n", gregs[REG_ESP]));
+    write (SysErrorFd, buf, sprintf (buf, "ebx           0x%08x\n", gregs[REG_EBX]));
+    write (SysErrorFd, buf, sprintf (buf, "edx -- T1?    0x%08x\n", gregs[REG_EDX]));
+    write (SysErrorFd, buf, sprintf (buf, "ecx -- S0?    0x%08x\n", gregs[REG_ECX]));
+    write (SysErrorFd, buf, sprintf (buf, "eax -- T0?    0x%08x\n", gregs[REG_EAX]));
+    write (SysErrorFd, buf, sprintf (buf, "trapno        0x%08x\n", gregs[REG_TRAPNO]));
+    write (SysErrorFd, buf, sprintf (buf, "err           0x%08x\n", gregs[REG_ERR]));
+    write (SysErrorFd, buf, sprintf (buf, "eip           0x%08x\n", gregs[REG_EIP]));
+    write (SysErrorFd, buf, sprintf (buf, "cs            0x%08x\n", gregs[REG_CS]));
+    write (SysErrorFd, buf, sprintf (buf, "eflags        0x%08x\n", gregs[REG_EFL]));
+    write (SysErrorFd, buf, sprintf (buf, "esp_at_signal 0x%08x\n", gregs[REG_UESP]));
+    write (SysErrorFd, buf, sprintf (buf, "ss            0x%08x\n", gregs[REG_SS]));
+    write (SysErrorFd, buf, sprintf (buf, "fpstate       0x%08x\n", mc->fpregs));	/* null if fp registers haven't been used yet */
+    write (SysErrorFd, buf, sprintf (buf, "oldmask       0x%08x\n", mc->oldmask));
+    write (SysErrorFd, buf, sprintf (buf, "cr2           0x%08x\n", mc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
 
     /*
      * There are 8 floating point registers, each 10 bytes wide.
      * See /usr/include/asm/sigcontext.h
      */
-    if (sc->fpstate) {
-      struct _fpstate *fpstate = sc->fpstate;
-      struct _fpreg *fpreg = fpstate->_st;
+    if (mc->fpregs) {
+      struct _libc_fpreg *fpreg = mc->fpregs->_st;
 
       for (int i = 0; i < 8; ++i)
         write (SysErrorFd, buf, sprintf (buf, "fp%d 0x%04x%04x%04x%04x%04x\n",
@@ -346,21 +346,21 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
     /* setup stack frame to contain the frame pointer */
-    sp = (long unsigned int *) sc->esp;
+    sp = (long unsigned int *) gregs[REG_ESP];
 
     /* put fp as a  parameter on the stack  */
-    sc->esp = sc->esp - 4;
-    sp = (long unsigned int *) sc->esp;
+    gregs[REG_ESP] = gregs[REG_ESP] - 4;
+    sp = (long unsigned int *) gregs[REG_ESP];
     *sp = localFrameAddress;
-    sc->eax = localFrameAddress; // must pass localFrameAddress in first param register!
+    gregs[REG_EAX] = localFrameAddress; // must pass localFrameAddress in first param register!
 
     /* put a return address of zero on the stack */
-    sc->esp = sc->esp - 4;
-    sp = (long unsigned int *) sc->esp;
+    gregs[REG_ESP] = gregs[REG_ESP] - 4;
+    sp = (long unsigned int *) gregs[REG_ESP];
     *sp = 0;
 
     /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
-    sc->eip = dumpStack;
+    gregs[REG_EIP] = dumpStack;
     *vmr_inuse = false;
 
     pthread_mutex_unlock( &exceptionLock );
@@ -371,14 +371,14 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   *vmr_inuse = 1;			/* mark in use to avoid infinite loop */
 
   /* move gp registers to VM_Registers object */
-  vmr_gprs[VM_Constants_EAX] = sc->eax;
-  vmr_gprs[VM_Constants_ECX] = sc->ecx;
-  vmr_gprs[VM_Constants_EDX] = sc->edx;
-  vmr_gprs[VM_Constants_EBX] = sc->ebx;
-  vmr_gprs[VM_Constants_ESP] = sc->esp;
-  vmr_gprs[VM_Constants_EBP] = sc->ebp;
-  vmr_gprs[VM_Constants_ESI] = sc->esi;
-  vmr_gprs[VM_Constants_EDI] = sc->edi;
+  vmr_gprs[VM_Constants_EAX] = gregs[REG_EAX];
+  vmr_gprs[VM_Constants_ECX] = gregs[REG_ECX];
+  vmr_gprs[VM_Constants_EDX] = gregs[REG_EDX];
+  vmr_gprs[VM_Constants_EBX] = gregs[REG_EBX];
+  vmr_gprs[VM_Constants_ESP] = gregs[REG_ESP];
+  vmr_gprs[VM_Constants_EBP] = gregs[REG_EBP];
+  vmr_gprs[VM_Constants_ESI] = gregs[REG_ESI];
+  vmr_gprs[VM_Constants_EDI] = gregs[REG_EDI];
 
   /* set the next instruction for the failing frame */
   instructionFollowing = getInstructionFollowing(localInstructionAddress);
@@ -391,7 +391,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
    * We'll execute the entire code sequence for VM_Runtime.deliverHardwareException et al
    * in the guard region of the stack to avoid bashing stuff in the bottom opt-frame.
    */
-  sp = (long unsigned int *) sc->esp;
+  sp = (long unsigned int *) gregs[REG_ESP];
   unsigned stackLimit = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
   if ((long unsigned)sp <= stackLimit - 384) {
     write (SysErrorFd, buf,
@@ -402,7 +402,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   sp = (long unsigned int *)stackLimit - 384;
   stackLimit -= VM_Constants_STACK_SIZE_GUARD;
   *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
-  *(unsigned *)(sc->esi + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+  *(unsigned *)(gregs[REG_ESI] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
   
   /* Insert artificial stackframe at site of trap. */
   /* This frame marks the place where "hardware exception registers" were saved. */
@@ -450,13 +450,13 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
       *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
   }
 
-  sc->eax = *(int *)sp; // also pass first param in EAX.
+  gregs[REG_EAX] = *(int *)sp; // also pass first param in EAX.
   if (lib_verbose)
-    fprintf(SysTraceFile, "Trap code is 0x%x\n", sc->eax);
+    fprintf(SysTraceFile, "Trap code is 0x%x\n", gregs[REG_EAX]);
 
   sp = (long unsigned int *) ((char *) sp - 4);	/* next parameter is info for array bounds trap */
   *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + VM_Processor_arrayIndexTrapParam_offset);
-  sc->edx = *(int *)sp; // also pass second param in EDX.
+  gregs[REG_EDX] = *(int *)sp; // also pass second param in EDX.
   sp = (long unsigned int *) ((char *) sp - 4);	/* return address - looks like called from failing instruction */
   *(int *) sp = instructionFollowing;
 
@@ -468,12 +468,12 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     fprintf(SysTraceFile, "Set vmr_fp to 0x%x\n", localFrameAddress);
   
   /* set up context block to look like the artificial stack frame is returning  */
-  sc->esp = (int) sp;
-  sc->ebp = (int) fp;
+  gregs[REG_ESP] = (int) sp;
+  gregs[REG_EBP] = (int) fp;
   *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
 
   /* setup to return to deliver hardware exception routine */
-  sc->eip = javaExceptionHandlerAddress;
+  gregs[REG_EIP] = javaExceptionHandlerAddress;
 
   #ifdef DEBUG_TRAP_HANDLER
   debug_in_use = 0;
@@ -596,31 +596,33 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
       DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
       unsigned int localJTOC = VmToc;
-      sigcontext *sc = &((ucontext *) context)->uc_mcontext;
+      ucontext_t *uc = (ucontext_t *) context;  // user context
+      mcontext_t *mc = &(uc->uc_mcontext);      // machine context
+      greg_t  *gregs = mc->gregs;              // general purpose registers
       int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
    
       /* get the frame pointer from processor object  */
-      unsigned int localVirtualProcessorAddress	= sc->esi;
+      unsigned int localVirtualProcessorAddress	= gregs[REG_ESI];
       unsigned int localFrameAddress = 
 	  *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
 
       /* setup stack frame to contain the frame pointer */
-      long unsigned int *sp = (long unsigned int *) sc->esp;
+      long unsigned int *sp = (long unsigned int *) gregs[REG_ESP];
 
       /* put fp as a  parameter on the stack  */
-      sc->esp = sc->esp - 4;
-      sp = (long unsigned int *) sc->esp;
+      gregs[REG_ESP] = gregs[REG_ESP] - 4;
+      sp = (long unsigned int *) gregs[REG_ESP];
       *sp = localFrameAddress;
       // must pass localFrameAddress in first param register!
-      sc->eax = localFrameAddress;
+      gregs[REG_EAX] = localFrameAddress;
 
       /* put a return address of zero on the stack */
-      sc->esp = sc->esp - 4;
-      sp = (long unsigned int *) sc->esp;
+      gregs[REG_ESP] = gregs[REG_ESP] - 4;
+      sp = (long unsigned int *) gregs[REG_ESP];
       *sp = 0;
 
       /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
-      sc->eip = dumpStack;
+      gregs[REG_EIP] = dumpStack;
   }
 }
 
