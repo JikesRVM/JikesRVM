@@ -20,6 +20,21 @@ import java.util.HashSet;
 public final class OPT_BranchOptimizations
   extends OPT_BranchOptimizationDriver {
 
+  /**
+   * The final branch optimzation pass run immediately before
+   * LIR to MIR conversion.  This has several special implications:
+   * Code reordering has already run, therefore branch optimization 
+   *     may not change the code order to avoid undoing the selected code order.
+   * (2) We no longer care whether or not we introduce irreducible control flow.
+   *     Therefore branch optmization can apply the goto optimization that
+   *     duplicates a conditional branch that is the target of a goto.
+   *     This optimization is actually somewhat important because it can 
+   *     get a boolean cmp into the same basic block as the conditional branch
+   *     that jumps on the result of the boolean cmp, thus eliminating
+   *     the actually need to compute a boolean value.
+   */
+  private boolean afterCodeReorder = false;
+
   private OPT_BranchOptimizations () { }
 
   /** 
@@ -32,10 +47,12 @@ public final class OPT_BranchOptimizations
 
   /** 
    * @param level the minimum optimization level at which the branch 
-   * optimizations should be performed.
+   *              optimizations should be performed.
+   * @param afterCodeReorderPass is this after code reordering?
    */
-  OPT_BranchOptimizations (int level, boolean afterCodeReorder) {
-    super(level, afterCodeReorder);
+  OPT_BranchOptimizations (int level, boolean afterCodeReorderPass) {
+    super(level);
+    afterCodeReorder = afterCodeReorderPass;
   }
   
   /**
@@ -71,24 +88,18 @@ public final class OPT_BranchOptimizations
    *	1)	GOTO A	     replaced by  GOTO B
    *	     A: GOTO B
    *
-   *    2)   GOTO next instruction eliminated
-   *    3)      GOTO A	     replaced by  GOTO B
+   *    2) 	GOTO A	     replaced by  IF .. GOTO B
+   *	     A: IF .. GOTO B 		  GOTO C
+   *	     C: ...			
+   *    3)   GOTO next instruction eliminated
+   *    4)      GOTO A	     replaced by  GOTO B
    *	     A: LABEL	     
    *		BBEND
    *	     B: 
-   *    4)   GOTO BBn where BBn has exactly one in ede
+   *    5)   GOTO BBn where BBn has exactly one in ede
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
-   * </pre>
-   * We intentionally do not perform the following optimization because
-   * it can introduce irreducible control flow (when A is a loop head).
-   * This blocks some HIR and LIR optimizations, so the very minor benefit
-   * of eliminating an unconditional branch isn't worth the cost.
    * <pre>
-   *    GOTO A	     replaced by  IF .. GOTO B
-   *    A: IF .. GOTO B 		  GOTO C
-   *	C: ...			
-   * </pre>
    *
    * <p> Precondition: Goto.conforms(g)
    *
@@ -138,9 +149,50 @@ public final class OPT_BranchOptimizations
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
+    if (afterCodeReorder && IfCmp.conforms(targetInst)) {
+      // unconditional branch to a conditional branch.
+      // If the Goto is the only branch instruction in its basic block
+      // and the IfCmp is the only non-GOTO branch instruction
+      // in its basic block then replace the goto with a copy of 
+      // targetInst and append another GOTO to the not-taken
+      // target of targetInst's block.
+      // We impose these additional restrictions to avoid getting 
+      // multiple conditional branches in a single basic block.
+      // We currently only do this optimization late in compilation
+      // because it can introduce irreducible control flow which 
+      // breaks all the optimization passes that depend on the 
+      // loop structure tree. 
+      // However, this optimization is actually somewhat useful for two reasons:
+      // (1) it can result in better instruction selection by getting the 
+      //     conditional branch and the computation of the operands to the condition
+      //     into the same basic block
+      // (2) by duplicating the conditional branch it is often the case that
+      //     one (or both) copies of the conditional branch get constant
+      //     operands and can be completely eliminated.
+      // Our current strategy is to be conservative and only allow this 
+      // optimization during the last branch optimization pass in LIR. This
+      // gives us (1) in most cases, but we miss out on (2) which may actually
+      // be more important.
+      // Ideally, we'd have a cheap test to determine whether or not the 
+      // CFG edges that are added by this transformation will in fact result
+      // in irreducible control flow and only block the transformation then.
+      // NOTE: if backedge insertion was done a little differently, then
+      //       this might just fall out. --dave
+      if (!g.prevInstructionInCodeOrder().isBranch() && 
+	  (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
+	   targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
+	OPT_Instruction copy = targetInst.copyWithoutLinks();
+	g.replace(copy);
+	OPT_Instruction newGoto = 
+	  targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
+	copy.insertAfter(newGoto);
+	bb.recomputeNormalOut(ir); // fix the CFG 
+	return true;
+      }
+    }
 
     // try to create a fallthrough
-    if (!_afterCodeReorder && targetBlock.getNumberOfIn() == 1) {
+    if (!afterCodeReorder && targetBlock.getNumberOfIn() == 1) {
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();

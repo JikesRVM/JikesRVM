@@ -25,12 +25,6 @@ public abstract class OPT_BranchOptimizationDriver
    */
   private int _level;
 
-  /**
-   * Restrict branch optimizations to avoid messing up decisions made
-   * earlier by code reordering
-   */ 
-  protected boolean _afterCodeReorder = false;
-
   protected OPT_BranchOptimizationDriver() {}
 
   /** 
@@ -41,18 +35,6 @@ public abstract class OPT_BranchOptimizationDriver
     _level = level;
   }
 
-  /** 
-   * @param level the minimum optimization level at which the branch 
-   *              optimizations should be performed.
-   * @param afterCodeReorder Should optimization be restricted to respect
-   *              decisions made by code reordering
-   */
-  OPT_BranchOptimizationDriver(int level, boolean afterCodeReorder) {
-    this(level);
-    _afterCodeReorder = afterCodeReorder;
-  }
-
-  
   /** Interface */
   final boolean shouldPerform(OPT_Options options) {
     return  options.getOptLevel() >= _level;
@@ -92,7 +74,7 @@ public abstract class OPT_BranchOptimizationDriver
     boolean didSomething = false;
     boolean didSomethingThisTime = true;
     while (didSomethingThisTime) {
-      applyPeepholeBranchOpts(ir);
+      didSomething |= applyPeepholeBranchOpts(ir);
       didSomethingThisTime = removeUnreachableCode(ir);
       didSomething |= didSomethingThisTime;
     }
@@ -112,7 +94,8 @@ public abstract class OPT_BranchOptimizationDriver
    *
    * @param ir the IR to optimize
    */
-  protected void applyPeepholeBranchOpts(OPT_IR ir) {
+  protected boolean applyPeepholeBranchOpts(OPT_IR ir) {
+    boolean didSomething = false;
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
 	 e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
@@ -121,12 +104,14 @@ public abstract class OPT_BranchOptimizationDriver
 	     ie.hasMoreElements();) {
 	  OPT_Instruction s = ie.next();
 	  if (optimizeBranchInstruction(ir, s, bb)) {
+	    didSomething = true;
 	    // hack: we may have modified the instructions; start over
 	    ie = bb.enumerateBranchInstructions();
 	  }
 	}
       }
     }
+    return didSomething;
   }
 
   /**
