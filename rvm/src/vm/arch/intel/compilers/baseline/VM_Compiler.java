@@ -403,71 +403,79 @@ public class VM_Compiler implements VM_BaselineConstants {
       } 
       case 0x2e: /* iaload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iaload");
-	asm.emitPOP_Reg(T0);                            // T0 is index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0);          // push desired int array element
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired int array element
 	break;
       }
       case 0x2f: /* laload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "laload");
-	asm.emitPOP_Reg(T0);                            // T0 is index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
-	genBoundsCheck(asm, T0,S0);               // T0 is index, S0 is address of array
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE);   // load high part of desired long array element
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);          // load low part of desired long array element
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
+	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of desired long array element
+	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of desired long array element
 	break;
       }
       case 0x30: /* faload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "faload");
-	asm.emitPOP_Reg(T0);                            // T0 is array index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0);          // push desired float array element
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired float array element
 	break;
       }
       case 0x31: /* daload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "daload");
-	asm.emitPOP_Reg(T0);                            // T0 is index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
-	genBoundsCheck(asm, T0,S0);               // T0 is index, S0 is address of array
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE);   // load high part of double
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);          // load low part of double
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
+	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of double
+	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of double
 	break;
       }
       case 0x32: /* aaload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aaload");
-	asm.emitPOP_Reg(T0);                            // T0 is array index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0);          // push desired int array element
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired object array element
 	break;
       }
       case 0x33: /* baload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "baload");
-	asm.emitPOP_Reg(T0);                                       // T0 is array index
-	asm.emitPOP_Reg(S0);                                       // S0 is array ref
-	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-	asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, 0);    // load byte and sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                      // push onto stack
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                     // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                     // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // complete popping the 2 args
+	asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, 0); // load byte and sign extend to a 32 bit word
+	asm.emitPUSH_Reg(T1);                                   // push sign extended byte onto stack
 	break;
       }
       case 0x34: /* caload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "caload");
-	asm.emitPOP_Reg(T0);                                       // T0 is array index
-	asm.emitPOP_Reg(S0);                                       // S0 is array ref
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-	asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0);   // load halfword without sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                      // push onto stack
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
+	asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword without sign extend to a 32 bit word
+	asm.emitPUSH_Reg(T1);                                    // push char onto stack
 	break;
       }
       case 0x35: /* saload */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "saload");
-	asm.emitPOP_Reg(T0);                                       // T0 is array index
-	asm.emitPOP_Reg(S0);                                       // S0 is array ref
-	genBoundsCheck(asm, T0,S0);                              // check array length vs index
-	asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0);   // load halfword sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                      // push onto stack
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
+	asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword sign extend to a 32 bit word
+	asm.emitPUSH_Reg(T1);                                    // push sign extended short onto stack
 	break;
       }
       case 0x36: /* istore */ {
@@ -647,86 +655,89 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       case 0x4f: /* iastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iastore");
-	asm.emitPOP_Reg(T1);                      // T1 is the value
-	asm.emitPOP_Reg(T0);                      // T0 is array index
-	//asm.emitPOP_Reg(S0);                    // S0 is array ref
-	asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is the array ref
-	genBoundsCheck(asm, T0,S0);         // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the int value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
-        asm.emitADD_Reg_Imm(SP, 4);
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
 	break;
       }
       case 0x50: /* lastore */ { 
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lastore"); 
-	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                      // T0 is the array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                     // S0 is the array ref
-	genBoundsCheck(asm, T0,S0);
-	asm.emitPOP_Reg(T1);                             // low part
+	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+	asm.emitPOP_Reg(T1);                                    // low part of long value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
-	asm.emitPOP_Reg(T1);                             // high part
+	asm.emitPOP_Reg(T1);                                    // high part of long value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                // remove index and ref from the stack
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
 	break;
       }
       case 0x51: /* fastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fastore");
-	asm.emitPOP_Reg(T1);                      // T1 is the value
-	asm.emitPOP_Reg(T0);                      // T0 is array index
-	asm.emitPOP_Reg(S0);                      // S0 is array ref
-	genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the float value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
 	break;
       }
       case 0x52: /* dastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                      // T0 is the array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                     // S0 is the array ref
-	genBoundsCheck(asm, T0,S0);
-	asm.emitPOP_Reg(T1);                             // low part
+	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+	asm.emitPOP_Reg(T1);                                    // low part of double value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
-	asm.emitPOP_Reg(T1);                             // high part
+	asm.emitPOP_Reg(T1);                                    // high part of double value
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                 // remove index and ref from the stack
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
 	break;
       }
       case 0x53: /* aastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aastore");
-	asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);                    // duplicate array ref
-	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);                    // duplicate value
-	genParameterRegisterLoad(2);                         // pass 2 parameter
+	asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
+	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
+	genParameterRegisterLoad(2);                     // pass 2 parameter
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreOffset); // checkstore(array ref, value)
-	asm.emitPOP_Reg(T1);                                     // T1 is the value
-	asm.emitPOP_Reg(T0);                                     // T0 is array index
-	asm.emitPOP_Reg(S0);                                     // S0 is array ref
-	genBoundsCheck(asm, T0, S0);                       // T0 is index, S0 is address of array
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1);                // [S0 + T0<<2] <- T1
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
+	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
 	break;
       }
       case 0x54: /* bastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "bastore");
-	asm.emitPOP_Reg(T1);                            // T1 is the value
-	asm.emitPOP_Reg(T0);                            // T0 is array index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
-	genBoundsCheck(asm, T0,S0);               // T0 is index, S0 is address of array
-	asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, 0, T1);      // store byte element into array i.e. [S0 +T0] <- T1 (byte)
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the byte value
+	asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, 0, T1); // [S0 + T0<<2] <- T1
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
 	break;
       }
       case 0x55: /* castore */ {
-	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "castore");
-	asm.emitPOP_Reg(T1);                            // T1 is the value
-	asm.emitPOP_Reg(T0);                            // T0 is array index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
-	genBoundsCheck(asm, T0,S0);               // T0 is index, S0 is address of array
-	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the char value
+	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
 	break;
       }
       case 0x56: /* sastore */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "sastore");
-	asm.emitPOP_Reg(T1);                            // T1 is the value
-	asm.emitPOP_Reg(T0);                            // T0 is array index
-	asm.emitPOP_Reg(S0);                            // S0 is array ref
-	genBoundsCheck(asm, T0,S0);               // T0 is index, S0 is address of array
-	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the short value
+	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
 	break;
       }
       case 0x57: /* pop */ {
@@ -734,7 +745,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitPOP_Reg(T0);
 	break;
       }
-      case 0x58: /* +++ pop2 +++ */ {
+      case 0x58: /* pop2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "pop2");
 	asm.emitPOP_Reg(T0);
 	asm.emitPOP_Reg(T0);
@@ -3545,7 +3556,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset, 0x0c00);
       // Now store the result back into the FPU Control Word
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
-
       return;
     }
     
