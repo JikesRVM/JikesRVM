@@ -37,9 +37,9 @@ class InlineAllocation {
   static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 75 : 22); // large object
   static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 250: 60); // unknown size object GACK!!
   //-#elif RVM_WITH_MARK_SWEEP
-  static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // small object        GADZOOKS!!!!!!
-  static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // large object        GADZOOKS!!!!!!
-  static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 250: 60);  // unknown size object GADZOOKS!!!!!!
+  static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // small object
+  static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // large object
+  static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 250: 60);  // unknown size object GACK!!
   //-#else
   static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // small object
   static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // large object
