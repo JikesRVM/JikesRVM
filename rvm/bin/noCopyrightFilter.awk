@@ -14,6 +14,10 @@
 #
 # Find files that don't have a copyright notice.
 #
+
+/^\.\/aux\/gnu-classpath-on-mac-osx\.patch$/ { next }
+
+
 /\/bin\/classpath.stamp/ { next }
 
 /\/doc\/userguide\// { next }
