@@ -32,13 +32,18 @@ public final class HPM_counters
    * @param info    HPM information
    * @return        return true if at least one counter not zero.
    */
-  public boolean dump_counters(HPM_info info) {
+  public boolean dump_counters(HPM_info info) throws VM_PragmaUninterruptible {
     // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
     boolean notZero = false;
     for (int i=0; i<=info.numberOfCounters; i++) {
       if (counters[i] > 0) {
 	notZero = true;
-	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
+        //	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
+	VM.sysWrite  (i,": ");
+        VM.sysWrite  (info.short_name(i));
+        VM.sysWrite  (":");
+        VM.sysWrite  (/*format_long(*/counters[i]/*)*/);
+        VM.sysWriteln();
       }
     }
     return notZero;
@@ -46,7 +51,7 @@ public final class HPM_counters
   /*
    * Reset counters to zero
    */
-  public void reset_counters() {
+  public void reset_counters() throws VM_PragmaUninterruptible {
     for (int i=0; i<HPM_info.MAX_VALUES; i++) {
       counters[i]=0;
     }
