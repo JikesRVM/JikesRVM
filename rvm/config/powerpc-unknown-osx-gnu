@@ -41,6 +41,10 @@ export MAXIMUM_MAPPABLE_ADDRESS=0x80000000
 # you're doing a cross-build.)
 ########## 
 
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 export HOST_JAVA_HOME=/usr/
 
 # the JDK java executable
@@ -99,9 +103,5 @@ export SED=/usr/bin/sed
 export WGET=wget
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
-## Note: This file is not currently in use; Classpath 0.10 is the minimum
-## required version for Jikes RVM 2.3.4.
-export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath-0.06"
-##export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath"
 
 export BENCHMARK_ROOT=""

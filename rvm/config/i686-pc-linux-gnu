@@ -7,7 +7,7 @@
 # run Jikes RVM.  This file is sourced by the installation scripts; you
 # do not need to source this file into your command-prompt shell.
 #
-# IMPORTANT: You need to modify this file to reflect your environment!
+# IMPORTANT: You may need to modify this file to reflect your environment!
 #
 # This file is pre-configured for x86 hosts running GNU/Linux
 
@@ -56,6 +56,10 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 # you're doing a cross-build.)
 ########## 
 
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 # HOST_VM_TYPE=Kaffe
 HOST_VM_TYPE=Sun
 # HOST_VM_TYPE=JikesRVM	# Does not work yet, due to trouble separating the
@@ -91,65 +95,11 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
-## CLASSPATH_INSTALLATION
-## If you built GNU Classpath 0.12 with the default install directory (if
-## unspecified, "--prefix=/usr/local/classpath" is implied) and
-## installed it with "make install", then uncomment this line:
-#
-# export CLASSPATH_INSTALLATION=/usr/local/classpath
-
-## If you have classpath 0.10 or Classpath 0.11 already unpacked and built,
-## then you can use them instead:
-
-# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.10
-# export RVM_WITH_CLASSPATH_0_10=1
-
-# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.11
-# export RVM_WITH_CLASSPATH_0_11=1
-
-## OR, if you built GNU Classpath but haven't 
-## installed it (most people haven't), you can set
-## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
-## *and* set CLASSPATH_BUILD_DIR to the directory
-## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran $GNU_MAKE
-
-# export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
-# export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
-
-## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
-
-## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
-## sources for GNU Classpath 0.14 (current stable version of Classpath)
-
-## If you manually downloaded the Classpath sources, then unpack them
-## into $CLASSPATH_ROOT and rename the newly extracted source
-## directory "classpath-0.14" to "classpath".  (If you haven't
-## manually downloaded the Classpath sources, then the Jikes RVM build
-## process will automatically do so for you, and will use
-## CLASSPATH_ROOT if you've set it.)
-
-## The Jikes RVM build process will expect to automatically take 
-## care of building Classpath from those sources, if you want.
-# export CLASSPATH_ROOT=/opt/classpath-0.14
-
-## OR you can leave all of the CLASSPATH_ variables unset and let the
-## build process download and build GNU Classpath for you.  This
-## behaves as if you had set CLASSPATH_ROOT to "$RVM_ROOT/classpath".
-## This will work.  I don't recommend doing it more than once, though
-## -- if you and others are all working on Jikes RVM, then please just
-## put Classpath in one place you can share.
-##
-## If you want to auto-download GNU Classpath, you will have to make sure
-##  that the  variable WGET has a rational value.  (It's only used to
-## retrieve GNU Classpath, so you can ignore it otherwise.)
-export WGET="/usr/bin/wget"
-
 # Path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
-# Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
+# We recommend version 1.22
 export JIKES=/usr/bin/jikes
 
 ## What C compiler should be used?  We only use the GNU C compiler on

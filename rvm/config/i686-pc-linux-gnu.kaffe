@@ -58,6 +58,10 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 # guesses in "RVM_BUILD/environment.host".    
 ########## 
 
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 HOST_VM_TYPE=Kaffe
 # HOST_VM_TYPE=Sun
 # HOST_VM_TYPE=JikesRVM
@@ -69,14 +73,6 @@ HOST_VM_TYPE=Kaffe
 ## You can learn about other configuration options by reading the
 ## i686-pc-linux-gnu file, which documents all of them.  You probably won't
 ## need to set most of them.
-
-## CLASSPATH_INSTALLATION
-## If you built GNU Classpath with the default install directory (if
-## unspecified, "--prefix=/usr/local/classpath" is implied) and
-## installed it with "make install", then uncomment this line:
-#
-# export CLASSPATH_INSTALLATION=/usr/local/classpath
-
 
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM

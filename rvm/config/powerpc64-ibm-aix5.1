@@ -34,9 +34,10 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-#
-#export HOST_JAVA_HOME="/usr/java14_64" # Trying the latest 64-bit VM.
-# [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/home/augart/java1.4.2-Service-Release-1-caix64142-20040917/sdk" # Trying the latest 64-bit VM on Excalibur.
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
@@ -58,25 +59,11 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 # the JDK standard library jar files
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
-## sources for current stable version of classpath
-
-## OLD: Classpath 0.10  (minimum version required)
-# export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
-# export RVM_WITH_CLASSPATH_0_10=1
-
-## IF Using Classpath 0.11, define:
-# export CLASSPATH_ROOT=/home/jalapeno/classpath-0.11
-# export RVM_WITH_CLASSPATH_0_11=1
-
-# NEW: Classpath 0.14
-export CLASSPATH_ROOT=/home/jalapeno/classpath-0.14
-export RVM_WITH_CLASSPATH_0_14=1
-
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.22
+export JIKES=/usr/local/bin/jikes
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
@@ -94,7 +81,7 @@ export AR="ar"
 export AR_FLAGS="-X64 -q"
 export AWK="/usr/gnu/bin/gawk"
 export BASH="/usr/gnu/bin/bash"
-export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
+export CVS="/usr/bin/cvs"
 export DIFF="/usr/gnu/bin/diff"
 export FGREP="/usr/gnu/bin/fgrep"
 export FIND="/usr/gnu/bin/find"
@@ -103,7 +90,6 @@ export GREP="/usr/gnu/bin/grep"
 export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
-export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"
@@ -111,4 +97,4 @@ export UNZIP_CMD="/usr/bin/unzip"
 # Horrible kludge to convince AIX's nm, ar, etc to all play together nicely in 64 bit mode.
 export OBJECT_MODE=32_64
 
-export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
+export BENCHMARK_ROOT=""

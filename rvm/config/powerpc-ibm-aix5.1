@@ -42,6 +42,10 @@ export RVM_WITH_HPM=1
 # you're doing a cross-build.)
 ########## 
 
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 # Root of JDK installation.
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/java14"
 
@@ -63,66 +67,12 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 # the JDK tools jar
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
-## CLASSPATH_INSTALLATION
-## If you built GNU Classpath 0.12 with the default install directory (if
-## unspecified, "--prefix=/usr/local/classpath" is implied) and
-## installed it with "make install", then uncomment this line:
-#
-# export CLASSPATH_INSTALLATION=/usr/local/classpath
-
-## If you have classpath 0.10 or Classpath 0.11 already unpacked and built,
-## then you can use them instead:
-
-# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.10
-# export RVM_WITH_CLASSPATH_0_10=1
-
-# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.11
-# export RVM_WITH_CLASSPATH_0_11=1
-
-## OR, if you built GNU Classpath but haven't 
-## installed it (most people haven't), you can set
-## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
-## *and* set CLASSPATH_BUILD_DIR to the directory
-## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran $GNU_MAKE
-
-# export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
-# export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
-
-## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
-
-## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
-## sources for GNU Classpath 0.12 (current stable version of Classpath)
-
-## If you manually downloaded the Classpath sources, then unpack them
-## into $CLASSPATH_ROOT and rename the newly extracted source
-## directory "classpath-0.12" to "classpath".  (If you haven't
-## manually downloaded the Classpath sources, then the Jikes RVM build
-## process will automatically do so for you, and will use
-## CLASSPATH_ROOT if you've set it.)
-
-## The Jikes RVM build process will expect to automatically take 
-## care of building Classpath from those sources, if you want.
-# export CLASSPATH_ROOT=/opt/classpath-0.12
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.14
-export 	RVM_WITH_CLASSPATH_0_14=1
-
-## OR you can leave all of the CLASSPATH_ variables unset and let the
-## build process download and build GNU Classpath for you.  This
-## behaves as if you had set CLASSPATH_ROOT to "$RVM_ROOT/classpath".
-## This will work.  I don't recommend doing it more than once, though
-## -- if you and others are all working on Jikes RVM, then please just
-## put Classpath in one place you can share.
-## You will also have to make sure that variable WGET has a rational value,
-## so tha the downloading will work.  (It's only used to retrieve GNU
-## classpath, so you can ignore it otherwise.)
-export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
-
 # Path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
 # Jikes 1.22 or better is now required.
-export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.22
+export JIKES=/usr/local/bin/jikes
 
 ## What C compiler should be used?  We only use the GNU C compiler
 ## on the project, although it is possible that other compilers might work.
@@ -146,7 +96,7 @@ export BASH="/usr/gnu/bin/bash"
 # You need one of Yacc or Bison (one will usually be installed)
 # If you're using Bison, uncomment the line below:
 # BISON="bison"
-export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
+export CVS="/usr/bin/cvs"
 export DIFF="/usr/gnu/bin/diff"
 export FGREP="/usr/gnu/bin/fgrep"
 export FIND="/usr/gnu/bin/find"
@@ -196,4 +146,4 @@ export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
 
 # BENCHMARK_ROOT is used in running some of the Jikes RVM regression
 # tests.  It doesn't need to be set unless you are running those tests.
-export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
+export BENCHMARK_ROOT=""

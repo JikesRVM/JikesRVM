@@ -757,18 +757,6 @@ function rationalize_config_file_settings () {
 }
 
 function rationalize_classpath_version () {
-    ## Now, rationalize the settings for the current Classpath version
-    if     ! (( RVM_WITH_CLASSPATH_0_10 )) \
-	&& ! (( RVM_WITH_CLASSPATH_0_11 )) \
-	&& ! (( RVM_WITH_CLASSPATH_0_12 )) \
-	&& ! (( RVM_WITH_CLASSPATH_0_13 )) \
-	&& ! (( RVM_WITH_CLASSPATH_0_14 )) \
-	&& ! (( RVM_WITH_CLASSPATH_CVS_HEAD ))
-    then
-	## Set the default.
-	RVM_WITH_CLASSPATH_0_14=1
-    fi
-
     ## Perform sanity checks.  We could consolidate these, but
     ## breaking them into two checks lets us print better error
     ## messages.
@@ -1329,38 +1317,13 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 #       revert to old default until it works again.
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
-## Classpath 0.12 is the default on all platforms except for OSX/Darwin.
-## On that platform, there is difficulty building Classpath 0.12, so we
-## use Classpath 0.10.
-
-## Used on OSX/Darwin
+## Classpath versions that might work with Jikes RVM.
+## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
 declare -i RVM_WITH_CLASSPATH_0_10=0
-
-## May work.  It's always possible that CVS head has drifted away from
-## working with it, though, since we don't do nightly tests.
 declare -i RVM_WITH_CLASSPATH_0_11=0
-
-## May work.  It's always possible that CVS head has drifted away from
-## working with it, though, since we don't do nightly tests.
 declare -i RVM_WITH_CLASSPATH_0_12=0
-
-## Classpath 0.13 may work.   However, there is a code generation
-## bug in version 1.19 of the Jikes Compiler such that it builds a 
-## broken version of Classpath 0.13 that we can't boot with.
-## You can build Classpath with Jikes 1.22 and then build Jikes RVM with 
-## Jikes 1.19, though -- that will work fine. 
-##
-## If you build Classpath 0.13 with GCJ 3.3.1 (at least), that won't work
-## -- when you then try to build Jikes RVM with Jikes 1.19, it 
-## triggers an assertion failure in Jikes 1.19.  
 declare -i RVM_WITH_CLASSPATH_0_13=0
-
-## Currently we use classpath 0.14 in nightly regression tests, so this 
-## should work.
 declare -i RVM_WITH_CLASSPATH_0_14=0
-
-## Classpath's CVS Head; see nightly regression tests to find out whether
-## or not this currently works
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
