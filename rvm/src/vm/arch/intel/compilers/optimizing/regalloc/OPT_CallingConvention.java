@@ -22,7 +22,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_RVMIRTools
+final class OPT_CallingConvention extends OPT_IRTools
   implements OPT_Operators,
 	     OPT_PhysicalRegisterConstants {
 

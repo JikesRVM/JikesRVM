@@ -24,7 +24,7 @@ import instructionFormats.*;
  * @author Julian Dolby
  * @modified Peter Sweeney 
  */
-class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
+class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   /**
    * @param ir the IR to expand

@@ -17,7 +17,7 @@ import instructionFormats.*;
  */
 final class VM_ProcessorLocalState 
 //-#if RVM_WITH_OPT_COMPILER
-extends OPT_RVMIRTools
+extends OPT_IRTools
 //-#endif 
 implements VM_Uninterruptible 
 {

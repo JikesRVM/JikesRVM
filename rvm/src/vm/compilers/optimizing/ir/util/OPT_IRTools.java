@@ -10,10 +10,6 @@ import java.util.Enumeration;
  * This abstract class contains a bunch of useful static methods for
  * performing operations on IR.
  *
- * All functions defined here should (1) not be specific to the MIR and
- * (2) not be specific to RVM.  Any RVM-specific or MIR specific 
- * helper functions should be declared on OPT_RVMIRTools.
- * 
  * @author Jong-Deok Choi
  * @author Dave Grove
  * @author Mauricio Serrano
@@ -529,6 +525,47 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
       }
     }
     return false;
+  }
+
+  /**
+   * Mark the parameter as nonGC and nonPEI and return it.
+   * To be used in passthrough expressions like
+   * <pre>
+   *    instr.insertBack(notPEIGC(Load.create(...)));
+   * </pre>
+   *
+   * @param instr the given instruction
+   * @return the given instruction
+   */
+  static final OPT_Instruction nonPEIGC(OPT_Instruction instr) {
+    instr.markAsNonPEINonGCPoint();
+    return instr;
+  }
+
+  /**
+   * Might this instruction be a load from a field that is declared 
+   * to be volatile?
+   *
+   * @param s the insruction to check
+   * @return <code>true</code> if the instruction might be a load
+   *         from a volatile field or <code>false</code> if it 
+   *         cannot be a load from a volatile field
+   */
+  public static boolean mayBeVolatileFieldLoad(OPT_Instruction s) {
+    boolean isVolatileLoad = false;
+    if (OPT_LocalCSE.isLoadInstruction(s)) {
+      OPT_LocationOperand l = LocationCarrier.getLocation(s);
+      if (l.isFieldAccess()) {
+	VM_Field f = l.getField();
+	if (!f.getDeclaringClass().isLoaded()) {
+	  // class not yet loaded; conservatively assume
+	  // volatile! (yuck)
+	  isVolatileLoad = true;
+	}
+	else if (f.isVolatile()) isVolatileLoad = true;
+      }
+    }
+    return isVolatileLoad;
   }
 }
 

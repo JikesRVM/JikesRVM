@@ -16,7 +16,7 @@ import instructionFormats.*;
  * @modified Martin Trapp
  * @modified Stephen Fink
  */
-abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
+abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   /**
    * Converts the given IR to low level PowerPC IR.

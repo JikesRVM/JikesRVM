@@ -16,7 +16,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Igor Pechtchanski
  */
-abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
+abstract class OPT_FinalMIRExpansion extends OPT_IRTools
   implements VM_BytecodeConstants {
 
   /**

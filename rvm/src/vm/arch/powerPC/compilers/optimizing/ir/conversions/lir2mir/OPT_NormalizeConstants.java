@@ -11,7 +11,7 @@ import instructionFormats.*;
  *
  * @author Dave Grove, Mauricio J. Serrano, Martin Trapp
  */
-abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
+abstract class OPT_NormalizeConstants extends OPT_IRTools {
   /**
    * lower bound on int immediate values in
    * an instruction (can use values down

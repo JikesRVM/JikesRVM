@@ -533,7 +533,7 @@ class OPT_AvExCache
     // if doing scalar replacement, eliminate all memory locations
     // killed by stores
     if (options.LOCAL_SCALAR_REPLACEMENT) {
-      boolean isVolatileLoad = OPT_RVMIRTools.mayBeVolatileFieldLoad(s);
+      boolean isVolatileLoad = OPT_IRTools.mayBeVolatileFieldLoad(s);
       if (OPT_LocalCSE.isStoreInstruction(s) || isVolatileLoad ||
           (options.READS_KILL && OPT_LocalCSE.isLoadInstruction(s))) {
         // sLocation holds the location killed by this instruction

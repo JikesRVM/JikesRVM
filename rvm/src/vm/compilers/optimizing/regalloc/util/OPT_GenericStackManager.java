@@ -17,7 +17,7 @@ import java.util.Iterator;
  * @author Stephen Fink
  * @author Michael Hind
  */
-abstract class OPT_GenericStackManager extends OPT_RVMIRTools 
+abstract class OPT_GenericStackManager extends OPT_IRTools 
 implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
