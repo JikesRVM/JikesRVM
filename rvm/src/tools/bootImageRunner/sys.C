@@ -2949,7 +2949,7 @@ sysNetSocketNoBlock(int fd, int enable)
 	return -1;
     }
 
-    return 0;
+    return rc;
 }
 
 // Close a socket.
