@@ -41,6 +41,7 @@ extern "C" int sched_yield(void);
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
@@ -1993,7 +1994,7 @@ sysPrimitiveParseFloat(const char * buf)
     char *end;			// This prototype is kinda broken.  It really
 				// should be char *.  But isn't.
     errno = 0;
-    float f = strtof(buf, &end);
+    float f = (float)strtod(buf, &end);
     if (errno) {
 	fprintf(SysErrorFile, "%s: Trouble while converting the"
 		" command-line argument \"%s\" to a"
