@@ -682,8 +682,16 @@ public class VM_Magic {
   //---------------------------------------//
    
   /**
-   * Save current thread state.
+   * Save current thread state.  Stores the values in the hardware registers
+   * into a VM_Registers object, @param registers
+   *
+   * We used to use this to implement thread switching, but we have a
+   * threadSwitch magic now that does both of these in a single step as that
+   * is less error-prone.  saveThreadState is now only used in the
+   * implementation of athrow (VM_Runtime.athrow). 
+   * 
    * Note that #args to this method must match #args to VM_Processor.dispatch()
+   *
    * The following registers are saved:
    *        - nonvolatile fpr registers
    *        - nonvolatile gpr registers
