@@ -62,13 +62,13 @@ XFLAGS:=--no-run-if-empty
 
 find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
 find_match_junk_names:=-name Old -prune -o -name '*.[ao]' -prune -o -name \*.so -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
-append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --language=java --append --output=$@ 
+append_java_templates=find src ../MMTk -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
 # in a clean checkout, but might possibly do so if there were old 
 # files left over whose names start with "#" or with ".#". 
-FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
-FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
+FIND:=find  $(GENSRC) src ../MMTk/src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
+FINDALL:=find $(GENSRC) . ../MMTk -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 # etags in emacs 21.3.CVS-2003-09-23 does not support "--defines, nor  --globals".
 EFLAGS:=--members --declarations --language=java
@@ -100,8 +100,10 @@ endif
 
 TAGS.Makefiles: FORCE
 	$(RM) $@
-	find . -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
+	find . ../MMTk -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 
+## We don't have any conditional compilation directives in the 
+## MMTk source tree; no need to search it.
 .PHONY: conditionals
 # Note: explicit tab characters below.
 conditionals:
