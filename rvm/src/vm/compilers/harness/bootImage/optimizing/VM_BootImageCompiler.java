@@ -51,9 +51,6 @@ public class VM_BootImageCompiler {
 
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
 
-      //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-      GCTk_AllocAdvice.buildInit(options.ALLOC_ADVICE_FILE);
-      //-#endif
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
@@ -78,9 +75,8 @@ public class VM_BootImageCompiler {
     try {
       OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
       long start = 0;
-      if (VM.BuildForAdaptiveSystem) {
+      if (VM.BuildForAdaptiveSystem) 
 	start = System.currentTimeMillis();
-      }
       cm = OPT_Compiler.compile(cp);
       if (VM.BuildForAdaptiveSystem) {
 	long stop = System.currentTimeMillis();
