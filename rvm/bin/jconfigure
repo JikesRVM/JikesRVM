@@ -3163,7 +3163,7 @@ function emitBooterLinker () {
     echo ""
 
     if	   [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]] \
-	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION} ]]
+	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]]
     then
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
