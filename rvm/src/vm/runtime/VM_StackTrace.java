@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.PrintLN;
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
- * @modified Steven Augart
+ * @author Steven Augart
  */
 public class VM_StackTrace implements VM_Constants {
 
@@ -30,7 +30,8 @@ public class VM_StackTrace implements VM_Constants {
   /** How many frames are "too many" to display fully? Let's say that zero is
       undefined, any negative number means "no limit" and a positive number is
       a defined limit.   This replaces the former use of a constant.in the
-      overloaded print() methods below.
+      overloaded print() methods below.  Further, it's modifiable, as a user
+      preference. 
 
       Upped the former constant 50 to 100, per a discussion with Perry Cheng.
       --Steven Augart */
@@ -101,67 +102,119 @@ public class VM_StackTrace implements VM_Constants {
   }
   
 
-  /** The common prelude used by all. */
-  private static Method preludeMarker = getPreludeMarker();
+  /*  The code below is temporarily commented out; Steve Augart's work in
+      progress */
+//   /** The common prelude used by all programs that JikesRVM starts.  The big
+//    * idea here is to elide those last few methods. */
+//   private static VM_Method runMethodMarkingPrelude = getRunMethodMarkingPrelude();
   
-  /** The method "com.ibm.JikesRVM.MainThread.run()" (with an empty parameter
-     list) launches most of our programs.  That marks the prelude to calling
-     main().  Most users only care about main and beyond.  So we figure out
-     where the prelude is so that we can skip it.
+//   /** Get a marker for point on the stack below which we just Don't Care
+//       To Look.  Two approaches we could take:
 
-     So, what to do if we fail to find that method?  It could be legal, since
-     somebody might be experimenting with new JikesRVM features; perhaps using
-     it to launch web browser applets?  (Admittedly this seems unlikely.)
-     We'll just kindly return null. Better a verbose stack trace than
-     generating an InternalError(). */
-  private static Method getPreludeMarker() {
-    try {
-      Class c = Class.forName("com.ibm.JikesRVM.MainThread");
-      Method m = c.getDeclaredMethod("run", new Class[0]);
-      return m;
-    } catch (ClassNotFoundException cnf) {
-      return null;
-    } catch (NoSuchMethodException nsm) {
-      return null;
-    } catch (SecurityException se) {
-      return null;
-    }
-  }
+//       <ol>
+
+//       <li> <p>The method "com.ibm.JikesRVM.MainThread.run()" (with an empty
+//       parameter list) launches most of our programs.  That marks the prelude
+//       to calling main().  Most users only care about main and beyond.  So we
+//       figure out where the prelude is so that we can skip it.
+
+//       <p> So, what to do if we fail to find that method?  It could be legal,
+//       since somebody might be experimenting with new JikesRVM features;
+//       perhaps using it to launch web browser applets?  (Admittedly this seems
+//       unlikely.)  We'll just kindly return null. Better a verbose stack trace
+//       than generating an InternalError().  
+//       <p>
+//       We will assume that no user class calls
+//       com.ibm.JikesRVM.MainThread.run().  This is a pretty safe bet. 
+//       </li>
+
+//       <li>
+//       <p>Just look for the invocation of <tt>main</tt>.  As the Java Language
+//       Specification, Second Edition says (Section 12.1):
+//       <blockquote>
+//         A Java virtual machine starts execution by invoking the method
+//       <tt>main</tt> of some specified class, passing it a single argument,
+//       which is an array of strings.  In the examples in this specification,
+//       the first class is typically called <tt>Test</tt>.  [&hellip;] 
+//       <p>
+//       The manner in which the initial class is specified to the Java virtual
+//       machine is  beyond the scope of this specification [&hellip;]
+//       </blockquote>
+
+//       Section 12.1.4 says:
+
+//       <blockquote>
+//       The method <tt>main</tt> must be declared <tt>public</tt>,
+//       <tt>static</tt>, and <tt>void</tt>.  It must accept a single argument
+//       that is an array of strings.
+//       </blockquote>
+
+//       We do, though, have to consider the (perhaps unlikely) possibility of a
+//       recursive invocation of <tt>main</tt>.
+//       </li>
+//       </ol>
+//   */
+//   private static VM_Method getRunMethodMarkingPrelude() {
+//     /* We're implementing here the first method discussed above. */
+//     System.err.println("Calling getRunMethodMarkingPrelude()"); // DEBUG XXX
+//     try {
+//       Class c = Class.forName("com.ibm.JikesRVM.MainThread");
+//       Method m = c.getDeclaredMethod("run", new Class[0]);
+//       return m.getVM_Method();
+//     } catch (ClassNotFoundException cnf) {
+//       return null;
+//     } catch (NoSuchMethodException nsm) {
+//       return null;
+//     } catch (SecurityException se) {
+//       return null;
+//     }
+//   }
   
+
 
   public void print(PrintLN out, Throwable trigger) {
+    //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
+
     /** Where'd we find the trigger? */
     int foundTriggerAt = -1;	// -1 is a sentinel value; important in code
 				// below. 
     Class triggerClass = trigger.getClass();
     /* So, elide up to the triggeringMethod.  If we never find the
-     * triggeringMethod, then note an error and revert to the old way of doing
-     * things, by printing from the top of the stack down. */
+       triggeringMethod, then leave foundTriggerAt set to -1; the printing
+       code will handle that correctly.. */
     for (int i = 0; i < compiledMethods.length; ++i) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null)
 	continue;
       VM_Method m = cm.getMethod();
-      /** Declaring class of the method whose call is recorded in this stack
-       * frame.  */
+      /* Declaring class of the method whose call is recorded in this stack
+       * frame.  */ 
       VM_Class frameVM_Class = m.getDeclaringClass();
       if (frameVM_Class.getClassForType() == triggerClass) {
 	foundTriggerAt = i;
 	break;
       }
     }
-    /* foundTriggerAt should either be between 1 and compiledMethods.length
+    /* foundTriggerAt should either be between 0 and compiledMethods.length
        or it should be -1. */
-    /** Now we can start printing frames. */
-    for (int i = foundTriggerAt + 1; i < compiledMethods.length; ++i) {
+    /* Now we can start printing frames. */
+    // The last two stack frames are always:
+    // --> at com.ibm.JikesRVM.MainThread.run (MainThread.java:117)
+    // --> at com.ibm.JikesRVM.VM_Thread.startoff (VM_Thread.java:710)
+    // so we can skip them, right?  If this was not the right thing to do,
+    // please tell me. --Steve Augart
+    //    for (int i = foundTriggerAt + 1; i < compiledMethods.length; ++i) {
+    for (int i = foundTriggerAt + 1; i < compiledMethods.length - 2; ++i) {
       VM_CompiledMethod cm = compiledMethods[i];
 
       if (cm == null) {
 	out.println("\tat <invisible method>");
-      // Here, I just want to get the real Method for a VM_CompiledMethod CM
-      //} else if (cm.get-method-id() == preludeMarker) {
-	// Notice that if preludeMarker is null, the right thing happens here
-      //	return;			// gone far enough.
+	/* Commented out; Work in Progress: */
+//       } else if (cm.getMethod() == runMethodMarkingPrelude) {
+// 	/* cm.getMethod() yields a VM_Method. */
+// 	/* Notice that if runMethodMarkingPrelude is null, the right thing
+// 	   happens here. */
+//       	return;			// gone far enough.
       } else {
 	cm.printStackTrace(offsets.get(i), out);
       }
@@ -171,10 +224,14 @@ public class VM_StackTrace implements VM_Constants {
 
   /**
    * Print stack trace.
-   * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
-   * deal with inlining by the opt compiler in a sensible fashion.
+   * Delegate the actual printing of the stack trace to the
+   * VM_CompiledMethod; this means it will deal with inlining by the opt
+   * compiler in a sensible fashion. 
+   * <p>
+   * This one-argument version of print() may no longer be used; if so, it
+   * should be deprecated. --Steve Augart
    * 
-   * @param out        PrintLN (always a PrintContainer for now) to print on
+   * @param out PrintLN to print on.
    */
   public void print(com.ibm.JikesRVM.PrintLN out) {
     for (int i = 0; i < compiledMethods.length; ++i) {
