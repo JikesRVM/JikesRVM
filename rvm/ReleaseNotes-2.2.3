@@ -20,9 +20,9 @@ We fixed the 587 Javadoc warnings in the source code.
 
 Expansions of some of the material above:
 
-There were several enhancements to the Java preprocessor:
-
 + preprocessor documented, and more robust:
+
+There were several enhancements to the Java preprocessor:
 
 The preprocessor is now documented, both in the User's Guide and via a
 --help option.  It is also a lot more robust than it used to be.
@@ -32,6 +32,13 @@ lead to silent failures.  The preprocessor was generating incorrect
 exit status codes under some failure conditions; these are fixed.  All
 buffer overflows are now caught and fixed.  All GCC warnings fixed in
 the preprocessor.
+
+The preprocessor now notices incorrect syntax (extra trailing
+characters after a conditional) and correctly complains about it.
+
+The preprocessor now handles failures and fatal signals by
+conservatively deleting the output file in progress.  This keeps us
+from having half-updated files sitting around.
 
 + improvements in build process to make it stop on errors:
 
