@@ -182,6 +182,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   private VM_Thread getRunnableThread() {
     VM_Magic.pragmaInline();
 
+int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();
@@ -203,6 +204,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 		// yet gone off because its stack is still being used by dispatcher
 		// on the RVM	
 		i++;
+if (loopcheck++ >= 1000000) break;
 		if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
 	}
       } else {
