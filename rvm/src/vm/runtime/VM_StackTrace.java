@@ -225,7 +225,7 @@ public class VM_StackTrace implements VM_Constants {
    *
    *  @param depth How deep is our current stack of recursive printings?
    */
-  public void print(PrintLN out, Throwable trigger, Throwable Effect, int depth) {
+  public void print(PrintLN out, Throwable trigger, Throwable effect, int depth) {
     boolean printed = false;
     try {
       VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
