@@ -43,12 +43,12 @@ endif
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
 
-sanity: clean $(LIBS) $(TESTS)
+sanity: $(LIBS) $(TESTS)
 	$(MAKE) do-sanity-finish
 
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
 
-single:	clean $(ONE_TEST_LIB)
+single:	$(ONE_TEST_LIB)
 	export LIBPATH=$(BENCH_CLASS_CP); export LD_LIBRARY_PATH=$(BENCH_CLASS_CP); \
 		$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
 	$(MAKE) do-sanity-finish
