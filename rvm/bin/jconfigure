@@ -1522,9 +1522,11 @@ function emitImageLinker
     print "   print 'Ljava/util/ResourceBundle\$1;'         >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/Stack;'		            >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/WeakHashMap;'               >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/WeakHashMap\$1;'            >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/WeakHashMap\$WeakBucket;'   >> $PRIMORDIAL_CLASSES_STR"
     print "   print '[Ljava/util/WeakHashMap\$WeakBucket;'  >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/WeakHashMap\$WeakEntrySet\$1;' >> $PRIMORDIAL_CLASSES_STR"
    else 
     print "   print 'Ljava/util/AbstractList\$SimpleListIterator;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/ArrayList;'                        >> $PRIMORDIAL_CLASSES_STR"
@@ -1633,6 +1635,7 @@ function emitImageLinker
    print "   print 'Ljava/io/FileOutputStream;'     >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/PrintStream;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/RandomAccessFile;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/ObjectStreamField;'    >> $PRIMORDIAL_CLASSES_STR"
 
   if (( RVM_WITH_OSR )); then
     # on stack replacement
