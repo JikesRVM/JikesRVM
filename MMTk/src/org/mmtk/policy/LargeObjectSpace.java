@@ -325,4 +325,14 @@ public final class LargeObjectSpace extends Space
     throws InlinePragma {
     return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
+
+  /**
+   * Return the size of the super page
+   *
+   * @param first the Address of the first word in the superpage
+   * @return the size in bytes
+   */
+  public final Extent getSize(Address first) {
+    return ((FreeListPageResource) pr).getSize(first);
+  }
 }

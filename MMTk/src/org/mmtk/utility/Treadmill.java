@@ -3,7 +3,7 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.gcspy.TreadmillDriver;
+import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -104,7 +104,7 @@ public final class Treadmill
   /**
    * Gather data for GCSpy
    * @param event the gc event
-   * @param gcspyDriver the GCSpy space driver
+   * @param tmDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {

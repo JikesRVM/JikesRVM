@@ -54,7 +54,7 @@ import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 
-import org.mmtk.vm.gcspy.GCSpy;
+import org.mmtk.utility.gcspy.GCspy;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -1046,10 +1046,10 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   }
 
   /**
-   * Start the GCSpy server
+   * Start the GCspy server
    */
-  public static void startGCSpyServer() throws InterruptiblePragma {
-    GCSpy.startGCSpyServer();
+  public static void startGCspyServer() throws InterruptiblePragma {
+    GCspy.startGCspyServer();
   }
 
  /***********************************************************************

@@ -30,7 +30,7 @@ objects it contains, the length of a free-list and so on.
 
 In order to instrument a \jrvm{} collector with GCspy:
 \begin{enumerate}
-   \item Provide a \texttt{startGCSpyServer} method in that
+   \item Provide a \texttt{startGCspyServer} method in that
    collector's \texttt{Plan.java}.  That method initialises the GCspy server with the port on which to communicate and a list of event names, instantiates drivers for each space, and then starts the server.
    \item  Gather data from each space for the tiles of each stream (e.g.\ before and after each collection).
    \item  Provide a driver for each space. 
@@ -72,7 +72,7 @@ So, GCspy will only work on a system where you've build Jikes RVM with
 The discussion below assumes that you will place all the
 GCspy code and required libraries in \rvmRoot.  If you wish to change
 this, you'll need to modify these instructions and the {\tt
-  \rvmRoot/rvm/config/build/gcspy/GCSpy} config file appropriately. 
+  \rvmRoot/rvm/config/build/gcspy/GCspy} config file appropriately. 
 
 \paragraph{Downloads}
 
@@ -90,7 +90,7 @@ The C infrastructure provides a GCspy server to \jrvm{}.
     ``Linux CLASSPATH Install''.   You will pull down a file named
     \texttt{jai-1\_1\_2-lib-linux-i586.tar.gz} 
 
-   \item  Unpack the GCSpy and JAI sources into \rvmRoot. 
+   \item  Unpack the GCspy and JAI sources into \rvmRoot. 
 
 \begin{verbatim}
     $ cd $RVM_ROOT
@@ -147,9 +147,9 @@ You should then have directories named
 \end{verbatim}
 
   \item First, build an image, using the
-    \texttt{BaseBaseSemiSpaceGCSpy} configuration: 
+    \texttt{BaseBaseSemiSpaceGCspy} configuration: 
 \begin{verbatim}
-    $ jconfigure BaseBaseSemiSpaceGCSpy
+    $ jconfigure BaseBaseSemiSpaceGCspy
     $ cd $RVM_BUILD
     $ ./jbuild
 \end{verbatim}
@@ -158,13 +158,13 @@ You should then have directories named
 \paragraph{Running \jrvm{} with GCspy}
 
 \begin{itemize}
-   \item  Next, start \jrvm{}, first adding the GCSpy server library to your {\tt LD\_LIBRARY\_PATH}:
+   \item  Next, start \jrvm{}, first adding the GCspy server library to your {\tt LD\_LIBRARY\_PATH}:
 \begin{verbatim}
     $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GCSPY_ROOT/src/c/lib
     $ rvm -Xms20m -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true  &
 \end{verbatim}
 
-   \item Then, start the GCSpy visualiser:
+   \item Then, start the GCspy visualiser:
 
 \begin{verbatim}
     $ cd $GCSPY_CLASSES
@@ -181,7 +181,7 @@ You should then have directories named
 \xname{gcspy_arguments}
 \subsection{Command line arguments}
 
-Additional GCSpy-related arguments to the \texttt{rvm} command:
+Additional GCspy-related arguments to the \texttt{rvm} command:
 
 \begin{itemize}
 

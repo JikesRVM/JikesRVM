@@ -900,6 +900,52 @@ public abstract class BasePlan
 
   /****************************************************************************
    *
+   * GCspy
+   */
+
+  /**
+   * Start the GCSpy server
+   *
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   */
+  protected static void startGCSpyServer(int port, boolean wait) {}
+
+  /**
+   * Deal with root locations
+   */
+  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
+
+  /**
+   * Before thread-local release
+   */
+  protected void gcspyPreRelease() {}
+
+  /**
+   * After thread-local release
+   */
+  protected void gcspyPostRelease() {}  
+
+  /**
+   * Called by GCspy drivers (this version is either overridden or unused)
+   * @return a unique space ID
+   */
+  public static int getNextServerSpaceId() { 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return 0; 
+  }
+
+  /**
+   * Start the server and wait if necessary
+   * 
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCspy client (e.g. visualiser)
+   */
+  public static void startGCspyServer(int port, boolean wait)
+    throws InterruptiblePragma {}
+
+  /****************************************************************************
+   *
    * Miscellaneous
    */
 
@@ -912,44 +958,4 @@ public abstract class BasePlan
     return log;
   }
 
-  /**
-   * Start the GCSpy server
-   *
-   * @param wait Whether to wait
-   * @param port The port to talk to the GCSpy client (e.g. visualiser)
-   */
-  protected static void startGCSpyServer(int port, boolean wait) {}
-
-  /**
-   * Prepare GCSpy for a collection
-   * Order of operations is guaranteed by StopTheWorld plan
-   *	1. globalPrepare()
-   *	2. threadLocalPrepare()
-   *	3. gcspyPrepare()
-   *	4. gcspyPreRelease()
-   *	5. threadLocalRelease()
-   *	6. gcspyRelease()
-   *	7. globalRelease()
-   *
-   * Typically, zero gcspy's buffers
-   */
-  protected void gcspyPrepare() {}
-
-  /**
-   * Deal with root locations
-   *
-   */
-  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
-
-  /**
-   * Before thread-local release
-   *
-   */
-  protected void gcspyPreRelease() {}
-
-  /**
-   * After thread-local release
-   *
-   */
-  protected void gcspyPostRelease() {}  
 }

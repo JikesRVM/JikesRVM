@@ -136,6 +136,59 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
+   * Perform post-allocation actions.  For many allocators none are
+   * required.
+   *
+   * @param object The newly allocated object
+   * @param typeRef The type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param allocator The allocator number to be used for this allocation
+   */
+  public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
+                              int bytes, int allocator)
+    throws InlinePragma {
+    switch (allocator) {
+    case  ALLOC_DEFAULT: return;
+    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); return;
+    case      ALLOC_LOS: loSpace.initializeHeader(object); return;
+    default:
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
+    }
+  }
+
+  /**
+   * Allocate space for copying an object (this method <i>does not</i>
+   * copy the object, it only allocates space)
+   *
+   * @param original A reference to the original object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
+   * @return The address of the first byte of the allocated region
+   */
+  public final Address allocCopy(ObjectReference original, int bytes, 
+                                    int align, int offset) 
+    throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+
+    Address result = ss.alloc(bytes, align, offset);
+    return result;
+  }
+
+  /**  
+   * Perform any post-copy actions.
+   *
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   */
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+                             int bytes)
+  throws InlinePragma {
+    CopySpace.clearGCBits(object);
+  }
+
+  /**
    * Return the space into which an allocator is allocating.  This
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces

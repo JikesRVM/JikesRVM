@@ -3555,7 +3555,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, VM_Address start, V
 #else
   sprintf(name, "   [%08x-%08x)", start, end); 
 #endif
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
   gcspy_driverSetTileName(driver, tile, name);
 }
@@ -3586,7 +3586,7 @@ gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
 
 extern "C" void
 gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3595,7 +3595,7 @@ gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
 
 extern "C" void
 gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3604,7 +3604,7 @@ gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
 
 extern "C" void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3623,7 +3623,7 @@ gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
 
 extern "C" void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE) {
+  if (GCSPY_TRACE > 1) {
     fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
     stream_count++;
   }
@@ -3673,9 +3673,9 @@ gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
   int res = gcspy_mainServerIsConnected(server, event);
   if (GCSPY_TRACE)
     if (res)
-      fprintf(SysTraceFile, "connected");
+      fprintf(SysTraceFile, "connected\n");
     else
-      fprintf(SysTraceFile, "not connected");
+      fprintf(SysTraceFile, "not connected\n");
   return res;
 }
 
@@ -3761,19 +3761,19 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
 
 extern "C" void
 gcspyFormatSize (char *buffer, int size) {
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
   strcpy(buffer, gcspy_formatSize(size));
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "buffer=%s\n", buffer);
 }
 
 extern "C" int
 gcspySprintf(char *str, const char *format, char *arg) {
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
   int res = sprintf(str, format, arg);
-  if (GCSPY_TRACE)
+  if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
   return res;
 }

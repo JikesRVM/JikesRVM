@@ -58,7 +58,7 @@ class MainThread extends Thread {
     if (dbg) VM.sysWriteln("MainThread.run() starting ");
       //-#if RVM_WITH_GCSPY
       // start the GCSpy interpreter server
-      MM_Interface.startGCSpyServer();
+      MM_Interface.startGCspyServer();
       //-#endif
 
     // Set up application class loader

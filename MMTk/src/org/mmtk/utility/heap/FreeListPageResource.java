@@ -190,4 +190,21 @@ public final class FreeListPageResource extends PageResource
   public Address getHighWater() {
     return start.add(Extent.fromInt(highWaterMark<<LOG_BYTES_IN_PAGE));
   }
+
+
+  /**
+   * Return the size of the super page
+   *
+   * @param first the Address of the first word in the superpage
+   * @return the size in bytes
+   */
+  public final Extent getSize(Address first)
+    throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) 
+      Assert._assert(Conversions.isPageAligned(first));
+
+    int pageOffset = Conversions.bytesToPages(first.diff(start));
+    int pages = freeList.size(pageOffset);
+    return Conversions.pagesToBytes(pages);
+  }
 }

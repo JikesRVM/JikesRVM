@@ -1,15 +1,12 @@
-/**
- ** ServerSpace.java
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
 package org.mmtk.vm.gcspy;
 
 import org.mmtk.utility.Log;
-
+import org.mmtk.utility.gcspy.AbstractTile;
 import com.ibm.JikesRVM.VM_SysCall;
 
 import org.vmmagic.unboxed.*;
@@ -21,19 +18,26 @@ import org.vmmagic.pragma.*;
  * This class implements the GCspy Space abstraction.
  * Here, it largely to forward calls to the gcspy C library.
  *
+ * $Id$
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class ServerSpace 
-  implements  Uninterruptible {
-  public final static String Id = "$Id$";
-  
+public class ServerSpace implements  Uninterruptible {
+  /****************************************************************************
+   *
+   * Class variables
+   */
   private static final String DEFAULT_UNUSED_STRING = "NOT USED";	// The "unused" string
-
-  private final Address driver_;               	// the c driver, gcspy_gc_driver_t *driver;
-  private final int id_;				// the space's ID
   private static final boolean DEBUG_ = false;
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  private final Address driver_;  // the c driver, gcspy_gc_driver_t *driver;
+  private final int id_;	  // the space's ID
   
 
   /**
@@ -56,7 +60,6 @@ public class ServerSpace
 	      int tileNum,
 	      String unused, 
 	      boolean mainSpace    ) {
-    
     driver_ = VM_SysCall.gcspyMainServerAddDriver(ServerInterpreter.getServerAddress());
     this.id_ = id;
     
@@ -115,7 +118,10 @@ public class ServerSpace
     VM_SysCall.gcspyDriverResize(driver_, size);
   }
 
-  // Interface to the GCspy C library -----------------------------------------------
+  /****************************************************************************
+   *
+   * Interface to the GCspy C library
+   */
   
   /** 
    * Start a transmission
@@ -234,5 +240,4 @@ public class ServerSpace
     if (DEBUG_)
       Log.write("endComm\n");
   }
-    
 }

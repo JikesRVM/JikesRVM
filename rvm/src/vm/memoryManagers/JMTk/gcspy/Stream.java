@@ -1,37 +1,43 @@
-/**
- ** GCSpyStream
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
 package org.mmtk.vm.gcspy;
 
+import org.mmtk.utility.gcspy.Color;
 import com.ibm.JikesRVM.VM_SysCall;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-
 /**
  * Stream
  *
  * Set up a GCspy Stream, by forwarding calls to gcspy C library
- *VM_SysCall
+ * VM_SysCall
+ *
+ * $Id$
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
 
-public class Stream 
-  implements  Uninterruptible {
-  public final static String Id = "$Id$";
-    
+public class Stream implements  Uninterruptible {
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private Address stream_;	// address of c stream, gcspy_gc_stream_t *stream
   private int min;
   private int max;
   
+  /****************************************************************************
+   *
+   * Initialization
+   */
+
   /**
    * Construct a new GCspy stream
    * @param driver	   The Space driver that owns this Stream
@@ -51,7 +57,7 @@ public class Stream
    * @param maxStreamIndex The maximum index for the stream. TODO Is this used?
    * @param colour 	   The default colour for tiles of this stream
    */
-  public Stream (ServerSpace driver,
+  public Stream(ServerSpace driver,
           int id,	
 	  int dataType,
 	  String name,
@@ -65,7 +71,6 @@ public class Stream
 	  int paintStyle,
 	  int maxStreamIndex,
 	  Color colour) {
-
     stream_ = driver.addStream(id);
     min = minValue;
     max = maxValue;

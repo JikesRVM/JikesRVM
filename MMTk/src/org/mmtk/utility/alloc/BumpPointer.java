@@ -15,7 +15,6 @@ import org.mmtk.vm.ObjectModel;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import org.mmtk.vm.gcspy.AbstractDriver;
 
 /**
  * This class implements a bump pointer allocator that allows linearly 
@@ -212,14 +211,10 @@ public class BumpPointer extends Allocator
     Log.write(" limit = "); Log.writeln(limit);
   }
 
-  /**
-   * Gather data for GCSpy
-   * @param event The GCSpy event
-   * @param driver the GCSpy driver for this space
-   */
-  public void gcspyGatherData(int event, AbstractDriver driver) {
-    //    vmResource.gcspyGatherData(event, driver);
-  }
+  /** @return the current cursor value */
+  public Address getCursor() { return cursor; }
+  /** @return the space associated with this bump pointer */
+  public Space getSpace() { return space; }
 
   /****************************************************************************
    *

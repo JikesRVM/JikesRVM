@@ -1,35 +1,31 @@
-/**
- ** ServerInterpreter
- **
- ** Generic GCspy Server Interpreter
- **
- ** (C) Copyright Richard Jones, 2002
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
+/*
+ * (C) Copyright Richard Jones, 2002
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
 package org.mmtk.vm.gcspy;
 
 import org.mmtk.utility.Log;
-
 import com.ibm.JikesRVM.VM_SysCall;
+import com.ibm.JikesRVM.VM_JavaHeaderConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
+ * Generic GCspy Server Interpreter
+ *
  * This class implements the GCspy server. 
  * Mostly it forwards calls to the C gcspy library.
+ *
+ * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
 public class ServerInterpreter 
-  implements Uninterruptible {
-  public final static String Id = "$Id$";
-  
-//-#if RVM_WITH_GCSPY
+  implements Uninterruptible, VM_JavaHeaderConstants {
   private static final int MAX_LEN = 64 * 1024;	// Buffer size
   private static Address server_;		// address of the c server, gcspy_main_server_t server
 
@@ -144,17 +140,12 @@ public class ServerInterpreter
   public static void serverSafepoint (int event) {
     VM_SysCall.gcspyMainServerSafepoint(server_, event);
   }
-  
-//-#else
-    public static void init (String name,
-                           int port,
-                           String[] eventNames,
-                           boolean verbose,
-                           String generalInfo) {}
-  public static void startServer(boolean wait) {}
-  public static boolean shouldTransmit(int event) { return false; }
-  public static void startCompensationTimer() {}
-  public static void stopCompensationTimer() {}
-  public static void serverSafepoint (int event) {}
-//-#endif
+
+  /**
+   * Discover the smallest header size
+   * @ return the size in bytes
+   */
+  public static int computeHeaderSize() {
+    return JAVA_HEADER_BYTES+OTHER_HEADER_BYTES;
+  }
 }

@@ -1,13 +1,8 @@
-/**
- ** Util
- **
- ** GCspy utilities
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
 package org.mmtk.vm.gcspy;
 
 import org.mmtk.vm.Assert;
@@ -16,22 +11,21 @@ import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_SysCall;
-
 import com.ibm.JikesRVM.VM_Synchronization;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
  * This class provides generally useful methods.
  *
+ * $Id$
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Util 
-  implements Uninterruptible, Constants {
-  public final static String Id = "$Id$";
-  
+public class Util implements Uninterruptible, Constants {
   private static final boolean DEBUG_ = false;
   private static final int LOG_BYTES_IN_WORD = LOG_BYTES_IN_INT;
   private static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
@@ -67,8 +61,8 @@ public class Util
    * @param end The end of the range
    */
   public static final void dumpRange(Address start, Address end) {
-    Log.write("[", start);
-    Log.write(",", end);
+    Log.write("["); Log.write(start);
+    Log.write(","); Log.write(end);
     Log.write(')');
   }
 
@@ -162,6 +156,24 @@ public class Util
   }
 
   
+  /**
+   * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
+   * 
+   * @param format A format string
+   * @param bufsize The size of a buffer large enough to hold the formatted result
+   * @param size The size in bytes
+   */
+  public static final Address formatSize(String format, int bufsize, int size) {
+    //	  - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
+    Address tmp = Util.malloc(bufsize);
+    Address formattedSize = Util.malloc(bufsize);
+    Address currentSize = Util.getBytes(format); 
+    formatSize(formattedSize, size);
+    sprintf(tmp, currentSize, formattedSize);
+    return tmp;
+  }
+
+  
 
   /**
    * Place a string representation of a long in an array of bytes
@@ -241,6 +253,5 @@ public class Util
   public static final int sprintf(Address str, Address format, Address value) {
     return VM_SysCall.gcspySprintf(str, format, value);
   }
-
 }
 

@@ -7,7 +7,7 @@ import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.utility.gcspy.TreadmillDriver;
+import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -197,13 +197,13 @@ final class DoublyLinkedList
 
   /**
    * Gather data for GCSpy
-   * @param gcspyDriver the GCSpy space driver
+   * @param driver the GCSpy space driver
    */
-  void gcspyGatherData(TreadmillDriver tmDriver) {
+  void gcspyGatherData(AbstractDriver driver) {
     // GCSpy doesn't need a lock (in its stop the world config)
     Address cur = head;
     while (!cur.isZero()) {
-      tmDriver.traceObject(cur);
+      driver.traceObject(cur);
       cur = cur.loadAddress(NEXT_OFFSET);
     }
   }

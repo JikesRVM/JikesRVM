@@ -1,3 +1,0 @@
-. $1/gc/SemiSpaceGCSpy
-. $1/gcspy/GCSpy
-. $1/compilers/FullAdaptive

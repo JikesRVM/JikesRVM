@@ -7,9 +7,9 @@ package org.mmtk.policy;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
+import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.utility.gcspy.TreadmillDriver;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -159,11 +159,11 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   /**
    * Gather data for GCSpy
    * @param event the gc event
-   * @param gcspyDriver the GCSpy space driver
+   * @param losDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver tmDriver, 
+  public void gcspyGatherData(int event, TreadmillDriver losDriver, 
 			      boolean tospace) {
-    treadmill.gcspyGatherData(event, tmDriver, tospace);
+    treadmill.gcspyGatherData(event, losDriver, tospace);
   }
 }

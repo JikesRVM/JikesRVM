@@ -1,16 +1,9 @@
-/**
- ** StreamConstants
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **
- ** @author Richard Jones
- **/
-
-//$Id$
-
-package org.mmtk.vm.gcspy;
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
+package org.mmtk.utility.gcspy;
 
 /**
  * This interface provides constants used by the GCspy framweork.
@@ -39,7 +32,15 @@ package org.mmtk.vm.gcspy;
       <tr><td>SHORT_TYPE</td> <td>stream of shorts</td>
       <tr><td>INT_TYPE</td>   <td>stream of ints</td>
    </table>
+ * StreamConstants
+ *
+ * $Id$
+ *
+ * @author Richard Jones
+ * @version $Revision$
+ * @date $Date$
  */
+
 public interface StreamConstants {
 
   public static final int NAME_LEN                     = 40;

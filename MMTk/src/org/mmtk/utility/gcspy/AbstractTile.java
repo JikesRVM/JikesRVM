@@ -1,12 +1,9 @@
-/**
- ** AbstractTile.java
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
-package org.mmtk.vm.gcspy;
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
+package org.mmtk.utility.gcspy;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -15,22 +12,33 @@ import org.vmmagic.pragma.*;
  * This abstract class is the super-class for all tiles. In particular, it
  * provides the control info for each tile.
  *
+ * $Id$
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public abstract class AbstractTile 
-  implements  Uninterruptible {
-  public final static String Id = "$Id$";
+public abstract class AbstractTile implements  Uninterruptible {
+
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
   // Controls used for tile presentation
-  public static final byte CONTROL_USED            =  1;	// used tile
-  public static final byte CONTROL_BACKGROUND      =  2;	// background tile
-  public static final byte CONTROL_UNUSED          =  4;	// unused tile
-  public static final byte CONTROL_SEPARATOR       =  8;	// separator
+  public static final byte CONTROL_USED            =  1; // used tile
+  public static final byte CONTROL_BACKGROUND      =  2; // background tile
+  public static final byte CONTROL_UNUSED          =  4; // unused tile
+  public static final byte CONTROL_SEPARATOR       =  8; // separator
   public static final byte CONTROL_LINK            = 16;
 
-  private byte control_;		// The value of the control for this tile
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  
+  private byte control_; // The value of the control for this tile
+
 
   /**
    * Clear a tile
@@ -129,7 +137,8 @@ public abstract class AbstractTile
    * @param start The start index of the region
    * @param len The number of tiles in the region
    */
-  public static void controlValues (AbstractTile[] tiles, byte tag, int start, int len) {
+  public static void controlValues (AbstractTile[] tiles, byte tag, int start,
+				    int len) {
     for (int i = start; i < (start+len); ++i) {
       if (controlIsBackground(tag) ||
    	  controlIsUnused(tag)) {
@@ -140,4 +149,11 @@ public abstract class AbstractTile
     }
   }
 
+  /**
+   * Add space value to a tile
+   * This is typically used to increment a tile's usedSpace field
+   * @param sid a stream id
+   * @param size the size to add
+   */
+  public void addSpace(int sid, int size) { }
 }

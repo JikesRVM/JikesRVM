@@ -1,16 +1,12 @@
-/**
- ** Subspace
- **
- ** An abstraction of a subspace of a Space.
- **
- ** (C) Copyright Richard Jones, 2002
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
-package org.mmtk.vm.gcspy;
+/*
+ * (C) Copyright Richard Jones, 2002
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
+package org.mmtk.utility.gcspy;
 
 import org.mmtk.utility.Log;
+import org.mmtk.vm.gcspy.Util;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -18,17 +14,20 @@ import org.vmmagic.pragma.*;
 
 
 /**
- * This class is an abstraction of a subspace of a Space.
- * For example, a semispace collector might choose to model the heap as a single
- * Space, but within that Space it can model each semispace by a Subspace.
+ * An abstraction of a subspace of a Space.
+ *
+ * This class is an abstraction of a subspace of a Space.  For
+ * example, a semispace collector might choose to model the heap as a
+ * single Space, but within that Space it can model each semispace by
+ * a Subspace.
+ *
+ * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Subspace 
-  implements  Uninterruptible {
-  public final static String Id = "$Id$";
+public class Subspace implements  Uninterruptible {
 
   private Address start_;	// The Subspace spans [start_, end_)
   private Address end_;
@@ -162,39 +161,34 @@ public class Subspace
 
   /**
    * Start of subspace
-   *
    * @return The start of this subspace
    */
   public Address getStart() { return start_; }
 
   /**
    * End of subspace
-   *
    * @return The address of the end of this subspace
    */
   public Address getEnd() { return end_; }
 
   /**
    * First index of subspace
-   *
-   * The firstIndex of this subspace
+   * @return the firstIndex of this subspace
    */
   public int getFirstIndex() { return firstIndex_; }
 
   /**
    * Blocksize of subspace
-   *
    * @return The size of a tile
    */
   public int getBlockSize() { return blockSize_; }
 
   /**
    * Number of tiles in this subspace
-   *
    * @return The number of tiles in this subspace
    */
   public int getBlockNum() { return blockNum_; }
-  
+
   /**
    * Space remaining in a block after this address
    *

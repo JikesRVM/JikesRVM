@@ -153,7 +153,10 @@ public final class MMType implements Constants, Uninterruptible {
   boolean isDelegated() { return isDelegated; }
 
   /** @return True if this type is an array of references */
-  boolean isReferenceArray() { return isReferenceArray; }
+  // FIXME made public so that GCspy drivers can determine whether
+  // object is a reference array or not. Actually, we'like to do better
+  // and distinguish arrays of primitives as well.
+  public boolean isReferenceArray() { return isReferenceArray; }
 
   /** @return True if this type is known to be inherently acyclic */
   public boolean isAcyclic() { return isAcyclic; }

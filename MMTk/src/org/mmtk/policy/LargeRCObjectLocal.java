@@ -6,10 +6,10 @@ package org.mmtk.policy;
 
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
+import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.utility.gcspy.TreadmillDriver;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

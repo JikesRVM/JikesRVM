@@ -1,53 +1,44 @@
-/**
- ** SemiSpaceDriver
- **
- ** GCspy driver for the JMTk SemiSpace collector
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
+/*
+ * (C) Copyright Richard Jones, 2004
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
+package org.mmtk.utility.gcspy.drivers;
 
-package org.mmtk.utility.gcspy;
-
+import org.mmtk.plan.SemiSpaceGCspy;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.gcspy.AbstractTile;
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.utility.gcspy.LinearScan;
+import org.mmtk.utility.gcspy.StreamConstants;
+import org.mmtk.utility.gcspy.Subspace;
+import org.mmtk.utility.Log;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ServerSpace;
+import org.mmtk.vm.gcspy.Stream;
+import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.gcspy.AbstractDriver;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-
-//-#if RVM_WITH_GCSPY
-import com.ibm.JikesRVM.VM_Magic;
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.gcspy.Color;
-import org.mmtk.vm.gcspy.AbstractTile;
-import org.mmtk.vm.gcspy.Subspace;
-import org.mmtk.vm.gcspy.ServerInterpreter;
-import org.mmtk.vm.gcspy.ServerSpace;
-import org.mmtk.vm.gcspy.Stream;
-import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.Assert;
-
-import com.ibm.JikesRVM.classloader.VM_Type;  // FIXME => MMType !
-
-
-
-//-#endif
-
-
 /**
- * This class implements a simple driver for the JMTk SemiSpace copying collector.
+ * GCspy driver for the MMTk ContigousSpace
+ *
+ * This class implements a simple driver for the MMTk SemiSpace
+ * copying collector.
+ *
+ * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class SemiSpaceDriver extends AbstractDriver
+public class ContiguousSpaceDriver extends AbstractDriver
   implements Uninterruptible {
-  public final static String Id = "$Id$";
 
-//-#if RVM_WITH_GCSPY
   private static final int SS_SCALAR_USED_SPACE_STREAM = 0;	// stream IDs
   private static final int SS_ARRAY_USED_SPACE_STREAM = 1;
   private static final int SS_SCALAR_OBJECTS_STREAM   = 2;
@@ -58,8 +49,7 @@ public class SemiSpaceDriver extends AbstractDriver
    *
    * We only count the number of objects in each tile and the space they use
    */
-  class Tile extends AbstractTile 
-    implements  Uninterruptible {
+  class Tile extends AbstractTile implements  Uninterruptible {
    
     short scalarObjects;
     int scalarUsedSpace;
@@ -77,11 +67,24 @@ public class SemiSpaceDriver extends AbstractDriver
      * Zero a tile's statistics
      */
     public void zero() {
-      super.zero();
       scalarObjects = 0;
       scalarUsedSpace = 0;
       arrayObjects = 0;
       arrayUsedSpace = 0;
+    }
+    
+    /**
+     * add some used space
+     */
+    public void addSpace(int id, int size) {
+      if (Assert.VERIFY_ASSERTIONS) 
+        Assert._assert(id == SS_SCALAR_USED_SPACE_STREAM ||
+                       id == SS_ARRAY_USED_SPACE_STREAM,
+	  	       "Bad tag given to addSpace");
+      if (id == SS_SCALAR_USED_SPACE_STREAM) 
+        scalarUsedSpace += size;
+      else if (id == SS_ARRAY_USED_SPACE_STREAM) 
+        arrayUsedSpace += size;
     }
   }
 
@@ -91,9 +94,13 @@ public class SemiSpaceDriver extends AbstractDriver
   Stream scalarObjectsStream;
   Stream arrayObjectsStream;
 
+
+  // Debugging
+  Address lastAddress = Address.zero();
+  int lastSize = 0;
+
   // The semispaces
-  private Subspace[] subspace = new Subspace[2];	// 2 semispaces
-  private final int numSubspaces = 2;  			// number of semispaces
+  private Subspace subspace;
 
   // Overall statistics for a semispace
   private int totalScalarObjects = 0;		// total number of objects allocated
@@ -103,48 +110,48 @@ public class SemiSpaceDriver extends AbstractDriver
  
   // The tiles
   private Tile[] tiles;				// the space's tiles
-  private static final int MIDDLE_TILES = 0;	// some tiles between the semispaces
+
+  // A LinearScan 
+  private final LinearScan scanner;
    
 
   /**
    * Create a new driver for this collector
    * 
    * @param name The name of this driver
+   * @param sp The space
    * @param blocksize The tile size
-   * @param start0 The address of the start of semispace0
-   * @param end0 The address of the end of semispace0
-   * @param start1 The address of the start of semispace1
-   * @param end1 The address of the end of semispace1
-   * @param size The size in blocks of the space
    * @param mainSpace Is this the main space?
    */
-  public SemiSpaceDriver 
+  public ContiguousSpaceDriver 
                     (String name,
+		     Space sp,
 		     int blockSize,
-		     Address start0, 
-		     Address end0,   
-		     Address start1,
-		     Address end1,
-		     int size,
 		     boolean mainSpace ) {
     
-    // Set up drivers for each Space (in this case only 1)
-  
     // Set up array of tiles for max possible use
     this.blockSize = blockSize;
-    int tileNum0 = countTileNum(start0, end0, blockSize);
-    int tileNum1 = countTileNum(start1, end1, blockSize);
-    int tileNum = tileNum0 + tileNum1;      	 // tile num for the two spaces...
-    int maxTileNum = tileNum + MIDDLE_TILES; 	// ...plus the middle tiles
+    Address start = sp.getStart();
+    Extent extent = sp.getExtent();
+    int maxTileNum = countTileNum(extent, blockSize);
+
+    /*
+    Log.write("ContiguousSpaceDriver for ");
+    Log.write(name);
+    Log.write(", blocksize=", blockSize);
+    Log.write(", start=", start); Log.write(", extent=", extent);
+    Log.writeln(", maxTileNum=", maxTileNum);
+    */
+
     tiles = new Tile[maxTileNum];
     for(int i = 0; i < maxTileNum; i++)
       tiles[i] = new Tile();
 
-    // Set up two semispaces. For now, these are of zero length: the collector 
+    // Set up semispace. For now,  of zero length: the collector 
     // must call resize() before gathering data
-    subspace[0] = new Subspace(start0, start0, 0, blockSize, 0);
-    subspace[1] = new Subspace(start1, start1, tileNum0 + MIDDLE_TILES, blockSize, 0);
-    allTileNum = MIDDLE_TILES;
+    //TODO do we need subspaces?
+    subspace = new Subspace(start, start, 0, blockSize, 0);
+    allTileNum = 0;
 
     // Set the block label
     String tmp = (blockSize < 1024) ?
@@ -154,15 +161,15 @@ public class SemiSpaceDriver extends AbstractDriver
     
     // Create a single GCspy Space
     space = new ServerSpace(
-		    Plan.getNextServerSpaceId(), /* space id */
+		    SemiSpaceGCspy.getNextServerSpaceId(), /* space id */
 		    name,                       /* server name */
-		    "JMTk Semispace GC", 	/* driver (space) name */
+		    "MMTk ContiguousSpace GC", 	/* driver (space) name */
 		    "Block ",                   /* space title */
 		    tmp,                   	/* block info */
-		    size,			/* number of tiles */
+		    maxTileNum,			/* number of tiles */
 		    "UNUSED",                   /* the label for unused blocks */
 		    mainSpace                   /* main space */ );
-    setTilenames(0);
+    setTilenames(subspace, 0);
    
 
     // Initialise the Space's 4 Streams
@@ -176,7 +183,7 @@ public class SemiSpaceDriver extends AbstractDriver
 		     blockSize,					/* max. data value */
 		     0, 					/* zero value */
 		     0,						/* default value */
-		    "Space used by scalars: ", 			/* value prefix */
+		    "Space used by scalars and primitive arrays: ", 	/* value prefix */
 		    " bytes",					/* value suffix */
 		     StreamConstants.PRESENTATION_PERCENT,	/* presentation style */
 		     StreamConstants.PAINT_STYLE_ZERO, 		/* paint style */
@@ -193,7 +200,7 @@ public class SemiSpaceDriver extends AbstractDriver
 		     blockSize,					/* max. data value */
 		     0, 					/* zero value */
 		     0,						/* default value */
-		    "Space used by arrays: ", 			/* value prefix */
+		    "Space used by reference arrays: ",		/* value prefix */
 		    " bytes",					/* value suffix */
 		     StreamConstants.PRESENTATION_PERCENT,	/* presentation style */
 		     StreamConstants.PAINT_STYLE_ZERO, 		/* paint style */
@@ -206,10 +213,11 @@ public class SemiSpaceDriver extends AbstractDriver
 		     StreamConstants.SHORT_TYPE,
 		     "Scalar Objects stream",
 		     0, 
-		     jikesObjectsPerBlock(blockSize),
+		     // Say, max value = 50% of max possible
+		     maxObjectsPerBlock(blockSize)/2,
 		     0, 
 		     0,
-		     "No. of scalar objects = ", 
+		     "No. of scalar and primitive array objects = ", 
 		     " objects",
 		     StreamConstants.PRESENTATION_PLUS,
 		     StreamConstants.PAINT_STYLE_ZERO, 
@@ -222,97 +230,81 @@ public class SemiSpaceDriver extends AbstractDriver
 		     StreamConstants.SHORT_TYPE,
 		     "Array Objects stream",
 		     0, 
-		     jikesObjectsPerBlock(blockSize),
+		     // Say, typical ref array size = 4 * typical scalar size?
+		     maxObjectsPerBlock(blockSize)/8,
 		     0, 
 		     0,
-		     "No. of array objects = ", 
+		     "No. of reference array objects = ", 
 		     " objects",
 		     StreamConstants.PRESENTATION_PLUS,
 		     StreamConstants.PAINT_STYLE_ZERO, 
 		     0,
 		     Color.Cyan);
 
+    space.resize(0);
     // Initialise the statistics
     zero();
+
+    scanner = new LinearScan(this);
   }
 		      
   /**
-   * Setup tile names
-   *
-   * @param numTiles the number of tiles to name
+   * BumpPointer.linearScan needs a LinearScan object, which we provide here.
+   * @return the scanner for this driver
    */
-  private void setTilenames(int numTiles) {
-    int tile = 0;
-    Address start0 = subspace[0].getStart();
-    int first0 = subspace[0].getFirstIndex();
-    int bs0 = subspace[0].getBlockSize();
-    Address start1 = subspace[1].getStart();
-    int first1 = subspace[1].getFirstIndex();
-    int bs1 = subspace[1].getBlockSize();
-
-    for (int i = 0; i < numTiles; ++i) {
-      if (subspace[0].indexInRange(i)) 
-        space.setTilename(i, start0.add((i - first0) * bs0), 
-	                     start0.add((i + 1 - first0) * bs0));
-      else if (subspace[1].indexInRange(i)) 
-        space.setTilename(i, start1.add((i - first1) * bs1), 
-	                     start1.add((i + 1 - first1) * bs1));
-    }
-
-  }
+   public LinearScan getScanner() { return scanner; }
    
-   
+
   /**
    * Zero tile stats
    */
   public void zero () {
     for (int i = 0; i < tiles.length; i++) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[i] != null);
       tiles[i].zero();
     }
     totalScalarObjects = 0;
     totalScalarUsedSpace = 0;
     totalArrayObjects = 0;
     totalArrayUsedSpace = 0;
+
+    if (Assert.VERIFY_ASSERTIONS) {
+      lastAddress = Address.zero();
+      lastSize = 0;
+    } 
   }
   
   /**
    * Set the current range of a semispace
    *
-   * @param semi the semispace
    * @param start the start of the lower semispace
    * @param end the end of the lower semispace
    */
-  public void setRange(int semi, Address start, Address end) {
-    int current = subspace[semi].getBlockNum();
-    int other = subspace[1-semi].getBlockNum();
-    int required = countTileNum(start, end, subspace[semi].getBlockSize());
+  public void setRange(Address start, Address end) {
+    int current = subspace.getBlockNum();
+    int required = countTileNum(start, end, subspace.getBlockSize());
 
     // Reset the subspaces 
-    if(required != current) {
-      if (semi == 0) {
-        subspace[0].reset(start, end, 0, required);
-	subspace[1].reset(required + MIDDLE_TILES, other); 
-      } else {
-        subspace[1].reset(start, end, other + MIDDLE_TILES, required);
-      }
-    }
+    if(required != current) 
+      subspace.reset(start, end, 0, required);
     
-    // we need to reset the driver
-    if (allTileNum != required + other + MIDDLE_TILES) {
-      allTileNum = required + other + MIDDLE_TILES;
-      space.resize(allTileNum);
-      setTilenames(allTileNum);
-    }
-
     /*
-    Log.write("\nSemiSpaceDriver.setRange for semispace ", semi);
-    Log.write(": low: ", subspace[0].getFirstIndex());
-    Log.write("-", subspace[0].getBlockNum());
-    Log.write(", high: ", subspace[1].getFirstIndex());
-    Log.write("-", subspace[1].getBlockNum());
-    Log.writeln(", allTileNum=", allTileNum);
+    Log.write("\nContiguousSpaceDriver.setRange for semispace: ");
+    Log.write(subspace.getFirstIndex()); Log.write("-", subspace.getBlockNum());
+    Log.write(" (", start); Log.write("-", end); Log.write(")");
     */
+    
+    // Reset the driver
+    // FIXME As far as I can see, release() only resets a CopySpace's
+    // cursor (and optionally zeroes or mprotects the pages); it doesn't
+    // make the pages available to other spaces. See SemiSpaceGCspy.gcspyGatherData
+    // If pages really are released, change the test here to 
+    // if (allTileNum != required) {
+    if (allTileNum < required) {
+      //Log.write(", resize from ", allTileNum); Log.write(" to ", required);
+      allTileNum = required;
+      space.resize(allTileNum);
+      setTilenames(subspace, allTileNum);
+    }
   }
 
 
@@ -321,59 +313,78 @@ public class SemiSpaceDriver extends AbstractDriver
    * 
    * @param addr The address of the current object
    */
-  public void traceObject(Address addr) {
-    traceObject(addr, true);
+  public void scan(ObjectReference obj) {
+    traceObject(obj, true);
+  }
+
+  /**
+   * Update the tile statistics
+   * 
+   * @param obj The current object
+   */
+  public void traceObject(ObjectReference obj) {
+    traceObject(obj, true);
   }
   
   /**
    * Update the tile statistics
    * 
-   * @param addr The address of the current object
+   * @param obj The current object
    * @param total Whether to total the statistics
    */
-  public void traceObject(Address addr, boolean total) {
+  public void traceObject(ObjectReference obj, boolean total) {
     // get length of object and determine if it's an array
-    Object obj = (Object) VM_Magic.addressAsObject(addr);
-    VM_Type type = VM_Magic.getObjectType(obj);
-    boolean isArray = type.isArrayType();
-    int length = getLength(obj, type, isArray);
+    MMType type = ObjectModel.getObjectType(obj);
+    // VM_Type would say whether array; MMType won't, so we'll just show
+    // reference arrays
+    boolean isArray = type.isReferenceArray();
+    int length = ObjectModel.getCurrentSize(obj);
     
     // Update the stats
-    for (int a = 0; a < numSubspaces; a++) {
-      if (subspace[a].addressInRange(addr)) {
-        int index = subspace[a].getIndex(addr);
-	if (isArray) {
-	  tiles[index].arrayObjects++;
-	  tiles[index].arrayUsedSpace += length;
-	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
-	  if (total) {
-	    totalArrayObjects++;
-	    totalArrayUsedSpace += length;
-	  }
-	} else {
-	  tiles[index].scalarObjects++;
-	  tiles[index].scalarUsedSpace += length;
-	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
-	  if (total) {
-	    totalScalarObjects++;
-	    totalScalarUsedSpace += length;
-	  }
+    Address addr = obj.toAddress();
+    
+    if (Assert.VERIFY_ASSERTIONS) {
+      if(addr.LT(lastAddress.add(lastSize))) {
+        Log.write("ContiguousSpaceDriver finds addresses going backwards: ");
+	Log.write("last="); Log.write(lastAddress);
+	Log.write("last size="); Log.write(lastSize);
+	Log.writeln("current=", addr);
+      }
+      lastAddress = addr;
+      lastSize = length;
+    } 
+	
+    if (subspace.addressInRange(addr)) {
+      int index = subspace.getIndex(addr);
+      if (isArray) {
+	tiles[index].arrayObjects++;
+	distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_ARRAY_USED_SPACE_STREAM, addr, length);
+	if (total) {
+	  totalArrayObjects++;
+	  totalArrayUsedSpace += length;
 	}
-	return;
-      } 
-    }
+      } else {
+	tiles[index].scalarObjects++;
+	distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_SCALAR_USED_SPACE_STREAM, addr, length);
+	if (total) {
+	  totalScalarObjects++;
+	  totalScalarUsedSpace += length;
+        }
+      }
+      return;
+    } 
   }
 
   /**
    * Finish a transmission
    * 
    * @param event The event, either BEFORE_COLLECTION or AFTER_COLLECTION
-   * @param tospace The currently used semispace
    */
-  public void finish (int event, int tospace) {
+  public void finish (int event) {
+    //Log.writeln("\nContinuousSpaceDriver.finish ", event);
     if (ServerInterpreter.isConnected(event)) {
       //Log.write("CONNECTED\n");
-      send(event, tospace);
+      send(event);
     }
   }
 
@@ -381,10 +392,13 @@ public class SemiSpaceDriver extends AbstractDriver
    * Send the data for an event
    * 
    * @param event The event, either BEFORE_COLLECTION or AFTER_COLLECTION
-   * @param tospace The currently used semispace
    */
-  private void send (int event, int tospace) {
-    
+  private void send (int event) {
+    /*
+    Log.write("ContiguousSpaceDriver.send: numTiles=", allTileNum);
+    Log.writeln(", tiles.length=", tiles.length);
+    Log.flush();
+    */
     // start the communication
     space.startComm();
     int numTiles = allTileNum;   
@@ -393,29 +407,46 @@ public class SemiSpaceDriver extends AbstractDriver
     // send the stream data 
     space.stream(SS_SCALAR_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
+      // Presentation style is not PRESENTATION_PLUS so we can check
+      if (Assert.VERIFY_ASSERTIONS) 
+        if (tiles[i].scalarUsedSpace > scalarUsedSpaceStream.getMaxValue()) {
+	  Log.write("Bad value for ContiguousSpaceDriver Scalar Used Space stream: ");
+	  Log.write(tiles[i].scalarUsedSpace);
+	  Log.writeln(" max=", scalarUsedSpaceStream.getMaxValue());
+	  // Assert._assert(false);
+	}
       space.streamIntValue(tiles[i].scalarUsedSpace);
     }
     space.streamEnd();
     // send the summary data 
     space.summary(SS_SCALAR_USED_SPACE_STREAM, 2 /*items to send*/);
     space.summaryValue(totalScalarUsedSpace);
-    space.summaryValue(subspace[tospace].getEnd().diff(subspace[tospace].getStart()).toInt());
+    space.summaryValue(subspace.getEnd().diff(subspace.getStart()).toInt());
     space.summaryEnd();
 
     // (2) Array Used Space stream
     space.stream(SS_ARRAY_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
+      // Presentation style is not PRESENTATION_PLUS so we can check
+      if (Assert.VERIFY_ASSERTIONS) 
+        if (tiles[i].arrayUsedSpace > arrayUsedSpaceStream.getMaxValue()) {
+	  Log.write("Bad value for ContiguousSpaceDriver Array Used Space stream: ");
+	  Log.write(tiles[i].arrayUsedSpace);
+	  Log.writeln(" max=",  arrayUsedSpaceStream.getMaxValue());
+	  // Assert._assert(false);
+	}
       space.streamIntValue(tiles[i].arrayUsedSpace);
     }
     space.streamEnd();
     space.summary(SS_ARRAY_USED_SPACE_STREAM, 2);
     space.summaryValue(totalArrayUsedSpace);
-    space.summaryValue(subspace[tospace].getEnd().diff(subspace[tospace].getStart()).toInt());
+    space.summaryValue(subspace.getEnd().diff(subspace.getStart()).toInt());
     space.summaryEnd();
 
     // (3) Scalar Objects stream
     space.stream(SS_SCALAR_OBJECTS_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
+      // Presentation style is PRESENTATION_PLUS so we cannot check max value
       space.streamShortValue(tiles[i].scalarObjects);
     }
     space.streamEnd();
@@ -426,6 +457,7 @@ public class SemiSpaceDriver extends AbstractDriver
     // (4) Array Objects stream
     space.stream(SS_ARRAY_OBJECTS_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
+      // Presentation style is PRESENTATION_PLUS so we cannot check max value
       space.streamShortValue(tiles[i].arrayObjects);
     }
     space.streamEnd();
@@ -434,44 +466,19 @@ public class SemiSpaceDriver extends AbstractDriver
     space.summaryEnd();
 
     // send the control info
-    // all of tospace is USED
+    int numBlocks = subspace.getBlockNum();
     controlValues(tiles, AbstractTile.CONTROL_USED,
-		  subspace[tospace].getFirstIndex(),
-		  subspace[tospace].getBlockNum());
+		  subspace.getFirstIndex(),
+		  numBlocks);
+    if (numBlocks < numTiles) 
+      controlValues(tiles, AbstractTile.CONTROL_UNUSED,
+		  subspace.getFirstIndex() + numBlocks,
+		  numTiles - numBlocks);
 
-    // all of the other space is UNUSED
-    //controlValues(tiles, AbstractTile.CONTROL_UNUSED,
-    // all of the other space is USED is we want to see garbage left over in fromspace
-    controlValues(tiles, AbstractTile.CONTROL_USED,
-		  subspace[1-tospace].getFirstIndex(),
-		  subspace[1-tospace].getBlockNum());
-
-    // any tiles between the two spaces are BACKGROUND colour
-    controlValues(tiles, AbstractTile.CONTROL_BACKGROUND,
-		  subspace[0].getFirstIndex() + subspace[0].getBlockNum(),
-		  MIDDLE_TILES);
-    // add a separator after the end of the first semispace
-    controlValues(tiles, AbstractTile.CONTROL_SEPARATOR,
-		  subspace[1].getFirstIndex(), 
-		  1);
     space.controlEnd(numTiles, tiles);     
     
     // send the space info and end 
-    Offset size = subspace[tospace].getEnd().diff(subspace[tospace].getStart());
+    Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);
   }
-
-//-#else
-  public SemiSpaceDriver 
-                    (String name,
-		     int blockSize,
-		     Address start0, 
-		     Address end0,   
-		     Address start1,
-		     Address end1,
-		     int size,
-		     boolean mainSpace ) {}
-  public void traceObject(Address addr, boolean total) {}
-  public void finish(int event, int semi) {}
-//-#endif
 }

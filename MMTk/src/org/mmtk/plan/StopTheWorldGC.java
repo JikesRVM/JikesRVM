@@ -170,7 +170,6 @@ public abstract class StopTheWorldGC extends BasePlan
     if (timekeeper) Stats.startGC();
     if (timekeeper) initTime.start();
     prepare();
-    if (Plan.WITH_GCSPY) gcspyPrepare();
     if (timekeeper) initTime.stop();
 
     if (timekeeper) rootTime.start();
@@ -222,9 +221,7 @@ public abstract class StopTheWorldGC extends BasePlan
     }
 
     if (timekeeper) finishTime.start();
-    if (Plan.WITH_GCSPY) gcspyPreRelease();
     release();
-    if (Plan.WITH_GCSPY) gcspyPostRelease();
     if (timekeeper) finishTime.stop();
     if (timekeeper) Stats.endGC();
     if (timekeeper) printPostStats();
@@ -303,6 +300,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected final void release() {
     if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for termination");
     int order = Collection.rendezvous(4270);
+    if (Plan.WITH_GCSPY) gcspyPreRelease(); 
     baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;

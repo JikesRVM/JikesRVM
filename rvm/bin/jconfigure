@@ -1417,9 +1417,12 @@ EOF
 	$RVM_ROOT/MMTk/src/org/mmtk/utility
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
+
 
     # Local projects (template)
     #
@@ -1427,11 +1430,13 @@ EOF
 EOF
 
     # GCSpy specific classes
-    GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
-    echo $GCSPY_ROOT
-    echo $GCSPY_ROOT/util
-    # TODO Would be better to load only drivers needed rather than all
-    echo $GCSPY_ROOT/drivers
+    if (( ${RVM_WITH_GCSPY} )); then
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
+	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/drivers
+    else
+	echo $RVM_ROOT/MMTk/src/org/mmtk/vm/gcspy
+    fi
 
     # standard library support
     #

@@ -1,17 +1,13 @@
-/**
- ** Color
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
-
-package org.mmtk.vm.gcspy;
+/*
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
+package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
-
 
 /**
  * Color.java
@@ -19,13 +15,13 @@ import org.vmmagic.pragma.*;
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours 
  *
+ * $Id$
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Color
-  implements  Uninterruptible {
-  public final static String Id = "$Id$";
+public class Color implements  Uninterruptible {
     
   /**
    * Some gcspy standard colours (taken from gcspy_color_db.c).
