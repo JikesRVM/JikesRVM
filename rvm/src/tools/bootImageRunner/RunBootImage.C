@@ -175,15 +175,15 @@ fullVersion()
  * In case of trouble, we set fastExit.  We call exit(0) if no trouble, but
  * still want to exit.
  */
-static char ** 
-processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit) 
+static const char ** 
+processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit) 
 {
     int n_JCLAs = 0;
     bool startApplicationOptions = false;
-    char *subtoken;
+    const char *subtoken;
 
     for (int i = 0; i < n_CLAs; i++) {
-        char *token = CLAs[i];
+        const char *token = CLAs[i];
         subtoken = NULL;        // strictly, not needed.
 
         // examining application options?
@@ -405,9 +405,9 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
  * then call createJVM().
  */
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
-    Me            = basename(*argv++);
+    Me            = basename((char *) *argv++);
     --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
