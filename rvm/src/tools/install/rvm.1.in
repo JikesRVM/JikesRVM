@@ -6,20 +6,16 @@
 ./ @author Steven Augart
 ./ @date 23 April 2004
 ./
-./ Sample manual page for Jikes RVM.
+./ Manual page for Jikes RVM's "rvm" command.
 ./
-./ Note: the version of "iconv" shipped with Red Hat Linux will
+./ Note: the version of "iconv" shipped with Red Hat Linux 9.0, when invoked
+./ by Red Hat Linux 9.0's "man" program, will
 ./ break if this manual page contains any characters from the
 ./ extended range (high-bit set) of the iso-8859-1 character set.
-./ That's why this text is us-ascii instead.
+./ That's why this text is us-ascii instead, and that's why I don't
+./ use the (C) character provided.
 ./
-./ Test your manual page with:
-./    nroff -man skeleton.man | less
-./
-./
-./ TODO: We need to use a macro-expansion process like that of 
-./ GNU Configure so that we replace this with the proper version.
-.TH "RVM" "1" "April 2004" "Jikes RVM version 2.3.2+CVS" "User Commands"
+.TH "RVM" "1" "April 2004" "Jikes RVM @VERSION@" "User Commands"
 .SH NAME
 rvm \- execute Java programs on the Jikes RVM Virtual Machine
 
@@ -32,17 +28,28 @@ rvm \- execute Java programs on the Jikes RVM Virtual Machine
 [OPTION] -jar jarfile [ARGS...]
 
 .SH DESCRIPTION
-
+The 
+.B rvm 
+command takes most of the same arguments that the Sun Java
+Runtime Environment (JRE)'s 
+.B java
+command does.
+.
 With the 
 .B rvm 
 command you can run most Java programs.    
+.
 Read the Jikes RVM User's 
-Guide to learn how to invoke it; look at the 
+Guide (listed below in the 
 .B "SEE ALSO"
-section below.
+section)
+to learn more about how to invoke it.
+.
+You can type
+.RB \*(lq "rvm -help" \*(rq
+to get a list of arguments.   
 
-
-.SH INTERNALS
+.SH ENVIRONMENT
 
 This version of the 
 .B rvm
@@ -50,32 +57,67 @@ command is sensitive to whether or not the
 .B RVM_BUILD
 and 
 .B RVM_ROOT
-command are set.  If RVM_BUILD is unset, it defaults to
-@RVM_BUILD@.  If RVM_ROOT is unset, it defaults to @RVM_ROOT@.
-Then we execute $RVM_ROOT/rvm/bin/rvm in place of this program, and
-matters proceed as they normally do.
+environment variables are set.
+.
+This is for backwards compatibility
+with the 
+.B rvm
+command used when one is developing Jikes RVM itself.  
+Indeed, this version of the 
+.B rvm
+command is just a wrapper around the one in the Jikes RVM 
+.B RVM_ROOT
+directory.
+If 
+.B RVM_BUILD
+is unset, it defaults to
+.IR @RVM_BUILD@ .
+.
+If 
+.B RVM_ROOT
+is unset, it defaults to 
+.IR @RVM_ROOT@ .
+Then we execute 
+.I $RVM_ROOT/rvm/bin/rvm
+with the same arguments that this program was invoked with, and
+matters proceed as described in the 
+User's Guide.
 
 
 .SH "REPORTING BUGS"
 
 The 
-.B Jikes RVM
+Jikes RVM
 bug tracking system is at 
-.B http://oss.software.ibm.com/jikesrvm/solutions
-
-
-.SH "SEE ALSO"
-.B http://oss.software.ibm.com/jikesrvm
-is the 
-.B "Jikes RVM"
-web site, including a complete user's manual.
-
-If the Jikes RVM user's manual is installed on the local machine,
-it will be in
-.B @USER_MANUAL@
+.IR http://oss.software.ibm.com/jikesrvm/solutions .
 .
+.SH "BUGS"
+Jikes RVM
+does not implement all of the Java API.
+.
+This is because there is no
+set of free Java class libraries that implements the entire Java
+subset; Jikes RVM uses the class libraries provided by the 
+GNU Classpath project.
+.
+.PP
+For this reason, Jikes RVM, (along with every other free Java runtime
+systems) cannot pass Sun's full Java Compatibility Tests, and
+therefore legally cannot call itself Java.
+.
+.SH "SEE ALSO"
+.I http://oss.software.ibm.com/jikesrvm
+is the 
+.\"  .B "Jikes RVM"
+Jikes RVM 
+web site, including a complete user's manual.
+.P
+If the Jikes RVM user's manual is installed on the local machine,
+it will be in the directory
+.IR "@USER_MANUAL@" .
+.P
+There may be additional documentation in
+.IR @DOC_DIR@ .
 
-Also see 
-.B @DOC_DIR@
 
 
