@@ -347,8 +347,8 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return result;
   }
 
-  private static void failWithOutOfMemoryError() throws VM_PragmaLogicallyUninterruptible,
-							VM_PragmaNoInline {
+  public static void failWithOutOfMemoryError() throws VM_PragmaLogicallyUninterruptible,
+						       VM_PragmaNoInline {
     throw new OutOfMemoryError();
   }
 							
