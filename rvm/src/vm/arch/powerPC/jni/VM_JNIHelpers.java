@@ -880,7 +880,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(hiword.toInt()));
         } else {
-          VM._assert(false); //TODO 64 bit version
+          argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat((int)((hiword.toLong() & 0xFFFFFFFF00000000L)>>>32)));
         }
       } else if (argTypes[i].isDoubleType()) {
         if (VM.BuildFor32Addr) {
@@ -901,42 +901,34 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapBoolean((hiword.toInt() & 0xFF000000) >>> 24);
         } else {
-          VM._assert(false); //TODO 64 bit version
+          argObjectArray[i] = VM_Reflection.wrapBoolean((int)((hiword.toLong() & 0xFF00000000000000L) >>> 56));
         }
       } else if (argTypes[i].isByteType()) {
         if (VM.BuildFor32Addr) {
           // the target byte is stored in the high byte
           argObjectArray[i] = VM_Reflection.wrapByte((byte) ((hiword.toInt() & 0xFF000000) >>> 24));
         } else {
-          VM._assert(false); //TODO 64 bit version
+          argObjectArray[i] = VM_Reflection.wrapByte((byte) ((hiword.toLong() & 0xFF00000000000000L) >>> 56));
         }
       } else if (argTypes[i].isCharType()) {
 	// char is stored in the high 2 bytes
         if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapChar((char) ((hiword.toInt() & 0xFFFF0000) >>> 16));
         } else {
-          VM._assert(false); //TODO 64 bit version
+          argObjectArray[i] = VM_Reflection.wrapChar((char) ((hiword.toLong() & 0xFFFF000000000000L) >>> 48));
         }
       } else if (argTypes[i].isShortType()) {
 	// short is stored in the high 2 bytes
         if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapShort((short) ((hiword.toInt() & 0xFFFF0000) >>> 16));
         } else {
-          VM._assert(false); //TODO 64 bit version
+          argObjectArray[i] = VM_Reflection.wrapShort((short) ((hiword.toLong() & 0xFFFF000000000000L) >>> 48));
         }
       } else if (argTypes[i].isReferenceType()) {
 	// for object, the arg is a JREF index, dereference to get the real object
-        if (VM.BuildFor32Addr) {
           argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
-        } else {
-          VM._assert(false); //TODO 64 bit version
-        }
       } else if (argTypes[i].isIntType()) {
-        if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapInt(hiword.toInt());
-        } else {
-          VM._assert(false); //TODO 64 bit version
-        }
       } else {
 	return null;
       }
