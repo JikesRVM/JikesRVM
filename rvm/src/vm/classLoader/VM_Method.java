@@ -407,6 +407,18 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
 
     if (isCompiled()) return;
 
+    if (VM.VerifyBytecode) {
+      VM_Verifier verifier = new VM_Verifier();
+      try {
+        boolean success = verifier.verifyMethod(this);
+        if (!success) {
+          VM.sysWrite("Method " + this + " fails bytecode verification!\n");
+        }
+      } catch(Exception e) {
+        VM.sysWrite("Method " + this + " fails bytecode verification!\n");
+      }
+    }
+
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.VerifyAssertions)   VM.assert(declaringClass.isResolved());
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");

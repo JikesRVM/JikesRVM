@@ -161,6 +161,8 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
   fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
+  fprintf(SysTraceFile,"    -X:measure_compilation=<true|false>  measure compilation times?\n");
+  fprintf(SysTraceFile,"    -X:verify=<true|false>  verify bytecodes?\n");
   fprintf(SysTraceFile,"\n");
 }
 
@@ -438,6 +440,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	!strncmp(token, "-X:cpuAffinity=", 15) ||
 	!strncmp(token, "-X:processors=", 14)  ||
 	!strncmp(token, "-X:wbsize=", 10)      ||
+	!strncmp(token, "-X:verify=", 10)      ||
 	!strncmp(token, "-X:measureCompilation=", 22)      
        ) {
       JCLAs[n_JCLAs++]=token;

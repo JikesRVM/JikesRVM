@@ -495,6 +495,7 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/scheduler
    print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_EventLogger references
    print $RVM_ROOT/rvm/src/vm/utility
+   print $RVM_ROOT/rvm/src/vm/verifier
    print $RVM_ROOT/rvm/src/vm/compilers/compiledCode
    
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni

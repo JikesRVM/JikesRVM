@@ -73,7 +73,7 @@ class VM_CommandLineArgs {
   public static final int OPT_ARG              = 28;
   public static final int OPT_HELP_ARG         = 29;
   public static final int PROF_ARG             = 30;
-
+  public static final int VERIFY_ARG           = 31;
   /**
    * A catch-all prefix to find application name.
    */
@@ -136,6 +136,7 @@ class VM_CommandLineArgs {
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
     new Prefix("-X:prof:",              PROF_ARG),
+    new Prefix("-X:verify=",            VERIFY_ARG),
     app_prefix
   };
 
@@ -680,6 +681,16 @@ class VM_CommandLineArgs {
 	  }
 	}
 	break;
+      case VERIFY_ARG:
+	if (arg.equals("true")) {
+	  VM.VerifyBytecode = true;
+	} else if (arg.equals("false")) {
+	  VM.VerifyBytecode = false;
+	} else {
+	  VM.sysWrite("vm: -X:verify=<option>, where option is true or false\n");
+	  VM.sysExit(1);
+	}
+	break;
       }
     }
 
@@ -709,8 +720,7 @@ class VM_CommandLineArgs {
    * @return number of bytes placed in buffer. -1 means buffer too small 
    *         for argument to fit)
    */
-  static private int
-  sysArg(int argno, byte buf[]) {
+  static private int sysArg(int argno, byte buf[]) {
     // PIN(buf);
     int rc = VM.sysCall3(VM_BootRecord.the_boot_record.sysArgIP, 
 			 argno, VM_Magic.objectAsAddress(buf).toInt(), buf.length);

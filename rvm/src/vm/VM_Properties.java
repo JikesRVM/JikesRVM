@@ -75,6 +75,12 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean MeasureCompilation      = false;  
 
+  /**
+   * The following is set on by -X:verify=true command line arg.
+   * When true, it invokes the bytecode verifier
+   */
+  public static boolean VerifyBytecode = false;  
+
   // Runtime subsystem tracing.
   //
   public static final boolean TraceDictionaries       = false;
