@@ -49,7 +49,7 @@ public class Runtime {
 	defaultProperties.put("java.vendor", "IBM");
 	defaultProperties.put("java.version", "1.3.0");
 	defaultProperties.put("java.vm.version", "1.3.0");
-	defaultProperties.put("java.vm.name", "JikesRVM -- Jikes Research Virtual Machine");
+	defaultProperties.put("java.vm.name", "JikesRVM");
 	defaultProperties.put("file.encoding", "8859_1");
 	defaultProperties.put("java.io.tmpdir", "/tmp");
 
