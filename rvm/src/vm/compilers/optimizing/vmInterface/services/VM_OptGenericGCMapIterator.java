@@ -359,7 +359,6 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /** 
    *  Get address of the last spill location
    *  (The location of spills varies among architectures.)
-   *  @param the frame pointer
    *  @return the last spill location
    */
   abstract Address getLastSpillLoc();
