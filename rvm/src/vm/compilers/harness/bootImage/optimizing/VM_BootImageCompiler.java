@@ -17,18 +17,19 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 public class VM_BootImageCompiler {
 
-  // If includePattern is null, all methods are opt-compiled (or attempted).
-  // Otherwise, only methods that match the pattern are opt-compiled.
+  // If excludePattern is null, all methods are opt-compiled (or attempted).
+  // Otherwise, methods that match the pattern are not opt-compiled.
   // In any case, the class VM_OptSaveVolatile is always opt-compiled.
   //
-  private static String includePattern; 
+  private static String excludePattern; 
   private static boolean match(VM_Method method) {
+    if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.getName();
     if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
-    return (fullName.indexOf(includePattern)) >= 0;
+    return (fullName.indexOf(excludePattern)) < 0;
   }
 
   /** 
@@ -53,8 +54,8 @@ public class VM_BootImageCompiler {
       for (int i = 0, n = args.length; i < n; i++) {
 	String arg = args[i];
 	if (!options.processAsOption("-X:bc:", arg)) {
-	  if (arg.startsWith("include=")) 
-	    includePattern = arg.substring(8);
+	  if (arg.startsWith("exclude=")) 
+	    excludePattern = arg.substring(8);
 	  else
 	    VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
 	}
@@ -90,14 +91,12 @@ public class VM_BootImageCompiler {
       OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
       try {
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
-	if (includePattern != null) {
-	  boolean include = match(method);
-	  // VM.sysWrite("Method ", method.getDeclaringClass().getName());
-	  // VM.sysWrite(".", method.getName().toString());
-	  // VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
-	  if (!include)
-	    throw escape;
-	}
+	boolean include = match(method);
+	// VM.sysWrite("Method ", method.getDeclaringClass().getName());
+	// VM.sysWrite(".", method.getName().toString());
+	// VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
+	if (!include)
+	  throw escape;
 	long start = System.currentTimeMillis();
 	OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
 	cm = OPT_Compiler.compile(cp);
@@ -118,8 +117,14 @@ public class VM_BootImageCompiler {
 	  if (e == escape) 
 	    printMsg = false;
 	  if (printMsg) {
-	    String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
-	    VM.sysWrite(msg);
+	    if (e.toString().indexOf("method excluded") >= 0) {
+	      String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
+	      VM.sysWrite(msg);
+	    }
+	    else {
+	      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
+	      VM.sysWrite(msg);
+	    }
 	  }
 	}
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
