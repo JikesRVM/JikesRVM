@@ -1,0 +1,205 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorTypeList.dat
+#//$Id$
+#
+NAME
+# structure of SIZES: NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+SIZES
+# structure of SIG: { "D/DU/U NAME TYPE [opt]" }
+SIG
+# structure of VARSIG: NAME TYPE [PLURAL]
+#                                use PLURAL if NAME"s" is not plural for NAME
+VARSIG
+
+# Accumulating Binary: result = result op value
+BinaryAcc
+0 1 1
+"DU Result OPT_RegisterOperand" "U Value OPT_Operand"
+
+
+# Accumulating Unary: result = op result
+UnaryAcc
+0 1 0
+"DU Result OPT_RegisterOperand"
+
+
+# backend support for tableswitch
+LowTableSwitch
+0 1 0 2 U -1
+"DU Index OPT_RegisterOperand" 
+"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+
+#
+# IA32 MIR instruction formats 
+# Move
+MIR_Move
+1 0 1
+"D Result OPT_Operand" "U Value OPT_Operand"
+
+
+# Conditional Move
+MIR_CondMove
+1 0 2
+"D Result OPT_Operand" "U Value OPT_Operand" "U Cond OPT_IA32ConditionOperand"
+
+
+# Move
+MIR_Lea
+1 0 1
+"D Result OPT_RegisterOperand" "U Value OPT_MemoryOperand"
+
+
+# Accumulating Binary: result = result op value
+MIR_BinaryAcc
+0 1 1
+"DU Result OPT_Operand" "U Value OPT_Operand"
+
+
+# IA32 divide/rem is somewhat funky 
+MIR_Divide
+0 2 2
+"DU Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand" "U Guard OPT_Operand"
+
+
+# the IA32 "mul" format used by IA32_MUL and IA32_IMUL1
+MIR_Multiply
+0 2 1
+"DU Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand" 
+
+
+# The format used by the Intel CDQ instruction
+MIR_ConvertDW2QW
+1 1 0
+"D Result1 OPT_Operand" "DU Result2 OPT_Operand"
+
+
+# Accumulating Unary: result = op result
+MIR_UnaryAcc
+0 1 0
+"DU Result OPT_Operand"
+
+
+# Compare two values and set flags
+MIR_Compare
+0 0 2
+"U Val1 OPT_Operand" "U Val2 OPT_Operand"
+
+
+# Compare OldValue to [MemAddr] and set flags.  
+#   If equal, set [MemAddr] = NewValue.
+#   If not equal set OldValue to [MemAddr]
+MIR_CompareExchange
+0 2 1
+"DU OldValue OPT_RegisterOperand" "DU MemAddr OPT_MemoryOperand" "U NewValue OPT_RegisterOperand"
+
+
+# Trap
+MIR_Trap
+1 0 1
+"D GuardResult OPT_RegisterOperand" "U TrapCode OPT_TrapCodeOperand"
+
+
+# TrapIf
+# A pseduo-op on IA32 (will be expanded in final assembly to 
+# a compare and conditional branch to an INT instruction)
+MIR_TrapIf
+1 0 4
+"D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond OPT_IA32ConditionOperand" "U TrapCode OPT_TrapCodeOperand"
+
+
+# Unconditional Branch
+MIR_Branch
+0 0 1
+"U Target OPT_BranchOperand"
+
+
+# Conditional Branch
+MIR_CondBranch
+0 0 3
+"U Cond OPT_IA32ConditionOperand" "U Target OPT_BranchOperand opt" "U BranchProfile OPT_BranchProfileOperand"
+
+
+# Conditional Branch
+MIR_CondBranch2
+0 0 6
+"U Cond1 OPT_IA32ConditionOperand" "U Target1 OPT_BranchOperand opt" "U BranchProfile1 OPT_BranchProfileOperand" \
+"U Cond2 OPT_IA32ConditionOperand" "U Target2 OPT_BranchOperand opt" "U BranchProfile2 OPT_BranchProfileOperand"
+
+
+# Call (branch and link)
+# Target can be one of BranchOperand, IntConstantOperand (relative offset),
+#                      RegisterOperand/MemoryOperand (indirect call),
+#                      RelativeCallOperand or MilliCallOperand (absolute)
+# TODO: above comment is out of date...only a subset of these cases are 
+# actually used. Figure out which and update comment! --dave
+MIR_Call
+2 0 2 1 U 1
+"D Result OPT_RegisterOperand" "D Result2 OPT_RegisterOperand" \
+"U Target OPT_Operand opt" "U Method OPT_MethodOperand opt"
+"Param OPT_Operand"
+
+# Instruction with no operands.
+MIR_Empty
+0 0 0
+
+
+
+# Return
+MIR_Return
+0 0 3
+"U PopBytes OPT_IntConstantOperand" "U Val OPT_Operand" "U Val2 OPT_Operand"
+
+
+MIR_Set
+1 0 1
+"D Result OPT_Operand" "U Cond OPT_IA32ConditionOperand"
+
+
+MIR_Test
+0 0 2
+"U Val1 OPT_Operand" "U Val2 OPT_Operand" 
+
+
+MIR_StackOp
+0 0 1
+"U Val OPT_Operand"
+
+
+MIR_Nullary
+1 0 0
+"D Result OPT_Operand"
+
+
+MIR_UnaryNoRes
+0 0 1
+"U Val OPT_Operand"
+
+
+MIR_Unary
+1 0 1
+"D Result OPT_Operand" "U Val OPT_Operand"
+
+
+MIR_XChng
+0 2 0
+"DU Val1 OPT_Operand" "DU Val2 OPT_Operand"
+
+
+MIR_DoubleShift
+0 1 2
+"DU Result OPT_Operand" "U Source OPT_RegisterOperand" "U BitsToShift OPT_Operand"
+
+
+MIR_CaseLabel
+0 0 2
+"U Index OPT_IntConstantOperand" "U Target OPT_Operand"
+
+
+MIR_FSave
+0 0 1
+"U Destination OPT_MemoryOperand"
+
+

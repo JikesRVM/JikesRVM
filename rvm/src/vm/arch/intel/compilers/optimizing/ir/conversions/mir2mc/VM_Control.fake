@@ -1,0 +1,10 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+class VM_Control {
+
+    public static boolean EagerIMTpopulation;
+
+    public static boolean BuildForFastInterfaceInvocation;
+
+}

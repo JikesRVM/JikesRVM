@@ -1,0 +1,20 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# Produce a ".java" file from a "VM_Vector.template" file.
+#
+
+if [ $# != 4 ]; then
+   echo "usage: $0 vectorClassName elementTypeName templateFileName outputFileName"
+   exit 1
+fi
+
+CNAME=$1
+ENAME=$2
+IFILE=$3
+OFILE=$4
+
+echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'  >$OFILE
+echo                                                                       >>$OFILE
+sed -e s/CCC/$CNAME/g -e s/EEE/$ENAME/g <$IFILE >>$OFILE

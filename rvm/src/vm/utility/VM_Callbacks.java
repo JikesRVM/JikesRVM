@@ -1,0 +1,761 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//VM_Callbacks.java
+//$Id$
+
+import java.util.Enumeration;
+
+/**
+ * A class for managing various callbacks from the VM.
+ * Consumers should register an implementation of the needed interface with
+ * a given callback method, and will get notified when the event happens.
+ * Note: callback consumers should not rely on any particular order of
+ * callback invocation.
+ * TODO: allow limited control over callback order.
+ *
+ * The following events are currently implemented.  See code for exact
+ * invocation syntax.
+ *      ClassLoaded       - called when a VM_Class is loaded
+ *      ClassResolved     - called when a VM_Class is resolved
+ *      ClassInstantiated - called when a VM_Class is instantiated
+ *      ClassInitialized  - called when a VM_Class is initialized
+ *      MethodOverride    - called when a method in a newly loaded class
+ *                          overrides a method in an existing class
+ *      ForName           - called when java.lang.Class.forName() is invoked
+ *      BootImageWriting  - called when boot image writing is started
+ *      Startup           - called when the VM has completed booting
+ *      Exit              - called when the VM is about to exit
+ *      AppRunStart       - called right before the application starts a run
+ *                          (many applications have several runs)
+ *      AppRunComplete    - called right after the application completes a run
+ *                          (many applications have several runs)
+ *
+ * @author Igor Pechtchanski
+ */
+public final class VM_Callbacks {
+  ///////////////
+  // INTERFACE //
+  ///////////////
+
+  /**
+   * Interface for monitoring class loading.
+   */
+  public static interface ClassLoadedMonitor {
+    /**
+     * Notify the monitor that a class has been loaded.
+     * @param klass the class that was loaded
+     */
+    public void notifyClassLoaded(VM_Class klass);
+  }
+
+  /**
+   * Class loading callback list.
+   */
+  private static CallbackList classLoadedCallbacks = null;
+  private static Object classLoadedLock = new Object();
+  private static boolean classLoadedEnabled = true;
+
+  /**
+   * Register a callback for class loading.
+   * @param cb the object to notify when event happens
+   */
+  public static void addClassLoadedMonitor(ClassLoadedMonitor cb) {
+    synchronized (classLoadedLock) {
+      if (TRACE_ADDMONITOR || TRACE_CLASSLOADED) {
+        VM.sysWrite("adding class loaded monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      classLoadedCallbacks = new CallbackList(cb, classLoadedCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a class has been loaded.
+   * @param klass the class that was loaded
+   */
+  public static void notifyClassLoaded(VM_Class klass) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!classLoadedEnabled) return;
+    classLoadedEnabled = false;
+    if (TRACE_CLASSLOADED) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking class loaded monitors: ");
+      VM.sysWrite(klass.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = classLoadedCallbacks; l != null; l = l.next) {
+      if (TRACE_CLASSLOADED) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((ClassLoadedMonitor) l.callback).notifyClassLoaded(klass);
+    }
+    classLoadedEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring class resolution.
+   */
+  public static interface ClassResolvedMonitor {
+    /**
+     * Notify the monitor that a class has been resolved.
+     * @param klass the class that was resolved
+     */
+    public void notifyClassResolved(VM_Class klass);
+  }
+
+  /**
+   * Class resolution callback list.
+   */
+  private static CallbackList classResolvedCallbacks = null;
+  private static Object classResolvedLock = new Object();
+  private static boolean classResolvedEnabled = true;
+
+  /**
+   * Register a callback for class resolution.
+   * @param cb the object to notify when event happens
+   */
+  public static void addClassResolvedMonitor(ClassResolvedMonitor cb) {
+    synchronized (classResolvedLock) {
+      if (TRACE_ADDMONITOR || TRACE_CLASSRESOLVED) {
+        VM.sysWrite("adding class resolved monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      classResolvedCallbacks = new CallbackList(cb, classResolvedCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a class has been resolved.
+   * @param klass the class that was resolved
+   */
+  public static void notifyClassResolved(VM_Class klass) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!classResolvedEnabled) return;
+    classResolvedEnabled = false;
+    if (TRACE_CLASSRESOLVED) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking class resolved monitors: ");
+      VM.sysWrite(klass.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = classResolvedCallbacks; l != null; l = l.next) {
+      if (TRACE_CLASSRESOLVED) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((ClassResolvedMonitor) l.callback).notifyClassResolved(klass);
+    }
+    classResolvedEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring class instantiation.
+   */
+  public static interface ClassInstantiatedMonitor {
+    /**
+     * Notify the monitor that a class has been instantiated.
+     * @param klass the class that was instantiated
+     */
+    public void notifyClassInstantiated(VM_Class klass);
+  }
+
+  /**
+   * Class instantiation callback list.
+   */
+  private static CallbackList classInstantiatedCallbacks = null;
+  private static Object classInstantiatedLock = new Object();
+  private static boolean classInstantiatedEnabled = true;
+
+  /**
+   * Register a callback for class instantiation.
+   * @param cb the object to notify when event happens
+   */
+  public static void addClassInstantiatedMonitor(ClassInstantiatedMonitor cb) {
+    synchronized (classInstantiatedLock) {
+      if (TRACE_ADDMONITOR || TRACE_CLASSINSTANTIATED) {
+        VM.sysWrite("adding class instantiated monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      classInstantiatedCallbacks = new CallbackList(cb,
+                                                    classInstantiatedCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a class has been instantiated.
+   * @param klass the class that was instantiated
+   */
+  public static void notifyClassInstantiated(VM_Class klass) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!classInstantiatedEnabled) return;
+    classInstantiatedEnabled = false;
+    if (TRACE_CLASSINSTANTIATED) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking class instantiated monitors: ");
+      VM.sysWrite(klass.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = classInstantiatedCallbacks; l != null; l = l.next) {
+      if (TRACE_CLASSINSTANTIATED) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((ClassInstantiatedMonitor) l.callback).notifyClassInstantiated(klass);
+    }
+    classInstantiatedEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring class initialization.
+   */
+  public static interface ClassInitializedMonitor {
+    /**
+     * Notify the monitor that a class has been initialized.
+     * @param klass the class that was initialized
+     */
+    public void notifyClassInitialized(VM_Class klass);
+  }
+
+  /**
+   * Class initialization callback list.
+   */
+  private static CallbackList classInitializedCallbacks = null;
+  private static Object classInitializedLock = new Object();
+  private static boolean classInitializedEnabled = true;
+
+  /**
+   * Register a callback for class initialization.
+   * @param cb the object to notify when event happens
+   */
+  public static void addClassInitializedMonitor(ClassInitializedMonitor cb) {
+    synchronized (classInitializedLock) {
+      if (TRACE_ADDMONITOR || TRACE_CLASSINITIALIZED) {
+        VM.sysWrite("adding class initialized monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      classInitializedCallbacks = new CallbackList(cb,
+                                                   classInitializedCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a class has been initialized.
+   * @param klass the class that was initialized
+   */
+  public static void notifyClassInitialized(VM_Class klass) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!classInitializedEnabled) return;
+    classInitializedEnabled = false;
+    if (TRACE_CLASSINITIALIZED) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking class initialized monitors: ");
+      VM.sysWrite(klass.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = classInitializedCallbacks; l != null; l = l.next) {
+      if (TRACE_CLASSINITIALIZED) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((ClassInitializedMonitor) l.callback).notifyClassInitialized(klass);
+    }
+    classInitializedEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring method override.
+   */
+  public static interface MethodOverrideMonitor {
+    /**
+     * Notify the monitor that a method has been overridden.
+     * @param method the method that was loaded
+     * @param parent the method that it overrides (null if none)
+     */
+    public void notifyMethodOverride(VM_Method method, VM_Method parent);
+  }
+
+  /**
+   * Method override callback list.
+   */
+  private static CallbackList methodOverrideCallbacks = null;
+  private static Object methodOverrideLock = new Object();
+  private static boolean methodOverrideEnabled = true;
+
+  /**
+   * Register a callback for method override.
+   * @param cb the object to notify when event happens
+   */
+  public static void addMethodOverrideMonitor(MethodOverrideMonitor cb) {
+    synchronized (methodOverrideLock) {
+      if (TRACE_ADDMONITOR || TRACE_METHODOVERRIDE) {
+        VM.sysWrite("adding method override monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      methodOverrideCallbacks = new CallbackList(cb, methodOverrideCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a method has been overridden.
+   * @param method the method that was loaded
+   * @param parent the method that it overrides (null if none)
+   */
+  public static void notifyMethodOverride(VM_Method method, VM_Method parent) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!methodOverrideEnabled) return;
+    methodOverrideEnabled = false;
+    if (TRACE_METHODOVERRIDE) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking method override monitors: ");
+      VM.sysWrite(method);
+      VM.sysWrite(":");
+      if (parent != null)
+        VM.sysWrite(parent);
+      else
+        VM.sysWrite("null");
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = methodOverrideCallbacks; l != null; l = l.next) {
+      if (TRACE_METHODOVERRIDE) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((MethodOverrideMonitor) l.callback).notifyMethodOverride(method, parent);
+    }
+    methodOverrideEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring forName calls.
+   */
+  public static interface ForNameMonitor {
+    /**
+     * Notify the monitor that java.lang.Class.forName was called.
+     * @param type the type that will be returned
+     */
+    public void notifyForName(VM_Type type);
+  }
+
+  /**
+   * forName call callback list.
+   */
+  private static CallbackList forNameCallbacks = null;
+  private static Object forNameLock = new Object();
+  private static boolean forNameEnabled = true;
+
+  /**
+   * Register a callback for forName call.
+   * @param cb the object to notify when event happens
+   */
+  public static void addForNameMonitor(ForNameMonitor cb) {
+    synchronized (forNameLock) {
+      if (TRACE_ADDMONITOR || TRACE_FORNAME) {
+        VM.sysWrite("adding forName monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      forNameCallbacks = new CallbackList(cb, forNameCallbacks);
+    }
+  }
+
+  /**
+   * Notify the monitor that java.lang.Class.forName was called.
+   * @param type the type that will be returned
+   */
+  public static void notifyForName(VM_Type type) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!forNameEnabled) return;
+    forNameEnabled = false;
+    if (TRACE_FORNAME) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking forName monitors: ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = forNameCallbacks; l != null; l = l.next) {
+      if (TRACE_FORNAME) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((ForNameMonitor) l.callback).notifyForName(type);
+    }
+    forNameEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring boot image writing.
+   */
+  public static interface BootImageMonitor {
+    /**
+     * Notify the monitor that boot image writing is in progress.
+     * @param types the types that are included in the boot image
+     */
+    public void notifyBootImage(Enumeration types);
+  }
+
+  /**
+   * Boot image writing callback list.
+   */
+  private static CallbackList bootImageCallbacks = null;
+  private static Object bootImageLock = new Object();
+  private static boolean bootImageEnabled = true;
+
+  /**
+   * Register a callback for boot image writing.
+   * @param cb the object to notify when event happens
+   */
+  public static void addBootImageMonitor(BootImageMonitor cb) {
+    synchronized (bootImageLock) {
+      if (TRACE_ADDMONITOR || TRACE_BOOTIMAGE) {
+        VM.sysWrite("adding boot image writing monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      bootImageCallbacks = new CallbackList(cb, bootImageCallbacks);
+    }
+  }
+
+  /**
+   * Notify the monitor that boot image writing is in progress.
+   * @param types the types that are included in the boot image
+   */
+  public static void notifyBootImage(Enumeration types) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!bootImageEnabled) return;
+    bootImageEnabled = false;
+    if (TRACE_BOOTIMAGE) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking boot image writing monitors\n");
+    }
+    for (CallbackList l = bootImageCallbacks; l != null; l = l.next) {
+      if (TRACE_BOOTIMAGE) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((BootImageMonitor) l.callback).notifyBootImage(types);
+    }
+    bootImageEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring VM startup.
+   */
+  public static interface StartupMonitor {
+    /**
+     * Notify the monitor that the VM has started up.
+     */
+    public void notifyStartup();
+  }
+
+  /**
+   * VM startup callback list.
+   */
+  private static CallbackList startupCallbacks = null;
+  private static Object startupLock = new Object();
+  private static boolean startupEnabled = true;
+
+  /**
+   * Register a callback for VM startup.
+   * @param cb the object to notify when event happens
+   */
+  public static void addStartupMonitor(StartupMonitor cb) {
+    synchronized (startupLock) {
+      if (TRACE_ADDMONITOR || TRACE_STARTUP) {
+        VM.sysWrite("adding startup monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      startupCallbacks = new CallbackList(cb, startupCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the VM has started up.
+   * NOTE: Runs in the main thread!
+   */
+  public static void notifyStartup() {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!startupEnabled) return;
+    startupEnabled = false;
+    if (TRACE_CLASSLOADED) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking startup monitors\n");
+    }
+    for (CallbackList l = startupCallbacks; l != null; l = l.next) {
+      if (TRACE_CLASSLOADED) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((StartupMonitor) l.callback).notifyStartup();
+    }
+    startupEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring VM exit.
+   */
+  public static interface ExitMonitor {
+    /**
+     * Notify the monitor that the VM is about to exit.
+     * @param value the exit value
+     */
+    public void notifyExit(int value);
+  }
+
+  /**
+   * VM exit callback list.
+   */
+  private static CallbackList exitCallbacks = null;
+  private static Object exitLock = new Object();
+  private static boolean exitCallbacksStarted = false;
+
+  /**
+   * Register a callback for VM exit.
+   * @param cb the object to notify when event happens
+   */
+  public static void addExitMonitor(ExitMonitor cb) {
+    synchronized (exitLock) {
+      if (TRACE_ADDMONITOR || TRACE_EXIT) {
+        VM.sysWrite("adding exit monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      exitCallbacks = new CallbackList(cb, exitCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the VM is about to exit.
+   * Will return once all the callbacks are invoked.
+   * @param value the exit value
+   */
+  public static void notifyExit(final int value) {
+    synchronized (exitLock) {
+      if (exitCallbacksStarted) return;
+      if (exitCallbacks == null) return;
+      exitCallbacksStarted = true;
+      if (TRACE_EXIT) {
+        //VM.sysWrite(VM_Callbacks.getThread(), false);
+        //VM.sysWrite(": ");
+        VM.sysWrite("invoking exit monitors: ");
+        VM.sysWrite(value, false);
+        VM.sysWrite("\n");
+        //printStack("From: ");
+      }
+      for (CallbackList l = exitCallbacks; l != null; l = l.next) {
+        if (TRACE_EXIT) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((ExitMonitor) l.callback).notifyExit(value);
+      }
+    }
+  }
+
+  /**
+   * Interface for monitoring when an application starts a run
+   */
+  public static interface AppRunStartMonitor {
+    /**
+     * Notify the monitor that the application has started a run
+     * @param num run number
+     */
+    public void notifyAppRunStart(int num);
+  }
+
+  /**
+   * Application Run Start callback list.
+   */
+  private static CallbackList appRunStartCallbacks = null;
+  private static Object appRunStartLock = new Object();
+
+  /**
+   * Register a callback for when the application starts a run
+   * @param cb the object to notify when event happens
+   */
+  public static void addAppRunStartMonitor(AppRunStartMonitor cb) {
+    synchronized (appRunStartLock) {
+      if (TRACE_ADDMONITOR || TRACE_APPRUNCOMPLETE) {
+        VM.sysWrite("adding application run start monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      appRunStartCallbacks = new CallbackList(cb, appRunStartCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the application started a run
+   * Will return once all the callbacks are invoked.
+   */
+  public static void notifyAppRunStart(int i) {
+    synchronized (appRunStartLock) {
+      if (appRunStartCallbacks == null) return;
+      if (TRACE_APPRUNCOMPLETE) {
+        //VM.sysWrite(getThread(), false);
+        //VM.sysWrite(": ");
+        VM.sysWrite("invoking application run start monitors\n");
+      }
+      for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
+	if (TRACE_APPRUNCOMPLETE) {
+	  VM.sysWrite("    ");
+	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
+	  VM.sysWrite("\n");
+	}
+	((AppRunStartMonitor) l.callback).notifyAppRunStart(i);
+      }
+    }
+  }
+
+  /**
+   * Interface for monitoring when an application completes a run
+   */
+  public static interface AppRunCompleteMonitor {
+    /**
+     * Notify the monitor that the application has completed a run
+     * @param num run number
+     */
+    public void notifyAppRunComplete(int num);
+  }
+
+  /**
+   * Application Run Complete callback list.
+   */
+  private static CallbackList appRunCompleteCallbacks = null;
+  private static Object appRunCompleteLock = new Object();
+
+  /**
+   * Register a callback for when the application completes a run
+   * @param cb the object to notify when event happens
+   */
+  public static void addAppRunCompleteMonitor(AppRunCompleteMonitor cb) {
+    synchronized (appRunCompleteLock) {
+      if (TRACE_ADDMONITOR || TRACE_APPRUNCOMPLETE) {
+        VM.sysWrite("adding application run complete monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      appRunCompleteCallbacks = new CallbackList(cb, appRunCompleteCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the application completed a run
+   * Will return once all the callbacks are invoked.
+   */
+  public static void notifyAppRunComplete(int i) {
+    synchronized (appRunCompleteLock) {
+      if (appRunCompleteCallbacks == null) return;
+      if (TRACE_APPRUNCOMPLETE) {
+        //VM.sysWrite(getThread(), false);
+        //VM.sysWrite(": ");
+        VM.sysWrite("invoking application run complete monitors\n");
+      }
+      for (CallbackList l = appRunCompleteCallbacks; l != null; l = l.next) {
+	if (TRACE_APPRUNCOMPLETE) {
+	  VM.sysWrite("    ");
+	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
+	  VM.sysWrite("\n");
+	}
+	((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(i);
+      }
+    }
+  }
+
+  ////////////////////
+  // IMPLEMENTATION //
+  ////////////////////
+
+  /**
+   * Initialize callbacks.
+   */
+  public static void init() { }
+
+  /**
+   * Perform boot-time actions.
+   */
+  public static void boot() { }
+
+  /**
+   * Linked list of callbacks.
+   */
+  private static class CallbackList {
+    public CallbackList(Object cb, CallbackList n) { callback = cb; next = n; }
+    public final Object callback;
+    public final CallbackList next;
+  }
+
+  private final static boolean TRACE_ADDMONITOR        = false;
+  private final static boolean TRACE_CLASSLOADED       = false;
+  private final static boolean TRACE_CLASSRESOLVED     = false;
+  private final static boolean TRACE_CLASSINITIALIZED  = false;
+  private final static boolean TRACE_CLASSINSTANTIATED = false;
+  private final static boolean TRACE_METHODOVERRIDE    = false;
+  private final static boolean TRACE_FORNAME           = false;
+  private final static boolean TRACE_BOOTIMAGE         = false;
+  private final static boolean TRACE_STARTUP           = false;
+  private final static boolean TRACE_EXIT              = false;
+  private final static boolean TRACE_APPRUNCOMPLETE    = false;
+
+  /**
+   * Return class name of the object.
+   * @return class name of the object
+   */
+  private static VM_Atom getClass(Object o) {
+    if (VM.runningVM)
+      return o.getClass().getVMType().getDescriptor();
+    return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+  }
+
+  /**
+   * Return current thread id.
+   * @return current thread id
+   */
+  private static int getThread() {
+    if (VM.runningVM)
+      return VM_Thread.getCurrentThread().getIndex();
+    else
+      return System.identityHashCode(Thread.currentThread());
+  }
+
+  /**
+   * Print current stack trace.
+   */
+  private static void printStack(String message) {
+    if (VM.runningVM)
+      VM_Scheduler.traceback(message);
+    else
+      new Throwable(message).printStackTrace();
+  }
+}
+

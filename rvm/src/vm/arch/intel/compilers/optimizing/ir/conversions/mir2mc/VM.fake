@@ -1,0 +1,24 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+class VM {
+
+    public static boolean BuildForFastInterfaceInvocation;
+
+    public static boolean CompileForRefCountingGC;
+
+    public static boolean BuildForITableInterfaceInvocation;
+
+    public static boolean BuildForFastDynamicTypeCheck;
+
+    public static boolean VerifyAssertions;
+
+    public static void assert(boolean c) {
+
+    }
+
+    public static void assert(boolean c, String s) {
+
+    }
+
+}

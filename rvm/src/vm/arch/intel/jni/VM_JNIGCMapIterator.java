@@ -1,0 +1,148 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+/**
+ * Iterator for stack frames inserted at the transition from Java to
+ * JNI Native C.  It will report JREFs associated with the executing
+ * C frames which are in the "JREFs stack" attached to the executing
+ * Threads JNIEnvironment.  It will update register location addresses
+ * for the non-volatile registers to point to the registers saved
+ * in the transition frame.
+ *
+ * @see VM_JNICompiler
+ * @author Steve Smith
+ */
+final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants  {
+
+  // Java to Native C transition frame...(see VM_JNICompiler)
+  //
+  //  0   	+ saved FP   + <---- FP for Jave to Native C glue frame
+  // -4   	| methodID   |
+  // -8   	| returnAddr |  (redundant - may be removed)
+  // -C   	| saved EDI  |  non-volatile GPR (JTOC for baseline callers or ? for opt callers)
+  // -10  	| saved EBX  |  non-volatile GPR  
+  // -14        | returnAddr |  (for return from OutOfLineMachineCode)
+  // -18        | saved PR   |  
+  // -1C	| arg n-1    |  reordered arguments to native method
+  // -20	|  ...       |  ...
+  // -24	| arg 1      |  ...
+  // -28  	| arg 0      |  ...
+  // -2C  	| class/obj  |  required 2nd argument to all native methods
+  // -30  	| jniEnv     |  required 1st argument to all native methods
+  // -34   	| returnAddr |  return address pushed by call to native method  
+  //    	+ saved FP   +  <---- FP for called native method  
+
+  // additional instance fields added by this subclass of VM_GCMapIterator
+  int[]  jniRefs;
+  int    jniNextRef;
+  int    jniFramePtr;
+  int    jniSavedProcessorRegAddr;     // -> saved PR reg
+  int    jniSavedReturnAddr;           // -> return addr in generated transition prolog
+  
+  VM_JNIGCMapIterator(int[] registerLocations) {
+    this.registerLocations = registerLocations;
+  }
+  
+  // Override newStackWalk() in parent class VM_GCMapIterator to
+  // initialize iterator for scan of JNI JREFs stack of refs
+  // Taken:    thread
+  // Returned: nothing
+  //
+  void newStackWalk(VM_Thread thread) {
+    super.newStackWalk(thread);   // sets this.thread, inits registerLocations[]
+    VM_JNIEnvironment env = this.thread.getJNIEnv();
+    // the "primordial" thread, created by JDK in the bootimage, does not have
+    // a JniEnv object, all threads created by the VM will.
+    if (env != null) {
+      this.jniRefs = env.JNIRefs;
+      this.jniNextRef = env.JNIRefsTop;
+      this.jniFramePtr = env.JNIRefsSavedFP;  
+      this.jniSavedProcessorRegAddr = 0;  // necessary so getNextRefAddr() can be used to report
+                                          // jniRefs in a "frame", without calling setup. 
+    } 
+  }
+     
+  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, int framePtr) {
+    this.framePtr = framePtr;
+
+    // processor reg (PR) was saved at JNI_PR_OFFSET, and will be used to
+    // set processor reg upon return to java.  it must be reported during
+    // GC so it will be relocated, if necessary.
+    //
+    jniSavedProcessorRegAddr = framePtr + VM_JNICompiler.JNI_PR_OFFSET;
+
+    // return address into generated prolog must be relocated if the code object
+    // for that prolog/epilog is moved by GC
+    jniSavedReturnAddr       = framePtr + VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET;
+
+  } //- implements VM_GCMapIterator
+   
+  // return (address of) next ref in the current "frame" on the
+  // threads JNIEnvironment stack of refs	  
+  // When at the end of the current frame, update register locations to point
+  // to the non-volatile registers saved in the JNI transition frame.
+  //
+  int getNextReferenceAddress() {
+    int nextFP;
+    int ref_address;
+
+    // first report jni refs in the current frame in the jniRef side stack
+    // until all in the frame are reported
+    //
+    if ( jniNextRef > jniFramePtr ) {
+      ref_address = jniNextRef + VM_Magic.objectAsAddress(jniRefs);
+      jniNextRef = jniNextRef - 4;
+      return ref_address;
+    }
+
+    // report location of saved processor reg in the Java to C frame
+    if ( jniSavedProcessorRegAddr != 0 ) {
+      ref_address = jniSavedProcessorRegAddr;
+      jniSavedProcessorRegAddr = 0;
+      return ref_address;
+    }
+
+    // no more refs to report, before returning 0, setup for processing
+    // the next jni frame, if any
+
+    // jniNextRef -> savedFramePtr for another "frame" of refs for another
+    // sequence of Native C frames lower in the stack, or to 0 if this is the
+    // last jni frame in the JNIRefs stack.  If more frames, initialize for a
+    // later scan of those refs.
+    //
+    if ( jniFramePtr > 0 ) {
+      jniFramePtr = jniRefs[jniFramePtr >> 2];
+      jniNextRef = jniNextRef - 4;
+    }
+
+    // set register locations for non-volatiles to point to registers saved in
+    // the JNI transition frame at a fixed negative offset from the callers FP.
+    // the save non-volatiles are EBX and EDI (JTOC)
+    //
+    registerLocations[JTOC] = framePtr + VM_JNICompiler.EDI_SAVE_OFFSET;
+    registerLocations[EBX]  = framePtr + VM_JNICompiler.EBX_SAVE_OFFSET;
+
+    return 0;  // no more refs to report
+  } //- implements VM_GCMapIterator
+  
+  int getNextReturnAddressAddress() {
+    int  ref_address;
+    if ( jniSavedReturnAddr != 0 ) {
+      ref_address = jniSavedReturnAddr;
+      jniSavedReturnAddr = 0;
+      return ref_address;
+    }
+    return 0;
+  } //- implements VM_GCMapIterator
+  
+  void reset() {
+  } //- implements VM_GCMapIterator
+  
+  void cleanupPointers() {
+  } //- implements VM_GCMapIterator
+  
+  int getType() {
+    return VM_GCMapIterator.JNI;
+  } //- implements VM_GCMapIterator
+   
+}

@@ -1,0 +1,26 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+class OPT_InstructionFormatTables {
+
+$$$$ FOREACH OPTYPE FORMAT_FILE
+
+    static final String[] OPTYPE.NAMEParameterNames = new String[]{
+	$$$$ LOOP PARAM OPTYPE.SIG
+	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
+	"NAME",
+	$$$$ END SPLIT
+	$$$$ END LOOP
+    };
+
+    static final String[] OPTYPE.NAMEParameterTypes = new String[]{
+	$$$$ LOOP PARAM OPTYPE.SIG
+	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
+	"TYPE",
+	$$$$ END SPLIT
+	$$$$ END LOOP
+    };
+
+$$$$ END FOREACH
+}    

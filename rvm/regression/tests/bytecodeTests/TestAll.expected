@@ -1,0 +1,879 @@
+TestAll
+TestConstants
+
+want: null
+ got: null
+
+want: -1
+ got: -1
+
+want: 0
+ got: 0
+
+want: 1
+ got: 1
+
+want: 2
+ got: 2
+
+want: 3
+ got: 3
+
+want: 4
+ got: 4
+
+want: 5
+ got: 5
+
+want: 0
+ got: 0
+
+want: 1
+ got: 1
+
+want: 0.0
+ got: 0.0
+
+want: 1.0
+ got: 1.0
+
+want: 2.0
+ got: 2.0
+
+want: 0.0
+ got: 0.0
+
+want: 1.0
+ got: 1.0
+
+want: 127
+ got: 127
+
+want: -127
+ got: -127
+
+want: 32767
+ got: 32767
+
+want: -32767
+ got: -32767
+
+want: 2147483647
+ got: 2147483647
+
+want: -2147483647
+ got: -2147483647
+
+want: 9223372036854775807
+ got: 9223372036854775807
+
+want: -9223372036854775807
+ got: -9223372036854775807
+
+want: X98
+ got: X98
+TestStackAccess
+
+want: 01234
+ got: 01234
+
+want: 0.01.02.03.04.0
+ got: 0.01.02.03.04.0
+
+want: nullnullnullnullnull
+ got: nullnullnullnullnull
+
+want: 001012012301234
+ got: 001012012301234
+
+want: 0.001.0012.00123.001234.0
+ got: 0.001.0012.00123.001234.0
+
+want: 12211
+ got: 12211
+
+want: x
+ got: x
+
+TestFieldAccess
+
+want: true
+ got: true
+
+want: -1
+ got: -1
+
+want: A
+ got: A
+
+want: -3
+ got: -3
+
+want: -4
+ got: -4
+
+want: -5
+ got: -5
+
+want: -6.0
+ got: -6.0
+
+want: -7.0
+ got: -7.0
+
+want: Instance of TestFieldAccess
+ got: Instance of TestFieldAccess
+
+want: true
+ got: true
+
+want: -1
+ got: -1
+
+want: A
+ got: A
+
+want: -3
+ got: -3
+
+want: -4
+ got: -4
+
+want: -5
+ got: -5
+
+want: -6.0
+ got: -6.0
+
+want: -7.0
+ got: -7.0
+
+want: Instance of TestFieldAccess
+ got: Instance of TestFieldAccess
+TestArrayAccess
+
+--boolean_array--
+
+want: false
+ got: false
+
+want: true
+ got: true
+
+--byte_array--
+
+want: 127
+ got: 127
+
+want: -1
+ got: -1
+
+--char_array--
+
+want: 7f41
+ got: 7f41
+
+want: ff41
+ got: ff41
+
+--short_array--
+
+want: 32767
+ got: 32767
+
+want: -1
+ got: -1
+
+--int_array--
+
+want: 0
+ got: 0
+
+want: 1
+ got: 1
+
+--long_array--
+
+want: 0
+ got: 0
+
+want: 1
+ got: 1
+
+--float_array--
+
+want: 0.0
+ got: 0.0
+
+want: 1.0
+ got: 1.0
+
+--double_array--
+
+want: 0.0
+ got: 0.0
+
+want: 1.0
+ got: 1.0
+
+--object_array--
+
+want: null
+ got: null
+
+want: null
+ got: null
+
+--array_array--
+
+want: [Ljava.lang.Object;
+ got: [Ljava.lang.Object;
+
+want: null
+ got: null
+
+--multi_int_array--
+ary[0][0][0]=0
+ary[0][0][1]=1
+ary[0][0][2]=2
+ary[0][0][3]=3
+ary[0][1][0]=4
+ary[0][1][1]=5
+ary[0][1][2]=6
+ary[0][1][3]=7
+ary[0][2][0]=8
+ary[0][2][1]=9
+ary[0][2][2]=10
+ary[0][2][3]=11
+ary[1][0][0]=12
+ary[1][0][1]=13
+ary[1][0][2]=14
+ary[1][0][3]=15
+ary[1][1][0]=16
+ary[1][1][1]=17
+ary[1][1][2]=18
+ary[1][1][3]=19
+ary[1][2][0]=20
+ary[1][2][1]=21
+ary[1][2][2]=22
+ary[1][2][3]=23
+
+
+--multi_object_array--
+ary[0][0][0]=0
+ary[0][0][1]=1
+ary[0][0][2]=2
+ary[0][0][3]=3
+ary[0][1][0]=4
+ary[0][1][1]=5
+ary[0][1][2]=6
+ary[0][1][3]=7
+ary[0][2][0]=8
+ary[0][2][1]=9
+ary[0][2][2]=10
+ary[0][2][3]=11
+ary[1][0][0]=12
+ary[1][0][1]=13
+ary[1][0][2]=14
+ary[1][0][3]=15
+ary[1][1][0]=16
+ary[1][1][1]=17
+ary[1][1][2]=18
+ary[1][1][3]=19
+ary[1][2][0]=20
+ary[1][2][1]=21
+ary[1][2][2]=22
+ary[1][2][3]=23
+
+
+--multi_partial_array--
+ary[0][0]=null
+ary[0][1]=null
+ary[0][2]=null
+ary[1][0]=null
+ary[1][1]=null
+ary[1][2]=null
+
+TestReturn
+
+want: true
+ got: true
+
+want: 2
+ got: 2
+
+want: A
+ got: A
+
+want: 4
+ got: 4
+
+want: 5
+ got: 5
+
+want: 6
+ got: 6
+
+want: 7.0
+ got: 7.0
+
+want: 8.0
+ got: 8.0
+
+want: null
+ got: null
+
+want: null
+ got: null
+
+want: null
+ got: null
+TestCompare
+
+want: 100110
+ got: 100110
+
+want: 100110
+ got: 100110
+
+want: 100010001
+ got: 100010001
+
+want: 100010001
+ got: 100010001
+
+want: 100010001
+ got: 100010001
+
+want: 10
+ got: 10
+
+want: 10
+ got: 10
+
+want: true
+ got: true
+
+want: false
+ got: false
+TestConversions
+
+-- i2b --
+
+want: 127
+ got: 127
+
+want: -1
+ got: -1
+
+want: -1
+ got: -1
+
+-- i2c --
+
+want: 127
+ got: 127
+
+want: 255
+ got: 255
+
+want: 65535
+ got: 65535
+
+-- i2s --
+
+want: 32767
+ got: 32767
+
+want: -1
+ got: -1
+
+-- i2l --
+
+want: 2147483647
+ got: 2147483647
+
+want: -1
+ got: -1
+
+-- l2i --
+
+want: 2147483647
+ got: 2147483647
+
+want: -1
+ got: -1
+
+-- i2f --
+
+want: c0000000
+ got: c0000000
+
+-- i2d --
+
+want: -2.0
+ got: -2.0
+
+-- l2f --
+
+want: c0000000
+ got: c0000000
+
+-- l2d --
+
+want: -2.0
+ got: -2.0
+
+-- f2d --
+
+want: -4610334938753925120
+ got: c004ccccc0000000
+
+-- f2l --
+
+want: -2
+ got: -2
+
+-- f2i --
+
+want: -2
+ got: -2
+
+-- d2i --
+
+want: -2
+ got: -2
+
+-- d2l --
+
+want: -2
+ got: -2
+
+-- d2f --
+
+want: c0266666
+ got: c0266666
+
+float:  ff800000 .. 7f800000
+long:   -9223372036854775808 .. 9223372036854775807
+int:    -2147483648 .. 2147483647
+
+float:  1 .. 7f7fffff
+long:   0 .. 9223372036854775807
+int:    0 .. 2147483647
+
+float:  ff7fffff .. 7f7fffff
+long:   -9223372036854775808 .. 9223372036854775807
+int:    -2147483648 .. 2147483647
+
+float:  c7c34f80 .. 47c34f80
+long:   -99999 .. 99999
+int:    -99999 .. 99999
+
+double: fff0000000000000 .. 7ff0000000000000
+long:   -9223372036854775808 .. 9223372036854775807
+int:    -2147483648 .. 2147483647
+
+double: 1 .. 7fefffffffffffff
+long:   0 .. 9223372036854775807
+int:    0 .. 2147483647
+
+double: ffefffffffffffff .. 7fefffffffffffff
+long:   -9223372036854775808 .. 9223372036854775807
+int:    -2147483648 .. 2147483647
+
+double: c0f869f000000000 .. 40f869f000000000
+long:   -99999 .. 99999
+int:    -99999 .. 99999
+TestArithmetic
+
+-- itest --
+
+want: 4
+ got: 4
+
+want: 2
+ got: 2
+
+want: 9
+ got: 9
+
+want: 1
+ got: 1
+
+want: 1
+ got: 1
+
+want: -3
+ got: -3
+
+want: 4
+ got: 4
+
+want: 1
+ got: 1
+
+want: 273
+ got: 273
+
+want: 272
+ got: 272
+
+want: -6
+ got: -6
+
+want: -2
+ got: -2
+
+want: 2147483646
+ got: 2147483646
+
+-- ltest --
+
+want: 10000000002
+ got: 10000000002
+
+want: 9999999998
+ got: 9999999998
+
+want: 20000000000
+ got: 20000000000
+
+want: 5000000000
+ got: 5000000000
+
+want: 0
+ got: 0
+
+want: -2
+ got: -2
+
+want: -10000000000
+ got: -10000000000
+
+want: 4503599627370497
+ got: 4503599627370497
+
+want: 1229482698272145681
+ got: 1229482698272145681
+
+want: 1224979098644775184
+ got: 1224979098644775184
+
+want: -6
+ got: -6
+
+want: -2
+ got: -2
+
+want: -1
+ got: -1
+
+want: 9223372036854775806
+ got: 9223372036854775806
+
+-- ftest --
+
+want: 40400000
+ got: 40400000
+
+want: bf800000
+ got: bf800000
+
+want: 40000000
+ got: 40000000
+
+want: 3f000000
+ got: 3f000000
+
+want: bf800000
+ got: bf800000
+
+want: 3f19999a
+ got: 3f19999a
+
+-- dtest --
+
+want: 4008000000000000
+ got: 4008000000000000
+
+want: bff0000000000000
+ got: bff0000000000000
+
+want: 4000000000000000
+ got: 4000000000000000
+
+want: 3fe0000000000000
+ got: 3fe0000000000000
+
+want: bff0000000000000
+ got: bff0000000000000
+
+want: 3fe3333333333333
+ got: 3fe3333333333333
+
+-- nanTestFloat --
+  expr     expected    got    
+---------- -------- ----------
+NaN <  NaN  false     false
+NaN <= NaN  false     false
+NaN == NaN  false     false
+NaN != NaN  true      true
+NaN >= NaN  false     false
+NaN >  NaN  false     false
+
+-- nanTestDouble --
+  expr     expected    got    
+---------- -------- ----------
+NaN <  NaN  false     false
+NaN <= NaN  false     false
+NaN == NaN  false     false
+NaN != NaN  true      true
+NaN >= NaN  false     false
+NaN >  NaN  false     false
+
+-- remTest --
+2.0  /  3.0=3fe5555555555555
+2.0  %  3.0=4000000000000000
+2.0 rem 3.0=bff0000000000000
+
+2.0  /  -3.0=bfe5555555555555
+2.0  %  -3.0=4000000000000000
+2.0 rem -3.0=bff0000000000000
+
+-2.0  /  3.0=bfe5555555555555
+-2.0  %  3.0=c000000000000000
+-2.0 rem 3.0=3ff0000000000000
+
+-2.0  /  -3.0=3fe5555555555555
+-2.0  %  -3.0=c000000000000000
+-2.0 rem -3.0=3ff0000000000000
+
+TestMath
+-- Math.floor --
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+-- Math.ceil --
+
+want: 2.0 
+got:  2.0
+
+want: 2.0 
+got:  2.0
+
+want: 2.0 
+got:  2.0
+
+want: 1.0 
+got:  1.0
+
+want: -2.0 
+got:  -2.0
+
+want: -1.0 
+got:  -1.0
+
+want: -1.0 
+got:  -1.0
+
+want: -1.0 
+got:  -1.0
+TestMath
+-- Math.floor --
+
+want:  3ff0000000000000
+got:  3ff0000000000000
+
+want:  3ff0000000000000
+got:  3ff0000000000000
+
+want:  3ff0000000000000
+got:  3ff0000000000000
+
+want:  3ff0000000000000
+got:  3ff0000000000000
+
+want: c000000000000000
+got:  c000000000000000
+
+want: c000000000000000
+got:  c000000000000000
+
+want: c000000000000000
+got:  c000000000000000
+
+want: c000000000000000
+got:  c000000000000000
+-- Math.ceil --
+
+want: 4000000000000000
+got:  4000000000000000
+
+want: 4000000000000000
+got:  4000000000000000
+
+want: 4000000000000000
+got:  4000000000000000
+
+want:  3ff0000000000000
+got:  3ff0000000000000
+
+want: c000000000000000
+got:  c000000000000000
+
+want: bff0000000000000
+got:  bff0000000000000
+
+want: bff0000000000000
+got:  bff0000000000000
+
+want: bff0000000000000
+got:  bff0000000000000
+TestSwitch
+
+want: 99101112
+ got: 99101112
+
+want: 99102030405099
+ got: 99102030405099
+TestStaticCall
+
+want: 333
+ got: 333
+TestVirtualCall
+
+want: 12
+ got: 12
+
+want: 3
+ got: 3
+TestInterfaceCall
+1
+4
+2
+3
+4
+true
+true
+false
+true
+true
+false
+TestSpecialCall
+want: A.init B.init C.init A.init B.foo C.bar C.foo
+ got: A.init B.init C.init A.init B.foo C.bar C.foo 
+TestClassInitializer
+clinit called for TestClassInitializerA
+TestClassInitializerA.f called
+123
+clinit called for TestClassInitializerB
+TestClassInitializerB.f called
+456
+clinit called for TestClassInitializerC
+clinit called for TestClassInitializerD
+123
+TestThrow
+caught: MyTestError
+caught: java.io.FileNotFoundException: xyzzy
+caught: MyTestError
+TestFinally
+2
+hi
+bye
+TestInstanceOf
+
+want: true false false false
+ got: true false false false
+
+want: false true false false
+ got: false true false false
+
+want: false false false false
+ got: false false false false
+
+want: false false false true
+ got: false false false true
+
+want: class cast exception
+ got: class cast exception
+TestClone
+original: a
+clone:    a
+equals says: false
+==     says: false
+
+after changing object value
+
+original: aa
+clone:    a
+equals says: false
+==     says: false
+
+original: 
+00 01 02 
+10 11 12 
+clone: 
+00 01 02 
+10 11 12 
+equals says: false
+==     says: false
+
+after changing object value
+
+original: 
+00 01 02 
+10 xx 12 
+clone: 
+00 01 02 
+10 xx 12 
+equals says: false
+==     says: false
+
+after changing element
+
+original: 
+00 01 02 
+10 zz 12 
+clone: 
+00 01 02 
+10 zz 12 
+equals says: false
+==     says: false
+
+after changing row
+
+original: 
+00 01 02 
+null null null 
+clone: 
+00 01 02 
+10 zz 12 
+equals says: false
+==     says: false
+TestMonitorUnwind
+bye
+
+TestGC
+bye

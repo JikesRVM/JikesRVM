@@ -1,0 +1,29 @@
+Copyright (C) 1993 David R. Hanson
+All Rights Reserved.
+
+Iburg is protected by copyright.  It is not public-domain software,
+shareware, and it is not protected by a ``copyleft'' agreement, like
+the code from the Free Software Foundation.
+
+Iburg is available free for your personal research and instructional
+use under the ``fair use'' provisions of the copyright law.
+
+You may not sell iburg or any product derived from it in which iburg is
+a significant part of the value of the product. You may use the output
+from iburg in products as long as you charge for only those components
+that are entirely your own and you acknowledge the use of iburg clearly
+in all product documentation and distribution media. You must also
+request that bug reports on your product be reported to you.
+
+----------------
+IBM Addendum.
+
+We have modified Iburg in two ways:
+ (1) We modified the input patterns it accepts to be consistent with
+our intermediate representation.
+ (2) We modified it to produce Java code instead of C code.
+
+All bug reports related to the use of jburg in building Jalapeno
+should be reported to the Jalapeno group at IBM and _not_ to David
+R. Hanson.  Please report them using the the normal Jalapeno bug
+reporting channels.

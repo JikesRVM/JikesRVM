@@ -1,0 +1,8 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+
+export RC_ARGS="$*"
+jmake self
+

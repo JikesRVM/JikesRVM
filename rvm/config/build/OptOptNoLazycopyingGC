@@ -1,0 +1,2 @@
+   . $1/OptOptcopyingGC
+   export RVM_WITHOUT_LAZY_COMPILATION=1          

@@ -1,0 +1,193 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorTypeList.dat
+#//$Id$
+#
+NAME
+# structure of SIZES: NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+SIZES
+# structure of SIG: { "D/DU/U NAME TYPE [opt]" }
+SIG
+# structure of VARSIG: NAME TYPE [PLURAL]
+#                                use PLURAL if NAME"s" is not plural for NAME
+VARSIG
+
+# backend support for tableswitch
+LowTableSwitch
+0 0 1 2 U -1
+"U Index OPT_RegisterOperand" 
+"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+
+#
+# PowerPC MIR instruction formats 
+#
+# Base-offset load
+# Offset can be either RegisterOperand or IntConstantOperand
+MIR_Load
+1 0 4
+"D Result OPT_RegisterOperand" "U Address OPT_RegisterOperand" \
+"U Offset OPT_Operand" "U Location OPT_LocationOperand opt" \
+"U Guard OPT_Operand opt"
+
+
+# Base-offset load with update
+# Offset can be either RegisterOperand or IntConstantOperand
+MIR_LoadUpdate
+1 1 3
+"D Result OPT_RegisterOperand" "DU Address OPT_RegisterOperand" \
+"U Offset OPT_Operand" "U Location OPT_LocationOperand opt" \
+"U Guard OPT_Operand opt"
+
+
+# Base-offset store
+# Offset can be either RegisterOperand or IntConstantOperand
+MIR_Store
+0 0 5
+"U Value OPT_RegisterOperand" "U Address OPT_RegisterOperand" \
+"U Offset OPT_Operand" "U Location OPT_LocationOperand opt" \
+"U Guard OPT_Operand opt"
+
+
+# Base-offset store with update
+# Offset can be either RegisterOperand or IntConstantOperand
+MIR_StoreUpdate
+0 1 4
+"DU Address OPT_RegisterOperand" "U Value OPT_RegisterOperand" \
+"U Offset OPT_Operand" "U Location OPT_LocationOperand opt" \
+"U Guard OPT_Operand opt"
+
+
+# Base-offset cache operation
+MIR_CacheOp
+0 0 2
+"U Address OPT_RegisterOperand" "U Offset OPT_RegisterOperand"
+
+
+# Register move
+MIR_Move
+1 0 1
+"D Result OPT_RegisterOperand" "U Value OPT_RegisterOperand"
+
+
+# Trap
+# Value2 can be either RegisterOperand or IntConstantOperand
+MIR_Trap
+1 0 4
+"D GuardResult OPT_RegisterOperand opt" \
+"U Cond OPT_PowerPCTrapOperand" "U Value1 OPT_RegisterOperand" \
+"U Value2 OPT_Operand" "U TCode OPT_TrapCodeOperand"
+
+
+# Data int
+MIR_DataInt
+0 0 1
+"U Value OPT_IntConstantOperand"
+
+
+# Data label (branch target)
+MIR_DataLabel
+0 0 1
+"U Target OPT_BranchOperand"
+
+
+# Unconditional Branch
+# Target can be BranchOperand or null (implicit CTR or LR)
+MIR_Branch
+0 0 1
+"U Target OPT_BranchOperand opt"
+
+
+# Conditional Branch
+# Target can be BranchOperand or null (implicit CTR or LR)
+MIR_CondBranch
+0 0 4
+"U Value OPT_RegisterOperand" "U Cond OPT_PowerPCConditionOperand" \
+"U Target OPT_BranchOperand opt" "U BranchProfile OPT_BranchProfileOperand"
+
+
+# 2-target Conditional Branch
+# Targets must be BranchOperands
+MIR_CondBranch2
+0 0 7
+"U Value OPT_RegisterOperand" "U Cond1 OPT_PowerPCConditionOperand" \
+"U Target1 OPT_BranchOperand" "U BranchProfile1 OPT_BranchProfileOperand" "U Cond2 OPT_PowerPCConditionOperand" \
+"U Target2 OPT_BranchOperand" "U BranchProfile2 OPT_BranchProfileOperand" 
+
+
+# Call (branch and link)
+# Target is usually null, but can be BranchOperand (intraprocedural target)
+MIR_Call
+2 0 2 1 U 0
+"D Result OPT_RegisterOperand" "D Result2 OPT_RegisterOperand" \
+"U Target OPT_BranchOperand opt" "U Method OPT_MethodOperand opt"
+"Param OPT_Operand"
+
+# Conditional Call (branch and link)
+# Target is usually null, but can be BranchOperand (intraprocedural target)
+MIR_CondCall
+2 0 3 1 U 0
+"D Result OPT_RegisterOperand" "D Result2 OPT_RegisterOperand" \
+"U Value OPT_RegisterOperand" "U Cond OPT_PowerPCConditionOperand" "U Target OPT_BranchOperand opt"
+"Param OPT_Operand"
+
+# Return
+MIR_Return
+0 0 2
+"U Val OPT_RegisterOperand" "U Val2 OPT_RegisterOperand"
+
+
+# Empty operation
+MIR_Empty
+0 0 0
+
+
+
+# Nullary operation
+MIR_Nullary
+1 0 0
+"D Result OPT_RegisterOperand"
+
+
+# Unary ALU operation
+# Value can be either RegisterOperand or IntConstantOperand
+MIR_Unary
+1 0 1
+"D Result OPT_RegisterOperand" "U Value OPT_Operand"
+
+
+# Binary ALU operation
+# Value2 can be either RegisterOperand or IntConstantOperand
+MIR_Binary
+1 0 2
+"D Result OPT_RegisterOperand" "U Value1 OPT_RegisterOperand" \
+"U Value2 OPT_Operand"
+
+
+# Binary condition operation
+# All three values are just bit indices in condition register
+MIR_Condition
+1 0 2
+"D ResultBit OPT_IntConstantOperand" "U Value1Bit OPT_IntConstantOperand" \
+"U Value2Bit OPT_IntConstantOperand"
+
+
+# Ternary ALU operation
+MIR_Ternary
+1 0 3
+"D Result OPT_RegisterOperand" "U Value1 OPT_RegisterOperand" \
+"U Value2 OPT_RegisterOperand" "U Value3 OPT_RegisterOperand"
+
+
+# Rotate-and-mask ALU operation
+# For PPC_RLWINM PPC_RLWIMI PPC_RLWNM
+# Very PowerPC-specific
+# Source (when present) has to be the same as Result
+# Shift can be either RegisterOperand or IntConstantOperand
+MIR_RotateAndMask
+1 0 5
+"D Result OPT_RegisterOperand" "U Source OPT_RegisterOperand opt" \
+"U Value OPT_RegisterOperand" "U Shift OPT_Operand" \
+"U MaskBegin OPT_IntConstantOperand" "U MaskEnd OPT_IntConstantOperand"
+
+

@@ -1,0 +1,50 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//OPT_OperatorNames.java
+/**
+ * Class to store the string representations of different operators.
+ * They are in a seperate class for efficiency.
+ *
+ * @see OPT_Operator
+ * @author John Whaley
+ * @date 02/19/98
+ * @author Igor Pechtchanski
+ */
+
+abstract class OPT_OperatorNames {
+
+  static final String operatorName[] = new String[] {
+$$$$ FOREACH OPERATOR OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+$$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+$$$$ END LET
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+    $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+    $$$$ END LET
+  $$$$ END FOREACH
+$$$$ END IF
+      "<UNKNOWN OPERATOR>"
+    };
+
+  static String toString(OPT_Operator operator) {
+     try {
+       return operatorName[operator.opcode];
+     }
+     catch (ArrayIndexOutOfBoundsException e) {
+       return operatorName[operatorName.length-1]; // reduce, reuse, recycle
+     }
+  }
+
+}
+
+

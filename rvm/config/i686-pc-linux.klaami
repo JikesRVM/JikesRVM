@@ -1,0 +1,79 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+#
+# This file defines a set of environment variables needed to build and
+# run Jalapeno.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# IMPORTANT: You need to modify this file to reflect your environment!
+#
+
+export HOST_JAVA_HOME="/opt/IBMJava2-13"
+
+# the JDK java executable
+export HOST_JAVA="/opt/IBMJava2-13/bin/java"
+
+# the JDK javadoc executable
+export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
+
+# the JDK javac executable
+export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
+
+# the JDK javac executable
+export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+
+# the JDK standard library jar files
+export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
+
+# the JDK tools jar
+export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
+
+# the JDK 1.1.8 java executable
+export HOST_1_1_8_JAVA="/usr/lib/jdk1.1.8/bin/java"
+
+# the JDK 1.1.8 java executable
+export HOST_1_1_8_JAVAC="/usr/lib/jdk1.1.8/bin/javac"
+
+# the JDK 1.1.8 standard library jar files
+export HOST_1_1_8_REPOSITORIES="/usr/lib/jdk1.1.8/lib/classes.zip"
+
+# The OTI JVM executable
+export HOST_J9=/opt/IBMvame1.4/ive/bin/j9
+
+# The OTI JVM library path
+export HOST_J9_LIBS=/opt/IBMvame1.4/ive/bin
+
+# path for GNU make
+export GNU_MAKE="/usr/bin/make"
+
+# path for jikes.
+export JIKES="/usr/bin/jikes"
+
+# what C compilers should be used?
+export CC='/usr/bin/gcc -w -O'
+ 
+# what C++ compilers should be used?
+export CPLUS='/usr/bin/g++ -g'   
+
+# how to link a shared C++ library
+export LDSHARED="/usr/bin/g++ -shared"
+
+#
+export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
+
+#  some Unix commands
+export GREP="/bin/grep"
+export FIND="/usr/bin/find"
+export FGREP="/bin/fgrep"
+export AWK="/bin/awk"
+export PS="/bin/ps"
+export BASH="/bin/bash"
+export SED="/bin/sed"
+export WGET="/usr/bin/wget"
+export DIFF="/usr/bin/diff"
+export TAR="/bin/tar"
+
+# where to find Jazzlib
+export JAZZLIBDIR=/home/dolby/stuff/jazzlib-0.02

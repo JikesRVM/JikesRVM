@@ -1,0 +1,18 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorClassList.dat
+#//$Id$
+#
+NAME
+OPERATORS
+RESOURCES
+LATENCIES
+REVERSELAT
+
+pseudo_ops
+LABEL BBEND UNINT_BEGIN UNINT_END
+
+"any_insn, 0"
+
+

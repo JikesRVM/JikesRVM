@@ -1,0 +1,8 @@
+BaseBasecopyingGC -test-list nightly-tests
+BaseBasenoncopyingGC -test-list nightly-tests
+BaseAdaptivecopyingGC -test-list nightly-tests-short
+FullOptnoncopyingGC -use-opt-levels "O0 O1 O2"  -test-list nightly-tests
+FullAdaptivecopyingGC -test-list nightly-tests
+Fast -test-list nightly-tests
+FastAdaptivecopyingGC -test-list nightly-tests
+ExtremeAssertionsOptOptcopyingGC -test-list nightly-tests-short

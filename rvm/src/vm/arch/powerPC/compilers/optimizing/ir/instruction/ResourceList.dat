@@ -1,0 +1,48 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+NAME
+NUMBER
+STRING
+COMMENT
+
+ISSUE
+4
+Issue slot
+Every "real" instruction must use at least one
+
+FXU
+2
+Fixed point unit
+Used by fixed point arithmetic operations
+
+FPU
+1
+Floating point unit
+Used by floating point arithmetic operations
+
+BRU
+1
+Branch unit
+Used by branch and switch operations
+
+LDST
+1
+Load/store unit
+Used by memory operations
+
+FXUC
+1
+Complex fixed point unit
+Used by various special fixed point operations
+
+CR
+1
+Condition register
+Stores flags and predicate bits
+
+RESERVE
+1
+Memory reservation
+Used by all LWARX and STWCX.  NB: do we need a more fine-grain model?
+

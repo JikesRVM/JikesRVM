@@ -1,0 +1,209 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#
+# major purpose of examples is sanity test
+#
+default:	sanity
+
+
+#
+# where to find source code
+#
+BENCH_SOURCE_CP = $(shell echo $(strip $(BENCH_SOURCE_PATH)) | sed s/\ /:/g)
+
+vpath %.java		$(BENCH_SOURCE_CP)
+
+#
+# where to put stuff
+#
+WORKING?=.
+
+$(WORKING):
+	@rm -rf $(WORKING)
+	mkdir -p $(WORKING)
+
+$(WORKING)/cp:	$(WORKING)
+	@rm -rf $(WORKING)/cp
+	mkdir -p $(WORKING)/cp
+
+#
+# where to find and put .class files
+#
+BENCH_CLASS_PATH := $(BENCH_CLASS_PATH) $(WORKING)/cp 
+BENCH_CLASS_CP = $(shell echo $(strip $(BENCH_CLASS_PATH)) | sed s/\ /:/g)
+
+vpath %.class		$(BENCH_CLASS_CP)
+
+#
+# how to compile
+#
+ALL_PATH = $(BENCH_SOURCE_PATH) \
+	   $(BENCH_CLASS_PATH) \
+	   $(JAL_BUILD)/Jalapeno.classes \
+	   $(JAL_BUILD)/Jalapeno.classes/classes.zip \
+	   $(HOST_REPOSITORIES)
+ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
+
+%.class:		%.java $(WORKING)/cp
+	$(HOST_JIKES) -d $(WORKING)/cp -classpath $(ALL_CP) $<
+
+#
+# how to run
+#
+
+# which vm to use (defaults to Jalapeno)
+JVM?=rvm
+
+# what to run
+START_CLASS=$(shell echo $(START_NAME) | sed 's@\.@/@g').class
+
+# how to invoke Jalapeno
+ifeq (x$(JBOOT),x)
+  JBOOT = $(JAL_ROOT)/bin/jalapeno
+endif
+
+# arguments to pass to the vm
+RVM_ARGS = $(RC_ARGS) $(BENCH_RVM_ARGS) 
+JDK_ARGS = $(BENCH_JDK_ARGS)
+ifneq (x$(PROCESSORS),x)
+  RVM_ARGS += -X:processors=$(PROCESSORS)
+endif
+ifneq (x$(HEAPSIZE),x)
+  RVM_ARGS += -X:h=$(HEAPSIZE)
+  JDK_ARGS += -Xmx$(HEAPSIZE)M
+endif
+ifneq (x$(LHEAPSIZE),x)
+  RVM_ARGS += -X:lh=$(LHEAPSIZE)
+endif
+
+ifneq (x$(BOOTNAME),x)
+  EXT=$(BOOTNAME)
+else
+ifneq (x$(ID),x)
+  EXT=$(ID)
+endif
+endif
+OUT=$(WORKING)/out.$(START_NAME).$(EXT)
+
+bench-rvm:			$(START_CLASS) $(WORKING)
+	@echo 
+	@echo "Running $(START_NAME) with ..."
+	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
+	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
+		| tee $(OUT).raw \
+		| $(AWK) -f $(JAL_ROOT)/regression/JalapenoJunkFilter.awk \
+			> $(OUT)
+
+bench-jdk:			$(START_CLASS) $(WORKING)
+	@echo
+	@echo "(Running $(START_NAME) on JDK for comparison)"
+	@cd $(WORKING); $(HOST_JAVA) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
+		> $(OUT) 2>&1
+
+
+bench-j9:			$(START_CLASS) $(WORKING)
+	@echo
+	@echo "(Running $(START_NAME) on J9 for comparison)"
+	@cd $(WORKING); LD_LIBRARY_PATH=$(HOST_J9_LIBS) $(HOST_J9) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
+		> $(OUT) 2>&1
+
+
+bench:
+	$(MAKE) bench-$(JVM)
+ifeq ($(NON_DETERMINISTIC_OUTPUT_ORDER),YES)
+	@mv $(OUT) $(OUT).tmp
+	@sort $(OUT).tmp > $(OUT)
+	@rm -f $(OUT).tmp
+endif
+
+#
+# support for server codes
+#
+
+# wait for server to generate sentinel output
+wait:	
+ifeq ($(LIMIT),0)
+	fgrep -q $(SENTINEL) $(OUT).raw
+else
+	sleep 10
+	fgrep -q $(SENTINEL) $(OUT).raw || $(MAKE) LIMIT=`expr $(LIMIT) - 1` wait
+endif
+
+# start in background and wait for desired output
+start:
+	@rm -f $(OUT).server
+	$(MAKE) START_NAME=$(SERVER_NAME) START_ARGS=$(SERVER_ARGS) OUT=$(OUT).server bench &
+	$(MAKE) OUT=$(OUT).server LIMIT=15 wait
+
+# start server, run client, finish server
+do-server-run:
+	$(MAKE) start
+	$(MAKE) client
+	$(MAKE) finish
+
+client:
+	$(MAKE) START_NAME=$(CLIENT_NAME) START_ARGS=$(CLIENT_ARGS) OUT=$(OUT).client bench
+	$(MAKE) OUT=$(OUT).client client-check
+
+finish:
+	$(MAKE) START_NAME=$(STOP_NAME) START_ARGS=$(STOP_ARGS) OUT=$(OUT).stop bench
+	$(MAKE) OUT=$(OUT).server server-check
+
+
+server-sanity-check-rules:
+	@$(MAKE) do-server-run
+	@$(MAKE) do-sanity-finish
+
+#
+# sanity tests
+#
+
+do-sanity-check-rule:
+	@$(MAKE) bench JVM=rvm
+	@$(MAKE) check
+
+do-sanity-diff:
+	@$(MAKE) JVM=rvm bench
+ifneq (x$(SED_FILTER),x)
+	@$(SED) -f $(SED_FILTER) $(OUT) | $(DIFF) -bB $(EXPECTED) -
+else
+ifneq (x$(AWK_FILTER),x)
+	@$(AWK) -f $(AWK_FILTER) $(OUT) | $(DIFF) -bB $(EXPECTED) -
+else
+	@$(DIFF) -bB $(EXPECTED) $(OUT)
+endif
+endif
+
+do-sanity-compare:
+	@$(MAKE) JVM=rvm bench
+	@$(MAKE) OUT=$(OUT).jdk JVM=jdk bench
+	@$(DIFF) -bB $(OUT) $(OUT).jdk
+	
+do-sanity-finish:
+ifeq ($(MODE),PERFORMANCE)
+	echo "RESULT: $(BOOTNAME) $(BENCH_NAME) $(OPT_LEVEL)" >> $(PERF_LOG)
+	@$(MAKE) do-gather-performance
+endif
+	@echo
+	@echo "You are sane $(START_NAME)"
+	@echo
+
+sanity-check-rule:
+	@$(MAKE) do-sanity-check-rule
+	@$(MAKE) do-sanity-finish
+
+sanity-diff:
+	@$(MAKE) do-sanity-diff
+	@$(MAKE) do-sanity-finish
+
+sanity-compare:
+	@$(MAKE) do-sanity-compare
+	@$(MAKE) do-sanity-finish
+
+#
+# cleanup generated stuff
+#
+clean:
+	rm -rf $(WORKING)/cp $(OUT)
+

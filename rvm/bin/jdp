@@ -1,0 +1,215 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# set -v -x
+# Run jdp in "raw tty" mode, so it can do command retrieval and completion
+# Usage: jdp program_name
+# 10 Dec 1998 Derek Lieber
+# 15 Dec 1998 Ton Ngo (adapted for jdp)
+# 24 May 2000 Ton Ngo (adapted for new builder)
+# 24 Aug 2000 Manu Sridharan (adapted to work with GUI)
+# 12 Jan 2001 Ton Ngo (update for new University release)
+
+ME=`basename $0`
+
+# Disable input editing, echo, line wrapping. Enable output nl->cr+nl mapping.
+#
+function setRaw 
+   {
+   TTY_SETTINGS=`stty -g`
+   /bin/stty raw -echo opost
+   /bin/echo "\033[?7l"
+   }
+
+
+# Reset tty modes, character attributes, line wrapping.
+#
+function setCooked 
+   {
+   /bin/stty $TTY_SETTINGS
+   /bin/echo "\033[0m\033[?7h"
+   }
+
+# set up the environment variable for the appropriate platform
+. $RVM_BUILD/environment
+
+# find the host OS type
+HOST_OS=`uname`
+if [ $HOST_OS = "AIX" ]
+then 
+  export ARCH=powerPC
+elif [ $HOST_OS = "Linux" ]
+then
+  export ARCH=intel
+else
+  print "$ME: platform $HOST_OS is not supported yet"
+  exit 1
+fi
+
+if [ x$RVM_ROOT = x ]; then
+   echo "$ME:  please set RVM_ROOT env variable, (eg. $HOME/rvmRoot)"
+   exit 1
+fi
+
+if [[ $* = "" ]]
+then
+  $HOST_JAVA_RT -classpath $RVM_ROOT/src/tools/jdp jdp -help
+   exit 1
+fi
+
+if [[ $RVM_BUILD = "" ]]; then
+   print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
+   exit 1
+fi
+
+if [[ ! -a $RVM_BUILD/Jalapeno.map ]]; then
+   print "$ME: Jalapeno.map does not exist, make sure GENERATE_MAP=1 for your configuration in $RVM_ROOT/bin/jconfigure"
+   exit 1
+fi
+
+
+# make sure all the debugger classes are built
+CURRENT_DIR=`pwd`
+
+if [[ ! -a $RVM_BUILD/Jalapeno.tools/jdp.class ]];
+  then
+
+  echo "JDP classes are not compiled yet, compiling now ..."
+
+  if [[ ! -a $RVM_BUILD/Jalapeno.tools ]];
+    then
+    cd $RVM_BUILD
+    mkdir Jalapeno.tools
+  fi
+
+  cd $RVM_ROOT/src/tools/jdp
+  $GNU_MAKE copy_$ARCH
+  if [[ $? != 0 ]]
+    then
+      echo "Could not copy jdp files."
+      exit 1
+  fi
+  cd $RVM_BUILD/Jalapeno.tools
+  $GNU_MAKE compile
+  if [[ $? != 0 ]]
+    then
+      echo "Could not compile jdp."
+      exit 1
+  fi
+  cd $CURRENT_DIR
+fi 
+
+
+#************************************************************
+# set up for jdp:  LIBPATH for JDK 1.18, LD_LIBRARY_PATH for JDK 1.2
+
+export LIBPATH=$RVM_BUILD/Jalapeno.tools:.
+export LD_LIBRARY_PATH=$RVM_BUILD/Jalapeno.tools:.
+
+JDP_CLASSPATH=$RVM_BUILD/Jalapeno.tools:$RVM_BUILD/Jalapeno.scratch:$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip:.
+
+
+#****************************************************************************
+# Set default values
+#****************************************************************************
+BOOTER=$RVM_BUILD/Jalapeno
+if [[ $HOST_OS = "AIX" ]]
+  then	  
+  BOOTER_BREAKPOINT=`dump -t $BOOTER | fgrep .bootThread | grep -v Caller | awk '{ print $3 }' | sed s/0x//`
+  else
+  BOOTER_BREAKPOINT=`objdump -t $BOOTER | fgrep bootThread | awk '{ print $1 }' `
+fi
+
+CLASSESNEEDED=$RVM_BUILD/Jalapeno.primordials
+
+JALAPENO_IMAGE=$RVM_BUILD/Jalapeno.image
+
+INTERPRETERMODE=""
+
+#************************************************************
+# process args for jalapeno:  pull all vm args to the front
+# remember to put all jdp args together before starting other args
+
+BOOTER_ARGS=""
+
+OTHER_ARGS="-X:vmClasses=$RVM_BUILD/Jalapeno.classes -classpath ."
+
+JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $JALAPENO_IMAGE  -classpath $RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip:. "
+
+
+START_OF_APPLICATION_ARGS_SEEN=0
+for arg in $*; do
+   if   [[ $arg = --   ]]; then
+      START_OF_APPLICATION_ARGS_SEEN=1
+   fi
+   if   [[ $START_OF_APPLICATION_ARGS_SEEN = 1 ]]; then
+      OTHER_ARGS="$OTHER_ARGS $arg"
+   elif [[ $arg = -v   ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -i*  ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -h*  ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -lh* ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -nh* ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -ph* ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -qs* ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -sysLogFile* ]]; then
+      BOOTER_ARGS="$BOOTER_ARGS $arg"
+   elif [[ $arg = -jdpattach* ]]; then
+      JDP_ARGS="$arg $JDP_ARGS"
+   elif [[ $arg = -jdpbootonly* ]]; then
+      INTERPRETERMODE="bootonly"
+      JDP_ARGS="$arg $JDP_ARGS"
+   elif [[ $arg = -jdpGUI* ]]; then
+      JDP_ARGS="-jdpserver $JDP_ARGS"
+   elif [[ $arg = -X:record* ]]; then
+      APP_ARGS="DejaVu -record $APP_ARGS"
+      JDP_ARGS="-jdprecord $JDP_ARGS"
+   elif [[ $arg = -X:replay* ]]; then
+      APP_ARGS="DejaVu -replay $APP_ARGS"
+      JDP_ARGS="-jdpreplay $JDP_ARGS"
+   elif [[ $arg = -jdpviewboot* ]]; then
+      JDP_ARGS="$arg $JDP_ARGS"
+   else
+      APP_ARGS="$APP_ARGS $arg"
+   fi
+done
+
+# for debugging script file
+if false;  then
+  print "INITIAL_ARGS=$*"
+  print "BOOTER_ARGS=$BOOTER_ARGS"
+  print "JDP_ARGS=$JDP_ARGS"
+  print "OTHER_ARGS=$OTHER_ARGS"
+  print "APP_ARGS=$APP_ARGS"
+  print "LIBPATH=$LIBPATH"
+  set -x
+fi
+
+
+
+#****************************************************************************
+# Now invoke the debugger
+#****************************************************************************
+
+if [[ $INTERPRETERMODE = "bootonly" ]];
+  then
+
+  # Running debugger WITHOUT interpreter
+  # (safest mode:  use when the VM is corrupted at the low level)
+  $HOST_JAVA_RT -classpath $JDP_CLASSPATH jdp $JDP_ARGS $OTHER_ARGS $APP_ARGS
+  
+  else
+  
+  # Running the debugger WITH interpret and JIT: 
+  # (to run with JIT off, setenv JAVA_COMPILER=off)
+  $HOST_JAVA_RT -classpath $JDP_CLASSPATH RemoteInterpreter jdp $JDP_ARGS $BOOTER_ARGS $OTHER_ARGS $APP_ARGS
+
+  
+fi

@@ -1,0 +1,84 @@
+
+(C) Copyright IBM Corp. 2001
+
+
+Current status of the JNI implementation
+
+Last updated:  9/6/2001
+Ton Ngo & Steve Smith
+
+o These JNI library calls are packaged in the library $RVM_BUILD/libjni.a
+  They can be called directly from C by linking to this library(use the options  
+  "-L$(RVM_BUILD) -ljni" when compiling):
+
+	JNI_CreateJavaVM
+	JNI_GetCreatedJavaVMs
+	JNI_GetDefaultJavaVMInitArgs
+	DestroyJavaVM       
+	AttachCurrentThread 
+	DetachCurrentThread 
+	GetEnv
+
+
+Not implemented yet:
+--------------------
+
+o These JNI functions are not implemented yet.  Calling them
+  will cause the VM to dump the VM state and exit.
+
+	DefineClass         
+	NewGlobalRef        
+	DeleteGlobalRef     
+	DeleteLocalRef      
+	RegisterNatives     
+	UnregisterNatives   
+	GetJavaVM           
+
+
+o These new JNI library functions were added in Java 2 and are
+  not implemented yet. 
+
+	DeleteWeakGlobalRef         	227          
+	EnsureLocalCapacity             26   
+	ExceptionCheck                  228      
+	FromReflectedField              8      
+	FromReflectedMethod             7      
+	GetPrimitiveArrayCritical       222      
+	GetStringCritical               224      
+	GetStringRegion                 220      
+	GetStringUTFRegion              221      
+	NewLocalRef                     25      
+	NewWeakGlobalRef                226      
+	PopLocalFrame                   20      
+	PushLocalFrame                  19      
+	ReleasePrimitiveArrayCritical   223      
+	ReleaseStringCritical           225      
+	ToReflectedField                12      
+	ToReflectedMethod               9      
+
+
+
+To do items (aka known bugs):
+-----------------------------
+
+o Mangled name for native method: we haven't implemented the complete
+  rule for converting a native method name in Java to the C procedure
+  name yet.  The symptom is an UnsatisfiedLinkError even when the 
+  library is loaded correctly with the expected C procedure.
+
+o Enforce the type rule in the reflection code for invoking private method,
+  i.e. a subclass cannot invoke the private method of its superclass.
+
+
+---------------------------------------------------------------------
+
+Tips:
+-----
+
+o To get a message for each JNI function, set the verboseJNI flag in 
+  VM_JNIFunctions.java
+
+o The unit tests for JNI functions are in the directory tests/jni.  
+  Type "jmake all" to run all the tests and get a summary.
+
+

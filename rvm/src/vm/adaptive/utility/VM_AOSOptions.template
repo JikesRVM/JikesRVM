@@ -1,0 +1,47 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+/**
+ * Class to handle command-line arguments and options for the 
+ * adaptive system.
+ * <p>
+ * Note: This file is mechanically generated from VM_AOSOptions.template
+ *       and MasterOptionsTemplate.template
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES
+ *       All other options are defined in VALUE_DAT_FILES
+ *       (value, enumeration, bitmask)
+ *
+ * @author Dave Grove
+ **/
+class VM_AOSOptions implements Cloneable {
+
+  private String printToStringHeader() {
+    return "Current value of options:\n";
+  }
+
+$$$$ LET USE_OPT_LEVELS "NO"
+// BEGIN CODE GENERATED FROM MasterOptionsTemplate.template
+    $$$$ INCLUDE ../../compilers/optimizing/driver/MasterOptionsTemplate.template
+// END CODE GENERATED FROM MasterOptionsTemplate.template
+$$$$ END LET USE_OPT_LEVELS
+
+  private boolean instanceProcessAsOption(String arg) {
+    return false;
+  }    
+
+
+  private static void instancePrintHelpHeader(String prefix) {
+    VM.sysWrite("Commands\n");
+    VM.sysWrite(prefix+"[:help]       Print a brief description of AOS command-line options\n");
+    VM.sysWrite(prefix+":printOptions Print the current option values of AOS\n");
+    VM.sysWrite(prefix+":o=v          Pass the option-value pair, o=v, to AOS\n");
+    VM.sysWrite(prefix+":opt[:help]   Print a brief description of optimizing compiler's command-line options that recompiles a method\n");
+    VM.sysWrite(prefix+":irc[:help]   Print a brief description of optimizing compiler's command-line options that initially compiles a method\n");
+    VM.sysWrite(prefix+":share[?]:o=v Pass the option-value pair, o=v, to AOS and to the optimizing compiler.  If the optimization level is specified, then only that optimization level is affected when recompiling a method\n");
+    VM.sysWrite("\n");
+  }
+
+  private static void instancePrintHelpFooter(String prefix) {
+  }	
+}

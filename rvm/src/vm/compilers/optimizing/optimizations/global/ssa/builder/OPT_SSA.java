@@ -1,0 +1,205 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+import  java.util.*;
+import  OPT_Operators.*;
+import instructionFormats.*;
+
+
+/**
+ * This module holds utility functions for SSA form.
+ *
+ * Our SSA form is <em> Heap Array SSA Form </em>, an extension of
+ * SSA that allows analysis of scalars, arrays, and object fields
+ * in a unified framework.  See our SAS 2000 paper
+ * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
+ *  Unified Analysis of Arrays and Object References in Strongly Typed
+ *  Languages </a>
+ * <p> Details about our current implementation include:
+ * <ul>
+ *  <li> We explicitly place phi-functions as instructions in the IR.
+ *  <li> Scalar registers are explicitly renamed in the IR.
+ *  <li> Heap variables are represented implicitly. Each instruction
+ *       that reads or writes from the heap implicitly uses a Heap variable.
+ *	 The particular heap variable for each instruction is cached
+ *	 in {@link OPT_SSADictionary <code> ir.HIRInfo.SSADictionary </code>}.
+ *       dphi functions do <em> not </em> 
+ *       explicitly appear in the IR.
+ *  <p> 
+ *  For example, consider the code:
+ *  <p>
+ *  <pre>
+ *		a.x = z;
+ *		b[100] = 5;
+ *		y = a.x;
+ *  </pre>
+ *
+ *  <p>Logically, we translate to Array SSA form (before renumbering) as:
+ *  <pre>
+ *		HEAP_x[a] = z
+ *		HEAP_x = dphi(HEAP_x,HEAP_x)
+ *		HEAP_I[] = { < b,100,5 > }
+ *		HEAP_I[] = dphi(HEAP_I[], HEAP_I[])
+ *		y = HEAP_x[a]
+ *  </pre>
+ *
+ *  <p> However, the implementation does not actually modify the instruction
+ *      stream. Instead, we keep track of the following information with
+ *  <code> ir.HIRInfo.SSADictionary </code>:
+ *  <pre>
+ *		a.x = z  (implicit: reads HEAP_x, writes HEAP_x)
+ *		b[100] =5 (implicit: reads HEAP_I[], writes HEAP_I[])
+ *		y = a.x   (implicit: reads HEAP_x)
+ *  </pre>
+ *
+ *  <p>Similarly, phi functions for the implicit heap 
+ *  variables <em> will not </em>
+ *  appear explicitly in the instruction stream. Instead, the
+ *  OPT_SSADictionary data structure keeps the heap control phi 
+ *  functions for each basic block in a lookaside table.
+ *  </ul>
+ *
+ * @see OPT_EnterSSA
+ * @see OPT_LeaveSSA
+ * @see OPT_SSADictionary
+ * @see OPT_HIRInfo
+ *
+ * @author Stephen Fink
+ * @modified Julian Dolby
+ */
+class OPT_SSA
+    implements OPT_Operators, OPT_Constants {
+
+  /**
+   * Add a move instruction at the end of a basic block, renaming
+   * with a temporary register if needed to protect conditional branches
+   * at the end of the block.
+   *
+   * @param ir governing IR
+   * @param bb the basic block
+   * @param c  the move instruction to insert
+   * @param exp whether or not to respect exception control flow at the
+   *            end of the block
+   */
+  static void addAtEnd (OPT_IR ir, OPT_BasicBlock bb, OPT_Instruction c, 
+      boolean exp) {
+    if (exp)
+      bb.appendInstructionRespectingTerminalBranchOrPEI(c); 
+    else 
+      bb.appendInstructionRespectingTerminalBranch(c);
+    OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
+    OPT_RegisterOperand aux = null;
+    if (VM.VerifyAssertions)
+      VM.assert(Move.conforms(c));
+    OPT_RegisterOperand lhs = Move.getResult(c);
+    OPT_Instruction i = c.nextInstructionInCodeOrder();
+    while (!BBend.conforms(i)) {
+      OPT_OperandEnumeration os = i.getUses();
+      while (os.hasMoreElements()) {
+        OPT_Operand op = os.next();
+        if (lhs.similar(op)) {
+          if (aux == null) {
+            aux = ir.regpool.makeTemp(lhs);
+            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register, 
+                lhs.type));
+          }
+          op.asRegister().register = aux.register;
+        }
+      }
+      i = i.nextInstructionInCodeOrder();
+    }
+  }
+
+  /**
+   * Print the instructions in SSA form.
+   *
+   * @param ir the IR, assumed to be in SSA form
+   */
+  public static void printInstructions (OPT_IR ir) {
+    OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
+    System.out.println("********* START OF IR DUMP in SSA FOR " + ir.method);
+    for (OPT_BasicBlockEnumeration be = 
+        ir.forwardBlockEnumerator(); be.hasMoreElements();) {
+      OPT_BasicBlock bb = be.next();
+      // print the explicit instructions for basic block bb
+      for (Enumeration e = dictionary.getAllInstructions(bb); 
+          e.hasMoreElements();) {
+        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        System.out.print(s.bcIndex + "\t" + s);
+        if (dictionary.defsHeapVariable(s)) {
+          System.out.print("  (Implicit Defs: ");
+          OPT_HeapOperand[] defs = dictionary.getHeapDefs(s);
+          if (defs != null)
+            for (int i = 0; i < defs.length; i++)
+              System.out.print(defs[i] + " ");
+          System.out.print(" )");
+        }
+        if (dictionary.usesHeapVariable(s)) {
+          System.out.print("  (Implicit Uses: ");
+          OPT_HeapOperand[] uses = dictionary.getHeapUses(s);
+          if (uses != null)
+            for (int i = 0; i < uses.length; i++)
+              System.out.print(uses[i] + " ");
+          System.out.print(" )");
+        }
+        System.out.print("\n");
+      }
+    }
+    System.out.println("*********   END OF IR DUMP in SSA FOR " + ir.method);
+  }
+
+  /**
+   * Does this IR contain instructions which prevent our translation
+   * to SSA form?
+   *
+   * @return false always
+   */
+  public static boolean containsUnsupportedOpcode (OPT_IR ir) {
+    return  false;
+  }
+
+  /** 
+   * Create a move instruction r1 := r2.
+   *
+   * TODO: This utility function should be moved elsewhere.
+   *
+   * @param ir the governing ir
+   * @param r1 the destination
+   * @param r2 the source
+   * @param t the type of r1 and r2.
+   */
+  static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
+      OPT_Register r2, VM_Type t) {
+    OPT_Operator mv = OPT_IRTools.getMoveOp(t, ir.IRStage == ir.LIR);
+    OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, t);
+    OPT_RegisterOperand o2 = new OPT_RegisterOperand(r2, t);
+    OPT_Instruction s = Move.create(mv, o1, o2);
+    s.position = ir.gc.inlineSequence;
+    s.bcIndex = SSA_SYNTH_BCI;
+    return  s;
+  }
+
+  /** 
+   * Create a move instruction r1 := c.
+   *
+   * !!TODO: put this functionality elsewhere.
+   * 
+   * @param ir the governing ir
+   * @param r1 the destination
+   * @param c the source
+   */
+  static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
+      OPT_ConstantOperand c) {
+    OPT_Operator mv = OPT_IRTools.getMoveOp(c.getType(), ir.IRStage == 
+        ir.LIR);
+    OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, c.getType());
+    OPT_Operand o2 = c.copy();
+    OPT_Instruction s = Move.create(mv, o1, o2);
+    s.position = ir.gc.inlineSequence;
+    s.bcIndex = SSA_SYNTH_BCI;
+    return  s;
+  }
+
+}

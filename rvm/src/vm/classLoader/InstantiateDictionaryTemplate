@@ -1,0 +1,22 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# Produce a ".java" file from a "VM_Dictionary.template" file.
+#
+
+if [ $# != 6 ]; then
+   echo "usage: $0 dictionaryClassName keyTypeName valueTypeName hasherClassName templateFileName outputFileName"
+   exit 1
+fi
+
+CNAME=$1
+KNAME=$2
+VNAME=$3
+DNAME=$4
+IFILE=$5
+OFILE=$6
+
+echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'           >$OFILE
+echo                                                                                >>$OFILE
+sed -e s/CCC/$CNAME/g -e s/KKK/$KNAME/g -e s/VVV/$VNAME/g -e s/DDD/$DNAME/g <$IFILE >>$OFILE

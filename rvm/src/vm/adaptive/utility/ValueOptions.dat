@@ -1,0 +1,123 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value, B = BitMask (TODO).
+# TYPE: byte, int, String
+DESCRIP  
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERRY_NAME CMD_NAME"
+
+V INITIAL_SAMPLE_SIZE int 50
+Initial value of how many samples to take before reporting method hotness to controller
+
+
+V MAX_OPT_LEVEL int 2
+What is the highest optimization level to use when adaptive recompilation is employed?
+
+
+V DEFAULT_OPT_LEVEL int 2
+The optimization level to use for recompilation (with simple strategy)
+
+
+V FILTER_OPT_LEVEL int 2
+At what optimization level should we begin to NOT return to methods to the controller
+
+
+E PRIMARY_STRATEGY byte PS_ADAPTIVE
+Selection of primary controller strategy
+"PS_BASE_ONLY baselineOnly baseonly" \
+"PS_QUICK_ONLY quickOnly quickonly" \
+"PS_OPT_ONLY optOnly optonly" \
+"PS_ADAPTIVE adaptive adaptive"
+
+E METHOD_SAMPLE_ORGANIZER byte MSO_WINDOW
+Selection of method sample (recompilation) organizer
+"MSO_WINDOW windowing window" \
+"MSO_WINDOW_HIST windowingWithHistory windowHist"
+
+V MSO_ADJUST_BOUNDS double 0.50
+Samples adjusted by window-history MSO by factors of 1.0 +/- MSO_ADJUST_BOUNDS
+
+
+V MSO_NUM_EPOCHS int 7 
+How many epochs to maintain for the window-history based MSO
+
+
+V LOGFILE_NAME String \"AOSLog.txt\" lf
+Name of log file
+
+
+V ADAPTIVE_INLINE_LOGFILE_NAME String \"AOSILog.txt\" ilf
+Name of inline decision log file
+
+
+V COMPILER_DNA_FILE_NAME String \"CompilerDNA.txt\" dna
+Name of compiler DNA file
+
+
+V LOGGING_LEVEL int 1
+Control amount of event logging (larger ==> more)
+
+
+V FINAL_REPORT_LEVEL int 0
+Control amount of info reported on exit (larger ==> more)
+
+
+V SAMPLE_FREQ_MILLIS double 10.0
+Sample frequency, in milliseconds
+
+
+V DARK_MATTER double 0.15
+What percentage of execution time, for one reason or another, does not appear in samples?
+
+
+V DECAY_FREQUENCY int 100
+After how many clock ticks should we decay
+
+
+V DECAY_RATE double 1.50
+What factor should we decay by
+
+
+V AI_DECAY_RATE double 1.1
+What factor should we decay by AI hotness by
+
+
+V FIXED_RECOMPILATION_OVERHEAD double 1.0
+Fixed cost of recompiling and installing a method
+
+
+V AI_SAMPLE_SIZE int 250
+After how many samples do we update the weights in the dynamic call graph?
+
+
+V INITIAL_AI_THRESHOLD double 0.06
+What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, at program startup?
+
+
+V FINAL_AI_THRESHOLD double 0.015
+What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, in steady state?
+
+
+V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
+What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
+
+
+V MAX_EXPECTED_AI_BOOST double 2.0
+How much more effective do we expected an optimization level to be if boosted by adaptive inlining?
+
+
+V OFFLINE_INLINE_PLAN_NAME String \"AI_plan\" offlinePlan
+Name of offline inline plan to be read and used for inlining
+
+
+V CONTROLLER_INPUT_QUEUE_SIZE int 40
+The size of the controllerInputQueue
+
+
+V COMPILATION_QUEUE_SIZE int 20
+The size of the compilation queue
+
+

@@ -1,0 +1,52 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+#
+# This file defines a set of environment variables needed to build and
+# run Jalapeno.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# IMPORTANT: You need to modify this file to reflect your environment!
+#
+
+export HOST_JAVA_HOME=/usr/local/jre13
+
+# the JDK java executable
+export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+
+# the JDK javac executable
+export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+
+# the JDK jar executable
+export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
+
+# the JDK standard library jar files
+export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
+
+# path for GNU make
+export GNU_MAKE=/usr/bin/make
+
+# path for jikes.  The current distribution includes jikes in contrib/jikes
+export JIKES=/usr/bin/jikes
+
+# what C compilers should be used?
+export CC="/usr/bin/gcc -w -O -Wa,-mppc"
+
+# what C++ compilers should be used?
+export CPLUS="/usr/bin/g++"
+
+# how to link a shared C++ library
+export LDSHARED="/usr/bin/g++ -shared"
+
+# used by the jbuild.linkBooter
+export CPP=/usr/bin/cpp
+
+#
+export JNI_NATIVE_LIBS_LD=
+
+export GREP="/usr/bin/grep"
+export FIND="/usr/bin/find"
+export FGREP="/usr/bin/fgrep"
+export AWK="/usr/bin/awk"
+

@@ -1,0 +1,4 @@
+   . $1/OptOptcopyingGC 
+   export RVM_WITH_OPT_TEST_HARNESS=1 
+   
+   CONF_SPECIFIC_SOURCES_LIST="$CONF_SPECIFIC_SOURCE_LIST src/tools/optTestHarness"

@@ -1,0 +1,730 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/*
+ * NOTE: OPT_Operator.java is mechanically generated from 
+ * OPT_Operator.template using the operator definitions in 
+ * OperatorList.dat and ARCH_IR_DIROperatorList.dat
+ *
+ * DO NOT MANUALLY EDIT THE JAVA FILE.
+ */
+
+/**
+ * An OPT_Operator represents the operator of an {@link OPT_Instruction}.
+ * For each operator in the IR, we create exactly one OPT_Operator instance
+ * to represent it. These instances are all stored in static fields
+ * of {@link OPT_Operators}. Since only one instance is created for each
+ * semantic operator, they can be compared using <code>==</code>.
+ * <p>
+ * A common coding practive is to implement the {@link OPT_Operators}
+ * interface to be able to reference the IR operators within a class
+ * without having to prepend 'OPT_Operators.' everywhere.
+ * 
+ * @see OPT_Operators
+ * @see OPT_Instruction
+ * @see OPT_OperatorNames
+ * 
+ * @author Dave Grove
+ * @author Igor Pechtchanski
+ * @author Mauricio J. Serrano
+ * @author John Whaley
+ */
+public final class OPT_Operator {
+
+  /**
+   * The operators opcode.
+   * This value serves as a unique id suitable for use in switches
+   */
+  char opcode;
+
+  /**
+   * Encoding of the operator's InstructionFormat.
+   * This field is only meant to be directly referenced
+   * from the mechanically generated InstructionFormat
+   * classes defined in the instructionFormats package.
+   * {@link OPT_Instruction} contains an explanation
+   * of the role of InstructionFormats in the IR.
+   */
+  public byte format;
+
+  /**
+   * encoding of operator traits (characteristics)
+   */
+  private int traits;
+
+  /**
+   * How many operands of the operator are (pure) defs?
+   */
+  private byte numberDefs;
+
+  /**
+   * How many operands of the operator are both defs and uses?
+   * Only non-zero on IA32, 390.
+   */
+  private byte numberDefUses;  
+
+  /**
+   * How many operands of the operator are pure uses?
+   * Only contains a valid value for non-variableLength operators
+   */
+  private byte numberUses;
+
+  /**
+   * Physical registers that are implicitly defined by the operator.
+   */
+  final int implicitDefs;
+
+  /**
+   * Physical registers that are implicitly used by the operator.
+   */
+  final int implicitUses;
+
+$$$$ IF ARCHITECTURE != "NONE"
+$$$$ IF ARCHITECTURE == "powerPC"
+  /**
+   * Instruction template used by the assembler to
+   * generate binary code.  Only valid on MIR operators.
+   */
+  int instTemplate;
+$$$$ END IF
+
+  /**
+   * Operator Class of the operator; used for instruction scheduling.
+   */
+  OPT_OperatorClass opClass;
+
+  /**
+   * Sets the operator class.
+   *
+   * @param opClass operator class
+   */
+  public void setOpClass(OPT_OperatorClass opClass) {
+    this.opClass = opClass;
+  }
+
+  /**
+   * Gets the operator class.
+   *
+   * @return operator class
+   */
+  public OPT_OperatorClass getOpClass() {
+    return opClass;
+  }
+
+$$$$ END IF
+  
+  /**
+   * Returns the string representation of this operator.
+   *
+   * @return the name of the operator
+   */
+  public String toString() {
+    return OPT_OperatorNames.toString(this);
+  }
+
+  /**
+   * Returns the number of operands that are defs.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of operands that are pure defs
+   */
+  public int getNumberOfPureDefs() {
+    if (VM.VerifyAssertions) VM.assert(!hasVarDefs());
+    return numberDefs;
+  }
+
+  /**
+   * Returns the number of operands that are pue defs
+   * and are not in the variable-length part of the operand list.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return how many non-variable operands are pure uses
+   */
+  public int getNumberOfFixedPureDefs() {
+    return numberDefs;
+  }
+
+  /**
+   * Returns the number of operands that are defs
+   * and uses.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of operands that are combined defs and uses
+   */
+  public int getNumberOfDefUses() {
+    return numberDefUses;
+  }
+
+  /**
+   * Returns the number of operands that are pure uses.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of operands that are pure uses
+   */
+  public int getNumberOfPureUses() {
+    return numberUses;
+  }
+
+  /**
+   * Returns the number of operands that are defs
+   * (either pure defs or combined def/uses).
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of operands that are defs
+   */
+  public int getNumberOfDefs() {
+    if (VM.VerifyAssertions) VM.assert(!hasVarDefs());
+    return numberDefs + numberDefUses;
+  }
+  
+  /**
+   * Returns the number of operands that are uses 
+   * (either combined def/uses or pure uses).
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return how many operands are uses
+   */
+  public int getNumberOfUses() {
+    if (VM.VerifyAssertions) VM.assert(!hasVarUses());
+    return numberDefUses + numberUses;
+  }
+
+  /**
+   * Returns the number of operands that are pure uses 
+   * and are not in the variable-length part of the operand list.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return how many non-variable operands are pure uses
+   */
+  public int getNumberOfPureFixedUses() {
+    return numberUses;
+  }
+  
+  /**
+   * Returns the number of operands that are uses 
+   * (either combined use/defs or pure uses)
+   * and are not in the variable-length part of the operand list.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return number of non-variable operands are uses
+   */
+  public int getNumberOfFixedUses() {
+    return numberDefUses + numberUses;
+  }
+  
+  /**
+   * Returns the number of physical registers that are
+   * implicitly defined by this operator.
+   *
+   * @return number of implicit defs
+   */
+  public int getNumberOfImplicitDefs() {
+    return OPT_Bits.numberOfOnes(implicitDefs);
+  }
+  
+  /**
+   * Returns the number of physical registers that are
+   * implicitly used by this operator.
+   *
+   * @return number of implicit uses
+   */
+  public int getNumberOfImplicitUses() {
+    return OPT_Bits.numberOfOnes(implicitUses);
+  }
+  
+  /*
+   * The following are used to encode operator traits in OperatorList.dat.
+   * Had to make a few of them public (yuck) to let us get at them
+   * from OPT_InstructionFormat.java.
+   */
+  // operator has no interesting traits
+  static final public int none         = 0x00000000;
+  // operator is a simple move operation from one "register" to another
+  static final private int move         = 0x00000001; 
+  // operator is an intraprocedural branch of some form
+  static final private int branch       = 0x00000002; 
+  // operator is some kind of call (interprocedural branch)
+  static final private int call         = 0x00000004; 
+  // modifer for branches/calls
+  static final private int conditional  = 0x00000008;
+  // modifier for branches/calls, mostly on MIR
+  static final private int indirect     = 0x00000010;
+  // an explicit load of a value from memory
+  static final private int load         = 0x00000020; 
+  // operator is modeled as a load by memory system, mostly on MIR
+  static final private int memAsLoad    = 0x00000040; 
+  // an explicit store of a value to memory
+  static final private int store        = 0x00000080; 
+  // operator is modeled as a store by memory system, mostly on MIR
+  static final private int memAsStore   = 0x00000100; 
+  // is an exception throw
+  static final private int ethrow       = 0x00000200;
+  // an immediate PEI (null_check, int_zero_check, but _not_ call);
+  static final private int immedPEI     = 0x00000400; 
+  // operator is some kind of compare (val,val)-> cond
+  static final private int compare      = 0x00000800; 
+  // an explicit memory allocation
+  static final private int alloc        = 0x00001000; 
+  // a return instruction (interprocedural branch)
+  static final private int ret          = 0x00002000; 
+  // operator has a variable number of uses
+  static final public int varUses      = 0x00004000; 
+  // operator has a variable number of defs
+  static final public int varDefs      = 0x00008000; 
+  // operator is a potential thread switch point for some reason
+  // other than being a call/immedPEI
+  static final private int tsp          = 0x00010000; 
+  // operator is an acquire (monitorenter/lock) HIR only
+  static final private int acquire      = 0x00020000; 
+  // operator is a relase (monitorexit/unlock) HIR only
+  static final private int release      = 0x00040000; 
+  // operator either directly or indirectly may casue dynamic linking
+  static final private int dynLink      = 0x00080000; 
+  // operator is a yield point
+  static final private int yieldPoint   = 0x00100000; 
+
+  /**
+   * Does the operator represent a simple move (the value is unchanged) 
+   * from one "register" location to another "register" location?
+   * 
+   * @return <code>true</code> if the operator is a simple move
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isMove() { 
+    return (traits & move) != 0; 
+  }
+
+  /**
+   * Is the operator an intraprocedural branch?
+   * 
+   * @return <code>true</code> if the operator is am
+   *         intraprocedural branch or <code>false</code> if it is not.
+   */
+  public final boolean isBranch() { 
+    return (traits & branch) != 0; 
+  }
+
+  /**
+   * Is the operator a conditional intraprocedural branch?
+   * 
+   * @return <code>true</code> if the operator is a conditoonal
+   *         intraprocedural branch or <code>false</code> if it is not.
+   */
+  public final boolean isConditionalBranch() { 
+    return (traits & (branch|conditional)) == (branch|conditional); 
+  }
+
+  /**
+   * Is the operator an unconditional intraprocedural branch?
+   * We consider various forms of switches to be unconditional
+   * intraprocedural branches, even though they are multi-way branches
+   * and we may not no exactly which target will be taken.  
+   * This turns out to be the right thing to do, since some
+   * arm of the switch will always be taken (unlike conditional branches).
+   * 
+   * @return <code>true</code> if the operator is an unconditional
+   *         intraprocedural branch or <code>false</code> if it is not.
+   */
+  public final boolean isUnconditionalBranch() {
+    return (traits & (branch|conditional)) == branch; 
+  }
+
+  /**
+   * Is the operator a direct intraprocedural branch?
+   * In the HIR and LIR we consider switches to be direct branches, 
+   * because their targets are known precisely.
+   * 
+   * @return <code>true</code> if the operator is a direct
+   *         intraprocedural branch or <code>false</code> if it is not.
+   */
+  public final boolean isDirectBranch() {
+    return (traits & (branch|indirect)) == branch;
+  }
+
+  /**
+   * Is the operator an indirect intraprocedural branch?
+   * 
+   * @return <code>true</code> if the operator is an indirect
+   *         interprocedural branch or <code>false</code> if it is not.
+   */
+  public final boolean isIndirectBranch() {
+    return (traits & (branch|indirect)) == (branch|indirect);
+  }
+
+  /**
+   * Is the operator a call (one kind of interprocedural branch)?
+   * 
+   * @return <code>true</code> if the operator is a call
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isCall() {
+    return (traits & call) != 0;
+  }
+
+  /**
+   * Is the operator a conditional call? 
+   * We only allow conditional calls in the MIR, since they
+   * tend to only be directly implementable on some architecutres.
+   * 
+   * @return <code>true</code> if the operator is a 
+   *         conditional call or <code>false</code> if it is not.
+   */
+  public final boolean isConditionalCall() { 
+    return (traits & (call|conditional)) == (call|conditional); 
+  }
+
+  /**
+   * Is the operator an unconditional call?
+   * Really only an interesting question in the MIR, since
+   * it is by definition true for all HIR and LIR calls.
+   * 
+   * @return <code>true</code> if the operator is an unconditional
+   *         call or <code>false</code> if it is not.
+   */
+  public final boolean isUnconditionalCall() {
+    return (traits & (call|conditional)) == call; 
+  }
+
+  /**
+   * Is the operator a direct call?
+   * Only interesting on the MIR.  In the HIR and LIR we pretend that
+   * all calls are "direct" even though most of them aren't.
+   * 
+   * @return <code>true</code> if the operator is a direct call
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isDirectCall() {
+    return (traits & (call|indirect)) == call;
+  }
+
+  /**
+   * Is the operator an indirect call?
+   * Only interesting on the MIR.  In the HIR and LIR we pretend that
+   * all calls are "direct" even though most of them aren't.
+   * 
+   * @return <code>true</code> if the operator is an indirect call
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isIndirectCall() {
+    return (traits & (call|indirect)) == (call|indirect);
+  }
+
+  /**
+   * Is the operator an explicit load of a finite set of values from
+   * a finite set of memory locations (load, load multiple, _not_ call)?
+   * 
+   * @return <code>true</code> if the operator is an explicit load
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isExplicitLoad() {
+    return (traits & load) != 0;
+  }
+
+  /**
+   * Should the operator be treated as a load from some unknown location(s)
+   * for the purposes of scheduling and/or modeling the memory subsystem?
+   * 
+   * @return <code>true</code> if the operator is an implicit load
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isImplicitLoad() {
+    return (traits & (load|memAsLoad|call)) != 0;
+  }
+
+  /**
+   * Is the operator an explicit store of a finite set of values to
+   * a finite set of memory locations (store, store multiple, _not_ call)?
+   * 
+   * @return <code>true</code> if the operator is an explicit store
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isExplicitStore() {
+    return (traits & store) != 0;
+  }
+
+  /**
+   * Should the operator be treated as a store to some unknown location(s)
+   * for the purposes of scheduling and/or modeling the memory subsystem?
+   * 
+   * @return <code>true</code> if the operator is an implicit store
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isImplicitStore() {
+    return (traits & (store|memAsStore|call)) != 0;
+  }
+
+  /**
+   * Is the operator a throw of a Java exception?
+   * 
+   * @return <code>true</code> if the operator is a throw
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isThrow() {
+    return (traits & ethrow) != 0;
+  }
+
+  /**
+   * Is the operator a PEI (Potentially Excepting Instruction)?
+   * 
+   * @return <code>true</code> if the operator is a PEI
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isPEI() {
+    return (traits & (ethrow|immedPEI)) != 0;
+  }
+
+  /**
+   * Is the operator a potential GC point?
+   * 
+   * @return <code>true</code> if the operator is a potential 
+   *         GC point or <code>false</code> if it is not.
+   */
+  public final boolean isGCPoint() {
+    return isPEI() || ((traits & (alloc|tsp)) != 0);
+  }
+
+  /**
+   * is the operator a potential thread switch point?
+   * 
+   * @return <code>true</code> if the operator is a potential
+   *         threadswitch point or <code>false</code> if it is not.
+   */
+  public final boolean isTSPoint() {
+    return isGCPoint();
+  }
+
+  /**
+   * Is the operator a compare (val,val) => condition?
+   * 
+   * @return <code>true</code> if the operator is a compare
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isCompare() {
+    return (traits & compare) != 0;
+  }
+
+  /**
+   * Is the operator an actual memory allocation instruction 
+   * (NEW, NEWARRAY, etc)?
+   * 
+   * @return <code>true</code> if the operator is an allocation
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isAllocation() {
+    return (traits & alloc) != 0;
+  }
+
+  /**
+   * Is the operator a return (interprocedural branch)?
+   * 
+   * @return <code>true</code> if the operator is a return
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isReturn() {
+    return (traits & ret) != 0;
+  }
+
+  /**
+   * Can the operator have a variable number of uses?
+   * 
+   * @return <code>true</code> if the operator has a variable number 
+   *         of uses or <code>false</code> if it does not.
+   */
+  public final boolean hasVarUses() {
+    return (traits & varUses) != 0;
+  }
+
+  /**
+   * Can the operator have a variable number of uses?
+   * 
+   * @return <code>true</code> if the operator has a variable number 
+   *         of uses or <code>false</code> if it does not.
+   */
+  public final boolean hasVarDefs() {
+    return (traits & varDefs) != 0;
+  }
+
+  /**
+   * Is the operator an acquire (monitorenter/lock)?
+   * 
+   * @return <code>true</code> if the operator is an acquire
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isAcquire() {
+    return (traits & acquire) != 0;
+  }
+
+  /**
+   * Is the operator a release (monitorexit/unlock)?
+   * 
+   * @return <code>true</code> if the operator is a release
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isRelease() {
+    return (traits & release) != 0;
+  }
+
+  /**
+   * Could the operator either directly or indirectly 
+   * cause dynamic class loading?
+   * 
+   * @return <code>true</code> if the operator is a dynamic linking point
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isDynamicLinkingPoint() {
+    return (traits & dynLink) != 0;
+  }
+
+  /**
+   * Is the operator a yield point?
+   * 
+   * @return <code>true</code> if the operator is a yield point
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isYieldPoint() {
+    return (traits & yieldPoint) != 0;
+  }
+
+
+$$$$ IF ARCHITECTURE == "NONE"
+  private static final OPT_Register[] _empty = new OPT_Register[0];
+$$$$ END IF
+  public static final OPT_Operator OperatorArray[] = {
+$$$$ FOREACH OPERATOR OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+     new OPT_Operator((char)OPERATOR.INDEX, instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
+$$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+	              (OPERATOR.TRAITS),
+                      (byte)0,(byte)0,(byte)0,
+$$$$ ELSE
+	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits), 
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+$$$$ END IF
+$$$$ IF ARCHITECTURE != "NONE"
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLUSES),
+$$$$ ELSE 
+                      _empty,_empty),
+$$$$ END IF
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ IF ARCHITECTURE == "powerPC"
+  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+     new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
+                      instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
+  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+	              (OPERATOR.TRAITS),
+                      (byte)0,(byte)0,(byte)0,
+  $$$$ ELSE
+	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+  $$$$ END IF
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLUSES,
+	              OPERATOR.MIR_TEMPLATE),
+  $$$$ END FOREACH
+$$$$ ELSE
+  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+     new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
+                      instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
+  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+	              (OPERATOR.TRAITS),
+                      (byte)0,(byte)0,(byte)0,
+  $$$$ ELSE
+	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+  $$$$ END IF
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      OPT_PhysicalDefUse.maskOPERATOR.IMPLUSES),
+  $$$$ END FOREACH
+$$$$ END IF
+$$$$ END IF 
+     null };
+
+  // For HIR/LIR
+  private OPT_Operator(char opcode, byte format, int traits,
+		       byte numDefs, byte numDefUses, byte numUses,
+                       int iDefs, int iUses) {
+    this.opcode       = opcode;
+    this.format       = format;
+    this.traits       = traits;
+    this.numberDefs   = numDefs;
+    this.numberDefUses= numDefUses;
+    this.numberUses   = numUses;
+    this.implicitDefs = iDefs;
+    this.implicitUses = iUses;
+  }                             
+
+$$$$ IF ARCHITECTURE == "powerPC"
+  // For MIR
+  private OPT_Operator(char opcode, byte format, int traits, 
+		       byte numDefs, byte numDefUses, byte numUses,
+	               int iDefs, int iUses,
+	               int iTemp) {
+    this.opcode       = opcode;
+    this.format       = format;
+    this.traits       = traits;
+    this.instTemplate = iTemp;
+    this.numberDefs   = numDefs;
+    this.numberDefUses= numDefUses;
+    this.numberUses   = numUses;
+    this.implicitDefs = iDefs;
+    this.implicitUses = iUses;
+  }
+$$$$ END IF
+}

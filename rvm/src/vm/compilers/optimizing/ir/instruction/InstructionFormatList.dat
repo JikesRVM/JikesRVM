@@ -1,0 +1,295 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorTypeList.dat
+#//$Id$
+#
+NAME
+# structure of SIZES: NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+SIZES
+# structure of SIG: { "D/DU/U NAME TYPE [opt]" }
+SIG
+# structure of VARSIG: NAME TYPE [PLURAL]
+#                                use PLURAL if NAME"s" is not plural for NAME
+VARSIG
+
+Move
+1 0 1
+"D Result OPT_RegisterOperand" "U Val OPT_Operand"
+
+
+Return
+0 0 1
+"U Val OPT_Operand opt"
+
+
+Prologue
+0 0 0 1 D -1
+
+"Formal OPT_RegisterOperand"
+
+InstrumentedCounter
+0 0 3
+"U Data OPT_IntConstantOperand" "U Index OPT_IntConstantOperand" "U Increment OPT_Operand"
+
+
+Empty
+0 0 0
+
+
+
+Nullary
+1 0 0
+"D Result OPT_RegisterOperand"
+
+
+New
+1 0 1
+"D Result OPT_RegisterOperand" "U Type OPT_TypeOperand"
+
+
+NewArray
+1 0 2
+"D Result OPT_RegisterOperand" "U Type OPT_TypeOperand" "U Size OPT_Operand"
+
+
+# how do we verify that the operand is a ref?
+Athrow
+0 0 1
+"U Value OPT_RegisterOperand"
+
+
+# how do we verify that the operand is a ref?
+MonitorOp
+0 0 2
+"U Ref OPT_Operand" "U Guard OPT_Operand opt"
+
+
+# how do we verify that the operand is a ref?
+CacheOp
+0 0 1
+"U Ref OPT_Operand"
+
+
+# how do we verify that the operand is a ref?
+NullCheck
+1 0 1
+"D GuardResult OPT_RegisterOperand" "U Ref OPT_Operand"
+
+
+ZeroCheck
+1 0 1
+"D GuardResult OPT_RegisterOperand" "U Value OPT_Operand"
+
+
+BoundsCheck
+1 0 3
+"D GuardResult OPT_RegisterOperand" "U Ref OPT_Operand" "U Index OPT_Operand" "U Guard OPT_Operand"
+
+
+StoreCheck
+1 0 3
+"D GuardResult OPT_RegisterOperand" "U Ref OPT_Operand" "U Val OPT_Operand" "U Guard OPT_Operand"
+
+
+TypeCheck
+0 0 3
+"U Ref OPT_Operand" "U Type OPT_TypeOperand" "U Guard OPT_Operand opt"
+
+
+InstanceOf
+1 0 3
+"D Result OPT_RegisterOperand" "U Type OPT_TypeOperand" "U Ref OPT_Operand" \
+"U Guard OPT_Operand opt"
+
+
+Trap
+1 0 1
+"D GuardResult OPT_RegisterOperand" "U TCode OPT_TrapCodeOperand"
+
+
+TrapIf
+1 0 4
+"D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond OPT_ConditionOperand" "U TCode OPT_TrapCodeOperand"
+
+
+IfCmp
+1 0 5
+"D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond OPT_ConditionOperand" "U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
+
+
+IfCmp2
+1 0 8
+"D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond1 OPT_ConditionOperand" "U Target1 OPT_BranchOperand" "U BranchProfile1 OPT_BranchProfileOperand" \
+"U Cond2 OPT_ConditionOperand" "U Target2 OPT_BranchOperand" "U BranchProfile2 OPT_BranchProfileOperand"
+
+
+TypeIfCmp
+0 0 6
+"U Value OPT_Operand" "U Guard OPT_Operand" "U Type OPT_TypeOperand" \
+"U Cond OPT_ConditionOperand" "U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
+
+
+MethodIfCmp
+0 0 6
+"U Value OPT_Operand" "U Guard OPT_Operand" "U Method OPT_MethodOperand" \
+"U Cond OPT_ConditionOperand" "U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
+
+
+BooleanCmp
+1 0 4
+"D Result OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond OPT_ConditionOperand" "U BranchProfile OPT_BranchProfileOperand"
+
+
+Goto
+0 0 1
+"U Target OPT_BranchOperand"
+
+
+ComputedGoto
+0 0 1
+"U Target OPT_RegisterOperand"
+
+
+Label
+0 0 1
+"U Block OPT_BasicBlockOperand"
+
+
+BBend
+0 0 1
+"U Block OPT_BasicBlockOperand"
+
+
+# identical to Move, but implies computation as well.
+Unary
+1 0 1
+"D Result OPT_RegisterOperand" "U Val OPT_Operand"
+
+
+# Like Unary, but consumes a guard operand too.
+GuardedUnary
+1 0 2
+"D Result OPT_RegisterOperand" "U Val OPT_Operand" "U Guard OPT_Operand"
+
+
+Binary
+1 0 2
+"D Result OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand"
+
+
+# Like Binary, but consumes a guard operand too.
+GuardedBinary
+1 0 3
+"D Result OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" "U Guard OPT_Operand"
+
+
+GuardedSet
+0 0 2
+"U Ref OPT_Operand" "U Val OPT_Operand" "U Guard OPT_Operand"
+
+
+ALoad
+1 0 4
+"D Result OPT_RegisterOperand" \
+"U Array OPT_Operand" "U Index OPT_Operand" "U Location OPT_LocationOperand" \
+"U Guard OPT_Operand opt"
+
+
+GetField
+1 0 3
+"D Result OPT_RegisterOperand" "U Ref OPT_Operand opt" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+GetStatic
+1 0 1
+"D Result OPT_RegisterOperand" "U Location OPT_LocationOperand"
+
+
+Load
+1 0 4
+"D Result OPT_RegisterOperand" \
+"U Address OPT_Operand" "U Offset OPT_Operand" "U Location OPT_LocationOperand" \
+"U Guard OPT_Operand opt"
+
+
+AStore
+0 0 5
+"U Value OPT_Operand" "U Array OPT_Operand" "U Index OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+PutField
+0 0 4
+"U Value OPT_Operand" "U Ref OPT_Operand opt" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+PutStatic
+0 0 2
+"U Value OPT_Operand" "U Location OPT_LocationOperand"
+
+
+Store
+0 0 5
+"U Value OPT_Operand" "U Address OPT_Operand" "U Offset OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+Prepare
+1 0 4
+"D Result OPT_RegisterOperand" "U Address OPT_Operand" \
+"U Offset OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+Attempt
+1 0 6
+"D Result OPT_RegisterOperand" "U Address OPT_Operand" \
+"U Offset OPT_Operand" \
+"U OldValue OPT_Operand" "U NewValue OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+
+
+Call
+1 0 3 1 U 4
+"D Result OPT_RegisterOperand" \
+"U Address OPT_Operand" "U Method OPT_MethodOperand" "U Guard OPT_Operand opt"
+"Param OPT_Operand"
+
+CallSpecial
+1 0 3 1 U 4
+"D Result OPT_RegisterOperand" "U Address OPT_Operand" "U Method OPT_Operand" \
+"U Guard OPT_Operand opt" 
+"Param OPT_Operand"
+
+TableSwitch
+0 0 7 2 U -1
+"U Value OPT_Operand" "U Unknown1 OPT_Operand" "U Unknown2 OPT_Operand" \
+"U Low OPT_IntConstantOperand" "U High OPT_IntConstantOperand" \
+"U Default OPT_BranchOperand" "U DefaultBranchProfile OPT_BranchProfileOperand"
+"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+
+LookupSwitch
+0 0 5 3 U -1
+"U Value OPT_Operand" "U Unknown1 OPT_Operand" \
+"U Unknown2 OPT_Operand" "U Default OPT_BranchOperand" \
+"U DefaultBranchProfile OPT_BranchProfileOperand"
+"Match OPT_IntConstantOperand Matches" "Target OPT_BranchOperand" \
+"BranchProfile OPT_BranchProfileOperand"
+
+Phi
+1 0 0 2 U -1
+"D Result OPT_Operand"
+"Value OPT_Operand" "Pred OPT_BasicBlockOperand"
+
+# Bogus instruction format only used by template generation code.
+ARCH_INDEPENDENT_INSTR_FORMAT_END
+0 0 0 0 0
+
+

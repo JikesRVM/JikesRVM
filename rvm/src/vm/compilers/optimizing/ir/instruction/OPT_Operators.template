@@ -1,0 +1,52 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/*
+ * THIS FILE IS MACHINE GENERATED. DO NOT EDIT.
+ * The input files are:
+ *  OPT_Operators.template
+ *  OperatorList.dat
+ *  ARCH_IR_DIROperatorList.dat
+ */
+
+/**
+ * Interface with all operator names and opcodes.
+ * 
+ * @see OPT_Operator
+ * @author Dave Grove
+ * @author Igor Pechtchanski
+ * @author John Whaley
+ */
+interface OPT_Operators {
+
+$$$$ FOREACH OPERATOR OperatorList.dat
+  public static final char OPERATOR.SYMBOL_opcode = (char)OPERATOR.INDEX;
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+  public static final char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
+$$$$ END FOREACH
+$$$$ END IF
+
+$$$$ FOREACH OPERATOR OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+  public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX];
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+  public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
+$$$$ END FOREACH
+$$$$ END IF
+
+}

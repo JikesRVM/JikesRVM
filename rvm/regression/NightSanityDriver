@@ -1,0 +1,53 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+
+# do nothing by default
+NOBUILD=
+NORUN=
+
+# driver config file must be given
+DRIVER=
+
+while [ $# != 0 ]; do
+
+  case $1 in
+   
+    -common)
+	ADDED=$2
+	shift
+    ;;
+
+
+    -config)
+        case $2 in
+	/*)
+	  DRIVER=$2
+        ;;
+
+	*)
+	  DRIVER=$RVM_ROOT/regression/config/$2
+	;;
+	esac
+	shift
+    ;;
+
+    *)
+	echo Invalid option $1
+	echo 'Valid options are'
+	echo '-common "options"         options to RunSanityTests'
+	echo '-config <file>            run tests given in file'
+        exit -1
+    ;;
+
+    esac
+    shift
+done
+
+# options given by the user
+#
+# the config file specifies a configuration to test, and any extra
+# arguments that RunSanityTests needs
+#
+awk "{ print \"$RVM_ROOT/regression/RunSanityTests -configurations \" \$0 \" $ADDED\" }" < $DRIVER | sh -s

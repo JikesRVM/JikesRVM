@@ -1,0 +1,6 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+exec $RVM_ROOT/regression/RunSanityTests "$@"

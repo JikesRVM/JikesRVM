@@ -1,0 +1,14 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+# Some operand signatures appear in many InstructionFormats
+# and it is convinient to supply methods to access them
+# without knowing exactly which InstructionFormat one has
+# structure of SIG: { "NAME TYPE" }
+SIG
+
+"Result OPT_RegisterOperand"
+"GuardResult OPT_RegisterOperand"
+"Location OPT_LocationOperand"
+"Guard OPT_Operand"
+"BranchProfile OPT_BranchProfileOperand"

@@ -1,0 +1,237 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+import java.util.Vector;
+import java.util.Enumeration;
+
+/**
+ * This class contains top level adaptive compilation subsystem functions.
+ *
+ * @author Michael Hind
+ * @author Dave Grove
+ * @author Stephen Fink
+ */
+class VM_Controller implements VM_Callbacks.ExitMonitor,
+			       VM_Callbacks.AppRunCompleteMonitor {
+
+  /**
+   * Signals when the options and (optional) logging mechanism are enabled
+   */
+  public static boolean enabled = false;
+
+  /**
+   * Controller subsystem control options
+   */
+  public static VM_AOSOptions options = null;
+  
+  /**
+   * Deferred command line arguments for the opt compiler
+   */
+  private static String[] optCompilerOptions = new String[0];
+  /**
+   * Add a deferred command line argument
+   */
+  public static void addOptCompilerOption(String arg) {
+    String[] tmp = new String[optCompilerOptions.length+1];
+    for (int i=0; i< optCompilerOptions.length; i++) {
+      tmp[i] = optCompilerOptions[i];
+    }
+    tmp[optCompilerOptions.length] = arg;
+    optCompilerOptions = tmp;
+  }
+  /**
+   * Get the deferred command line arguments
+   */
+  public static String[] getOptCompilerOptions() {return optCompilerOptions;}
+
+  /**
+   * The controller thread, it makes all the decisions
+   * (the thread sets this field when it is created.)
+   */
+  public static VM_ControllerThread controllerThread = null;
+
+  /**
+   * Thread that will perform opt-compilations as directed by the controller
+   * (the thread sets this field when it is created.)
+   */
+  public static VM_CompilationThread compilationThread = null;
+
+  /**
+   * Threads that will organize profile data as directed by the controller
+   */
+  public static Vector organizers = new Vector();
+
+
+  /**
+   * A blocking priority queue where organizers place events to 
+   * be processed by the controller
+   * (an input to the controller thread)
+   */
+  public static VM_BlockingPriorityQueue controllerInputQueue;
+
+  /**
+   * A blocking priority queue where the controller will place methods 
+   * to be opt compiled
+   * (an output of the controller thread)
+   */
+  public static VM_BlockingPriorityQueue compilationQueue;
+
+  /**
+   * The strategy used to make recompilation decisions
+   */
+  public static VM_RecompilationStrategy recompilationStrategy;
+
+  /**
+   *  a controller virtual clock, ticked every thread switch.
+   */
+  public static int controllerClock = 0;
+
+  /**
+   * The main hot method raw data object.
+   */
+  public static VM_MethodCountData methodSamples;
+
+  /**
+   * Initialize the controller subsystem (called from VM.boot)
+   * This method is called AFTER the command line options are processed.
+   */
+  private static boolean booted = false;
+  public static void boot() {
+    // check to see if the AOS options were created during the process
+    // of check command line args, if not we'll create a default one
+    if (options == null) {
+      options = new VM_AOSOptions();
+    }
+    
+    // Signal that the options and (optional) logging mechanism are set
+    // VM_RuntimeCompiler checks this flag
+    enabled = true;
+
+    // Initialize the controller input queue
+    controllerInputQueue = 
+      new VM_BlockingPriorityQueue(options.CONTROLLER_INPUT_QUEUE_SIZE,
+				   new VM_BlockingPriorityQueue.CallBack() {
+				       void aboutToWait() { controllerThread.aboutToWait(); }
+				       void doneWaiting() { controllerThread.doneWaiting(); }
+				     });
+
+    compilationQueue = 
+      new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
+
+    // Create the analytic model used to make cost/benefit decisions.
+    if (options.ADAPTIVE_RECOMPILATION) {
+      // Multi-level adaptive, ala OOPSLA 2000
+      recompilationStrategy = new VM_MultiLevelAdaptiveModel();
+    } 
+    else {
+      // SLA, ala OOPSLA 2000
+      recompilationStrategy = new VM_SingleLevelAdaptive();
+    }
+
+    // boot the runtime measurement systems
+    VM_RuntimeMeasurements.boot();
+
+    // Initialize subsystems, if being used
+    VM_AdaptiveInlining.boot(options);
+    
+    // boot any instrumentation options
+    VM_Instrumentation.boot(options);
+
+    // boot the aos database
+    VM_AOSDatabase.boot(options);
+
+    createControllerThread();
+
+    VM_Callbacks.addExitMonitor(new VM_Controller());
+    VM_Callbacks.addAppRunCompleteMonitor(new VM_Controller());
+
+    booted=true;
+  }
+
+  /**
+   * To be called when the VM is about to exit.
+   * @param value the exit value
+   */
+  public void notifyExit(int value) {
+    report();
+  }
+
+  /**
+   * To be called when the application completes one of its run
+   */
+  public void notifyAppRunComplete(int i) {
+    if (VM.LogAOSEvents) VM_AOSLogging.appRunComplete();
+  }
+
+  // Create the ControllerThread
+  static void createControllerThread() {
+    Object sentinel = new Object();
+    VM_ControllerThread tt = new VM_ControllerThread(sentinel);
+    tt.makeDaemon(true);
+    VM_Processor.getCurrentProcessor().scheduleThread(tt);
+    // wait until controller threads are up and running.
+    try {
+      synchronized(sentinel) {
+	sentinel.wait();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      VM.sysFail("Failed to start up controller subsystem");
+    }
+  }
+
+
+  /**
+   * Process any command line arguments passed to the controller subsystem.
+   * <p>
+   * This method has the responsibility of creating the options object
+   * if it does not already exist
+   * <p>
+   * NOTE: All command line argument processing should be handled via
+   * the automatically generated code in VM_AOSOptions.java.  
+   * Don't even think of adding handwritten stuff here! --dave
+   *
+   * @param arg the command line argument to be processed
+   * @return void
+   */
+  public static void processCommandLineArg(String arg) {
+    if (options == null) {
+      options = new VM_AOSOptions();
+    }
+    
+    if (!options.processAsOption("-X:aos", arg)) {
+      VM.sysWrite("vm: illegal adaptive configuration directive \""+arg+"\" specified as -X:aos:"+arg+"\n");
+      VM.sysExit(-1);
+    }
+  }
+
+  /**
+   * This method is called when the VM is exiting to provide a hook to allow
+   * the adpative optimization subsystem to generate a summary report.
+   * It can also be called directly from driver programs to allow
+   * reporting on a single run of a benchmark that the driver program
+   * is executing in a loop (in which case the adaptive system isn't actually
+   * exiting.....so some of the log messages may get a little wierd).
+   */
+  public static void report() {
+    if (!booted) return;
+    VM_ControllerThread.report();
+    VM_RuntimeMeasurements.report();
+
+    for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
+      VM_Organizer organizer = (VM_Organizer)e.nextElement();
+      organizer.report();
+    }
+    if (options.DUMP_AI_DECISIONS) {
+      VM_AdaptiveInlining.report();
+    }
+
+    if (options.REPORT_STATIC_PROGRAM_STATS) {
+      VM_OptStaticProgramStats.report();
+    }
+
+    if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
+  }
+}

@@ -1,0 +1,3 @@
+BaseBasecopyingGC 
+BaseBasenoncopyingGC 
+BaseAdaptivecopyingGC -test-list nightly-tests-short

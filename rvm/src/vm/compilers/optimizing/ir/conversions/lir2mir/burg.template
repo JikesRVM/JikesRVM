@@ -1,0 +1,204 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+import instructionFormats.*;
+
+/**
+ * Machine-specific instruction selection rules.  Program generated.
+ *
+ * Note: some of the functions have been taken and modified
+ * from the file gen.c, from the LCC compiler.  
+ * See $RVM_ROOT/tools/jburg/COPYRIGHT file for copyright restrictions.
+ *
+ * @see OPT_BURS
+ * @author Mauricio Serrano
+ * @author Vivek Sarkar
+ * @author Igor Pechtchanski
+ * @modified Dave Grove
+ *
+ * NOTE: Program generated file, do not edit!
+ */
+public final class OPT_BURS_STATE extends OPT_BURS_Helpers 
+   implements OPT_Operators, OPT_BURS_Definitions {
+
+   private OPT_BURS burs;
+
+   OPT_BURS_STATE(OPT_BURS b) {
+      burs = b;
+   }
+
+   OPT_IR getIR() {
+      return burs.ir;
+   }
+
+/*****************************************************************/
+/*                                                               */
+/*  BURS TEMPLATE                                                */
+/*                                                               */
+/*****************************************************************/
+
+   /* accessors used by BURS */
+   private static OPT_BURS_TreeNode STATE(OPT_BURS_TreeNode a) { return a; }
+
+   //
+   // helper functions for dealing with int constant operands
+   // NOTE: There are (many) more of these that are architecture-specific 
+   //       defined in OPT_BURS_Helpers.java and inherited by OPT_BURS_STATE.
+	
+
+   // is a == 0?
+   boolean ZERO(OPT_Operand a) {
+     return (IV(a) == 0);
+   }
+
+   // is a == 1?
+   boolean ONE(OPT_Operand a) {
+     return (IV(a) == 1);
+   }
+
+   // is a == -1?
+   boolean MINUSONE(OPT_Operand a) {
+     return (IV(a) == -1);
+   }
+
+
+   // helper functions for condition operands
+   boolean EQ_NE(OPT_ConditionOperand c) {
+      int cond = c.value;
+      return ((cond == OPT_ConditionOperand.EQUAL) ||
+              (cond == OPT_ConditionOperand.NOT_EQUAL));
+   }
+
+   boolean EQ_LT_LE(OPT_ConditionOperand c) {
+      int cond = c.value;
+      return ((cond == OPT_ConditionOperand.EQUAL) ||
+              (cond == OPT_ConditionOperand.LESS) ||
+              (cond == OPT_ConditionOperand.LESS_EQUAL));
+   }
+
+   boolean EQ_GT_GE(OPT_ConditionOperand c) {
+      int cond = c.value;
+      return ((cond == OPT_ConditionOperand.EQUAL) ||
+              (cond == OPT_ConditionOperand.GREATER) ||
+              (cond == OPT_ConditionOperand.GREATER_EQUAL));
+   }
+
+   // cost constants
+   static final int INFINITE = 32767;
+
+
+   /* node accessors */
+   private OPT_Instruction P(OPT_BURS_TreeNode p) {
+      return p.getInstruction();
+   }
+   private OPT_Instruction PL(OPT_BURS_TreeNode p) {
+      return p.child1.getInstruction();
+   }
+   private OPT_Instruction PR(OPT_BURS_TreeNode p) {
+      return p.child2.getInstruction();
+   }
+   private OPT_Instruction PLR(OPT_BURS_TreeNode p) {
+      return p.child1.child2.getInstruction();
+   }
+   private OPT_Instruction PRR(OPT_BURS_TreeNode p) {
+      return p.child2.child2.getInstruction();
+   }
+   private OPT_Instruction PLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.getInstruction();
+   }
+   private OPT_Instruction PRL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.getInstruction();
+   }
+   private OPT_Instruction PLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.getInstruction();
+   }
+   private OPT_Instruction PLLR(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child2.getInstruction();
+   }
+   private OPT_Instruction PRLL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child1.getInstruction();
+   }
+   private OPT_Instruction PRLR(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child2.getInstruction();
+   }
+
+   /* emit rules */
+   private final void EMIT(OPT_Instruction i) {
+      burs.append(i);
+   }
+
+   /***********************************************************************
+    *
+    *   This file contains BURG utilities
+    *
+    *   Note: some of the functions have been taken and modified
+    *    from the file gen.c, from the LCC compiler.
+    *
+    ************************************************************************/
+
+   void trace(OPT_BURS_TreeNode p, int rule, int cost, int bestcost) {
+     if (OPT_BURS.DEBUG) {
+       VM.sysWrite(p+" matched "+OPT_BURS_Debug.string[rule]+" with cost "+
+		   cost+"vs. "+bestcost);
+     }
+   }
+
+
+   //
+   // This function will dump the tree
+   //
+   public static void dumpTree(OPT_BURS_TreeNode p) {
+     if (OPT_BURS.DEBUG) {
+       VM.sysWrite(dumpTree("\n",p,1));
+     }
+   }
+
+   public static String dumpTree(String out, OPT_BURS_TreeNode p, int indent) {
+     if (p == null) return out;
+     for (int i=0; i<indent; i++)
+       out = out + "   ";
+     out = out + p;
+     out = out + '\n';
+     if (p.child1 != null) {
+       indent++;
+       out = out + dumpTree("",p.child1,indent);
+       if (p.child2 != null) {
+	 out = out + dumpTree("",p.child2,indent);
+       }
+     }
+     return out;
+   }
+
+   //
+   // This function will dump the cover of a tree, i.e. the rules
+   // that cover the tree with a minimal cost.
+   //
+   public static void dumpCover(OPT_BURS_TreeNode p, byte goalnt, int indent){
+      if (OPT_BURS.DEBUG) {
+	if (p == null) return;
+	int rule = STATE(p).rule(goalnt);
+	VM.sysWrite(STATE(p).getCost(goalnt)+"\t");
+	for (int i = 0; i < indent; i++)
+          VM.sysWrite(' ');
+	VM.sysWrite(OPT_BURS_Debug.string[rule]+"\n");
+	for (int i = 0; i < nts[rule].length; i++)
+          dumpCover(kids(p,rule,i), nts[rule][i], indent + 1);
+      }
+   }
+
+   // caution: MARK should be used in single threaded mode,
+   public static void mark(OPT_BURS_TreeNode p, byte goalnt) {
+     if (p == null) return;
+     int rule = STATE(p).rule(goalnt);
+     byte act = action[rule];
+     if (act != 0) {
+       p.setNonTerminal(goalnt);
+     }
+     if (rule == 0) {
+       throw new OPT_OptimizingCompilerException("BURS","rule missing in ",
+						 p.getInstruction().toString(), dumpTree("",p,1));
+     }
+     mark_kids(p,rule);
+   }

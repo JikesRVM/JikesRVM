@@ -1,0 +1,37 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+# 
+# rules, etc in this file should be site independent
+#
+
+# Command shell.
+#
+SHELL:=ksh
+  
+# Java compiler.
+HOST_JAVAC = $(HOST_JIKES) +E -g
+HOST_JAVAC_CLASSPATH = -classpath $(JAL_SHADOW)/lib/classes.zip:.:
+
+# This is the name to use to compile "normal" (non-jalapeno) java files.
+JCOMPILE = $(HOST_JAVAC) $(HOST_JAVAC_CLASSPATH)
+
+# Java compiler to use to compile Jalapeno RVM .java files.
+# Makefiles redefine JCOMPILE=$(JCOMPILE_RVM) when they need to do this.
+JCOMPILE_RVM =$(RVM_BUILD)/jbuild.tool
+
+# used by Makefiles in examples subdirectory in sanity rules
+JBOOT ?= jalapeno
+
+RM=rm -f
+CP=cp -f
+
+.SUFFIXES:	.java .class
+
+.PRECIOUS:	%.class
+
+# Produce a class file from a java source file
+#
+.java.class:;   $(JCOMPILE) $<
+
+

@@ -1,0 +1,20 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+include		$(RVM_BUILD)/Make.rules
+
+BENCH_HOME=$(JAL_ROOT)/src/examples/threads
+BENCH_SOURCE_PATH=$(BENCH_HOME)
+HEAPSIZE=80
+LARGEHEAPSIZE=100
+NON_DETERMINISTIC_OUTPUT_ORDER=YES
+
+include		$(JAL_ROOT)/regression/Make.rules
+
+TESTS=TestNotification TestStop TestDispatch TestTimedWait
+
+$(TESTS): %:
+	$(MAKE) START_NAME=$@ do-sanity-compare
+
+sanity:		$(TESTS)
+	$(MAKE) do-sanity-finish

@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# Generate the OPTBench benchmark from a set of OPT_*.java files
+#
+# author Stephen Fink
+for i in `find $RVM_ROOT/src/vm -name "OPT*.java" -print | fgrep -v Experimental `
+do
+  cp $i .
+done
+for i in `find $RVM_ROOT/src/vm/optimizingCompiler -name "VM_Opt*.java" -print`
+do
+  cp $i .
+done
+for i in `ls OPT*.java` 
+do
+  echo Processing $i
+  j=`echo $i|sed -e 's/OPT_/OPTBench_/'`
+  j=`echo $j|sed -e 's/VM_Opt/VM_OptBench_/'`
+  sed -e 's/OPT_/OPTBench_/g' -e 's/VM_Opt/VM_OptBench_/' $i > tmp/$j
+  rm -f $i
+done
+for i in `ls VM*.java` 
+do
+  echo Processing $i
+  j=`echo $i|sed -e 's/OPT_/OPTBench_/'`
+  j=`echo $j|sed -e 's/VM_Opt/VM_OptBench_/'`
+  sed -e 's/OPT_/OPTBench_/g' -e 's/VM_Opt/VM_OptBench_/' $i > tmp/$j
+  rm -f $i
+done
+FILES=`ls tmp/*.java`
+jbuild.prep -DRVM_WITH_COPYING_GC=1 -DRVM_WITH_JNI=1 -DRVM_WITH_BASE_RUNTIME_COMPILER=1 -DRVM_WITH_BASE_BOOTIMAGE_COMPILER=1 -DRVM_ON_JALAPENO=1 -DRVM_FOR_POWERPC=1 . $FILES
+rm -f tmp/*

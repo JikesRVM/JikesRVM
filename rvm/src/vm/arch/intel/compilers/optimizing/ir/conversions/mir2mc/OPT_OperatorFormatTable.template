@@ -1,0 +1,32 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+import java.util.*;
+
+class OPT_OperatorFormatTable {
+
+    static private final Hashtable formats = new Hashtable();
+    static private final Set operators = new HashSet();
+
+    static public String getFormat(String MIRopcode) {
+	return (String) formats.get( MIRopcode );
+    }
+
+    static public Iterator getOpcodes() {
+	return operators.iterator();
+    }
+
+	$$$$ FOREACH OP OPERATOR_FILE
+	    $$$$ IF OP.INSTRUCTION_FORMAT =~ MIR_
+	    $$$$ IF OP.SYMBOL =~ IA32_
+	    static {
+		String key = "OP.SYMBOL".substring(5);
+		operators.add( key );
+		int suffix = key.indexOf( '$' );
+		if (suffix != -1) key = key.substring(0, suffix);
+		formats.put( key, "OP.INSTRUCTION_FORMAT");
+	    }    
+	    $$$$ END IF
+	    $$$$ END IF
+	$$$$ END FOREACH
+}

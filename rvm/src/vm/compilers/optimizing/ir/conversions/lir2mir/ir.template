@@ -1,0 +1,65 @@
+%{
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//ir.brg
+//$Id$
+/**
+ * Type "make" or "make ir.brg" to automatically generate ir.brg from
+ * ir.template.
+ *
+ * @author Vivek Sarkar
+ * @author Mauricio Serrano
+ * @author Igor Pechtchanski
+ */
+%}
+$$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
+  $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+%term OPERATOR.SYMBOL = OPERATOR.INDEX
+  $$$$ END IF
+$$$$ END FOREACH
+$$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL == "ARCH_INDEPENDENT_END"
+     $$$$ FOREACH INNEROP ARCHITECTURE_IR_DIR/OperatorList.dat
+     $$$$ LET TMPVAL OPERATOR.INDEX + INNEROP.INDEX
+%term INNEROP.SYMBOL = TMPVAL
+     $$$$ END LET
+     $$$$ END FOREACH
+$$$$ ENDIF
+$$$$ END FOREACH
+%%
+$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ IF "RULE.COST" =~ "?"
+RULE.PRODUCTION		"" (RULE.COST)
+$$$$ ELSE
+RULE.PRODUCTION		"" RULE.COST
+$$$$ END IF
+$$$$ END FOREACH
+%%
+static final byte action[]={0
+$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+   ,RULE.FLAGS
+$$$$ END FOREACH
+};
+
+OPT_Operand code(OPT_BURS_TreeNode p, int  n, int ruleno) {
+  switch(ruleno) {
+$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ LET IS_INSTRUCTION RULE.FLAGS & 1
+$$$$ IF IS_INSTRUCTION == 1
+  $$$$ LET CASE RULE.INDEX+1
+  case CASE:
+    {
+    RULE.TEMPLATE
+    }
+    break;
+  $$$$ END LET
+$$$$ END IF
+$$$$ END LET
+$$$$ END FOREACH
+  default:
+    throw new OPT_OptimizingCompilerException("BURS","rule without emit code:",OPT_BURS_Debug.string[ruleno]);
+  }
+  return null;
+}
+}

@@ -1,0 +1,15 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+include		$(RVM_ROOT)/build.Make.rules
+
+MIR_IR_DIR = $(RVM_ROOT)/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
+
+default:  $(GEN_FILES_DIR)/OPT_OperatorClass.java
+
+$(GEN_FILES_DIR)/OPT_OperatorClass.java:	OPT_OperatorClass.template $(MIR_IR_DIR)/ResourceList.dat $(MIR_IR_DIR)/OperatorClassList.dat
+	$(HOST_JAVA) -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` \
+	GenerateFromTemplate OPT_OperatorClass.template  \
+	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_OperatorClass.java` \
+	ARCHITECTURE_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(MIR_IR_DIR)`
+

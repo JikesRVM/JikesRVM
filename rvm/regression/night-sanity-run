@@ -1,0 +1,96 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+
+# This script will run sanity and performance tests.  
+# It assumes the boot images have 
+# already been built.  (See night-sanity-build.)
+# The output of this script is the results from the sanity test
+# (The results of the fullshadow are stored in the file defined in
+#  the VERBOSE_LOG variable.)
+
+# How often to look to see if the builds are done
+SLEEP_DURATION="120"
+
+export JALAPENO_HOME=/homes/fury5/jalapeno
+export CVSROOT=$JALAPENO_HOME/CVSmaster
+
+export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:.
+ # the resulting message
+MSG=$RVM_ROOT/../MSG
+
+# The directory where the archive lives
+export ARCHIVE=~/archive
+
+mkdir -p $RVM_ROOT/../results
+
+# Where the fullshadow and other verbose output are placed, not mailed
+export VERBOSE_LOG=$RVM_ROOT/../results/verbose.log
+
+# Where the build output is placed, this is mailed when the tests failed
+export BUILD_LOG=$RVM_ROOT/../results/build.log
+
+# Where the run output is placed, this is mailed when the tests failed
+export RUN_LOG=$RVM_ROOT/../results/run.log
+
+# Where the performance results are placed
+export PERF_LOG=$RVM_ROOT/../results/performance.log
+
+umask 022
+
+echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
+
+#This shouldn't be needed, but just in case
+chmod 755 $RUN_LOG
+
+# cd to the SHADOW to get things started
+cd $RVM_ROOT
+
+# sanity runs
+$RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/../results/sanity -nobuild -numprocs 2 -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
+
+# performance runs
+$RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/../results/performance -nobuild -numprocs 2 -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
+
+# Fix the permission bits because umask doesn't seem to be working correctly
+echo "fixing permission bits" >> $RUN_LOG
+chmod -R 755 $RVM_ROOT/.. 2>> $RUN_LOG
+
+# Archive result files and performance results
+echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
+(cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cjvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
+
+# determine how many ran, failed, and passed, then build a summary line
+numran=`grep "sane" $RUN_LOG | wc -l`
+numfailed=`grep "You are NOT sane" $RUN_LOG | wc -l`
+numpassed=`grep "You are sane" $RUN_LOG | wc -l`
+
+if [[ $numran -eq 0 ]] then
+  echo "*** No tests were run! *** " >> $MSG
+  echo "There was probably an error in building the boot images.\n\n" >> $MSG
+else
+#  Build the summary line
+  echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
+fi
+
+# Describe where the information can be found
+echo "Further details of this run can be found in\n" >> $MSG
+echo "     run details: $RUN_LOG\n " >> $MSG
+echo "     build details: $BUILD_LOG\n " >> $MSG
+echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
+echo "     performance details: $PERF_LOG" >> $MSG
+
+# Grab the bottom line performance and place it in a more visible place
+echo >> $MSG
+echo >> $MSG
+echo Performance Summary >> $MSG
+awk -f $RVM_ROOT/regression/PerformanceBottomLine.awk $RVM_ROOT/../results/performance.log >> $MSG
+
+# Finally!  Send the mail message to those who care.
+if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
+  cat $MSG | mail -s "jvm build SUCCEEDED" jvm-coders
+else
+  cat $MSG | mail -s "jvm build FAILED" jvm-coders
+fi
+

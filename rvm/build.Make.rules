@@ -1,0 +1,6 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+include $(RVM_ROOT)/Make.generic.rules
+include $(RVM_BUILD)/jbuild.Make.rules
+

@@ -1,0 +1,753 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+/**
+ *  This class is the low-level assembler for Intel; it contains functionality
+ * for encoding specific instructions into an array of bytes.  The methods for 
+ * encoding instructions use a stylized naming and signiture convention that 
+ * is designed to make the method signiture computable from the opcode and the
+ * operand types.  The naming convetion is as follows:
+ *
+ *   final void emit<opcode>\(_<operand code>\)*[_<size>](\(operand args\)*)
+ *
+ * where the following substitutions are made:
+ *
+ * <opcode> is the opcode of the instruction (e.g. ADC, MOV, etc)
+ *
+ * <operand code> represents the type of the nth operand:
+ *          "Imm" for immediate
+ *          "Reg" for register
+ *          "RegInd" for register indirect
+ *          "RegDisp" for register displacement
+ *          "RegOff" for shifted index + displacement
+ *          "RegIdx" for register base + shifted index + displacement
+ *          "Cond" for condition codes
+ *
+ * <size> indicates non-word-sized operations
+ *          "Byte" is for bytes
+ *          "Word" is for Intel "words" (i.e. 16 bites)
+ *          "Quad" is for quad words (i.e. double-precision floating point)
+ *
+ * <operand arguments> are the needed components of the operands, in order
+ *          "Reg" takes one byte (register number)
+ *          "RegInd" takes one byte (register number)
+ *          "RegDisp" takes a byte (reg. num.) and an int (displacement)
+ *          "RegIdx" takes two bytes (base and index regs), a shoert (scale), ann an int (displacement).
+ *          "Imm" takes one int (immediate)
+ *          "Cond" takes one byte (condition code mask)
+ *
+ *  
+ */
+class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
+  
+  static boolean TRACE = false;
+
+  private VM_Lister      lister;
+          INSTRUCTION [] machineCodes; // needed by lister (otherwise private)
+          int            mi;           // needed by lister (otherwise private)
+
+  ///////////////////////////
+  // non-emitter interface //
+  ///////////////////////////
+
+  VM_Assembler (int bytecodeSize) {
+    machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
+    if (TRACE)
+	lister = new VM_Lister(this);
+    else	
+	lister = null;
+  }
+
+  VM_Assembler (int bytecodeSize, boolean shouldPrint) {
+    machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
+    if (shouldPrint) 
+	lister = new VM_Lister(this);
+    else
+	lister = null;
+  }
+
+    int getMachineCodeIndex () {
+	return mi;
+    }
+    
+  ///////////////////////
+  // buffer management //
+  ///////////////////////
+
+    protected void setMachineCodes(int index, byte data) {
+	try {
+	    machineCodes[index] = data;
+	} catch (ArrayIndexOutOfBoundsException e) {
+	    INSTRUCTION [] old = machineCodes;
+	    machineCodes = new INSTRUCTION [2 * old.length ];
+	    for (int i=0; i<old.length; i++) machineCodes[i] = old[i];
+	    machineCodes[index] = data;
+	}
+    }
+    
+    INSTRUCTION [] getMachineCodes () {
+	INSTRUCTION[] trimmed = new INSTRUCTION [ getMachineCodeIndex() ];
+	for(int i = 0; i < getMachineCodeIndex(); i++) 
+	    trimmed[i] = machineCodes[i];
+
+	return trimmed;
+    }
+    
+  //////////////////////
+  // bridge to lister //
+  //////////////////////
+
+  void noteBytecode (int bytecodeNumber, String bc) {
+    if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
+  }
+
+  void comment (String comment) {
+    if (lister != null) lister.comment(mi, comment);
+  }
+
+  ////////////
+  // helper //
+  ////////////
+
+  private final static boolean fits (int val, int bits) {
+    val = val >> bits-1;
+    return (val == 0 || val == -1);
+  }
+
+  //////////////////////
+  // useful constants //
+  //////////////////////
+
+  private static final int  CODE_EXPANSION_FACTOR =  12;
+  private static final int  CODE_OVERHEAD_TERM    = 100;
+
+  private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP); // (scale factor 1) no index, ESP is base
+
+  /////////////////////////////////////
+  // ModR/M and SIB helper functions //
+  /////////////////////////////////////
+
+  private byte regRegModRM(byte reg1, byte reg2) {
+      return (byte) ((3 << 6) | (reg2 << 3) | reg1);
+  }
+
+  private byte regDisp32RegModRM(byte reg1, byte reg2) {
+      return (byte) ((2 << 6) | (reg2 << 3) | reg1);
+  }
+	
+  private byte regDisp8RegModRM(byte reg1, byte reg2) {
+      return (byte) ((1 << 6) | (reg2 << 3) | reg1);
+  }
+	
+  private byte regIndirectRegModRM(byte reg1, byte reg2) {
+      return (byte) ((reg2 << 3) | reg1);
+  }
+	
+  private byte sib(short scale, byte baseReg, byte indexReg) {
+      return (byte) ((scale << 6) | (indexReg << 3) | baseReg);
+  }
+
+  private void emitRegRegOperands(byte reg1, byte reg2) {
+      setMachineCodes(mi++, regRegModRM(reg1, reg2));
+  }
+
+  private void emitRegDisp32RegOperands(byte reg1, int disp, byte reg2) {
+      setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
+      if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+      emitImm32(disp);
+  }
+
+  private void emitRegDisp8RegOperands(byte reg1, byte disp, byte reg2) {
+      setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
+      if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+      emitImm8(disp);
+  }
+
+  private void emitRegDispRegOperands(byte reg1, int disp, byte reg2) {
+      if (fits(disp,8))
+	  emitRegDisp8RegOperands(reg1, (byte)disp, reg2);
+      else
+	  emitRegDisp32RegOperands(reg1, disp, reg2);
+  }
+	  
+  private void emitRegIndirectRegOperands(byte reg1, byte reg2) {
+      if (reg1 == EBP) {
+	  setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
+	  setMachineCodes(mi++, (byte) 0);
+      } else {
+	  setMachineCodes(mi++, regIndirectRegModRM(reg1, reg2));
+	  if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+      }
+  }
+
+    private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
+	setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+	setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
+	emitImm32(disp);
+    }
+
+  private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
+      if (disp == 0 && base != EBP) {
+	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
+	  setMachineCodes(mi++, sib(scale, base, index));
+      } else if (fits(disp,8)) {
+	  setMachineCodes(mi++, regDisp8RegModRM((byte) 0x4, reg2));
+	  setMachineCodes(mi++, sib(scale, base, index));
+	  emitImm8((byte)disp);
+      } else {
+	  setMachineCodes(mi++, regDisp32RegModRM((byte) 0x4, reg2));
+	  setMachineCodes(mi++, sib(scale, base, index));
+	  emitImm32(disp);
+      }
+  }
+
+  private void emitImm32(int imm) {
+      mi = emitImm32(imm, mi);
+  }
+    
+  private void emitImm16(int imm) {
+      mi = emitImm16(imm, mi);
+  }
+    
+  private void emitImm8(int imm) {
+      mi = emitImm8(imm, mi);
+  }
+
+  private int emitImm16(int imm, int idx) {
+      setMachineCodes(idx++, (byte) ((imm >>  0) & 0xFF));
+      setMachineCodes(idx++, (byte) ((imm >>  8) & 0xFF));
+      return idx;
+  }
+
+  private int emitImm32(int imm, int idx) {
+      setMachineCodes(idx++, (byte) ((imm >>  0) & 0xFF));
+      setMachineCodes(idx++, (byte) ((imm >>  8) & 0xFF));
+      setMachineCodes(idx++, (byte) ((imm >> 16) & 0xFF));
+      setMachineCodes(idx++, (byte) ((imm >> 24) & 0xFF));
+      return idx;
+  }
+    
+  private int emitImm8(int imm, int idx) {
+      setMachineCodes(idx++, (byte) imm);
+      return idx;
+  }
+
+  private void emitCondOpByte(byte opCode, byte cond) {
+      setMachineCodes(mi++, (byte) (opCode | cond));
+  }
+
+  /////////////////////////////////////
+  // locking                         //
+  /////////////////////////////////////
+
+    final void emitLockNextInstruction() {
+	setMachineCodes(mi++, (byte) 0xF0);
+    }
+
+  ///////////////////////////
+  // branch support        //
+  ///////////////////////////
+
+  final VM_ForwardReference forwardJMP () {
+    int miStart = mi;
+    VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
+    setMachineCodes(mi++, (byte) 0xEB);
+    mi += 1; // leave space for displacement
+    if (lister != null) lister.I(miStart, "JMP", 0);
+    return r;
+  }
+
+  final VM_ForwardReference forwardJcc (byte cond) {
+    int miStart = mi;
+    VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
+    setMachineCodes(mi++, (byte) (0x70 + cond));
+    mi += 1; // leave space for displacement
+    if (lister != null) lister.I(miStart, "J" + CONDITION[cond], 0);
+    return r;
+  }
+
+  /////////////////////////////
+  // forward reference stuff //
+  /////////////////////////////
+
+  VM_ForwardReference forwardRefs;
+
+  void resolveForwardReferences (int label) {
+    if (forwardRefs == null) return; // premature optimization
+    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
+  }
+
+  void patchUnconditionalBranch (int sourceIndex) {
+    if (lister != null) lister.comefrom(mi, sourceIndex);
+    int relOffset = mi - (sourceIndex+5);
+    sourceIndex++; // skip the op code
+    emitImm32(relOffset, sourceIndex);
+  }
+
+  void patchConditionalBranch (int sourceIndex) {
+    if (lister != null) lister.comefrom(mi, sourceIndex);
+    int relOffset = mi - (sourceIndex+6);
+    sourceIndex += 2; // skip the (two byte) op code
+    emitImm32(relOffset, sourceIndex);
+  }
+
+  void patchShortBranch (int sourceIndex) {
+    if (lister != null) lister.comefrom(mi, sourceIndex);
+    int relOffset = mi - (sourceIndex+2);
+    if (VM.VerifyAssertions) VM.assert(fits(relOffset, 8));
+    sourceIndex++; // skip the op code
+    emitImm8((byte)relOffset, sourceIndex);
+  }
+
+  /////////////////////////////////////
+  // table switch support /////////////
+  /////////////////////////////////////
+
+  void emitOFFSET_Imm_ImmOrLabel (int c, int mTarget, int bTarget) {
+    int miStart = mi;
+    if (0 < mTarget) { // resolved (backward) reference 
+      int delta = mTarget - (mi - (c<<2));  // delta is from start of table of 4-byte entries (not this entry)
+      emitImm32(delta);
+      if (lister != null) lister.I(miStart, "DATA", mTarget);
+    } else {            // unresolved forward reference
+      VM_ForwardReference r =  new VM_ForwardReference.SwitchCase(mi, bTarget);
+      forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+      emitImm32(c);
+      if (lister != null) lister.I(miStart, "DATA", c);
+    }
+  }
+
+  void patchSwitchCase (int sourceIndex) {
+    if (lister != null) lister.comefrom(mi, sourceIndex);
+    int c = 0;
+    c |= (machineCodes[sourceIndex+0] & 0xFF) <<  0;
+    c |= (machineCodes[sourceIndex+1] & 0xFF) <<  8;
+    c |= (machineCodes[sourceIndex+2] & 0xFF) << 16;
+    c |= (machineCodes[sourceIndex+3] & 0xFF) << 24;  // c = case index
+    int delta = mi - (sourceIndex - (c<<2)); // from begining of table of 4-byte entries to here
+    setMachineCodes(sourceIndex+0, (byte) ((delta >>  0) & 0xFF));
+    setMachineCodes(sourceIndex+1, (byte) ((delta >>  8) & 0xFF));
+    setMachineCodes(sourceIndex+2, (byte) ((delta >> 16) & 0xFF));
+    setMachineCodes(sourceIndex+3, (byte) ((delta >> 24) & 0xFF));
+  }
+
+  /////////////////////////////////////
+  // instructions (hand coded)       //
+  /////////////////////////////////////
+
+  final void emitCMOV_Cond_Reg_Reg(byte cond, byte dst, byte src) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitRegRegOperands(src, dst);
+      if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
+  }
+
+  final void emitCMOV_Cond_Reg_RegDisp(byte cond, byte dst, byte src, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitRegDispRegOperands(src, disp, dst);
+      if (lister != null) lister.RRD(miStart, "CMOV" + CONDITION[cond], dst, src, disp);
+  }
+
+  final void emitCMOV_Cond_Reg_RegInd(byte cond, byte dst, byte src) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitRegIndirectRegOperands(src, dst);
+      if (lister != null) lister.RRN(miStart, "CMOV" + CONDITION[cond], dst, src);
+  }
+
+  final void emitCMOV_Cond_Reg_RegOff(byte cond, byte dst, byte index2, short scale2, int disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitRegOffRegOperands(index2, scale2, disp2, dst);
+      if (lister != null) lister.RRFD(miStart, "CMOV" + CONDITION[cond], dst, index2, scale2, disp2);
+  }
+
+  final void emitCMOV_Cond_Reg_RegIdx(byte cond, byte dst, byte base2, byte index2, short scale2, int disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitSIBRegOperands(base2, index2, scale2, disp2, dst);
+      if (lister != null) lister.RRXD(miStart, "CMOV" + CONDITION[cond], dst, base2, index2, scale2, disp2);
+  }
+
+  final void emitSET_Cond_Reg_Byte(byte cond, byte dst) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitRegRegOperands(dst, (byte) 0x00);
+      if (lister != null) lister.R(miStart, "SET" + CONDITION[cond], dst);
+  }
+
+  final void emitSET_Cond_RegDisp_Byte(byte cond, byte dst, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitRegDispRegOperands(dst, disp, (byte) 0x00);
+      if (lister != null) lister.RD(miStart, "SET" + CONDITION[cond], dst, disp);
+  }
+
+  final void emitSET_Cond_RegInd_Byte(byte cond, byte dst) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitRegIndirectRegOperands(dst, (byte) 0x00);
+      if (lister != null) lister.RN(miStart, "SET" + CONDITION[cond], dst);
+  }
+
+  final void emitSET_Cond_RegIdx_Byte(byte cond, byte base, byte index, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitSIBRegOperands(base, index, scale, disp, (byte) 0x00);
+      if (lister != null) lister.RXD(miStart, "SET" + CONDITION[cond], base, index, scale, disp);
+  }
+
+  final void emitSET_Cond_RegOff_Byte(byte cond, byte index, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitRegOffRegOperands(index, scale, disp, (byte) 0x00);
+      if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
+  }
+
+  final void emitIMUL2_Reg_Reg(byte dstReg, byte srcReg) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitRegRegOperands(srcReg, dstReg);
+      if (lister != null) lister.RR(miStart, "IMUL", dstReg, srcReg);
+  }
+
+  final void emitIMUL2_Reg_RegInd(byte dstReg, byte srcReg) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitRegIndirectRegOperands(srcReg, dstReg);
+      if (lister != null) lister.RRN(miStart, "IMUL", dstReg, srcReg);
+  }
+
+  final void emitIMUL2_Reg_RegDisp(byte dstReg, byte srcReg, int srcDisp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitRegDispRegOperands(srcReg, srcDisp, dstReg);
+      if (lister != null) lister.RRD(miStart, "IMUL", dstReg, srcReg, srcDisp);
+  }
+
+  final void emitIMUL2_Reg_RegOff(byte dstReg, byte srcIndex, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitRegOffRegOperands(srcIndex, scale, disp, dstReg);
+      if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
+  }
+
+  final void emitIMUL2_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitSIBRegOperands(srcBase, srcIndex, scale, disp, dstReg);
+      if (lister != null) lister.RRXD(miStart, "IMUL", dstReg, srcBase, srcIndex, scale, disp);
+  }
+
+  final void emitIMUL2_Reg_Imm(byte dstReg, int imm) {
+      int miStart = mi;
+      if (fits(imm,8)) {
+	  setMachineCodes(mi++, (byte) 0x6B);
+	  emitRegRegOperands(dstReg, dstReg);
+	  emitImm8((byte)imm);
+      } else {
+	  setMachineCodes(mi++, (byte) 0x69);
+	  emitRegRegOperands(dstReg, dstReg);
+	  emitImm32(imm);
+      }
+      if (lister != null) lister.RI(miStart, "IMUL", dstReg, imm);
+  }
+
+  // trap 
+  final void emitINT_Imm (int v) {
+    if (VM.VerifyAssertions) VM.assert(v <= 0xFF);
+    int miStart = mi;
+    if (v == 3) { // special case interrupt
+      setMachineCodes(mi++, (byte) 0xCC);
+    } else {
+      setMachineCodes(mi++, (byte) 0xCD);
+      setMachineCodes(mi++, (byte) v);
+    }
+    if (lister != null) lister.I(miStart, "INT", v);
+  }
+
+  // if cond then IP += mTarget-mi
+  // (if mTarget initially 0, value will be overwritten when known)
+  final void emitJCC_Cond_Label (byte cond, int label) {
+      int miStart = mi;
+      VM_ForwardReference r =  new VM_ForwardReference.ConditionalBranch(mi, label);
+      forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) (0x80 + cond));
+      mi += 4; // leave space for displacement  TODO!! handle short branches
+      if (lister != null) lister.I(miStart, "J" + CONDITION[cond], label);
+  }
+
+  final void emitJCC_Cond_Imm (byte cond, int mTarget) {
+      int miStart = mi;
+      int relOffset = mTarget - (mi + 1 + 1); // address relative to next instruction
+      if (fits(relOffset, 8)) {
+	  emitCondOpByte((byte)0x70, cond);
+	  emitImm8((byte)relOffset);
+      } else {
+        setMachineCodes(mi++, (byte) 0x0F);
+	emitCondOpByte((byte)0x80, cond);
+	relOffset = mTarget - (mi + 4); // address relative to next instruction
+	emitImm32(relOffset);
+      }
+      if (lister != null) lister.I(miStart, "J" + CONDITION[cond], relOffset);
+  }
+
+  final void emitJCC_Cond_ImmOrLabel (byte cond, int mTarget, int bTarget) {
+    if (mTarget == 0) { // forward branch
+	emitJCC_Cond_Label(cond, bTarget);
+    } else { // backward branch
+	emitJCC_Cond_Imm(cond, mTarget);
+    }
+  }
+
+  final void emitLEA_Reg_RegDisp(byte dstReg, byte srcReg, int srcDisp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitRegDispRegOperands(srcReg, srcDisp, dstReg);
+      if (lister != null) lister.RRD(miStart, "LEA", dstReg, srcReg, srcDisp);
+  }
+
+  final void emitLEA_Reg_RegInd(byte dstReg, byte srcReg) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitRegIndirectRegOperands(srcReg, dstReg);
+      if (lister != null) lister.RRN(miStart, "LEA", dstReg, srcReg);
+  }
+
+  final void emitLEA_Reg_RegOff(byte dstReg, byte idx, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitRegOffRegOperands(idx, scale, disp, dstReg);
+      if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
+  }
+
+  final void emitLEA_Reg_RegIdx(byte dstReg, byte base, byte idx, short scale, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitSIBRegOperands(base, idx, scale, disp, dstReg);
+      if (lister != null) lister.RRXD(miStart, "LEA", dstReg, base, idx, scale, disp);
+  }
+
+  final void emitMOV_Reg_Imm(byte dst, int imm) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) (0xB8 | dst));
+      emitImm32(imm);
+      if (lister != null) lister.RI(miStart, "MOV", dst, imm);
+  }
+
+  // pop address and goto it
+  final void emitRET () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xC3);
+    if (lister != null) lister.OP(miStart, "RET");
+  }
+
+  // pop address and goto it, pop parameterBytes additional bytes
+  final void emitRET_Imm (int parameterBytes) {
+    int miStart = mi;
+    if (parameterBytes == 0) {   
+      setMachineCodes(mi++, (byte) 0xC3);
+      if (lister != null) lister.OP(miStart, "RET");
+    } else {
+      setMachineCodes(mi++, (byte) 0xC2);
+      emitImm16(parameterBytes);
+      if (VM.VerifyAssertions) VM.assert ((parameterBytes & 0xffff0000) == 0); 
+      if (lister != null) lister.I(miStart, "RET", parameterBytes);
+    }
+  }
+
+  // allocate stack frame for procedure
+  final void emitENTER_Imm (int frameSize) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xC8);
+    emitImm16(frameSize);
+    setMachineCodes(mi++, (byte) 0x0);
+    if (lister != null) lister.I(miStart, "ENTER", frameSize);
+  }
+
+  // sign extends EAX into EDX
+  final void emitCDQ () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte)0x99);
+    if (lister != null) lister.OP(miStart, "CDQ");
+  }
+
+  // edx:eax <- time stamp counter
+  // on Linux this appears to be unpriviledged
+  final void emitRDTSC() {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x31);
+    if (lister != null) lister.OP(miStart, "RDTSC");
+  }
+
+  // nop
+  final void emitNOP () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x90);
+    if (lister != null) lister.OP(miStart, "NOP");
+  }
+
+  // SP := FP; FP := [SP]; SP -= WORDSIZE; discard current stackframe
+  final void emitLEAVE () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xC9);
+    if (lister != null) lister.OP(miStart, "LEAVE");
+  }
+
+  /////////////////////////////////
+  // floating point instructions //
+  /////////////////////////////////
+
+    // floating point push of ST(i) into ST(0)
+    final void emitFLD_Reg_Reg(byte destReg, byte srcReg) {
+	int miStart = mi;
+	if (VM.VerifyAssertions) VM.assert(destReg == FP0);
+	setMachineCodes(mi++, (byte) 0xD9);
+	setMachineCodes(mi++, (byte) (0xC0 + srcReg));
+	if (lister != null) lister.R(miStart, "FLD", srcReg);
+    }
+    
+    // floating point copy of ST(0) into ST(I)
+    final void emitFST_Reg_Reg(byte destReg, byte srcReg) {
+	int miStart = mi;
+	if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
+	setMachineCodes(mi++, (byte) 0xDD);
+	setMachineCodes(mi++, (byte) (0xD0 + destReg));
+	if (lister != null) lister.R(miStart, "FST", destReg);
+    }
+    
+    // floating point pop of ST(0) into ST(I)
+    final void emitFSTP_Reg_Reg(byte destReg, byte srcReg) {
+	int miStart = mi;
+	if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
+	setMachineCodes(mi++, (byte) 0xDD);
+	setMachineCodes(mi++, (byte) (0xD8 + destReg));
+	if (lister != null) lister.R(miStart, "FST", destReg);
+    }
+    	
+  // Change Sign: Top of FPU register stack -= Top og FPU register stack
+  final void emitFCHS () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xD9);
+    setMachineCodes(mi++, (byte) 0xE0);
+    if (lister != null) lister.OP(miStart, "FADD32");
+  }
+
+
+  final void emitFUCOMPP () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xDA);
+    setMachineCodes(mi++, (byte) 0xE9);
+    if (lister != null) lister.OP(miStart, "FUCOMPP");
+  }
+
+  // Store Status Word into AX register/noexecptions
+  final void emitFNSTSW () {
+    int miStart = mi;
+    int relOffset = 0;
+    setMachineCodes(mi++, (byte) 0xDF);
+    setMachineCodes(mi++, (byte) 0xE0);
+    if (lister != null) lister.OP(miStart, "FNSTSW");
+  }
+
+  // Store AH into Flags
+  final void emitSAHF () {
+    int miStart = mi;
+    int relOffset = 0;
+    setMachineCodes(mi++, (byte) 0x9E);
+    if (lister != null) lister.OP(miStart, "SAHF");
+  }
+
+  // Real Remainder:
+  // Top of FPU register stack <- ST(0) - (Q*ST(1)
+  // Q is the interger value obtained from truncating
+  // ST(0)/ST(1) toward 0
+  final void emitFPREM () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xD9);
+    setMachineCodes(mi++, (byte) 0xF8);
+    if (lister != null) lister.OP(miStart, "FPREM");
+  }
+
+    // Blow away floating point state
+    final void emitFINIT() {
+	int miStart = mi;
+	setMachineCodes(mi++, (byte) 0x9B);
+	setMachineCodes(mi++, (byte) 0xDB);
+	setMachineCodes(mi++, (byte) 0xE3);
+	if (lister != null) lister.OP(miStart, "FINIT");
+    }
+
+    // Blow away floating point state
+    // Pending exceptions??? Don't tell me about pending exceptions!!
+    final void emitFNINIT() {
+	int miStart = mi;
+	setMachineCodes(mi++, (byte) 0xDB);
+	setMachineCodes(mi++, (byte) 0xE3);
+	if (lister != null) lister.OP(miStart, "FNINIT");
+    }
+
+    // Declare we are no longer using FP register
+    final void emitFFREE_Reg(byte reg) {
+	int miStart = mi;
+	setMachineCodes(mi++, (byte) 0xDD);
+	setMachineCodes(mi++, (byte) ( (byte)0xC0 + reg ));
+	if (lister != null) lister.R(miStart, "FFREE", reg);
+    }
+
+    // The dreaded FXCH
+    // (symbol of all that's wrong with Intel floating point :)
+    final void emitFXCH_Reg_Reg(byte regOne, byte regTwo) {
+	int miStart = mi;
+
+	// at least one reg must not be FP0
+	byte nonZeroReg = FP0; // :)
+	if (regOne == FP0 && regTwo == FP0) 
+	    // do nothing; this is stupid
+	    return;
+	else if (regOne == FP0 && regTwo != FP0)
+	    nonZeroReg = regTwo;
+	else if (regTwo == FP0 && regOne != FP0)
+	    nonZeroReg = regOne;
+
+	// if not, bad instruction, so die
+	if (nonZeroReg == FP0)
+	    VM.assert(false, "FXCH of " + regOne + ", " + regTwo);
+
+	// generate it, with special case (of course) for FP1
+	setMachineCodes(mi++, (byte) 0xD9);
+	if (nonZeroReg == FP1)
+	    setMachineCodes(mi++, (byte) 0xC9);
+	else 
+	    setMachineCodes(mi++, (byte) (0xC8 | nonZeroReg));
+
+	// list it
+	if (lister != null) lister.R(miStart, "FXCH", nonZeroReg);
+    }
+
+    /*
+     * BELOW HERE ARE AUTOMATICALLY-GENERATED INSTRUCTIONS.  DO NOT EDIT.
+     *
+     * These instructions are generated by genAssembler.sh in the
+     * src/vm/arch/intel/assembler directory.  Please make all needed
+     * edits to that script.
+     */

@@ -1,0 +1,52 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+
+# This script will build the boot images
+# It then signals another script, night-sanity-run to perform the runs.
+
+export JALAPENO_HOME=/homes/fury5/jalapeno
+export CVSROOT=$JALAPENO_HOME/CVSmaster
+export PATH=$JALAPENO_HOME/bin:$RVM_ROOT/bin/watson:/usr/gnu/bin:/vol/TeX/TeXLive5/bin/aix:/usr/contrib/bin:$PATH:.
+
+# Where the fullshadow and other verbose output are placed, not mailed
+export VERBOSE_LOG=$RVM_ROOT/../results/verbose.log
+
+# Where the build output is placed, this is mailed when the tests failed
+export BUILD_LOG=$RVM_ROOT/../results/build.log
+
+umask 022
+
+# build the boot images, but don't run any tests
+echo "Building the boot images\n" >> $BUILD_LOG
+
+echo "Path is $PATH \n" >> $VERBOSE_LOG
+echo "which java is \n" >> $VERBOSE_LOG
+which java >> $VERBOSE_LOG
+
+$RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results -norun -wait sem" -config $1 >> $BUILD_LOG 2>> $BUILD_LOG
+
+echo "\n\nBuilding java doc" >> $BUILD_LOG 
+$RVM_ROOT/bin/watson/jdoc.sh $SHADOW/FullAdaptivecopyingGC $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
+
+echo "\n\nBuilding userguide" >> $BUILD_LOG 
+export BIBINPUTS=.:$RVM_ROOT/doc/papers/bib
+cd $RVM_ROOT/doc/userguide 
+jmake university >> $BUILD_LOG 2>> $BUILD_LOG
+
+echo "\n\nBuilding IR html" >> $BUILD_LOG 
+cd $RVM_ROOT/doc
+mkdir html
+cd $RVM_ROOT/doc/html
+mkdir ir
+cd $RVM_ROOT/doc/optimizingCompiler/ir
+buildIRDoc.pl >> $BUILD_LOG 2>> $BUILD_LOG
+cp $RVM_ROOT/doc/optimizingCompiler/ir/*.gif $RVM_ROOT/doc/html/ir
+cp $RVM_ROOT/doc/optimizingCompiler/ir/*.css $RVM_ROOT/doc/html/ir
+cd $SHADOW
+ln -s jalapeno/doc . 
+echo "\n\nBuild complete, builder script exiting.\n" >> $BUILD_LOG
+
+
+

@@ -1,0 +1,122 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+/**
+ * Class to handle command-line arguments and options for the 
+ * optimizng compiler.
+ * <p>
+ * Note: This file is mechanically generated from OPT_Options.template
+ *       and MasterOptionsTemplate.template
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES
+ *       All other options are defined in VALUE_DAT_FILES
+ *       (value, enumeration, bitmask)
+ *
+ * @author Dave Grove
+ **/
+class OPT_Options implements Cloneable {
+
+  // Non-template instance fields that we don't want
+  //  available on the command-line)
+  private int OPTIMIZATION_LEVEL = 1;    // The OPT level
+
+  // Non-template instance fields (TODO: Templatize or remove)
+  boolean IPA_PESSIMISTIC = false;	  // assume pessimistic ipa information by default
+  boolean IPA_OPTIMISTIC = false;	  // assume optimistic ipa information
+  boolean IPA_ALIAS = false;	          // whether to compute alias partition. 
+  boolean SKIP_UNKNOWN_MAGIC = false;    // used by IPA
+
+  // TODO: This doesn't belong here and is probably not being used anymore.
+  static boolean IPA = false;
+
+  private String printToStringHeader() {
+    return "Current value of options at optimization level "+OPTIMIZATION_LEVEL+":\n";
+  }
+
+$$$$ LET USE_OPT_LEVELS "YES"
+// BEGIN CODE GENERATED FROM MasterOptionsTemplate.template
+    $$$$ INCLUDE MasterOptionsTemplate.template
+// END CODE GENERATED FROM MasterOptionsTemplate.template
+$$$$ END LET USE_OPT_LEVELS
+
+  private boolean instanceProcessAsOption(String arg) {
+    if (arg.startsWith("O")) {
+      try {
+	setOptLevel(Integer.parseInt(arg.substring(1)));
+      } catch (NumberFormatException e) {
+	return false;
+      }
+      return true;
+    }
+
+    //-#if RVM_WITH_OPT_INSTRUMENTATION
+    if (VM_OptInstrumentor.processCommandLineArg(name, value))
+      return true;
+    //-#endif
+
+    return false;
+  }    
+
+
+  private static void instancePrintHelpHeader(String prefix) {
+    VM.sysWrite("Commands\n");
+    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    if(prefix.equals("-X:aos:irc")) {
+      VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of optimizing compiler's command-line options\n");
+      VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the optimizing compiler's options at a specific optimization level; otherwise, if optimization level not specified, print options for all levels\n");
+      VM.sysWrite(prefix+":o=v   Pass the option-value pair, o=v, to the optimizing compiler that recompiles methods.  If the optimization level is specified, then only that optimization level is affected.\n");
+
+      VM.sysWrite("\nCommands to set the optimization level of the initial runtime compiler\n");
+      VM.sysWrite(prefix+":O0\t\t\tSelect optimization level 0, minimal optimizations\n");
+      VM.sysWrite(prefix+":O1\t\t\tSelect optimization level 1, modest optimizations\n");
+      VM.sysWrite(prefix+":O2\t\t\tSelect optimization level 2\n");
+      VM.sysWrite(prefix+":O3\t\t\tSelect optimization level 3\n");
+    } else { // "-X:aos:opt"
+      VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of optimizing compiler's command-line options\n");
+      VM.sysWrite(prefix+"[?]:printOptions\t\tPrint the current values of the optimizing compiler's options at a specific optimization level; otherwise, if optimization level not specified, print options for all levels\n");
+      VM.sysWrite(prefix+"[?]:o=v   Pass the option-value pair, o=v, to the optimizing compiler that recompiles methods.  If the optimization level is specified, then only that optimization level is affected.\n");
+    }
+    //-#else
+    VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of opt compiler's command-line arguments\n");
+    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the active opt compiler options\n");
+    VM.sysWrite(prefix+":O0\t\t\tSelect optimization level 0, minimal optimizations\n");
+    VM.sysWrite(prefix+":O1\t\t\tSelect optimization level 1, modest optimizations\n");
+    VM.sysWrite(prefix+":O2\t\t\tSelect optimization level 2\n");
+    VM.sysWrite(prefix+":O3\t\t\tSelect optimization level 3\n");
+    //-#endif
+    VM.sysWrite("\n");
+  }
+
+
+  private static void instancePrintHelpFooter(String prefix) {
+    //-#if RVM_WITH_OPT_INSTRUMENTATION
+    VM_OptInstrumentor.printHelp();
+    //-#endif
+  }	
+
+
+  // accessor to get OPT level
+  public int getOptLevel() {
+    return OPTIMIZATION_LEVEL;
+  }
+
+  // Set the options to encode the optimizations enabled at the given opt label
+  // and disabled all optimizations that are not enabled at the given opt label
+  public void setOptLevel(int level) {
+     OPTIMIZATION_LEVEL = level;	
+     // Begin generated opt-level logic       
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
+     $$$$ IF OPT_LEVEL != -1
+     if (level >= OPT_LEVEL) 
+        FULL_NAME = true;
+     else 
+        FULL_NAME = false;
+     $$$$ END IF OPT_LEVEL
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+     // End generated opt-level logic
+  }
+}

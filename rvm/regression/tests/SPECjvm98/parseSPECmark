@@ -1,0 +1,22 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+#
+# Usage: RunSPECmark [spec output file]
+#
+OUTPUT_FILE=$1
+product="1.00"
+for code in compress jess db javac mpegaudio mtrt jack
+do
+   fgrep -v "NOT VALID" $OUTPUT_FILE | fgrep Finished | fgrep $code > tmp
+   time=`$RVM_ROOT/examples/sanityMark/parse_spec`
+   reference=`fgrep $code $RVM_ROOT/examples/jvm98/specmark.reference| sed -e 's/[a-zA-A]//g'`
+   ratio=`perl -e 'printf("%1.2f",@ARGV[0]/@ARGV[1])' $reference $time`
+   perl -e 'printf("%10s    Time:%10s    Ratio:%10s\n",$ARGV[0],$ARGV[1],$ARGV[2])' $code $time $ratio
+   product=`perl -e 'printf("%1.2f",@ARGV[0]*@ARGV[1])' $product $ratio`
+   rm -f tmp
+done
+one_seventh=0.1428571428571
+geo_mean=`perl -e 'printf("%1.2f",@ARGV[0]**@ARGV[1])' $product $one_seventh`
+perl -e 'printf("Bottom Line: SPECmark: %10s\n",@ARGV[0])' $geo_mean

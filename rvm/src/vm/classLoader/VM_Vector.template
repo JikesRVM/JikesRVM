@@ -1,0 +1,77 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+/** A template for building arrays whose length can grow/shrink.
+ *
+ *  In this template: 
+ *     CCC stands for classname of array builder
+ *     EEE stands for typename of array elements
+ *
+ *  Note: the method names in this template were chosen to match those
+ *  of "java.util.Vector" wherever possible.
+ * 
+ * @author Derek Lieber
+ */
+class CCC {
+  //-----------//
+  // interface //
+  //-----------//
+   
+  CCC() {
+    array = new EEE[10];
+  }
+      
+  // Add item.
+  //
+  final void addElement(EEE item) {
+    if (cnt == array.length)
+      adjustLength(cnt << 1); // double size of array
+    array[cnt++] = item;
+  }
+
+  // Get item.
+  //
+  final EEE elementAt(int index) {
+    return array[index];
+  }
+
+  // Set item.
+  //
+  final void setElementAt(EEE item, int index) {
+    array[index] = item;
+  }
+
+  // Get number of items added so far.
+  //
+  final int size() {
+    return cnt;
+  }
+
+  // Get array, trimmed to size.
+  //
+  final EEE[] finish() {
+    adjustLength(cnt);
+    return array;
+  }
+
+  //----------------//
+  // implementation //
+  //----------------//
+
+  private EEE[] array;
+  private int   cnt;
+  
+  private final void adjustLength(int newLength) {
+    EEE[] newElements = new EEE[newLength];
+
+    int n = array.length;
+    if (n > newLength)
+      n = newLength;
+         
+    for (int i = 0; i < n; ++i)
+      newElements[i] = array[i];
+
+    array = newElements;
+  }
+}

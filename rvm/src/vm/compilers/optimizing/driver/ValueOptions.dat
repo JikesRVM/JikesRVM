@@ -1,0 +1,86 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value, S = Set, B = BitMask (TODO).
+# TYPE: byte, int, String, double
+DESCRIP  
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
+
+V IC_MAX_TARGET_SIZE int (4*VM_OptMethodSummary.CALL_COST-VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+Static inlining heuristic: Upper bound on callee size
+
+
+V IC_MAX_INLINE_DEPTH int 5
+Static inlining heuristic: Upper bound on depth of inlining
+
+
+V IC_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*VM_OptMethodSummary.CALL_COST-VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+Static inlining heuristic: Always inline callees of this size or smaller
+
+
+V IC_MAX_INLINE_EXPANSION_FACTOR int 4
+Static inlining heuristic: Upper bound on relative expansion of caller due to inlining
+
+
+V IC_MAX_METHOD_SIZE int 4096
+Static inlining heuristic: Upper bound on absolute size of caller due to inlining
+
+
+V AI_MAX_TARGET_SIZE int (22*VM_OptMethodSummary.CALL_COST+3*VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+Adaptive inlining heuristic: Upper bound on callee size
+
+
+V AI_MAX_INLINE_EXPANSION_FACTOR int 15
+Adaptive inlining heuristic: Upper bound on relative expansion of caller due to inlining
+
+
+V AI_MAX_METHOD_SIZE int 4096
+Adaptive inlining heuristic: Upper bound on absolute size of caller due to inlining
+
+
+V MAX_DEADSTORE_SYSTEM_SIZE int 100 
+Maximum number of dataflow equations for dead store elimination
+
+
+E REGALLOC_ALGORITHM byte LINEAR_SCAN_REGALLOC
+Selection of register allocation algorithm
+"LINEAR_SCAN_REGALLOC useLinearScanRegAlloc ls" 
+
+E INLINING_GUARD byte IG_METHOD_TEST
+Selection of guard mechanism for inlined virtual calls that cannot be statically bound
+"IG_METHOD_TEST guardWithMethodTest ig_method_test" \
+"IG_CLASS_TEST guardWithClassTest ig_class_test" \
+"IG_TRAP guardWithTrap ig_trap"
+
+E FP_MODE byte FP_STRICT
+Selection of strictness level for floating point computations
+"FP_STRICT strictFP strict" \
+"FP_ALLOW_FMA allowFMA allow_fma" \
+"FP_LOOSE allowAssocFP allow_assoc"
+
+S EXCLUDE String
+Exclude methods from being opt compiled
+
+
+S METHOD_TO_PRINT String
+Only print IR from methods whose name contains this string
+
+
+V UNROLL_LOG int 2
+Unroll loops. Duplicates the loop body n times.
+
+
+E SPILL_COST_ESTIMATE byte SIMPLE_SPILL_COST
+Selection of spilling heuristic
+"SIMPLE_SPILL_COST simpleSpillCost simple" \
+"BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
+"LOOPDEPTH_SPILL_COST loopDepthSpillCost loopDepth"
+
+E FCLEAR byte FFREE
+Selection of mechanism to clean IA32 FP stack at procedure boundaries
+"FNINIT fclearWithFNINIT fninit" \
+"FSTP fclearWithFSTP fstp" \
+"FFREE fclearWithFFREE ffree"
