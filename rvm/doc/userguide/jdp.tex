@@ -12,7 +12,7 @@ RVM effort.  Because no existing debugger satisfactorily meets the
 needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
 name primitive.  {\tt jdp} uses a technique called Remote
 Reflection (see the related paper on the RVM 
-\xlink{web page}{\RVMPubsURL}.  This
+\xlink{web page}{\RVMPubsURL}).  This
 allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the RVM.
 
@@ -25,8 +25,8 @@ the RVM being debugged are two separate processes, an interpreter is
 used to connect {\tt jdp} with the RVM:  it maps the access bytecodes in the
 reflection methods to obtain the internal values in the RVM.
   
-  {\tt jdp} is not intended to be a general purpose debugger; it is driven
-by the needs of the RVM group.  
+  {\tt jdp} is not intended to be a general purpose debugger; it is 
+customized for RVM but is easily extendable.  
 
    Because the optimizing compiler does not currently provide all of
    the mapping support required, {\tt jdp} functionality is limited in
@@ -97,7 +97,7 @@ The debugger requires the following files:
 \item The symbol map:
    This file is a symbol map of the boot image.  It contains a listing of the 
    JTOC and the compiled methods.  It is generated when the build configuration 
-   in {\tt \$RVM\_ROOT/tools/builder/jconfigure} contains the flag:
+   in {\tt \$RVM\_ROOT/rvm/bin/jconfigure} contains the flag:
         {\tt export GENERATE\_MAP=1}
 
    {\tt jdp} uses offset 
@@ -118,12 +118,12 @@ The debugger requires the following files:
 \end{itemize}
 
 \item The program to load and run the RVM boot image:
-   This file is typically {\tt \$RVM\_BUILD/RVM}.
+   This file is typically {\tt \$RVM\_BUILD/JikesRVM}.
    Normally you don't have to be concerned about this file since it rarely
    changes.
 \begin{itemize}
 \item   {\tt jdp} argument:     {\tt -jdpbootrunner booterName}
-\item   Default value:  {\tt \$RVM\_BUILD/RVM}
+\item   Default value:  {\tt \$RVM\_BUILD/JikesRVM}
 \end{itemize}
 \end{enumerate}
 
@@ -132,9 +132,14 @@ In addition to these files, the following setting can be made:
 \begin{enumerate}
 \index{breakpoints}
 \item Initial breakpoint:  
-   This is where the RVM will stop first.  By default, {\tt jdp}
-   stops at line 24 in the assembler procedure:
-        {\tt \$RVM\_ROOT/src/tools/bootImageRunner/bootThread.s}.
+   This is where the RVM will stop first.  By default, {\tt jdp} stops
+   after the prologue of the user's main method.  However, this point
+   comes after the RVM has executed for a significant amount of time.
+   If there is an error in the initialization of the RVM, {\tt jdp} can stop
+   before the RVM begins execution by specifying the argument {\tt -jdpviewboot}.
+   In this case, {\tt jdp} sets the initial breakpoint at a point after the
+   first 4 instructions in the assembler procedure .bootThread in:
+        {\tt \$RVM\_ROOT/rvm/src/tools/bootImageRunner/bootThread.c}.
    This is after the RVM boot image has been loaded into memory and
    the 4 registers jtoc, proc, thread index and FP have been initialized.
    At this point, only one thread is running and the stack has only 
@@ -156,7 +161,7 @@ In addition to these files, the following setting can be made:
 
 
 Finally, jdp assumes the following conventions in navigating within the 
-boot image (they arise from the base line compiler):
+boot image (they arise from the base compiler convention):
 
 \begin{enumerate}
 \item The method ID is saved a the end of the instruction block for each
@@ -211,6 +216,7 @@ listt         & lt  & list threads                                              
 
 quit          & q   & exit debugger                                             \\ 
 preference    & pref & set user preference                                      \\ 
+x2d, d2x      & (same) & convert number between hex and decimal                 \\
 verbose       & v   & toggle verbose mode                                       \\ 
 (macro name)  &   & load and execute this macro (a text file with suffix .jdp)  \\ 
 (enter)       &   & repeat last command                                         \\ \hline 
@@ -252,7 +258,8 @@ This should be convenient for:
 \begin{verbatim}
         VM_Control.LoadLocalVariableTables
 \end{verbatim}
-  This will increase the boot image size by about 10\%.
+  Then rebuild the boot image. This will increase the boot image size 
+  by about 10\%.
 
 \index{breakpoints}
 \item Setting breakpoint:
@@ -381,6 +388,9 @@ This should be convenient for:
   displays the C procedure names in the stack traceback and stepping by 
   machine code is possible.  You can also view the raw C stack frame and 
   its registers, but native variables and line numbers are not available.
+  For C program that creates the RVM via the JNI\_CreateJavaVM call, 
+  {\tt jdp} can be used by specifying the initial breakpoint (see the 
+  {\tt jdp} script).
 
 
 
