@@ -61,7 +61,9 @@ else
     unset have_err_trap
 fi
 
-trap -- 'echo >&2 "$ME: We just exited due to an error, exit status was ${xited:-$?}."' EXIT
+trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit status was ${xited:-$?}.
+   possibly in source file line # $LINENO and function $FUNCNAME
+"' EXIT
 set -e;
 
 ## Complain
@@ -981,6 +983,7 @@ EOF
 	    echo "$SECONDS s"
 	    if [ $status != 0 ]; then
 		echo >&2 "$ME: Trouble while running \"$*\" (exit status $status); aborting execution"
+		trap '' EXIT
 		exit $status;
 	    fi
 	    return $status;	# will always return 0
@@ -1003,8 +1006,9 @@ EOF
 	       NOLINK_FLAG=-nolink
 	       BOOTER_FLAG=-booter
 	    else
-	       echo >&2 "Usage: $ME [-trace] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"
-	       exit 1
+	        echo >&2 "Usage: $ME [-trace] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"
+		trap '' EXIT
+	        exit 1
 	    fi
 	    shift
 	done
@@ -1028,6 +1032,7 @@ EOF
 	    timeit ./jbuild.compile    $TRACE_FLAG -clean
 	    timeit ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean
 	    timeit ./jbuild.linkBooter $TRACE_FLAG -clean
+	    trap '' EXIT
 	    exit 0
 	fi
 
@@ -1119,6 +1124,7 @@ EOF
     fi
     echo '
     echo -n "(templates cleaned) "
+    trap '' EXIT
     exit 0
 fi
    # Make the tools that we need to do template expansion
@@ -1202,6 +1208,7 @@ EOF
 	    find . -name "*.java" -exec rm {} \;
 	    touch ${CLASSES_INVALID_STR}
 	    echo -n "(sources cleaned) "
+	    trap '' EXIT
 	    exit 0
 	fi
 EOF
@@ -1235,7 +1242,8 @@ for d in $(<' ${SOURCE_LIST_STR} '); do
     elif [[ ${status} != 0 ]]; then
        echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}).
     Aborting execution."
-       exit 1
+	trap '' EXIT
+        exit 1
     fi
     # set -e	# Original set -e location.
     if [[ ${TRACE_FLAG} = -trace ]]; then
@@ -1261,6 +1269,7 @@ if [[ ${status} = 1 ]]; then
     FILES_HAVE_CHANGED=1
 elif [[ ${status} != 0 ]]; then
     echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}); aborting execution."
+    trap '' EXIT
     exit 1
 fi
 if [[ ${TRACE_FLAG} = -trace ]]; then
@@ -1320,6 +1329,7 @@ if [[ $1 = -clean ]]; then
     echo *.class | xargs rm -f
     touch' ${CLASSES_INVALID_STR} '
     echo -n "(classes cleaned) "
+    trap '' EXIT
     exit 0
 fi';
    # Generate classes
@@ -1414,6 +1424,7 @@ EOF
    echo "    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java"
    echo "    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class"
    echo '    echo -n "(bootimage cleaned) "'
+   echo '    trap "" EXIT'
    echo '    exit 0'
    echo 'fi'
    echo ''
@@ -1989,7 +2000,8 @@ function emitBooterLinker () {
    echo 'echo -n "(booter cleaned) "'
    echo 'if [[ $1 = -clean ]]; then'
 
-   echo '   exit 0'
+   echo '    trap "" EXIT'
+   echo '    exit 0'
    echo 'fi'
    echo ""
 
@@ -1998,17 +2010,23 @@ function emitBooterLinker () {
    fi
 
    # copy native libraries
-   if [[ x$CLASSPATH_ROOT = x ]]; then
-     CPS=$RVM_ROOT/classpath
+   if [[ $CLASSPATH_ROOT ]]; then
+       CPS=$CLASSPATH_ROOT
    else
-     CPS=$CLASSPATH_ROOT
+       CPS=$RVM_ROOT/classpath
    fi
    echo 'SYSTEM_TYPE=$('$CPS'/classpath/config.guess)'
+   ## AIX requires that dynamically loaded libraries end in .a, 
+   ## so that dlopen() will find them.  Also, the classpath builder, on AIX,
+   ## generates the files with the suffix ".so.0".  We transform one to the othr.
    if (( RVM_FOR_AIX )); then
      echo 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
-     echo '  cp $_library' $BUILD_DIRECTORY_STR'/${_library##*/}.so.0a'
+     echo '    cp $_library' $BUILD_DIRECTORY_STR'/$(basename ${_library} .so.0)a'
      echo 'done'
    else
+       ## On Linux, on the other hand, dynamically loaded libraries end in 
+       ## .so.  The classpath builder conveniently generates them 
+       ## with this suffix.
      echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
    fi
    echo -e "\necho -n '(classpath native libraries copied) '"
@@ -2024,24 +2042,28 @@ function emitBooterLinker () {
 
    if (( RVM_FOR_AIX )); then
 	echo 'if [[ $(uname) != AIX ]]; then'
-	echo '   echo "please run me on AIX"'
-	echo '   exit 1'
+	echo '    echo "please run me on AIX"'
+	echo '    trap "" EXIT'
+	echo '    exit 1'
 	echo 'fi'
    elif (( RVM_FOR_LINUX )); then
 	echo 'if [[ $(uname) != Linux ]]; then'
-	echo '   echo "please run me on Linux"'
-	echo '   exit 1'
+	echo '    echo "please run me on Linux"'
+	echo '    trap "" EXIT'
+	echo '    exit 1'
 	echo 'fi'
 
 	if (( RVM_FOR_POWERPC )); then
 		echo 'if [[ $(uname -m) != ppc ]]; then'
-		echo '   echo "please run me on Linux PowerPC"'
-		echo '   exit 1'
+		echo '    echo "please run me on Linux PowerPC"'
+		echo '    trap "" EXIT'
+		echo '    exit 1'
 		echo 'fi'
         elif (( RVM_FOR_IA32 )); then
 		echo 'if [[ $(uname -m) != i686 ]]; then'
-		echo '   echo "please run me on Linux IA32"'
-		echo '   exit 1'
+		echo '    echo "please run me on Linux IA32"'
+		echo '    trap "" EXIT'
+		echo '    exit 1'
 		echo 'fi'
 	fi
    fi
@@ -2213,6 +2235,7 @@ function emitBooterLinker () {
 
    else
        echo 'echo "dont know how to link booter"'
+       echo 'trap "" EXIT'
        echo 'exit 1'
    fi
   
@@ -2235,6 +2258,7 @@ function emitToolCompiler () {
 
    echo 'if [[ $# = 0 ]]; then'
    echo '    echo 2>&1 "usage: ${ME} [ -classpath x:y:z ] java-file [ java-file... ]"'
+   echo '    trap "" EXIT'
    echo '    exit 1'
    echo 'fi'
 
@@ -2249,13 +2273,15 @@ function emitToolCompiler () {
    ADDRESS_TYPE="int"
 
    echo 'if [[ '${BUILD_DIRECTORY_STR}' = "" ]]; then'
-   echo '   echo "${ME}: please set your' ${BUILD_DIRECTORY_STR1} 'environment variable (eg. ${HOME}/rvmBuild)"'
-   echo '   exit 1'
+   echo '    echo >&2 "${ME}: please set your' ${BUILD_DIRECTORY_STR1} 'environment variable (eg. ${HOME}/rvmBuild)"'
+   echo '    trap "" EXIT'
+   echo '    exit 1'
    echo 'fi'
 
    echo 'if [[ '${HOST_JIKES_STR}' = "" ]]; then'
-   echo '   echo "${ME}: please set your' ${HOST_JIKES_STR1} 'environment variable"'
-   echo '   exit 1'
+   echo '   echo >&2 "${ME}: please set your' ${HOST_JIKES_STR1} 'environment variable"'
+   echo '    trap "" EXIT'
+   echo '    exit 1'
    echo 'fi'
 
    echo "CPATH=${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
@@ -2280,8 +2306,9 @@ function emitToolPreprocessor () {
    echo '. "$RVM_BUILD/environment"'
 
    echo 'if [[ $# = 0 ]]; then'
-   echo '   echo >&2 "usage: $ME java-file [ java-file... ]"'
-   echo '   exit 1'
+   echo '    echo >&2 "usage: $ME java-file [ java-file... ]"'
+   echo '    trap "" EXIT'
+   echo '    exit 1'
    echo 'fi'
 
    echo 'exec "$RVM_BUILD/jbuild.prep"' $PREPROCESSOR_DEFINITIONS '"$@"'
@@ -2309,12 +2336,14 @@ EOF
 	    echo "must specify Eclipse home: either
 	    echo "  1: set it in ${RVM_TARGET_CONFIG}, or
 	    echo "  2: use jbuild.plugin <eclipse dir>"
-	  exit 2
+	    trap "" EXIT
+	    exit 2
 	fi
 
 	# must have Ant
 	if [[ x${ANT_CMD} = x ]]; then
 	    echo "must specify ANT_CMD in ${RVM_TARGET_CONFIG}"
+	    trap "" EXIT
 	    exit 2
 	fi
 
@@ -2347,11 +2376,11 @@ if [[ -e ${BUILD_DIRECTORY} ]]; then # old directory exists
 	read response
 	if [[ ${response} != y && ${response} != 'yes' ]]; then
 	    echo "${ME}: operation aborted, nothing written"
-	    trap '' EXIT
 	    ## Why on earth do we want to keep Make happy in this situation?
 	    ## Do we not want it to get upset?
-
-	    exit 1 # to keep make happy
+	    # exit 0 # to keep make happy
+	    trap '' EXIT
+	    exit 1
 	fi
     fi
     ( cd ${BUILD_DIRECTORY} && rm -rf * )
