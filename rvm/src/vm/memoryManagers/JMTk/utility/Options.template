@@ -1,4 +1,4 @@
-/*
+/* -*-java-*-
  * (C) Copyright IBM Corp. 2003
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
@@ -24,12 +24,19 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Dave Grove
  **/
 public final class Options implements VM_Uninterruptible, Constants {
+  // TODO: These really need to become longs.
   private static int initialHeapSize; 
   private static int maxHeapSize;     
   private static int currentHeapSize; 
 
+  /** This method is only for use by our regression tests (i.e., Exhaust.java)
+   */ 
   public static int getCurrentHeapSize() {
     return currentHeapSize;
+  }
+
+  public static int getMaxHeapSize() {
+    return maxHeapSize;
   }
 
   public static void overrideGrowHeapSize (int size) {
