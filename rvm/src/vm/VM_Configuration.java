@@ -112,7 +112,7 @@ public abstract class VM_Configuration {
   public static final boolean BuildForThreadSwitchUsingControlRegisterBit = 
 	//-#if RVM_FOR_POWERPC
 	//-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          true;
+          false;
         //-#else
           false;
 	//-#endif
