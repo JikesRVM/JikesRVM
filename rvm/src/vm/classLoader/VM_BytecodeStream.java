@@ -51,6 +51,14 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   }
 
   /**
+   * Returns the declaring class that this bytecode stream is from
+   * @return method
+   */
+  public final VM_Class declaringClass() {
+    return declaringClass;
+  }
+
+  /**
    * Returns the length of the bytecode stream
    * Returns 0 if the method doesn't have any bytecodes
    *         (i.e. is abstract or native)
@@ -602,7 +610,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see #getArrayElementType()
    * @see #getPrimitiveArrayType()
    */
-  public final VM_Type getPrimitiveArrayType(int etype) {
+  public final VM_Array getPrimitiveArrayType(int etype) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
     return VM_Array.getPrimitiveArrayType(etype);
   }
