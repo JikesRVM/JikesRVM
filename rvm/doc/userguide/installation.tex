@@ -8,7 +8,7 @@ To build on any platform you will need the following:
 \item GNU make. You can download this from
 \xlink{{\tt \gnuMakeURL}} {\gnuMakeURL}.
 
-\item The Jikes\trademark Java compiler 
+\item The Jikes\trademark Java\trademark compiler 
 You can download this from
 \xlink{{\tt \jikesURL}} {\jikesURL}.
 You can use any of the pre-compiled binaries, or build it yourself from the
@@ -31,7 +31,7 @@ you will need
 \item a PowerPC processor
 \item AIX 4.3 or later, and
 \item (recommended) 512MB of memory.
-\item the IBM AIX Developer Kit for Java\trademark version 1.3.0.  You can download this from
+\item the IBM AIX Developer Kit for Java version 1.3.0.  You can download this from
 \xlink{{\tt \AIXJdkURL}} {\AIXJdkURL}.
 \end{itemize}
 
@@ -87,6 +87,9 @@ particular the config file assumes that
 C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 \end{itemize}
 
+\JikesTMFooter
+
+\JavaTMFooter
 
 \subsection{Installation Overview}
 
@@ -341,6 +344,8 @@ affect system viability.
 
 \end{enumerate}
 
+\JikesTMFooter
+
 \subsection{RVM Configurations}\label{configs}
 \index{configuration names}
 
@@ -462,7 +467,7 @@ understands.
 
 The RVM build process consists of two major phases: the building of a
 RVM {\em boot image}, and the building of a RVM {\em boot loader}.
-The boot image is built using a Java executed within a host
+The boot image is built using a Java\trademark executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 
@@ -534,6 +539,10 @@ via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
 
+\JikesTMFooter
+
+\JavaTMFooter
+
 \subsection{Building the libraries}
 
 Most RVM users will not need to rebuild the libraries; thus the default
@@ -550,12 +559,12 @@ library sources in {\tt \$RVM\_ROOT/support/lib}, and build a new {\tt
 rvmrt.jar} in {\tt \$RVM\_BUILD}.
 
 You will find that some versions (including 1.13) of 
-\xlink{{\tt jikes}}{ \jikesURL } fail to compile the
-libraries, dying with myriad errors.  You need to apply jikes 
+\xlink{{\tt Jikes\trademark}}{ \jikesURL } fail to compile the
+libraries, dying with myriad errors.  You need to apply Jikes 
 patch 62 to
-the jikes build to fix a problem with variable shadowing by inner classes. 
+the Jikes build to fix a problem with variable shadowing by inner classes. 
 We have
-successfully applied this patch to jikes version 1.13 on both AIX and
+successfully applied this patch to Jikes version 1.13 on both AIX and
 Linux/IA32.
 
 The {\tt jBuildLibs} script will prompt you, asking whether to install 
@@ -564,6 +573,8 @@ If you answer {\tt 'y'}, future invocations of {\tt jbuild} will pick up
 the new library build.  However, note that by installing it, you will
 {\em overwrite} the original version of {\tt rvmrt.jar}, losing it.  Be
 careful!
+
+\JikesTMFooter
 
 \subsection{Building documentation}
 
