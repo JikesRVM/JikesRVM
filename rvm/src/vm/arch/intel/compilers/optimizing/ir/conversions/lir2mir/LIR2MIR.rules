@@ -3194,3 +3194,11 @@ r:      SET_CAUGHT_EXCEPTION(r)
 EMIT_INSTRUCTION
 SET_EXCEPTION_OBJECT(burs, P(p));
 
+###########
+# Rules for special registers
+###########
+stm:      ROUND_TO_ZERO
+21
+EMIT_INSTRUCTION
+ROUND_TO_ZERO(burs, P(p));
+

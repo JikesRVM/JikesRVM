@@ -17,7 +17,8 @@ class VM_Entrypoints implements VM_Constants
    static VM_Method debugBreakpointMethod;  
    static int       debugBreakpointOffset;  
  
-   // Methods of VM_Runtime (method description + offset of code pointer within jtoc).
+   // Methods of VM_Runtime 
+   // (method description + offset of code pointer within jtoc).
    //
    static VM_Method instanceOfMethod;       
    static int       instanceOfOffset;       
@@ -73,16 +74,21 @@ class VM_Entrypoints implements VM_Constants
 
    static VM_Method findItableMethod;           
    static int       findItableOffset;
-//-#if RVM_FOR_IA32  
-static int fieldOffsetsOffset;     
-static int methodOffsetsOffset;    
-static int loadClassOnDemandOffset;
-static int jtocOffset;              
-static int threadIdOffset;
-static int framePointerOffset;      
-static int hiddenSignatureIdOffset;
-static int arrayIndexTrapParamOffset;
-//-#endif
+   //-#if RVM_FOR_IA32  
+   static int fieldOffsetsOffset;     
+   static int methodOffsetsOffset;    
+   static int loadClassOnDemandOffset;
+   static int jtocOffset;              
+   static int threadIdOffset;
+   static int framePointerOffset;      
+   static int hiddenSignatureIdOffset;
+   static int arrayIndexTrapParamOffset;
+   //-#endif
+   
+   //-#if RVM_FOR_IA32  
+   static int FPUControlWordOffset;
+ 
+   //-#endif
 
 //-#if RVM_WITH_GCTk_ALLOC_ADVICE
    static VM_Method allocAdviceNewScalarMethod;
@@ -545,6 +551,12 @@ static int arrayIndexTrapParamOffset;
 	JNITopJavaFPOffset          = VM.getMember("LVM_JNIEnvironment;", "JNITopJavaFP", "I").getOffset();
 	JNIPendingExceptionOffset   = VM.getMember("LVM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;").getOffset();
 	JNIFunctionPointersOffset   = VM.getMember("LVM_JNIEnvironment;", "JNIFunctionPointers", "[I").getOffset();
+        //-#if RVM_FOR_IA32
+	FPUControlWordOffset        = VM.getMember("LVM_Math;", 
+                                                   "FPUControlWord", 
+                                                   "I").getOffset();
+        //-#endif RVM_FOR_IA32
+        
         //-#if RVM_WITH_GCTk
 	ADDRESS top, bot;
 	top = VM.getMember("LVM_Processor;", "allocBump0", "I").getOffset();

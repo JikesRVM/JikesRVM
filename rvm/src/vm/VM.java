@@ -67,6 +67,11 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
+    // 0. Set floating-point rounding mode to round-to-zero
+    //-#if RVM_FOR_IA32
+    VM_Magic.roundToZero(); 
+    //-#endif
+    
     // 1. Finish thread initialization that couldn't be done in boot image.
     //    The "stackLimit" must be set before any method calls, because it's accessed
     //    by compiler-generated stack overflow checks.

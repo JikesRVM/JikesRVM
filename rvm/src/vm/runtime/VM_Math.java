@@ -25,6 +25,13 @@ public class VM_Math
      1e-21, 1e-22, 1e-23, 1e-24, 1e-25, 1e-26, 1e-27, 1e-28, 1e-29, 1e-30,
      1e-31, 1e-32 };
 
+  //-#if RVM_FOR_IA32
+  /**
+   * A well-known memory location used to manipulate the FPU control word.
+   */
+  static int FPUControlWord;
+  //-#endif RVM_FOR_IA32
+
   /**
    * Convert a string to a double.
    * 

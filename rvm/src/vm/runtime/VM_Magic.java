@@ -727,17 +727,45 @@ public class VM_Magic {
 //-#endif
 
 //-#if RVM_FOR_IA32
-   public static int  sysCall0(int ip)                                 { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall1(int ip, int p0)                         { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall2(int ip, int p0, int p1)                 { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall3(int ip, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall4(int ip, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_0(int ip)                              { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_I(int ip, int p0)                      { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCallAD(int ip, int p0, double p1)             { if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall0(int ip) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static int  sysCall1(int ip, int p0) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static int  sysCall2(int ip, int p0, int p1) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static int  sysCall3(int ip, int p0, int p1, int p2) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static int  sysCall4(int ip, int p0, int p1, int p2, int p3) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static long sysCall_L_0(int ip) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static long sysCall_L_I(int ip, int p0) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
+   public static int  sysCallAD(int ip, int p0, double p1) { 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
 //-#endif
-   public static int  sysCallSigWait(int ip, int toc, int p0, int p1, VM_Registers r){ if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCallSigWait(int ip, int toc, int p0, 
+                                     int p1, VM_Registers r){ 
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); return -1; 
+   }
 
+//-#if RVM_FOR_IA32
+   /**
+    * Set the floating-point rounding mode to round-towards-zero
+    */
+   public static void roundToZero() {
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+   }
+//-#endif
+  
   //---------------------------------------//
   //            Cache Management.          //
   //---------------------------------------//

@@ -265,6 +265,13 @@ none
 
 
 
+# Set the floating-point control word to round-towards-zero
+ROUND_TO_ZERO
+Empty
+none
+
+
+
 ####################
 # A call whose target is in a class that implements 
 # the VM_SaveVolatile interface.  Therefore, this
@@ -601,6 +608,13 @@ none
 
 
 ####################
+IA32_FLDCW
+MIR_Nullary
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FLD1
 MIR_Nullary
 none
@@ -652,6 +666,13 @@ C0_C1_C2_C3
 ####################
 IA32_FMUL
 MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
+IA32_FNSTCW
+MIR_UnaryNoRes
 none
 C0_C1_C2_C3
 

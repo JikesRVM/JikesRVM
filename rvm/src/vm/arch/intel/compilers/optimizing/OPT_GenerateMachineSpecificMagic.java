@@ -171,6 +171,8 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.appendInstruction(CallSpecial.create4(SYSCALL, op0, ip, null,
 						  p1, p2, p3, p4));
       bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.roundToZero) {
+      bc2ir.appendInstruction(Empty.create(ROUND_TO_ZERO));
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones) 

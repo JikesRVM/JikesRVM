@@ -114,6 +114,9 @@ class VM_MagicNames {
   static VM_Atom dcbst;
   static VM_Atom icbi;
   //-#endif
+  //-#if RVM_FOR_IA32
+  static VM_Atom roundToZero;
+  //-#endif
 
   static VM_Atom pragmaNoInline;
   static VM_Atom pragmaInline;
@@ -223,6 +226,9 @@ class VM_MagicNames {
     //-#if RVM_FOR_POWERPC
     dcbst                         = VM_Atom.findOrCreateAsciiAtom("dcbst");
     icbi                          = VM_Atom.findOrCreateAsciiAtom("icbi");
+    //-#endif
+    //-#if RVM_FOR_IA32
+    roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
     //-#endif
 
     pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");

@@ -724,6 +724,16 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Move.mutate(s, IA32_FMOV, Unary.getResult(s), sl));
   }
 
+  /**
+   * Expansion of ROUND_TO_ZERO.
+   * 
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   */
+  final void ROUND_TO_ZERO(OPT_BURS burs, OPT_Instruction s) {
+    // TODO: emit code.
+  }
+
 
   /**
    * Expansion of INT_DIV and INT_REM

@@ -3520,11 +3520,33 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
                                                   
     if (methodName == VM_MagicNames.returnToNewStack) {
-      asm.emitPOP_Reg (FP);	// load frame pointer with new stack address
-      asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
-      asm.emitLEAVE();				// discard current stack frame
-      asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
-      asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
+      // load frame pointer with new stack address
+      asm.emitPOP_Reg (FP);	
+      // restore nonvolatile JTOC register
+      asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);
+      // discard current stack frame
+      asm.emitLEAVE();				
+      // so hardware trap handler can always find it 
+      // (opt compiler will reuse FP register)
+      asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); 
+      // return to caller- pop parameters from stack
+      asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 
+      return;
+    }
+
+    if (methodName == VM_MagicNames.roundToZero) {
+      /**
+       * TODO: Uncomment this when the assembler supports it.
+      // Store the FPU Control Word to a JTOC slot
+      asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordOffset);
+      // Set the bits in the status word that control round to zero.
+      // Note that we use a 32-bit and, even though we only care about the
+      // high-order 16 bits
+      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset, 0x0c00);
+      // Now store the result back into the FPU Control Word
+      asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
+      */
+
       return;
     }
     
