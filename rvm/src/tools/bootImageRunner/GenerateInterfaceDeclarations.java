@@ -625,9 +625,9 @@ class GenerateInterfaceDeclarations {
 		     offset + ";\n");
 
     // fields in VM_JNIEnvironment
-    offset = VM_Entrypoints.JNIEnvAddressField.getOffset();
-    p("static const int VM_JNIEnvironment_JNIEnvAddress_offset = " +
-		     offset + ";\n");
+    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
+    p("static const int VM_JNIEnvironment_JNIExternalFunctions_offset = " +
+      offset + ";\n");
 
     // fields in java.net.InetAddress
     //

@@ -1492,9 +1492,9 @@ public class BootImageWriter extends BootImageWriterMessages
               VM_Address addr = (VM_Address) o;
               String msg = " instance field " + rvmField.toString();
               if (VM.BuildFor32Addr)
-		bootImage.setFullWord(rvmFieldOffset, (int) getAddressValue(addr, msg, rvmField != VM_Entrypoints.vpStatusAddressField));
+		bootImage.setFullWord(rvmFieldOffset, (int) getAddressValue(addr, msg, true));
 	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(rvmFieldOffset, getAddressValue(addr, msg, rvmField != VM_Entrypoints.vpStatusAddressField));
+		bootImage.setDoubleWord(rvmFieldOffset, getAddressValue(addr, msg, true));
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
               VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());

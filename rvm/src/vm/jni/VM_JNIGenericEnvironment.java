@@ -36,11 +36,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
   protected static final int JNIREFS_FUDGE_LENGTH = 50;
 
   /** 
-   * Pointer to the JNIFunctions array 
-   */
-  protected VM_Address JNIEnvAddress; 
-
-  /** 
    * For saving thread index register on entry to native, 
    * to be restored on JNI call from native
    */
@@ -69,7 +64,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
   protected int JNIRefsTop;
 
   /**
-   * address of end (last entry) of JNIRefs array
+   * offset of end (last entry) of JNIRefs array
    */
   protected int JNIRefsMax;   
 
@@ -226,7 +221,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
    * Remove a reference from the JNIRefs stack
    * @param offset in JNIRefs stack
    */
-  public final void deleteJNIRef( int offset ) {
+  public final void deleteJNIRef(int offset) {
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
       VM.sysWrite(offset); 
@@ -277,12 +272,5 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
    */
   public final Throwable getException() {
     return pendingException;
-  }
-
-  /**
-   * @return the address of the JNIFunctions array 
-   */
-  public final VM_Address getJNIenvAddress() {
-    return JNIEnvAddress;
   }
 }

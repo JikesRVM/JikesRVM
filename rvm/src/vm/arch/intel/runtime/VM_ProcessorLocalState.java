@@ -95,6 +95,19 @@ extends OPT_IRTools
   public static void emitCompareFieldWithImm(VM_Assembler asm, int offset, int imm) {
     asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
   }
+
+  /**
+   * Emit an instruction sequence to to an atomic compare and exchange on a field in the 
+   * current processor offset with an immediate value. Assumes EAX (T0) contains old value.
+   *
+   * @param asm assembler object
+   * @param offset of field in the <code>VM_Processor</code> object
+   * @param reg register containing value to exchange
+   */
+  public static void emitCompareAndExchangeField(VM_Assembler asm, int offset, byte srcReg) {
+    asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
+  }
+
   /**
    * Emit an instruction sequence to decrement the value of a field in the 
    * current processor offset

@@ -76,7 +76,6 @@ implements VM_Uninterruptible, VM_Constants {
     this.idleQueue         = new VM_ThreadQueue();
     this.lastLockIndex     = -1;
     this.isInSelect        = false;
-    this.vpStatusAddress = VM_Magic.objectAsAddress(this).add(VM_Entrypoints.vpStatusField.getOffset());
     this.vpStatus = IN_JAVA;
 
     if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
@@ -356,15 +355,15 @@ implements VM_Uninterruptible, VM_Constants {
   public boolean unblockIfBlockedInC () {
     int newState, oldState;
     boolean result = true;
+    int offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
-      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(this, offset);
       if (oldState != BLOCKED_IN_NATIVE) {
         result = false;
         break;
       }
       newState = IN_NATIVE;
-    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
-                                0, oldState, newState)));
+    } while (!(VM_Magic.attemptInt(this, offset, oldState, newState)));
     return result;
   }
 
@@ -374,15 +373,15 @@ implements VM_Uninterruptible, VM_Constants {
    */ 
   public boolean lockInCIfInC () {
     int oldState;
+    int offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
-      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(this, offset);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
         if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
         return false;
       }
-    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
-                                0, oldState, BLOCKED_IN_NATIVE)));
+    } while (!(VM_Magic.attemptInt(this, offset, oldState, BLOCKED_IN_NATIVE)));
     return true;
   }
 
@@ -579,13 +578,6 @@ implements VM_Uninterruptible, VM_Constants {
    * Always one of IN_JAVA, IN_NATIVE or BLOCKED_IN_NATIVE.
    */
   public int vpStatus;
-
-  /**
-   * address of this.vpStatus
-   * @deprecated  Working on getting rid of this, but it is going to take 
-   *              several stages. --dave
-   */
-  public VM_Address vpStatusAddress;          
 
   /**
    * pthread_id (AIX's) for use by signal to wakeup

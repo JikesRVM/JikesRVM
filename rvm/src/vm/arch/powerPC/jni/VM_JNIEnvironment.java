@@ -32,37 +32,45 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    */
   private static VM_AddressArray[] AIXLinkageTriplets;
   //-#endif
+
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  /**
+   * We need to stash the JTOC somewhere we can find it later
+   * when we are making a C => Java transition.
+   * Don't have to do this on AIX because it is part of the LinkageTriplet.
+   */
+  private static VM_Address savedJTOC;
+  //-#endif
+   
   
   /**
-   * This is a table of pointers to the shared JNI function table.  All entries 
-   * point to the same function table.  Each thread uses the pointer at its thread id
-   * offset to allow us to determine a threads id from the pointer it is using.
-   * Needed when native calls Java (JNIFunctions) and passes its JNIEnv pointer.
-   * Its offset into the JNIFunctionPts array is the same as the threads offset
-   * in the Scheduler.threads array.
-   */
-  private static VM_AddressArray JNIFunctionPointers;
+   * This is the pointer to the shared JNIFunction table.
+   * When we invoke a native method, we adjust the pointer we
+   * pass to the native code such that this field is at offset 0.
+   * In other words, we turn a VM_JNIEnvironment into a JNIEnv*
+   * by handing the native code an interior pointer to 
+   * this object that points directly to this field.
+   * On AIX this field points to the AIXLinkageTriplets. 
+   * On Linux and OSX it points to JNIFunctions.
+   */ 
+  //-#if RVM_FOR_AIX
+  private final VM_Address externalJNIFunctions = VM_Magic.objectAsAddress(AIXLinkageTriplets);
+  //-#elif RVM_FOR_LINUX || RVM_FOR_OSX
+  private final VM_Address externalJNIFunctions = VM_Magic.objectAsAddress(JNIFunctions);
+  //-#endif
+  
 
   /**
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
    */
   public static void initFunctionTable(VM_CodeArray[] functions) {
-    //-#if RVM_FOR_AIX
     JNIFunctions = functions;
-    AIXLinkageTriplets = new VM_AddressArray[functions.length];
-    //-#elif RVM_FOR_LINUX  || RVM_FOR_OSX
-    // An extra entry is allocated, to hold the RVM JTOC
-    JNIFunctions = new VM_CodeArray[functions.length + 1];
-    System.arraycopy(functions, 0, JNIFunctions, 0, functions.length);
-    //-#endif
-	
-    // 2 words for each thread
-    JNIFunctionPointers = VM_AddressArray.create(VM_Scheduler.MAX_THREADS * 2);
 
     //-#if RVM_FOR_AIX
-    // Allocate the linkage triplets 
-    for (int i=0; i<JNIFunctions.length; i++) {
+    // Allocate the linkage triplets in the bootimage (so they won't move)
+    AIXLinkageTriplets = new VM_AddressArray[functions.length];
+    for (int i=0; i<functions.length; i++) {
       AIXLinkageTriplets[i] = VM_AddressArray.create(3);
     }
     //-#endif
@@ -77,13 +85,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
       triplet.set(IP, VM_Magic.objectAsAddress(JNIFunctions[i]));
     }
     //-#endif
-
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-    // set JTOC content, how about GC ? will it move JTOC ?
-    int offset = getJNIFunctionsJTOCOffset();
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(offset),
-			      VM_Magic.getTocPointer());
-    //-#endif
   }
 
   /**
@@ -92,24 +93,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    */
   void initializeState(int threadSlot) {
     initializeState();
-    // as of 8/22 SES - let JNIEnvAddress be the address of the JNIFunctionPtr to be
-    // used by the creating thread.  Passed as first arg (JNIEnv) to native C functions.
-
-    // uses 2 VM_Addresses for each thread
-    // the first is the AIXLinkageTriplets to be used to invoke VM_JNIFunctions
-    //-#if RVM_FOR_AIX
-    JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(AIXLinkageTriplets));
-    //-#elif RVM_FOR_LINUX || RVM_FOR_OSX
-    JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(JNIFunctions));
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    savedJTOC = VM_Magic.getTocPointer();
     //-#endif
-
-    // the second contains the address of processor's vpStatus word
-    JNIFunctionPointers.set((threadSlot * 2)+1, VM_Address.zero());
-
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*(2 * BYTES_IN_ADDRESS));
-  }
-
-  static int getJNIFunctionsJTOCOffset() {
-    return VM_JNIFunctions.FUNCTIONCOUNT << VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
   }
 }

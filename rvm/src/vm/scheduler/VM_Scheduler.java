@@ -204,14 +204,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       if (p == null) {
 	processors[i] = new VM_Processor(i);
       } else { 
-	  // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
-	  // so reset here...maybe change everything to just use index
-	  processors[i] = p;
-	  //-#if RVM_FOR_IA32
-	  p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
-	  //-#endif
-	  p.vpStatusAddress = VM_Magic.objectAsAddress(p).add(VM_Entrypoints.vpStatusField.getOffset());
-	}
+        processors[i] = p;
+        //-#if RVM_FOR_IA32
+        p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
+        //-#endif
+      }
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer
       processors[i].hpm.boot();    

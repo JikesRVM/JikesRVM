@@ -352,40 +352,23 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    // save PR in glue frame - to be relocated by GC
+    // save PR in glue frame 
     VM_ProcessorLocalState.emitStoreProcessor(asm, EBP, 
                                               VM_JNICompiler.JNI_PR_OFFSET);
 
     // save callers ret addr in glue frame
     asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
-
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // Inject a 'prologue' sample point
-    /*
-    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
-						   VM_Entrypoints.threadSwitchRequestedField.getOffset(),
-						   0);
-    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
-    asm.emitPUSH_Reg(S0);
-    
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromNativePrologueMethod.getOffset()); 
-    asm.emitPOP_Reg(S0);
-    // fr1.resolve(asm);
-    */
-    //-#endif
-
     // change processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, 
-                                              VM_Entrypoints.vpStatusAddressField.getOffset());
-    asm.emitMOV_RegInd_Imm(T0, VM_Processor.IN_NATIVE);
-
+    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), 
+                                              VM_Processor.IN_NATIVE);
+    
     // make the call...
     asm.emitCALL_Reg(S0);
 
     // return from native code here...
     // T0 contains single word return value from native
-    // T1 ...
+    // T1 will contain the second word of a long return value
 
     // push return values on stack
     asm.emitPUSH_Reg(T0);
@@ -393,22 +376,21 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
-    // reload PR ref from glue frame
+    // reload PR (virtual processor) from glue frame
     VM_ProcessorLocalState.emitLoadProcessor(asm, EBP,
                                              VM_JNICompiler.JNI_PR_OFFSET);
 
-    // reload JTOC from processor NOTE: JTOC saved in glue frame may not be
-    // the RVM JTOC 
+    // reload JTOC from vitual processor 
+    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
                                               VM_Entrypoints.jtocField.getOffset());
 
-    // S0<-addr of statusword
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.vpStatusAddressField.getOffset());
+    // T0 gets PR.statusField
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
+                                              VM_Entrypoints.vpStatusField.getOffset());
 
-    asm.emitMOV_Reg_RegInd(T0,S0);                         // T0<-contents of statusword 
-    asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
-    VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip 3 instructions
+    asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
+    VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip over call to pthread yield
 
     // blocked in native, do pthread yield
     asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
@@ -418,37 +400,22 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
 
     // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
-    // S0 contains address of status word to be swapped
     asm.emitMOV_Reg_Imm (T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
-    asm.emitCMPXCHG_RegInd_Reg(S0,T1);               // atomic compare-and-exchange
+    VM_ProcessorLocalState.emitCompareAndExchangeField(asm, 
+                                                       VM_Entrypoints.vpStatusField.getOffset(),
+                                                       T1); // atomic compare-and-exchange
     asm.emitJCC_Cond_Imm(asm.NE,retryLabel);
 									
-    // status is now IN_JAVA. GC can not occur while we execute on a processor
-    // in this state, so it is safe to access fields of objects
-
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // Inject an 'epilogue' sample point
-    /*
-      WORK IN PROGRESS -- dave
-    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
-						   VM_Entrypoints.threadSwitchRequestedField.getOffset(),
-						   0);
-    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
-    
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromNativeEpilogueMethod.getOffset()); 
-    */
-    // fr1.resolve(asm);
-    //-#endif
+    // status is now IN_JAVA (normal operation)
 
     // pop return values off stack into expected regs before returning to caller
     asm.emitPOP_Reg(T1);
     asm.emitPOP_Reg(T0);
 
-    // push callers return address onto stack, prevoiusly saved in glue frame
+    // push callers return address onto stack, previously saved in glue frame
     asm.emitPUSH_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     asm.emitRET();
-
     return asm.getMachineCodes();
   }
 }

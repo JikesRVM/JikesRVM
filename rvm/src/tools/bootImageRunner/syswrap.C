@@ -90,8 +90,9 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
 	getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
     void *jniEnvironment =
 	getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
-    void *jniEnv =
-	getFieldAsAddress(jniEnvironment, VM_JNIEnvironment_JNIEnvAddress_offset);
+    // Convert VM_JNIEnvironment to JNIEnv* expected by native code
+    // by creating the appropriate interior pointer.
+    void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
 
     return (JNIEnv*) jniEnv;
 }
