@@ -311,7 +311,7 @@ public final class VM_ControllerPlan {
     case ABORTED_COMPILATION_ERROR: return "ABORTED_COMPILATION_ERROR";
     case IN_PROGRESS:               return "IN_PROGRESS";
     case OUTDATED:                  return "OUTDATED";
-        case OSR_BASE_2_OPT:                    return "OSR_BASE_2_OPT";
+    case OSR_BASE_2_OPT:            return "OSR_BASE_2_OPT";
     case UNKNOWN:                   return "UNKNOWN (not error)";
     default:                        return "**** ERROR, UNKNOWN STATUS ****";
     }
