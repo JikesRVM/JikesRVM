@@ -17,6 +17,7 @@ import instructionFormats.*;
  * The bottom of the file contains comments regarding imprecise exceptions.
  *
  * @author Michael Hind
+ * @author Martin Trapp
  */
 final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators {
 
@@ -30,6 +31,11 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    *  Should we store liveness information at the top of each handler block?
    */
   private boolean storeLiveAtHandlers;
+
+  /**
+   *  Should we skip guard registers?
+   */
+  private boolean skipGuards;
 
   /**
    *  Should we skip the (final) local propagation phase?
@@ -88,6 +94,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = false;
+    this.skipGuards = true;
   }
 
   /**
@@ -104,14 +111,36 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
+    this.skipGuards = true;
   }
 
+  /**
+   * The constructor is used to specify whether GC maps should be computed
+   * along with live analysis.
+   * 
+   * @param createGCMaps should we create GC maps?
+   * @param skipLocal should we skip the (final) local propagation phase?
+   * @param storeLiveAtHandlers should we store liveness info at the top of ea
+ handler block?
+   * @param skipGuards should we ignore validation registers?
+   */
+  OPT_LiveAnalysis(boolean createGCMaps, 
+                 boolean skipLocal, 
+                 boolean storeLiveAtHandlers,
+                 boolean skipGuards) {
+    this.createGCMaps = createGCMaps;
+    this.skipLocal = skipLocal;
+    this.storeLiveAtHandlers = storeLiveAtHandlers;
+    this.skipGuards = skipGuards;
+  }
+  
   /**
    *  By default we don't create GC maps and do perform the local prop phase
    */
   OPT_LiveAnalysis() {
     this.createGCMaps = false;
     this.skipLocal = false;
+    this.skipGuards = true;
   }
 
   /** 
@@ -737,15 +766,14 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * @return whether the register should be skipped, i.e., not be
    *          present in the liveness solution
    */
-  private static boolean isSkippableReg(OPT_RegisterOperand regOp,
-                                        OPT_IR ir) {
+  private boolean isSkippableReg(OPT_RegisterOperand regOp, OPT_IR ir) {
     // The old test would exclude all physical registers.  However,
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
     // during call expansion.
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (regOp.register.isValidation() || 
-        phys.excludeFromLiveness(regOp.register)) {
+    if (phys.excludeFromLiveness(regOp.register)
+	|| (regOp.register.isValidation() && skipGuards)) {
       return  true;
     }
     return  false;
