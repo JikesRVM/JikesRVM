@@ -1421,11 +1421,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           OPT_Operand op0 = popRef();
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
-            VM_TypeReference retType = getRefTypeOf(op0);
-            // fudge to deal with conservative approximation 
-            // in OPT_ClassLoaderProxy.findCommonSuperclass
-            if (retType != VM_TypeReference.JavaLangObject)
-              assertIsAssignable(gc.method.getReturnType(), getRefTypeOf(op0));
+            VM_TypeReference retType = op0.getType();
+            if (retType.isWordType()) {
+              VM._assert(gc.method.getReturnType().isWordType());
+            } else {
+              // fudge to deal with conservative approximation 
+              // in OPT_ClassLoaderProxy.findCommonSuperclass
+              if (retType != VM_TypeReference.JavaLangObject) {
+                assertIsAssignable(gc.method.getReturnType(), retType);
+              }
+            }
           }
           _returnHelper(REF_MOVE, op0);
         }
@@ -1677,6 +1682,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             isPreciseType = true;
             tr = VM_TypeReference.JavaLangString;
           } else if (VM.VerifyAssertions) {
+          if (isPreciseType && target != null) {
+            methOp.refine(target, true);
+          }
             VM._assert(false, "unexpected receiver");
           }
           VM_Type type = tr.peekResolvedType();
@@ -3193,11 +3201,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private VM_TypeReference getRefTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
-    // op must be a RegisterOperand or some ConstantOperand
+    // op must be a RegisterOperand or StringConstantOperand
     if (op instanceof OPT_StringConstantOperand)
       return VM_TypeReference.JavaLangString; 
-    else if (op instanceof OPT_AddressConstantOperand)
-      return VM_TypeReference.Address;
     else 
       return op.asRegister().type;
   }
