@@ -68,17 +68,37 @@ public class VM_Runtime implements VM_Constants {
    * Test if object is instance of target class/array or 
    * implements target interface.
    * @param object object to be tested
-   * @param id type reference id corresponding to target class/array/interface
+   * @param targetID type reference id corresponding to target
+   * class/array/interface 
    * @return true iff is object instance of target type?
    */ 
-  static boolean instanceOf(Object object, int id) throws ClassNotFoundException {
+  static boolean instanceOf(Object object, int targetID)
+    throws ClassNotFoundException {
+
+    /*  Here, LHS and RHS refer to the way we would treat these if they were
+	arguments to an assignment operator and we were testing for
+	assignment-compatibility.  In Java, "rhs instanceof lhs" means that 
+	the operation "lhs = rhs" would succeed.   This of course is backwards
+	if one is looking at it from the point of view of the "instanceof"
+	operator.  */
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
+    VM_Type lhsType = tRef.resolve(); // may throw CNF Exception
+
+    /* Test for null only AFTER we have resolved the type of targetID. */
     if (object == null)
       return false; // null is not an instance of any type
 
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve();
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
-    return lhsType == rhsType || isAssignableWith(lhsType, rhsType);
+    /* RHS must already be resolved, since we have an object that is an
+       instance of RHS  */
+    if (VM.VerifyAssertions)  VM._assert(rhsType.isResolved());
+    if (VM.VerifyAssertions)  VM._assert(lhsType.isResolved());
+
+    /* Short-circuit call to isAssignableWith, since we must already be
+     * resolved.  */ 
+    // isAssignableWith(lhsType, rhsType);
+    
+    return lhsType == rhsType || VM_DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
   }
 
   /**
