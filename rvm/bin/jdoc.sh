@@ -75,13 +75,13 @@ fi
 # make build directory
 mkdir -p $DEST_DIR || croak "Unable to create the destination, $DEST_DIR";
 export RVM_BUILD="$DEST_DIR/tmp_build"
-echo "$ME: Setting up a FullAdaptiveSemiSpace build in $RVM_BUILD"
+echo "$ME: Setting up a FullAdaptiveCopyMS build in $RVM_BUILD"
 echo "$ME:      based on the source code in $RVM_ROOT"
 if [[ -f $RVM_BUILD/RVM.classes/Dummy.class ]]; then
     echo "$ME: $RVM_BUILD seems to be already built;
 	 we will just use it."
 else
-    $RVM_ROOT/rvm/bin/jconfigure FullAdaptiveSemiSpace < /dev/null || croak "jconfigure failed."
+    $RVM_ROOT/rvm/bin/jconfigure FullAdaptiveCopyMS < /dev/null || croak "jconfigure failed."
     cd $RVM_BUILD || croak "Can't get to $RVM_BUILD"
     ./jbuild -nolink -nobooter || croak "\"./jbuild -nolink -nobooter\" in $RVM_BUILD failed."
 fi
