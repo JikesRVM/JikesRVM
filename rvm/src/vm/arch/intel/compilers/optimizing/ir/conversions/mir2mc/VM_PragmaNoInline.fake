@@ -1,0 +1,7 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
+//$Id$
+
+public class VM_PragmaNoInline extends RuntimeException {
+}
