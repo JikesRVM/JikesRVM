@@ -52,6 +52,22 @@ public abstract class PrintLN {
     // print(descriptor);
   }
 
+    // A kludgy alternative:
+//     public void print(VM_Class c) {
+//       VM_Atom descriptor = c.getDescriptor();
+//       try {
+// 	print(descriptor.classNameFromDescriptor());
+//       } catch(OutOfMemoryError e) {
+// 	print(descriptor);
+//       }
+//     }
+
+    // No such method:
+    //public void print(VM_Class c) {
+    //      VM.sysWrite(c);
+    //    }
+
+
   public abstract void print(VM_Member m);
   public abstract void print(VM_Atom a);
 }

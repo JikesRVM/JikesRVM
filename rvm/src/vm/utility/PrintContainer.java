@@ -193,21 +193,6 @@ public class PrintContainer
     public void print(char c) {
       VM.sysWrite(c);
     }
-
-    // A kludge:
-//     public void print(VM_Class c) {
-//       VM_Atom descriptor = c.getDescriptor();
-//       try {
-// 	print(descriptor.classNameFromDescriptor());
-//       } catch(OutOfMemoryError e) {
-// 	print(descriptor);
-//       }
-//     }
-
-    // No such method:
-    //public void print(VM_Class c) {
-    //      VM.sysWrite(c);
-    //    }
     public void print(VM_Member m) {
       VM.sysWrite(m);
     }
