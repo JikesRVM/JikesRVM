@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 #include <assert.h>
 #include <ctype.h>
@@ -494,11 +494,18 @@ emitcase(Term p, int ntnumber_)
 		indent = "\t\t";
 	    } else
 		print("%1// %R\n", r);
-	    if (r->pattern->nterms == 2 && r->pattern->left
-		&&  r->pattern->right == NULL)
+	    if (r->pattern->nterms == 2
+		&& r->pattern->left
+		&&  r->pattern->right == NULL) 
+	    {
 		emitrecalc(indent, r->pattern->op, r->pattern->left->op);
+	    }
+	    
 	    print("%sc = ", indent);
 	    emitcost(r->pattern->left, "lchild");
+	    /* The next line triggers a bogus "will never be executed" warning
+	       in GCC 3.3 and GCC 3.3.1, with optimization level 1 or higher
+	       set. */ 
 	    print("%s;\n", r->code);
 	    emitrecord(indent, r, "c", 0);
 	    if (indent[1])
@@ -681,6 +688,8 @@ emitkids(Rule rules_, int nrules_)
     */
     print("%1switch (eruleno) {\n");
     for (i = 0; (r = rc[i]) != NULL; i++) {
+	/* Next line triggers a bogus "Will never be executed" warning under
+	   g++ versions 3.3 and 3.3.1, with any optimization level. */
 	for ( ; r; r = r->kids)
 	    print("%1case %d: // %R\n", r->ern, r);
 	print("%s%2break;\n", str[i]);
@@ -714,6 +723,8 @@ emitkids(Rule rules_, int nrules_)
         print("%1byte[] ntsrule = nts[eruleno];\n");
     print("%1switch (eruleno) {\n");
     for (i = 0; (r = rc[i]) != NULL; i++) {
+	/* Next line triggers a broken "Will never be executed" warning
+	 * under g++ version 3.3.1 with -O. */
 	for ( ; r; r = r->kids)
 	    print("%1case %d: // %R\n", r->ern, r);
 	print("%s%2break;\n", str[i]);
