@@ -12,11 +12,9 @@ package com.ibm.JikesRVM;
  *   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA'01). 
  *      - embedded directly in the TIB
  *      - indirectly accessed off the TIB
- *   both IMT schemes require BuildForFastDynamicTypeCheck.
  *   ITable-based
  *     - directly indexed (by interface id) iTables. 
- *       requires BuildForFastDynamicTypeCheck.
- *     - searched (at dispatch time); does not require FastDTC
+ *     - searched (at dispatch time)
  *   Naive, class object is searched for matching method on every dispatch.
  * </pre>
  * 

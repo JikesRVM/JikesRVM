@@ -397,7 +397,6 @@ package com.ibm.JikesRVM;
    * get superclass id vector (see VM_DynamicTypeCheck)
    */ 
   final short[] getSuperclassIds () throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsShortArray(getTypeInformationBlock()
                                        [VM.TIB_SUPERCLASS_IDS_INDEX]);
   }
@@ -406,7 +405,6 @@ package com.ibm.JikesRVM;
    * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
   final int[] getDoesImplement () throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 	 
@@ -424,101 +422,6 @@ package com.ibm.JikesRVM;
     return inBootImage;
   }
 
-  /**
-   * May a variable of "this" type be assigned a value of "that" type?
-   * @param that type of object to be assigned to "this"
-   * @return   true  --> assignment is legal
-   *           false --> assignment is illegal
-   */ 
-  public final boolean isAssignableWith(VM_Type that) 
-    throws VM_ResolutionException {
-    return isAssignableWith(this, that);
-  }
-   
-  /**
-   * Simple graph-based type checker.
-   * Replaced by methods of VM_DynamicTypeChecking.
-   */ 
-  public static boolean isAssignableWith(VM_Type lhs, 
-				  VM_Type rhs) throws VM_ResolutionException {
-    // check trivial case first
-    //
-    if (lhs == rhs)
-      return true;
-         
-    // check that array element types (if any) match
-    //
-    while (lhs.isArrayType() && rhs.isArrayType()) {
-      lhs.load();
-      lhs.resolve();
-
-      rhs.load();
-      rhs.resolve();
-
-      lhs = lhs.asArray().getElementType();
-      rhs = rhs.asArray().getElementType();
-    }
-
-    // if one element is itself an array, then the only legal
-    // possibilities are <Object> := <array> and <Cloneable> := <array>
-    // and <java.io.Serializable> := array
-    //
-    if (rhs.isArrayType()) {
-      return (lhs == VM_Type.JavaLangObjectType) 
-        || (lhs == VM_Type.JavaLangCloneableType) 
-        || (lhs == VM_Type.JavaIoSerializableType);
-    }
-
-    if (lhs.isArrayType())
-      return false;
-
-    // if one element is a primitive, then 
-    // the other must be a primitive of the same type
-    //
-    if (lhs.isPrimitiveType() || rhs.isPrimitiveType())
-      return false;
-
-    // at this point, we know that rhs and lhs are both classes
-    //
-    if (VM.VerifyAssertions) VM._assert(lhs.isClassType() && rhs.isClassType());
-
-    lhs.load();
-    lhs.resolve();
-
-    rhs.load();
-    rhs.resolve();
-
-    if (lhs.asClass().isInterface()) { 
-      // rhs (or one of its superclasses/superinterfaces) must 
-      // implement interface of lhs
-      if (lhs == rhs) return true;
-      VM_Class Y = rhs.asClass();
-      VM_Class I = lhs.asClass();
-      while (Y != null && !explicitImplementsTest(I, Y)) {
-	Y = Y.getSuperClass();
-      }
-      return (Y != null);
-    } else { 
-      // rhs must be same class as lhs, or a subclass of it
-      while (rhs != null) {
-	if (lhs == rhs) return true;
-	rhs = rhs.asClass().getSuperClass();
-      }
-      return false;
-    }
-  }
-
-  public static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
-     VM_Class [] superInterfaces = J.getDeclaredInterfaces();
-     if (superInterfaces == null) return false;
-     for (int i=0; i<superInterfaces.length; i++) {
-       VM_Class superInterface = superInterfaces[i];
-       if (!superInterface.isInterface()) throw new VM_ResolutionException(superInterface.getDescriptor(), new IncompatibleClassChangeError());
-       if (I==superInterface || explicitImplementsTest(I, superInterface)) return true;
-     }
-     return false;
-   }
-       
   //----------------//
   // implementation //
   //----------------//

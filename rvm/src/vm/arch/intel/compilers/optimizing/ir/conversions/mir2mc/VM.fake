@@ -14,8 +14,6 @@ class VM {
 
     public static boolean BuildForITableInterfaceInvocation;
 
-    public static boolean BuildForFastDynamicTypeCheck;
-
     public static boolean VerifyAssertions;
 
     public static boolean NOT_REACHED;

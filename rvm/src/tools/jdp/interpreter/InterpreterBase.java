@@ -41,7 +41,7 @@ implements VM_Constants
   abstract void X_putfield(); 	
   abstract Object X_newarray(int count);
   abstract int X_arraylength(Object obj); 	
-  abstract boolean X_checkcast(Object ref, VM_Type lhsType) throws VM_ResolutionException;	
+  abstract boolean X_checkcast(Object ref, Class lhsClass) throws VM_ResolutionException;	
   abstract boolean X_instanceof(Object ref, Class lhsClass);	
   abstract boolean X_ifnull(Object ref); 	
   abstract boolean X_invokestatic(VM_Class cls, VM_Method mth); 
@@ -1797,11 +1797,12 @@ implements VM_Constants
 	      try {
 		boolean rc;
 		VM_Type lhsType = VM_TypeDictionary.getValue(type_ref_id);
-		if (mapVM.isMappedObject(ref)) {
-		  rc = X_checkcast(ref, lhsType);
+		Class lhsClass = getClassForVMType(lhsType);
+		Class rhsClass = ref.getClass();
+		if (mapVM.isMappedClass(rhsClass)) {
+		  rc = X_checkcast(ref, lhsClass);
 		} else {
-		  VM_Type rhsType = (VM_Type) forName(ref.getClass().getName());
-		  rc      = lhsType.isAssignableWith(rhsType);
+		  rc = lhsClass.isAssignableFrom(rhsClass);
 		}
 		if (rc == false)
 		  _throwException(new ClassCastException());	      
@@ -1822,13 +1823,6 @@ implements VM_Constants
 	      Object ref = stack.popObject();
 	      
 	      try {
-		// VM_Type lhsType = VM_TypeDictionary.getValue(type_ref_id);
-		// VM_Type rhsType = getVMTypeForClass(ref.getClass());
-		// println("instanceof: lhs is " + lhsType + ", rhs is " + rhsType);
-		// println("instanceof: lhs classloader is " + getClassForVMType(lhsType).getClassLoader());
-		// println("instanceof: rhs classloader is " + ref.getClass().getClassLoader());
-		// NOTE: this doesn't work because it needs the classloader, which is null for system classes
-		// boolean rc      = lhsType.isAssignableWith(rhsType);
 		boolean rc;
 		VM_Type lhsType = VM_TypeDictionary.getValue(type_ref_id);
 		Class lhsClass = getClassForVMType(lhsType);
@@ -1837,7 +1831,7 @@ implements VM_Constants
 		  rc = X_instanceof(ref, lhsClass);
 		} else {
 		  rc = lhsClass.isAssignableFrom(rhsClass);
-		  // println("instanceof: isAssignableWith is " + rc);
+		  // println("instanceof: isAssignableFrom is " + rc);
 		}
 		if (rc == true)
 		  stack.push(1);	     // passes.

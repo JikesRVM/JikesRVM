@@ -119,36 +119,23 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  // Dynamic type checking implementations.
-  // We have two:
-  //  (1) FastDynamicTypeCheck as described in Alpern, Cocchi, & Grove JVM'01
-  //  (2) otherwise do an inline type equality check and an inline
-  //      cache lookup for the last successful type comparison
-  //      falling back to an out of line lookup routine.  This is 
-  //      approximately what is done by the IBM product DK (see Ishizaki et al)
-  public static final boolean BuildForFastDynamicTypeCheck = true;
-
   // Interface method invocation.
   // We have five mechanisms:
   //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber). 
   //    - embedded directly in the TIB
   //    - indirectly accessed off the TIB
-  //    both IMT schemes require BuildForFastDynamicTypeCheck.
   //   ITable-based
   //    - directly indexed (by interface id) iTables. 
-  //       requires BuildForFastDynamicTypeCheck.
-  //    - searched (at dispatch time); does not require FastDTC
+  //    - searched (at dispatch time); 
   //   Naive, class object is searched for matching method on every dispatch.
-  public static final boolean BuildForIMTInterfaceInvocation = true && 
-                                              BuildForFastDynamicTypeCheck;
+  public static final boolean BuildForIMTInterfaceInvocation = true;
   public static final boolean BuildForIndirectIMT = true && 
                                               BuildForIMTInterfaceInvocation;
   public static final boolean BuildForEmbeddedIMT = !BuildForIndirectIMT && 
                                               BuildForIMTInterfaceInvocation;
   public static final boolean BuildForITableInterfaceInvocation = true && 
                                               !BuildForIMTInterfaceInvocation;
-  public static final boolean DirectlyIndexedITables = false && 
-                                              BuildForFastDynamicTypeCheck;
+  public static final boolean DirectlyIndexedITables = false;
 
   // Compiler support for garbage collection and stack management.
   //

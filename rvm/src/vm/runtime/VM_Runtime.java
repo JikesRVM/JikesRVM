@@ -60,7 +60,7 @@ public class VM_Runtime implements VM_Constants {
   public static final int TRAP_REGENERATE     =  5; // opt-compiler
   public static final int TRAP_JNI_STACK      =  6; // jni
   public static final int TRAP_MUST_IMPLEMENT =  7; 
-  public static final int TRAP_STORE_CHECK    =  8; 
+  public static final int TRAP_STORE_CHECK    =  8; // opt-compiler
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -197,28 +197,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) 
     throws VM_ResolutionException {
-    if (VM.BuildForFastDynamicTypeCheck) {
-      return VM_DynamicTypeCheck.instanceOf(lhs, rhs);
-    } else {
-      Object[] rhsTib = rhs.getTypeInformationBlock();
-      if (lhs.isResolved()) {
-	Object[] lhsTib = lhs.getTypeInformationBlock();
-	if (rhsTib[TIB_TYPE_CACHE_TIB_INDEX] == lhsTib) {
-	  return true;
-	}
-      }
-      
-      boolean rc = lhs.isAssignableWith(rhs);
-      
-      // update cache of successful type comparisions 
-      // (no synchronization required)
-      if (rc) {
-	Object[] lhsTib = lhs.getTypeInformationBlock();
-	rhsTib[TIB_TYPE_CACHE_TIB_INDEX] = lhsTib;
-      }
-
-      return rc;
-    }
+    return VM_DynamicTypeCheck.instanceOf(lhs, rhs);
   }
 
       

@@ -335,8 +335,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   }
   
   /**
-   * RHSType is resolved.
-   *   Can we store an object of type RHSType in a variable of type LHSType?
+   * Can we store an object of type RHSType in a variable of type LHSType?
    * 
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
@@ -350,6 +349,10 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     if (!LHSType.isResolved()) {
       LHSType.load();
       LHSType.resolve();
+    }
+    if (!RHSType.isResolved()) {
+      RHSType.load();
+      RHSType.resolve();
     }
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();

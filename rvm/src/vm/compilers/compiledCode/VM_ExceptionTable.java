@@ -45,20 +45,9 @@ public abstract class VM_ExceptionTable {
 	if (lhs == exceptionType) {
 	  return eTable[i + CATCH_START];
 	} else if (lhs.isInitialized()) {
-	  if (VM.BuildForFastDynamicTypeCheck) {
-	    Object[] rhsTIB = exceptionType.getTypeInformationBlock();
-	    if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
-	      return eTable[i + CATCH_START];
-	    }
-	  } else {
-	    try {
-	      if (VM_Runtime.isAssignableWith(lhs, exceptionType)) {
-		return eTable[i + CATCH_START];
-	      }
-	    } catch (VM_ResolutionException e) {
-	      // cannot be thrown since lhs and rhs are initialized 
-	      // thus no classloading will be performed
-	    }
+	  Object[] rhsTIB = exceptionType.getTypeInformationBlock();
+	  if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
+	    return eTable[i + CATCH_START];
 	  }
 	}
       }

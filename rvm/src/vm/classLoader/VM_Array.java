@@ -593,13 +593,12 @@ public final class VM_Array extends VM_Type
        
     typeInformationBlock = VM_RuntimeStructures.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
+    // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;
-    if (VM.BuildForFastDynamicTypeCheck) {
-      typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-      typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
-      if (!elementType.isPrimitiveType() && elementType.isResolved()) {
-	typeInformationBlock[TIB_ARRAY_ELEMENT_TIB_INDEX] = elementType.getTypeInformationBlock();
-      }
+    typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
+    typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
+    if (!elementType.isPrimitiveType() && elementType.isResolved()) {
+      typeInformationBlock[TIB_ARRAY_ELEMENT_TIB_INDEX] = elementType.getTypeInformationBlock();
     }
  
     state = CLASS_RESOLVED;

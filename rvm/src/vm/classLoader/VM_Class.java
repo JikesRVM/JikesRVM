@@ -1215,12 +1215,11 @@ public final class VM_Class extends VM_Type
     //
     typeInformationBlock = VM_RuntimeStructures.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
+    // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;
-    if (VM.BuildForFastDynamicTypeCheck) {
-      typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-      typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
-      // element type for arrays (empty for classes)
-    }
+    typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
+    typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
+    // (element type for arrays not used classes)
 
     // lay out virtual method section of type information block 
     // (to be filled in by instantiate)

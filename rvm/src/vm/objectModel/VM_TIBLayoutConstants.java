@@ -86,31 +86,23 @@ interface VM_TIBLayoutConstants {
    // A vector of ids for classes that this one extends. 
    // (see vm/classLoader/VM_DynamicTypeCheck.java)
    //
-   static final int TIB_SUPERCLASS_IDS_INDEX = 
-     TIB_TYPE_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
+   static final int TIB_SUPERCLASS_IDS_INDEX = TIB_TYPE_INDEX + 1;
 
    // "Does this class implement the ith interface?"  
    // (see vm/classLoader/VM_DynamicTypeCheck.java)
    //
-   static final int TIB_DOES_IMPLEMENT_INDEX = 
-     TIB_SUPERCLASS_IDS_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
+   static final int TIB_DOES_IMPLEMENT_INDEX = TIB_SUPERCLASS_IDS_INDEX + 1;
     
    // The TIB of the elements type of an array (may be null in fringe cases
    // when element type couldn't be resolved during array resolution).
    // Will be null when not an array.
    //
-   static final int TIB_ARRAY_ELEMENT_TIB_INDEX = 
-     TIB_DOES_IMPLEMENT_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
+   static final int TIB_ARRAY_ELEMENT_TIB_INDEX = TIB_DOES_IMPLEMENT_INDEX + 1;
 
-   // If !VM.BuildForFastDynamicTypeChecking then allocate 1 TIB entry to 
-   // hold type cache
-   static final int TIB_TYPE_CACHE_TIB_INDEX = 
-     TIB_ARRAY_ELEMENT_TIB_INDEX + (!VM.BuildForFastDynamicTypeCheck ? 1 : 0);
-    
    // If VM.ITableInterfaceInvocation then allocate 1 TIB entry to hold 
    // an array of ITABLES
    static final int TIB_ITABLES_TIB_INDEX = 
-     TIB_TYPE_CACHE_TIB_INDEX + (VM.BuildForITableInterfaceInvocation ? 1 : 0);
+     TIB_DOES_IMPLEMENT_INDEX + (VM.BuildForITableInterfaceInvocation ? 1 : 0);
    
    // If VM.BuildForIndirectIMT then allocate 1 TIB entry to hold a
    // pointer to the IMT

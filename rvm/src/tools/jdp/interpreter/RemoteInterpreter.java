@@ -912,12 +912,10 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   /**
    * unwrap mapped object before checking
    */
-  boolean X_checkcast(Object ref, VM_Type lhsType) throws VM_ResolutionException {
-
+  boolean X_checkcast(Object ref, Class lhsType) throws VM_ResolutionException {
     // compute the address of the class object
     int addr = ((mapVM)ref).getAddress();
-    int typeAddress = VM_ObjectModel.getTIB(this,addr);
-    // int typeAddress = JDPObjectModel.getTIBFromPlatform(addr);
+    int typeAddress = VM_ObjectModel.getTIB(this, addr);
     typeAddress = Platform.readmem(typeAddress);           
 
     // read the class name for the object from the JVM side
@@ -927,8 +925,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     
     // checkcast against the lhs using the name for the rhs
     VM_Type rhsType = (VM_Type) forName(realName.substring(1,(realName.length()-1)));
-    
-    return lhsType.isAssignableWith(rhsType);
+    return lhsType.isAssignableFrom(rhsType.getClass());
   }
 
   /**

@@ -1321,8 +1321,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                //check whether fromType is assignable to the totype
                                //Note: if toType is subclass of fromType, it should be passed by verifier
                                if(currBBMap[currBBStkTop]!=V_NULL && 
-                                  !VM_TypeDictionary.getValue(currBBMap[currBBStkTop]).isAssignableWith(toType)&&
-                                  !toType.isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
+                                  !VM_Runtime.isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]), toType)&&
+                                  !VM_Runtime.isAssignableWith(toType, VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
                                  VM.sysWrite("Vefity error: checkcast from type isn't assignable to toType in method " + 
                                              currMethodName + "\n");
                                  VM.sysWrite("======toType: " + toType + " id:" + toType.getDictionaryId()
@@ -2080,8 +2080,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           if(currBBMap[currBBStkTop]==V_NULL)
             correct = returnType.isReferenceType();
           else
-            correct = returnType.isAssignableWith(VM_TypeDictionary.
-                                                  getValue(currBBMap[currBBStkTop]));
+            correct = VM_Runtime.isAssignableWith(returnType, VM_TypeDictionary.
+						    getValue(currBBMap[currBBStkTop]));
           break;
         default:
           VM.sysWrite("Verify error: invalid return type when " + JBC_name[opcode]
@@ -2213,7 +2213,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
          (eleType.isFloatType() && expectType != V_FLOAT) ||
          (eleType.isDoubleType() && expectType != V_DOUBLE) ||
          (eleType.isReferenceType() && (expectType!=V_REF || (currBBMap[currBBStkTop]!=V_NULL 
-                                                              && !eleType.isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop])))))){
+                                                              && !VM_Runtime.isAssignableWith(eleType, VM_TypeDictionary.getValue(currBBMap[currBBStkTop])))))){
         VM.sysWrite("Verify error: incompatible element type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
         throw new Exception();
@@ -2290,8 +2290,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         }
         //check the compatibility
         if(currBBMap[currBBStkTop]<0 || currBBMap[currBBStkTop]!=V_NULL
-           && !field.getDeclaringClass().
-           isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
+           && !VM_Runtime.isAssignableWith(field.getDeclaringClass(),
+					   VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
           VM.sysWrite("Verify error: incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
           throw new Exception();
@@ -2364,7 +2364,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       else if(fieldType.isReferenceType())
         correct = !newObjectInfo[currBBStkTop-currBBStkEmpty -1] && 
           ((currBBMap[currBBStkTop] == V_NULL || 
-            fieldType.isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))));
+            VM_Runtime.isAssignableWith(fieldType, VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))));
       if(correct == false){
         VM.sysWrite("Verify error: incompatible field type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
@@ -2380,8 +2380,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           throw new Exception();
         }
         //check the compatibility
-        if(currBBMap[currBBStkTop]<0 || !field.getDeclaringClass().
-           isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
+        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(field.getDeclaringClass(), 
+								     VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
           VM.sysWrite("Verify error: incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
           throw new Exception();
@@ -2761,7 +2761,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop] == V_DOUBLE && currBBMap[currBBStkTop-1] == V_DOUBLE) ;
         else if(parameterTypes[i].isReferenceType())
           correct = (currBBMap[currBBStkTop] == V_NULL || 
-                     parameterTypes[i].isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop])));
+                     VM_Runtime.isAssignableWith(parameterTypes[i], VM_TypeDictionary.getValue(currBBMap[currBBStkTop])));
         if(correct == false){
           VM.sysWrite("Verify error: incompatible parameter when call " + calledMethod.getName() +
                       " in method " + currMethodName+ " \n");
@@ -2782,8 +2782,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         }
 
         //this isn't a reference type or isn't a compatible reference type
-        if(currBBMap[currBBStkTop]<0 || !calledMethod.getDeclaringClass().
-           isAssignableWith(VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
+        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(calledMethod.getDeclaringClass(),
+								     VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
           VM.sysWrite("Verify error: incompatible this reference when call " + calledMethod +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
