@@ -54,6 +54,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
   public static final int NO_CPU_AFFINITY = -1;
 
+  // scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier
+  public static       int schedulingQuantum = 10;
+  // How many times timer interrupt has occurred since last thread switch
+  public static       int interruptQuantumCounter = 0;
+
   // Virtual cpu's.
   //
   public static int                  cpuAffinity   = NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
@@ -354,9 +359,16 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // Start interrupt driven timeslicer to improve threading fairness and responsiveness.
     //
-    if (!VM.BuildForDeterministicThreadSwitching) 
-      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.schedulingQuantum);
-
+    if (!VM.BuildForDeterministicThreadSwitching) {
+      schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
+      if (VM.TraceThreads) {
+	VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
+	VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
+	VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
+	VM.sysWriteln();
+      }
+      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(schedulingQuantum);
+    }
     // Start event logger.
     //
     if (VM.BuildForEventLogging)
