@@ -1194,6 +1194,10 @@ ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg too
 "
     fi
 
+    # build command line options for JMTk
+    echo "\
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+    
     # build VM_Assembler on Intel
     if (( RVM_FOR_IA32 )); then
 	echo "\

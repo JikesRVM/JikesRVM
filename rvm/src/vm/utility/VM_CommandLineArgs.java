@@ -396,17 +396,6 @@ public class VM_CommandLineArgs {
 	break;
 
 	// -------------------------------------------------------------------
-	// GC options
-	// -------------------------------------------------------------------
-      case GC_HELP_ARG:  // -X:gc passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	MM_Interface.processCommandLineArg("help");
-	break;
-      case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
-	MM_Interface.processCommandLineArg(arg);
-	break;
-	
-	// -------------------------------------------------------------------
 	// Enable meausrement of compilation time 
 	// -------------------------------------------------------------------
       case MEASURE_COMP_ARG:
@@ -483,6 +472,17 @@ public class VM_CommandLineArgs {
 	}
 	break;
 
+	// -------------------------------------------------------------------
+	// GC options
+	// -------------------------------------------------------------------
+      case GC_HELP_ARG:  // -X:gc passed 'help' as an option
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
+	MM_Interface.processCommandLineArg("help");
+	break;
+      case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
+	MM_Interface.processCommandLineArg(arg);
+	break;
+	
 	// ----------------------------------------------------
 	// Access nonadaptive configuration's initial runtime
 	// compiler (may be baseline or optimizing).
