@@ -34,6 +34,9 @@
 /\/tools\/jburg\/COPYRIGHT/ { next }
 /\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
+/\/LICENSE/ { next }
+/\/src\/tools\/install\/macros.txt/ { next }
+
 /\/ReleaseNotes-/ { next }
 
 /\/TimeLimit.sanity/ { next }

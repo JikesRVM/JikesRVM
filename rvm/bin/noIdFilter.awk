@@ -43,6 +43,9 @@
 /\.properties\.sample$/ { next }
 /README$/ { next }
 
+/\/LICENSE/ { next }
+/\/src\/tools\/install\/macros.txt/ { next }
+
 #
 # print everything else
 #
