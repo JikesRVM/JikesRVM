@@ -4,6 +4,9 @@
 //$Id$
 
 /**
+ * Class called from baseline compiler to generate architecture specific
+ * write barrier for generational garbage collectors.  For baseline 
+ * compiled methods, the write barrier calls methods of VM_WriteBarrier.
  *
  * @author Stephen Smith
  */
