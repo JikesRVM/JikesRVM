@@ -1668,6 +1668,14 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return totalCycles;
   }
 
+  public boolean isBootThread() {
+    return isBootThread;
+  }
+
+  public boolean isMainThread() {
+    return isMainThread;
+  }
+
   public boolean isIdleThread() {
     return isIdleThread;
   }
