@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
+import java.security.ProtectionDomain;
+
 import com.ibm.JikesRVM.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -440,6 +442,25 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
       }
     }
     return classForType;
+  }
+
+  /* This code is cribbed from VM_Type.getClassForType.  I didn't fully
+   * understand it when I was cribbing from it.   This had to be done so that
+   * we can set the ProtectionDomain for the class when we create it.  */
+  public final Class createClassForType(ProtectionDomain pd) {
+    if (!VM.runningVM)
+      return null;
+    // ensure that we resolve the VM_Class before creating a 
+    // java.lang.Class object for it.  Doing it here frees us from having
+    // to check it all over the reflection code. 
+    if (!isResolved()) {
+      resolve();
+    }
+    synchronized(this) {
+      // Must not already be created.
+      if (VM.VerifyAssertions) VM._assert(classForType == null);
+      return classForType = java.lang.JikesRVMSupport.createClass(this, pd);
+    }
   }
 
   public final void setMMType(Object mmt) {
