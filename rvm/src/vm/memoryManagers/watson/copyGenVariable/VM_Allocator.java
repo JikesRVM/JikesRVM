@@ -144,7 +144,7 @@ public class VM_Allocator
 
     appelMiddleAddress = appelHeap.start.add(appelHeap.size / 2);
     
-    // major collections are innitiated when mature space get within 
+    // major collections are initiated when mature space get within 
     // some "delta" of the middle of the heap.
     // TODO: dynamically set this based on percentage of nursery being kept live
     majorCollectionDelta = appelHeap.size / 8;
@@ -186,10 +186,10 @@ public class VM_Allocator
   static void showParameter() {
       VM.sysWrite("\n");
       VM.sysWrite("Generational Copying Collector with variable sized Nursery:\n");
-      VM.sysWrite("         Boot Image: "); bootHeap.show(); VM.sysWriteln();
-      VM.sysWrite("      Immortal Heap: "); immortalHeap.show(); VM.sysWriteln();
-      VM.sysWrite("  Small Object Heap: "); appelHeap.show(); VM.sysWriteln();
-      VM.sysWrite("  Large Object Heap: "); largeHeap.show(); VM.sysWriteln();
+      bootHeap.show(); 
+      immortalHeap.show(); 
+      appelHeap.show(); 
+      largeHeap.show(); 
 
       if (ZERO_BLOCKS_ON_ALLOCATION)       VM.sysWriteln("  Compiled with ZERO_BLOCKS_ON_ALLOCATION on ");
       if (ZERO_NURSERY_IN_PARALLEL)        VM.sysWriteln("  Compiled with ZERO_NURSERY_IN_PARALLEL on ");
@@ -1221,9 +1221,11 @@ public class VM_Allocator
     if (verbose >= 2) VM_Scheduler.trace("VM_Allocator", "starting major collection", gcMajorCount);
     
     gc_scanProcessor();   // each gc threads scans its own processor object
-    
+
+    if (verbose >= 2) VM.sysWriteln("scanning statics");
     VM_ScanStatics.scanStatics();     // GC threads scan JTOC in parallel
 
+    if (verbose >= 2) VM.sysWriteln("scanning threads");
     gc_scanThreads();    // GC threads process thread objects & scan their stacks
     
     if (GCDEBUG_CHECKWB) {
@@ -1245,6 +1247,7 @@ public class VM_Allocator
     if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
       gcStacksAndStaticsDoneTime = VM_Time.now(); // for time scanning stacks & statics
 
+    if (verbose >= 2) VM.sysWriteln("Emptying work queue");
     gc_emptyWorkQueue();  // each GC thread processes its own work queue buffers
     
     // have processor 1 record timestame for end of scan/mark/copy phase
@@ -1373,6 +1376,23 @@ public class VM_Allocator
     return;
   }  // collect
   
+
+    public static void XXXXXX () {
+
+    if ( matureAllocationIncreasing ) {
+	int temp = matureCurrentAddress.toInt();
+	temp &= ~2047; // (VM_Memory.getPagesize() - 1);
+	fromStartAddress = VM_Address.fromInt(temp);
+    } else {
+	fromStartAddress = appelHeap.start;
+    }
+    
+    areaCurrentAddress = fromStartAddress;
+
+  }  // XXXXX
+
+
+
   // reset heap pointers, reset locks for next GC
   // executed at the end of Minor collections (if major collection not needed)
   // and at the end  of Major Collections.  Only executed by ONE of the
@@ -1486,6 +1506,17 @@ public class VM_Allocator
       newCurrentAddress = startAddress.add(size);
       if ( newCurrentAddress.LE(st.localMatureEndAddress) ) {
 	st.localMatureCurrentAddress = newCurrentAddress;    // increment processor local pointer
+	if (VM.VerifyAssertions) {
+	    if (!appelHeap.addrInHeap(startAddress.add(size).sub(1))) {
+		VM.sysWriteln();
+		appelHeap.show();
+		VM.sysWriteln("st.localMatureEndAddress = ", st.localMatureEndAddress);
+		VM.sysWriteln("startAddress = ", startAddress);
+		VM.sysWriteln("newCurrentAddress = ", newCurrentAddress);
+	    }
+	    VM.assert(appelHeap.addrInHeap(startAddress));
+	    VM.assert(appelHeap.addrInHeap(startAddress.add(size).sub(1)));
+	}
 	return startAddress;
       }
       else {
@@ -1503,6 +1534,8 @@ public class VM_Allocator
 	// startAddress = beginning of new mature space chunk for this processor
 	st.localMatureEndAddress = startAddress.add(CHUNK_SIZE);
 	st.localMatureCurrentAddress = startAddress.add(size);
+	if (VM.VerifyAssertions) VM.assert(appelHeap.addrInHeap(startAddress));
+	if (VM.VerifyAssertions) VM.assert(appelHeap.addrInHeap(startAddress.add(size).sub(1)));
 	return startAddress;
       }
     } // end of chunking logic
@@ -1519,6 +1552,8 @@ public class VM_Allocator
 	if (majorCollection && matureCurrentAddress.LT(matureSaveAddress))
 	    outOfMemory("Out of Memory during Major Collection - Increase Major GC Threshold\n");
       }
+      if (VM.VerifyAssertions) VM.assert(appelHeap.addrInHeap(startAddress));
+      if (VM.VerifyAssertions) VM.assert(appelHeap.addrInHeap(startAddress.add(size)));
       return startAddress;
     } // end old non-chunking logic
     
@@ -1693,7 +1728,7 @@ public class VM_Allocator
 	VM_ScanObject.scanObjectOrArray(t.contextRegisters);
 	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
 	
-	if (GCDEBUG_SCANTHREADS) VM_Scheduler.trace("VM_Allocator","Collector Thread scanning own stack",i);
+	if (GCDEBUG_SCANTHREADS) VM.sysWriteln("Collector Thread scanning own stack",i);
 	VM_ScanStack.scanStack( t, VM_Address.zero(), true );
 
 	
@@ -1789,7 +1824,7 @@ public class VM_Allocator
 	  //-#endif
 
 
-	if (verbose >= 2) VM_Scheduler.trace("VM_Allocator","scanning stack for thread",i);
+	if (verbose >= 3) VM_Scheduler.trace("VM_Allocator","scanning stack for thread",i);
 	//gc_scanStack(t,fp);
 	VM_ScanStack.scanStack( t, VM_Address.zero(), true /*relocate_code*/ );
 
@@ -1914,13 +1949,12 @@ public class VM_Allocator
   //
   static void gc_emptyWorkQueue () {
 
-      VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
-
     if (VM_GCWorkQueue.WORKQUEUE_COUNTS) {
       VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
       myThread.rootWorkCount = myThread.putWorkCount;
     }
     
+    VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
     while ( !ref.isZero() ) {
       VM_ScanObject.scanObjectOrArray( ref );	   
       ref = VM_GCWorkQueue.getFromWorkBuffer();
