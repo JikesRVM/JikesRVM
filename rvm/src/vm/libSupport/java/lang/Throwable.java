@@ -102,10 +102,12 @@ public class Throwable implements java.io.Serializable {
   }
     
   public synchronized void printStackTrace (PrintLN err) {
-    err.println(this.toString());
-    // Work in progress (Steven Augart)
-    //    stackTrace.print(err, this);
-    stackTrace.print(err);
+    //    err.println("This is a call to printStackTrace()"); // DEBUG
+    err.println(this.toString()); 
+    stackTrace.print(err, this);
+    /* Old call.  This won't elide stack frames as nicely, but otherwise will
+       work fine. */
+    // stackTrace.print(err);
     if (cause != null) {
       err.print("Caused by: ");
       cause.printStackTrace(err);
