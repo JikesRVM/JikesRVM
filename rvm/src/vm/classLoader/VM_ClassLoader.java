@@ -247,7 +247,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param methodDescriptor  method descriptor - something like "(I)C"
    * @return method dictionary id
    */
-  public static int findOrCreateMethodId(VM_Atom classDescriptor, 
+  static int findOrCreateMethodId(VM_Atom classDescriptor, 
                                   VM_Atom methodName, 
                                   VM_Atom methodDescriptor,
                                   ClassLoader classloader) {
