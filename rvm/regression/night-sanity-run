@@ -160,12 +160,11 @@ else
 fi
 
 # measure compilation time
-export RUN_MEASURE_COMPILATION_LOG=$RVM_ROOT/results/run.measureCompilation.log
-export     MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
+export RUN_MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
+export                  RESULT_DIR=$RVM_ROOT/results/measureCompilation
+export     MEASURE_COMPILATION_LOG=$RESULT_DIR/measureCompilation.performance.log
 
-export RESULT_DIR=$RVM_ROOT/results/measureCompilation
 mkdir -p $RESULT_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RESULT_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -performance $MEASURE_COMPILATION_LOG" -config night-sanity-performance >> $RUN_MEASURE_COMPILATION_LOG 2>> $RUN_MEASURE_COMPILATION_LOG
-
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RESULT_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2' -performance $MEASURE_COMPILATION_LOG" -config night-sanity-measure-compilation-config >> $RUN_MEASURE_COMPILATION_LOG 2>> $RUN_MEASURE_COMPILATION_LOG
 
