@@ -18,7 +18,7 @@
 // Test multi-threaded execution
 // 
 
-import VM_Scheduler;
+//import VM_Scheduler;
 class t3GT3
 {
 
@@ -26,11 +26,18 @@ class t3GT3
   static int NUMBER_OF_WORKERS;
 	static Object syncher;
 	static Object syncher2;
+  static boolean sanity = false;
 
   public static native int nativeBlocking(int time);
 
   public static void main(String args[])
   {
+    // Kludge for running under sanity harness
+    if (args[0].equals("-quiet")) {
+      args = new String[] { "1", "50", "2500", "1", "1" };
+      sanity = true;
+    }
+
     int time;
 		syncher  = new Object();
 		syncher2 = new Object();
@@ -56,7 +63,7 @@ class t3GT3
       starttime = System.currentTimeMillis();
 		for (int i = 0; i < arg1; i++) t3GTGC.runit(arg1, arg2);
    if (FORCE_GC) {
-     VM_Scheduler.trace("\nMain calling","System.gc:\n");
+     // VM_Scheduler.trace("\nMain calling","System.gc:\n");
      System.gc();
    }
     }
@@ -128,7 +135,10 @@ System.out.println(" Blocking workers started");
 
 		}// use Worker Threads
     	endtime   = System.currentTimeMillis();
-    	System.out.println(" Execution Time = " + (endtime - starttime) + " ms.");
+    	if (sanity) 
+	  System.out.println("DONE\n");
+	else 
+	  System.out.println(" Execution Time = " + (endtime - starttime) + " ms.");
 
   } // main
   
