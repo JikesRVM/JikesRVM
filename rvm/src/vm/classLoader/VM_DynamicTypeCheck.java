@@ -49,7 +49,8 @@ import com.ibm.JikesRVM.*;
  *        or, this dimensionality is k and the baseclass is NOT primitive
  * <p>
  * (3) Otherwise, is the LHS unresolved?
- *    If so, fall back to calling instanceOfUnresolved at runtime.
+ *    If so, fall back to calling VM_Runtime.instanceOf at runtime which will
+ *    load/resolve the types and then call VM_DynamicTypeCheck.instanceOf.
  * <p>
  * (4) Otherwise, is the LHS an interface?  
  *    If so, query the doesImplement array of the RHS's TIB at the entry 
@@ -197,25 +198,6 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
 
   /**
-   * Handle the case when LHSclass is unresolved at compile time.
-   *     If necessary load LHSclass and then answer is rhsTIB the TIB 
-   *     of an instanceof LHSclass?
-   * 
-   * @param LHSclass a class or interface that may not be fully loaded
-   * @param rhsTIB the TIB of an object that might be an instance of LHSclass
-   * @return <code>true</code> if the object is an instance of LHSClass
-   *         or <code>false</code> if it is not
-   */
-  public static boolean instanceOfUnresolved(VM_Class LHSclass, Object[] rhsTIB)  
-    throws VM_ResolutionException {
-    if (!LHSclass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(LHSclass);
-    }
-    return instanceOfResolved(LHSclass, rhsTIB);
-  }   
-
-
-  /**
    * LHSclass is a fully loaded class or interface.  
    *   Is rhsTIB the TIB of an instanceof LHSclass?
    * 
@@ -270,28 +252,6 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
 
   /**
-   * LHSArray is an unresolved [^LHSDimension of LHSInnermostClass
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSInnermostElementclass the innermost element type
-   * @param LHSDimension the dimensionality of the array
-   * @param RHStype the TIB of an object that might be an instanceof 
-   *        [^LHSDimension of LHSInnermostClass
-   * @return <code>true</code> if RHStype is an instanceof
-   *        [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  static boolean instanceOfUnresolvedArray(VM_Class LHSInnermostElementClass, 
-					   int LHSDimension,  VM_Type RHSType) 
-    throws VM_ResolutionException {
-    if (!LHSInnermostElementClass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(LHSInnermostElementClass);
-    }
-    return instanceOfArray(LHSInnermostElementClass, LHSDimension, RHSType);
-  }
-    
-
-  /**
    * LHSArray is [^LHSDimension of java.lang.Object
    *   Is rhsType an instance of LHSArray?
    * 
@@ -324,7 +284,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         or <code>false</code> if it is not
    */
   public static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
-				 int LHSDimension,  VM_Type RHSType) 
+					int LHSDimension,  VM_Type RHSType) 
     throws VM_ResolutionException {
     int RHSDimension = RHSType.getDimensionality();
     if (RHSDimension != LHSDimension) return false;
@@ -332,8 +292,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
                                       getInnermostElementType();
     if (RHSInnermostElementType.isPrimitiveType()) return false;
     return instanceOfResolved(LHSInnermostElementClass, 
-			      RHSInnermostElementType.
-                                getTypeInformationBlock());
+			      RHSInnermostElementType.getTypeInformationBlock());
   }
   
   /**

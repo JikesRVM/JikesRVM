@@ -25,7 +25,7 @@ public abstract class VM_Method extends VM_Member {
   /**
    * exceptions this method might throw (null --> none)
    */
-  protected final VM_Type[] exceptionTypes;      
+  protected final VM_TypeReference[] exceptionTypes;      
 
   /**
    * @param declaringClass the VM_Class object of the class that declared this field
@@ -34,7 +34,7 @@ public abstract class VM_Method extends VM_Member {
    * @param exceptionTypes exceptions thrown by this method.
    */
   protected VM_Method(VM_Class declaringClass, VM_MemberReference memRef, 
-		      int modifiers, VM_Type[] exceptionTypes) {
+		      int modifiers, VM_TypeReference[] exceptionTypes) {
     super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS);
     memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
@@ -57,7 +57,7 @@ public abstract class VM_Method extends VM_Member {
     int tmp_operandWords = 0;      
     byte[] tmp_bytecodes = null;       
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
-    VM_Type[] tmp_exceptionTypes = null;
+    VM_TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;      
 
     // Read the attributes
@@ -98,7 +98,7 @@ public abstract class VM_Method extends VM_Member {
       } else if (attName == VM_ClassLoader.exceptionsAttributeName) {
         int cnt = input.readUnsignedShort();
         if (cnt != 0) {
-          tmp_exceptionTypes = new VM_Type[cnt];
+          tmp_exceptionTypes = new VM_TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
             tmp_exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
 	  }
@@ -144,7 +144,7 @@ public abstract class VM_Method extends VM_Member {
   /**
    * Type of this method's return value.
    */
-  public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getReturnType() throws VM_PragmaUninterruptible {
     return memRef.asMethodReference().getReturnType();
   }
 
@@ -152,7 +152,7 @@ public abstract class VM_Method extends VM_Member {
    * Type of this method's parameters.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final VM_Type[] getParameterTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getParameterTypes() throws VM_PragmaUninterruptible {
     return memRef.asMethodReference().getParameterTypes();
   }
 
@@ -220,7 +220,7 @@ public abstract class VM_Method extends VM_Member {
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  public final VM_Type[] getExceptionTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getExceptionTypes() throws VM_PragmaUninterruptible {
     return exceptionTypes;
   }
 

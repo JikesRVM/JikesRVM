@@ -255,7 +255,7 @@ implements OPT_Operators, OPT_Constants {
       OPT_Pair copy = (OPT_Pair)copies.next();
       OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
       OPT_RegisterOperand registerOp = (OPT_RegisterOperand)copy.second;
-      VM_Type type = registerOp.type;
+      VM_TypeReference type = registerOp.type;
       OPT_Register register = registerOp.register;
       OPT_Register temp = ir.regpool.getReg(register);
       inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, 
@@ -524,7 +524,7 @@ implements OPT_Operators, OPT_Constants {
         }
       }
     }
-    return  result;
+    return result;
   }
 
   /**
@@ -626,7 +626,7 @@ implements OPT_Operators, OPT_Constants {
   private OPT_Instruction makePhiInstruction(OPT_Register r, OPT_BasicBlock bb) {
     int n = bb.getNumberOfIn();
     OPT_BasicBlockEnumeration in = bb.getIn();
-    VM_Type type = null;
+    VM_TypeReference type = null;
     OPT_Instruction s = Phi.create(PHI, new OPT_RegisterOperand(r, type), n);
     for (int i = 0; i < n; i++) {
       OPT_RegisterOperand junk = new OPT_RegisterOperand(r,type);
@@ -636,7 +636,7 @@ implements OPT_Operators, OPT_Constants {
     }
     s.position = ir.gc.inlineSequence;
     s.bcIndex = SSA_SYNTH_BCI;
-    return  s;
+    return s;
   }
 
   /**
@@ -652,7 +652,7 @@ implements OPT_Operators, OPT_Constants {
       int number = reg.getNumber();
       map[number] = reg;
     }
-    return  map;
+    return map;
   }
 
   /**
@@ -1023,7 +1023,7 @@ implements OPT_Operators, OPT_Constants {
         OPT_Instruction phi = (OPT_Instruction)i.next();
         phi.scratch = NO_NULL_TYPE;
         if (DEBUG) System.out.println("PHI: " + phi);
-        VM_Type meet = meetPhiType(phi);
+        VM_TypeReference meet = meetPhiType(phi);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
           didSomething = true;
@@ -1098,13 +1098,13 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
    *
    * SIDE EFFECT: bashes the OPT_Instruction scratch field.
    */
-  private static VM_Type meetPhiType(OPT_Instruction s) {
+  private static VM_TypeReference meetPhiType(OPT_Instruction s) {
 
-    VM_Type result = null;
+    VM_TypeReference result = null;
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       OPT_Operand val = Phi.getValue(s,i);
       if (val instanceof OPT_UnreachableOperand) continue;
-      VM_Type t = val.getType();
+      VM_TypeReference t = val.getType();
       if (t == null) {
         s.scratch = FOUND_NULL_TYPE;
         continue;
@@ -1112,11 +1112,11 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
         result = t;
         continue;
       } else {
-        VM_Type meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
+        VM_TypeReference meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {
           if (  (result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) 
                 || ((result.isReferenceType() || t.isWordType()) && t.isIntLikeType()) ) {
-            meet = OPT_ClassLoaderProxy.IntType;
+            meet = VM_TypeReference.Int;
           }
         }
         if (VM.VerifyAssertions && meet==null)
@@ -1133,12 +1133,12 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
    * <p> Given a register that holds a parameter, look at the register's
    * use chain to find the type of the parameter
    */
-  private VM_Type findParameterType (OPT_Register p) {
+  private VM_TypeReference findParameterType (OPT_Register p) {
     OPT_RegisterOperand firstUse = p.useList;
     if (firstUse == null) {
-      return  null;             // parameter has no uses
+      return null;             // parameter has no uses
     }
-    return  firstUse.type;
+    return firstUse.type;
   }
 }
 

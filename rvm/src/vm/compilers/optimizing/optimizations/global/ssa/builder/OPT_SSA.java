@@ -160,7 +160,8 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
    * @param t the type of r1 and r2.
    */
   static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
-					      OPT_Register r2, VM_Type t) {
+					      OPT_Register r2, 
+					      VM_TypeReference t) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(t);
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, t);
     OPT_RegisterOperand o2 = new OPT_RegisterOperand(r2, t);

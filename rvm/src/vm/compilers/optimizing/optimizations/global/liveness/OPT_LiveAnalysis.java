@@ -460,7 +460,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
           // Do we care about this reg?
           if (isSkippableReg(regOp,ir))
             continue;
-          VM_Type regType = regOp.type;
+          VM_TypeReference regType = regOp.type;
 
           // Because the summary we compute is used to propagate to other
           // basic blocks, if a register is block local, we don't need to
@@ -501,7 +501,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
             if (isSkippableReg(regOp,ir))
               continue;
 
-            VM_Type regType = regOp.type;
+            VM_TypeReference regType = regOp.type;
 
             // Because the summary we compute is used to propagate to
             // other basic blocks, if a register is block local, 
@@ -558,7 +558,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
               OPT_Operand myRval = Phi.getValue(phi, j);
               if (myRval instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand regOp = (OPT_RegisterOperand)myRval;
-                VM_Type regType = regOp.type;
+                VM_TypeReference regType = regOp.type;
                 if (regOp.register.spansBasicBlock() && regType != null) {
                   bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
                 }
@@ -837,7 +837,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
             // Do we care about this reg?
             if (isSkippableReg(regOp,ir))
               continue;
-            VM_Type regType = regOp.type;
+            VM_TypeReference regType = regOp.type;
             // see Def loop comment about magics
             if (regType != null) {
               // process the use as a gen

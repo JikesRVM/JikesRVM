@@ -3710,9 +3710,9 @@ stm:	RETURN(r)
 EMIT_INSTRUCTION
 OPT_RegisterOperand ret = R(Return.getVal(P(p)));            \
 OPT_RegisterOperand ret2 = null;	                     \
-if (ret.type == VM_Type.LongType) {                          \
-  ret.type = VM_Type.IntType;                                \
-  ret2 = R(regpool.getSecondReg(ret.register));      \
+if (ret.type.isLongType()) {                                 \
+  ret.type = VM_TypeReference.Int;                           \
+  ret2 = R(regpool.getSecondReg(ret.register));              \
 }                                                            \
 EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2)); 
 

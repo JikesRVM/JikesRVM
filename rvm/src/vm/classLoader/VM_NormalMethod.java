@@ -142,7 +142,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * @param lm the line number map for this method
    */
   VM_NormalMethod(VM_Class dc, VM_MemberReference mr,
-		  int mo, VM_Type[] et, int lw, int ow, byte[] bc,
+		  int mo, VM_TypeReference[] et, int lw, int ow, byte[] bc,
 		  VM_ExceptionHandlerMap eMap, int[] lm) {
     super(dc, mr, mo, et);
     localWords = lw;

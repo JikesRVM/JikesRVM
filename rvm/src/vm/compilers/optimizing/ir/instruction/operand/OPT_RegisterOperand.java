@@ -6,7 +6,6 @@ package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
  * A symbolic or physical register.
@@ -33,7 +32,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Inferred data type of the contents of the register.
    */
-  public VM_Type type;
+  public VM_TypeReference type;
 
   /**
    * scratch word that can be used for different optimizations.
@@ -187,12 +186,12 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param reg register object
    * @param typ data type
    */
-  public OPT_RegisterOperand(OPT_Register reg, VM_Type typ) {
+  public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ) {
     register = reg; 
     type = typ;
   }
 
-  public OPT_RegisterOperand(OPT_Register reg, VM_Type typ, int flags) {
+  public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ, int flags) {
     register = reg; 
     type = typ; 
     scratch = flags;
@@ -275,8 +274,8 @@ public final class OPT_RegisterOperand extends OPT_Operand {
        for (reg = register; r > 0; reg = reg.getNext(),r--);
        s += ".."+reg;
     }
-    if (type != OPT_ClassLoaderProxy.VALIDATION_TYPE) {
-      s  = s + "("+type;
+    if (type != VM_TypeReference.VALIDATION_TYPE) {
+      s  = s + "("+type.getName();
       if (isExtant())       s += ",x";
       if (isDeclaredType()) s += ",d";
       if (isPreciseType())  s += ",p";

@@ -24,7 +24,7 @@ public final class VM_FieldReference extends VM_MemberReference {
   /**
    * The field's type
    */
-  private final VM_Type fieldContentsType;
+  private final VM_TypeReference fieldContentsType;
 
   /**
    * @param tr a type reference
@@ -33,13 +33,13 @@ public final class VM_FieldReference extends VM_MemberReference {
    */
   VM_FieldReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
     super(tr, mn, d);
-    fieldContentsType = VM_ClassLoader.findOrCreateType(d, tr.getClassLoader());
+    fieldContentsType = VM_TypeReference.findOrCreate(tr.getClassLoader(), d);
   }
 
   /**
    * @return the type of the field's value
    */
-  public final VM_Type getFieldContentsType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getFieldContentsType() throws VM_PragmaUninterruptible {
     return fieldContentsType;
   }
 

@@ -53,8 +53,8 @@ final class OPT_LiveSetElement {
    * Returns the register type associated with this element
    * @return the register type associated with this element
    */
-  public final VM_Type getRegisterType() {
-    return  regOp.type;
+  public final VM_TypeReference getRegisterType() {
+    return regOp.type;
   }
 
   /**

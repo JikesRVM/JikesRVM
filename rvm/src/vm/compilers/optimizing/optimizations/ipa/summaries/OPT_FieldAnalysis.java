@@ -43,18 +43,16 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * 	<li> it's an array of final
    * </ul>
    */
-  private static boolean isCandidate (VM_Type t) {
+  private static boolean isCandidate (VM_TypeReference tref) {
+    VM_Type t = tref.resolve(false);
+    if (t == null) return false;
     if (!t.isLoaded()) return false;
     if (t.isPrimitiveType())
       return false;
     if (t.isClassType() && t.asClass().isFinal())
       return false;
     if (t.isArrayType()) {
-      VM_Type et = t.asArray().getInnermostElementType();
-      if (et.isClassType() && !et.asClass().isLoaded())
-        return false; 
-      else 
-        return isCandidate(et);
+      return isCandidate(tref.getInnermostElementType());
     }
     return true;
   }
@@ -63,7 +61,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Have we determined a single concrete type for a field? If so,
    * return the concrete type.  Else, return null.
    */
-  public static VM_Type getConcreteType (VM_Field f) {
+  public static VM_TypeReference getConcreteType (VM_Field f) {
     // don't bother for primitives and arrays of primitives
     // and friends
     if (!isCandidate(f.getType()))
@@ -75,7 +73,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (isTrouble(f))
       return null;
     if (DEBUG) {
-      VM_Type t = db.getConcreteType(f);
+      VM_TypeReference t = db.getConcreteType(f);
       if (t != null) VM.sysWriteln("CONCRETE TYPE " + f + " IS " + t);
     }
     return db.getConcreteType(f);
@@ -106,7 +104,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         OPT_Operand value = PutField.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_Type type = value.asRegister().type;
+            VM_TypeReference type = value.asRegister().type;
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);
@@ -125,7 +123,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         OPT_Operand value = PutStatic.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_Type type = value.asRegister().type;
+            VM_TypeReference type = value.asRegister().type;
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);
@@ -164,7 +162,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Record that a method stores an object of a particular concrete type
    * to a field.
    */
-  private void recordConcreteType (VM_Method m, VM_Field f, VM_Type t) {
+  private void recordConcreteType (VM_Method m, VM_Field f, VM_TypeReference t) {
     // for now, only track private fields
     if (!f.isPrivate())
       return;
@@ -173,7 +171,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     info.setAnalyzed();
     if (info.isBottom())
       return;
-    VM_Type oldType = info.concreteType;
+    VM_TypeReference oldType = info.concreteType;
     if (oldType == null) {
       // set a new concrete type for this field.
       info.concreteType = t;
@@ -192,7 +190,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * runtime?
    */
   private static boolean isTrouble (VM_Field f) {
-    if (f.getDeclaringClass() == OPT_ClassLoaderProxy.JavaLangStringType)
+    if (f.getDeclaringClass() == VM_Type.JavaLangStringType)
       return true;
     return false;
   }

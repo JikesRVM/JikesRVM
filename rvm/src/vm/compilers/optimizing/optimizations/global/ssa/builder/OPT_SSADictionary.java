@@ -879,13 +879,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void aloadHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = ALoad.getArray(s).getType();
+    VM_TypeReference type = ALoad.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) { 
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       if (uphi)
 	registerDef(s, b, type);
@@ -902,13 +902,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void astoreHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = AStore.getArray(s).getType();
+    VM_TypeReference type = AStore.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       registerDef(s, b, type);
     }
@@ -923,13 +923,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void arraylengthHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = GuardedUnary.getVal(s).getType();
+    VM_TypeReference type = GuardedUnary.getVal(s).getType();
     
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
     }
   }
@@ -1023,7 +1023,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param t the type of the heap variable the instruction uses
    */
-  private void registerUse (OPT_Instruction s, VM_Type t) {
+  private void registerUse (OPT_Instruction s, VM_TypeReference t) {
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1047,7 +1047,9 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param b s's basic block
    * @param t the type of the heap variable the instruction modifies
    */
-  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Type t) {
+  private void registerDef (OPT_Instruction s, 
+			    OPT_BasicBlock b, 
+			    VM_TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
@@ -1239,7 +1241,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * If no heap variable yet exits for this type or field, create a new
    * one.
    *
-   * @param type the <code> VM_Type </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
    * identifying the desired heap variable
    * @return the desired heap variable
    */
@@ -1267,7 +1269,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * Get the next number to be assigned to a new heap variable
    * for a given type or field.
    *
-   * @param type the <code> VM_Type </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
    * identifying the heap variable
    * @return the next integer (monotonically increasing) to identify a new
    * name for this heap variable
@@ -1332,7 +1334,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
      * 
      * @param     number the number, a unique integer from SSA renaming
      * @param     type   the type (a <code> VM_Field </code> or <code>
-     * VM_Type </code>
+     * VM_TypeReference </code>
      */
     HeapKey (int number, Object type) {
       this.number = number;

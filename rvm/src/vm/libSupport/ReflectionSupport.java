@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-
 package com.ibm.JikesRVM.librarySupport;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
@@ -743,7 +742,7 @@ public class ReflectionSupport {
       {
         VM_Method meth = vm_virtual_methods[j];
         if (!meth.isObjectInitializer() &&
-            ( meth.getName() == aName ) &&
+            (meth.getName() == aName) &&
             parametersMatch(meth.getParameterTypes(), parameterTypes))
           return java.lang.reflect.JikesRVMSupport.createMethod(meth);
       }
@@ -788,7 +787,7 @@ public class ReflectionSupport {
    */
   public static void setField(Field f, Object object, Object value) throws IllegalAccessException, IllegalArgumentException
   {
-    VM_Type type = java.lang.reflect.JikesRVMSupport.getFieldOf(f).getType();
+    VM_TypeReference type = java.lang.reflect.JikesRVMSupport.getFieldOf(f).getType();
 
     if (type.isReferenceType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setObjectValue(object, value);
     else if (type.isCharType())      java.lang.reflect.JikesRVMSupport.getFieldOf(f).setCharValue(object, VM_Reflection.unwrapChar(value));
@@ -833,7 +832,7 @@ public class ReflectionSupport {
    *	void, null is returned.</li>
    * </ul>
    *
-  *
+   *
     * @param		args	the arguments to the constructor
     * @return		the new, initialized, object
     * @exception	java.lang.NullPointerException		if the receiver is null for a non-static method
@@ -844,13 +843,11 @@ public class ReflectionSupport {
     public static Object invoke(Method m, Object receiver, Object args[])
     throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
       VM_Method method = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
-      VM_Type[] parameterTypes = method.getParameterTypes();
-      VM_Type   returnType     = method.getReturnType();
+      VM_TypeReference[] parameterTypes = method.getParameterTypes();
 
       // validate "this" argument
       //
-      if (!method.isStatic())
-      {
+      if (!method.isStatic()) {
         if (receiver == null)
           throw new NullPointerException();
 
@@ -868,22 +865,17 @@ public class ReflectionSupport {
         throw new IllegalArgumentException("argument count mismatch");
 
       for (int i = 0, n = parameterTypes.length; i < n; ++i)
-        if (!argumentIsCompatible(parameterTypes[i], args[i]))
+        if (!argumentIsCompatible(parameterTypes[i].resolve(true), args[i]))
           throw new IllegalArgumentException("type mismatch on argument " + i);
 
       // invoke method
       // Note that we catch all possible exceptions, not just Error's and RuntimeException's,
       // for compatibility with jdk behavior (which even catches a "throw new Throwable()").
       //
-      try
-      {
+      try {
         return VM_Reflection.invoke(method, receiver, args);
-      }
-      catch (Throwable e)
-      {
-
-	  e.printStackTrace( System.err );
-
+      } catch (Throwable e) {
+	e.printStackTrace( System.err );
         throw new InvocationTargetException(e);
       }
     }
@@ -897,10 +889,13 @@ public class ReflectionSupport {
    *
    * @return		the declared exception classes
    */
-  public static Class[] getExceptionTypes(Method m)
-  {
-    VM_Type[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(m).getExceptionTypes();
-    return typesToClasses(exceptionTypes == null ? new VM_Type[0] : exceptionTypes);
+  public static Class[] getExceptionTypes(Method m) {
+    VM_TypeReference[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(m).getExceptionTypes();
+    if (exceptionTypes == null) {
+      return new Class[0];
+    } else {
+      return typesToClasses(exceptionTypes);
+    }
   }
 
   /**
@@ -911,10 +906,13 @@ public class ReflectionSupport {
    *
    * @return		the declared exception classes
    */
-  public static Class[] getExceptionTypes(Constructor c)
-  {
-    VM_Type[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(c).getExceptionTypes();
-    return typesToClasses(exceptionTypes == null ? new VM_Type[0] : exceptionTypes);
+  public static Class[] getExceptionTypes(Constructor c)  {
+    VM_TypeReference[] exceptionTypes = java.lang.reflect.JikesRVMSupport.getMethodOf(c).getExceptionTypes();
+    if (exceptionTypes == null) {
+      return new Class[0];
+    } else {
+      return typesToClasses(exceptionTypes);
+    }
   }
 
   /**
@@ -923,9 +921,8 @@ public class ReflectionSupport {
    *
    * @return		the return type
    */
-  public static Class getReturnType(Method m)
-  {
-    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getReturnType().getClassForType();
+  public static Class getReturnType(Method m) {
+    return java.lang.reflect.JikesRVMSupport.getMethodOf(m).getReturnType().resolve(true).getClassForType();
   }
 
 
@@ -957,8 +954,7 @@ public class ReflectionSupport {
    *
    * @return		the parameter types
    */
-  public static Class[] getParameterTypes(Constructor c)
-  {
+  public static Class[] getParameterTypes(Constructor c) {
     return typesToClasses(java.lang.reflect.JikesRVMSupport.getMethodOf(c).getParameterTypes());
   }
 
@@ -969,8 +965,7 @@ public class ReflectionSupport {
    *
    * @return		the parameter types
    */
-  public static Class[] getParameterTypes(Method m)
-  {
+  public static Class[] getParameterTypes(Method m) {
     return typesToClasses(java.lang.reflect.JikesRVMSupport.getMethodOf(m).getParameterTypes());
   }
 
@@ -1471,13 +1466,13 @@ public class ReflectionSupport {
   /**
    * Compare parameter lists for agreement.
    */ 
-  private static boolean parametersMatch(VM_Type[] lhs, Class[] rhs) {
+  private static boolean parametersMatch(VM_TypeReference[] lhs, Class[] rhs) {
     if (lhs.length != rhs.length)
       return false;
 
     for (int i = 0, n = lhs.length; i < n; ++i)
-	if (lhs[i] != java.lang.JikesRVMSupport.getTypeForClass(rhs[i]))
-	    return false;
+      if (lhs[i].resolve(true) != java.lang.JikesRVMSupport.getTypeForClass(rhs[i]))
+	return false;
     
     return true;
   }
@@ -2380,15 +2375,15 @@ public class ReflectionSupport {
   /**
    * Convert from "vm" type system to "jdk" type system.
    */ 
-  private static Class[] typesToClasses(VM_Type[] types)
-  {
+  private static Class[] typesToClasses(VM_TypeReference[] types) {
     Class[] classes = new Class[types.length];
-    for (int i = 0; i < types.length; i++)
-      classes[i] = types[i].getClassForType();
+    for (int i = 0; i < types.length; i++) {
+      classes[i] = types[i].resolve(true).getClassForType();
+    }
     return classes;
   }
-  private static boolean validArrayDescriptor (String name)
-  {
+
+  private static boolean validArrayDescriptor (String name) {
     int i;
     int length = name.length();
 

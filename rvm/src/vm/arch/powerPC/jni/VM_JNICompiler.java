@@ -270,8 +270,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // of the corresponding ref.  In this case, emit code to replace the returned
     // offset (in R3) with the ref from the JNIRefs array
 
-    VM_Type returnType = method.getReturnType();
-    if ( returnType.isReferenceType() ) {
+    VM_TypeReference returnType = method.getReturnType();
+    if (returnType.isReferenceType()) {
       // use returned offset to load ref from JNIRefs into R3
       asm.emitLX (3, SP, 3);         // SP is still the base of the JNIRefs array
     }
@@ -334,7 +334,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // offset to the spill area in the caller (RVM frame), relative to the callee's FP
     int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
 
-    VM_Type[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
+    VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
     int numArguments = types.length;                // number of arguments for this method
     
     // Set up the Reference table for GC

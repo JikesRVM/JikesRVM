@@ -54,17 +54,17 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
   }
 
-  public static Object newArrayArray (int[] dimensions, int dictionaryId) 
-      throws VM_ResolutionException, 
-	     NegativeArraySizeException, 
-	     OutOfMemoryError {
+  public static Object newArrayArray (int[] dimensions, int id) 
+    throws VM_ResolutionException, 
+	   NegativeArraySizeException, 
+	   OutOfMemoryError {
     // validate arguments
     for (int i = 0; i < dimensions.length; i++) {
       if (dimensions[i] < 0) throw new NegativeArraySizeException();
     }
     // create array
     //
-    VM_Array aType = VM_ClassLoader.getTypeFromId(dictionaryId).asArray();
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve(true);
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
 }

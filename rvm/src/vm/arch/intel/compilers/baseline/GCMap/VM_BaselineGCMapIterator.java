@@ -203,7 +203,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       // now the remaining parameters
       //
       while(bridgeParameterIndex < bridgeParameterTypes.length) {
-	VM_Type bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
+	VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
 	
 	if (bridgeParameterType.isReferenceType()) {
 	  bridgeRegisterIndex        += 1;
@@ -312,7 +312,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
+  private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated

@@ -51,10 +51,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)V");
   public static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
-  public static final VM_Method instanceOfUnresolvedMethod         = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfUnresolved", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)Z");
-  public static final VM_Method instanceOfArrayMethod              = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfArray", "(Lcom/ibm/JikesRVM/classloader/VM_Class;ILcom/ibm/JikesRVM/classloader/VM_Type;)Z");
-  public static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(Lcom/ibm/JikesRVM/classloader/VM_Class;ILcom/ibm/JikesRVM/classloader/VM_Type;)Z");
-
   public static final VM_Method lockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
   public static final VM_Method unlockMethod        = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
 

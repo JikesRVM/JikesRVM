@@ -43,7 +43,7 @@ public final class VM_NativeMethod extends VM_Method {
    * @param exceptionTypes exceptions thrown by this method.
    */
   VM_NativeMethod(VM_Class declaringClass, VM_MemberReference memRef,
-		  int modifiers, VM_Type[] exceptionTypes) {
+		  int modifiers, VM_TypeReference[] exceptionTypes) {
     super(declaringClass, memRef, modifiers, exceptionTypes);
   }
 

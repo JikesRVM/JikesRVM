@@ -21,8 +21,8 @@ public class VM_ExceptionHandlerMap {
   public final int[] getStartPC() { return startPCs;   }
   public final int[] getEndPC()   { return endPCs;     }
   public final int[] getHandlerPC() { return handlerPCs; }
-  public final VM_Type[] getExceptionTypes() { return exceptionTypes; }
-  public final VM_Type getExceptionType(int i) { return exceptionTypes[i]; }
+  public final VM_TypeReference[] getExceptionTypes() { return exceptionTypes; }
+  public final VM_TypeReference getExceptionType(int i) { return exceptionTypes[i]; }
    
   //-#if RVM_WITH_OSR
   /* we need to adjust the exception handler map for pseudo bytecode
@@ -62,7 +62,7 @@ public class VM_ExceptionHandlerMap {
    * with VM_Type.JavaLangThrowableType so we don't have to do anything
    * special anywhere else in the VM.
    */
-  VM_Type[] exceptionTypes; 
+  VM_TypeReference[] exceptionTypes; 
 
   VM_ExceptionHandlerMap(DataInputStream input, 
 			 VM_Class declaringClass, 
@@ -70,16 +70,16 @@ public class VM_ExceptionHandlerMap {
     startPCs       = new int[n];
     endPCs         = new int[n];
     handlerPCs     = new int[n];
-    exceptionTypes = new VM_Type[n];
+    exceptionTypes = new VM_TypeReference[n];
     for (int i = 0; i < n; ++i) {
       startPCs[i]       = input.readUnsignedShort();
       endPCs[i]         = input.readUnsignedShort();
       handlerPCs[i]     = input.readUnsignedShort();
-      VM_Type et = declaringClass.getTypeRef(input.readUnsignedShort()); // possibly null
+      VM_TypeReference et = declaringClass.getTypeRef(input.readUnsignedShort()); // possibly null
       if (et == null) {
 	// A finally block...set to java.lang.Throwable to avoid
 	// needing to think about this case anywhere else in the VM.
-	exceptionTypes[i] = VM_Type.JavaLangThrowableType;
+	exceptionTypes[i] = VM_TypeReference.JavaLangThrowable;
       } else {
 	exceptionTypes[i] = et;
       }
@@ -97,7 +97,7 @@ public class VM_ExceptionHandlerMap {
     other.startPCs = new int[n];
     other.endPCs   = new int[n];
     other.handlerPCs = new int[n];
-    other.exceptionTypes = new VM_Type[n];
+    other.exceptionTypes = new VM_TypeReference[n];
  
     System.arraycopy(this.startPCs, 0, other.startPCs, 0, n);
     System.arraycopy(this.endPCs, 0, other.endPCs, 0, n);

@@ -59,7 +59,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    */
   public void addCaughtException(OPT_TypeOperand et) {
     for (int i=0; i<exceptionTypes.length; i++) {
-      if (exceptionTypes[i].type == et.type) return;
+      if (exceptionTypes[i].similar(et)) return;
     }
     OPT_TypeOperand[] newets = new OPT_TypeOperand[exceptionTypes.length+1];
     for (int i=0; i<exceptionTypes.length; i++) {
@@ -74,17 +74,17 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * Return YES/NO/MAYBE values that answer the question is it possible for
    * this handler block to catch an exception of the type et.
    * 
-   * @param cand the VM_Type of the exception in question.
+   * @param cand the VM_TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
-  public byte mayCatchException(VM_Type cand) {
+  public byte mayCatchException(VM_TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
     for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].type, cand);
+      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].getTypeRef(), cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
-      t = OPT_ClassLoaderProxy.includesType(cand, exceptionTypes[i].type);
+      t = OPT_ClassLoaderProxy.includesType(cand, exceptionTypes[i].getTypeRef());
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }
@@ -96,14 +96,14 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * Return YES/NO/MAYBE values that answer the question is it guarenteed that 
    * this handler block will catch an exception of the type et.
    * 
-   * @param et the VM_Type of the exception in question.
+   * @param et the VM_TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
-  public byte mustCatchException(VM_Type cand) {
+  public byte mustCatchException(VM_TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
     for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].type, cand);
+      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].getTypeRef(), cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }

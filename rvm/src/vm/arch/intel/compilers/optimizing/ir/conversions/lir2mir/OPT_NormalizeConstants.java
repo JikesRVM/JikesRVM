@@ -39,7 +39,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
           OPT_Operand use = s.getOperand(idx);
           if (use != null) {
             if (use instanceof OPT_StringConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.JavaLangStringType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
               int offset = sc.index << 2;
@@ -49,7 +49,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
 	      s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset), loc));
 	      s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
               if (dc.index == 0) {
@@ -58,7 +58,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
 	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
               if (fc.index  == 0) {

@@ -37,9 +37,9 @@ public class VM_MachineReflection implements VM_Constants {
       if (gp > LAST_VOLATILE_GPR) Spills++;
       else {GPRs++; gp++;}
     }
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
 	if (gp > LAST_VOLATILE_GPR) Spills+=2;
 	else {
@@ -88,9 +88,9 @@ public class VM_MachineReflection implements VM_Constants {
 	GPRs[--GPR] = VM_Reflection.unwrapObject(thisArg);
       }
     }
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
 	long l = VM_Reflection.unwrapLong(otherArgs[i]);
 	if (gp > LAST_VOLATILE_GPR) {

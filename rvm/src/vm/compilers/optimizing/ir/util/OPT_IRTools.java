@@ -31,7 +31,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return integer register operand
    */
   public static final OPT_RegisterOperand R(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
   /**
@@ -45,7 +45,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return float register operand
    */
   public static final OPT_RegisterOperand F(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.FloatType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Float);
   }
 
   /**
@@ -59,7 +59,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return double register operand
    */
   public static final OPT_RegisterOperand D(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.DoubleType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Double);
   }
 
   /**
@@ -73,7 +73,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return long register operand
    */
   public static final OPT_RegisterOperand L(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.LongType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Long);
   }
 
   /**
@@ -87,7 +87,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return condition register operand
    */
   public static final OPT_RegisterOperand CR(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
   /**
@@ -184,7 +184,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type
    * @return a constant operand with the default value for type
    */
-  public static final OPT_Operand getDefaultOperand(VM_Type type) {
+  public static final OPT_Operand getDefaultOperand(VM_TypeReference type) {
     if (type.isBooleanType()) return new OPT_IntConstantOperand(0);
     if (type.isByteType())    return new OPT_IntConstantOperand(0);
     if (type.isCharType())    return new OPT_IntConstantOperand(0);
@@ -202,11 +202,11 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  public static final OPT_Operator getMoveOp(VM_Type type) {
+  public static final OPT_Operator getMoveOp(VM_TypeReference type) {
     if (type.isLongType())    return LONG_MOVE;
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
-    if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE) return GUARD_MOVE;
+    if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
     if (type.isReferenceType()) return REF_MOVE;
     return INT_MOVE;
   }
@@ -219,11 +219,11 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  public static final OPT_Operator getCondMoveOp(VM_Type type) {
+  public static final OPT_Operator getCondMoveOp(VM_TypeReference type) {
     if (type.isLongType())    return LONG_COND_MOVE;
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
-    if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE) return GUARD_COND_MOVE;
+    if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
     if (type.isReferenceType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
@@ -245,7 +245,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type type of value to load
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_Type type) {
+  public static final OPT_Operator getLoadOp(VM_TypeReference type) {
     // TODO: Until we pack subword fields, there is no reason to
     //       use the sub-word load operators because it only forces us 
     //       into doing useless sign extension.
@@ -279,7 +279,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param type desired type to store
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_Type type) {
+  public static final OPT_Operator getStoreOp(VM_TypeReference type) {
     // TODO: Until we pack subword fields, there is no reason to
     //       use the sub-word load operators because it only forces us 
     //       into doing useless sign extension.
@@ -313,7 +313,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
-    VM_Type type = op.getType();
+    VM_TypeReference type = op.getType();
     OPT_Operator move_op = OPT_IRTools.getMoveOp(type);
     return moveIntoRegister(type, move_op, pool, s, op);
   }
@@ -330,7 +330,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  public static final OPT_RegisterOperand moveIntoRegister(VM_Type type,
+  public static final OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
 							   OPT_Operator move_op,
 							   OPT_RegisterPool pool,
 							   OPT_Instruction s,

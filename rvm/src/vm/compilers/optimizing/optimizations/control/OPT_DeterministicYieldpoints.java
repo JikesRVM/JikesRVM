@@ -54,8 +54,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
    * @param ir the governing IR 
    */
   final public void perform (OPT_IR ir) {
-
-    OPT_RegisterOperand tempReg = ir.regpool.makeTemp(VM_Type.IntType);
+    OPT_RegisterOperand tempReg = ir.regpool.makeTempInt();
 
     // For each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 

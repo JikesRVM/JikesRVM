@@ -263,19 +263,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Get contents of a "typeRef" constant pool entry.
-   * @return id of type that was referenced, for use 
-   * by "VM_TypeDictionary.getValue()"
-   */
-  public final int getTypeRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
-    return constantPool[constantPoolIndex];
-  }
-
-  /**
-   * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  public final VM_Type getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
-    return VM_TypeDictionary.getValue(getTypeRefId(constantPoolIndex));
+  public final VM_TypeReference getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+    return VM_TypeReference.getTypeRef(constantPool[constantPoolIndex]);
   }
 
   /**
@@ -841,12 +832,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
 	  case TAG_TYPEREF: { // in: utf index
 	    VM_Atom typeName = VM_Atom.getAtom(tmpPool[tmpPool[i]]);
-	    if (typeName.isArrayDescriptor())
-	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId(typeName, classLoader);
-	    else
-	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId
-		(typeName.descriptorFromClassName(), classLoader);
-	    break; } // out: type dictionary id
+	    constantPool[i] = VM_TypeReference.findOrCreate(classLoader, 
+							    typeName.descriptorFromClassName()).getId();
+	    break; } // out: type reference id
 
 	  case TAG_STRING: 
 	    { // in: utf index
@@ -892,7 +880,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     
     int modifiers     = input.readUnsignedShort();
     int myTypeIndex   = input.readUnsignedShort();
-    VM_Class myType   = (VM_Class)VM_TypeDictionary.getValue(constantPool[myTypeIndex]);
+    VM_Class myType   = (VM_Class)VM_TypeReference.getTypeRef(constantPool[myTypeIndex]).resolve(true);
     if (myType.isLoaded()) return myType;
 
     if (VM.VerifyAssertions) VM._assert(myType.state == CLASS_VACANT);
@@ -907,9 +895,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       throw new ClassFormatError("expected class \"" + thisTypeDescriptor 
                                  + "\" but found \"" + myType + "\"");
     }
-    VM_Type superType = myType.getTypeRef(input.readUnsignedShort()); // possibly null
+    VM_TypeReference superType = myType.getTypeRef(input.readUnsignedShort()); // possibly null
     if (superType != null) {
-      myType.superClass = superType.asClass();
+      myType.superClass = superType.resolve(true).asClass();
       myType.superClass.addSubClass(myType);
     }
 
@@ -918,9 +906,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       myType.declaredInterfaces = emptyVMClass;
     } else {
       myType.declaredInterfaces = new VM_Class[numInterfaces];
-      for (int i = 0, n = myType.declaredInterfaces.length; i < n; ++i)
-	myType.declaredInterfaces[i] =
-	    myType.getTypeRef(input.readUnsignedShort()).asClass();
+      for (int i = 0, n = myType.declaredInterfaces.length; i < n; ++i) {
+	VM_TypeReference inTR = myType.getTypeRef(input.readUnsignedShort());
+	myType.declaredInterfaces[i] = inTR.resolve(true).asClass();
+      }
     }
 
     int numFields = input.readUnsignedShort();
@@ -984,7 +973,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	      outerClassInfoIndex == myTypeIndex &&
 	      innerNameIndex != 0) {
 	    // This looks like a declared inner class.
-	    myType.declaredClasses[j] = myType.getTypeRef(innerClassInfoIndex).asClass();
+	    myType.declaredClasses[j] = myType.getTypeRef(innerClassInfoIndex).resolve(true).asClass();
 	  }
 	}
 
@@ -1148,9 +1137,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // allocate space for class fields
     //
     for (int i = 0, n = staticFields.length; i < n; ++i) {
-      VM_Field field     = staticFields[i];
-      VM_Type  fieldType = field.getType();
-      byte     slotType;
+      VM_Field field = staticFields[i];
+      VM_TypeReference fieldType = field.getType();
+      byte slotType;
       if (fieldType.isReferenceType())
 	slotType = VM_Statics.REFERENCE_FIELD;
       else if (fieldType.getStackWords() == 2)
@@ -1222,7 +1211,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       acyclic = false;	// must initially be false for recursive types
       boolean foundCyclic = false;
       for (int i = 0; i < instanceFields.length; i++) {
-        if (!instanceFields[i].getType().isAcyclicReference()) {
+	VM_TypeReference ft = instanceFields[i].getType();
+        if (!(ft.isResolved() && ft.resolve(false).isAcyclicReference())) {
           foundCyclic = true; 
           break;
         }
@@ -1282,7 +1272,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.runningVM && VM_Statics.isReference(fieldIndex)) {
       Object obj = VM_Statics.getSlotContentsAsObject(literalOffset>>2);
       VM_Statics.setSlotContents(fieldIndex,obj);
-    } else if (field.getSize() == 4) {
+    } else if (field.getType().getSize() == 4) {
       // copy one word from constant pool to JTOC
       int value = VM_Statics.getSlotContentsAsInt(literalOffset>>2);
       VM_Statics.setSlotContents(fieldIndex,value);

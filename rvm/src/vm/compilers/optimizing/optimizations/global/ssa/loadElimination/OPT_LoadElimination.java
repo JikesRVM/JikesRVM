@@ -142,7 +142,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         // .. if H{valueNumber} is available ...
         if (cell.contains(valueNumber)) {
           result.add(H[0].getHeapVariable(), valueNumber);
-          VM_Type type = ResultCarrier.getResult(s).getType();
+          VM_TypeReference type = ResultCarrier.getResult(s).getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 valueNumber, registers, ir.regpool, type);
           if (DEBUG)
@@ -160,9 +160,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         // .. if H{<v1,v2>} is available ...
         if (cell.contains(v1, v2)) {
           result.add(H[0].getHeapVariable(), v1, v2);
-          VM_Type type = ALoad.getResult(s).getType();
-          OPT_Register r = findOrCreateRegister(
-                                                H[0].getHeapVariable().getHeapType(), 
+          VM_TypeReference type = ALoad.getResult(s).getType();
+          OPT_Register r = findOrCreateRegister(H[0].getHeapVariable().getHeapType(), 
                                                 v1, v2, registers, ir.regpool, type);
           if (DEBUG)
             System.out.println("ELIMINATING LOAD " + s);
@@ -245,7 +244,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             value = PutStatic.getValue(s); 
           else if (GetField.conforms(s) || GetStatic.conforms(s))
             value = ResultCarrier.getResult(s);
-          VM_Type type = value.getType();
+          VM_TypeReference type = value.getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 valueNumber, registers, ir.regpool, type);
           appendMove(r, value, s);
@@ -261,7 +260,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             value = AStore.getValue(s); 
           else if (ALoad.conforms(s))
             value = ALoad.getResult(s);
-          VM_Type type = value.getType();
+          VM_TypeReference type = value.getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 v1, v2, registers, ir.regpool, type);
           appendMove(r, value, s);
@@ -275,7 +274,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * value in register r.
    */
   static void appendMove(OPT_Register r, OPT_Operand src, OPT_Instruction store) {
-    VM_Type type = src.getType();
+    VM_TypeReference type = src.getType();
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, type);
     store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type), 
                                   rop, src));
@@ -285,7 +284,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Given a value number, return the temporary register allocated
    * for that value number.  Create one if necessary.
    *
-   * @param heapType a VM_Type or VM_Field identifying the array SSA
+   * @param heapType a VM_TypeReference or VM_Field identifying the array SSA
    *			heap type
    * @param valueNumber
    * @param registers a mapping from value number to temporary register
@@ -294,7 +293,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   static OPT_Register findOrCreateRegister(Object heapType, int valueNumber, 
                                             HashMap registers, 
-                                            OPT_RegisterPool pool, VM_Type type) {
+                                            OPT_RegisterPool pool, VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -309,7 +308,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Given a pair of value numbers, return the temporary register 
    * allocated for that pair.  Create one if necessary.
    *
-   * @param heapType a VM_Type identifying the array SSA
+   * @param heapType a VM_TypeReference identifying the array SSA
    *			heap type
    * @param v1, v2 valueNumbers
    * @param registers a mapping from value number to temporary register
@@ -317,7 +316,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param type the type to store in the new register
    */
   static OPT_Register findOrCreateRegister(Object heapType, int v1, int v2, 
-                                            HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+					   HashMap registers, OPT_RegisterPool pool, 
+					   VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -330,7 +330,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
   // A UseRecord represents a load that will be eliminated
   static class UseRecord {
-    Object type;              // may be either a VM_Type or a VM_Field
+    Object type;              // may be either a VM_TypeReference or a VM_Field
     int v1;                   // first value number (object pointer)
     int v2;                   // second value number (array index)
     final static int NONE = -2;
@@ -500,18 +500,17 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
             case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
             case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
-
               {
                 OPT_Operand ref = ALoad.getArray(s);
-                VM_Type type = ref.getType();
+                VM_TypeReference type = ref.getType();
                 if (type.isArrayType()) {
-                  if (!type.asArray().getElementType().isPrimitiveType()) {
-                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  if (!type.getArrayElementType().isPrimitiveType()) {
+                    type = VM_TypeReference.JavaLangObjectArray;
                   }
                 }
                 OPT_Operand index = ALoad.getIndex(s);
 
-                HashSet numbers = findOrCreateIndexSet(indices,type);
+                HashSet numbers = findOrCreateIndexSet(indices, type);
                 int v1 = valueNumbers.getValueNumber(ref);
                 int v2 = valueNumbers.getValueNumber(index);
                 OPT_ValueNumberPair V = new OPT_ValueNumberPair(v1,v2);
@@ -532,10 +531,10 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
               {
                 OPT_Operand ref = AStore.getArray(s);
-                VM_Type type = ref.getType();
+                VM_TypeReference type = ref.getType();
                 if (type.isArrayType()) {
-                  if (!type.asArray().getElementType().isPrimitiveType()) {
-                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  if (!type.getArrayElementType().isPrimitiveType()) {
+                    type = VM_TypeReference.JavaLangObjectArray;
                   }
                 }
                 OPT_Operand index = AStore.getIndex(s);

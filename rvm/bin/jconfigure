@@ -1754,6 +1754,7 @@ function emitImageLinker
    print "   print '[S'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Z'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[I'                              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[B'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
 
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Class;'          >> $PRIMORDIAL_CLASSES_STR"
@@ -1773,11 +1774,6 @@ function emitImageLinker
       print "   print '[Lcom/ibm/JikesRVM/VM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'  >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
-   fi
-
-   if (( RVM_FOR_IA32 )); then
-      print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    if (( RVM_WITH_OPT_COMPILER )); then
@@ -1832,7 +1828,6 @@ function emitImageLinker
           print "   print '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ADAPTIVE_SYSTEM )); then

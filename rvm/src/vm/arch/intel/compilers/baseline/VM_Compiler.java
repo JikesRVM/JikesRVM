@@ -2228,10 +2228,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param the dictionaryId of the VM_Class to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link & instantiate
    */
-  protected final void emit_unresolved_new(int dictionaryId) {
-    asm.emitPUSH_Imm(dictionaryId);
+  protected final void emit_unresolved_new(VM_TypeReference typeRef) {
+    asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(1);           // pass 1 parameter word
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
@@ -2260,26 +2260,26 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to dynamically link and allocate an array
-   * @param the dictionaryId of the VM_Array to dynamically link & instantiate
+   * @param tRef the type reference to dynamically link & instantiate
    */
-  protected final void emit_unresolved_newarray(int dictionaryId) {
+  protected final void emit_unresolved_newarray(VM_TypeReference tRef) {
     // count is already on stack- nothing required
-    asm.emitPUSH_Imm(dictionaryId);
-    genParameterRegisterLoad(2);          // pass 3 parameter words
+    asm.emitPUSH_Imm(tRef.getId());
+    genParameterRegisterLoad(2);          // pass 2 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef the VM_Array to instantiate
+   * @param typeRef the type reference to instantiate
    * @param dimensions the number of dimensions
    * @param dictionaryId, the dictionaryId of typeRef
    */
-  protected final void emit_multianewarray(VM_Array typeRef, int dimensions, int dictionaryId) {
+  protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     // setup parameters for newarrayarray routine
     asm.emitPUSH_Imm (dimensions);                     // dimension of arays
-    asm.emitPUSH_Imm (dictionaryId);                   // type of array elements               
+    asm.emitPUSH_Imm (typeRef.getId());                   // type of array elements               
     asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
     // NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
     genParameterRegisterLoad(3);                   // pass 3 parameter words
@@ -2308,24 +2308,45 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Emit code to implement the checkcast bytecode
    * @param typeRef the LHS type
+   */
+  protected final void emit_checkcast(VM_TypeReference typeRef) {
+    asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
+    asm.emitPUSH_Imm(typeRef.getId());               // JTOC index that identifies klass  
+    genParameterRegisterLoad(2);                     // pass 2 parameter words
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffset()); // checkcast(obj, klass-identifier)
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param typeRef the LHS type
    * @param target the method to invoke to implement this checkcast
    */
-  protected final void emit_checkcast(VM_Type typeRef, VM_Method target) {
+  protected final void emit_checkcast_final(VM_Type type) {
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
-    asm.emitPUSH_Imm(typeRef.getTibOffset());        // JTOC index that identifies klass  
+    asm.emitPUSH_Imm(type.getTibOffset());           // JTOC index that identifies klass  
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, target.getOffset()); // checkcast(obj, klass-identifier)
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastFinalMethod.getOffset()); // checkcast(obj, klass-identifier)
   }
 
   /**
    * Emit code to implement the instanceof bytecode
    * @param typeRef the LHS type
-   * @param target the method to invoke to implement this instanceof
    */
-  protected final void emit_instanceof(VM_Type typeRef, VM_Method target) {
-    asm.emitPUSH_Imm(typeRef.getTibOffset());  
+  protected final void emit_instanceof(VM_TypeReference typeRef) {
+    asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_RegDisp(JTOC, target.getOffset());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param typeRef the LHS type
+   */
+  protected final void emit_instanceof_final(VM_Type type) {
+    asm.emitPUSH_Imm(type.getTibOffset());  
+    genParameterRegisterLoad(2);          // pass 2 parameter words
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfFinalMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2646,10 +2667,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       offset -= WORDSIZE;
     }
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++) {
       if (max == 0) return; // quit looking when all registers are full
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
 	  asm.emitMOV_Reg_RegDisp(T, SP, offset); // lo register := hi mem (== hi order word)
@@ -2713,11 +2734,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       srcOffset -= WORDSIZE;
       dstOffset -= WORDSIZE;
     }
-    VM_Type [] types     = method.getParameterTypes();
+    VM_TypeReference [] types     = method.getParameterTypes();
     int     [] fprOffset = new     int [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     boolean [] is32bit   = new boolean [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
 	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
@@ -2796,7 +2817,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Push return value of method from register to operand stack.
    */
   private final void genResultRegisterUnload (VM_MethodReference method) {
-    VM_Type t = method.getReturnType();
+    VM_TypeReference t = method.getReturnType();
     if (t.isVoidType()) return;
     if (t.isLongType()) {
       asm.emitPUSH_Reg(T0); // high half

@@ -69,27 +69,22 @@ public class VM_Runtime implements VM_Constants {
    * Test if object is instance of target class/array or 
    * implements target interface.
    * @param object object to be tested
-   * @param targetTibOffset jtoc offset of "tib" corresponding to target 
-   *           class/array/interface
+   * @param id type reference id corresponding to target class/array/interface
    * @return true iff is object instance of target type?
    */ 
-  static boolean instanceOf(Object object, int targetTibOffset)
-    throws VM_ResolutionException {
+  static boolean instanceOf(Object object, int id) throws VM_ResolutionException {
     if (object == null)
       return false; // null is not an instance of any type
 
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                               targetTibOffset);
-    Object rhsTib = VM_ObjectModel.getTIB(object);
-    if (lhsTib == rhsTib)
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Type lhsType = tRef.resolve(true);
+    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+
+    if (lhsType == rhsType)
       return true; // exact match
          
     // not an exact match, do more involved lookups
     //
-    VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (lhsTib,TIB_TYPE_INDEX));
-    VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (rhsTib,TIB_TYPE_INDEX));
     return isAssignableWith(lhsType, rhsType);
   }
 
@@ -109,26 +104,21 @@ public class VM_Runtime implements VM_Constants {
    * Throw exception unless object is instance of target 
    * class/array or implements target interface.
    * @param object object to be tested
-   * @param targetTibOffset jtoc offset of "tib" corresponding to 
-   *           target class/array/interface
+   * @param id of type reference corresponding to target class/array/interface
    */ 
-  static void checkcast(Object object, int targetTibOffset)
+  static void checkcast(Object object, int id)
     throws VM_ResolutionException, ClassCastException {
     if (object == null)
       return; // null may be cast to any type
-      
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                               targetTibOffset);
-    Object rhsTib= VM_ObjectModel.getTIB(object);
-    if (lhsTib == rhsTib)
+
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Type lhsType = tRef.resolve(true);
+    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    if (lhsType == rhsType)
       return; // exact match
 
     // not an exact match, do more involved lookups
     //
-    VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (lhsTib,TIB_TYPE_INDEX));
-    VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (rhsTib,TIB_TYPE_INDEX));
     if (!isAssignableWith(lhsType, rhsType)) {
       raiseCheckcastException(lhsType, rhsType);
     }
@@ -209,16 +199,15 @@ public class VM_Runtime implements VM_Constants {
 
   /**
    * Allocate something like "new Foo()".
-   * @param dictionaryId type of object (VM_TypeDictionary id)
+   * @param id id of type reference of class to create.
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */ 
-  static Object unresolvedNewScalar(int dictionaryId) 
+  static Object unresolvedNewScalar(int id) 
     throws VM_ResolutionException, OutOfMemoryError { 
-
-    VM_Class cls = VM_ClassLoader.getTypeFromId(dictionaryId).asClass();
-    if (VM.VerifyAssertions) VM._assert(cls.isClassType());
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Class cls = tRef.resolve(true).asClass();
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
@@ -267,16 +256,16 @@ public class VM_Runtime implements VM_Constants {
    
   /**
    * Allocate something like "new Foo[]".
-   * @param dictionaryId type of object (VM_TypeDictionary id)
+   * @param id id of type reference of class to create.
    * @param numElements number of array elements
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
-  static Object unresolvedNewArray(int numElements, int dictionaryId) 
+  static Object unresolvedNewArray(int numElements, int id) 
     throws VM_ResolutionException, OutOfMemoryError, NegativeArraySizeException { 
-    VM_Array array = VM_ClassLoader.getTypeFromId(dictionaryId).asArray();
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Array array = tRef.resolve(true).asArray();
     if (!array.isInitialized()) {
-      VM_Type elementType = array.getElementType();
       array.load();
       array.resolve();
       array.instantiate();
@@ -361,7 +350,7 @@ public class VM_Runtime implements VM_Constants {
       VM_Field[] instanceFields = cls.getInstanceFields();
       for (int i=0; i<instanceFields.length; i++) {
 	VM_Field f = instanceFields[i];
-	VM_Type ft = f.getType();
+	VM_TypeReference ft = f.getType();
 	if (ft.isReferenceType()) {
 	  // Do via slower "pure" reflection to enable
 	  // collectors to do the right thing wrt reference counting

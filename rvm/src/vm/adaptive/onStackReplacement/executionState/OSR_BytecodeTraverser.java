@@ -116,13 +116,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 
     /* initialize local types from method signature.*/
     {
-      VM_Type[] ptypes = method.getParameterTypes();
+      VM_TypeReference[] ptypes = method.getParameterTypes();
       int lidx = 0;
       if (!method.isStatic()) {
 	ltypes[lidx++] = ClassTypeCode;
       }
       for (int i=0, n=ptypes.length; i<n; i++) {
-	byte tcode = ptypes[i].getDescriptor().parseForTypeCode();
+	byte tcode = ptypes[i].getName().parseForTypeCode();
 	ltypes[lidx++] = tcode;
 	if ( (tcode == LongTypeCode) 
 	     || (tcode == DoubleTypeCode) ) {
@@ -1139,8 +1139,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_getstatic:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
+	  byte tcode = ftype.getName().parseForTypeCode();
 	  if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
 	    S.push(VoidTypeCode);
 	  }
@@ -1150,8 +1150,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_putstatic:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
+	  byte tcode = ftype.getName().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);
 	  else
@@ -1161,8 +1161,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_putfield:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
+	  byte tcode = ftype.getName().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);
 	  else
@@ -1185,8 +1185,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 	    S.pop();     // pop the object reference
 	  }
 
-	  VM_Type rtype = callee.getReturnType();
-	  byte tcode = rtype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference rtype = callee.getReturnType();
+	  byte tcode = rtype.getName().parseForTypeCode();
 
 	  if (tcode == VoidTypeCode) {
 	    // nothing to do with void return type
@@ -1207,7 +1207,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 	break;
 	
       case JBC_new:
-	bytecodes.getTypeReferenceIndex(); // skip cpi of type
+	bytecodes.getTypeReference(); // skip cpi of type
 	S.push(ClassTypeCode);
 	break;
       case JBC_newarray:
@@ -1218,7 +1218,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_anewarray:
 	S.pop();
 	S.push(ArrayTypeCode);
-	bytecodes.getTypeReferenceIndex(); // skip cpi of reference type
+	bytecodes.getTypeReference(); // skip cpi of reference type
 	break;
       case JBC_arraylength:
 	S.pop();
@@ -1229,12 +1229,12 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 	S.push(ClassTypeCode);
 	return false;
       case JBC_checkcast:
-	bytecodes.getTypeReferenceIndex(); // skip cpi of reference type
+	bytecodes.getTypeReference(); // skip cpi of reference type
 	break;
       case JBC_instanceof:
 	S.pop();
 	S.push(IntTypeCode);
-	bytecodes.getTypeReferenceIndex(); // skip cpi of reference type
+	bytecodes.getTypeReference(); // skip cpi of reference type
 	break;
       case JBC_monitorenter:
       case JBC_monitorexit:
@@ -1310,7 +1310,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       }
       case JBC_multianewarray:
 	{
-	  int cpi = bytecodes.getTypeReferenceIndex(); // skip type reference
+	  bytecodes.getTypeReference(); // skip type reference
 	  int dims = bytecodes.getArrayDimension();
 	  S.pop(dims);
 	  S.push(ArrayTypeCode);
@@ -1361,8 +1361,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 	  
 	  S.pop(psize);
 
-	  VM_Type rtype = callee.getReturnType();
-	  byte tcode = rtype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference rtype = callee.getReturnType();
+	  byte tcode = rtype.getName().parseForTypeCode();
 	  
 	  if (tcode == VoidTypeCode) {
 	    // nothing to do with void return type
@@ -1392,8 +1392,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 	  if (!callee.isStatic()) 
 		S.pop();   // pop receiver
 	  
-	  VM_Type rtype = callee.getReturnType();
-	  byte tcode = rtype.getDescriptor().parseForTypeCode();
+	  VM_TypeReference rtype = callee.getReturnType();
+	  byte tcode = rtype.getName().parseForTypeCode();
 	  
 	  if (tcode == VoidTypeCode) {
 	    // nothing to do with void return type

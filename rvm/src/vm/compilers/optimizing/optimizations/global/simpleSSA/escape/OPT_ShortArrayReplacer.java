@@ -44,7 +44,7 @@ public class OPT_ShortArrayReplacer
     if (s < 0)
       return  null;
     OPT_Register r = NewArray.getResult(inst).register;
-    VM_Array a = NewArray.getType(inst).type.asArray();
+    VM_Array a = NewArray.getType(inst).getVMType().asArray();
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r, s))
       return  null;
@@ -61,7 +61,7 @@ public class OPT_ShortArrayReplacer
     VM_Type elementType = vmArray.getElementType();
     OPT_RegisterOperand def = reg.defList;
     OPT_Instruction defI = def.instruction;
-    OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(elementType);
+    OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(elementType.getTypeRef());
     for (int i = 0; i < size; i++) {
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
     }
@@ -117,7 +117,7 @@ public class OPT_ShortArrayReplacer
       OPT_RegisterOperand[] scalars) {
     OPT_Instruction inst = use.instruction;
     VM_Type type = vmArray.getElementType();
-    OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
+    OPT_Operator moveOp = OPT_IRTools.getMoveOp(type.getTypeRef());
     switch (inst.getOpcode()) {
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
@@ -202,6 +202,3 @@ public class OPT_ShortArrayReplacer
     return  false;
   }
 }
-
-
-

@@ -62,7 +62,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	
       case NEW_opcode: { 
 	OPT_TypeOperand Type = New.getClearType(inst);
-	VM_Class cls = (VM_Class)Type.type;
+	VM_Class cls = (VM_Class)Type.getVMType();
 	OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
 	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
 	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
@@ -84,7 +84,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       break;
 
       case NEW_UNRESOLVED_opcode: {
-	int typeRefId = New.getType(inst).type.getDictionaryId();
+	int typeRefId = New.getType(inst).getTypeRef().getId();
 	VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
 	Call.mutate1(inst, CALL, New.getClearResult(inst), 
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -95,7 +95,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 
       case NEWARRAY_opcode: {
 	OPT_TypeOperand Array = NewArray.getClearType(inst);
-	VM_Array array = (VM_Array)Array.type;
+	VM_Array array = (VM_Array)Array.getVMType();
 	OPT_Operand numberElements = NewArray.getClearSize(inst);
 	OPT_Operand size = null;
 	if (numberElements instanceof OPT_RegisterOperand) {
@@ -103,12 +103,12 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  OPT_RegisterOperand temp = numberElements.asRegister();
 	  if (width != 0) {
 	    temp = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_SHL, 
-							VM_Type.IntType, 
+							VM_TypeReference.Int, 
 							temp, 
 							new OPT_IntConstantOperand(width));
 	  }
 	  size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
-						      VM_Type.IntType, temp,
+						      VM_TypeReference.Int, temp,
 						      new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
 	} else { 
 	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
@@ -133,7 +133,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       break;
 
       case NEWARRAY_UNRESOLVED_opcode: {
-	int typeRefId = NewArray.getType(inst).type.getDictionaryId();
+	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
 	OPT_Operand numberElements = NewArray.getClearSize(inst);
 	VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
 	Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
@@ -145,7 +145,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       break;
 
       case NEWOBJMULTIARRAY_opcode: {
-	int typeRefId = NewArray.getType(inst).type.getDictionaryId();
+	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
 	VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
 	Call.mutate2(inst, CALL, NewArray.getClearResult(inst),
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -169,8 +169,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  inst.remove();
 	} else {
 	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType();
-	  if (refType.thinLockOffset != -1) {
+	  VM_Type refType = ref.getType().resolve(false);
+	  if (refType != null && refType.thinLockOffset != -1) {
 	    VM_Method target = VM_Entrypoints.inlineLockMethod;
 	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()),
 			 OPT_MethodOperand.STATIC(target),
@@ -198,8 +198,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  inst.remove();
 	} else {
 	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType();
-	  if (refType.thinLockOffset != -1) {
+	  VM_Type refType = ref.getType().resolve(false);
+	  if (refType != null && refType.thinLockOffset != -1) {
 	    VM_Method target = VM_Entrypoints.inlineUnlockMethod;
 	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
 			 OPT_MethodOperand.STATIC(target),

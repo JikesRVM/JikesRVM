@@ -88,7 +88,7 @@ class OptTestHarness {
   static Vector reflectMethodVector;
   static Vector reflectMethodArgsVector;
 
-  static int parseMethodArgs(VM_Type[] argDesc, String[] args, int i,
+  static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
 			     Object[] methodArgs){
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
@@ -112,14 +112,14 @@ class OptTestHarness {
 	  // TODO
 	  System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
 	} else if (argDesc[argNum].isArrayType()) {
-          VM_Type element = argDesc[argNum].asArray().getElementType();
+          VM_TypeReference element = argDesc[argNum].getArrayElementType();
           if (element.isClassType() && 
-              element.asClass().getName().startsWith("java.lang.String")) {
-             String[] array = new String[args.length-i-1];
-             for (int j = 0; j < array.length; j++) {
-	       array[j] = args[++i];
-	     }
-             methodArgs[argNum] = array; 
+              element.getName().toString().startsWith("java.lang.String")) {
+	    String[] array = new String[args.length-i-1];
+	    for (int j = 0; j < array.length; j++) {
+	      array[j] = args[++i];
+	    }
+	    methodArgs[argNum] = array; 
           } else {// TODO
 	    System.err.println("Parsing args of array of " + element + 
 			       " not implemented");
@@ -311,7 +311,7 @@ class OptTestHarness {
 	    }
 	  }
 	  if (cm != null) method.replaceCompiledMethod(cm);
-	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
+	  VM_TypeReference[] argDesc  = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
 	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
 	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
 	  java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method) ;

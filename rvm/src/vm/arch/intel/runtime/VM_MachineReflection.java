@@ -40,9 +40,9 @@ public class VM_MachineReflection implements VM_Constants {
       parameters++;
     }
 
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
 	if (gp > 0) {
 	  GPRs++; gp--;
@@ -88,10 +88,10 @@ public class VM_MachineReflection implements VM_Constants {
       Parameters[parameter++] = VM_Reflection.unwrapObject(thisArg);
     }
 
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
 
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
 
       if (t.isLongType()) {
 	long l = VM_Reflection.unwrapLong(otherArgs[i]);

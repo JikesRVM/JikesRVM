@@ -306,7 +306,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
         // create the instruction and insert it
         if (obj.isRegister()) {
           OPT_RegisterOperand lval = (OPT_RegisterOperand)obj.copy();
-          lval.type = TypeCheck.getType(instr).type;
+          lval.type = TypeCheck.getType(instr).getTypeRef();
           lval.clearDeclaredType();
           OPT_Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
 	  s.position = instr.position;

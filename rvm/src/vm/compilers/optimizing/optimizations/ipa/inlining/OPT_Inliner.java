@@ -215,13 +215,14 @@ public class OPT_Inliner implements OPT_Operators,
 	if (VM.BuildForIMTInterfaceInvocation ||
 	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
 	  VM_Type interfaceType = mo.getTarget().getDeclaringClass();
-	  VM_Class refType = receiver.type.asClass();
+	  VM_TypeReference recTypeRef = receiver.type;
+	  VM_Class recType = (VM_Class)recTypeRef.resolve(false);
 	  // Attempt to avoid inserting the check by seeing if the 
 	  // known static type of the receiver implements the interface.
 	  boolean requiresImplementsTest = true;
-	  if (refType.isResolved() && !refType.isInterface()) {
+	  if (recType != null && recType.isResolved() && !recType.isInterface()) {
 	    byte doesImplement = 
-	      OPT_ClassLoaderProxy.includesType(interfaceType, refType);
+	      OPT_ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
 	    requiresImplementsTest = doesImplement != OPT_Constants.YES;
 	  }
 	  if (requiresImplementsTest) {
@@ -280,7 +281,7 @@ public class OPT_Inliner implements OPT_Operators,
 	  // time, in which case we only have to generate IR to establish 
 	  // (2) at runtime.
 	  byte doesImplement = OPT_ClassLoaderProxy.
-	    includesType(callDeclClass, target.getDeclaringClass());
+	    includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
 	  if (doesImplement != OPT_Constants.YES) {
 	    // We can't be sure at compile time that the receiver implements
 	    // the interface. So, inject a test to make sure that it does.

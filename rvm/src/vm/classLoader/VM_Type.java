@@ -51,7 +51,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
- public abstract class VM_Type implements VM_ClassLoaderConstants {
+public abstract class VM_Type implements VM_ClassLoaderConstants {
    //-----------//
    // interface //
    //-----------//
@@ -111,6 +111,15 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
    */ 
   public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible { return descriptor; }
    
+  /**
+   * Cannonical type reference for this type.
+   * MIGRATION: very soon VM_Types willhave a reference to their
+   * type reference as an instance field
+   */
+  public final VM_TypeReference getTypeRef() {
+    return VM_TypeReference.findOrCreate(getClassLoader(), getDescriptor());
+  }
+
   /**
    * Space required when this type is stored on the stack 
    * (or as a field), in words.
@@ -367,7 +376,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   public static VM_Type DynamicBridgeType;     
   /**
    * interface implemented to save various registers 
-   * !!TODO: phase out in favor of preceeding line?
    */
   public static VM_Type SaveVolatileType;      
 
@@ -454,16 +462,16 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   /**
    * index into VM_TypeDictionary for this VM_Type
    */
-  protected int     dictionaryId; 
+  protected int dictionaryId; 
   /**
    * index of jtoc slot that has type information block for this VM_Type
    */
-  protected int     tibSlot;      
+  protected int tibSlot;      
   /**
    * instance of java.lang.Class corresponding to this type 
    * (null --> not created yet
    */
-  private   Class   classForType; 
+  private Class classForType; 
   /**
    * RCGC: is this type acyclic? 
    */
@@ -471,11 +479,11 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   /**
    * -1 => primitive, 0 => Class/Interface, positive => array (number of [)
    */
-  int     dimension;    
+  int dimension;    
   /**
    * number of superclasses to Object
    */
-  protected int     depth;        
+  protected int depth;        
 
   /**
    * At what offset is the thin lock word to be found in instances of

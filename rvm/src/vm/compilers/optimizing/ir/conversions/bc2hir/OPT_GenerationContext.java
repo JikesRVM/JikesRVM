@@ -216,7 +216,7 @@ public final class OPT_GenerationContext
     temps = new OPT_RegisterPool(meth);
     _ncGuards = new java.util.HashMap();
     initLocalPool();
-    VM_Type[] params = meth.getParameterTypes();
+    VM_TypeReference[] params = meth.getParameterTypes();
     int numParams = params.length;
     int argIdx = 0;
     int localNum = 0;
@@ -227,7 +227,7 @@ public final class OPT_GenerationContext
     appendInstruction(prologue, prologueInstr, PROLOGUE_BCI);
 
     if (!method.isStatic()) {
-      VM_Type thisType = meth.getDeclaringClass();
+      VM_TypeReference thisType = meth.getDeclaringClass().getTypeRef();
       OPT_RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.register);
@@ -243,7 +243,7 @@ public final class OPT_GenerationContext
       argIdx++; localNum++;
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++) {
-      VM_Type argType = params[paramIdx];
+      VM_TypeReference argType = params[paramIdx];
       OPT_RegisterOperand argOp = makeLocal(localNum, argType);
       argOp.setDeclaredType();
       if (argType.isClassType()) {
@@ -256,8 +256,8 @@ public final class OPT_GenerationContext
 	localNum++; // longs & doubles take two words of local space
       }
     }
-    VM_Type returnType = meth.getReturnType();
-    if (returnType != OPT_ClassLoaderProxy.VoidType) {
+    VM_TypeReference returnType = meth.getReturnType();
+    if (returnType != VM_TypeReference.Void) {
       resultReg = temps.makeTemp(returnType).register;
     }
     
@@ -341,7 +341,7 @@ public final class OPT_GenerationContext
     child.initLocalPool();
 
     // Insert moves from child.arguments to child's locals in prologue
-    VM_Type[] params = child.method.getParameterTypes();
+    VM_TypeReference[] params = child.method.getParameterTypes();
     int numParams = params.length;
     int argIdx = 0;
     int localNum = 0;
@@ -350,18 +350,17 @@ public final class OPT_GenerationContext
       OPT_RegisterOperand local = null;
       if (receiver.isRegister()) {
 	OPT_RegisterOperand objPtr = receiver.asRegister();
-	if (OPT_ClassLoaderProxy.includesType(child.method.getDeclaringClass(), objPtr.type) != YES) {
+	if (OPT_ClassLoaderProxy.includesType(child.method.getDeclaringClass().getTypeRef(), objPtr.type) != YES) {
 	  // narrow type of actual to match formal static type implied by method
-	  objPtr.type = child.method.getDeclaringClass();
-	  objPtr.clearPreciseType(); // Can be precise but not assignable 
-	  // if enough classes aren't loaded
+	  objPtr.type = child.method.getDeclaringClass().getTypeRef();
+	  objPtr.clearPreciseType(); // Can be precise but not assignable if enough classes aren't loaded
 	  objPtr.setDeclaredType();
 	}
 	local = child.makeLocal(localNum++, objPtr);
 	child.arguments[0] = local; // Avoid confusion in BC2IR of callee 
 	// when objPtr is a local in the caller.
       } else if (receiver.isStringConstant()) {
-	local = child.makeLocal(localNum++, OPT_ClassLoaderProxy.JavaLangStringType);
+	local = child.makeLocal(localNum++, VM_TypeReference.JavaLangString);
 	local.setPreciseType();
 	// String constants trivially non-null
 	OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
@@ -378,7 +377,7 @@ public final class OPT_GenerationContext
       child.prologue.appendInstruction(s);
     }
     for (int paramIdx = 0; paramIdx<numParams; paramIdx++, argIdx++) {
-      VM_Type argType = params[paramIdx];
+      VM_TypeReference argType = params[paramIdx];
       OPT_RegisterOperand formal;
       OPT_Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
@@ -499,12 +498,12 @@ public final class OPT_GenerationContext
     doubleLocals = new OPT_Register[numLocals];
   }
 
-  private OPT_Register[] getPool(VM_Type type) {
-    if (type == OPT_ClassLoaderProxy.FloatType) {
+  private OPT_Register[] getPool(VM_TypeReference type) {
+    if (type == VM_TypeReference.Float) {
       return floatLocals;
-    } else if (type == OPT_ClassLoaderProxy.LongType) {
+    } else if (type == VM_TypeReference.Long) {
       return longLocals;
-    } else if (type == OPT_ClassLoaderProxy.DoubleType) {
+    } else if (type == VM_TypeReference.Double) {
       return doubleLocals;
     } else {
       return intLocals;
@@ -513,9 +512,9 @@ public final class OPT_GenerationContext
 
 
   /**
-   * Return the OPT_Register used to for local i of VM_Type type
+   * Return the OPT_Register used to for local i of VM_TypeReference type
    */
-  public OPT_Register localReg(int i, VM_Type type) {
+  public OPT_Register localReg(int i, VM_TypeReference type) {
     OPT_Register[] pool = getPool(type);
     if (pool[i] == null) {
       pool[i] = temps.getReg(type);
@@ -531,7 +530,7 @@ public final class OPT_GenerationContext
    * @param i local variable number
    * @param type desired data type
    */
-  public final OPT_RegisterOperand makeLocal(int i, VM_Type type) {
+  public final OPT_RegisterOperand makeLocal(int i, VM_TypeReference type) {
     return new OPT_RegisterOperand(localReg(i, type), type);
   }
 
@@ -552,7 +551,7 @@ public final class OPT_GenerationContext
   /**
    * Get the local number for a given register 
    */
-  public final int getLocalNumberFor(OPT_Register reg, VM_Type type) {
+  public final int getLocalNumberFor(OPT_Register reg, VM_TypeReference type) {
     OPT_Register[] pool = getPool(type);
     for (int i=0; i< pool.length; i++) {
       if (pool[i] == reg) return i;
@@ -563,7 +562,7 @@ public final class OPT_GenerationContext
   /**
    * Is the operand a particular bytecode local?
    */
-  public final boolean isLocal(OPT_Operand op, int i, VM_Type type) {
+  public final boolean isLocal(OPT_Operand op, int i, VM_TypeReference type) {
     if (op instanceof OPT_RegisterOperand) {
       if (getPool(type)[i] == ((OPT_RegisterOperand)op).register) return true;
     }
@@ -686,7 +685,7 @@ public final class OPT_GenerationContext
     }
 
     if (isOutermost) {
-      VM_Type returnType = method.getReturnType();
+      VM_TypeReference returnType = method.getReturnType();
       OPT_Operand retVal = returnType.isVoidType() ? null : 
           new OPT_RegisterOperand(resultReg, returnType);
       OPT_Instruction s = Return.create(RETURN, retVal);
@@ -701,13 +700,12 @@ public final class OPT_GenerationContext
    * PRECONDITION: cfg, arguments & temps have been setup/initialized.
    */
   private void completeExceptionHandlers(boolean isOutermost) {
-    if (method.isSynchronized() && !options.MONITOR_NOP
-	) {
+    if (method.isSynchronized() && !options.MONITOR_NOP) {
       OPT_ExceptionHandlerBasicBlock rethrow =
-	      new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
-        new OPT_TypeOperand(OPT_ClassLoaderProxy.JavaLangThrowableType), cfg);
+	new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
+					   new OPT_TypeOperand(VM_TypeReference.JavaLangThrowable), cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
-      OPT_RegisterOperand ceo = temps.makeTemp(OPT_ClassLoaderProxy.JavaLangThrowableType);
+      OPT_RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       OPT_Operand lockObject = getLockObject(SYNTH_CATCH_BCI, rethrow);
@@ -750,7 +748,6 @@ public final class OPT_GenerationContext
   // Get either the class object or the this ptr...
   private OPT_Operand getLockObject(int bcIndex, OPT_BasicBlock target) {
     if (method.isStatic()) {
-
       VM_Class c = method.getDeclaringClass();
       // make sure java.lang.Class object will be created before
       // the static method we are compiling can execute.
@@ -760,7 +757,7 @@ public final class OPT_GenerationContext
 	c.getClassForType();
       }
       OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
-				       temps.makeTemp(OPT_ClassLoaderProxy.JavaLangClassType),
+				       temps.makeTemp(VM_TypeReference.JavaLangClass),
 				       new OPT_TypeOperand(c));
       appendInstruction(target, s, bcIndex);
       return Unary.getResult(s).copyD2U();

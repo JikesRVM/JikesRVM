@@ -72,7 +72,7 @@ public abstract class VM_MemberReference {
   public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tref, VM_Atom mn, VM_Atom md) {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
-      if (tref.isArray()) {
+      if (tref.isArrayType()) {
 	// TODO: migration kludge.  
 	//    Should be able to get a cannonical type reference directly from the VM_Type.
 	tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),

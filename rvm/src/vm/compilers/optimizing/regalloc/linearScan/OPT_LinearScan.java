@@ -2522,7 +2522,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             } else if (op instanceof OPT_BURSManagedFPROperand) {
               int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
               s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
-                                                           VM_Type.DoubleType));
+                                                           VM_TypeReference.Double));
             }
           }
           // account for any effect s has on the floating point stack

@@ -155,14 +155,14 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     //       There have to be other methods with similar properties.
     if (callee == VM_Entrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != OPT_ClassLoaderProxy.JavaLangObjectType;
+      return src.getType() != VM_TypeReference.JavaLangObject;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
     // it's not the object array version 
     // (too big...kills other inlining), then inline it.
-    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type
-        && callee.getName() == arraycopyName && callee.getDescriptor()
-        != objectArrayCopyDescriptor) {
+    if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
+        callee.getName() == arraycopyName && 
+	callee.getDescriptor() != objectArrayCopyDescriptor) {
       return Call.getParam(state.getCallInstruction(), 1).isConstant()
           && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }

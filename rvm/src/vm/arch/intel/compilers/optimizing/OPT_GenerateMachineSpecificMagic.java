@@ -51,13 +51,13 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       }
     }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       VM_Field f = VM_Entrypoints.processorFPField;
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
         pr = OPT_IRTools.R(phys.getESI());
       } else {
-        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr.copy(),
@@ -67,13 +67,13 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getJTOC || 
 	       methodName == VM_MagicNames.getTocPointer) {
-      VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.AddressType);
+      VM_TypeReference t = (methodName == VM_MagicNames.getJTOC ? VM_TypeReference.IntArray : VM_TypeReference.Address);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
         pr = OPT_IRTools.R(phys.getESI());
       } else {
-        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       if (gc.options.FIXED_JTOC) {
@@ -94,7 +94,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       if (VM.dedicatedESI) {
         pr = OPT_IRTools.R(phys.getESI());
       } else {
-        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, pr.copy(),
@@ -104,7 +104,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
@@ -134,7 +134,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 					   null));
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
 					    fp,
 					    new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));

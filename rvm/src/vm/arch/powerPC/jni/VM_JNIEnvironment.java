@@ -525,10 +525,10 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    VM_Type[] argTypes = mth.getParameterTypes();
+    VM_TypeReference[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
-      argClasses[i] = argTypes[i].getClassForType();
+      argClasses[i] = argTypes[i].resolve(true).getClassForType();
     }
 
     Constructor constMethod = cls.getConstructor(argClasses);
@@ -565,7 +565,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithDotDotVarArg(int methodID, VM_Type expectReturnType)
+  public static Object invokeWithDotDotVarArg(int methodID, 
+					      VM_TypeReference expectReturnType)
     throws Exception {
     
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
@@ -584,7 +585,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
-					      VM_Type expectReturnType, boolean skip4Args)
+					      VM_TypeReference expectReturnType, boolean skip4Args)
     throws Exception {
 
       VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
@@ -722,7 +723,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // 		   VM.intAsHexString(varargAddress) + "\n");
  
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    VM_Type[] argTypes = targetMethod.getParameterTypes();
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
 
     for (int i=0; i<argCount && spillAreaOffset<spillAreaLimit ; i++) {
@@ -776,7 +777,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
+  public static Object invokeWithVarArg(int methodID, VM_Address argAddress, 
+					VM_TypeReference expectReturnType) 
     throws Exception {
 
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
@@ -793,7 +795,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
-					VM_Type expectReturnType, boolean skip4Args) 
+					VM_TypeReference expectReturnType, 
+					boolean skip4Args) 
     throws Exception {
 
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
@@ -806,7 +809,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithJValue(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
+  public static Object invokeWithJValue(int methodID, VM_Address argAddress, 
+					VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
   }
@@ -821,7 +825,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
-					VM_Type expectReturnType, boolean skip4Args) 
+					VM_TypeReference expectReturnType, 
+					boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
   }
@@ -844,15 +849,15 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
-					VM_Type expectReturnType, boolean skip4Args, 
-					boolean isVarArg) 
+					VM_TypeReference expectReturnType, 
+					boolean skip4Args, boolean isVarArg) 
     throws Exception {
   
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
     // 		   VM.intAsHexString(argAddress) + "\n");
     
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    VM_Type returnType = targetMethod.getReturnType();
+    VM_TypeReference returnType = targetMethod.getReturnType();
 
     // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +
     //		"." + targetMethod.getName().toString() + "\n");
@@ -890,7 +895,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an Object array holding the arguments wrapped at Objects
    */
   static Object[] packageParameterFromVarArg(VM_Method targetMethod, VM_Address argAddress) {
-    VM_Type[] argTypes = targetMethod.getParameterTypes();
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
 
@@ -974,7 +979,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @return an Object array holding the arguments wrapped at Objects
    */
   static Object[] packageParameterFromJValue(VM_Method targetMethod, VM_Address argAddress) {
-    VM_Type[] argTypes = targetMethod.getParameterTypes();
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
 

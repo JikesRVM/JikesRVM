@@ -1051,26 +1051,26 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
       ComputedBBEnum e = new ComputedBBEnum(numPossible);
       switch (instr.getOpcode()) {
       case ATHROW_opcode:
-	VM_Type type = Athrow.getValue(instr).getType();
+	VM_TypeReference type = Athrow.getValue(instr).getType();
 	addTargets(e, type);
 	break;
       case CHECKCAST_opcode:
       case CHECKCAST_NOTNULL_opcode:
       case CHECKCAST_UNRESOLVED_opcode:
-	addTargets(e, OPT_ClassLoaderProxy.JavaLangClassCastExceptionType);
+	addTargets(e, VM_TypeReference.JavaLangClassCastException);
 	break;
       case NULL_CHECK_opcode:
-	addTargets(e, OPT_ClassLoaderProxy.JavaLangNullPointerExceptionType);
+	addTargets(e, VM_TypeReference.JavaLangNullPointerException);
 	break;
       case BOUNDS_CHECK_opcode:
-	addTargets(e, OPT_ClassLoaderProxy.JavaLangArrayIndexOutOfBoundsExceptionType);
+	addTargets(e, VM_TypeReference.JavaLangArrayIndexOutOfBoundsException);
 	break;
       case INT_ZERO_CHECK_opcode:
       case LONG_ZERO_CHECK_opcode:
-	addTargets(e, OPT_ClassLoaderProxy.JavaLangArithmeticExceptionType);
+	addTargets(e, VM_TypeReference.JavaLangArithmeticException);
 	break;
       case OBJARRAY_STORE_CHECK_opcode:
-	addTargets(e, OPT_ClassLoaderProxy.JavaLangArrayStoreExceptionType);
+	addTargets(e, VM_TypeReference.JavaLangArrayStoreException);
 	break;
       default:
 	// Not an operator for which we have a more refined notion of 
@@ -1087,7 +1087,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   // add all handler blocks in this's out set that might possibly catch
   // an exception of static type throwException 
   // (may dynamically be any subtype of thrownException)
-  private void addTargets(ComputedBBEnum e, VM_Type thrownException) {
+  private void addTargets(ComputedBBEnum e, VM_TypeReference thrownException) {
     for (OPT_SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.getNextOut()) {
       OPT_BasicBlock bb = (OPT_BasicBlock)ed.toNode();
       if (bb.isExceptionHandlerBasicBlock()) {

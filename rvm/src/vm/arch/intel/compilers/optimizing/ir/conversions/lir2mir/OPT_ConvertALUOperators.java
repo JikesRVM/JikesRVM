@@ -408,7 +408,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     UnaryAcc.mutate(s, opCode, result);
   }
 
-  private static OPT_Operator getMoveOp(VM_Type t) {
+  private static OPT_Operator getMoveOp(VM_TypeReference t) {
     OPT_Operator op = OPT_IRTools.getMoveOp(t);
     if (op == REF_MOVE) { 
       return INT_MOVE;

@@ -186,7 +186,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     //
     // Need to include the parameters of this method in the map 
     //
-    VM_Type[] parameterTypes = method.getParameterTypes();
+    VM_TypeReference[] parameterTypes = method.getParameterTypes();
     int paramStart;
     if (!method.isStatic()) {
       currBBMap[0] = REFERENCE; // implicit "this" object
@@ -196,7 +196,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     }
 
     for (int i=0; i<parameterTypes.length; i++, paramStart++) {
-      VM_Type parameterType = parameterTypes[i];
+      VM_TypeReference parameterType = parameterTypes[i];
       currBBMap[paramStart] = parameterType.isReferenceType() ? REFERENCE : NON_REFERENCE;
       if (parameterType.getStackWords() == DOUBLEWORD)
 	paramStart++;
@@ -1108,8 +1108,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 						 currPendingRET.returnAddressLocation,
 						 blockSeen[currBBNum]);
 
-	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
-	  currBBMap[++currBBStkTop] = fieldType.isReferenceType() ? REFERENCE: NON_REFERENCE;
+	  VM_TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
+	  currBBMap[++currBBStkTop] = fieldType.isPrimitiveType() ? NON_REFERENCE : REFERENCE;
 	  if (fieldType.getStackWords() == 2)
 	    currBBMap[++currBBStkTop] = NON_REFERENCE;
 	  break;
@@ -1123,14 +1123,14 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	    referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop, 
 						 currPendingRET.returnAddressLocation,
 						 blockSeen[currBBNum]);
-	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
+	  VM_TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  currBBStkTop--;
 	  if (fieldType.getStackWords() == 2)
 	    currBBStkTop--;
 	  break;
 	}
 	case JBC_getfield: {
-	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
+	  VM_TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  // Register the reference map, minus the object pointer on the stack
 	  if (!inJSRSub)
 	    referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, 
@@ -1140,14 +1140,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 						 currPendingRET.returnAddressLocation,
 						 blockSeen[currBBNum]);
 	  currBBStkTop--;    // pop object pointer
-	  currBBMap[++currBBStkTop] = fieldType.isReferenceType() ? 
-	    REFERENCE: NON_REFERENCE;
+	  currBBMap[++currBBStkTop] = fieldType.isPrimitiveType() ? NON_REFERENCE : REFERENCE;
 	  if (fieldType.getStackWords() == 2)
 	    currBBMap[++currBBStkTop] = NON_REFERENCE;
 	  break;
 	}
 	case JBC_putfield: {
-	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
+	  VM_TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  // Register the reference map with the values still on the stack
 	  //  note: putfield could result in a call to the classloader 
 	  if (!inJSRSub)
@@ -1290,7 +1289,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	}
 
 	case JBC_multianewarray: {
-	  int cpi = bcodes.getTypeReferenceIndex();
+	  VM_TypeReference tRef = bcodes.getTypeReference();
 	  int dim = bcodes.getArrayDimension();
 	  if (!inJSRSub)
 	    referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, 
@@ -1621,7 +1620,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 					     currPendingRET.returnAddressLocation, blockSeen);
     }
 
-    VM_Type[] parameterTypes = target.getParameterTypes();
+    VM_TypeReference[] parameterTypes = target.getParameterTypes();
     int pTypesLength = parameterTypes.length;
 
     // Pop the arguments for this call off the stack; 
@@ -1633,12 +1632,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
       currBBStkTop--; // pop implicit "this" object reference
 
     // Add the return value to the stack
-    VM_Type returnType = target.getReturnType();
-    if (returnType.getStackWords() != 0) { 
+    VM_TypeReference returnType = target.getReturnType();
+    if (!returnType.isVoidType()) { 
       // a non-void return value
       currBBMap[++currBBStkTop] = returnType.isReferenceType() ? REFERENCE : NON_REFERENCE;
-      if (returnType.getStackWords() == 2)
+      if (returnType.getStackWords() == 2) {
 	currBBMap[++currBBStkTop] = NON_REFERENCE;
+      }
     }
 
     // Return updated stack top

@@ -320,9 +320,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         Copy c = (Copy)workList.getValue();
         workList = (OPT_LinkedListObjectElement)workList.getNext();
         OPT_Register r = c.destination.register;
-        VM_Type tt = c.destination.type;
+        VM_TypeReference tt = c.destination.type;
         if (VM.VerifyAssertions && tt == null) {
-          tt = OPT_ClassLoaderProxy.IntType;
+          tt = VM_TypeReference.Int;
           VM.sysWrite("OPT_SSA, warning: null type in " + c.destination + "\n");
         }
 

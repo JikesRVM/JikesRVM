@@ -1006,7 +1006,7 @@ implements BootImageWriterConstants {
         VM_Field rvmFields[] = rvmType.getStaticFields();
         for (int j = 0; j < rvmFields.length; ++j) {
           VM_Field rvmField     = rvmFields[j];
-          VM_Type  rvmFieldType = rvmField.getType();
+          VM_TypeReference rvmFieldType = rvmField.getType();
           int      rvmFieldSlot = (rvmField.getOffset() >>> 2);
           String   rvmFieldName = rvmField.getName().toString();
           Field    jdkFieldAcc  = null;
@@ -1032,19 +1032,16 @@ implements BootImageWriterConstants {
                 " with ", rvmField.toString());
           if (rvmFieldType.isPrimitiveType()) {
             // field is logical or numeric type
-            if (rvmFieldType.equals(VM_Type.BooleanType))
+            if (rvmFieldType.isBooleanType()) {
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          jdkFieldAcc.getBoolean(null) ? 1 : 0);
-            else if (rvmFieldType.equals(VM_Type.ByteType))
-              VM_Statics.setSlotContents(rvmFieldSlot,
-                                         jdkFieldAcc.getByte(null));
-            else if (rvmFieldType.equals(VM_Type.CharType))
-              VM_Statics.setSlotContents(rvmFieldSlot,
-                                         jdkFieldAcc.getChar(null));
-            else if (rvmFieldType.equals(VM_Type.ShortType))
-              VM_Statics.setSlotContents(rvmFieldSlot,
-                                         jdkFieldAcc.getShort(null));
-            else if (rvmFieldType.equals(VM_Type.IntType))
+	    } else if (rvmFieldType.isByteType()) {
+              VM_Statics.setSlotContents(rvmFieldSlot, jdkFieldAcc.getByte(null));
+	    } else if (rvmFieldType.isCharType()) {
+              VM_Statics.setSlotContents(rvmFieldSlot, jdkFieldAcc.getChar(null));
+            } else if (rvmFieldType.isShortType()) {
+              VM_Statics.setSlotContents(rvmFieldSlot, jdkFieldAcc.getShort(null));
+	    } else if (rvmFieldType.isIntType()) {
               try {
                 VM_Statics.setSlotContents(rvmFieldSlot,
                                            jdkFieldAcc.getInt(null));
@@ -1052,37 +1049,32 @@ implements BootImageWriterConstants {
                 System.err.println( "type " + rvmType + ", field " + rvmField);
                 throw ex;
               }
-            else if (rvmFieldType.equals(VM_Type.LongType)) {
+	    } else if (rvmFieldType.isLongType()) {
               // note: Endian issues handled in setSlotContents.
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          jdkFieldAcc.getLong(null));
-            }
-            else if (rvmFieldType.equals(VM_Type.FloatType)) {
+            } else if (rvmFieldType.isFloatType()) {
               float f = jdkFieldAcc.getFloat(null);
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          Float.floatToIntBits(f));
-            }
-            else if (rvmFieldType.equals(VM_Type.DoubleType)) {
+            } else if (rvmFieldType.isDoubleType()) {
               double d = jdkFieldAcc.getDouble(null);
               // note: Endian issues handled in setSlotContents.
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          Double.doubleToLongBits(d));
-            }
-            else if (rvmFieldType.equals(VM_Type.AddressType)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
               Object o = jdkFieldAcc.get(null);
               VM_Address addr = (VM_Address) o;
               String msg = " static field " + rvmField.toString();
               int value = getAddressValue(addr, msg, true);
               VM_Statics.setSlotContents(rvmFieldSlot, value);
-            }
-            else if (rvmFieldType.equals(VM_Type.WordType)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(null);
               VM_Statics.setSlotContents(rvmFieldSlot, w.toInt());
-            }
-            else
+            } else {
               fail("unexpected primitive field type: " + rvmFieldType);
-          } 
-          else {
+	    }
+          } else {
             // field is reference type
             Object o = jdkFieldAcc.get(null);
             if (verbose >= 3)
@@ -1308,7 +1300,7 @@ implements BootImageWriterConstants {
         VM_Field[] rvmFields = rvmScalarType.getInstanceFields();
         for (int i = 0, n = rvmFields.length; i < n; ++i) {
           VM_Field rvmField       = rvmFields[i];
-          VM_Type  rvmFieldType   = rvmField.getType();
+          VM_TypeReference rvmFieldType   = rvmField.getType();
           int      rvmFieldOffset = scalarImageOffset + rvmField.getOffset();
           String   rvmFieldName   = rvmField.getName().toString();
           Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
@@ -1319,7 +1311,7 @@ implements BootImageWriterConstants {
             if (verbose >= 1) traceContext.traceFieldNotInHostJdk();
             if (verbose >= 1) traceContext.pop();
             if (rvmFieldType.isPrimitiveType())
-              switch (rvmField.getSize()) {
+              switch (rvmField.getType().getSize()) {
                 case 4: bootImage.setFullWord(rvmFieldOffset, 0);       break;
                 case 8: bootImage.setDoubleWord(rvmFieldOffset, 0L);    break;
                 default:fail("unexpected field type: " + rvmFieldType); break;
@@ -1331,19 +1323,19 @@ implements BootImageWriterConstants {
 
           if (rvmFieldType.isPrimitiveType()) {
             // field is logical or numeric type
-            if (rvmFieldType.equals(VM_Type.BooleanType))
+            if (rvmFieldType.isBooleanType()) {
               bootImage.setFullWord(rvmFieldOffset,
                                     jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
-            else if (rvmFieldType.equals(VM_Type.ByteType))
+	    } else if (rvmFieldType.isByteType()) {
               bootImage.setFullWord(rvmFieldOffset,
                                     jdkFieldAcc.getByte(jdkObject));
-            else if (rvmFieldType.equals(VM_Type.CharType))
+	    } else if (rvmFieldType.isCharType()) {
               bootImage.setFullWord(rvmFieldOffset,
                                     jdkFieldAcc.getChar(jdkObject));
-            else if (rvmFieldType.equals(VM_Type.ShortType))
+	    } else if (rvmFieldType.isShortType()) {
               bootImage.setFullWord(rvmFieldOffset,
                                     jdkFieldAcc.getShort(jdkObject));
-            else if (rvmFieldType.equals(VM_Type.IntType))
+	    } else if (rvmFieldType.isIntType()) {
               try {
                 bootImage.setFullWord(rvmFieldOffset,
                                       jdkFieldAcc.getInt(jdkObject));
@@ -1351,32 +1343,29 @@ implements BootImageWriterConstants {
                 System.err.println( "type " + rvmScalarType + ", field " + rvmField);
                 throw ex;
               }
-            else if (rvmFieldType.equals(VM_Type.LongType))
+	    } else if (rvmFieldType.isLongType()) {
               bootImage.setDoubleWord(rvmFieldOffset,
                                       jdkFieldAcc.getLong(jdkObject));
-            else if (rvmFieldType.equals(VM_Type.FloatType)) {
+	    } else if (rvmFieldType.isFloatType()) {
               float f = jdkFieldAcc.getFloat(jdkObject);
               bootImage.setFullWord(rvmFieldOffset,
                                     Float.floatToIntBits(f));
-            }
-            else if (rvmFieldType.equals(VM_Type.DoubleType)) {
+            } else if (rvmFieldType.isDoubleType()) {
               double d = jdkFieldAcc.getDouble(jdkObject);
               bootImage.setDoubleWord(rvmFieldOffset,
                                       Double.doubleToLongBits(d));
-            }
-            else if (rvmFieldType.equals(VM_Type.AddressType)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
               Object o = jdkFieldAcc.get(jdkObject);
               VM_Address addr = (VM_Address) o;
               String msg = " instance field " + rvmField.toString();
               int value = getAddressValue(addr, msg, rvmField != VM_Entrypoints.vpStatusAddressField);
               bootImage.setFullWord(rvmFieldOffset, value);
-            }
-            else if (rvmFieldType.equals(VM_Type.WordType)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
               VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());
-            }
-            else
+            } else {
               fail("unexpected primitive field type: " + rvmFieldType);
+	    }
           } else {
             // field is reference type
             Object value = jdkFieldAcc.get(jdkObject);

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import com.ibm.JikesRVM.VM_Scheduler;
 
 /**
@@ -31,15 +31,15 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
     value = v;
   }
 
-  public VM_Type getSpeculativeType() {
+  public VM_TypeReference getSpeculativeType() {
     if ((value == 0) || (value == 1))
-      return VM_Type.BooleanType;
+      return VM_TypeReference.Boolean;
     else if (-128 <= value && value <= 127)
-      return VM_Type.ByteType;
+      return VM_TypeReference.Byte;
     else if (-32768 <= value && value <= 32767)
-      return VM_Type.ShortType;
+      return VM_TypeReference.Short;
     else
-      return VM_Type.IntType;
+      return VM_TypeReference.Int;
   }
 
   /**

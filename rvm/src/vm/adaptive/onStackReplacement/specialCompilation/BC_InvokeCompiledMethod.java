@@ -49,8 +49,8 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
       schanges --;
     }
     
-    VM_Type rtype = callee.getReturnType();
-    byte tcode = rtype.getDescriptor().parseForTypeCode();
+    VM_TypeReference rtype = callee.getReturnType();
+    byte tcode = rtype.getName().parseForTypeCode();
     
     if (tcode == VoidTypeCode) {
       // do nothing

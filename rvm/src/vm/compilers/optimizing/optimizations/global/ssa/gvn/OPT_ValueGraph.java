@@ -646,7 +646,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * @return a value graph vertex corresponding to this type
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_TypeOperand op) {
-    Object name = op.type;
+    Object name = op.getTypeRef();
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);

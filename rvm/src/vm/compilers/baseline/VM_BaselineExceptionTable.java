@@ -26,7 +26,7 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
     int[] startPCs = emap.getStartPC();
     int[] endPCs = emap.getEndPC();
     int[] handlerPCs = emap.getHandlerPC();
-    VM_Type[] exceptionTypes = emap.getExceptionTypes();
+    VM_TypeReference[] exceptionTypes = emap.getExceptionTypes();
     int tableSize = startPCs.length;
     int[] eTable = new int[tableSize*4];
     
@@ -34,7 +34,7 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
       eTable[i*4 + TRY_START] = bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
       eTable[i*4 + TRY_END] = bytecodeMap[endPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
       eTable[i*4 + CATCH_START] = bytecodeMap[handlerPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
-      eTable[i*4 + EX_TYPE] = exceptionTypes[i].getDictionaryId();
+      eTable[i*4 + EX_TYPE] = exceptionTypes[i].getId();
     }
     return eTable;
   }

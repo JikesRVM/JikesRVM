@@ -81,7 +81,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	case GET_CLASS_TIB_opcode:
 	  {
 	    OPT_TypeOperand type = (OPT_TypeOperand)Unary.getVal(s);
-	    int offset = type.type.getTibOffset();
+	    int offset = type.getVMType().getTibOffset();
 	    Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
 			ir.regpool.makeJTOCOp(ir,s), 
 			I(offset), new OPT_LocationOperand(offset));
@@ -253,7 +253,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     private final OPT_Operand ensureRegister(OPT_Operand op, OPT_Instruction s, OPT_IR ir) {
       if (op.isConstant()) {
-	VM_Type opType = op.getType();
+	VM_TypeReference opType = op.getType();
 	OPT_RegisterOperand rop = ir.regpool.makeTemp(opType);
 	s.insertBefore(Move.create(OPT_IRTools.getMoveOp(opType), rop, op));
 	return rop.copy();

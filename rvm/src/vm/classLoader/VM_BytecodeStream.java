@@ -462,45 +462,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   }
 
   /**
-   * Returns the constant pool index of a type reference
-   *         (as an unsigned short)
-   * Used for new, anewarray, checkcast, instanceof, multianewarray
-   * @return type reference index
-   * @see #getTypeReference(int)
-   * @see #getTypeReference()
-   */
-  public final int getTypeReferenceIndex() {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
-                opcode == JBC_checkcast || opcode == JBC_instanceof ||
-                opcode == JBC_multianewarray);
-    return readUnsignedShort();
-  }
-
-  /**
-   * Returns the type reference at given constant pool index (as a VM_Type)
-   * Used for new, anewarray, checkcast, instanceof, multianewarray
-   * @param index constant pool index of a type reference
-   * @return type reference
-   * @see #getTypeReferenceIndex()
-   * @see #getTypeReference()
-   */
-  public final VM_Type getTypeReference(int index) {
-    if (VM.VerifyAssertions)
-      VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
-                opcode == JBC_checkcast || opcode == JBC_instanceof ||
-                opcode == JBC_multianewarray);
-    return declaringClass.getTypeRef(index);
-  }
-
-  /**
    * Returns the type reference (as a VM_Type)
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @return type reference
    * @see #getTypeReferenceIndex()
    * @see #getTypeReference(int)
    */
-  public final VM_Type getTypeReference() {
+  public final VM_TypeReference getTypeReference() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
                 opcode == JBC_checkcast || opcode == JBC_instanceof ||
@@ -567,9 +535,9 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return array type
    * @see #getObjectArrayType(VM_Type)
    */
-  public final VM_Type getObjectArrayType() {
+  public final VM_TypeReference getObjectArrayType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
-    VM_Type klass = getTypeReference();
+    VM_TypeReference klass = getTypeReference();
     return klass.getArrayTypeForElementType();
   }
 

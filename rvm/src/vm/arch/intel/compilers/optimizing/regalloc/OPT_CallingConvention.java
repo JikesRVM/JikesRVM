@@ -106,7 +106,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     if (MIR_Return.hasVal(ret)) {
       OPT_Operand symb1 = MIR_Return.getClearVal(ret);
       MIR_Return.setVal(ret, null);
-      VM_Type type = symb1.getType();
+      VM_TypeReference type = symb1.getType();
       if (type.isFloatType() || type.isDoubleType()) {
         OPT_Register r = phys.getReturnFPR();
         OPT_RegisterOperand rOp= new OPT_RegisterOperand(r, type);
@@ -123,7 +123,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     if (MIR_Return.hasVal2(ret)) {
       OPT_Operand symb2 = MIR_Return.getClearVal2(ret);
       MIR_Return.setVal2(ret,null);
-      VM_Type type = symb2.getType();
+      VM_TypeReference type = symb2.getType();
       OPT_Register r = phys.getSecondReturnGPR();
       OPT_RegisterOperand rOp= new OPT_RegisterOperand(r, type);
       ret.insertBefore(MIR_Move.create(IA32_MOV, rOp, symb2));
@@ -134,7 +134,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     int nSave=0;
     if (MIR_Return.hasVal(ret)) {
       OPT_Operand symb1 = MIR_Return.getClearVal(ret);
-      VM_Type type = symb1.getType();
+      VM_TypeReference type = symb1.getType();
       if (type.isFloatType() || type.isDoubleType()) {
 	nSave=1;
       }
@@ -224,7 +224,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     for (int i = 0; i < numParams;  i++) {
       OPT_Operand param = MIR_Call.getClearParam(call,i);
       MIR_Call.setParam(call,i,null);
-      VM_Type paramType = param.getType();
+      VM_TypeReference paramType = param.getType();
       if (paramType.isFloatType() || paramType.isDoubleType()) {
 	nFPRParams++;
 	int size = paramType.isFloatType() ? 4 : 8;
@@ -395,7 +395,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     for (int i = numParams-1; i >=0;  i--) {
       OPT_Operand param = MIR_Call.getClearParam(call,i);
       MIR_Call.setParam(call,i,null);
-      VM_Type paramType = param.getType();
+      VM_TypeReference paramType = param.getType();
       if (paramType.isFloatType() || paramType.isDoubleType()) {
 	nFPRParams++;
 	int size = paramType.isFloatType() ? 4 : 8;
@@ -459,14 +459,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     for (int i = 0; i < numberParams; i++) {
       parameterWords++;
       OPT_Operand op = CallSpecial.getParam(s, i);
-      if (op instanceof OPT_RegisterOperand) {
-        OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
-        if ((reg.type == VM_Type.LongType) || (reg.type == VM_Type.DoubleType))
-          parameterWords++;
-      } else if ((op instanceof OPT_LongConstantOperand) || 
-                 (op instanceof OPT_DoubleConstantOperand)) {
-        parameterWords++;
-      }
+      parameterWords += op.getType().getStackWords();
     }
     // allocate space for each parameter, plus one word on the stack to
     // hold the address of the callee.
@@ -539,7 +532,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     // deal with each parameter
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements(); ) {
       OPT_RegisterOperand symbOp = (OPT_RegisterOperand)e.nextElement();
-      VM_Type rType = symbOp.type;
+      VM_TypeReference rType = symbOp.type;
       if (rType.isFloatType() || rType.isDoubleType()) {
 	int size = rType.isFloatType() ? 4 : 8;
 	paramByteOffset -= size;

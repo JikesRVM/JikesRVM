@@ -267,7 +267,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     int firstActualParameter;
 
 
-    VM_Type[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
+    VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
     int numArguments = types.length;                // number of arguments for this method
     int numRefArguments = 1;                        // initialize with count of 1 for the JNI arg
     int numFloats = 0;                              // number of float or double arguments
@@ -675,7 +675,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     VM_ProcessorLocalState.emitPushProcessor(asm);
     
      // copy the arguments in reverse order
-    VM_Type[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
+    VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
     int numArguments = types.length;                // number of arguments for this method
     int argOffset = 2;           // add 2 to get to arg area in caller frame
     for (int i=0; i<numArguments; i++) {

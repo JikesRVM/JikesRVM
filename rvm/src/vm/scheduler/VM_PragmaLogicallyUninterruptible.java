@@ -30,8 +30,8 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  */
 public class VM_PragmaLogicallyUninterruptible extends VM_PragmaException {
-  private static final VM_Class vmClass = getVMClass(VM_PragmaLogicallyUninterruptible.class);
+  private static final VM_TypeReference me = getTypeRef("Lcom/ibm/JikesRVM/VM_PragmaLogicallyUninterruptible;");
   public static boolean declaredBy(VM_Method method) {
-    return declaredBy(vmClass, method);
+    return declaredBy(me, method);
   }
 }

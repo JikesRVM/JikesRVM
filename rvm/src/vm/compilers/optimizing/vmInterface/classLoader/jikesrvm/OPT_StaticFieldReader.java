@@ -30,13 +30,13 @@ public abstract class OPT_StaticFieldReader {
     throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isStatic());
 
-    VM_Type fieldType = field.getType();
+    VM_TypeReference fieldType = field.getType();
     int slot = field.getOffset() >>> 2;
-    if (fieldType == VM_Type.AddressType) {
+    if (fieldType == VM_TypeReference.Address) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
       return new OPT_AddressConstantOperand(val);
-    } else if (fieldType == VM_Type.WordType) {
+    } else if (fieldType == VM_TypeReference.Word) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
       return new OPT_AddressConstantOperand(VM_Address.fromInt(val.toInt()));
@@ -52,7 +52,7 @@ public abstract class OPT_StaticFieldReader {
     } else if (fieldType.isDoubleType()) {
       double val = getDoubleStaticFieldValue(field);
       return new OPT_DoubleConstantOperand(val, slot);
-    } else if (fieldType == VM_Type.JavaLangStringType) {
+    } else if (fieldType == VM_TypeReference.JavaLangString) {
       String val = (String)getObjectStaticFieldValue(field);
       return new OPT_StringConstantOperand(val, slot);
     } else {
@@ -75,7 +75,7 @@ public abstract class OPT_StaticFieldReader {
     } else {
       try {
 	Field f = getJDKField(field);
-	VM_Type fieldType = field.getType();
+	VM_TypeReference fieldType = field.getType();
 	if (fieldType.isBooleanType()) {
 	  boolean val = f.getBoolean(null);
 	  return val?1:0;
@@ -206,23 +206,23 @@ public abstract class OPT_StaticFieldReader {
    * @param field a static field
    * @return type of value contained in the field
    */
-  public static final VM_Type getTypeFromStaticField (VM_Field field) 
+  public static final VM_TypeReference getTypeFromStaticField (VM_Field field) 
     throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
-    if (o == null) return OPT_ClassLoaderProxy.NULL_TYPE;
+    if (o == null) return VM_TypeReference.NULL_TYPE;
     if (VM.runningVM) {
-      return VM_Magic.getObjectType(o);
+      return VM_Magic.getObjectType(o).getTypeRef();
     } else {
       Class rc = o.getClass();
       String className = rc.getName();
       if (className.startsWith("[")) {
 	// an array
-	  return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(className), VM_SystemClassLoader.getVMClassLoader());
+	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), VM_Atom.findOrCreateAsciiAtom(className));
       } else {
 	// a class
 	VM_Atom classDescriptor = 
 	  VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-	return VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader());
+	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
       }
     }
   }

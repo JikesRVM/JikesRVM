@@ -44,7 +44,7 @@ class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getThreadId) {
       OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
       OPT_RegisterOperand TIOp = 
-	new OPT_RegisterOperand(phys.getTI(),VM_Type.IntType);
+	new OPT_RegisterOperand(phys.getTI(),VM_TypeReference.Int);
       bc2ir.push(TIOp);
     } else if (methodName == VM_MagicNames.setThreadSwitchBit) {
       bc2ir.appendInstruction(Empty.create(SET_THREAD_SWITCH_BIT));
@@ -52,7 +52,7 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.appendInstruction(Empty.create(CLEAR_THREAD_SWITCH_BIT));
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
@@ -82,7 +82,7 @@ class OPT_GenerateMachineSpecificMagic
 					   null));
     } else if (methodName == VM_MagicNames.getNextInstructionAddress) {
       OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET),
@@ -97,8 +97,8 @@ class OPT_GenerateMachineSpecificMagic
 					   null));
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
-      OPT_RegisterOperand callerFP = gc.temps.makeTemp(VM_Type.AddressType);
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
+      OPT_RegisterOperand callerFP = gc.temps.makeTemp(VM_TypeReference.Address);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, callerFP, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
@@ -112,7 +112,7 @@ class OPT_GenerateMachineSpecificMagic
       VM_Field target = VM_Entrypoints.getTimeInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, val, new OPT_IntConstantOperand(target.getOffset()), mo, bc2ir.popRef()));
-      bc2ir.push(val.copyD2U(), VM_Type.DoubleType);
+      bc2ir.push(val.copyD2U(), VM_TypeReference.Double);
     } else if (methodName == VM_MagicNames.sysCall0) {
       OPT_Operand toc = bc2ir.popInt();
       OPT_Operand ip = bc2ir.popInt();

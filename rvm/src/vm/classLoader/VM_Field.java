@@ -56,17 +56,17 @@ public final class VM_Field extends VM_Member {
   /**
    * Get type of this field's value.
    */ 
-  public final VM_Type getType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
     return memRef.asFieldReference().getFieldContentsType();
   }
 
   /**
-   * Get size of this field's value, in bytes.
-   */ 
-  public final int getSize() throws VM_PragmaUninterruptible {
+   * How many bytes of memory words do value of this type take?
+   */
+  public final int getSize() {
     return getType().getStackWords() << 2;
   }
-
+    
   /**
    * Shared among all instances of this class?
    */ 
@@ -114,7 +114,7 @@ public final class VM_Field extends VM_Member {
    * If the contents of this field is a primitive, get the value and wrap it in an object.
    */
   public final Object getObject(Object obj) {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isReferenceType()) {
       return getObjectValue(obj);
     } else {
@@ -137,7 +137,7 @@ public final class VM_Field extends VM_Member {
     * @return the reference described by this VM_Field from the given object.
     */
   public final Object getObjectValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isReferenceType()) throw new IllegalArgumentException("field type mismatch");
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsObject(offset>>>2);
@@ -151,57 +151,56 @@ public final class VM_Field extends VM_Member {
   }
 
   public final boolean getBooleanValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isBooleanType()) throw new IllegalArgumentException("field type mismatch");
     int bits = get32Bits(obj);
     return (bits == 0) ? false : true;
   }
 
   public final byte getByteValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isByteType()) throw new IllegalArgumentException("field type mismatch");
     int bits = get32Bits(obj);
     return (byte)bits;
   }
 
   public final char getCharValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isCharType()) throw new IllegalArgumentException("field type mismatch");
     return (char)get32Bits(obj);
   }
 
   public final short getShortValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isShortType()) throw new IllegalArgumentException("field type mismatch");
     return (short)get32Bits(obj);
   }
 
   public final int getIntValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isIntType()) throw new IllegalArgumentException("field type mismatch");
     return get32Bits(obj);
   }
 
   public final long getLongValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isLongType()) throw new IllegalArgumentException("field type mismatch");
     return get64Bits(obj);
   }
 
   public final float getFloatValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isFloatType()) throw new IllegalArgumentException("field type mismatch");
     return Float.intBitsToFloat(get32Bits(obj));
   }
 
   public final double getDoubleValue(Object obj) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isDoubleType()) throw new IllegalArgumentException("field type mismatch");
     return Double.longBitsToDouble(get64Bits(obj));
   }
 
   private int get32Bits(Object obj) {
-    if (VM.VerifyAssertions) VM._assert(getSize()==4);
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsInt(offset >>> 2);  // divide by 4 to get words from bytes
     } else {
@@ -212,7 +211,6 @@ public final class VM_Field extends VM_Member {
   }
 
   private long get64Bits(Object obj) {
-    if (VM.VerifyAssertions) VM._assert(getSize()==8);
     if (isStatic()) {
       long result = VM_Statics.getSlotContentsAsLong(offset >>> 2); // divide by 4 to get words from bytes
       return result;
@@ -241,7 +239,7 @@ public final class VM_Field extends VM_Member {
       VM_Type actualType = VM_Magic.getObjectType(ref);
       boolean ok = false;
       try {
-	VM_Type type = getType();
+	VM_Type type = getType().resolve(true);
 	ok = ((type == actualType) ||
 	      (type == VM_Type.JavaLangObjectType) ||
 	      VM_Runtime.isAssignableWith(type, actualType));
@@ -267,7 +265,7 @@ public final class VM_Field extends VM_Member {
   }
   
   public final void setBooleanValue(Object obj, boolean b) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isBooleanType()) 
       if (b==true)
 	put32(obj, 1 );
@@ -278,7 +276,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setByteValue(Object obj, byte b) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isLongType())
       setLongValue(obj, (long) b);
     else if (type.isIntType()) 
@@ -298,7 +296,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setCharValue(Object obj, char c) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isLongType())
       setLongValue(obj, (long) c);
     else if (type.isIntType()) 
@@ -316,7 +314,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setShortValue(Object obj, short i) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isLongType())
       setLongValue(obj, (long) i);
     else if (type.isIntType()) 
@@ -332,7 +330,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setIntValue(Object obj, int i) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isLongType())
       setLongValue(obj, (long) i);
     else if (type.isIntType()) 
@@ -346,7 +344,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setFloatValue(Object obj, float f) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isDoubleType())
       setDoubleValue(obj, (double)f);
     else if (type.isFloatType()) 
@@ -356,7 +354,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setLongValue(Object obj, long l) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (type.isLongType()) 
       put64(obj, l);
     else if (type.isDoubleType())
@@ -368,7 +366,7 @@ public final class VM_Field extends VM_Member {
   }
 
   public final void setDoubleValue(Object obj, double d) throws IllegalArgumentException {
-    VM_Type type = getType();
+    VM_TypeReference type = getType();
     if (!type.isDoubleType()) throw new IllegalArgumentException("field type mismatch");
     put64(obj, Double.doubleToLongBits(d));
   }

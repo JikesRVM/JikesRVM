@@ -44,7 +44,7 @@ public class VM_Reflection implements VM_Constants {
     // Determine primitive type-ness early to avoid call (possible yield) 
     // later while refs are possibly being held in int arrays.
     //
-    VM_Type returnType = method.getReturnType();
+    VM_TypeReference returnType = method.getReturnType();
     boolean returnIsPrimitive = returnType.isPrimitiveType();  
      
     // decide how to pass parameters
@@ -112,47 +112,47 @@ public class VM_Reflection implements VM_Constants {
       return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, Spills);
     }
 
-    if (returnType == VM_Type.VoidType) {
+    if (returnType.isVoidType()) {
       VM_Magic.invokeMethodReturningVoid(code, GPRs, FPRs, Spills);
       return null;
     }
 
-    if (returnType == VM_Type.BooleanType) {
+    if (returnType.isBooleanType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
       return new Boolean(x == 1);
     }
 
-    if (returnType == VM_Type.ByteType) {
+    if (returnType.isByteType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
       return new Byte((byte)x);
     }
 
-    if (returnType == VM_Type.ShortType) {
+    if (returnType.isShortType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
       return new Short((short)x);
     }
 
-    if (returnType == VM_Type.CharType) {
+    if (returnType.isCharType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
       return new Character((char)x);
     }
 
-    if (returnType == VM_Type.IntType) {
+    if (returnType.isIntType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
       return new Integer(x);
     }
 
-    if (returnType == VM_Type.LongType) {
+    if (returnType.isLongType()) {
       long x = VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, Spills);
       return new Long(x);
     }
 
-    if (returnType == VM_Type.FloatType) {
+    if (returnType.isFloatType()) {
       float x = VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, Spills);
       return new Float(x);
     }
         
-    if (returnType == VM_Type.DoubleType) {
+    if (returnType.isDoubleType()) {
       double x = VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, Spills);
       return new Double(x);
     }

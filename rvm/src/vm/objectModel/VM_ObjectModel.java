@@ -144,7 +144,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     for (int i = 0, n = fields.length; i < n; ++i) {
       VM_Field field = fields[i];
       if (!field.isStatic()) {
-	int fieldSize = field.getSize();
+	int fieldSize = field.getType().getSize();
 	fieldOffset -= fieldSize; // lay out fields 'backwards'
 	field.setOffset(fieldOffset);
 	klass.increaseInstanceSize(fieldSize);

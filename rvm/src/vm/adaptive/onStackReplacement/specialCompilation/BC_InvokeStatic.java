@@ -52,8 +52,8 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
     int psize = callee.getParameterWords();
     int schanges = -psize;
     
-    VM_Type rtype = callee.getReturnType();
-    byte tcode = rtype.getDescriptor().parseForTypeCode();
+    VM_TypeReference rtype = callee.getReturnType();
+    byte tcode = rtype.getName().parseForTypeCode();
     
     if (tcode == VoidTypeCode) {
       // do nothing

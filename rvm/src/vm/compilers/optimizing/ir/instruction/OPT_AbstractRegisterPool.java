@@ -208,14 +208,14 @@ public abstract class OPT_AbstractRegisterPool {
    *                       a basic block boundary?
    * @return the newly created register object 
    */
-  public OPT_Register getReg(VM_Type type) {
-    if (type == OPT_ClassLoaderProxy.LongType)
+  public OPT_Register getReg(VM_TypeReference type) {
+    if (type.isLongType())
       return getLong();
-    else if (type == OPT_ClassLoaderProxy.DoubleType)
+    else if (type.isDoubleType())
       return getDouble();
-    else if (type == OPT_ClassLoaderProxy.FloatType)
+    else if (type.isFloatType())
       return getFloat();
-    else if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE)
+    else if (type == VM_TypeReference.VALIDATION_TYPE)
       return getValidation();
     else
       return getInteger();
@@ -252,7 +252,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @param type the type of values to be held in the temp register
    * @return the new temp
    */
-  public OPT_RegisterOperand makeTemp(VM_Type type) {
+  public OPT_RegisterOperand makeTemp(VM_TypeReference type) {
     return new OPT_RegisterOperand(getReg(type), type);
   }
 
@@ -280,36 +280,21 @@ public abstract class OPT_AbstractRegisterPool {
     OPT_RegisterOperand result;
     if (op instanceof OPT_RegisterOperand) {
       result = makeTemp((OPT_RegisterOperand)op);
-    }
-    else if (op instanceof OPT_NullConstantOperand) {
-      result = makeTemp(OPT_ClassLoaderProxy.NULL_TYPE);
-    }
-    else if (op instanceof OPT_StringConstantOperand) {
-      result = makeTemp(OPT_ClassLoaderProxy.JavaLangStringType);
+    } else if (op instanceof OPT_NullConstantOperand) {
+      result = makeTemp(VM_TypeReference.NULL_TYPE);
+    } else if (op instanceof OPT_StringConstantOperand) {
+      result = makeTemp(VM_TypeReference.JavaLangString);
       result.setPreciseType();
-    }
-    else if (op instanceof OPT_IntConstantOperand) {
-      int value = ((OPT_IntConstantOperand)op).value;
-      VM_Type type;
-      if ((value == 0) || (value == 1))
-	type = OPT_ClassLoaderProxy.BooleanType;
-      else if (-128 <= value && value <= 127)
-	type = OPT_ClassLoaderProxy.ByteType;
-      else if (-32768 <= value && value <= 32767)
-	type = OPT_ClassLoaderProxy.ShortType;
-      else
-	type = OPT_ClassLoaderProxy.IntType;
-      result = makeTemp(type);
-      if (value >  0) result.setPositiveInt();
-    }
-    else if (op instanceof OPT_LongConstantOperand) {
-      result = makeTemp(OPT_ClassLoaderProxy.LongType);
-    }
-    else if (op instanceof OPT_FloatConstantOperand) {
-      result = makeTemp(OPT_ClassLoaderProxy.FloatType);
-    }
-    else if (op instanceof OPT_DoubleConstantOperand) {
-      result = makeTemp(OPT_ClassLoaderProxy.DoubleType);
+    } else if (op instanceof OPT_IntConstantOperand) {
+      OPT_IntConstantOperand iop = (OPT_IntConstantOperand)op;
+      result = makeTemp(iop.getSpeculativeType());
+      if (iop.value > 0) result.setPositiveInt();
+    } else if (op instanceof OPT_LongConstantOperand) {
+      result = makeTemp(VM_TypeReference.Long);
+    } else if (op instanceof OPT_FloatConstantOperand) {
+      result = makeTemp(VM_TypeReference.Float);
+    } else if (op instanceof OPT_DoubleConstantOperand) {
+      result = makeTemp(VM_TypeReference.Double);
     } else {
       result = null;
       OPT_OptimizingCompilerException.UNREACHABLE("unknown operand type: "+op);
@@ -323,7 +308,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempInt() {
-    return new OPT_RegisterOperand(getInteger(), OPT_ClassLoaderProxy.IntType);
+    return new OPT_RegisterOperand(getInteger(), VM_TypeReference.Int);
   }
 
   /**
@@ -332,7 +317,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempBoolean() {
-    return new OPT_RegisterOperand(getInteger(), OPT_ClassLoaderProxy.BooleanType);
+    return new OPT_RegisterOperand(getInteger(), VM_TypeReference.Boolean);
   }
 
   /**
@@ -341,7 +326,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempFloat() {
-    return new OPT_RegisterOperand(getFloat(), OPT_ClassLoaderProxy.FloatType);
+    return new OPT_RegisterOperand(getFloat(), VM_TypeReference.Float);
   }
 
   /**
@@ -350,7 +335,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempDouble() {
-    return new OPT_RegisterOperand(getDouble(), OPT_ClassLoaderProxy.DoubleType);
+    return new OPT_RegisterOperand(getDouble(), VM_TypeReference.Double);
   }
 
   /**
@@ -359,7 +344,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempLong() {
-    return new OPT_RegisterOperand(getLong(), OPT_ClassLoaderProxy.LongType);
+    return new OPT_RegisterOperand(getLong(), VM_TypeReference.Long);
   }
 
   /**
@@ -369,7 +354,7 @@ public abstract class OPT_AbstractRegisterPool {
    */
   public OPT_RegisterOperand makeTempCondition() {
     OPT_Register reg = getCondition();
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
   /**
@@ -380,7 +365,7 @@ public abstract class OPT_AbstractRegisterPool {
   public OPT_RegisterOperand makeTempValidation() {
     OPT_Register reg = getValidation();
     reg.setValidation();
-    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.VALIDATION_TYPE);
+    return new OPT_RegisterOperand(reg, VM_TypeReference.VALIDATION_TYPE);
   }
 
 }

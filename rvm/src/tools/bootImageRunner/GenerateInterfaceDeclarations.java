@@ -105,11 +105,11 @@ class GenerateInterfaceDeclarations {
       else if (field.getType().isWordType())
 	  System.out.print("   VM_Address " + field.getName() + ";\n");
       else if (field.getType().isArrayType() &&
-	       field.getType().asArray().getElementType().isWordType())
+	       field.getType().getArrayElementType().isWordType())
 	  System.out.print("   VM_Address * " + field.getName() + ";\n");
       else if (field.getName().toString().equals("heapRanges") &&
 	       field.getType().isArrayType() &&
-	       field.getType().asArray().getElementType().isIntType())
+	       field.getType().getArrayElementType().isIntType())
 	  System.out.print("   unsigned int * " + field.getName() + ";\n");
       else {
 	  System.err.print("Unexpected field " + field.getName().toString() + " with type " + field.getType() + "\n");

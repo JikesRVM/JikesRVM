@@ -195,28 +195,28 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Note: Sun has reserved all member names starting with '<' for future use.
    *       At present, only <init> and <clinit> are used.
    */ 
-  public final boolean isReservedMemberName() {
+  public final boolean isReservedMemberName() throws VM_PragmaUninterruptible {
     return val[0] == '<';
   }
 
   /**
    * Is "this" atom a class descriptor?
    */ 
-  public final boolean isClassDescriptor() {
+  public final boolean isClassDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == 'L';
   }
       
   /**
    * Is "this" atom an array descriptor?
    */ 
-  public final boolean isArrayDescriptor() {
+  public final boolean isArrayDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == '[';
   }
       
   /**
    * Is "this" atom a method descriptor?
    */ 
-  public final boolean isMethodDescriptor() {
+  public final boolean isMethodDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == '(';
   }
       
@@ -230,24 +230,24 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  public final VM_Type parseForReturnType(ClassLoader classloader) {
+  public final VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
     int i = 0;
     while (val[i++] != ')');
     switch (val[i])
       {
-      case VoidTypeCode:    return VM_Type.VoidType;
-      case BooleanTypeCode: return VM_Type.BooleanType;
-      case ByteTypeCode:    return VM_Type.ByteType;
-      case ShortTypeCode:   return VM_Type.ShortType;
-      case IntTypeCode:     return VM_Type.IntType;
-      case LongTypeCode:    return VM_Type.LongType;
-      case FloatTypeCode:   return VM_Type.FloatType;
-      case DoubleTypeCode:  return VM_Type.DoubleType;
-      case CharTypeCode:    return VM_Type.CharType;
+      case VoidTypeCode:    return VM_TypeReference.Void;
+      case BooleanTypeCode: return VM_TypeReference.Boolean;
+      case ByteTypeCode:    return VM_TypeReference.Byte;
+      case ShortTypeCode:   return VM_TypeReference.Short;
+      case IntTypeCode:     return VM_TypeReference.Int;
+      case LongTypeCode:    return VM_TypeReference.Long;
+      case FloatTypeCode:   return VM_TypeReference.Float;
+      case DoubleTypeCode:  return VM_TypeReference.Double;
+      case CharTypeCode:    return VM_TypeReference.Char;
       case ClassTypeCode:   // fall through
-      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreate(val, i, val.length - i), classloader);
+      case ArrayTypeCode:   return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
       default:              if (VM.VerifyAssertions) VM._assert(false); return null;
       }
   }
@@ -258,40 +258,41 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  public final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
+  public final VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
     if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
-    VM_TypeVector sigs = new VM_TypeVector();
-    for (int i = 1;;)
-      switch (val[i++])
-	{
-	case VoidTypeCode:    sigs.addElement(VM_Type.VoidType);     continue;
-	case BooleanTypeCode: sigs.addElement(VM_Type.BooleanType);  continue;
-	case ByteTypeCode:    sigs.addElement(VM_Type.ByteType);     continue;
-	case ShortTypeCode:   sigs.addElement(VM_Type.ShortType);    continue;
-	case IntTypeCode:     sigs.addElement(VM_Type.IntType);      continue;
-	case LongTypeCode:    sigs.addElement(VM_Type.LongType);     continue;
-	case FloatTypeCode:   sigs.addElement(VM_Type.FloatType);    continue;
-	case DoubleTypeCode:  sigs.addElement(VM_Type.DoubleType);   continue;
-	case CharTypeCode:    sigs.addElement(VM_Type.CharType);     continue;
-	case ClassTypeCode: {
-	  int off = i - 1;
-	  while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreate(val, off, i - off), classloader));
-	  continue;
-	}
-	case ArrayTypeCode: {
-	  int off = i - 1;
-	  while (val[i] == ArrayTypeCode) ++i;
-	  if (val[i++] == ClassTypeCode) while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreate(val, off, i - off), classloader));
-	  continue;
-	}
-	case (byte)')': // end of parameter list
-	  return sigs.finish();
+    VM_TypeReferenceVector sigs = new VM_TypeReferenceVector();
+    int i = 1;
+    while (true) {
+      switch (val[i++])	{
+      case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     continue;
+      case BooleanTypeCode: sigs.addElement(VM_TypeReference.Boolean);  continue;
+      case ByteTypeCode:    sigs.addElement(VM_TypeReference.Byte);     continue;
+      case ShortTypeCode:   sigs.addElement(VM_TypeReference.Short);    continue;
+      case IntTypeCode:     sigs.addElement(VM_TypeReference.Int);      continue;
+      case LongTypeCode:    sigs.addElement(VM_TypeReference.Long);     continue;
+      case FloatTypeCode:   sigs.addElement(VM_TypeReference.Float);    continue;
+      case DoubleTypeCode:  sigs.addElement(VM_TypeReference.Double);   continue;
+      case CharTypeCode:    sigs.addElement(VM_TypeReference.Char);     continue;
+      case ClassTypeCode: {
+	int off = i - 1;
+	while (val[i++] != ';');
+	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+	continue;
+      }
+      case ArrayTypeCode: {
+	int off = i - 1;
+	while (val[i] == ArrayTypeCode) ++i;
+	if (val[i++] == ClassTypeCode) while (val[i++] != ';');
+	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+	continue;
+      }
+      case (byte)')': // end of parameter list
+	return sigs.finish();
             
-	default: if (VM.VerifyAssertions) VM._assert(false);
-	}
+      default: if (VM.VerifyAssertions) VM._assert(false);
+      }
+    }
   }
 
   /**
@@ -322,14 +323,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   public final byte parseForTypeCode() {
     return val[0];
   }
-
-  public final int parseForStackWords() {
-    byte tmp = parseForTypeCode();
-    if (tmp == LongTypeCode || tmp == DoubleTypeCode) return 2;
-    if (tmp == VoidTypeCode) return 0;
-    return 1;
-  }
-
+  
   /**
    * Parse "this" array descriptor to obtain number of dimensions in 
    * corresponding array type.
@@ -355,6 +349,16 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
+   * Return the innermost element type reference for an array
+   */
+  public final VM_Atom parseForInnermostArrayElementDescriptor() {
+    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
+    int i=0; 
+    while (val[i] == '[') i++;
+    return findOrCreate(val, i, val.length -i);
+  }
+
+  /**
    * Parse "this" array descriptor to obtain descriptor for array's element 
    * type.
    * this: array descriptor         - something like "[I"
@@ -364,6 +368,21 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return findOrCreate(val, 1, val.length - 1);
   }
+
+  private static final byte[][] systemClasses = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
+
+  public final boolean isSystemClassDescriptor() {
+  outer:
+    for (int i=0; i<systemClasses.length; i++) {
+      byte[] test = systemClasses[i];
+      for (int j=0; j<test.length; j++) {
+	if (val[j] != test[j]) continue outer;
+      }
+      return true;
+    }
+    return false;
+  }
+    
 
   //-----------//
   // debugging //

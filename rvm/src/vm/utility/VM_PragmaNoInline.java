@@ -12,8 +12,8 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Stephen Fink
  */
 public class VM_PragmaNoInline extends VM_PragmaException {
-  private static final VM_Class vmClass = getVMClass(VM_PragmaNoInline.class);
+  private static final VM_TypeReference me = getTypeRef("Lcom/ibm/JikesRVM/VM_PragmaNoInline;");
   public static boolean declaredBy(VM_Method method) {
-    return declaredBy(vmClass, method);
+    return declaredBy(me, method);
   }
 }

@@ -2175,12 +2175,12 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param the dictionaryId of the VM_Class to dynamically link & instantiate
+   * @param typeRef the type reference to dynamically link & instantiate
    */
-  protected final void emit_unresolved_new(int dictionaryId) {
+  protected final void emit_unresolved_new(VM_TypeReference typeRef) {
     asm.emitLtoc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitLVAL(T0, dictionaryId);
+    asm.emitLVAL(T0, typeRef.getId());
     asm.emitCall(spSaveAreaOffset);
     asm.emitSTU (T0, -4, SP);
   }
@@ -2207,13 +2207,13 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to dynamically link and allocate an array
-   * @param the dictionaryId of the VM_Array to dynamically link & instantiate
+   * @param typeRef the type reference to dynamically link & instantiate
    */
-  protected final void emit_unresolved_newarray(int dictionaryId) {
+  protected final void emit_unresolved_newarray(VM_TypeReference typeRef) {
     asm.emitLtoc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitL    (T0, 0, SP);                // T0 := number of elements
-    asm.emitLVAL (T1, dictionaryId);         // T1 := dictionaryId of array
+    asm.emitLVAL (T1, typeRef.getId());      // T1 := id of type ref
     asm.emitCall(spSaveAreaOffset);
     asm.emitST   (T0, 0, SP);
   }
@@ -2224,11 +2224,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param dimensions the number of dimensions
    * @param dictionaryId, the dictionaryId of typeRef
    */
-  protected final void emit_multianewarray(VM_Array typeRef, int dimensions, int dictionaryId) {
+  protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     asm.emitLtoc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, dimensions);
-    asm.emitLVAL(T1, dictionaryId);
+    asm.emitLVAL(T1, typeRef.getId());
     asm.emitSLI (T2, T0,  2); // number of bytes of array dimension args
     asm.emitA   (T2, SP, T2); // offset of word *above* first...
     asm.emitSF  (T2, FP, T2); // ...array dimension arg
@@ -2260,11 +2260,24 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the LHS type
    * @param target the method to invoke to implement this checkcast
    */
-  protected final void emit_checkcast(VM_Type typeRef, VM_Method target) {
-    asm.emitLtoc(T0,  target.getOffset());
+  protected final void emit_checkcast(VM_TypeReference typeRef) {
+    asm.emitLtoc(T0,  VM_Entrypoints.checkcastMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
-    asm.emitLVAL(T1, typeRef.getTibOffset());
+    asm.emitLVAL(T1, typeRef.getId());
+    asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   * @param target the method to invoke to implement this checkcast
+   */
+  protected final void emit_checkcast_final(VM_Type type) {
+    asm.emitLtoc(T0,  VM_Entrypoints.checkcastFinalMethod.getOffset());
+    asm.emitMTCTR(T0);
+    asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
+    asm.emitLVAL(T1, type.getTibOffset());
     asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
   }
 
@@ -2273,11 +2286,25 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the LHS type
    * @param target the method to invoke to implement this instanceof
    */
-  protected final void emit_instanceof(VM_Type typeRef, VM_Method target) {
-    asm.emitLtoc(T0,  target.getOffset());            
+  protected final void emit_instanceof(VM_TypeReference typeRef) {
+    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitL   (T0, 0, SP);
-    asm.emitLVAL(T1, typeRef.getTibOffset());
+    asm.emitLVAL(T1, typeRef.getId());
+    asm.emitCall(spSaveAreaOffset);
+    asm.emitST  (T0, 0, SP);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param typeRef the LHS type
+   * @param target the method to invoke to implement this instanceof
+   */
+  protected final void emit_instanceof_final(VM_Type type) {
+    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfFinalMethod.getOffset());
+    asm.emitMTCTR(T0);
+    asm.emitL   (T0, 0, SP);
+    asm.emitLVAL(T1, type.getTibOffset());
     asm.emitCall(spSaveAreaOffset);
     asm.emitST  (T0, 0, SP);
   }
@@ -2627,9 +2654,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (gp > LAST_VOLATILE_GPR) genUnspillWord(localIndex++);
       else asm.emitST(gp++, localOffset(localIndex++), FP);
     }
-    VM_Type [] types = method.getParameterTypes();
+    VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++, localIndex++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
         if (gp > LAST_VOLATILE_GPR) genUnspillDoubleword(localIndex++);
 	else {
@@ -2662,9 +2689,9 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (gp > LAST_VOLATILE_GPR) genSpillWord(stackOffset);
       else asm.emitL(gp++, stackOffset, SP);
     }
-    VM_Type [] types = m.getParameterTypes();
+    VM_TypeReference [] types = m.getParameterTypes();
     for (int i=0; i<types.length; i++) {
-      VM_Type t = types[i];
+      VM_TypeReference t = types[i];
       if (t.isLongType()) {
 	stackOffset -= 8;
         if (gp > LAST_VOLATILE_GPR) genSpillDoubleword(stackOffset);
@@ -2692,7 +2719,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   // push return value of method "m" from register to operand stack.
   private void genPopParametersAndPushReturnValue (boolean hasImplicitThisArg, VM_MethodReference m) {
-    VM_Type t = m.getReturnType();
+    VM_TypeReference t = m.getReturnType();
     int parameterSize = 
       (m.getParameterWords() + (hasImplicitThisArg ? 1 : 0) ) << 2;
     if (t.isVoidType()) {

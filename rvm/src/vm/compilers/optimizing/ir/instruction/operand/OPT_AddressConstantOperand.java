@@ -5,11 +5,10 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
-import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM_Address;
 
 /**
- * Represents a constant int operand.
+ * Represents an address constant operand.
  *
  * @see OPT_Operand
  * @author John Whaley
@@ -22,8 +21,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   public VM_Address value;
 
   /**
-   * Constructs a new int constant operand with the specified value.
-   * Type will be determined by value.
+   * Constructs a new address constant operand with the specified value.
    *
    * @param v value
    */
@@ -67,6 +65,6 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "Addr " + Integer.toString(value.toInt());
+    return "Addr " + value.toInt();
   }
 }

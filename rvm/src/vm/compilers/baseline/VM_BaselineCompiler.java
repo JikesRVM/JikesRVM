@@ -1666,14 +1666,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_new: {
-	int cpi = bcodes.getTypeReferenceIndex();
-	VM_Class typeRef = bcodes.getTypeReference(cpi).asClass();
-	if (shouldPrint) asm.noteBytecode(biStart, "new " + cpi + " (" + typeRef + ")");
+	VM_TypeReference typeRef = bcodes.getTypeReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "new " + typeRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+typeRef);
-	if (typeRef.isInitialized() || typeRef.isInBootImage()) { 
-	  emit_resolved_new(typeRef);
+	VM_Type type = typeRef.resolve(false);
+	if (type != null && type.isInitialized() || type.isInBootImage()) { 
+	  emit_resolved_new(type.asClass());
 	} else { 
-	  emit_unresolved_new(klass.getTypeRefId(cpi));
+	  emit_unresolved_new(typeRef);
 	}
 	break;
       }
@@ -1681,12 +1681,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       case JBC_newarray: {
 	int atype = bcodes.getArrayElementType();
 	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	try {
-	  array.resolve();
-	} catch (VM_ResolutionException e) {
-	  // Cannot be raised with arrays of primitives
-	  if (VM.VerifyAssertions) VM._assert(false);
-	}
+	if (VM.VerifyAssertions) VM._assert(array.isResolved());
 	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + atype + "(" + array + ")");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
 	emit_resolved_newarray(array);
@@ -1694,14 +1689,18 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_anewarray: {
-	int cpi = bcodes.getTypeReferenceIndex();
-	VM_Type elementTypeRef = bcodes.getTypeReference(cpi);
-	VM_Array array = elementTypeRef.getArrayTypeForElementType();
+	VM_TypeReference elementTypeRef = bcodes.getTypeReference();
+	VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
+
+	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + arrayRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+arrayRef);
 	
 	// We can do early resolution of the array type if the element type 
 	// is already initialized.
-	if (!(array.isInitialized() || array.isInBootImage())) {
-	  if (elementTypeRef.isInitialized() || elementTypeRef.isInBootImage()) {
+	VM_Array array = arrayRef.resolve(false).asArray();
+	if (array != null && !(array.isInitialized() || array.isInBootImage())) {
+	  VM_Type elementType = elementTypeRef.resolve(false);
+	  if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
 	    try {
 	      array.load();
 	      array.resolve();
@@ -1711,14 +1710,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	      if (VM.VerifyAssertions) VM._assert(false); 
 	    }
 	  }
+	  if (array.isInitialized() || array.isInBootImage()) {
+	    emit_resolved_newarray(array);
+	    break;
+	  }
 	}
-	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + cpi + " (" + array + ")");
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
-	if (array.isInitialized() || array.isInBootImage()) {
-	  emit_resolved_newarray(array);
-	} else {
-	  emit_unresolved_newarray(array.getDictionaryId());
-	}
+	emit_unresolved_newarray(arrayRef);
 	break;
       }
 
@@ -1737,40 +1734,46 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_checkcast: {
-	int cpi = bcodes.getTypeReferenceIndex();
-	VM_Type typeRef = bcodes.getTypeReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + cpi + " (" + typeRef + ")");
-	VM_Method target = VM_Entrypoints.checkcastMethod;
-	if (typeRef.isClassType() && typeRef.isLoaded() && typeRef.asClass().isFinal()) {
-	  target = VM_Entrypoints.checkcastFinalMethod;
-	} else if (typeRef.isArrayType()) {
-	  VM_Type elemType = typeRef.asArray().getElementType();
-	  if (elemType.isPrimitiveType() || 
-	      (elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
-	    target = VM_Entrypoints.checkcastFinalMethod;
+	VM_TypeReference typeRef = bcodes.getTypeReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + typeRef);
+	VM_Type type = typeRef.resolve(false);
+	if (type != null) {
+	  if (type.isClassType() && type.isLoaded() && type.asClass().isFinal()) {
+	    emit_checkcast_final(type);
+	    break;
+	  } else if (type.isArrayType()) {
+	    VM_Type elemType = type.asArray().getElementType();
+	    if (elemType.isPrimitiveType() || 
+		(elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+	      emit_checkcast_final(type);
+	      break;
+	    }
 	  }
 	}
-	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.checkcastFinalMethod) forbiddenBytecode("checkcast "+typeRef);
-	emit_checkcast(typeRef, target);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast "+typeRef);
+	emit_checkcast(typeRef);
 	break;
       }
 
       case JBC_instanceof: {
-	int cpi = bcodes.getTypeReferenceIndex();
-	VM_Type typeRef = bcodes.getTypeReference(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + cpi  + " (" + typeRef + ")");
-	VM_Method target = VM_Entrypoints.instanceOfMethod;
-	if (typeRef.isClassType() && typeRef.isLoaded() && typeRef.asClass().isFinal()) {
-	  target = VM_Entrypoints.instanceOfFinalMethod;
-	} else if (typeRef.isArrayType()) {
-	  VM_Type elemType = typeRef.asArray().getElementType();
-	  if (elemType.isPrimitiveType() || 
-	      (elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
-	    target = VM_Entrypoints.instanceOfFinalMethod;
+	VM_TypeReference typeRef = bcodes.getTypeReference();
+	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + typeRef);
+	VM_Type type = typeRef.resolve(false);
+	if (type != null) {
+	  if (type.isClassType() && type.isLoaded() && type.asClass().isFinal()) {
+	    emit_instanceof_final(type);
+	    break;
+	  } else if (type.isArrayType()) {
+	    VM_Type elemType = type.asArray().getElementType();
+	    if (elemType.isPrimitiveType() || 
+		(elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+	      emit_instanceof_final(type);
+	      break;
+	    }
 	  }
 	}
-	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.instanceOfFinalMethod) forbiddenBytecode("instanceof "+typeRef);
-	emit_instanceof(typeRef, target);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof "+typeRef);
+	emit_instanceof(typeRef);
 	break;
       }
 
@@ -1860,13 +1863,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       }
 
       case JBC_multianewarray: {
-	int cpi = bcodes.getTypeReferenceIndex();
+	VM_TypeReference typeRef = bcodes.getTypeReference();
 	int dimensions        = bcodes.getArrayDimension();
-	VM_Array typeRef      = klass.getTypeRef(cpi).asArray();
-	int dictionaryId      = klass.getTypeRefId(cpi);
-	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + cpi + " (" + typeRef + ") " + dimensions);
+	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + typeRef + dimensions);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
-	emit_multianewarray(typeRef, dimensions, dictionaryId);
+	emit_multianewarray(typeRef, dimensions);
 	break;
       }
 
@@ -3019,15 +3020,15 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
   /**
    * Emit code to allocate a scalar object
-   * @param typeRef the VM_Class to instantiate
+   * @param type the VM_Class to instantiate
    */
   protected abstract void emit_resolved_new(VM_Class typeRef);
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param the dictionaryId of the VM_Class to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link & instantiate
    */
-  protected abstract void emit_unresolved_new(int dictionaryId);
+  protected abstract void emit_unresolved_new(VM_TypeReference typeRef);
 
   /**
    * Emit code to allocate an array
@@ -3037,17 +3038,16 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
   /**
    * Emit code to dynamically link the element class and allocate an array
-   * @param array the VM_Array to instantiate
+   * @param typeRef typeReference to dynamically link & instantiate
    */
-  protected abstract void emit_unresolved_newarray(int dictionaryId);
+  protected abstract void emit_unresolved_newarray(VM_TypeReference typeRef);
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef the VM_Array to instantiate
+   * @param typeRef typeReference to dynamically link & instantiate
    * @param dimensions the number of dimensions
-   * @param dictionaryId, the dictionaryId of typeRef
    */
-  protected abstract void emit_multianewarray(VM_Array typeRef, int dimensions, int dictionaryId);
+  protected abstract void emit_multianewarray(VM_TypeReference typeRef, int dimensions);
 
   /**
    * Emit code to implement the arraylength bytecode
@@ -3061,17 +3061,27 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param typeRef the LHS type
-   * @param target the method to invoke to implement this checkcast
+   * @param type the LHS type
    */
-  protected abstract void emit_checkcast(VM_Type typeRef, VM_Method target);
+  protected abstract void emit_checkcast_final(VM_Type type);
 
   /**
-   * Emit code to implement the instanceof bytecode
+   * Emit code to implement the checkcast bytecode
    * @param typeRef the LHS type
-   * @param target the method to invoke to implement this instanceof
    */
-  protected abstract void emit_instanceof(VM_Type typeRef, VM_Method target);
+  protected abstract void emit_checkcast(VM_TypeReference typeRef);
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_instanceof_final(VM_Type type);
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param typeRef the LHS type
+   */
+  protected abstract void emit_instanceof(VM_TypeReference typeRef);
 
   /**
    * Emit code to implement the monitorenter bytecode

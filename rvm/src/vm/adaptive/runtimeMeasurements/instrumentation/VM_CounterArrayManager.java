@@ -160,7 +160,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     OPT_RegisterOperand array2 =
       InsertALoadOffset(counterInst,
                         ir, REF_ALOAD,
-                        VM_Type.JavaLangObjectType,
+                        VM_TypeReference.JavaLangObject,
                         counterArray, handle);
     OPT_ConvertToLowLevelIR.
       doArrayLoad(counterInst.prevInstructionInCodeOrder(), ir, INT_LOAD, 2);
@@ -169,7 +169,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     OPT_RegisterOperand origVal =
       InsertALoadOffset(counterInst,
                         ir, DOUBLE_ALOAD,
-                        VM_Type.DoubleType,
+                        VM_TypeReference.Double,
                         array2, index);
     OPT_ConvertToLowLevelIR.
       doArrayLoad(counterInst.prevInstructionInCodeOrder(),ir, DOUBLE_LOAD, 3);
@@ -179,7 +179,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // Insert increment instruction
     OPT_RegisterOperand newValue =
       OPT_ConvertToLowLevelIR.InsertBinary(counterInst, ir, DOUBLE_ADD,
-                                           VM_Type.DoubleType, origVal,
+                                           VM_TypeReference.Double, origVal,
                                            incOperand.copy());
 
     // Store it
@@ -202,7 +202,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    */
   static OPT_RegisterOperand InsertALoadOffset (OPT_Instruction s, OPT_IR ir,
                                                 OPT_Operator operator,
-                                                VM_Type type,
+                                                VM_TypeReference type,
                                                 OPT_Operand reg2,
                                                 int offset){
     OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);

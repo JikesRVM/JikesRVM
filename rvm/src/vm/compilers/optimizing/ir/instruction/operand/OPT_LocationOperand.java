@@ -68,7 +68,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * Array element type that corresponds to the type of the array that contains
    * this location. null if this is not an array access.
    */
-  protected VM_Type arrayElementType;
+  protected VM_TypeReference arrayElementType;
 
   /**
    * JTOC index that corresponds to this location.
@@ -121,7 +121,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * 
    * @param type array element type
    */
-  public OPT_LocationOperand(VM_Type t) {
+  public OPT_LocationOperand(VM_TypeReference t) {
     type = ARRAY_ACCESS;
     arrayElementType = t;
   }
@@ -157,7 +157,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   public final OPT_LocationOperand asMethodAccess()  { return this; }
 
   public final VM_FieldReference getFieldRef() { return fieldRef; }
-  public final VM_Type getElementType() { return arrayElementType; }
+  public final VM_TypeReference getElementType() { return arrayElementType; }
   public final int getIndex() { return JTOCindex; }
   public final int getOffset() { return spillOffset; }
 
@@ -212,7 +212,8 @@ public final class OPT_LocationOperand extends OPT_Operand
   }
 
   // NOTE: not checking for (t1==null xor t2==null) for efficiency
-  private static boolean arrayMayBeAliased(VM_Type t1, VM_Type t2) {
+  private static boolean arrayMayBeAliased(VM_TypeReference t1, 
+					   VM_TypeReference t2) {
     return ((t1 == t2) ||
 	    (OPT_ClassLoaderProxy.includesType(t1, t2) != NO) ||
 	    (OPT_ClassLoaderProxy.includesType(t2, t1) != NO));

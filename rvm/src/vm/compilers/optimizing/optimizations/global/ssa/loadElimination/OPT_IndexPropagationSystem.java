@@ -58,10 +58,9 @@ implements OPT_Operators {
                                                  "OPT_IndexPropagation:makeCell");
     OPT_DF_LatticeCell result = null;
     Object heapType = ((OPT_HeapVariable)o).getHeapType();
-    if (heapType instanceof VM_Type) {
+    if (heapType instanceof VM_TypeReference) {
       result = new ArrayCell((OPT_HeapVariable)o);
-    } 
-    else {
+    } else {
       result = new ObjectCell((OPT_HeapVariable)o);
     }
     return  result;

@@ -159,25 +159,24 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
    *		null if no legal transformation found
    */
   private OPT_AggregateReplacer getAggregateReplacer (OPT_Instruction inst, 
-      OPT_IR ir) {
+						      OPT_IR ir) {
     OPT_Options options = ir.options;
     VM_Type t = null;
-    if (inst.getOpcode() == NEW_opcode)
-      t = New.getType(inst).type; 
-    else if (inst.getOpcode() == NEWARRAY_opcode) {
-      t = NewArray.getType(inst).type;
-    } 
-    else 
-      throw  new OPT_OptimizingCompilerException(
-          "Logic Error in OPT_EscapeTransformations", true);
-    OPT_AggregateReplacer s = null;
+    if (inst.getOpcode() == NEW_opcode) {
+      t = New.getType(inst).getVMType();
+    } else if (inst.getOpcode() == NEWARRAY_opcode) {
+      t = NewArray.getType(inst).getVMType();
+    } else {
+      throw new OPT_OptimizingCompilerException("Logic Error in OPT_EscapeTransformations");
+    }
+    
     // first attempt to perform scalar replacement for an object
     if (t.isClassType() && options.SCALAR_REPLACE_AGGREGATES) {
-      return  OPT_ObjectReplacer.getReplacer(inst, ir);
+      return OPT_ObjectReplacer.getReplacer(inst, ir);
     }
     // attempt to perform scalar replacement on a short array
     if (t.isArrayType() && options.SCALAR_REPLACE_AGGREGATES) {
-      return  OPT_ShortArrayReplacer.getReplacer(inst, ir);
+      return OPT_ShortArrayReplacer.getReplacer(inst, ir);
     }
     return  null;
   }

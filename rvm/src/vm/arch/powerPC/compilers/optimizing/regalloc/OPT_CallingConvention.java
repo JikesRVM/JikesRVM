@@ -89,7 +89,7 @@ implements OPT_PhysicalRegisterConstants {
       OPT_Operand op = CallSpecial.getParam(s, i);
       if (op instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
-        if ((reg.type == VM_Type.LongType) || (reg.type == VM_Type.DoubleType))
+        if (reg.type.isLongType() || reg.type.isDoubleType())
           parameterWords++;
       } else if ((op instanceof OPT_LongConstantOperand) || 
                  (op instanceof OPT_DoubleConstantOperand))
@@ -153,7 +153,7 @@ implements OPT_PhysicalRegisterConstants {
          symParams.hasMoreElements(); ) {
       OPT_RegisterOperand symParamOp = (OPT_RegisterOperand)symParams.next();
       OPT_Register symParam = symParamOp.register;
-      VM_Type t = symParamOp.type;
+      VM_TypeReference t = symParamOp.type;
       if (t.isFloatType()) {
         // if optimizing, skip dead parameters
         // SJF: This optimization current breaks the paranoid sanity test.
@@ -234,7 +234,7 @@ implements OPT_PhysicalRegisterConstants {
       OPT_RegisterOperand Reg = (OPT_RegisterOperand)param;
       // as part of getting into MIR, we make sure all params are in registers.
       OPT_Register reg = Reg.register;
-      if (Reg.type == VM_Type.FloatType) {
+      if (Reg.type.isFloatType()) {
         if (double_index < NUMBER_DOUBLE_PARAM) {       // register copy
           OPT_Register real = phys.get(FIRST_DOUBLE_PARAM + (double_index++));
           s.insertBack(MIR_Move.create(PPC_FMR, F(real), Reg));
@@ -249,7 +249,7 @@ implements OPT_PhysicalRegisterConstants {
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
-      } else if (Reg.type == VM_Type.DoubleType) {
+      } else if (Reg.type.isDoubleType()) {
         if (double_index < NUMBER_DOUBLE_PARAM) {     // register copy
           OPT_Register real = phys.get(FIRST_DOUBLE_PARAM + (double_index++));
           s.insertBack(MIR_Move.create(PPC_FMR, D(real), Reg));
@@ -305,8 +305,7 @@ implements OPT_PhysicalRegisterConstants {
     if (MIR_Call.hasResult(s)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(s);
       callResult = result1;
-      if (result1.type == VM_Type.DoubleType 
-          || result1.type == VM_Type.FloatType) {
+      if (result1.type.isFloatType() || result1.type.isDoubleType()) {
         OPT_RegisterOperand physical = new 
           OPT_RegisterOperand(phys.get(FIRST_DOUBLE_RETURN), 
                               result1.type);
@@ -336,8 +335,7 @@ implements OPT_PhysicalRegisterConstants {
     if (MIR_Return.hasVal(s)) {
       OPT_RegisterOperand symb1 = MIR_Return.getClearVal(s);
       OPT_RegisterOperand phys1;
-      if ((symb1.type == VM_Type.FloatType) 
-          || (symb1.type == VM_Type.DoubleType)) {
+      if (symb1.type.isFloatType() || symb1.type.isDoubleType()) {
         phys1 = D(phys.get(FIRST_DOUBLE_RETURN));
         s.insertBack(MIR_Move.create(PPC_FMR, phys1, symb1));
       } else {

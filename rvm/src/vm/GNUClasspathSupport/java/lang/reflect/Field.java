@@ -6,6 +6,7 @@ package java.lang.reflect;
 
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_Field;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 
 /**
  * Library support interface of Jikes RVM
@@ -99,7 +100,7 @@ public final class Field extends AccessibleObject implements Member {
     }
 
     public Class getType() {
-	return field.getType().getClassForType();
+	return field.getType().resolve(true).getClassForType();
     }
 
     public int hashCode() {

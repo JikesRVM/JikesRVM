@@ -25,12 +25,12 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * type of return value
    */
-  private final VM_Type returnType;          
+  private final VM_TypeReference returnType;          
 
   /**
    * types of parameters (not including "this", if virtual)
    */
-  private final VM_Type[] parameterTypes;      
+  private final VM_TypeReference[] parameterTypes;      
 
   /**
    * @param tr a type reference
@@ -47,14 +47,14 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * @return return type of the method
    */
-  public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getReturnType() throws VM_PragmaUninterruptible {
     return returnType;
   }
 
   /**
    * @return parameter types of the method
    */
-  public final VM_Type[] getParameterTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getParameterTypes() throws VM_PragmaUninterruptible {
     return parameterTypes;
   }
 

@@ -103,7 +103,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
 	       ets.hasMoreElements();) {
 	    OPT_TypeOperand type = (OPT_TypeOperand)ets.nextElement();
 	    int catchOffset = eBlock.firstInstruction().getmcOffset();
-	    int eId = type.type.getDictionaryId();
+	    int eId = type.getTypeRef().getId();
 	    eTable[index + TRY_START] = currStartOff;
 	    eTable[index + TRY_END] = currEndOff;
 	    eTable[index + CATCH_START] = catchOffset;

@@ -60,7 +60,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
           OPT_Operand use = s.getOperand(idx);
           if (use != null) {
             if (use instanceof OPT_StringConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.JavaLangStringType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
 	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
               int offset = sc.index << 2;
@@ -70,12 +70,12 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 	      s.insertBefore(Load.create(INT_LOAD, rop, jtoc, asImmediateOrReg(I(offset), s, ir), loc));
 	      s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.LongType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
 	      use.clear();
 	      s.insertBefore(Move.create(LONG_MOVE, rop, use));
 	      s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
 	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
               int index = dc.index;
@@ -87,7 +87,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 	      s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrReg(I(offset), s, ir), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
 	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
               int index = fc.index;
@@ -224,7 +224,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 	    OPT_IntConstantOperand ival = (OPT_IntConstantOperand)val;
 	    if ((ival.value < 0) || (ival.value > UNSIGNED_UPPER_IMMEDIATE)) {
 	      val.instruction = null;
-	      OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.IntType);
+	      OPT_RegisterOperand rop = ir.regpool.makeTempInt();
 	      s.insertBefore(Move.create(INT_MOVE, rop, val));
 	      Binary.setVal2(s, rop.copyD2U());
 	    }
@@ -289,7 +289,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 			   OPT_Instruction s, 
 			   OPT_IR ir) {
     if (addr instanceof OPT_IntConstantOperand) {
-      OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.IntType);
+      OPT_RegisterOperand rop = ir.regpool.makeTempInt();
       s.insertBefore(Move.create(INT_MOVE, rop, addr));
       return rop.copyD2U();
     }
@@ -312,7 +312,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 	OPT_Operand use = s.getOperand(idx);
 	if (use != null) {
 	  if (use instanceof OPT_LongConstantOperand) {
-	    OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.LongType);
+	    OPT_RegisterOperand rop = ir.regpool.makeTempLong();
 	    use.clear();
 	    s.insertBack(Move.create(LONG_MOVE, rop, use));
 	    s.putOperand(idx, rop.copyD2U());
