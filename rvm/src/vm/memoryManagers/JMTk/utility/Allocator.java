@@ -132,7 +132,8 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
    * @param knownAlignment The known minimum alignment. Specifically for use in
    * allocators that enforce greater than particle alignment.
    */
-  final public static int getMaximumAlignedSize(int size, int alignment, int knownAlignment) 
+  final public static int getMaximumAlignedSize(int size, int alignment,
+						int knownAlignment) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(knownAlignment >= BYTES_IN_PARTICLE);
@@ -145,23 +146,22 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
     }
   }
 
-  abstract protected VM_Address allocSlowOnce (int bytes,
-                                    int alignment, int offset, boolean inGC);
+  abstract protected VM_Address allocSlowOnce (int bytes, int alignment,
+					       int offset, boolean inGC);
 
-  public VM_Address allocSlow(int bytes, 
-                              int alignment, int offset) 
+  public VM_Address allocSlow(int bytes, int alignment, int offset) 
     throws VM_PragmaNoInline { 
     return allocSlowBody(bytes, alignment, offset, false);
   }
 
-  public VM_Address allocSlow(int bytes, int alignment, 
-                              int offset, boolean inGC) 
+  public VM_Address allocSlow(int bytes, int alignment, int offset,
+			      boolean inGC) 
     throws VM_PragmaNoInline { 
     return allocSlowBody( bytes, alignment, offset, inGC);
   }
 
-  private VM_Address allocSlowBody(int bytes, int alignment, 
-                                   int offset, boolean inGC) 
+  private VM_Address allocSlowBody(int bytes, int alignment, int offset,
+				   boolean inGC) 
     throws VM_PragmaInline { 
 
     int gcCountStart = Stats.gcCount();
