@@ -89,10 +89,6 @@ The GNU Classpath jar file is required to build JikesRVM
 You can build this file yourself, or have it generated automatically.
 If you build it yourself, place it in $RVM_ROOT/support/lib/classpath.jar
 
-NOTE: the only currently-supported way of running Jikes RVM with solely
-the GNU Classpath libraries involves building the jar and corresponding
-native code yourself.
-
 The license for this library is available at 
 http://www.gnu.org/software/classpath
 
