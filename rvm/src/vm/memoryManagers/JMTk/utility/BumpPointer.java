@@ -96,7 +96,9 @@ final class BumpPointer extends Allocator
     if (start.isZero())
       return start;
     Memory.zero(start, VM_Extent.fromInt(chunkSize));
-    cursor = start;
+
+    // check for (dis)contiguity with previous chunk
+    if (!limit.EQ(start)) cursor = start;
     limit = start.add(chunkSize);
     return alloc(isScalar, bytes);
   }
