@@ -1,0 +1,6 @@
+This directory contains a program named "java", which is what Eclipse
+3.0 expects.  To run eclipse, under Jikes RVM, make sure that you run
+the "eclipse" executable with this directory appearing before any
+other directory containing a "java" program.
+
+If you use "rvmeclipse", that will be done for you.
