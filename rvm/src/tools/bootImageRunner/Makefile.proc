@@ -1,12 +1,16 @@
 # -*-makefile-*-
 #
-# (C) Copyright IBM Corp. 2001, 2004
+# (C) Copyright IBM Corp. 2001, 2004, 2005
 #
 #$Id$
 #
 # @author Julian Dolby
 # @modified Steven Augart March, 2004	For Self-booting
 #
+
+## This Makefile is invoked with the current working directory
+## the same as the directory this source Makefile is in, $(THIS_DIR)
+
 include			$(JAL_BUILD)/Make.rules.target
 
 SCRATCH:=$(JAL_BUILD)/RVM.scratch
@@ -15,21 +19,24 @@ SRC_DIR:=$(JAL_ROOT)/rvm/src
 THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 
 ifdef DO_NOT_RUN_JAVAH
+# Use a prebuilt version, if we are using a system without a good JAVAH.
 $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h: 	$(THIS_DIR)/com_ibm_JikesRVM_VM_0005fProcess.h
 	$(RM) $@
 	cp $< $@
+# Turn on write perms so that the user doesn't get a warning when
+# running "rm".
+	chmod +w $@
 else
 $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h:	$(SRC_DIR)/vm/runtime/VM_Process.java
 	$(RM) $@
 	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.JikesRVM.VM_Process
 endif
 
-$(SCRATCH)/VM_0005fProcess.C:	$(THIS_DIR)/VM_0005fProcess.C
-	$(RM) $@
-	cp $< $@
+# The Jikes RVM build process always invokes this with 
+# DEST=$(JAL_BUILD)/libjpnexec.{suffix}
 
-# The Jikes RVM build process always invokes this with DEST=$(JAL_BUILD)/libjpnexec.{suffix}
-$(DEST): $(SCRATCH)/VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
+# For testing:
+DEST ?= $(JAL_BUILD)/libjpnexec.so
+$(DEST): VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
 	$(RM) $@
-	$(LDSHARED) -o $@ -I$(THIS_DIR) -I$(SRC_DIR)/include $<
-
+	$(LDSHARED) -o $@ -I$(SCRATCH) -I$(THIS_DIR) -I$(SRC_DIR)/include $<
