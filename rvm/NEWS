@@ -46,6 +46,10 @@ the implementation details of the Opt compiler and the complex
 interactions among the many optimizations performed by the Opt compiler.
 
 *Other Notes after the Jikes RVM 2.3.4 release:
+**We've moved to http://jikesrvm.sourceforge.net.  
+We'll try to update the documentation, but please point out anything
+that we missed.
+
 **The release notes are now in a file called NEWS instead of 
 the old ReleaseNotes-<revision-number> files.  Further, NEWS is an
 archive; it is contains release notes for all open source versions of
