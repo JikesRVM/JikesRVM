@@ -2325,8 +2325,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             Object realObj = OSR_ObjectHolder.getRefAt(param1, param2);
             if (realObj != null) {
 
-	      // bypass
-	      VM_Type klass = realObj.getClass().type;
+		  VM_Type klass = VM_Magic.getObjectType(realObj);
 
               OPT_RegisterOperand op0 = gc.temps.makeTemp(klass);
               Call.setResult(s, op0);
