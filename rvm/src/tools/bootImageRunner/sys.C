@@ -2680,10 +2680,10 @@ extern "C" int
 sysNetSocketSndBuf(int fd)
 {
     int val = 0;
-#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+#if defined RVM_FOR_OSX
     int len;
 #endif
-#ifdef RVM_FOR_LINUX
+#if defined RVM_FOR_AIX || defined RVM_FOR_LINUX
     socklen_t len;
 #endif
 
