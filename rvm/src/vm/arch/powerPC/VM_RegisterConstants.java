@@ -171,13 +171,13 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   
   // offset into the Java to Native glue frame, relative to the Java caller frame
   // the definitions are chained to the first one, JNI_JTOC_OFFSET
-  // saved R17-R31 + R16 + GCflag + affinity + saved JTOC
+  // saved R17-R31 + JNIEnv + GCflag + affinity + saved JTOC
 
   static final int JNI_JTOC_OFFSET                  = BYTES_IN_ADDRESS;
   static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_JTOC_OFFSET + BYTES_IN_ADDRESS;    // at 8
-  static final int JNI_PR_OFFSET                    = JNI_RVM_NONVOLATILE_OFFSET + 
+  static final int JNI_ENV_OFFSET                    = JNI_RVM_NONVOLATILE_OFFSET + 
     ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);             // at 68
-  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_PR_OFFSET + BYTES_IN_ADDRESS;    // at 72: save 7 register 4-10
+  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_ENV_OFFSET + BYTES_IN_ADDRESS;    // at 72: save 7 register 4-10
   static final int JNI_AFFINITY_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE; // at 100
 
   //-#if RVM_FOR_AIX

@@ -1258,11 +1258,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //-#endif
     VM.enableGC();
 
-    // only do this at runtime because it will call VM_Magic
-    // The first thread which does not have this field initialized will die
-    // so it does not need it
-    // threadSlot determines which jni function pointer is passed to native C
-
+    // only do this at runtime because it will call VM_Magic;
+    // we set this explictly for the boot thread as part of booting.
     if (VM.runningVM)
       jniEnv = VM_JNIEnvironment.allocateEnvironment();
 

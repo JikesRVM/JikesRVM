@@ -55,7 +55,6 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   private VM_AddressArray jniRefs;
   private int jniNextRef;
   private int jniFramePtr;
-  private VM_Address jniSavedProcessorRegAddr;
   private VM_Address jniSavedReturnAddr;
   
   public VM_JNIGCMapIterator(VM_WordArray registerLocations) {
@@ -76,7 +75,6 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
       this.jniRefs = env.JNIRefs;
       this.jniNextRef = env.JNIRefsTop;
       this.jniFramePtr = env.JNIRefsSavedFP;
-      this.jniSavedProcessorRegAddr = VM_Address.zero(); // necessary so getNextRefAddr() can be used to report jniRefs in a "frame", without calling setup.  
     }
   }
 
@@ -90,7 +88,6 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // so it will be relocated, if necessary
     //
     VM_Address callers_fp = VM_Magic.getMemoryAddress(this.framePtr);
-    jniSavedProcessorRegAddr = callers_fp.sub(JNI_PR_OFFSET);
     //-#if RVM_FOR_AIX
     jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     //-#endif
@@ -113,21 +110,10 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   // to the non-volatile registers saved in the JNI transition frame.
   //
   public VM_Address getNextReferenceAddress() {
-    int nextFP;
-    VM_Address ref_address;
-
     if (jniNextRef > jniFramePtr) {
-      ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
+      VM_Address ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
       jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
       if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
-      return ref_address;
-    }
-
-    // report location of saved processor reg in the Java to C frame
-    if ( !jniSavedProcessorRegAddr.isZero() ) {
-      ref_address = jniSavedProcessorRegAddr;
-      jniSavedProcessorRegAddr = VM_Address.zero();
-      if (verbose > 0) VM.sysWriteln("JNI iterator returning saved proc: ", ref_address);
       return ref_address;
     }
 
@@ -155,9 +141,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   public VM_Address getNextReturnAddressAddress() {
-    VM_Address  ref_address;
     if ( !jniSavedReturnAddr.isZero() ) {
-      ref_address = jniSavedReturnAddr;
+      VM_Address ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = VM_Address.zero();
       if (verbose > 0) {
 	VM.sysWriteln("JNI getNextReturnAddressAddress returning ", ref_address);

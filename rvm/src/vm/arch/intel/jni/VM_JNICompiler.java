@@ -27,7 +27,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   public static final int EBX_SAVE_OFFSET = STACKFRAME_BODY_OFFSET - WORDSIZE;
   public static final int EBP_SAVE_OFFSET = EBX_SAVE_OFFSET - WORDSIZE;
   public static final int JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET - WORDSIZE;
-  public static final int JNI_PR_OFFSET = JNI_RETURN_ADDRESS_OFFSET - WORDSIZE;
+  public static final int JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET - WORDSIZE;
 
   // following used in prolog & epilog for JNIFunctions
   // offset of saved offset to preceeding java frame
@@ -35,7 +35,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
   // following used in VM_Compiler to compute offset to first local:
   // includes 5 words:
-  //   SAVED_JAVA_FP,  PR (ESI), S0 (ECX), EBX, and JTOC (EDI)
+  //   SAVED_JAVA_FP,  VM_JNIEnvironment, S0 (ECX), EBX, and JTOC (EDI)
   public static final int SAVED_GPRS_FOR_JNI = 5;
 
   /*****************************************************************
@@ -69,7 +69,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // -C   |	       |	|saved EBX |
     // -10  |	       |	|saved EBP |
     // -14  |	       |	|returnAddr|  (return from OutOfLine to generated epilog)    
-    // -18  |	       |	|saved PR  |
+    // -18  |	       |	|saved ENV |  (VM_JNIEnvironment)
     // -1C  |	       |	|arg n-1   |  reordered args to native method
     // -20  |	       |	| ...      |  ...
     // -24  |	       |	|arg 1     |  ...
@@ -203,7 +203,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // set first word of header: method ID
     asm.emitMOV_RegDisp_Imm (SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId); 
 
-
     // save nonvolatile registrs: EDI, EBX, EBP
     asm.emitMOV_RegDisp_Reg (SP, EDI_SAVE_OFFSET, JTOC); 
     asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX);
@@ -331,6 +330,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // save PR in the jniEnv for JNI call from native
     VM_ProcessorLocalState.emitStoreProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+
+    // save VM_JNIEnvironemt in stack frame so we can find it when we return
+    asm.emitMOV_RegDisp_Reg(EBP, VM_JNICompiler.JNI_ENV_OFFSET, S0);
 
     // save FP for glue frame in JNI env - used by GC when in C
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EBP);  // jniEnv.JNITopJavaFP <- FP
@@ -736,13 +738,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EDI); // jniEnv.TopJavaFP <- JTOC
 
     // in case thread has migrated to different PR, reset saved PRs to current PR
-    // first reset PR saved in jniEnv
     VM_ProcessorLocalState.emitStoreProcessor(asm, S0,
                                               VM_Entrypoints.JNIEnvSavedPRField.getOffset());
-
-    // now save PR saved in preceeding JavaToNative transition frame, whose FP
-    // is now in EDI
-    VM_ProcessorLocalState.emitStoreProcessor(asm, EDI, JNI_PR_OFFSET);
 
     // change current processor status to IN_NATIVE
     VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);

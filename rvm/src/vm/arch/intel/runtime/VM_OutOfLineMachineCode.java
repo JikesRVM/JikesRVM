@@ -352,10 +352,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    // save PR in glue frame 
-    VM_ProcessorLocalState.emitStoreProcessor(asm, EBP, 
-                                              VM_JNICompiler.JNI_PR_OFFSET);
-
     // save callers ret addr in glue frame
     asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
@@ -376,9 +372,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
-    // reload PR (virtual processor) from glue frame
-    VM_ProcessorLocalState.emitLoadProcessor(asm, EBP,
-                                             VM_JNICompiler.JNI_PR_OFFSET);
+    // reload VM_JNIEnvironment from glue frame
+    asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
+
+    // reload processor register from JNIEnvironment
+    VM_ProcessorLocalState.emitSetProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // reload JTOC from vitual processor 
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)

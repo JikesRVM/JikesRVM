@@ -78,7 +78,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   |vol r4    | saved AIX volatile regs during Yield (to be removed when code moved to Java)   
    *   | ...      | 
    *   |vol r10   | saved AIX volatile regs during Yield    <- JNI_OS_PARAMETER_REGISTER_OFFSET
-   *   |Proc reg  | processor register R16                  <- JNI_PR_OFFSET
+   *   |ENV       | VM_JNIEnvironment                       <- JNI_ENV_OFFSET
    *   |nonvol 17 | save 15 nonvolatile registers for stack mapper
    *   | ...      |
    *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
@@ -137,8 +137,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     asm.emitSTAddr (JTOC, frameSize - JNI_JTOC_OFFSET, FP);    // save RVM JTOC in frame
 
-    asm.emitSTAddr (PROCESSOR_REGISTER, frameSize - JNI_PR_OFFSET, FP);  // save PR in frame  
-
     // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure      
     asm.emitLAddr(S1, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);
     asm.emitLAddr(S0, VM_Entrypoints.jniEnvField.getOffset(), S1);
@@ -146,6 +144,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // save the TI & PR registers in the JNIEnvironment object for possible calls back into Java
     asm.emitSTAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);           
     asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0);   
+    
+    // save the JNIEnvironment in the stack frame so we can use it to acquire the PR
+    // when we return from native code.
+    asm.emitSTAddr (S0, frameSize - JNI_ENV_OFFSET, FP);  // save PR in frame  
 
     // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
     // to start scanning this stack during GC, if top of stack is still executing in C
@@ -1441,10 +1443,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitCMPAddr(T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
-    asm.emitSTAddr(PROCESSOR_REGISTER, -JNI_PR_OFFSET, S0);  // store PR back into transition frame
     fr4.resolve(asm);
 
-    asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T2);  // store PR back into JNIEnv
+    // store current PR into VM_JNIEnvironment; we may have switched PRs while in Java mode.
+    asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T2);
 
     // change the state of the VP to IN_NATIVE.
     //

@@ -415,7 +415,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitLAddr (S0, 0, S0);
     //-#endif
     asm.emitLAddr (JTOC, -JNI_JTOC_OFFSET, S0);                 // load JTOC reg
-    asm.emitLAddr (PROCESSOR_REGISTER, - JNI_PR_OFFSET, S0);    // load processor register  
+    asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
+    asm.emitLAddr (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), PROCESSOR_REGISTER); // load PR
     asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffset());
     asm.emitLWARX (S0, S1, PROCESSOR_REGISTER);                 // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
