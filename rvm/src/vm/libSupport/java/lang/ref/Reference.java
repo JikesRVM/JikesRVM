@@ -7,6 +7,7 @@ package java.lang.ref;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
 /**
@@ -95,8 +96,13 @@ public abstract class Reference {
 
   /* 
    * This method requires external synchronization.
+   * The logically uninterruptible pragma is a bold faced lie;
+   * injecting it for now to avoid a warning message during the build
+   * that users might find confusing. We think the problem is actually
+   * not a 'real' problem...
    */
-  public boolean enqueue() throws VM_PragmaUninterruptible {
+  public boolean enqueue() throws VM_PragmaUninterruptible, 
+				  VM_PragmaLogicallyUninterruptible {
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);
