@@ -145,6 +145,16 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return matureCollector.getInitialHeaderValue(bytes);
   }
 
+  protected final byte getSpaceFromAllocator (Allocator a) {
+    if (a == mature) return MATURE_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected final Allocator getAllocatorFromSpace (byte s) {
+    if (s == MATURE_SPACE) return mature;
+    return super.getAllocatorFromSpace(s);
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Collection
