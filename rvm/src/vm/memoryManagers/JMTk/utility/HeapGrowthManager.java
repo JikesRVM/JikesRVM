@@ -162,9 +162,20 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
     double totalTime = VM_Interface.now() - endLastMajorGC;
     double gcLoad = accumulatedGCTime / totalTime;
 
-    // Can happen....I can't explain why --dave
-    if (liveRatio > 1) liveRatio = 1;
-    if (gcLoad > 1) gcLoad = 1;
+    if (liveRatio > 1) {
+      // Perhaps indicates bad bookkeeping in JMTk?
+      if (Options.verbose > 2) {
+	VM_Interface.sysWriteln("Live ratio greater than 1: ",liveRatio);
+	liveRatio = 1;
+      }
+    }
+    if (gcLoad > 1) {
+      // Can happen....I can't explain why --dave
+      VM_Interface.sysWriteln("GC load was greater than 1!! ",gcLoad);
+      VM_Interface.sysWriteln("total time ",totalTime);
+      VM_Interface.sysWriteln("gc time ",accumulatedGCTime);
+      gcLoad = 1;
+    }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(gcLoad >= 0);
     
