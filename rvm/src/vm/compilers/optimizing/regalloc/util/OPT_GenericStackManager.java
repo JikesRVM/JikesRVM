@@ -1107,9 +1107,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-
-
-
   /**
    * An object used to track adjustments to the GC maps induced by scrach
    * registers
@@ -1290,7 +1287,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @param ir the IR
    */
   void prepare(OPT_IR ir) {
-
     // (1) if we haven't yet committed to a stack frame we 
     //     will look for operators that would require a stack frame
     //        - LOWTABLESWITCH
@@ -1315,7 +1311,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         }
       }
     }
-    pref.initialize(ir);
 
     // (2) 
     // In non-adaptive configurations we can omit the yieldpoint if 
@@ -1372,13 +1367,13 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       }
       prologueYieldpoint = false;
     } else {
-      prologueYieldpoint = true;
+      prologueYieldpoint = ir.method.isInterruptible();
       frameRequired = true;
     }
 
     // (3) initialization 
-    //initPools(ir);
     this.ir = ir;
+    pref.initialize(ir);
     frameSize = spillPointer;
     initForArch(ir);
 
