@@ -213,6 +213,14 @@ public abstract class StopTheWorldGC extends BasePlan
     threadLocalReset();
   }
 
+  public static void writePages(String prefix, int pages) {
+    VM.sysWrite(prefix);
+    VM.sysWrite(pages);
+    VM.sysWrite(" (");
+    VM.sysWrite(Conversions.pagesToBytes(pages) / (1024.0 * 1024.0));
+    VM.sysWrite(" Mb)");
+  }
+
   /**
    * Perform operations with <i>global</i> scope to clean up after a
    * collection.  This is called by <code>release()</code>, which will
@@ -233,11 +241,9 @@ public abstract class StopTheWorldGC extends BasePlan
       VM.sysWrite("   After Collection: ");
       Plan.showUsage();
       VM.sysWrite("   Collection ", gcCount);
-      VM.sysWrite(":      reserved = ", Plan.getPagesReserved());
-      VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved())/(1<<20)); 
-      VM.sysWrite(" Mb) ");
-      VM.sysWrite("      trigger = ", getTotalPages());
-      VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages())/(1<<20)); 
+      writePages(":       reserved = ", Plan.getPagesReserved());
+      writePages("      trigger = ", getTotalPages());
+      VM.sysWriteln();
     }
     gcInProgress = false;    // GC is in progress until after release!
     gcStopTime = VM_Interface.now();
