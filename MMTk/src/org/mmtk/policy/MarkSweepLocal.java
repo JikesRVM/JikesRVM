@@ -170,18 +170,8 @@ final class MarkSweepLocal extends SegregatedFreeList
 				 int sizeClass, int bytes, boolean inGC) 
     throws VM_PragmaInline {
 
-    if (inGC) {
-      /* establish bitmask & offset for this cell in the block */
-      int index = (cell.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
-      int bitnumber = index & (BITS_IN_BITMAP - 1);
-      int mask = 1<<bitnumber;
-      int offset = (index>>LOG_BITS_IN_BITMAP)<<LOG_BYTES_IN_BITMAP;
-      
-      /* set the mark bit */
-      VM_Address bitmapAddr = block.add(MARK_BITMAP_BASE + offset);
-      int bitmap = VM_Magic.getMemoryInt(bitmapAddr);
-      VM_Magic.setMemoryInt(bitmapAddr, bitmap | mask);
-    }
+    if (inGC) 
+      internalMark(cell, block, sizeClass);
   }
   
   /**
@@ -352,14 +342,26 @@ final class MarkSweepLocal extends SegregatedFreeList
    *
    * @param object The object which has been marked.
    */
-  public static final void internalMarkObject(VM_Address object, byte tag) 
+  public static final void internalMarkObject (VM_Address object, byte tag) 
     throws VM_PragmaInline {
+
     VM_Address ref = VM_Interface.refToAddress(object);
-    VM_Address block = BlockAllocator.getBlockStart(ref, tag);
+    internalMark (ref, tag);
+  }
+
+  public static final void internalMark (VM_Address addrInCell, byte tag) 
+    throws VM_PragmaInline {
+
+    VM_Address block = BlockAllocator.getBlockStart(addrInCell, tag);
     int sizeClass = getBlockSizeClass(block);
+    internalMark (addrInCell, block, sizeClass);
+  }
+
+  public static final void internalMark (VM_Address addrInCell, VM_Address block, int sizeClass)
+    throws VM_PragmaInline {
 
     /* establish bitmask & offset for this cell in the block */
-    int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
+    int index = (addrInCell.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
     int bitnumber = index & (BITS_IN_BITMAP - 1);
     int mask = 1<<bitnumber;
     int offset = (index>>LOG_BITS_IN_BITMAP)<<LOG_BYTES_IN_BITMAP;
