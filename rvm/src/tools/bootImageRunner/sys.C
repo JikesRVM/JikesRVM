@@ -221,11 +221,6 @@ static bool systemExiting = false;
 extern "C" void
 sysExit(int value)
 {
-#ifdef RVM_FOR_64_ADDR
-    fprintf(stderr, "\nWHEEE....I got back to C code with value = %d or 0x%lx\n", value, value);
-#endif
-
-// fprintf(SysTraceFile, "%s: exit %d\n", Me, value);
     if (value != 0)
 	fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
 
