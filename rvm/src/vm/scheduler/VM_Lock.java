@@ -58,7 +58,7 @@
    <LI> <EM>What to do if the attempt to lock an object fails?</EM>  There
         are three choices: try again (busy-wait), yield and then try again,
         inflate the lock and yield to the heavy-weight lock's entering
-	queue.  Currently, yield {@link #retryLimit} times, then inflate.  
+	queue.  Currently, yield n times, then inflate.  
         (This seemed to be best for the portBOB benchmark on a 12-way AIX
         SMP in the Fall of '99.)
    <LI> <EM>When should a heavy-weight lock be deflated?</EM>  Currently,

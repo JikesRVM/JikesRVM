@@ -9,7 +9,7 @@ import  java.util.HashSet;
 /**
  * This class holds data associated with a basic block as computed by the
  * Lengauer-Tarjan dominator calculation.  
- * @see OPT_LTDominators.java
+ * @see OPT_LTDominators
  *
  * @author Michael Hind
  */

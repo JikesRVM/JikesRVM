@@ -7,7 +7,6 @@
  * This class defines a LiveInterval node created by Live Variable analysis
  * and used in Linear Scan.
  * 
- * @see OPT_IRMap
  * @see OPT_LinearScan
  * 
  * @author Michael Hind

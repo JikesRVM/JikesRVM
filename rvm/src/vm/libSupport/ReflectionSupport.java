@@ -211,7 +211,6 @@ public class ReflectionSupport {
    *					if the typecode represents a primitive type
    *				<code>false</code>
    *					if the typecode represents an Object type (including arrays)
-   * @see			hashCode
    */
   static boolean isPrimitiveType(char typecode) {
     return !(typecode == '[' || typecode == 'L');
@@ -334,7 +333,6 @@ public class ReflectionSupport {
   * @exception	java.lang.IllegalAccessException	if the modelled constructor is not accessible
     * @exception	java.lang.IllegalArgumentException	if an incorrect number of arguments are passed, or an argument could not be converted by a widening conversion
     * @exception	java.lang.reflect.InvocationTargetException	if an exception was thrown by the invoked constructor
-    * @see			java.lang.reflect.AccessibleObject
     */
     public static Object newInstance(Constructor c, Object args[])
     throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -453,8 +451,6 @@ public class ReflectionSupport {
    *					initialized
    * @param		classLoader The classloader to use to load the class
    * @exception	ClassNotFoundException If the class could not be found
-   *
-   * @see			java.lang.Class
    */
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
     SecurityManager security = System.getSecurityManager();
@@ -506,8 +502,6 @@ public class ReflectionSupport {
    * @param		parameterTypes the types of the arguments.
    * @exception	NoSuchMethodException	if the method could not be found.
    * @exception	SecurityException if member access is not allowed
-   *
-   * @see			getMethods
    */
   public static Method getDeclaredMethod(Class C, String name, Class parameterTypes[]) 
     throws NoSuchMethodException, SecurityException {
@@ -530,7 +524,6 @@ public class ReflectionSupport {
    *
    * @return		the receiver's methods.
    * @exception	SecurityException if member access is not allowed
-   * @see			getMethods
    */
   public static Method[] getDeclaredMethods(Class C) throws SecurityException {
     checkMemberAccess(C,Member.DECLARED);
@@ -552,8 +545,6 @@ public class ReflectionSupport {
    *					if the method could not be found.
    * @exception	SecurityException
    *					if member access is not allowed
-   *
-   * @see			getMethods
    */
   public static Method getMethod(Class C, String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(C,Member.PUBLIC);
@@ -573,8 +564,6 @@ public class ReflectionSupport {
    *					all visible methods starting from the receiver.
    * @exception	SecurityException
    *					if member access is not allowed
-   *
-   * @see			getDeclaredMethods
    */
   public static Method[] getMethods(Class C) throws SecurityException {
     checkMemberAccess(C,Member.PUBLIC);
@@ -590,7 +579,6 @@ public class ReflectionSupport {
    * @return		the field in the receiver named by the argument.
    * @exception	NoSuchFieldException if the requested field could not be found
    * @exception	SecurityException if member access is not allowed
-   * @see			getDeclaredFields
    */
   public static Field getDeclaredField(Class C, String name) throws NoSuchFieldException, SecurityException {
     checkMemberAccess(C,Member.DECLARED);
@@ -604,8 +592,6 @@ public class ReflectionSupport {
    *
    * @return		the field in the receiver named by the argument.
    * @param		name The name of the field to look for.
-   *
-   * @see			getDeclaredFields
    */
   public static Field getField(Class C, String name) throws NoSuchFieldException, SecurityException {
     checkMemberAccess(C,Member.PUBLIC);
@@ -620,8 +606,6 @@ public class ReflectionSupport {
    *					all visible fields starting from the receiver.
    * @exception	SecurityException
    *					if member access is not allowed
-   *
-   * @see			getDeclaredFields
    */
   public static Field[] getFields(Class C) throws SecurityException {
     checkMemberAccess(C, Member.PUBLIC);
@@ -636,7 +620,6 @@ public class ReflectionSupport {
    *
    * @return		the receiver's fields.
    * @exception	SecurityException if member access is not allowed
-   * @see			getFields
    */
   public static Field[] getDeclaredFields(Class C) throws SecurityException {
     checkMemberAccess(C, Member.DECLARED);
@@ -750,7 +733,7 @@ public class ReflectionSupport {
    * This method performs the following:
    * <ul>
    * <li>If the modelled method is static, the receiver argument is ignored.</li>
-   * <li>Otherwise, if the receiver is null, a NullPointerException is thrown.</li>
+   * <li>Otherwise, if the receiver is null, a NullPointerException is thrown.
    * If the receiver is not an instance of the declaring class of the method, an
    *	IllegalArgumentException is thrown.
    * <li>If this Method object is enforcing access control (see AccessibleObject) and the modelled
@@ -781,7 +764,6 @@ public class ReflectionSupport {
     * @exception	java.lang.IllegalAccessException	if the modelled method is not accessible
     * @exception	java.lang.IllegalArgumentException	if an incorrect number of arguments are passed, the receiver is incompatible with the declaring class, or an argument could not be converted by a widening conversion
     * @exception	java.lang.reflect.InvocationTargetException	if an exception was thrown by the invoked constructor
-    * @see			java.lang.reflect.AccessibleObject
     */
     public static Object invoke(Method m, Object receiver, Object args[])
     throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -964,7 +946,6 @@ public class ReflectionSupport {
    *
    * @return		all visible constructors starting from the receiver.
    * @exception	SecurityException if member access is not allowed
-   * @see			getMethods
    */
   public static Constructor[] getConstructors(Class C) throws SecurityException {
     checkMemberAccess(C, Member.PUBLIC);
@@ -1107,7 +1088,6 @@ public class ReflectionSupport {
    * type is the type of the elements of the array.
    *
    * @return		Class the component type of the receiver.
-   * @see			java.lang.Class
    */
   public static Class getComponentType(Class C) {
     if (C.type.isArrayType()) return C.type.asArray().getElementType().getClassForType();
@@ -1122,7 +1102,6 @@ public class ReflectionSupport {
    *
    * @return		the receiver's constructors.
    * @exception	SecurityException if member access is not allowed
-   * @see			getMethods
    */
   public static Constructor[] getDeclaredConstructors(Class C) throws SecurityException {
     checkMemberAccess(C, Member.DECLARED);
@@ -1139,7 +1118,6 @@ public class ReflectionSupport {
    * @param		parameterTypes the types of the arguments.
    * @exception	NoSuchMethodException if the constructor could not be found.
    * @exception	SecurityException if member access is not allowed
-   * @see			getConstructors
    */
   public static Constructor getDeclaredConstructor(Class C, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(C, Member.DECLARED);
@@ -1160,7 +1138,6 @@ public class ReflectionSupport {
    * @param		parameterTypes the types of the arguments.
    * @exception	NoSuchMethodException if the constructor could not be found.
    * @exception	SecurityException if member access is not allowed
-   * @see			getConstructors
    */
   public static Constructor getConstructor(Class C, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(C, Member.PUBLIC);
@@ -1200,7 +1177,6 @@ public class ReflectionSupport {
    * The Modifier class should be used to decode the result.
    *
    * @return		the modifiers
-   * @see			java.lang.reflect.Modifier
    */
   public static int getModifiers(Method m)
   {
@@ -1211,7 +1187,6 @@ public class ReflectionSupport {
    * The Modifier class should be used to decode the result.
    *
    * @return		the modifiers
-   * @see			java.lang.reflect.Modifier
    */
   public static int getModifiers(Constructor c)
   {
@@ -1235,8 +1210,6 @@ public class ReflectionSupport {
    *
    * @param		object	the object to compare
    * @return		true if the specified object is equal to this Method, false otherwise
-   *
-   * @see			#hashCode
    */
   public static boolean methodEquals(Method m,Object object)
   {
@@ -1261,8 +1234,6 @@ public class ReflectionSupport {
    * definition of java.lang.Class.
    *
    * @return		the receiver's name.
-   *
-   * @see			java.lang.Class
    */
   public static String getName(Class C) {
     return C.type.getName();
@@ -1482,8 +1453,6 @@ public class ReflectionSupport {
    *
    * @exception	IOException	If an IO exception happened when reading the field descriptors.
    * @exception	ClassNotFoundException	If a class for one of the field types could not be found
-   *
-   * @see			readFieldValues
    */
   public static void readFieldDescriptors(ObjectInputStream ois, ObjectStreamClass cDesc) throws ClassNotFoundException, IOException {
     ObjectStreamField f;

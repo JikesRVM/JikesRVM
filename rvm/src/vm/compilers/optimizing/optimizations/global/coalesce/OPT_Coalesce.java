@@ -10,7 +10,7 @@ import instructionFormats.*;
 /**
  * Utility to help coalesce registers.
  *
- * @see OPT_CoalescePhis
+ * @see OPT_CoalesceMoves
  *
  * @author Stephen Fink
  */

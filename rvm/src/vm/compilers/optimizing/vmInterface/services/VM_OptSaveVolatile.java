@@ -13,7 +13,6 @@
  *        opt's use for other purposes. 
  * 
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
- * @see special treatment of VM_OptCompilerInfo.saveVolatile
  * 
  * @author Mauricio Serrano
  * @author Dave Grove

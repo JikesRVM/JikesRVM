@@ -28,7 +28,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
   }
 
   /**
-   *  Construct a depth-first enumerator across the (possibly
+   * Construct a depth-first enumerator across the (possibly
    * improper) subset of nodes reachable from the nodes in the given
    * enumeration. 
    *
@@ -44,21 +44,17 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
       theNextElement = e.next();
   }
   /**
-   *  While a depth-first enumeration is in progress, this field
+   * While a depth-first enumeration is in progress, this field
    * holds the current root node, i.e. the current botton of the
    * search stack (assuming stacks grow upward).  This is used
    * primarily when constructing strongly connected components. 
-   *
-   * @see OPT_SCC_Enumeration
-   *
    */
   public OPT_GraphNode currentRoot;
 
   /**
-   *  Return whether there are any more nodes left to enumerate.
+   * Return whether there are any more nodes left to enumerate.
    *
    * @return true if there nodes left to enumerate.
-   *
    */
   public boolean hasMoreElements () {
     return  (!empty() || (theNextElement != null && info[theNextElement.getIndex()]

@@ -5194,7 +5194,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param arrayJREF a JREF index for the source array 
    * @param index the index for the targeted element
    * @param objectJREF a JREF index for the object to store into the array
-   * @return
    * @exception ArrayStoreException if the element types do not match
    *            ArrayIndexOutOfBoundsException if the index is out of range
    */

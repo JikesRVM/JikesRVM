@@ -6,8 +6,7 @@
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
  *
- * @see the architecture-specific class VM_OptGCMapIterator for the final
- * details.
+ * @see VM_OptGCMapIterator 
  *
  * @author Michael Hind
  */

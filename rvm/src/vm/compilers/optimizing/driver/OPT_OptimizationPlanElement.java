@@ -61,7 +61,6 @@ public abstract class OPT_OptimizationPlanElement {
    * Generate (to the sysWrite stream) a report of the
    * time spent performing this element of the optimization plan. 
    *
-   * @see OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport
    * @param indent Number of spaces to indent report.
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.

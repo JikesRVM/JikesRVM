@@ -9,7 +9,7 @@
  * this model is described in the OOPSLA'2000 paper, but we've made
  * some improvements since then...
  *
- * @see VM_MultiLevelAdaptiveModel.java
+ * @see VM_MultiLevelAdaptiveModel
  *
  * @author Mike Hind
  * @author Dave Grove

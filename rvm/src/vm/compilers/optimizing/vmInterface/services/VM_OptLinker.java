@@ -7,7 +7,6 @@
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
  * runtime services.
  *
- * @see OPT_ConvertToLowerLevelIR
  * @see OPT_FinalMIRExpansion
  * @see VM_OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see VM_TableBasedDynamicLinker 

@@ -318,7 +318,6 @@ public class VM_Class extends VM_Type
 
   /**
    * Should the methods of this class be compiled with 
-   * @see VM_BootImageInitialization
    */ 
   final boolean isBootImageInitialized () {
     VM_Class[] interfaces = getDeclaredInterfaces();

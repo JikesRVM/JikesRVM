@@ -8,7 +8,7 @@ import instructionFormats.*;
 /**
  * This class implements the machine-specific magics for the opt compiler. 
  *
- * @see OPT_GenerateMagic.java for the machine-independent magics.
+ * @see OPT_GenerateMagic for the machine-independent magics.
  * 
  * @author Dave Grove
  * @author Mauricio Serrano

@@ -51,7 +51,7 @@
  * that can be used to compute the target of a tableswitch.  This
  * support assumes a particular code sequence for tableswitches
  * (followed by baseline and optimizing compilers).  See {@link
- * emitOFFSET_Imm_ImmOrLabel} and {@link patchCaseLabel} for
+ * #emitOFFSET_Imm_ImmOrLabel} and {@link #patchCaseLabel} for
  * details. </P>
  *
  *  <P> The automatically-generated emit methods of this assembler
@@ -885,7 +885,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    *         RET (goes to adjusted location in [SP])
    * </PRE>
    *
-   *  <P> The above mechanism means that the RET instruction is
+   * <P> The above mechanism means that the RET instruction is
    * effectively a register-indexed relative jump (the whole reason
    * for this mess is that IA32 has no such instruction).  The offset
    * is based on the case expression, and the jump is relative to the
@@ -893,7 +893,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * relative to the start of the table, not their own addresses
    * within it. </P>
    *
-   *  <P> Therefore, handling of forward bracnhes is slightly different
+   * <P> Therefore, handling of forward bracnhes is slightly different
    * from the normal case of JMP and Jcc; when a forward branch is
    * found, the current table entry (c) is stored into the table.
    * When the fixup code runs, it uses this index to compute the
@@ -902,14 +902,14 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * the case index c is used to find the start of the table to store
    * te appropriate relative offset. </P>
    *
-   * @see patchSwitchCase
+   * @see #patchSwitchCase
    *
    * @param c the table entry being emitted (i.e. the value of the
    * switch expression corresponding to this target)
    * @param mTarget the method-relative target offset 
    * @param bTarget the label associated with the branch target instrucion 
    */
-  void emitOFFSET_Imm_ImmOrLabel (int c, int mTarget, int bTarget) {
+  void emitOFFSET_Imm_ImmOrLabel(int c, int mTarget, int bTarget) {
     int miStart = mi;
     if (0 < mTarget) { // resolved (backward) reference 
       int delta = mTarget - (mi - (c<<2));  // delta is from start of table of 4-byte entries (not this entry)
@@ -924,7 +924,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /**
-   *  Patch a tableswitch offset table entry at the given source
+   * Patch a tableswitch offset table entry at the given source
    * index.  This method resolves the table entry at the given source
    * index to point to the current instruction.  
    *
@@ -1241,8 +1241,8 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * forward or backward; it simply calls either the Label or Imm
    * emit method.
    *
-   * @see emitJCC_Cond_Label
-   * @see emitJCC_Cond_Imm
+   * @see #emitJCC_Cond_Label
+   * @see #emitJCC_Cond_Imm
    *
    * @param cond the IA32 ISA condition code bits to mask into opcode
    * @param mTarget the method-relative target offset 

@@ -207,7 +207,7 @@ public final class OPT_Instruction
   /**
    * Override and refine the operator-based trait (characteristic)
    * information. 
-   * @see OPT_Operator.java
+   * @see OPT_Operator
    */
   private byte operatorInfo;
 
@@ -1901,8 +1901,8 @@ public final class OPT_Instruction
   /**
    * For IR internal use only;   general clients should always use higer level
    * mutation functions. 
-   * Link this and other together by setting this's {@link next} field to
-   * point to other and other's {@link prev} field to point to this.
+   * Link this and other together by setting this's {@link #next} field to
+   * point to other and other's {@link #prev} field to point to this.
    * 
    * @param other the instruction to link with.
    */

@@ -248,8 +248,6 @@ public class FileSupport {
    * a file server), or a letter followed by a colon.
    *
    * @return		<code>true</code> if this File is absolute, <code>false</code> otherwise.
-   *
-   * @see			java.lang.File#getPath
    */
   public static boolean isAbsolute(File f) {
     return f.getPath().charAt(0) == '/';
@@ -261,7 +259,6 @@ public class FileSupport {
    *
    * @return		<code>true</code> if this File is a file, <code>false</code> otherwise.
    *
-   * @see			java.lang.File#getPath
    * @see			java.lang.SecurityManager#checkRead
    */
   public static boolean isFile(File f) {
@@ -277,7 +274,6 @@ public class FileSupport {
    *
    * @return		the time this File was last modified.
    *
-   * @see			java.lang.File#getPath
    * @see			java.lang.SecurityManager#checkRead
    */
   public static long lastModified(File f) {
@@ -292,7 +288,6 @@ public class FileSupport {
    *
    * @return		the number of bytes in the file.
    *
-   * @see			java.lang.File#getPath
    * @see			java.lang.SecurityManager#checkRead
    */
   public static long length(File f) {
@@ -333,7 +328,6 @@ public class FileSupport {
    *
    * @return		an array of Strings or <code>null</code>.
    *
-   * @see			java.lang.File#getPath
    * @see			#isDirectory
    * @see			java.lang.SecurityManager#checkRead
    */
@@ -456,8 +450,7 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to get the file pointer position
    *									of this RandomAccessFile.
    */
-  public static long getFilePointer(RandomAccessFile f) throws IOException
-  {
+  public static long getFilePointer(RandomAccessFile f) throws IOException {
     int curpos = seek(f.fd.fd, 0, SEEK_CUR);
     if (curpos == -1)
       throw new IOException();
@@ -472,8 +465,7 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to get the file length
    *									of this RandomAccessFile.
    */
-  public static long length(RandomAccessFile f) throws IOException
-  {
+  public static long length(RandomAccessFile f) throws IOException {
     //!!TODO - probably an fstat() would be faster than three lseeks()...
     //!!TODO - also, this computation is not thread safe if
     //         multiple threads do read/write/seek on file simultaneously
@@ -495,13 +487,11 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException	If an error occurs attempting to read from this RandomAccessFile.
    *
-   * @see 		#write(RandomAccessFile,byte[])
    * @see 		#write(RandomAccessFile,byte[], int, int)
    * @see 		#write(RandomAccessFile,int)
    */
   public static int read(RandomAccessFile f) throws IOException {
-    if (f.fd != null)
-    {
+    if (f.fd != null) {
       int rc = readByte(f.fd.fd);
       if (rc < -1)	throw new IOException();
       else		return rc;
@@ -517,8 +507,7 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException 	If the stream is already closed or another IOException occurs.
    */
-  public static void seek(RandomAccessFile f, long pos) throws IOException
-  {
+  public static void seek(RandomAccessFile f, long pos) throws IOException {
     if (seek(f.fd.fd, (int)pos, SEEK_SET) == -1)
       throw new IOException();
   }
@@ -533,15 +522,12 @@ public class FileSupport {
    *
    * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
    *
-   * @see 		#read()
-   * @see 		#read(byte[])
-   * @see 		#read(byte[], int, int)
+   * @see 		#read(RandomAccessFile)
    *
    * @exception	java.lang.ArrayIndexOutOfBoundsException If offset or count are outside of bounds.
    */
   public static void write(RandomAccessFile f, byte[] buffer, int offset, int count) throws IOException {
-    if (f.fd != null)
-    {
+    if (f.fd != null) {
       int rc = writeBytes(f.fd.fd, buffer, offset, count);
       if (rc != count) throw new IOException();
       return;
@@ -559,8 +545,6 @@ public class FileSupport {
    * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
    *
    * @see 		#read(RandomAccessFile)
-   * @see 		#read(RandomAccessFile,byte[])
-   * @see 		#read(RandomeAccessFile,byte[], int, int)
    */
   public static void write(RandomAccessFile f, int oneByte) throws IOException {
     if (f.fd != null)

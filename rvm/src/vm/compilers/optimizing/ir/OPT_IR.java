@@ -52,7 +52,7 @@ public final class OPT_IR implements OPT_Operators {
   /**
    * Control for (dynamic) IR invariant checking.
    * By default PARANOID is <code>false</code>. 
-   * PARANOID must not be true unless {@link VM#VerifyAssetrtions}
+   * PARANOID must not be true unless {@link VM#VerifyAssertions}
    * is also <code>true</code>.
    * When PARANOID is <code>true</code> many IR utility functions
    * check the invariants on which they depend, and 
@@ -92,7 +92,7 @@ public final class OPT_IR implements OPT_Operators {
 
   /**
    * Every unit of compiled code in the system is assigned a unique id
-   * by the {@link VM_CompiledMethodDictionary compiled method dictionary}.
+   * by the compiled method dictionary.
    * compiledMethodId contains the id assigned to the current compilation.
    */
   public int compiledMethodId;

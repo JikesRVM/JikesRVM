@@ -10,8 +10,7 @@
  *
  * @author Stephen Smith
  */  
-public class VM_ScanStack
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
   // quietly validates each ref reported by map iterators
   static final boolean VALIDATE_STACK_REFS = true;
@@ -31,6 +30,7 @@ public class VM_ScanStack
   // outputs names of methods as their frames are scanned
   static final boolean TRACE_STACKS = DUMP_STACK_REFS || false;
 
+  static int stackDumpCount = 0;
   /**
    * Scans a threads stack during collection to find object references.
    * Locates and updates references in stack frames using stack maps,
@@ -44,9 +44,7 @@ public class VM_ScanStack
    * @param top_frame      address of stack frame at which to begin the scan
    * @param relocate_code  if true, relocate code & update return addresses
    */
-  static int stackDumpCount = 0;
-  static void 
-  scanStack (VM_Thread t, VM_Address top_frame, boolean relocate_code)  {
+  static void scanStack(VM_Thread t, VM_Address top_frame, boolean relocate_code)  {
     VM_Address       ip, fp, code, newip, newcode, refaddr, prevFp;
     int                    delta;
     VM_Method              method;

@@ -738,13 +738,12 @@ public abstract class OPT_Operand {
    * the two operands is an illegal value).  For exmaple,
    * meet(5.0, "hi") would evalaute to bottom.
    * Meet returns op1 iff conservativelyApproximates(op1, op2):
-   * this is exploited in places like {@link OPT_BC2IR#rectifyLocals}
-   * and {@link OPT_BC2IR#rectifyStacks} to avoid doing redundant
+   * this is exploited in BC2IR to avoid doing redundant
    * work.  
    * <p>
    * Unfortunately there is a fair amount of code duplication
-   * between {@link #conservativelyApproximates()} and 
-   * {@link #meet()}, but factoring out the common control logic
+   * between {@link #conservativelyApproximates} and 
+   * {@link #meet}, but factoring out the common control logic
    * is a non-trivial task. 
    *
    * @param op1  the first operand to meet
