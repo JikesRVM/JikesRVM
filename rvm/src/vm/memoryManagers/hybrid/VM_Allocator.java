@@ -855,10 +855,6 @@ public class VM_Allocator
 
   static VM_Type arrayOfIntType;   // VM_Type of int[], to detect code objects
 
-  // following included because referenced by refcountGC files (but not used)
-  static int bufCount;
-  static boolean  gc_collect_now = false;  // not used here: needed for VM_RCxx - FIX
-
   final static int  OUT_OF_BLOCKS = -1;
 
   static final int  MARK_VALUE = 1;               // designates "marked" objects in Nursery
@@ -933,7 +929,7 @@ public class VM_Allocator
   static VM_BlockControl[]  init_blocks;	
   static int[]              blocks;	// 1 per BLKSIZE block of the heap
 				
-  static int     gcCount      = 0;  // updated every entry to gc_collect
+  static int     gcCount      = 0;  // updated every entry to collect
   static int     gcMajorCount = 0;  // major collections
   static int     majorCollectionThreshold;   // minimum # blocks before major collection
   static boolean gcInProgress = false;
@@ -1748,7 +1744,7 @@ public class VM_Allocator
 
     }  // END OF SINGLE THREAD SECTION
 
-    // all GC threads return to gc_collect
+    // all GC threads return to collect
     return;
 
   }  // gcCollectMinor
@@ -2759,7 +2755,7 @@ public class VM_Allocator
       while (next != OUT_OF_BLOCKS) {
         this_block = VM_Magic.addressAsBlockControl(blocks[next]);
         if (Debug && (this_block.mark == null))
-          VM.sysWrite(" In gc_collect, found block with no mark \n");
+          VM.sysWrite(" In collect, found block with no mark \n");
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
            VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
         this_block.live = false;
@@ -2776,7 +2772,7 @@ public class VM_Allocator
    * All GC threads execute in parallel.
    */
   public static void
-    gc_collect () {
+    collect () {
 
     double tempTime;
     int blocksBefore = blocks_available;
@@ -2784,7 +2780,7 @@ public class VM_Allocator
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     // set running threads context regs so that a scan of its stack
-    // will start at the caller of gc_collect (ie. VM_CollectorThread.run)
+    // will start at the caller of collect (ie. VM_CollectorThread.run)
     //
     int fp = VM_Magic.getFramePointer();
     int caller_ip = VM_Magic.getReturnAddress(fp);
@@ -2798,13 +2794,13 @@ public class VM_Allocator
     if (RENDEZVOUS_WAIT_TIME) myThread.rendezvousWaitTime += VM_Time.now() - tempTime;
 
     if (TRACE && (myThread.gcOrdinal == 1))
-      VM_Scheduler.trace("gc_collect: after Minor Collection","blocks_available =",blocks_available);
+      VM_Scheduler.trace("collect: after Minor Collection","blocks_available =",blocks_available);
 
     if (outOfSmallHeapSpace) {
       if (myThread.gcOrdinal == 1) {
-	VM_Scheduler.trace("gc_collect:","Out Of Memory - could not complete Minor Collection");
-	VM_Scheduler.trace("gc_collect:","blocks_available (before) =",blocksBefore);
-	VM_Scheduler.trace("gc_collect:","blocks_available (after)  =",blocks_available);
+	VM_Scheduler.trace("collect:","Out Of Memory - could not complete Minor Collection");
+	VM_Scheduler.trace("collect:","blocks_available (before) =",blocksBefore);
+	VM_Scheduler.trace("collect:","blocks_available (after)  =",blocks_available);
 	reportBlocks();
 	outOfMemory();
       }
@@ -2827,7 +2823,7 @@ public class VM_Allocator
 
       if (myThread.gcOrdinal == 1) {
 	if (TRACE)
-	  VM_Scheduler.trace("gc_collect: after Major Collection","blocks_available =",blocks_available);
+	  VM_Scheduler.trace("collect: after Major Collection","blocks_available =",blocks_available);
 	if (VM.verboseGC && (blocks_available < majorCollectionThreshold))
 	  VM_Scheduler.trace("WARNING","after collection low blocks available =",blocks_available);
 
@@ -2837,9 +2833,9 @@ public class VM_Allocator
 	gcInProgress    = false;
 	initGCDone      = false;
       }
-      if (TRACE) VM_Scheduler.trace("gc_collect:","returning");
+      if (TRACE) VM_Scheduler.trace("collect:","returning");
     }
-  }  // gc_collect
+  }  // collect
 
   static void
     dumpblocks () {

@@ -162,7 +162,7 @@ public class VM_Allocator
         
   static int    allocCount  = 0; // updated every entry to allocate<x>
   static int    fastAllocCount  = 0; // updated every entry to allocate<x>
-  static int    gcCount  = 0; // updated every entry to gc_collect
+  static int    gcCount  = 0; // updated every entry to collect
   // major collections in generational scheme
   static int    gcMajorCount = 0; 
   static boolean gc_collect_now = false; // flag to do a collection (new logic)
@@ -1818,7 +1818,7 @@ tib));
         if (GC_TRACEALLOCATOR) block_count++;
         this_block = VM_Magic.addressAsBlockControl(blocks[next]);
         if (Debug && (this_block.mark == null))
-          VM.sysWrite(" In gc_collect, found block with no mark \n");
+          VM.sysWrite(" In collect, found block with no mark \n");
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
            VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
         this_block.live = false;
@@ -1829,7 +1829,7 @@ tib));
 
 
   static void
-  gc_collect () {
+  collect () {
     int i, ii;
     byte[]  blocktemp;  // used to exchange alloc and mark
     byte[]  bytetemp;    // used to exchange Alloc and Mark
@@ -1868,7 +1868,7 @@ tib));
     if (DebugLarge) freeLargeSpaceDetail();
 
     if (flag2nd) {
-			VM_Scheduler.trace(" gc_collectstart:", "flag2nd on");
+			VM_Scheduler.trace(" collectstart:", "flag2nd on");
 			freeSmallSpaceDetails(true);
 		}
 
@@ -1964,7 +1964,7 @@ tib));
         if (GC_TRACEALLOCATOR) block_count++;
         this_block = VM_Magic.addressAsBlockControl(blocks[next]);
         if (Debug && (this_block.mark == null)) 
-          VM.sysWrite(" In gc_collect, found block with no mark \n");
+          VM.sysWrite(" In collect, found block with no mark \n");
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
 		       VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
         this_block.live = false;
@@ -2400,7 +2400,7 @@ tib));
 			VM_Scheduler.trace(" End of gc:", "blocks_available = ", blocks_available);
     }
  
-  }  // end of gc_collect
+  }  // end of collect
 
   /**  gc_scanStacks():
   *  loop through the existing threads and scan their stacks by
@@ -2794,7 +2794,7 @@ tib));
     int mypid_before, mypid_after;
 
     //  Tell gc thread to reclaim space, then wait for it to complete its work.
-    //  The gc thread will do its work by calling gc_collect(), below.
+    //  The gc thread will do its work by calling collect(), below.
     //
     VM_CollectorThread.collect(VM_CollectorThread.collect);
 

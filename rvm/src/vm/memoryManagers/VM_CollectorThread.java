@@ -175,7 +175,7 @@ class VM_CollectorThread extends VM_Thread
    * Run method for collector thread (one per VM_Processor).
    * Enters an infinite loop, waiting for collections to be requested,
    * performing those collections, and then waiting again.
-   * Calls VM_Allocator.gc_collect to perform the collection, which
+   * Calls VM_Allocator.collect to perform the collection, which
    * will be different for the different allocators/collectors
    * that Jalaepno can be configured to use.
    */
@@ -274,7 +274,7 @@ class VM_CollectorThread extends VM_Thread
       //
       if (MEASURE_WAIT_TIMES) startingTime = VM_Time.now() - startTime;
 
-      // MOVE THIS INTO gc_collect
+      // MOVE THIS INTO collect
       //
       // setup common workqueue for num VPs participating, used to be called once.
       // now count varies for each GC, so call for each GC
@@ -283,7 +283,7 @@ class VM_CollectorThread extends VM_Thread
     
       if (trace) VM_Scheduler.trace("VM_CollectorThread", "starting collection");
       if (getThis().isActive) {
-	VM_Allocator.gc_collect();     // gc
+	VM_Allocator.collect();     // gc
       }
       if (trace) VM_Scheduler.trace("VM_CollectorThread", "finished collection");
       

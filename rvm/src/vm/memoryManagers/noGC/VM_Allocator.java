@@ -59,7 +59,7 @@ public class VM_Allocator implements VM_Constants {
     gc() {
     
     // Tell gc thread to reclaim space, then wait for it to complete its work.
-    // The gc thread will do its work by calling gc_collect(), below.
+    // The gc thread will do its work by calling collect(), below.
     //
     VM_CollectorThread.collect(VM_CollectorThread.collect);
   }
@@ -342,7 +342,7 @@ public class VM_Allocator implements VM_Constants {
    * Reclaim unreferenced memory (ignored)
    */
   static void
-    gc_collect()  {
+    collect()  {
     // VM.sysWrite("VM_Allocator: gc unimplemented: nothing reclaimed\n");
   }
   

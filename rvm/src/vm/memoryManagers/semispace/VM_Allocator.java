@@ -1009,14 +1009,14 @@ public class VM_Allocator
    * method by each collector thread participating in a collection.
    */
   static void
-  gc_collect () {
+  collect () {
     int i;
     short[]	shorttemp;	// used to exchange large object Alloc and Mark
     boolean   selectedGCThread = false;  // indicates 1 thread to generate output
  
     // ASSUMPTIONS:
-    // initGCDone flag is false before first GC thread enter gc_collect
-    // InitLock is reset before first GC thread enter gc_collect
+    // initGCDone flag is false before first GC thread enter collect
+    // InitLock is reset before first GC thread enter collect
     //
  
     // following just for timing GC time
@@ -1028,14 +1028,14 @@ public class VM_Allocator
     int mypid = VM_Processor.getCurrentProcessorId();  // id of processor running on
 
     // set running threads context regs so that a scan of its stack
-    // will start at the caller of gc_collect (ie. VM_CollectorThread.run)
+    // will start at the caller of collect (ie. VM_CollectorThread.run)
     //
     int fp = VM_Magic.getFramePointer();
     int caller_ip = VM_Magic.getReturnAddress(fp);
     int caller_fp = VM_Magic.getCallerFramePointer(fp);
     VM_Thread.getCurrentThread().contextRegisters.setInnermost( caller_ip, caller_fp );
  
-    if (TRACE) VM_Scheduler.trace("VM_Allocator","in gc_collect starting GC");
+    if (TRACE) VM_Scheduler.trace("VM_Allocator","in collect starting GC");
  
     // BEGIN SINGLE GC THREAD SECTION - GC INITIALIZATION
  
@@ -1463,7 +1463,7 @@ public class VM_Allocator
 
     // all GC threads return, having completed collection
     return;
-  }  // gc_collect
+  }  // collect
 
 
   /**

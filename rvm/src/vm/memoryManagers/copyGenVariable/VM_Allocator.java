@@ -756,10 +756,6 @@ public class VM_Allocator
   // and will thus require a d-cache flush before the code is executed.
   static VM_Type arrayOfIntType;
   
-  // following included because referenced by refcountGC files (but not used)
-  static boolean gc_collect_now = false; // flag to do a collection (new logic)
-  static int bufCount;
-  
   /**
    * Size of a processor local region of the heap used for local allocation without
    * synchronization, also the size of the processor local chunks of ToSpace
@@ -1002,13 +998,13 @@ public class VM_Allocator
    * method by each collector thread participating in a collection.
    */
   static void
-    gc_collect () {
+    collect () {
     int       i,temp,bytes;
     boolean   selectedGCThread = false;  // indicates 1 thread to generate output
     
     // ASSUMPTIONS:
-    // initGCDone flag is false before first GC thread enter gc_collect
-    // InitLock is reset before first GC thread enter gc_collect
+    // initGCDone flag is false before first GC thread enter collect
+    // InitLock is reset before first GC thread enter collect
     //
     
     // following just for timing GC time
@@ -1020,14 +1016,14 @@ public class VM_Allocator
     int mypid = VM_Processor.getCurrentProcessorId();  // id of processor running on
 
     // set running threads context regs so that a scan of its stack
-    // will start at the caller of gc_collect (ie. VM_CollectorThread.run)
+    // will start at the caller of collect (ie. VM_CollectorThread.run)
     //
     int fp = VM_Magic.getFramePointer();
     int caller_ip = VM_Magic.getReturnAddress(fp);
     int caller_fp = VM_Magic.getCallerFramePointer(fp);
     VM_Thread.getCurrentThread().contextRegisters.setInnermost( caller_ip, caller_fp );
     
-    if (TRACE) VM_Scheduler.trace("VM_Allocator","in gc_collect starting GC");
+    if (TRACE) VM_Scheduler.trace("VM_Allocator","in collect starting GC");
     
     // BEGIN SINGLE THREAD SECTION - GC INITIALIZATION
     
@@ -1669,7 +1665,7 @@ public class VM_Allocator
     
     // all GC threads return, having completed Major collection
     return;
-  }  // gc_collect
+  }  // collect
   
   
   // reset heap pointers, reset locks for next GC
