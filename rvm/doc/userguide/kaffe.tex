@@ -1,3 +1,9 @@
+\newcommand{\rvmbuild}[1]{\$RVM\_BUILD\texttt{/#1}}%
+\newcommand{\gft}{\texttt{GenerateFromTemplate}}%
+\newcommand{\gid}{\texttt{GenerateInterfaceDeclarations}}%
+\newcommand{\biw}{\texttt{BootImageWriter}}%
+%
+%
 Starting with Jikes RVM version 2.3.2 (or the Jikes RVM 2.3.1 CVS head
 as of March 17th, 2004), you can use the Kaffe open-source (GPL)
 virtual machine to boot Jikes RVM under Linux, as an alternative to
@@ -7,26 +13,22 @@ software that used to be required to build Jikes RVM.
 You can \xlink{download Kaffe}[ from {\tt \KaffeURL}]{\KaffeURL} or,
 under SuSE Linux, install the {\tt kaffe} RPM.  
 
+\subsection{Caveats}
+
 If you want to build under Kaffe, please remember that building Jikes
 RVM with the Kaffe VM is not nearly as well-tested as the Sun VM.
 There are some caveats here:
 
 \begin{itemize}
 
-\item As of this writing (March 21, 2004), the only Kaffe version we've
+\item As of this writing (March 26, 2004), the only Kaffe version we've
   tested against is 1.1.4.  
 
 \item So far, we have only successfully built {\tt BaseBase}{\it *}
-  images.  Building a \texttt{BaseAdaptive}{\it *} image makes an
-  image that currently throws an exception even when running a simple
-  ``Hello, World'' program.  This appears to be due to a bug how Kaffe
-  1.1.4 runs the template expander, and we are actively working to
-  track it down.  
+(the {\tt prototype} configuration) images doing a pure Kaffe build.
+If you want to build an image that will run Jikes RVM's optimizing JIT
+compiler, you will have to go through a two-stage boot process.
 
-  The bug is discussed in 
-  \xlink{\htmlonly{this}\texonly{a May, 2004} 
-         message to the \texttt{jikesrvm-core} mailing list}{%
-    http://www-124.ibm.com/pipermail/jikesrvm-core/2004-March/000704.html}.
 
 \item We haven't run the regression test suite through on Kaffe yet.
   Some aspects of it appear to use features of the Sun JDK, and will
@@ -46,3 +48,121 @@ patches for building Jikes RVM under other free Java systems.  We are
 currently working on being able to use Jikes RVM itself to write the
 boot image.  This does not yet work, because of namespace issues.
 
+\subsection{Build a Jikes RVM Image with the Optimizer's Adaptive System}
+\subsubsection{Template Expansion}
+  There is a bug in how Kaffe 1.1.4 runs the template expander (\gft)
+  when building the \jrvm{} optimizing compiler.  (We are working with
+  the Kaffe developers to track down that bug.)
+
+  The bug is discussed in 
+  \xlink{\htmlonly{this}\texonly{a May, 2004} 
+         message to the \texttt{jikesrvm-core} mailing list}{%
+    http://www-124.ibm.com/pipermail/jikesrvm-core/2004-March/000704.html}.
+
+
+Because of this bug, if you want to build an image that uses the
+optimizing compiler (and in order to get good performance from Jikes
+RVM, you'll have to do precisely that), you will need to use a
+two-stage boot process.
+
+First, build a {\tt prototype} image as discussed above.  Then, create
+a new configuration file, this time following the example of {\tt
+\$RVM\_\-ROOT/rvm/config/exp/i686-pc-linux-gnu.kaffe-with-help.augart}.    
+In your new config file, set {DONOR\_RVM\_ROOT} to be the old RVM\_ROOT
+(this will usually be the same as the current RVM\_ROOT), and set
+DONOR\_RVM\_BUILD to be the RVM\_BUILD for the \texttt{prototype}
+image you just made.
+
+The \jrvm{} you just built will be the Host VM when you're running
+\gft{}.  This is the second stage of the boot process.  Because the
+Host \jrvm{} is just compiled with the baseline compiler, and because
+you're expanding a lot more information, it will take much longer to
+run \texttt{jbuild.expand} during this second build --- on this
+author's current computer, about 120 seconds, versus less than three
+seconds during the first build.
+
+If you plan to hack on Jikes RVM, you will probably be making a lot of
+builds.  You can use the newly made optimizing build as the new Donor VM.
+Rename the second stage's \${RVM_BUILD} to something like
+\$\{RVM_ROOT\}\texttt{/DonorRVMBuild}, and set 
+DONOR\_RVM\_BUILD in your configuration file to point to
+\$\{RVM_ROOT\}\texttt{/DonorRVMBuild}.  
+
+\paragraph{Outstanding Bug} Do not use a {\tt prototype-opt} build or
+a \texttt{BaseAdaptiveCopyMS} build as
+your DONOR\_RVM\_BUILD.  On Saturday, March 27, 2004, a bug
+was reported on the \texttt{jikesrvm-core} list that a
+\texttt{prototype-opt} build (an alias for a
+\texttt{BaseAdaptiveGenMS} build) crashed with a
+\texttt{NullPointerException} in the garbage collector while expanding
+one of the templates.  A \texttt{BaseAdaptiveCopyMS} build also
+crashed.  This author recommends using a straight prototype build
+until the bug is resolved.  Luckily, you don't have to expand the
+templates very often.
+
+
+\subsection{What does the Donor VM (Host VM) do?}
+
+You must remember that Jikes RVM is written almost entirely in Java.
+To build Jikes RVM, we need to be able to run the Jikes RVM compiler
+on Jikes RVM itself.  And in order to run that compiler, we need to
+have an already running Host VM.  
+
+We use a running Host VM at three stages in the Jikes RVM
+building process:
+
+\begin{enumerate}
+
+%
+\item \rvmbuild{\IndexTexttt{jbuild.expand}} runs \gft\IndexTexttt{GenerateFromTemplate}, a Java program.
+This is a macro processor with recursion, looping,
+and so on.   In an x86 \jrvm{} build that includes the adaptive system and
+optimizing compiler, \gft{} produces 115,900 lines of Java code, over
+4 MB worth.    In an x86 \jrvm{} build that just includes the baseline
+compiler, \gft{} still emits 16,416 lines of code, over 600 KB
+worth.    \gft's output is in \rvmbuild{\IndexTexttt{RVM.generatedSources}}.
+
+Kaffe 1.1.4 succeeds in this phase for a baseline compiled build, but
+is slightly off for an optimizing build.  That is why, to build Jikes
+RVM entirely with free software tools, you will need to run a
+two-stage build the first time.  Once you have a built instance of
+Jikes RVM, you can use that as your host VM for this phase in future
+builds.
+
+\item \rvmbuild{\IndexTexttt{jbuild.interfaceDeclarations}} 
+launches the Java program \gid\IndexTexttt{GenerateInterfaceDeclarations}, whose product is
+``\texttt{RVM.scratch/InterfaceDeclarations.h}''.
+\texttt{InterfaceDeclarations.h} is a C++ header file containing the layout of
+the Jikes RVM boot record.  It also contains additional declarations
+that C and C++ programs may need.
+
+Jikes RVM cannot run \gid{} at this time.  That is because \gid{}
+needs to know how Jikes RVM will lay out its boot record, and the only
+way to do that is for the host to load Jikes RVM's classes and run it
+in a sort of zombie state, just enough to get it to lay out the
+VM\_BootRecord class in memory and report back on the offsets of the
+various fields in that class.  We enter that zombie state by calling
+\texttt{VM.initForTool()}, which exists only for this one use. 
+ If you run \gid{} under \jrvm{},
+then \texttt{VM.initForTool()} reinitializes the running VM.  The
+runtime system immediately forgets that it already loaded a currently
+executing program, and quickly aborts with a VM internal error.
+
+
+\item \rvmbuild{\IndexTexttt{jbuild.linkBooter}} runs the Java program
+\IndexTexttt{BootImageWriter}.  This program loads Jikes RVM's classes
+and, like \gid, half-animates the just-loaded \jrvm{} into a zombie
+state --- this time, via \IndexTexttt{VM.initForBootImageWriter()}.  Once
+again, a running instance of \jrvm{} does not like to become into a
+zombie.
+
+\end{enumerate}
+
+%% \subsection{Other free VMs}
+
+%% Right now, the other free VMs we've tried to work with as the donor VM
+%% (host VM) are:
+
+%% \begin{itemize}
+
+%% \end{itemize}
