@@ -223,7 +223,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                     collisionCount/gcCount);
     }
 
-    if (Options.verbose >= 1 && gcCount>0) {
+    if (Options.verbose >= 3 && gcCount>0) {
       VM.sysWrite("GC Summary: Average Phase Time:");
       VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
       VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");
