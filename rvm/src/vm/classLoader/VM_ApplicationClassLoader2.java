@@ -33,6 +33,8 @@ import java.io.*;
  */
 public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
 
+  VM_BootstrapClassLoader parent = VM_BootstrapClassLoader.getBootstrapClassLoader();
+
   private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
 
   private final static boolean DBG = false;
@@ -97,7 +99,10 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
 
   /** Prevent other classes from constructing one. */
   private VM_ApplicationClassLoader2() { 
-    super(null); 
+    super(null);                // We could make this a reference to the
+                                // bootstrap class loader instead of null --
+                                // it comes out to the same thing, or should.
+    
   }
 
   /* Interface */
@@ -110,7 +115,14 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
   
 
   public synchronized Class loadClass(String className, boolean resolveClass)
-    throws ClassNotFoundException {
+    throws ClassNotFoundException 
+  {
+    try {
+      return parent.loadClass(className, resolveClass);
+    } catch (ClassNotFoundException cnfe) {
+      // Not in the system path; try here in the application  instead.
+    }
+
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);
     }
@@ -134,7 +146,13 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
-  public Class findClass (String className) throws ClassNotFoundException {
+  public Class findClass(String className) throws ClassNotFoundException {
+    try {
+      return parent.findClass(className);
+    } catch (ClassNotFoundException cnfe) {
+      // Not in the system path; try here instead.
+    }
+
     if (className.startsWith("[")) {
       VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
                                                                VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
@@ -198,6 +216,10 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
   }
 
   public InputStream getResourceAsStream(final String name) {
+    InputStream ret = parent.getResourceAsStream(name);
+    if (ret != null)
+      return ret;
+
     Handler findStream = new Handler() {
         InputStream stream;
 
@@ -216,6 +238,9 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
   }
 
   public URL findResource(final String name) {
+    URL ret = parent.findResource(name);
+    if (ret != null)
+      return ret;
     Handler findURL = new Handler() {
         URL url;
 
@@ -234,6 +259,12 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
   }
 
   public Enumeration findResources(final String name) {
+    Enumeration ret = parent.findResources(name);
+    if (ret != null && ret.hasMoreElements()) {
+      return ret;
+    }
+    ret = null;
+
     Handler findURL = new Handler() {
         Vector urls;
 
