@@ -7,13 +7,15 @@ If your system meets certain prerequisites, the install process is
 quite simple; if not, you may need to do some preparatory work.  We
 present the simple case first, then present details for installing
 on other platforms.  
-\link{Subsequently\texonly{ 
+\link{Subsequently,
+ we shall discuss further installation steps for
+running Eclipse on Jikes RVM}%
+[
 %% NOTE: Commenting out the following line in favor of the subsequent one
 %% works around an apparent bug in Hyperlatex's handling of \Ref and \Pageref.
-% (Section~\Ref, page~\Pageref)},
- (Section~\ref{section:eclipse}, page~\pageref{section:eclipse})},
- we shall discuss further installation steps for
-running Eclipse on Jikes RVM}{section:eclipse}.\@
+% (Section~\Ref, page~\Pageref)%
+ (Section~\ref{section:eclipse}, page~\pageref{section:eclipse})%
+]{section:eclipse}.\@
 
 \subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.x, or SuSE Linux 8.x for~Intel~x86}
 
@@ -900,7 +902,7 @@ the userguide and Javadoc\TMweb{} API, corresponding to the latest HEAD of the C
 repository.
 
 If you would like to recover the userguide or Javadoc for an older release
-of RVM, you can rebuild the documentation locally.  See the Makefile in
+of \jrvm{}, you can rebuild the documentation locally.  See the Makefile in
 \texttt{\$RVM\_\-ROOT/rvm/doc/userguide} for rules on how to build the
 HTML userguide using
 \xlink{\texttt{hyperlatex}}[\footnote{You can get \texttt{hyperlatex}
