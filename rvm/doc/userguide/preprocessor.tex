@@ -10,8 +10,9 @@ for it.
 
 \begin{verbatim}
 
-Usage: preprocessModifiedFiles [--help]
-        [ --disable-modification-exit-status ] [--trace]
+Usage: preprocessModifiedFiles [--help] [--trace]
+        [ --[no-]undefined-constants-in-conditions ]
+        [ --[no-]only-boolean-constants-in-conditions ]
         [ -D<name>[ =1 | =0 | =<string-value> ] ]... 
         [ -- ] <output directory> [ <input file> ]...
    Preprocess source files that are new or have changed.
@@ -23,8 +24,10 @@ Usage: preprocessModifiedFiles [--help]
    with preprocessing.
 
    Invocation parameters:
-      - zero or more preprocessor directives of the form "-D<name>=1", of the
-        equivalent shorthand form "-D<name>", of the form "-D<name>=0",
+      - zero or more definitions of preprocessor constants
+         of the form "-D<name>=1",
+         of the equivalent shorthand form "-D<name>", 
+         of the form "-D<name>=0",
          and/or of the form "-D<name>=<string-value>".
       - name of directory to receive output files
       - names of zero or more input files
@@ -41,34 +44,48 @@ Usage: preprocessModifiedFiles [--help]
    always means trouble.  This is handy inside Makefiles.
 
 
-   --trace  The preprocessor prints a '.' for each file that did
-          not need to be changed and a '+' for each file that needed
-          preprocessing again.
-
+   --trace  The preprocessor prints a 
+         '.' for each file that did not need to be changed and a 
+          '+' for each file that needed preprocessing.
    --verbose, -v  The preprocessor prints a message for each file
          examined, and prints a summary at the end 
 
    --help, -h  Show this long help message and exit with status 0.
 
-   -D<name>=0 is a no-op; equivalent to never defining <name>.
+   --keep-going, -k  Keep going in spite of errors; still exit with bad status.
+
+   -D<name>=0 is historically a no-op; equivalent to never defining <name>.
+   (However, the --no-undefined-constants-in-conditions flag changes that
+    behavior, requiring that any <name> in an //-#if <name> directive.
+    be defined with -D<name>=0 or -D<name>=1).
 
    -D<name>=1 and -D<name> are equivalent.
 
    -D<name>=<any-string-value-but-0-or-1> will define a constant that is
-       usable in a //-#value dirctive.
+       usable in a //-#value directive.
 
    The following preprocessor directives are recognized
    in source files.  They must be the first non-whitespace characters
    on a line of input.
 
       //-#if    <name>
-            It is not an error for <name> to be undefined.  Only checks
-            whether <name> is defined.
+            Historically, it is not an error for <name> to have never been
+            defined; it's equivalent to -D<name>=0.  This can be 
+            experimentally promoted to an error with the flag
+            --no-undefined-constants-in-conditions.  The historical
+            behavior (default) is explicitly requested with --undefined-constants-in-conditions
+            
+            Historically, //-#if only checks whether <name> is defined.
+            If you specify --only-boolean-constants-in-conditions, then
+            you get stricter behavior where <name> must've been defined with
+            -D<name>=1 or -D<name>=0.
 
             "//-#if" also supports the constructs '!' (invert the sense of 
             the next test), '&&', and '||'.  '!' binds more tightly 
-            than '&&' and '||' do.   '&&' and '||' are at the same precedence.
-            The preprocessor does not support parentheses in //-#if constructs
+            than '&&' and '||' do.   '&&' and '||' are at the same precedence,
+            and are short-circuit evaluated in left-to-right order.
+
+            The preprocessor does not support parentheses in //-#if constructs.
             If you don't mix '&&' and '||' in the same line, you'll be OK.
 
       //-#elif  <name>
@@ -84,8 +101,8 @@ Usage: preprocessModifiedFiles [--help]
 
             It is an error for <preprocessor-symbol> not to be defined.
 
-            It is an error for <preprocessor-symbol> to have been defined with
-            -D<name>=1 or with -D<name>
+            It is an error for <preprocessor-symbol> to have been defined
+            with -D<name>=1 or with -D<name>
 
            (This is an odd restriction, but is the way the code was written
            when I found it.  You're free to rewrite it if you want it to act
