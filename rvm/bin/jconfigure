@@ -633,6 +633,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization

@@ -202,4 +202,37 @@ class OPT_SSA
     return  s;
   }
 
+
+  /**
+   * Fix up any PHI instructions in the given target block to reflect that
+   * the given source block is no longer a predecessor of target.
+   * The basic algorithm is to erase the PHI operands related to the edge
+   * from source to target by sliding the other PHI operands down as required.
+   * 
+   * @param source the source block to remove from PHIs in target
+   * @param target the target block that may contain PHIs to update.
+   */
+  static void purgeBlockFromPHIs(OPT_BasicBlock source,
+				 OPT_BasicBlock target) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
+	 e.hasMoreElements();) {
+      OPT_Instruction s = e.next();
+      if (s.operator() != PHI) return; // all done (assume PHIs are first!)
+      int numPairs = Phi.getNumberOfPreds(s);
+      int dst = 0;
+      for (int src=0; src<numPairs; src++) {
+	OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
+	if (bbop.block == source) {
+	  Phi.setValue(s, src, null);
+	  Phi.setPred(s, src, null);
+	} else {
+	  if (src != dst) {
+	    Phi.setValue(s, dst, Phi.getClearValue(s, src));
+	    Phi.setPred(s, dst, Phi.getClearPred(s, src));
+	  } 
+	  dst++;
+	}
+      }
+    }
+  }
 }

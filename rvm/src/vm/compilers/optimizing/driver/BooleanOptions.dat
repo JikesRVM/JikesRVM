@@ -62,7 +62,10 @@ GUARDED_INLINE_INTERFACE 1 true
 Speculatively inline non-final interface calls
 
 STATIC_SPLITTING 1 true
-CGF splitting to create hot traces based on static heuristics
+CFG splitting to create hot traces based on static heuristics
+
+REDUNDANT_BRANCH_ELIMINATION 2 true
+Eliminate redundant conditional branches
 
 PREEX_INLINE 1 true
 Pre-existence based inlining

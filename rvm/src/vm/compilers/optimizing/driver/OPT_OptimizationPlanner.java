@@ -235,6 +235,8 @@ class OPT_OptimizationPlanner {
         new OPT_DominanceFrontier(), 
         // load elimination
         new OPT_LoadElimination(), 
+	// eliminate redundant conditional branches
+	new OPT_RedundantBranchElimination(),
         // store elimination
         new OPT_DeadStoreElimination(), 
         // path sensitive constant propagation
