@@ -171,9 +171,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTW(PROCESSOR_REGISTER, frameSize-JNI_GC_FLAG_OFFSET, FP);  
 
     // generate the code to map the parameters to AIX convention and add the
-    // second parameter 2 (either the "this" ptr or class if a static method).
-    // The JNI Function ptr first parameter is set before making the call.
-    // Opens a new frame in the JNIRefs table to register the references
+    // second parameter (either the "this" ptr or class if a static method).
+    // The JNI Function ptr first parameter is set before making the call
+    // by the out of line machine code we invoke below.
+    // Opens a new frame in the JNIRefs table to register the references.
     // Assumes S0 set to JNIEnv, kills KLUDGE_TI_REG, S1 & PROCESSOR_REGISTER
     // On return, S0 is still valid.
     //-#if RVM_FOR_LINUX
@@ -186,21 +187,21 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	
     // Get address of out_of_line prolog into S1, before setting TOC reg.
     asm.emitLAddr (S1, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset(), JTOC);
-    asm.emitMTLR  (S1);
+    asm.emitMTCTR (S1);
 
     // set the TOC and IP for branch to out_of_line code
     asm.emitLVALAddr (JTOC,  nativeTOC);      // load TOC for native function into TOC reg
-    asm.emitLVALAddr (KLUDGE_TI_REG,    nativeIP);	      // load TI with address of native code
+    asm.emitLVALAddr (S1,    nativeIP);	      // load S1 with address of native code
 
     // go to VM_OutOfLineMachineCode.invokeNativeFunctionInstructions
     // It will change the Processor status to "in_native" and transfer to the native code.  
     // On return it will change the state back to "in_java" (waiting if blocked).
     //
-    // The native address entrypoint is in register TI
+    // The native address entrypoint is in register S1
     // The native TOC has been loaded into the TOC register
     // S0 still points to threads JNIEnvironment
     //
-    asm.emitBCLRL();
+    asm.emitBCCTRL();
 
     // check if GC has occurred, If GC did not occur, then 
     // VM NON_VOLATILE regs were restored by AIX and are valid.  If GC did occur

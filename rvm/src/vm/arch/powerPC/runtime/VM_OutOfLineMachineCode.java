@@ -80,7 +80,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // free registers: 0, S0, T0
     //
       
-    // create new frame  //Kris Venstermans : Not sure what's loaded
+    // create new frame
     //
     asm.emitMR    (S0,  FP);                  // S0 := old frame pointer
     asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
@@ -359,6 +359,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
+    // move native code address to CTR reg;
+    // do this early so that S1 will be available as a scratch.
+    asm.emitMTCTR (S1); 
+
     //
     // store the return address to the Java to C glue prolog, which is now in LR
     // into transition frame. If GC occurs, the JNIGCMapIterator will cause
@@ -371,7 +375,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
     //-#endif
     //-#if RVM_FOR_AIX
-    asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);  // save return address in stack frame
+    // save return address in stack frame
+    asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
     //-#endif
 
     //
@@ -387,10 +392,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0);   
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
     asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffset(), PROCESSOR_REGISTER); 
-    
-    // move native code address to link reg and call it.
-    asm.emitMTLR (KLUDGE_TI_REG); 
-    asm.emitBCLRL();                                       // call native method
+
+    // 
+    // CALL NATIVE METHOD
+    // 
+    asm.emitBCCTRL();
 
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
     // if we have to call sysVirtualProcessorYield because we are locked in native.
