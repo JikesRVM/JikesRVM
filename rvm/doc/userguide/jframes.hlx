@@ -34,6 +34,6 @@
   \HlxSection{-5}{}*{\navigationname}
   \xml{base target="main"}
   \xml{span style="font-family: Verdana, Arial, sans-serif;"}
-  {\small\htmlmenu[0]{1}\xml{/span}}
+  {\small\htmlmenu[0]{1}}\xml{/span}
   \renewcommand{\bottommatter}{}}
 
