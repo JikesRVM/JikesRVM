@@ -281,6 +281,8 @@ HOST_JIKES_STR1="HOST_JIKES"
 HOST_JIKES_STR="\$$HOST_JIKES_STR1"
 HOST_JAVA_STR1="HOST_JAVA_RT"
 HOST_JAVA_STR="\$$HOST_JAVA_STR1"
+HOST_JAVAC_STR1="HOST_JAVAC"
+HOST_JAVAC_STR="\$$HOST_JAVAC_STR1"
 HOST_JAVA_HOME_STR1="HOST_JAVA_HOME"
 HOST_JAVA_HOME="\$$HOST_JAVA_HOME_STR1"
 HOST_JAVADOC_STR1="HOST_JAVADOC"
@@ -837,6 +839,7 @@ function emitEnvironmentBash () {
     echo ""
     echo "export $HOST_JIKES_STR1=\"$JIKES\""
     echo "export $HOST_JAVA_STR1=\"$HOST_JAVA\""
+    echo "export $HOST_JAVAC_STR1=\"$HOST_JAVAC\""
     echo "export $HOST_JAVA_HOME_STR1=\"$HOST_JAVA_HOME\""
     echo "export $HOST_JAVADOC_STR1=\"$HOST_JAVADOC\""
     echo "export $HOST_JAR_STR1=\"$HOST_JAR\""
@@ -900,6 +903,7 @@ function emitEnvironmentPerl {
     echo ""
     echo "\$ENV{HOST_JIKES_STR1} = '$JIKES';"
     echo "\$ENV{HOST_JAVA_STR1} = '$HOST_JAVA';"
+    echo "\$ENV{HOST_JAVAC_STR1} = '$HOST_JAVAC';"
     echo "\$ENV{HOST_JAVA_HOME_STR1} = '$HOST_JAVA_HOME';"
     echo "\$ENV{HOST_JAVADOC_STR1} = '$HOST_JAVADOC';"
     echo "\$ENV{HOST_JAR_STR1} = '$HOST_JAR';"
@@ -1453,7 +1457,7 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    cd $CLASSES_DIRECTORY_STR
 	    rm -f $TOP_LEVEL_CLASSES
-	    $HOST_JIKES_STR -nowarn +F +Z +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
+	    $HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
 	    echo -n '(classes compiled) '
 
 	    rm -f jksvm.jar
@@ -2044,8 +2048,9 @@ EOF
     # compile BootImageWriter.java
     #
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-	  $HOST_JIKES_STR -nowarn +F +Z +E -g +U\
-	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
+	  $HOST_JAVAC_STR -nowarn -g \
+	  -classpath .:$BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
+	  -bootclasspath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  BootImageWriter.java"
 
     # copy and preprocess GenerateInterfaceDeclarations.java
@@ -2071,8 +2076,9 @@ EOF
 # compile GenerateInterfaceDeclarations.java
 #'
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-	  $HOST_JIKES_STR -nowarn +F +Z +E -g +U\
+	  $HOST_JAVAC_STR -nowarn -g \
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
+	  -bootclasspath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
     echo '#
@@ -2461,7 +2467,7 @@ function emitToolCompiler () {
     echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
     echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
 
-    echo "$HOST_JIKES_STR -nowarn +F +Z +E -g +U -classpath \"\$CPATH\" \"\$@\""
+    echo "$HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
 }
   
 # Emit script to run jbuild.prep on java files that are not part of the build
