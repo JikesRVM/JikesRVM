@@ -88,7 +88,7 @@ public class HybridHeader {
    */
   public static void initializeLOSHeader(Object ref, Object[] tib,
 					 int size, boolean isScalar)
-    throws VM_PragmaUninterruptible, VM_PragmaNoInline {
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM.VerifyAssertions && VM_Interface.gcInProgress())
       VM._assert(false);
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
