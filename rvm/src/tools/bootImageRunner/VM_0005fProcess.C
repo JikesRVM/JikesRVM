@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <assert.h>
 #if (defined __MACH__ )
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
@@ -129,6 +130,7 @@ static char *convertString(JNIEnv *env, jstring jstr)
 {
   jsize len = env->GetStringLength(jstr);
   const jchar *javaChars = env->GetStringChars(jstr, 0);
+  assert(javaChars);
 
   char *str = (char*) malloc(len + 1);
 
@@ -145,24 +147,37 @@ static char *convertString(JNIEnv *env, jstring jstr)
 // Constants for pipe creation and management
 const int INPUT = 0, OUTPUT = 1;
 
-// Create a pipe, and set appropriate file descriptor
-// field in the VM_Process object.
-static void createPipe(int descriptors[2], JNIEnv* env,
-  jclass processClassID, jobject self, const char* fieldName, int end)
+/* Create a pipe, and set appropriate file descriptor
+   field in the VM_Process object.
+   Returns -1 on error, 0 on OK. */
+static int
+createPipe(int descriptors[2], JNIEnv* env,
+           jclass processClassID, jobject self, const char* fieldName, int end)
 {
-  pipe(descriptors); // FIXME: should check for error
-  jfieldID fieldID = env->GetFieldID(processClassID, fieldName, "I");
-  env->SetIntField(self, fieldID, descriptors[end]);
+    if (pipe(descriptors))
+        return -1;
+    jfieldID fieldID = env->GetFieldID(processClassID, fieldName, "I");
+    assert(fieldID);
+    env->SetIntField(self, fieldID, descriptors[end]);
 #ifdef DEBUG
-  fprintf(stderr, "using %d as %s\n", descriptors[end], fieldName);
+    fprintf(stderr, "using %d as %s\n", descriptors[end], fieldName);
 #endif
 }
 
-// Close file descriptors returned from pipe().
-static void closePipe(int descriptors[])
+/* Close file descriptors returned from pipe().
+
+   Return -1 for error, 0 for OK.*/
+static int
+closePipe(int descriptors[])
 {
-  close(descriptors[INPUT]);
-  close(descriptors[OUTPUT]);
+  errno = 0;
+  while (close(descriptors[INPUT]) < 0 
+         && errno == EINTR)
+    ;
+  while (close(descriptors[OUTPUT]) < 0
+         && errno == EINTR)
+    ;
+  return errno ? -1 : 0;
 }
 
 // FIXME:
@@ -184,7 +199,8 @@ const int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
  * Method:    exec4
  * Signature: (Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
+JNIEXPORT jint JNICALL 
+Java_com_ibm_JikesRVM_VM_1Process_exec4
   (JNIEnv *env, 
    jobject self, 
    jstring programName,
@@ -204,6 +220,7 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
   StringArray argv(argvLen);
   for (int i = 0; i < argvLen; ++i) {
     jstring arg = (jstring) env->GetObjectArrayElement(argvArguments, i);
+    assert(arg);
     char *str = convertString(env, arg);
 #ifdef DEBUG
     fprintf(stderr, "arg %d is %s\n", i, str);
@@ -218,6 +235,7 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
   StringArray envp(envpLen);
   for (int i = 0; i < envpLen; ++i) {
     jstring arg = (jstring) env->GetObjectArrayElement(environment, i);
+    assert(arg);
     char *str = convertString(env, arg);
 #ifdef DEBUG
     fprintf(stderr, "env %d is %s\n", i, str);
@@ -237,16 +255,26 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #endif
 
   // Create pipes to communicate with child process.
-  // FIXME: should handle errors in pipe creation
 
   jclass ProcessClassID = env->FindClass( "com/ibm/JikesRVM/VM_Process" );
+  assert(ProcessClassID);
   int inputPipe[2], outputPipe[2], errorPipe[2]; 
-  createPipe(inputPipe, env, ProcessClassID, self, "inputDescriptor", OUTPUT);
-  createPipe(outputPipe, env, ProcessClassID, self, "outputDescriptor", INPUT);
-  createPipe(errorPipe, env, ProcessClassID, self, "errorDescriptor", INPUT);
+  pid_t fid = -1;
+  int ret = createPipe(inputPipe, env, ProcessClassID, self, 
+                       "inputDescriptor", OUTPUT);
+  if (ret)
+    goto fail;
+  ret = createPipe(outputPipe, env, ProcessClassID, self, 
+                   "outputDescriptor", INPUT);
+  if (ret)
+    goto close_inputPipe_and_fail;
+  ret = createPipe(errorPipe, env, ProcessClassID, self, 
+                   "errorDescriptor", INPUT);
+  if (ret)
+    goto close_outputPipe_and_fail;
     
   // do the exec
-  pid_t fid = fork();
+  fid = fork();
   if (fid == 0) {
     // child
 
@@ -261,16 +289,25 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
       }
     }
 
-    // Attach pipes to stdin, stdout, stderr
-    // FIXME: should handle errors
-    dup2(inputPipe[INPUT], 0);
-    dup2(outputPipe[OUTPUT], 1);       
-    dup2(errorPipe[OUTPUT], 2);
+#define SHOULD_NEVER_FAIL(cmd) do                       \
+{                                                       \
+  if ((cmd) < 0) {                                      \
+    perror(#cmd " failed, but should never; aborting"); \
+    abort();                                            \
+  }                                                     \
+} while(0)
 
-    // Close the original file descriptors returned by pipe()
-    closePipe(inputPipe);
-    closePipe(outputPipe);
-    closePipe(errorPipe);
+    /* Attach pipes to stdin, stdout, stderr
+       These absolutely should never fail. */
+    SHOULD_NEVER_FAIL(dup2(inputPipe[INPUT], 0));
+    SHOULD_NEVER_FAIL(dup2(outputPipe[OUTPUT], 1));       
+    SHOULD_NEVER_FAIL(dup2(errorPipe[OUTPUT], 2));
+
+    /* Close the original file descriptors returned by pipe().  Since they're
+       already open, they should never fail either. */
+    SHOULD_NEVER_FAIL(closePipe(inputPipe));
+    SHOULD_NEVER_FAIL(closePipe(outputPipe));
+    SHOULD_NEVER_FAIL(closePipe(errorPipe));
 
     // Set environment for child process.
     if (environment != 0) {
@@ -321,15 +358,20 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 
     // Store child's pid
     jfieldID pidFieldID = env->GetFieldID(ProcessClassID, "pid", "I");
+    assert(pidFieldID);
     env->SetIntField(self, pidFieldID, fid);
 #ifdef DEBUG
     fprintf(stderr, "child process id is %d\n", fid);
 #endif
 
     // Close unused ends of pipes
-    close(inputPipe[INPUT]);    // input side of child's stdin
-    close(outputPipe[OUTPUT]);  // output side of child's stdout
-    close(errorPipe[OUTPUT]);   // output side of child's stderr
+
+    // input side of child's stdin:
+    SHOULD_NEVER_FAIL(close(inputPipe[INPUT]));
+    // output side of child's stdout:
+    SHOULD_NEVER_FAIL(close(outputPipe[OUTPUT])); 
+    // output side of child's stderr
+    SHOULD_NEVER_FAIL(close(errorPipe[OUTPUT]));
 
     // Note: memory for programName, argv, and envp will be cleaned
     // up automatically
@@ -347,10 +389,12 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #endif
 
     // Close pipes
-    closePipe(inputPipe);
-    closePipe(outputPipe);
     closePipe(errorPipe);
-
+  close_outputPipe_and_fail:
+    closePipe(outputPipe);
+  close_inputPipe_and_fail:
+    closePipe(inputPipe);
+  fail:
     return -1;
   }
 }
@@ -365,7 +409,9 @@ JNIEXPORT void JNICALL Java_com_ibm_JikesRVM_VM_1Process_destroyInternal
 {
   // extract pid field from VM_Process object
   jclass ProcessClassID = env->GetObjectClass( self );
+  assert(ProcessClassID);
   jfieldID pidFieldID = env->GetFieldID(ProcessClassID, "pid", "I");
+  assert(pidFieldID);
   int pid = env->GetIntField(self, pidFieldID);
 
   // send kill signal
