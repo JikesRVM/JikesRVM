@@ -79,15 +79,10 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
     setTimeInitiated(VM_Controller.controllerClock);
     
-    double compileTime;
-    
     {
       // we will reuse the compilation plan before
-      double now = VM_Time.now();
-      cpThread.setCPUTotalTime(now - cpThread.getCPUStartTime());
-      cpThread.setCPUStartTime(now);
-      double start = cpThread.getCPUTotalTime();      
-
+      long start = cpThread.accumulateCycles();
+      
       OSR_ExecStateExtractor extractor = null;
 
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.CMID);
@@ -120,13 +115,10 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
       // compile from callee to caller 
       VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state,invalidate);
+      
+      long end = cpThread.accumulateCycles();
+      double compileTime = VM_Time.cyclesToMillis(end - start);
      
-      now = VM_Time.now();
-      cpThread.setCPUTotalTime (now - cpThread.getCPUStartTime());
-      cpThread.setCPUStartTime (now);
-      double end = cpThread.getCPUTotalTime();
-      compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
-
       setTimeCompleted(VM_Controller.controllerClock);
 
       if (newCM == null) {

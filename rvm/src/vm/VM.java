@@ -108,8 +108,9 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     if (verboseBoot >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
     MM_Interface.boot(VM_BootRecord.the_boot_record);
-
-    VM_Time.boot();
+    
+    // Start calculation of cycles to millsecond conversion factor
+    VM_Time.bootStageOne();
 
     // Reset the options for the baseline compiler to avoid carrying 
     // them over from bootimage writing time.
@@ -144,6 +145,10 @@ public class VM extends VM_Properties implements VM_Constants,
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
     VM_SystemClassLoader.boot();
+
+    // Complete calculation of cycles to millsecond conversion factor
+    // Must be done before any dynamic compilation occurs.
+    VM_Time.bootStageTwo();
 
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 

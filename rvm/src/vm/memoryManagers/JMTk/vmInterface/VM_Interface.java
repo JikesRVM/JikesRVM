@@ -441,12 +441,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
-    double start = VM_Time.now();
+    long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
-    double end = VM_Time.now();
-    double gcTime = end - start;
+    long end = VM_Time.cycles();
+    double gcTime = VM_Time.cyclesToMillis(end - start);
     HeapGrowthManager.recordGCTime(gcTime);
-    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", VM_Time.toMilliSecs(gcTime));
+    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
 	sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
@@ -798,6 +798,20 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static double now() {
     return VM_Time.now();
+  }
+
+  /**
+   * Read cycle counter
+   */
+  public static long cycles() {
+    return VM_Time.cycles();
+  }
+
+  /**
+   * Convert cycles to milliSecs
+   */
+  public static double cyclesToMillis(long c) {
+    return VM_Time.cyclesToMillis(c);
   }
 
   /* AJG: Not used. */

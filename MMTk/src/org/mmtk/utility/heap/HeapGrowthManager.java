@@ -59,7 +59,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
 					      {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
 					      {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
   
-  private static double endLastMajorGC;
+  private static long endLastMajorGC;
   private static double accumulatedGCTime;
 
   /**
@@ -73,7 +73,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
     if (VM_Interface.VerifyAssertions) sanityCheck();
-    endLastMajorGC = VM_Interface.now();
+    endLastMajorGC = VM_Interface.cycles();
   }
 
   /**
@@ -124,7 +124,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    * Reset timers used to compute gc load
    */
   public static void reset() {
-    endLastMajorGC = VM_Interface.now();
+    endLastMajorGC = VM_Interface.cycles();
     accumulatedGCTime = 0;
   }
 
@@ -158,7 +158,8 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
 
   private static double computeHeapChangeRatio(double liveRatio) {
     // (1) compute GC load.
-    double totalTime = VM_Interface.now() - endLastMajorGC;
+    long totalCycles = VM_Interface.cycles() - endLastMajorGC;
+    double totalTime = VM_Interface.cyclesToMillis(totalCycles);
     double gcLoad = accumulatedGCTime / totalTime;
 
     if (liveRatio > 1) {
@@ -171,16 +172,16 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       if (gcLoad > 1.0001) {
 	Log.write("GC Error: GC load was greater than 1!! ");
 	Log.writeln(gcLoad);
-	Log.write("GC Error:\ttotal time "); Log.writeln(totalTime);
-	Log.write("GC Error:\tgc time "); Log.writeln(accumulatedGCTime);
+	Log.write("GC Error:\ttotal time (ms) "); Log.writeln(totalTime);
+	Log.write("GC Error:\tgc time (ms) "); Log.writeln(accumulatedGCTime);
       }
       gcLoad = 1;
     }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
     if (VM_Interface.VerifyAssertions && gcLoad < 0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
-      Log.write("\taccumulateGCTime was "); Log.writeln(accumulatedGCTime);
-      Log.write("\ttotalTime was "); Log.writeln(totalTime);
+      Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
+      Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
       VM_Interface._assert(false);
     }
     

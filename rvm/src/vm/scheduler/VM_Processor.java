@@ -183,16 +183,12 @@ implements VM_Uninterruptible, VM_Constants {
       scheduleThread(t);
     }
 
-    if (VM.EnableCPUMonitoring) {
-      double now = VM_Time.now();
-      // primordial thread: ignore first time slice
-      if (previousThread.cpuStartTime != -1) {
-	previousThread.cpuTotalTime += now - previousThread.cpuStartTime;
-      }
-      previousThread.cpuStartTime = 0;    // this thread has stopped running
-      newThread.cpuStartTime = now;  // this thread has started running
-    }
-
+    // Accumulate CPU time on a per thread basis.
+    // Used by the adaptive system and compilation measurement.
+    long now = VM_Time.cycles();
+    previousThread.endQuantum(now);
+    newThread.startQuantum(now);
+    
     //-#if RVM_WITH_HPM
     // set start time of thread
     newThread.startOfWallTime = VM_Magic.getTimeBase();

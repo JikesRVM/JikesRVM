@@ -1653,30 +1653,58 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   public VM_JNIEnvironment  jniEnv;
   
-  // Cpu utilization statistics, used if "VM.EnableCPUMonitoring == true".
-  //
-  double cpuStartTime = -1;  // time at which this thread started running on a cpu (-1: has never run, 0: not currently running)
-  double cpuTotalTime;       // total cpu time used by this thread so far, in seconds
+  /** 
+   * Value returned from {@link VM_Time#cycles()} when this thread 
+   * started running.
+   * (-1: has never run, 0: not currently running).
+   */
+  private long startCycle = -1; 
 
-  // Network utilization statistics, used if "VM.BuildForNetworkMonitoring == true".
-  //
-  public int     netReads;           // number of completed read operations
-  public int     netWrites;          // number of completed write operations
+  /**
+   * Accumulated cycle count as measured by {@link VM_Time#cycles()} 
+   * used by this thread.
+   */
+  private long totalCycles;  
 
-  public double getCPUStartTime() {
-    return cpuStartTime;
+  /**
+   * Accumulate the interval from startCycles to the result
+   * of calling {@link VM_Time#cycles() into {@link #totalCycles}
+   * returning the new value of totalCycles.
+   * @return totalCycles
+   */
+  public long accumulateCycles() {
+    long now = VM_Time.cycles();
+    totalCycles += now - startCycle;
+    startCycle = now;
+    return totalCycles;
   }
 
-  public double getCPUTotalTime() {
-    return cpuTotalTime;
+  /**
+   * Called from  VM_Processor.dispatch when a thread is about to
+   * start executing.
+   */
+  void startQuantum(long now) {
+    startCycle = now;
   }
 
-  public void setCPUStartTime(double time) {
-    cpuStartTime = time;
+  /**
+   * Called from VM_Processor.dispatch when a thread is about to stop
+   * executing.
+   */
+  void endQuantum(long now) {
+    // primordial thread: ignore first time slice when startCycle == -1
+    if (startCycle != -1) {
+      totalCycles += now - startCycle;
+    }
+    startCycle = 0;
   }
 
-  public void setCPUTotalTime(double time) {
-    cpuTotalTime = time;
+  public double getCPUTimeMillis() {
+    return VM_Time.cyclesToMillis(totalCycles);
+  }
+
+  public long getTotalCycles() {
+    return totalCycles;
   }
 
   public boolean isIdleThread() {

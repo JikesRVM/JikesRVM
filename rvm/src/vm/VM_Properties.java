@@ -90,12 +90,6 @@ public class VM_Properties extends VM_Options {
    */
   public static boolean verboseJNI = false;
 
-  /**
-   * Accumulate per java thread CPU time.
-   * Used by AOS and MeasureCompilation to get accurate compilation times.
-   */
-  public static boolean EnableCPUMonitoring = VM_Configuration.BuildForAdaptiveSystem;
-
   // Runtime subsystem tracing.
   //
   public static final boolean TraceDictionaries       = false;

@@ -29,9 +29,10 @@ public final class OPT_OptimizationPlanAtomicElement extends
    */
   private OPT_CompilerPhase myPhase;
   /**
-   * Accumulated time spent in the element.
+   * Accumulated cycles spent in the element.
    */
-  protected VM_Stopwatch mySW;
+  protected long cycles;
+
   /**
    * Counters to be used by myPhase to gather phase specific stats.
    */
@@ -50,7 +51,6 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * Update this phase to support the measuring of compilation
    */
   public void initializeForMeasureCompilation() {
-    mySW = new VM_Stopwatch();
     counter1 = 0;
     counter2 = 0;
   }
@@ -73,9 +73,15 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param ir The OPT_IR object to work with.
    */
   public void perform(OPT_IR ir) {
-    if (VM.MeasureCompilation && VM.runningVM) mySW.start();
+    long start = 0;
+    if (VM.MeasureCompilation && VM.runningVM) {
+      start = VM_Thread.getCurrentThread().accumulateCycles();
+    }
     myPhase.newExecution(ir).performPhase(ir);
-    if (VM.MeasureCompilation && VM.runningVM) mySW.stop();
+    if (VM.MeasureCompilation && VM.runningVM) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      cycles += end - start;
+    }
   }
 
   /**
@@ -87,8 +93,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param totalTime Total opt compilation time in seconds.
    */
   public void reportStats(int indent, int timeCol, double totalTime) {
-    if (mySW == null || mySW.count == 0)
-      return;
+    if (cycles == 0) return;
     int curCol = 0;
     for (curCol = 0; curCol < indent; curCol++) {
       VM.sysWrite(" ");
@@ -104,7 +109,8 @@ public final class OPT_OptimizationPlanAtomicElement extends
       VM.sysWrite(" ");
       curCol++;
     }
-    prettyPrintTime(mySW.elapsedTime, totalTime);
+    double myTime = VM_Time.cyclesToMillis(cycles) / 1000;
+    prettyPrintTime(myTime, totalTime);
     myPhase.reportAdditionalStats();
     VM.sysWriteln();
   }
@@ -114,6 +120,6 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @return time spend in the plan (in seconds)
    */
   public double elapsedTime() {
-    return mySW == null ? 0 : mySW.elapsedTime;
+    return VM_Time.cyclesToMillis(cycles) / 1000;
   }
 }

@@ -471,12 +471,6 @@ public class VM_CommandLineArgs {
 	  VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
-	// Yuck.  A very small number of command line arguments
-	// really want to toggle multiple values.  We don't
-	// nicely support that in the template generated code,
-	// so we compenstate here.  If we ever get more than a very
-	// small number of these, then extend the templates to handle it.
-	if (VM.MeasureCompilation) VM.EnableCPUMonitoring = true;
 	break;
 	
 	//-#if RVM_WITH_HPM

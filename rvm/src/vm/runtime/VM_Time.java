@@ -16,25 +16,30 @@ public class VM_Time implements VM_Uninterruptible {
   /**
    * Conversion factor from cycles to time in milliseconds
    */
-  private static double milliPerCycle = 0.0;
+  private static double milliPerCycle = 0;
 
-  /**
-   * Sets milliPerCycle, the conversion factor between a tick of the 
-   * realTimeClock and time in milliseconds. 
-   */
-  static void boot() {
-    double start = now();
-    long cyclesStart = cycles();
-    double dur = 0.0; // in milliseconds
-    // 0.1 second should be enough to obtain accurate factor but not enough to overflow cycle counter
-    while (dur < 0.1) {  
-      for (int i=0; i<1000; i++)  // busy-spin
-	milliPerCycle += 1.0; 
-      dur = 1000.0 * (VM_Time.now() - start);
+  private static long bootNow;
+  private static long bootCycles;
+
+  static void bootStageOne() {
+    bootNow = currentTimeMicros();
+    bootCycles = cycles();
+  }
+
+  static void bootStageTwo() {
+    long endNow = currentTimeMicros();
+    long endCycles = cycles();
+    long dur = endNow - bootNow;
+
+    // insist on getting at least 0.05 seconds (ie 50,000 microseconds) 
+    // between bootStageOne and bootStage2 to ensure reasonable accuracy
+    while (dur < 50000) {  
+      dur = currentTimeMicros() - bootNow;
+      endCycles = cycles();
     }
-    long cycles = cycles() - cyclesStart;
+    long cycles = endCycles - bootCycles;
     if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
-    milliPerCycle = dur / (double)cycles;
+    milliPerCycle = (((double)dur) / ((double)cycles)) / 1000;
   }
 
   /**
@@ -52,18 +57,29 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
-   * Convert a value in the units of used by @link #cycles
+   * Convert a value in the units of used by {@link #cycles()}
    * to time in milliSeconds.
    * @param c a real time clock value
    * @return c converted to milli seconds
    */
   public static double cyclesToMillis(long c) {
+    if (VM.VerifyAssertions) VM._assert(milliPerCycle != 0);
     return c * milliPerCycle;
   }
 
   /**
+   * Convert a time value in milliSeconds to cycles.
+   * @param t a time in milliseconds
+   * @return the corresponding number of cycles
+   */
+  public static long millisToCycles(double t) {
+    if (VM.VerifyAssertions) VM._assert(milliPerCycle != 0);
+    return (long)(t / milliPerCycle);
+  }
+
+  /**
    * Time in seconds (epoch Jan 1 1970), to nanosecond resolution.
-   */ 
+   */
   public static double now() {
     long currentTime = VM_SysCall.sysGetTimeOfDay();
     double time = ((double) currentTime) / 1000000D;
@@ -71,13 +87,24 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
+   * Time in microseconds (epoch Jan 1 1970).
+   */ 
+  public static long currentTimeMicros() {
+    return VM_SysCall.sysGetTimeOfDay();
+  }
+
+  /**
    * Time in milliseconds (epoch Jan 1 1970).
    */ 
   public static long currentTimeMillis() {
-    long currentTime;
-    currentTime = VM_SysCall.sysGetTimeOfDay();
-    currentTime /= 1000;
-    return currentTime;
+    return currentTimeMicros() / 1000;
+  }
+
+  /**
+   * Time in seconds (epoch Jan 1 1970).
+   */ 
+  public static long currentTimeSecs() {
+    return currentTimeMicros() / 1000000;
   }
 
   /**

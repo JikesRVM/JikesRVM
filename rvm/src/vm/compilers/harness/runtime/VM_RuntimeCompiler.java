@@ -23,8 +23,7 @@ import com.ibm.JikesRVM.adaptive.*;
  * <li>
  *   total number of methods complied by the compiler
  * <li>
- *   total compilation time in nanoseconds as computed by calls to VM_Time.now()
- *   This is accumulated as a double to avoid rounding errors. 
+ *   total compilation time in milliseconds.
  * <li>
  *   total number of bytes of bytecodes compiled by the compiler
  *   (under the assumption that there is no padding in the bytecode
@@ -54,10 +53,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
   // Data accumulators
   private static final String name[]         = {"JNI\t","Base\t","Opt\t"};   // Output names
-  private static int total_methods[]         = {0,0,0};                // (1)
-  private static double total_time[]         = {0.0, 0.0,0.0};         // (2)
-  private static int total_bcodeLen[]        = {0, 0,0};               // (3)
-  private static int total_mcodeLen[]        = {0, 0,0};               // (4)
+  private static int total_methods[]         = {0,0,0};               // (1)
+  private static double total_time[]         = {0,0,0};               // (2)
+  private static int total_bcodeLen[]        = {0,0,0};               // (3)
+  private static int total_mcodeLen[]        = {0,0,0};               // (4)
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   public static OPT_InlineOracle offlineInlineOracle;
@@ -140,7 +139,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 	VM.sysWrite(total_methods[i]);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite(VM_Time.toSecs(total_time[i]));
+	VM.sysWrite(total_time[i]);
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
 	VM.sysWrite((double)total_bcodeLen[i]/total_time[i], 2);
@@ -196,35 +195,22 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
-    double start = 0;
+    long start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      start = updateStartAndTotalTimes(now);
+      start = VM_Thread.getCurrentThread().accumulateCycles();
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      double end = updateStartAndTotalTimes(now);
-      double compileTime = (end - start) * 1000; // convert to milliseconds
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      double compileTime = VM_Time.cyclesToMillis(end - start);
       cm.setCompilationTime(compileTime);
       record(BASELINE_COMPILER, method, cm);
     }
     
     return cm;
   }
-
-  /**
-   * Support for timing compilation accurately by accumulating CPU on the Java thread.
-   */
-  protected static double updateStartAndTotalTimes(double now) {
-    VM_Thread t = VM_Thread.getCurrentThread();
-    t.setCPUTotalTime(t.getCPUTotalTime() + (now - t.getCPUStartTime()));
-    t.setCPUStartTime(now);
-    return t.getCPUTotalTime();
-  }
-
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   /**
@@ -266,18 +252,16 @@ public class VM_RuntimeCompiler implements VM_Constants,
     }
     
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    double start = 0;
+    long start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      start = updateStartAndTotalTimes(now);
+      start = VM_Thread.getCurrentThread().accumulateCycles();
     }
     
     VM_CompiledMethod cm = OPT_Compiler.compile(plan);
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      double end = updateStartAndTotalTimes(now);
-      double compileTime = (end - start) * 1000; // convert to milliseconds
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      double compileTime = VM_Time.cyclesToMillis(end - start);
       cm.setCompilationTime(compileTime);
       record(OPT_COMPILER, method, cm);
     }
@@ -612,10 +596,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    double start = 0;
+    long start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      start = updateStartAndTotalTimes(now);
+      start = VM_Thread.getCurrentThread().accumulateCycles();
     }
 
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
@@ -626,9 +609,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
     }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      double now = VM_Time.now();
-      double end = updateStartAndTotalTimes(now);
-      double compileTime = (end - start) * 1000; // convert to milliseconds
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      double compileTime = VM_Time.cyclesToMillis(end - start);
       cm.setCompilationTime(compileTime);
       record(JNI_COMPILER, method, cm);
     }

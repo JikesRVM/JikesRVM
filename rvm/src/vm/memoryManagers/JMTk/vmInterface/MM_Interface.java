@@ -185,6 +185,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static void fullyBootedVM() throws VM_PragmaInterruptible {
     Plan.fullyBooted();
+    Lock.fullyBooted();
   }
 
   /** 

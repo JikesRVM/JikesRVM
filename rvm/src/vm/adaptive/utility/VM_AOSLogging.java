@@ -119,14 +119,13 @@ public class VM_AOSLogging {
 		      " ThreadIndex: " + t.getIndex() + " "
 		      + t.getClass().getName() + " "
 		      + " Time: " 
-		      + t.getCPUTotalTime()
+		      + (t.getCPUTimeMillis() / 1000)
 		      + " status("
 		      + (  t.isIdleThread() ?     "i"         // idle daemon
 			   : t.isGCThread() ?     "g"       // gc daemon
 			   : t.isDaemonThread()  ?     "d"       // user daemon
 			   :                      "" )
 		      + (!t.isAlive()     ?     "!" : "")     // dead/alive
-		      + (t.getCPUStartTime() > 0 ? "+" : "-")    // running/stopped
 		      + ")"
 		      );
 	}
