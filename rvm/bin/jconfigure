@@ -3954,7 +3954,10 @@ EOF
 		IMAGE=
 EOF
     elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "declare -a gnu_compiler_flags
+gnu_compiler_flags=(-DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES)"
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
+	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
@@ -3963,7 +3966,10 @@ EOF
 	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "declare -a gnu_compiler_flags
+gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES)"
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
+	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
@@ -3976,7 +3982,10 @@ EOF
 	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "declare -a gnu_compiler_flags
+gnu_compiler_flags=(-rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES)"
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
+	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
 
 	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CXXM=\$BOOTER_CXX"
