@@ -11,8 +11,8 @@ Important:
   Set RVM_FOR_SINGLE_VIRTUAL_PROCESSOR as follows:
     -- AIX/PowerPC:    0 (SMP is supported)
     -- Linux/PowerPC:  1 (SMP is not supported)
-    -- Linux/IA32:     0 with a 2.2 kernel (SMP is not supported)
-                       1 with a 2.4 kernel and glibc compiled to 
+    -- Linux/IA32:     1 with a 2.2 kernel (SMP is not supported)
+                       0 with a 2.4 kernel and glibc compiled to 
                          use the GS segment register to access
                          pthread-specific state. 
                 
