@@ -21,12 +21,20 @@
 ## should be set, suggest an example value (if <example> is set), and
 ## exit fatally.
 
-## jconfigure calls this.
+## jconfigure gdbrvm, and rvm all use checkenv()
 function checkenv () {
+    local may_not_exist=0;
+    if (( $# > 1 )); then
+	may_not_exist=1;
+	shift;
+    fi
     local envar="$1";
     shift;
+    local -i wantdir=0;
 
-
+    case $envar in 
+	HOME | RVM_ROOT | RVM_BUILD ) wantdir=1 ;;
+    esac
     ## Now perform the testing.
     if [ ! "${!envar}" ]; then
 	echo -n "$ME: Please set your ${envar} environment variable"
@@ -40,21 +48,25 @@ function checkenv () {
 				# (English typography.)
 	exit 1
     fi >&2
-    ## Special tests for RVM_ROOT
-    if [[ $envar = RVM_ROOT ]]; then
-	if [[ "${RVM_ROOT}" != /* ]]; then
-	    echo "$ME: RVM_ROOT must be set to an absolute path name."
+    
+    ## Special tests for directories
+    if (( wantdir )); then
+	if [[ ${!envar} != /* ]]; then
+	    echo "$ME: ${envar} must be set to an absolute path name."
 	    exit 1;
-	elif [[ ! -e "${RVM_ROOT}" ]]; then
-	    echo "$ME: RVM_ROOT is set to the directory ${RVM_ROOT}, which does not exist!"
+	fi
+	local -i exists=0
+	[[ -e ${!envar} ]] && exists=1
+	if (( ! may_not_exist )) && (( ! exists )); then
+	    echo "The directory ${envar} (${!envar}) does not exist.  Something is wrong; check your ${envar} environment variable."
 	    exit 1;
-	elif [[ ! -d "${RVM_ROOT}/." ]]; then
-	    echo "$ME: RVM_ROOT ($RVM_ROOT/.) must be a directory, but isn't!"
+	fi
+	if (( exists )) && [[ ! -d ${!envar}/. ]]; then
+	    echo "${envar} (${!envar}) exists, but is not a directory or a symbolic link to a directory.  Something is wrong; check your ${envar} environment variable."
 	    exit 1;
 	fi >& 2
     fi
 }
-
 
 ## Used internally.
 function checkenv_example () {
