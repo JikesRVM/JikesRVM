@@ -138,7 +138,20 @@ $$$$ END IF
   }
 
   /**
-   * Returns the number of operands that are pue defs
+   * Returns the number of operands that are pure defs
+   * and are not in the variable-length part of the operand list.
+   * By convention, operands are ordered in instructions
+   * such that all defs are first, followed by all
+   * combined defs/uses, followed by all pure uses.
+   *
+   * @return how many non-variable operands are pure defs
+   */
+  public int getNumberOfFixedPureDefs() {
+    return numberDefs;
+  }
+
+  /**
+   * Returns the number of operands that are pure uses
    * and are not in the variable-length part of the operand list.
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
@@ -146,8 +159,8 @@ $$$$ END IF
    *
    * @return how many non-variable operands are pure uses
    */
-  public int getNumberOfFixedPureDefs() {
-    return numberDefs;
+  public int getNumberOfFixedPureUses() {
+    return numberUses;
   }
 
   /**
