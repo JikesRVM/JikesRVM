@@ -10,7 +10,8 @@
  * @author Bowen Alpern
  * @author Dave Grove
  */
-class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
+class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
+						    VM_AssemblerConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
@@ -91,12 +92,10 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
     } else {
       asm.emitCMPI (SP, sigIds[middle]);
       if (low < middle) {
-	asm.reserveShortForwardConditionalBranch(bcIndices[(low+middle-1)/2]);
-	asm.emitBLT(0);
+	asm.emitShortBC(LT, 0, bcIndices[(low+middle-1)/2]);
       }
       if (middle < high) {
-	asm.reserveShortForwardConditionalBranch(bcIndices[(middle+1+high)/2]);
-	asm.emitBGT(0);
+	asm.emitShortBC(GT, 0, bcIndices[(middle+1+high)/2]);
       }
       // invoke the method for middle.
       VM_Method target = targets[middle];

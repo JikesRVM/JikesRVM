@@ -744,7 +744,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       offset+=8;
     }
 
-    asm.emitB (label0, -1 /* BOGUS -1 */);  // br back to label0 to try lwarx again
+    asm.emitB (label0);  // br back to label0 to try lwarx again
 
     // NOW_IN_JAVA:
     // branch to here, after setting status to IN_JAVA
@@ -806,7 +806,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // on a regular VM_Processor for Java code.  At this point PR, TI & JTOC
     // are valid for executing Java
     //
-    asm.emitLtoc2 (S0, VM_Entrypoints.becomeRVMThreadMethod.getOffset());  // always 2 instructions
+    asm.emitLtoc  (S0, VM_Entrypoints.becomeRVMThreadMethod.getOffset());  // always 2 instructions
     asm.emitMTLR  (S0);
     asm.emitBLRL  ();
      
@@ -885,7 +885,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Branch to becomeNativeThread:  we will yield and get rescheduled to execute 
     // on a VM_Processor for the external pthread code.
     //
-    asm.emitLtoc2 (S0, VM_Entrypoints.becomeNativeThreadMethod.getOffset());  // always 2 instructions
+    asm.emitLtoc  (S0, VM_Entrypoints.becomeNativeThreadMethod.getOffset());  // always 2 instructions
     asm.emitMTLR  (S0);
     asm.emitBLRL  ();
 

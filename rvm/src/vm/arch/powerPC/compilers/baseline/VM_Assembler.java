@@ -284,8 +284,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Btemplate = 18<<26;
 
-  /** Deprecated! */
-  final void emitB (int relative_address) {
+  private final void _emitB (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
     INSTRUCTION mi = Btemplate | (relative_address&0xFFFFFF)<<2;
     if (VM.TraceAssembler)
@@ -300,12 +299,18 @@ final class VM_Assembler implements VM_BaselineConstants,
     } else {
       relative_address -= mIP;
     }
-    emitB(relative_address);
+    _emitB(relative_address);
+  }
+
+  final void emitB (int relative_address) {
+    relative_address -= mIP;
+    if (VM.VerifyAssertions) VM.assert(relative_address < 0);
+    _emitB(relative_address);
   }
 
   final VM_ForwardReference emitForwardB() {
     VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
-    emitB(0);
+    _emitB(0);
     return fr;
   }
 
@@ -322,8 +327,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BLtemplate = 18<<26 | 1;
 
-  /** Deprecated! */
-  final void emitBL (int relative_address) {
+  private final void _emitBL (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
     INSTRUCTION mi = BLtemplate | (relative_address&0xFFFFFF)<<2;
     if (VM.TraceAssembler)
@@ -338,13 +342,13 @@ final class VM_Assembler implements VM_BaselineConstants,
     } else {
       relative_address -= mIP;
     }
-    emitBL(relative_address);
+    _emitBL(relative_address);
   }
 
 
   final VM_ForwardReference emitForwardBL() {
     VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
-    emitBL(0);
+    _emitBL(0);
     return fr;
   }
 
@@ -380,13 +384,22 @@ final class VM_Assembler implements VM_BaselineConstants,
       mc.addInstruction(mi);
     } else {
       _emitBC(flipCode(cc), 2);
-      emitB(relative_address-1);
+      _emitB(relative_address-1);
     }
   }
 
   final void emitBC (int cc, int relative_address, int label) {
     if (relative_address == 0) {
       reserveForwardConditionalBranch(label);
+    } else {
+      relative_address -= mIP;
+    }
+    _emitBC(cc, relative_address);
+  }
+
+  final void emitShortBC (int cc, int relative_address, int label) {
+    if (relative_address == 0) {
+      reserveShortForwardConditionalBranch(label);
     } else {
       relative_address -= mIP;
     }
@@ -403,30 +416,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
     _emitBC(cc, 0);
     return fr;
-  }
-
-  final void emitBGT (int relative_address) {
-    _emitBC(GT, relative_address);
-  }
-
-  final void emitBLT (int relative_address) {
-    _emitBC(LT, relative_address);
-  }
-
-  final void emitBEQ (int relative_address) {
-    _emitBC(EQ, relative_address);
-  }
-
-  final void emitBLE (int relative_address) {
-    _emitBC(LE, relative_address);
-  }
-
-  final void emitBGE (int relative_address) {
-    _emitBC(GE, relative_address);
-  }
-
-  final void emitBNE (int relative_address) {
-    _emitBC(NE, relative_address);
   }
 
   // delta i: difference between address of case i and of delta 0
@@ -1458,17 +1447,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitLoffset(RT, JTOC, offset);
   }
 
-  // A fixed size (2 instruction) load from JTOC
-  final void emitLtoc2 (int RT, int offset) {
-    if (0 == (offset&0x8000)) {
-      emitCAU(RT, JTOC, offset>>16);
-      emitL  (RT, offset&0xFFFF, RT);
-    } else {
-      emitCAU(RT, JTOC, (offset>>16)+1);
-      emitL  (RT, offset|0xFFFF0000, RT);
-    }
-  }
-
   final void emitSTtoc (int RT, int offset, int Rz) {
     if (fits(offset, 16)) {
       emitST(RT, offset, JTOC);
@@ -1481,17 +1459,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  // A fixed size (2 instruction) store into JTOC
-  final void emitSTtoc2 (int RT, int offset, int Rz) {
-    if (0 == (offset&0x8000)) {
-      emitCAU(Rz, JTOC, offset>>16);
-      emitST (RT, offset&0xFFFF, Rz);
-    } else {
-      emitCAU(Rz, JTOC, (offset>>16)+1);
-      emitST (RT, offset|0xFFFF0000, Rz);
-    }
-  }
-  
   final void emitCALtoc (int RT, int offset) {
     if (fits(offset, 16)) {
       emitCAL(RT, offset, JTOC);

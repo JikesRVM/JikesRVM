@@ -92,7 +92,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     VM_ForwardReference fr1 = asm.emitForwardBC(LT); // if T0 < 0 then break
     asm.emitLU   (0,   4, T3);                  // R0 := *(T3 += 4)
     asm.emitSTU  (0,  -4, FP);                  // put one word of spill area
-    asm.emitB    (spillLoopLabel, -1 /*BOGUS -1*/); // goto spillLoop:
+    asm.emitB    (spillLoopLabel); // goto spillLoop:
     fr1.resolve(asm);
       
     asm.emitSTU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
@@ -468,7 +468,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBLRL  ();                                          // call sysVirtualProcessorYield in sys.C
-    asm.emitB     (label1, -1 /* BOGUS -1 */); // retest the blocked in native
+    asm.emitB     (label1); // retest the blocked in native
     //
     //  br to here -not blocked in native
     //

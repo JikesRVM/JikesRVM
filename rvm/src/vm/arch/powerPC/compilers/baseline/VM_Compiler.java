@@ -23,6 +23,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   private int firstLocalOffset;
   private int spillOffset;
 
+  // If we're doing a short forward jump of less than 
+  // this number of bytecodes, then we can always use a short-form
+  // conditional branch (don't have to emit a nop & bc).
+  private static final int SHORT_FORWARD_LIMIT = 500;
+
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
@@ -1659,7 +1664,12 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitB (mTarget, bTarget);
       fr.resolve(asm);
     } else {
-      asm.emitBC  (GE, mTarget, bTarget); // jump to default target
+      // conditionally jump to default target
+      if (bTarget - SHORT_FORWARD_LIMIT < biStart) {
+	asm.emitShortBC(GE, mTarget, bTarget);
+      } else {
+	asm.emitBC  (GE, mTarget, bTarget); 
+      }
     }
     VM_ForwardReference fr1 = asm.emitForwardBL();
     for (int i=0; i<n; i++) {
@@ -1713,7 +1723,11 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitB(mTarget, bTarget);
 	fr.resolve(asm);
       } else {
-	asm.emitBC(EQ, mTarget, bTarget);
+	if (bTarget - SHORT_FORWARD_LIMIT < biStart) {
+	  asm.emitShortBC(EQ, mTarget, bTarget);
+	} else {
+	  asm.emitBC(EQ, mTarget, bTarget);
+	}
       }
     }
     int bTarget = biStart + defaultval;
@@ -2523,7 +2537,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitMTLR (T0);
     asm.emitLVAL (T0, memberId);                              // dictionaryId of member we are resolving
     asm.emitCall (spSaveAreaOffset);			      // link; will throw exception if link error
-    asm.emitB    (label, -1 /* TODO kill bogus -1*/);	      // go back and try again
+    asm.emitB    (label);                       	      // go back and try again
     fr1.resolve(asm);
   }
 
@@ -2715,7 +2729,11 @@ public class VM_Compiler extends VM_BaselineCompiler
       fr.resolve(asm);
       incEdgeCounter(T0, T1, entry+VM_EdgeCounts.NOT_TAKEN);
     } else {
-      asm.emitBC(cc, bytecodeMap[bTarget], bTarget);
+      if (bTarget - SHORT_FORWARD_LIMIT < biStart) {
+	asm.emitShortBC(cc, bytecodeMap[bTarget], bTarget);
+      } else {
+	asm.emitBC(cc, bytecodeMap[bTarget], bTarget);
+      }
     }
   }
 
