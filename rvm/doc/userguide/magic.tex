@@ -4,7 +4,7 @@ functionality that is not
 possible in pure Java\trademark.  For example, the Jikes RVM garbage
 collectors and 
 runtime system must, on occasion, access memory or perform unsafe
-casts.  Users are {\it strongly} discourage from using magic in their code
+casts.  Users are {\it strongly} discouraged from using magic in their code
 except where absolutely necessary.  
 
 There are currently three types of magical operations which are
@@ -12,7 +12,7 @@ described in the remainder of this section.  The first is a collection
 of magical methods that are static methods of the class {\tt
 VM\_Magic}.  The second is the magical class {\tt VM\_Address} used in
 parts of the runtime and garbage collector. The third is various
-mechanisms to code {\em uninterruptible}.
+mechanisms to declare code {\em uninterruptible}.
 
 \subsection{VM\_Magic}
 \index{magic methods}
@@ -142,7 +142,7 @@ might result in one of these exceptions being raised as a violation of
 uninterruptibility. Checking for a particular method can be disabled
 by having the method throw the exception {\tt
 VM\_PragmaLogicallyUninterruptible}. This should be done with extreme
-care, but in a few cases is unavoidable to avoid spurious warning
+care, but in a few cases is necessary to avoid spurious warning
 messages. 
 
 The following rules determine whether or not a method is
