@@ -523,7 +523,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param t VM_Array instance being created
    */
   public static int getOffsetForAlignment(VM_Array t) {
-    return ARRAY_HEADER_SIZE; // TIB is at end of header
+    return ARRAY_HEADER_SIZE; // ie, align the pointer itself (and thus the array elements)
   }
 
   /**
