@@ -13,13 +13,22 @@
 export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable
-export HOST_JAVA="/opt/IBMJava2-13/jre/bin/java"
+export HOST_JAVA="/opt/IBMJava2-13/bin/java"
+
+# the JDK javadoc executable
+export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
 
 # the JDK javac executable
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 
+# the JDK jar executable
+export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
+
+# the JDK tools jar
+export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
@@ -45,15 +54,16 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 
 #  some Unix commands
-export GREP=/bin/grep
-export FIND=/usr/bin/find
-export FGREP=/bin/fgrep
-export AWK=/bin/awk
-export PS=/bin/ps
+export GREP="/bin/grep"
+export FIND="/usr/bin/find"
+export FGREP="/bin/fgrep"
+export AWK="/bin/awk"
+export PS="/bin/ps"
 export BASH="/bin/bash"
 export SED="/bin/sed"
 export WGET="/usr/bin/wget"
 export DIFF="/usr/bin/diff"
+export XARGS="/usr/bin/xargs"
 export MD5SUM="/usr/bin/md5sum"
 export GNU_TAR=/bin/tar
 
