@@ -110,12 +110,12 @@ public class Lock implements VM_Uninterruptible {
             VM.sysWriteln(" after ",VM_Time.cyclesToMillis(waitTime)," ms");
             VM_Thread t = thread;
             if (t == null) 
-                VM.sysWriteln("GC Warning: Locking thread unknown");
+              VM.sysWriteln("GC Warning: Locking thread unknown");
             else {
-                VM.sysWrite("GC Warning:  Locking thread: "); t.dump(1); 
-                VM.sysWriteln(" at position ",where);
+              VM.sysWrite("GC Warning: Locking thread: "); t.dump(1); 
+              VM.sysWriteln(" at position ",where);
             }
-            VM.sysWriteln("*** my start = ", localStart);
+            VM.sysWriteln("GC Warning: my start = ", localStart);
             for (int i=(serving + 90) % 100; i<=(serving % 100); i++) {
 	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
 	      VM.sysWrite(i, ": index ", servingHistory[i]);
