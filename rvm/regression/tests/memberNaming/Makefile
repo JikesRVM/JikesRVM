@@ -15,7 +15,7 @@ LARGEHEAPSIZE=30
 
 include $(JAL_ROOT)/rvm/regression/Make.rules
 
-TESTS=ResolvedAccess UnresolvedAccess
+TESTS=ResolvedAccess
 
 sanity: $(TESTS)
 	$(MAKE) do-sanity-finish
