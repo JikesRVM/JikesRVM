@@ -1854,7 +1854,7 @@ function emitImageLinker
    fi
 
    if (( RVM_WITH_QUICK_COLLECTOR )); then
-      print ' OPT_ARGS="$OPT_ARGS -X:bc:include=memoryManager"'
+      print ' OPT_ARGS="$OPT_ARGS -X:bc:exclude=com.ibm.JikesRVM.opt"'
    fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
