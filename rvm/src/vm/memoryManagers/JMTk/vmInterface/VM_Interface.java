@@ -249,7 +249,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
-    if (Plan.verbose == 1) {
+    if (Plan.verbose >= 1) {
       VM.sysWrite("[Async GC]");
     }
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);

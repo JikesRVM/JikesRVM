@@ -240,14 +240,7 @@ public class VM_Handshake {
    * this call at an otherwise unsafe point.
    */
   public void requestAndContinue() throws VM_PragmaUninterruptible {
-    if (request()) {
-      if (verbose >= 2) 
-	VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
-      // allow a gc thread to run
-      VM_Thread.getCurrentThread().yield();
-      if (verbose >= 2)
-	VM_Scheduler.trace("VM_Handshake", "mutator: running");
-    }
+    request();
   }
   
   /**
