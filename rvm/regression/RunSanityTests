@@ -272,29 +272,6 @@ function setConfiguration
    # environment variable for use by "jconfigure" and "rvm" commands
    export RVM_BUILD=$GENERATED_IMAGES/$1
 
-   # set RVM_HOST_CONFIG if not already set
-   if [[ X$RVM_HOST_CONFIG = X ]]; then
-     if [[ X`uname` = X"Linux" ]]; then
-       export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux.turangalila
-     elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0.watson
-     else
-       print "$ME: could not guess RVM_HOST_CONFIG environment variable"
-       exit 1
-     fi
-   fi
-
-   # set RVM_TARGET_CONFIG if not already set
-   if [[ X$RVM_TARGET_CONFIG = X ]]; then
-     if [[ X`uname` = X"Linux" ]]; then
-       export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux.turangalila
-     elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0.watson
-     else
-       print "$ME: could not guess RVM_TARGET_CONFIG environment variable"
-       exit 1
-     fi
-   fi
    }
 
 
