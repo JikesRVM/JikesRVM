@@ -288,7 +288,13 @@ public class VM_Entrypoints implements VM_Constants {
     //-#endif
 
   public static final VM_Field classLoaderLoadedClasses =
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/Map;");
+    //-#else 
+    // Classpath 0.12 and later:
     getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/HashMap;");
+    //-#endif
+
 
   static {
 
