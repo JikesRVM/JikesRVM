@@ -391,6 +391,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   final void clearMostRecentCompilation() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
+    VM_CompiledMethods.setCompiledMethodObsolete( mostRecentlyGeneratedCompiledMethod );    
     mostRecentlyGeneratedInstructions = null;
     mostRecentlyGeneratedCompiledMethod = null;
   }
@@ -466,6 +467,8 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
     VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
 
+    // old version is now obsolete
+    VM_CompiledMethods.setCompiledMethodObsolete( this.mostRecentlyGeneratedCompiledMethod );
     this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
     this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
 

@@ -1300,10 +1300,16 @@ public class VM_Class extends VM_Type
     for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
 	   n = virtualMethods.length; i < n; ++i, ++slot) {
       VM_Method method = virtualMethods[i];
-      if (method.isCompiled()) 
-	// inherited method already compiled, no point in going through 
-	// lazy invoker
-	typeInformationBlock[slot] = method.getMostRecentlyGeneratedInstructions(); 
+      if (method.isCompiled()) {
+	if (method.isPrivate())
+	  // This must be the parents private method which we won't be
+	  // invoking directly
+	  typeInformationBlock[slot] = null;
+	else
+	  // inherited method already compiled, no point in going through 
+	  // lazy invoker
+	  typeInformationBlock[slot] = method.getMostRecentlyGeneratedInstructions();
+      }
       else if (method.isNative())
 	typeInformationBlock[slot] = VM_Method.getNativeMethodInvokerInstructions(); 
       else
@@ -1410,12 +1416,7 @@ public class VM_Class extends VM_Type
       VM_Magic.invokeClassInitializer(instructions);
 
       // <clinit> is no longer needed: reclaim space by removing references to it
-      //
-      // !!TODO: I think there's more to it than this 
-      // (other references lying around?) [--DL]
-      // classInitializerMethod.bytecodes     = null;
-      // classInitializerMethod.instructions  = null;
-      // classInitializerMethod.referenceMaps = null;
+      classInitializerMethod.clearMostRecentCompilation();
       classInitializerMethod               = null;
     }
 
