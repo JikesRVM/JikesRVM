@@ -1610,7 +1610,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       {
 	burs.append(MIR_Trap.mutate(s, PPC_TWI, gRes, 
 				    OPT_PowerPCTrapOperand.ALWAYS(),
-				    R(31), I(0), tc));
+				    R(12), I(0), tc));
       }
       break;
     default:

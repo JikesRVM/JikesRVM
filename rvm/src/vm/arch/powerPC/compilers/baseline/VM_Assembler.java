@@ -1765,7 +1765,7 @@ class VM_Assembler implements VM_BaselineConstants {
     mc.addInstruction(mi);
   }
 
-  static final int TWItemplate = 3<<26 | 0x3FF<<16;
+  static final int TWItemplate = 3<<26 | 0x3EC<<16;	// RA == 12
 
   final void emitTWI (int imm) {
     INSTRUCTION mi = TWItemplate | imm;

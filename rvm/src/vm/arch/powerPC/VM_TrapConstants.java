@@ -33,12 +33,12 @@ interface VM_TrapConstants {
   static final int WRITE_BUFFER_OVERFLOW_TRAP = 0x7E800008; // tle modifiedOldObjectMax, modifiedOldObjectAddr
 
   /* JNI stack size checking */
-  static final int JNI_STACK_TRAP_MASK        = 0x0FFFFFFF; // tALWAYSi, 31, 0x0001 
-  static final int JNI_STACK_TRAP             = 0x0FFF0001; 
+  static final int JNI_STACK_TRAP_MASK        = 0x0FECFFFF; // tALWAYSi, 12, 0x0001 
+  static final int JNI_STACK_TRAP             = 0x0FEC0001; 
 
   /* USED BY THE OPT_COMPILER */
-  static final int CHECKCAST_MASK             = 0x0FFFFFFF; // tALWAYSi, 31, 0x0000 
-  static final int CHECKCAST_TRAP             = 0x0FFF0000; 
+  static final int CHECKCAST_MASK             = 0x0FECFFFF; // tALWAYSi, 12, 0x0000 
+  static final int CHECKCAST_TRAP             = 0x0FEC0000; 
   static final int REGENERATE_MASK            = 0xFFE007FE;
   static final int REGENERATE_TRAP            = 0x7C600008; // tlne
   static final int NULLCHECK_MASK             = 0xFFE0FFFF;
