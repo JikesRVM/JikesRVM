@@ -681,7 +681,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " + 
                     method.getDeclaringClass() + "." + method.getName() +
-                    " "+method.getDescriptor()+" ... JNI]");
+                    " "+method.getDescriptor());
     }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
