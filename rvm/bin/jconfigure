@@ -474,10 +474,14 @@ if [[ X"$RVM_TARGET_ARCH" = X ]]; then
    fi
 fi
 
-if (( RVM_FOR_LINUX || RVM_FOR_CYGWIN )); then
-    if [[ x$RVM_TARGET_OS != xlinuxsmp ]]; then
-      export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 # TEMPORARY until multithreading works on linux
-    fi
+if (( RVM_FOR_CYGWIN )); then
+      export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 
+fi
+
+if (( RVM_FOR_LINUX )); then
+  case `uname -r` in
+    2.2.*) export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1  ;;
+  esac
 fi
 
 #--------------------------------------#
