@@ -1,5 +1,5 @@
 
-Currently, the RVM has two types of configurations:
+Currently, the Jikes\trademark RVM has two types of configurations:
 the adaptive configurations that contain the adaptive optimization 
 system (AOS),
 and the non-adaptive configurations that do not.  
@@ -8,12 +8,11 @@ provide the mechanism to specify AOS, baseline compiler, and optimizing compiler
 for the different types of configurations; and 
 how to add a new non-standard command-line option.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Command-Line Options in Non-Adaptive Configurations}
 \label{subsection:nonadaptive:cmdline}
 
-This section describes how non-standard RVM command line options are 
-specified for a non-adaptive configuration of RVM.
+This section describes how non-standard Jikes\trademark RVM command line options are 
+specified for a non-adaptive configuration of Jikes RVM.
 In a non-adaptive configuration, the command line options modify
 the behavior of the baseline or optimizing compiler. 
 Different prefixes can be used to direct the option to one of following: the initial runtime 
@@ -57,7 +56,9 @@ To see descriptions of command-line options to the optimizing compiler,
 use the {\tt help} option with the {\tt -X:opt:} prefix 
 to generate the following output:
 
-\include{opt_options}
+\T \begin{tiny}
+\input{opt_options}
+\T \end{tiny}
 
 Note that when the initial runtime compiler is the optimizing compiler, 
 the {\tt -X:irc} and the {\tt -X:opt} command line prefixes are equivalent.
@@ -70,7 +71,9 @@ To see descriptions of the command-line options to the baseline
 compiler, use the {\tt help} option with the prefix {\tt -X:base:} 
 to generate the following output:
 
-\include{base_options}
+\T \begin{small}
+\input{base_options}
+\T \end{small}
  
 Note that when the initial runtime compiler is the baseline compiler, 
 the {\tt -X:irc} and the {\tt -X:base} command line prefixes are equivalent.
@@ -96,7 +99,7 @@ implementation details for baseline compiler command-line options.
 \index{OPT\_BASEOptions class}
 The command-line options to the baseline compiler are
 stored as fields in an object of type {\tt VM\_BASEOptions}.
-The RVM build process generates the {\tt VM\_BASEOptions.java} 
+The Jikes\trademark RVM build process generates the {\tt VM\_BASEOptions.java} 
 file automatically from a template.  
 
 \index{BooleanOptions.dat}
@@ -107,16 +110,18 @@ You should describe your desired command-line option in a format
 described below in Section~\ref{section:optdetails:options}, which 
 also provides the details for the optimizing compiler's command-line options.
 
+\JikesTMFooter
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Command-Line Options in Adaptive Configurations}
 \label{subsection:adaptive:cmdline}
 
-This section describes how non-standard RVM command line options are 
+This section describes how non-standard Jikes\trademark RVM command line options are 
 specified for an adaptive configuration.
 In an adaptive configuration, the command line options modifies
 the behavior of the adaptive optimization system,
 the optimizing compiler or the baseline compiler.
-A command line directive is constructed by concatenating an option 
+A command-line directive is constructed by concatenating an option 
 with a prefix which identifies the desired destiny for that option.
 
 All options in an adaptive configuration are prefixed with {\tt -X:aos}.
@@ -169,7 +174,9 @@ To see a description of the command-line options to the
 AOS, use {\tt -X:aos:help}.
 As of this writing, this command produces the following output:
 
-\include{adaptive_options}
+\T \begin{tiny}
+\input{adaptive_options}
+\T \end{tiny}
 
 The {\tt primary\_strategy} option determines what strategy is used to compile
 methods.
@@ -206,7 +213,7 @@ implementation details for AOS command-line options.
 \index{VM\_AOSOptions class}
 The command-line options to AOS are
 stored as fields in an object of type {\tt VM\_AOSOptions}.
-The RVM build process generates the {\tt VM\_AOSOptions.java} 
+The Jikes\trademark RVM build process generates the {\tt VM\_AOSOptions.java} 
 file automatically from a template.  
 
 \index{BooleanOptions.dat}
@@ -219,26 +226,32 @@ described below in Section~\ref{section:optdetails:options}.
 The options in the {\tt ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat}
 files are defined as both AOS and optimizing compiler options.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Adding RVM Non-Standard Command-Line Options}
+\JikesTMFooter
 
-This section states how non-standard RVM command-line options can be added
-to RVM.  
-Non-standard RVM command-line options are those options that are specific to RVM.
-The format of a non-standard RVM option is {\tt -X:o=v} where {\tt o} is the 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Adding Jikes RVM Non-Standard Command-Line Options}
+This section states how non-standard Jikes\trademark RVM command-line options can be added
+to Jikes RVM.  
+Non-standard Jikes RVM command-line options are those options that are specific
+to Jikes RVM.
+The format of a non-standard Jikes RVM option is {\tt -X:o=v} where {\tt o} is the 
 option and {\tt v} is the value it is to be set to.
 Adherence to this format is important to keep command-line options processing
 from becoming unwieldy.
 
-RVM command-line options are processed in two places: {\tt RunBootImage.C} and
+Jikes RVM command-line options are processed in two places: {\tt
+RunBootImage.C} and 
 {\tt VM\_CommandLineArgs.java}.  
-{\tt RunBootImage.C} is called first before the RVM boot image is loaded,
+{\tt RunBootImage.C} is called first before the boot image is loaded,
 and {\tt VM\_CommandLineArgs.java} is called after.
-In addition to processing any option which does not require RVM boot image
+In addition to processing any option which does not require the Jikes
+RVM boot image 
 to be loaded (such as {\tt help} and {\tt version}), 
 {\tt RunBootImage.C} processes any non-standard option that impacts either 
 heap size, message output, or where to find the boot image.
-To allow unrestricted RVM option orders and 
-since command line processing stops at the first option that is not 
-recognized as a RVM option, all other options must be recognized by
+To allow unrestricted Jikes RVM option orders and 
+since command-line processing stops at the first option that is not 
+recognized as a Jikes RVM option, all other options must be recognized by
 {\tt RunBootImage.C} and passed on.
+
+\JikesTMFooter
