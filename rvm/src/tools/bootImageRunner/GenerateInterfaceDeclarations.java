@@ -378,6 +378,11 @@ class GenerateInterfaceDeclarations {
         + VM_Constants.STACKFRAME_SENTINEL_FP.toInt() + ";\n");
     System.out.print("\n");
 
+    // values in VM_ObjectModel
+    //
+    System.out.println("static const int VM_ObjectModel_ARRAY_LENGTH_OFFSET = " + 
+		       VM_ObjectModel.getArrayLengthOffset() + "\n;");
+
     // values in VM_Scheduler
     //
     System.out.print("static const int VM_Scheduler_PRIMORDIAL_PROCESSOR_ID = "

@@ -3069,3 +3069,6 @@ sysSprintf(char buffer[], double d)
     return strlen(buffer);
   }
 
+extern "C" int getArrayLength(void* ptr) {
+  return *(int*)(((unsigned)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
+}

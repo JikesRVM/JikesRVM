@@ -79,6 +79,7 @@ char *me;
 extern "C" int createJVM (int);
 extern "C" int bootThread (int ip, int jtoc, int pr, int sp);
 
+extern "C" int getArrayLength(void* ptr);
 
 static int pageRoundUp(int size) {
     int pageSize = 4096;
@@ -506,7 +507,8 @@ extern "C" void processTimerTick() {
    * For now, we assume table is fixed in boot image and never moves.
    */
   unsigned *processors = *(unsigned **) ((char *) VmToc + ProcessorsOffset);
-  unsigned cnt = processors[-1];
+  
+  unsigned cnt = getArrayLength(processors);
 
   int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
   *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;

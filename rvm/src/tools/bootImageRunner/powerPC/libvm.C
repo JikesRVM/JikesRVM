@@ -65,6 +65,8 @@ extern "C" int createJVM(int);
 extern "C" void processTimerTick(void);
 extern "C" void sysSyncCache(caddr_t, int size);
 
+extern "C" int getArrayLength(void* ptr);
+
 
 // Interface to VM data structures.
 //
@@ -167,7 +169,7 @@ extern "C" void processTimerTick() {
    // For now, we assume table is fixed in boot image and never moves.
    //
    unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
-   unsigned  cnt        =  processors[-1];
+   unsigned  cnt        =  getArrayLength(processors);
    cnt = cnt - 1;       // line added here - ndp is now the last processor = and cnt includes it
    int *epochLoc = (int *) ((char *) VmToc + VM_Processor_epoch_offset);
    (*epochLoc)++;
