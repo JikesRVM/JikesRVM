@@ -18,6 +18,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
 
   static final boolean DEBUG = false;
+  static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;
   
   /**
    * Returns the name of the phase.
@@ -46,7 +47,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     new OPT_Simple().perform(ir);
     new OPT_BranchOptimizations(-1, true, true).perform(ir, true);
 
-    new OPT_CFGTransformations().perform(ir);
+    //new OPT_CFGTransformations().perform(ir);
     // Note: the following unfactors the CFG
     new OPT_DominatorsPhase(true).perform(ir);
     OPT_DefUse.computeDU (ir);
@@ -54,6 +55,9 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     ir.setInstructionScratchWord(0);
     
     unrollLoops(ir);
+    
+    OPT_CFGTransformations.splitCriticalEdges(ir);
+    ir.cfg.compactNodeNumbering();
   }
   
   /**
@@ -75,10 +79,17 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     int res = 0;
     Enumeration e = t.outNodes();
     if (!e.hasMoreElements()) {
-      boolean doNaiveUnrolling = unrollLeaf(t, ir);
-      // not yet: if (doNaiveUnrolling) naiveUnroller (t, ir);
-    }
-    else while (e.hasMoreElements()) {
+      if (t.loop != null) {
+	report ("Leaf loop in " + ir.method + ": "+t.loop+"\n");
+	// check infrequency
+	if (t.header.getInfrequent()) {
+	  report("no unrolling of infrequent loop\n");
+	} else {
+	  boolean doNaiveUnrolling = unrollLeaf(t, ir);
+	  if (doNaiveUnrolling) naiveUnroller (t, ir);
+	}
+      }
+    } else while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
       int heightOfTree = unrollLoopTree(n, ir);
       res = Math.max(res, heightOfTree) + 1;
@@ -99,11 +110,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock header = t.header;
     OPT_Instruction tmp;
     
-    if (nloop == null) return false;
-
-
-    // examine what we got...
-    report ("Leaf loop in " + ir.method + ": "+nloop+"\n");
 
     if (ir.hasReachableExceptionHandlers()){
       report ("0 IR may have exception handlers\n"); return false;}
@@ -114,10 +120,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     while (loopBlocks.hasMoreElements()) {
       OPT_BasicBlock b = loopBlocks.next();
       blocks++;
-      // check infrequency
-      if (false && b.getInfrequent()) {
-        report("no unrolling in infrequent code\n"); return false;
-      }
       
       // check for size
       instructionsInLoop += b.getNumberOfRealInstructions();
@@ -152,9 +154,9 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	}
       }      
     }
-    // exitBlock must exit
-    //while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1)
-    // exitBlock = exitBlock.getIn().next();
+    // exitBlock must exit (skip over pads in critical edges)
+    while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1)
+      exitBlock = exitBlock.getIn().next();
   
     OPT_BasicBlockEnumeration e = exitBlock.getOut();
     boolean exits = false;
@@ -190,16 +192,16 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       cond = (OPT_ConditionOperand)IfCmp.getCond(origBranch).copy();
     OPT_RegisterOperand ifcmpGuard = IfCmp.getGuardResult(origBranch);
     float backBranchProbability = IfCmp.getBranchProfile (origBranch).takenProbability;
-    if (!loopInvariant (op2, nloop)) {
-      if (loopInvariant (op1, nloop)) {
+    if (!loopInvariant (op2, nloop, 4)) {
+      if (loopInvariant (op1, nloop, 4)) {
 	OPT_Operand op = op1;
 	op1 = op2;
 	op2 = op;
 	cond.flipOperands();
       } else {
 	if (DEBUG) {
-	  printDefs (op1);
-	  printDefs (op2);
+	  printDefs (op1, nloop, 4);
+	  printDefs (op2, nloop, 4);
 	  VM.sysWrite (""+origBranch+"\n");
 	}
 	report ("8a op1 and op2 may not be loop invariant\n"); return true;
@@ -524,25 +526,26 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   private static void naiveUnroller (OPT_LSTNode t, OPT_IR ir) {
     OPT_BitVector nloop = t.loop;
     OPT_BasicBlock seqStart = null;
+    OPT_BasicBlockEnumeration bs;
 
-    report ("Naively unrolling loop in " + ir.method + ": "+nloop+"\n");
+    if (t.loop.populationCount() > MAX_BLOCKS_FOR_NAIVE_UNROLLING) {
+      report ("1 is too big\n");
+      return;
+    }    
+    report ("Naively unrolling\n");
 
     OPT_CFGTransformations.killFallThroughs (ir, nloop);
 
     // first, capture the blocks in the loop body.
-    int bodyBlocks = 0;
-    OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
-    while (bs.hasMoreElements()) {bodyBlocks++; bs.next();}
+    int bodyBlocks = nloop.populationCount();
     OPT_BasicBlock body[] = new OPT_BasicBlock[bodyBlocks];
     {
       int i = 0;
       bs = ir.getBasicBlocks (nloop);
       while (bs.hasMoreElements()) {
 	OPT_BasicBlock b = bs.next();
-	if (b instanceof OPT_ExceptionHandlerBasicBlock) {
-	  VM.sysWrite ("ARGL!!"+ir.method);
-	  return;
-	}
+	if (VM.VerifyAssertions)
+	  VM._assert (!(b instanceof OPT_ExceptionHandlerBasicBlock));
 	body[i++] = b;
 	OPT_BasicBlock next = b.nextBasicBlockInCodeOrder();
 	if (next == null || !OPT_CFGTransformations.inLoop (next, nloop));
@@ -652,34 +655,66 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     return def;
   }
   
-  private static boolean loopInvariant (OPT_Operand op, OPT_BitVector nloop) {
+  private static boolean loopInvariant (OPT_Operand op, OPT_BitVector nloop,
+					int depth)
+  {
+    if (depth <= 0) return false;
     if (op instanceof OPT_ConstantOperand) return true;
     if (op instanceof OPT_RegisterOperand) {
-      boolean variant = false;
+      boolean invariant = true;
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       while (defs.hasMoreElements()) {
 	OPT_Instruction inst = defs.next().instruction;
-	if (Move.conforms (inst)) {
-	  inst = definingInstruction (follow (Move.getVal(inst)));
-	  if (Move.conforms (inst)
-	      && Move.getVal (inst) instanceof OPT_ConstantOperand)
-	    return true;
-	}
-	if (inst.operator.opcode == ARRAYLENGTH_opcode)
-	  inst = definingInstruction (GuardedUnary.getVal(inst));
 	if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop)) {
-	  variant = true;
-	  break;
+	  if (Move.conforms (inst)) {
+	    invariant &= loopInvariant (Move.getVal(inst), nloop, depth - 1);
+	  } else if (inst.operator.opcode == ARRAYLENGTH_opcode) {
+	    invariant &= loopInvariant (GuardedUnary.getVal(inst),nloop,depth);
+	  } else {
+	    invariant = false;
+	  }
 	}
+	if (!invariant) break;
       }
-      return !variant;
+      return invariant;
+    }
+    return false;
+  }
+  
+  private static boolean printDefs (OPT_Operand op, OPT_BitVector nloop,
+				    int depth)
+  {
+    if (depth <= 0) return false;
+    if (op instanceof OPT_ConstantOperand) {
+      VM.sysWrite (">> "+op+"\n");
+      return true;
+    }
+    if (op instanceof OPT_RegisterOperand) {
+      boolean invariant = true;
+      OPT_Register reg = ((OPT_RegisterOperand)op).register;
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
+      while (defs.hasMoreElements()) {
+	OPT_Instruction inst = defs.next().instruction;
+	VM.sysWrite (">> "+inst.getBasicBlock()+": "+inst+"\n");
+	if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop)) {
+	  if (Move.conforms (inst)) {
+	    invariant &= printDefs (Move.getVal(inst), nloop, depth - 1);
+	  } else if (inst.operator.opcode == ARRAYLENGTH_opcode) {
+	    invariant &= printDefs (GuardedUnary.getVal(inst),nloop,depth);
+	  } else {
+	    invariant = false;
+	  }
+	}
+	if (!invariant) break;
+      }
+      return invariant;
     }
     return false;
   }
 
 
-  private static void printDefs (OPT_Operand op) {
+  private static void _printDefs (OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);

@@ -110,7 +110,9 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     Enumeration e = dominator.getChildren(b);
     while (e.hasMoreElements()) {
       OPT_DominatorTreeNode n = (OPT_DominatorTreeNode)e.nextElement();
-      GlobalCSE(n.getBlock());
+      OPT_BasicBlock bl = n.getBlock();
+      if (ir.options.FREQ_FOCUS_EFFORT && bl.getInfrequent()) continue;
+      GlobalCSE(bl);
     }
     inst = b.firstInstruction();
     while (!BBend.conforms(inst)) {

@@ -123,7 +123,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
-	ir.desiredSSAOptions.setInsertPEIDeps(true);
+	ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
         ir.desiredSSAOptions.setHeapTypes(null);
       }
     }

@@ -21,7 +21,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   implements OPT_Operators {
 
   private static boolean changed = false;
-  private static boolean DEBUG = true;
+  private static boolean DEBUG = false;
 
   // gack
   private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
@@ -43,16 +43,16 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
 
     // Note: the following unfactors the CFG.
     OPT_DominatorsPhase dom = new OPT_DominatorsPhase(true);
-
-    for (;;) {
+    boolean moreToCome = true;
+    while (moreToCome) {
       dom.perform(ir);
-      if (!turnWhilesIntoUntils(ir))
-        break;
+      moreToCome = turnWhilesIntoUntils(ir);
     }
+
+    ensureLandingPads (ir);
     
-    branchOpts.perform(ir, false);
+    //branchOpts.perform(ir, false);
     dom.perform(ir);
-    splitCriticalEdges(ir);
     ir.cfg.compactNodeNumbering();
   }
 
@@ -66,7 +66,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     return  options.TURN_WHILES_INTO_UNTILS;
   }
 
-  /**
+  /**O
    * Returns the name of the phase.
    */
   public String getName() {
@@ -107,6 +107,76 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   }
 
   /**
+   * treat all loops of the ir
+   */
+  private static void ensureLandingPads (OPT_IR ir) {
+    OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    if (lstg != null)
+      ensureLandingPads ((OPT_LSTNode)lstg.firstNode(), ir);
+  }
+
+  /**
+   * deal with a sub tree of the loop structure tree
+   */
+  private static void ensureLandingPads (OPT_LSTNode t, OPT_IR ir) {
+    Enumeration e = t.outNodes();
+    while (e.hasMoreElements()) {
+      OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
+      ensureLandingPads(n, ir);
+      ensureLandingPad (n, ir);
+    }
+  }
+
+
+  private static float edgeFrequency (OPT_BasicBlock a, OPT_BasicBlock b)
+  {
+    float prop = 0f;
+    OPT_WeightedBranchTargets ws = new OPT_WeightedBranchTargets (a);
+    while (ws.hasMoreElements()) {
+      if (ws.curBlock() == b) prop += ws.curWeight();
+      ws.advance();
+    }
+    return a.getExecutionFrequency() * prop;
+  }
+
+  
+  /**
+   *
+   */
+  private static void ensureLandingPad (OPT_LSTNode n, OPT_IR ir)
+  {
+    OPT_BasicBlock[] ps = loopPredecessors (n);
+    if (ps.length == 1 && ps[0].getNumberOfOut() == 1) return;
+
+    float frequency = 0f;
+    for (int i = 0;  i < ps.length;  ++i) {
+      OPT_BasicBlock p = ps[i];
+      frequency += edgeFrequency (p, n.header);
+    }
+    OPT_BasicBlock newPred;
+    newPred = n.header.createSubBlock (n.header.firstInstruction().bcIndex,
+				       ir, 1f);
+    newPred.setLandingPad();
+    newPred.setExecutionFrequency (frequency);
+
+    OPT_BasicBlock p = n.header.prevBasicBlockInCodeOrder();
+    if (VM.VerifyAssertions) VM._assert (p != null);
+    p.killFallThrough();
+    ir.cfg.breakCodeOrder (p, n.header);
+    ir.cfg.linkInCodeOrder (p, newPred);
+    ir.cfg.linkInCodeOrder (newPred, n.header);
+    
+    newPred.lastInstruction().insertBefore
+      (Goto.create(GOTO, n.header.makeJumpTarget()));
+    newPred.recomputeNormalOut(ir);
+
+    for (int i = 0;  i < ps.length;  ++i) {
+      ps[i].redirectOuts (n.header, newPred, ir);
+    }
+  }
+
+  
+  /**
    * Transform a given loop
    *
    * <p> Look for the set S of in-loop predecessors of the loop header h.
@@ -119,79 +189,117 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   private static boolean turnLoopIntoUntil(OPT_LSTNode n, OPT_IR ir) {
     OPT_BitVector nloop = n.loop;
     OPT_BasicBlock header = n.header;
-    OPT_BasicBlock newLoopTest = null, pred[] = inLoopPredecessors(n);
-    // nothing to do or to complex?
-    if (pred == null)
-      return  false;
-    int i = -1;
-    while (++i < pred.length) {
-      if (pred[i] == null)
-        continue;
-      changed = true;
-      // replicate the header as successor of pred[i]
-      newLoopTest = pred[i].replicateThisOut(ir, header);
-      // can not really fix loop structure tree, try the best
-      n.loop.clear(header.getNumber());
-      n.header = null;          // this might not be unique anymore
+    OPT_BasicBlock newLoopTest = null;
+
+    int i = 0;
+    int exiters = 0;
+    
+    OPT_BasicBlockEnumeration e = ir.getBasicBlocks (n.loop);
+    while (e.hasMoreElements()) {
+      OPT_BasicBlock b = e.next();
+      if (!exitsLoop (b, n.loop)) {
+	// header doesn't exit: nothing to do
+	if (b == n.header) return false;
+      } else {
+	exiters++;
+      }
+      i++;
+    }
+    // all blocks exit: can't improve
+    if (i == exiters) return false;
+
+
+    // rewritung loops where the header has more than one in-loop
+    // successor will lead to irreducible control flow.
+    OPT_BasicBlock succ[] = inLoopSuccessors (n);
+    if (succ.length > 1) {
+      if (DEBUG) VM.sysWrite ("unwhiling would lead to irreducible CFG\n");
+      return false;
+    }
+    
+    OPT_BasicBlock pred[] = inLoopPredecessors (n);
+    float frequency = 0f;
+
+    if (pred.length > 0) {
+      frequency += edgeFrequency (pred[0], header);
+      // replicate the header as successor of pred[0]
+      OPT_BasicBlock p = header.prevBasicBlockInCodeOrder();
+      p.killFallThrough();
+      newLoopTest = pred[0].replicateThisOut (ir, header, p);
       removeYieldPoint(header);
-      addToLoops(newLoopTest, n);
-      break;                    // only handle the first back edge
     }
-    while (++i < pred.length) { // check for aditional back edges
-      if (pred[i] == null)
-        continue;
-      pred[i].redirectOuts(header, newLoopTest,ir);
+    for (i = 1;  i < pred.length;  ++i) { // check for aditional back edges
+      frequency += edgeFrequency (pred[i], header);
+      pred[i].redirectOuts(header, newLoopTest, ir);
     }
+    newLoopTest.setExecutionFrequency (frequency);
+    header.setExecutionFrequency (header.getExecutionFrequency() - frequency);
     return  true;
   }
 
   /**
-   * the predecessors of `block' that are part of the loop
+   * the predecessors of the loop header that are not part of the loop
    */
-  private static OPT_BasicBlock[] inLoopPredecessors(OPT_LSTNode n) {
-    boolean headerExits = false;
-    boolean singleNodeLoop = true;
+  private static OPT_BasicBlock[] loopPredecessors(OPT_LSTNode n) {
     OPT_BasicBlock header = n.header;
     OPT_BitVector loop = n.loop;
-    // check for the following condition:
-    // loop header `h' has a successor that is not part of the loop
-    // all in loop predecessors of `h' have `h' as single successor
-    OPT_BasicBlockEnumeration be = header.getOut();
-    while (be.hasMoreElements()) {
-      if (!inLoop (be.next(), loop)) {
-        headerExits = true;
-        break;
-      }
-    }
-    if (!headerExits)
-      return  null;
-    OPT_BasicBlock res[] = new OPT_BasicBlock[header.getNumberOfIn()];
-    be = header.getIn();
+    
     int i = 0;
+    OPT_BasicBlockEnumeration be = header.getIn();
+    while (be.hasMoreElements()) if (!inLoop (be.next(), loop)) i++;
+
+    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+
+    i = 0;
+    be = header.getIn();
     while (be.hasMoreElements()) {
       OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
-      if (inLoop(in, loop)) {
-        if (in.hasOneOut()) {
-          res[i] = in;
-          i++;
-        } else {
-          return  null;
-        }
-      }
+      if (!inLoop(in, loop)) res[i++] = in;
     }
     return  res;
   }
 
   /**
-   * Add `b' to loop `n' and all enclosing loops.
+   * the predecessors of the loop header that are part of the loop.
    */
-  private static void addToLoops(OPT_BasicBlock b, OPT_LSTNode n) {
-    while (n.loop != null) {
-      if (VM.VerifyAssertions)
-        VM._assert(n.hasOneIn());
-      n.loop.set(b.getNumber());
-      n = (OPT_LSTNode)n.firstInNode();
+  private static OPT_BasicBlock[] inLoopPredecessors(OPT_LSTNode n) {
+    OPT_BasicBlock header = n.header;
+    OPT_BitVector loop = n.loop;
+
+    int i = 0;
+    OPT_BasicBlockEnumeration be = header.getIn();
+    while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
+
+    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+    
+    i = 0;
+    be = header.getIn();
+    while (be.hasMoreElements()) {
+      OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
+      if (inLoop(in, loop)) res[i++] = in;
     }
+    return  res;
+  }
+  /**
+   * the successors of the loop header that are part of the loop.
+   */
+  private static OPT_BasicBlock[] inLoopSuccessors (OPT_LSTNode n) {
+    OPT_BasicBlock header = n.header;
+    OPT_BitVector loop = n.loop;
+
+    int i = 0;
+    OPT_BasicBlockEnumeration be = header.getOut();
+    while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
+
+    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+    
+    i = 0;
+    be = header.getOut();
+    while (be.hasMoreElements()) {
+      OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
+      if (inLoop(in, loop)) res[i++] = in;
+    }
+    return  res;
   }
 
   /**
@@ -218,17 +326,9 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
       while (bi.hasMoreElements()) {
 	OPT_BasicBlock in = bi.next();
 	if (inLoop (in, nloop)) continue;
-	killFallThrough(in);
+	in.killFallThrough();
       }
-      killFallThrough(block);
-    }
-  }
-
-  static void killFallThrough(OPT_BasicBlock b) {
-    OPT_BasicBlock fallThrough = b.getFallThroughBlock();
-    if (fallThrough != null) {
-      b.lastInstruction().insertBefore
-	(Goto.create(GOTO,fallThrough.makeJumpTarget()));
+      block.killFallThrough();
     }
   }
 
@@ -238,7 +338,16 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     return nloop.get(idx);
   }
   
-/**
+  static private boolean exitsLoop (OPT_BasicBlock b, OPT_BitVector loop)
+  {
+    OPT_BasicBlockEnumeration be = b.getOut();
+    while (be.hasMoreElements()) {
+      if (!inLoop (be.next(), loop)) return true;
+    }
+    return false;
+  }
+  
+  /**
    * Critical edge removal: if (a,b) is an edge in the cfg where `a' has more
    * than one out-going edge and `b' has more than one in-coming edge,
    * insert a new empty block `c' on the edge between `a' and `b'.
@@ -246,7 +355,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * <p> We do this to provide landing pads for loop-invariant code motion.
    * So we split only edges, where `a' has a lower loop nesting depth than `b'.
    */
-  static void splitCriticalEdges(OPT_IR ir) {
+  public static void splitCriticalEdges(OPT_IR ir) {
     OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
@@ -265,15 +374,17 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         OPT_BasicBlock a = ins[i];
         if (a.getNumberOfOut() <= 1)
           continue;
-        if (frequency(a, ir) >= frequency(b, ir))
-          continue;
-        //VM.sysWrite ("Critical edge: " + a + " -> " + b + "\n");
+	// insert pads only for moving code up to the start of the method
+        //if (a.getExecutionFrequency() >= b.getExecutionFrequency()) continue;
         changed = true;
         // create a new block as landing pad
         OPT_BasicBlock landingPad;
         OPT_Instruction firstInB = b.firstInstruction();
         int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
+	landingPad.setLandingPad();
+	landingPad.setExecutionFrequency (edgeFrequency (a, b));
+	
         // make the landing pad jump to `b'
         OPT_Instruction g;
         g = Goto.create(GOTO, b.makeJumpTarget());
@@ -281,12 +392,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         landingPad.recomputeNormalOut(ir);
         // redirect a's outputs from b to the landing pad
         a.redirectOuts(b, landingPad,ir);
-        // link landing pad into the code order.
-        OPT_BasicBlock aFallThrough = a.getFallThroughBlock();
-        if (aFallThrough != null) {
-          g = Goto.create(GOTO, aFallThrough.makeJumpTarget());
-          a.appendInstruction(g);
-        }
+
+	a.killFallThrough ();
         OPT_BasicBlock aNext = a.nextBasicBlockInCodeOrder();
         if (aNext != null) {
           ir.cfg.breakCodeOrder(a, aNext);
@@ -295,19 +402,5 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         ir.cfg.linkInCodeOrder(a, landingPad);
       }
     }
-  }
-
-  /**
-   * How often will this block be executed?
-   * @param b
-   * @param ir
-   */
-  static final int frequency(OPT_BasicBlock b, OPT_IR ir) {
-    //-#if BLOCK_COUNTER_WORKS
-    OPT_Instruction inst = b.firstInstruction();
-    return  basicBlockCounter.getCount(inst.bcIndex, inst.position);
-    //-#else
-    return  ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
-    //-#endif
   }
 }
