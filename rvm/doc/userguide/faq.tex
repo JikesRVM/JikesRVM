@@ -28,7 +28,7 @@ in Java, all those cases dependend on the presence of a second
 underlying Java virtual machine and incurred large (100x-1000x)
 performance slowdowns as a result.  
 The RVM is unique in that it is
-the the first self-bootstrapped virtual machine written entirely in
+the first self-bootstrapped virtual machine written entirely in
 Java i.e., its Java code runs on itself, without requiring a second
 virtual machine.
 
@@ -44,7 +44,7 @@ be present in a production virtual machine.
 \subsubsection{Was RVM once called \jp? What's the difference?}
 
 Yes. There is no difference.  The RVM is the open-source release of
-code developed in the \jp project.
+code developed in the \jp\ project.
 
 Call a pepper by any other name, and does it
 not still burn your mouth?
@@ -71,7 +71,7 @@ open-sourcing RVM, we hope to accelerate progress in developing
 next-generation virtual machine technologies at universities.
 
 \subsubsection{Is IBM going to turn this into a JVM?}
-No, there is already several JVMs in wide circulation that pass
+No, there are already several JVMs in wide circulation that pass
 all Sun conformance tests - including several available from IBM as
 part of larger technology bundles. IBM will not be devoting resources
 to evolving the RVM code into a full JVM. It would take a significant
@@ -493,8 +493,8 @@ contributing it back.
 
 \subsubsection{What is the OptTestHarness?}
 
-The OptTestHarness is a driver program to run the optimizing compiler even
-on a BaseBase boot image.  This driver is useful for optimizing compiler
-development, since you can use the driver to selectively compile
-individual methods with certain options. 
-\remark{TODO add a section on this to the userguide and reference it}
+The OptTestHarness (see section \ref{opttestharness}) is a driver
+program to run the optimizing compiler even on a BaseBase boot image.
+This driver is useful for optimizing compiler development, since you
+can use the driver to selectively compile individual methods with
+certain options.
