@@ -70,6 +70,12 @@ else
   NS_ARCH=`uname -m`
 fi
 
+# Remove spaces from values such as "Power Macintosh"
+
+NS_OS=$( echo $NS_OS | sed "s/ //;" )
+NS_ARCH=$( echo $NS_ARCH | sed "s/ //;" )
+
+
 # Set number of processors based on OS
 if [[ $NS_OS = 'Linux' ]]; then
   NUM_PROCS=4
@@ -81,6 +87,8 @@ fi
 cd $RVM_ROOT
 
 dry_run=""
+do_mail=1
+measure_compilation=1
 declare -i trouble=0
 while (( $# > 0 )); do
     case "$1" in
@@ -88,11 +96,20 @@ while (( $# > 0 )); do
 #	    rm -rf $MSG $RVM_ROOT/results
 #	    shift;
 #	    ;;
-	-dry-run )
+	 -dry-run )
 	    dry_run="-succeed-immediately";
+	    do_mail=0;
 	    shift;
 	    echo "$ME: A dry run, so we won't actually send any mail." \
 		| tee -a $RUN_LOG $MSG >&2
+	    ;;
+	-no-mail )
+	    do_mail=0;
+	    shift;
+	    ;;
+	-no-measure-compilation )
+	    measure_compilation=0;
+	    shift;
 	    ;;
 	-* )
 	    echo "$ME: Got unknown flag \"$1\"; can't go on." \
@@ -151,7 +168,9 @@ echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
 mkdir -p $MEASURE_COMPILATION_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
+if [[ $measure_compilation == 1 ]]; then
+   $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
+fi
 
 # Archive result files and performance results
 
@@ -350,7 +369,7 @@ if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: this is a dry run.  Won't actually mail."
 fi | tee -a $RUN_LOG $MSG >&2
 
-if [[ ! $RESULT_MAILING_LIST ]] || [[ $dry_run ]]; then
+if [[ ! $RESULT_MAILING_LIST ]] || [[ $do_mail != 1 ]]; then
     function mail () {
 	echo >&2 "$ME: dry run: Pretending to invoke \"mail $*\"";
 	echo >&2 "**************************************"
