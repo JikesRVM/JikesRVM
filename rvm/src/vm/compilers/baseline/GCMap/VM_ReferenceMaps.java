@@ -286,7 +286,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *       when a jsr map is being scanned.
    *       This shoulkd be a low probability event.
    *
-   * NOTE: return addresses are handled seperately from references because they point
+   * NOTE: return addresses are handled separately from references because they point
    *       inside an object ( internal pointers)
    *
    * Return NOMORE when no
@@ -352,7 +352,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     return bytesPerMap();
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getVMClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
   int size() throws VM_PragmaInterruptible {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
