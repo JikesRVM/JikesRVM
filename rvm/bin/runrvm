@@ -112,4 +112,17 @@ prog="$rvm_build/JikesRVM"
 [[ -f $prog ]] || croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
 [[ -x $prog ]] || croak_nonusage "Cannot execute the file named \"$prog\"; some sort of permissions problem.  Something weird is happening.  Maybe somebody with a highly restrictive \"umask\" compiled Jikes RVM?"
 
-exec "$prog" "${sys_args[@]}" "${user_args[@]}" 
+## "shopt -s execfail" is needed so that we can print a better error
+## message if we fail to execute the JikesRVM executable.  Otherwise,
+## in case of a file format incompatibility (trying to exec an AIX
+## binary on Linux, for example) we get the potentially misleading message:
+##
+## /home/augart/JikesRVM/Clean//rvm/bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: cannot execute binary file
+## /home/augart/JikesRVM/Clean//rvm/bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: Success
+## Now we can at least append a message saying "FAIL" after the
+## misleading message.
+
+shopt -s execfail
+exec "$prog" "${sys_args[@]}" "${user_args[@]}"
+echo  "$ME: FAILed to execute $prog; can't run Jikes RVM"
+exit 1
