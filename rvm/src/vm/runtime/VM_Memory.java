@@ -15,16 +15,17 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
+public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
   ////////////////////////
+
   /** 
    * How many bytes is considered large enough to justify the transition to
    * C code to use memcpy?
    */
-  private static final int NATIVE_THRESHOLD = 256; 
+  private static final int NATIVE_THRESHOLD = 512; 
 
   private static final boolean USE_NATIVE = true;
   
@@ -230,6 +231,45 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
     }
   }    
 
+
+  /**
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   *
+   * Assumption src != dst || (srcPos >= dstPos) and element size is 8 bytes.
+   * 
+   * @param src     the source array
+   * @param srcPos  index in the source array to begin copy
+   * @param dst     the destination array
+   * @param dstPos  index in the destination array to being copy
+   * @param len     number of array elements to copy
+   */
+  public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws VM_PragmaInline {
+    VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_DOUBLE);
+    VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_DOUBLE);
+    int copyBytes = len<<LOG_BYTES_IN_DOUBLE;
+    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_DOUBLE)) {
+      memcopy(dstPtr, srcPtr, copyBytes);
+    } else {
+      // The elements of long[] and double[] are always doubleword aligned
+      // therefore we can do 64 bit load/stores without worrying about alignment.
+      VM_Address endPtr = srcPtr.add(copyBytes);
+      while (srcPtr.LT(endPtr)) {
+        // We generate abysmal code on IA32 if we try to use the FP registers,
+        // so use the gprs instead even though it results in more instructions.
+        if (VM.BuildForIA32) {
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+        } else {          
+          VM_Magic.setDoubleAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                     VM_Magic.getDoubleAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        }
+        srcPtr = srcPtr.add(8);
+        dstPtr = dstPtr.add(8);
+      }
+    }
+  }    
 
   /**
    * Copy numbytes from src to dst.

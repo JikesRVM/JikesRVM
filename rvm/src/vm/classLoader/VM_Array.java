@@ -319,23 +319,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS)) {
         VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
-   
+
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of booleans. 
    *
@@ -351,23 +358,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_BOOLEAN)) {
         VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
    
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of shorts. 
    *
@@ -383,23 +397,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_SHORT)) {
         VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
    
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of chars. 
    *
@@ -415,24 +436,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_CHAR)) {
         VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }  
 
-   
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+     
   /**
    * Perform an array copy for arrays of ints. 
    *
@@ -448,25 +475,32 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx >= dstIdx) {
         VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<< LOG_BYTES_IN_INT),
                                 VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_INT),
                                 len<< LOG_BYTES_IN_INT);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
    
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of floats. 
    *
@@ -482,25 +516,32 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx > dstIdx) {
         VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx << LOG_BYTES_IN_FLOAT),
                                 VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_FLOAT),
                                 len << LOG_BYTES_IN_FLOAT);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
    
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of longs. 
    *
@@ -516,25 +557,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_LONG),
-                                VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_LONG),
-                                len<<LOG_BYTES_IN_LONG);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
+        VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
-   
+
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of doubles. 
    *
@@ -550,25 +596,30 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
         (srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
         (dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
-      // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_DOUBLE),
-                                VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_DOUBLE),
-                                len<<LOG_BYTES_IN_DOUBLE);
-      } else if (srcIdx < dstIdx) {
-        srcIdx += len;
-        dstIdx += len;
-        while (len-- != 0)
-          dst[--dstIdx] = src[--srcIdx];
+        VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
-        while (len-- != 0)
-          dst[dstIdx++] = src[srcIdx++];
+        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
    
+  // Outlined unlikely case of potentially overlapping subarrays
+  // Motivation is to reduce code space costs of inlined array copy.
+  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) throws VM_PragmaNoInline {
+    if (srcIdx < dstIdx) {
+      srcIdx += len;
+      dstIdx += len;
+      while (len-- != 0)
+        dst[--dstIdx] = src[--srcIdx];
+    } else {
+      while (len-- != 0)
+        dst[dstIdx++] = src[srcIdx++];
+    }
+  }
+  
   /**
    * Perform an array copy for arrays of objects.  This code must
    * ensure that write barriers are invoked as if the copy were

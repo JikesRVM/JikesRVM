@@ -3580,17 +3580,12 @@ public class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTHX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == VM_MagicNames.getLongAtOffset) {
+    } else if (methodName == VM_MagicNames.getLongAtOffset ||
+               methodName == VM_MagicNames.getDoubleAtOffset) {
       popInt(T2); // pop offset
       popAddr(T1); // pop object
-      if (VM.BuildFor32Addr) {
-        asm.emitLWZX (T0, T1, T2); // *(object+offset)
-        asm.emitADDI(T2, BYTES_IN_INT, T2); // offset += 4
-        asm.emitLWZX (T1, T1, T2); // *(object+offset+4)
-      } else {
-        asm.emitLDX(T1, T1, T2);
-      }
-      pushLong(T0,T1);
+      asm.emitLFDX (F0, T1, T2); 
+      pushDouble(F0);
     } else if ((methodName == VM_MagicNames.setLongAtOffset) 
                || (methodName == VM_MagicNames.setDoubleAtOffset)) {
       popLong(T3, T2);  

@@ -240,6 +240,15 @@ public class VM_Magic {
   }
 
   /**
+   * Get double at arbitrary (byte) offset from object.
+   * Use getDoubleAtOffset(obj, ofs) instead of two getIntAtOffset
+   */
+  public static double getDoubleAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /**
    * Get contents of a memory location.
    * @deprecated  Use getIntAtOffset / getObjectAtOffset where possible.
    */

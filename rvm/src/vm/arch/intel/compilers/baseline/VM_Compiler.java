@@ -3220,7 +3220,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.getLongAtOffset) {
+    if (methodName == VM_MagicNames.getLongAtOffset ||
+        methodName == VM_MagicNames.getDoubleAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 4); // pushes [T0+S0+4]
@@ -3228,8 +3229,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if ((methodName == VM_MagicNames.setLongAtOffset) 
-      || (methodName == VM_MagicNames.setDoubleAtOffset)) {
+    if (methodName == VM_MagicNames.setLongAtOffset ||
+        methodName == VM_MagicNames.setDoubleAtOffset) {
       asm.emitMOV_Reg_RegInd (T0, SP);          // value high
       asm.emitMOV_Reg_RegDisp(S0, SP, +8 );     // offset
       asm.emitMOV_Reg_RegDisp(T1, SP, +12);     // obj ref

@@ -166,6 +166,13 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(LONG_STORE, val, object, offset, 
                                            null));
+    } else if (methodName == VM_MagicNames.getDoubleAtOffset) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTempDouble();
+      bc2ir.appendInstruction(Load.create(DOUBLE_LOAD, val, object, offset, 
+                                          null));
+      bc2ir.pushDual(val.copyD2U());
     } else if (methodName == VM_MagicNames.setDoubleAtOffset) {
       OPT_Operand val = bc2ir.popDouble();
       OPT_Operand offset = bc2ir.popInt();
