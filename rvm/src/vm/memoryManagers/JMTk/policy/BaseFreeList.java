@@ -164,6 +164,22 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @return The address of the first byte of the allocated cell  Will not return zero.
    */
   private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
+    throws VM_PragmaInline {
+    int sizeClass = getSizeClass(isScalar, bytes);
+    boolean large = isLarge(sizeClass);
+    boolean small = isSmall(sizeClass);
+    if (small) {
+      VM_Address cell = allocCell(isScalar, sizeClass);
+      if (!cell.isZero()) {
+	postAlloc(cell, isScalar, bytes, small, large, copy);
+	Memory.zeroSmall(cell, bytes);
+	return cell;
+      }
+    }
+    return allocSlow(isScalar, bytes, copy);
+  }
+
+  private final VM_Address allocSlow(boolean isScalar, EXTENT bytes, boolean copy) 
     throws VM_PragmaNoInline {
     int sizeClass = getSizeClass(isScalar, bytes);
     boolean large = isLarge(sizeClass);
@@ -176,7 +192,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       if (count > 2) VM.sysFail("Out of memory in BaseFreeList.alloc");
     }
     postAlloc(cell, isScalar, bytes, small, large, copy);
-    VM_Memory.zero(cell, bytes);
+    Memory.zeroSmall(cell, bytes);
     return cell;
   }
 
