@@ -290,6 +290,62 @@ function setConfiguration {
 }
 
 
+# Wait for a semaphore file to appear; used in doBuild()
+# waitFor <semaphore-file> <sleep-interval> <max-duration>
+function waitFor () {
+    local -r sem="$1";
+    local -i -r SLEEP_DURATION=$2;
+    local -i -r MAX_SLEEP=$3;
+    
+    local -i dots=0	# Number of dots printed.
+    local -i printedWaiting=0	# did we print the "Waiting for... message?"
+    if [[ ! -a $sem ]]; then
+	printedWaiting=1
+	echo "$ME: Waiting for the file \"$sem\""
+	echo -n "$ME: to appear"
+    fi
+    ## Print a dot every two minutes while we are waiting.
+    while [[ ! -a $sem ]]; do
+	if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
+	    say "We've waited for too long, $MAX_SLEEP seconds."
+	    say "We'll assume this build was stillborn and try the next one."
+	    echo "FAILED to build $NAME; marked as stillborn by $0 on $(date)" >> $sem
+	    return 1;
+	fi
+	let ++dots;
+	echo -n "."
+	sleep $SLEEP_DURATION;
+    done
+    if (( dots < 1 && printedWaiting )); then
+	echo ";  it's already here."
+    elif (( printedWaiting )); then
+	local -i waited_minutes
+	let waited_minutes=(dots * SLEEP_DURATION / 60)
+	echo "Done.  (Had to wait $waited_minutes minutes.)"
+    fi
+    echo -n "$ME: Build status: "
+    if fgrep FAILED $sem; then
+	# fgrep has printed the FAILED message for us.
+	return 2
+    elif fgrep SUCCESS $WAIT; then
+	# fgrep has printed the status message for us.
+	if fgrep NEED-LINKING $WAIT > /dev/null ; then
+	    need_linking=1
+	else
+	    need_linking=0
+	fi
+    elif [[ ! -s $WAIT ]]; then
+	say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
+    else
+	echo "ERROR"
+	say "$sem is not in a recognized format!"
+	say "Internal error.  Maybe someone manually created it?"
+	say "Or maybe we ran out of disk space?"
+	say "We'll assume the build failed."
+	return -1
+    fi
+}
+
 
 # Build a virtual machine.
 #
@@ -364,49 +420,12 @@ function doBuild {
         #   "failed" is passed down to code after the "if".
     else 
 	if [[ $WAIT ]]; then
-	    local -i dots=0	# Number of dots printed.
-	    echo "$ME: Waiting for the file \"$RVM_BUILD/$WAIT\""
-	    echo -n "$ME: to appear"
-	    while [[ ! -a $RVM_BUILD/$WAIT ]]; do
-		if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
-		    say "We've waited for too long, $MAX_SLEEP seconds."
-		    say "We'll assume this build was stillborn and try the next one."
-		    return 1;
-		fi
-		let ++dots;
-		echo -n "."
-		sleep $SLEEP_DURATION;
-	    done
-	    if (( dots < 1 )); then
-		echo ";  it's already here."
-	    else
-		local -i waited_minutes
-		let waited_minutes=(dots * SLEEP_DURATION / 60)
-		echo "Done.  (Had to wait $waited_minutes minutes.)"
-	    fi
-	    cd $RVM_BUILD || return 1
-	    echo -n "$ME: Build status: "
-	    if fgrep FAILED $WAIT; then
-		# fgrep will print the message for us.
-		return 2
-	    elif fgrep SUCCESS $WAIT; then
-		# fgrep has printed the status message for us.
-		if fgrep NEED-LINKING $WAIT > /dev/null ; then
-		    need_linking=1
-		else
-		    need_linking=0
-		fi
-	    elif [[ ! -s $WAIT ]]; then
-		say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
-	    else
-		say "$WAIT is not in a recognized format!"
-		say "Internal error."
-		return -1
-	    fi
+	    waitFor "$RVM_BUILD/$WAIT" $SLEEP_DURATION $MAX_SLEEP
+	    failed=$?
 	fi
 	
 	## The only thing left to do is to link.  And we only do that if 
-	## we need to ling AND if we had a successful build so far.
+	## we need to link AND if we had a successful build so far.
 
 	(( failed )) && return $failed
 	
