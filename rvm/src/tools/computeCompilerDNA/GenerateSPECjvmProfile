@@ -8,13 +8,11 @@
 # This script will run the system on the SPECjvm98 benchmarks, 
 # and collect profile data, dumped to a file.
 #
+# usage: GenerateSPECjvmProfile <profile Data file>
+#
 # @author Stephen Fink
 
-cd
-mkdir -p $RVM_ROOT/support/profileData
-FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
-PERF_FILE=/tmp/xxx
+FILE=$1
 
-RunSanityTests -performance $PERF_FILE -configuration FastBaseAdaptiveSemispace -test SPECjvm98 \
--rc-args "-X:aos:primary_strategy=baseonly -X:aos:base:edge_counter_file=$FILE" \
--nobuild
+RunSanityTests -measureCompilation -configuration FastBaseAdaptiveSemispace -test SPECjvm98 \
+-rc-args "-X:aos:final_report_level=2 -X:aos:primary_strategy=baseonly -X:aos:base:edge_counter_file=$FILE"

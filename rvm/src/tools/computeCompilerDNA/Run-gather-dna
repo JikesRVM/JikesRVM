@@ -24,15 +24,21 @@
 #   3) Run computeDNA.pl on this file
 #
 #  @author Michael Hind, Oct 30, 2001
+#  @author Stephen Fink
+
+# Generate SPECjvm98 profile data
+mkdir -p $RVM_ROOT/support/profileData
+PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
+GenerateSPECjvmProfile $PROFILE_FILE
+PROFILE_ARG="-X:prof:edge_counter_file=$PROFILE_FILE"
 
 # parent of build diectories is command line argument to the script
 BUILDDIR=$1
 
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
-#all='_202_jess'
 
-jvmoptions="	-X:h=400 -X:lh=100"
+jvmoptions="	-X:h=400 -X:lh=100 $PROFILE_ARG"
 jvmcompoptions="	-X:h=400 -X:lh=100 -X:measureCompilation=true"
 appcompoptions="	-d3000 -g -m1 -M1 -s100"
 appperfoptions="	-d3000 -g -m5 -M5 -s100"
@@ -73,5 +79,3 @@ do
    rvm $jvmoptions -X:processors=$PROCS -X:irc:O2 SpecApplication $appperfoptions  -a $benchmark
 
 done
-
-
