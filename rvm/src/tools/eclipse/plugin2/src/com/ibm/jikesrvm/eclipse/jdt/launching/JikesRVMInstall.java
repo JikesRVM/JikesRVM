@@ -47,7 +47,9 @@ public class JikesRVMInstall extends AbstractVMInstall {
     if (ILaunchManager.DEBUG_MODE.equals(mode)) {
       
       // we'll try...
-      return new JikesRVMDebugger(this);
+      // return new JikesRVMDebugger(this);
+      return null;		// We no longer support the JDP debugger.
+      
       
     }
     return null;
