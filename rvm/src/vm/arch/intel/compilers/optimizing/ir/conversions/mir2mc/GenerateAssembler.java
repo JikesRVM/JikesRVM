@@ -1029,7 +1029,6 @@ class GenerateAssembler {
 	excludedOpcodes.add("NOP");
 	excludedOpcodes.add("RDTSC");
 	excludedOpcodes.add("ENTER");
-	excludedOpcodes.add("LEAVE");
     }
 
     /**

@@ -1350,13 +1350,6 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     if (lister != null) lister.OP(miStart, "NOP");
   }
 
-  // SP := FP; FP := [SP]; SP -= WORDSIZE; discard current stackframe
-  final void emitLEAVE () {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) 0xC9);
-    if (lister != null) lister.OP(miStart, "LEAVE");
-  }
-
   ////////////////////////////////////////////
   // hand-coded floating point instructions //
   ////////////////////////////////////////////

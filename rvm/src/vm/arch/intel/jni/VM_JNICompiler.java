@@ -142,10 +142,12 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     // if pending exception, discard the return value and current stack frame
     // then jump to athrow 
     asm.emitMOV_Reg_Reg(T0, EBX);
-    // after LEAVE, sp will point to the return address to the caller of the native method
+    // after the next two instructions, sp will point to the return address to the caller of the native method
     // and fp will point to the caller frame as well, so it appears as if the exception
     // occurs in the caller at the call site
-    asm.emitLEAVE();                                
+    asm.emitMOV_Reg_Reg(SP, FP);
+    asm.emitPOP_Reg(FP);
+
     // don't use CALL since it will push on the stack frame the return address to here 
     asm.emitJMP_RegDisp(JTOC, VM_Entrypoints.athrowOffset);
 
@@ -161,7 +163,8 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET);    // restore nonvolatile ebx register
     asm.emitMOV_Reg_RegDisp (JTOC, FP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI/JTOC register
 
-    asm.emitLEAVE();                                // discard current stack frame
+    asm.emitMOV_Reg_Reg(SP, FP);                           // discard current stack frame
+    asm.emitPOP_Reg(FP);
     // return to caller 
     // pop parameters from stack (Note that parameterWords does not include "this")
     if (method.isStatic())
@@ -200,7 +203,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
   static void prepareStackHeader(VM_Assembler asm, VM_Method method, int compiledMethodId) {
 
     // set 2nd word of header = return address already pushed by CALL
-    asm.emitPUSH_Reg(FP);          
+    asm.emitPUSH_Reg(FP);
 
     // start new frame:  set FP to point to the new frame
     asm.emitMOV_Reg_Reg (FP, SP); 
@@ -860,9 +863,8 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitPOP_Reg(EBX);         
     asm.emitPOP_Reg(JTOC); 
 
-    asm.emitLEAVE();            // discard current stack frame
+    asm.emitMOV_Reg_Reg(SP, FP);                           // discard current stack frame
+    asm.emitPOP_Reg(FP);
     asm.emitRET();              // return to caller
-
   }
-
 }
