@@ -233,7 +233,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 						  I(offset)));
       burs.append(s);
     } else {
-      OPT_Register reg = burs.ir.regpool.getInteger(false);
+      OPT_Register reg = burs.ir.regpool.getInteger();
       int valueLow = OPT_Bits.PPCMaskLower16(offset);
       burs.append(MIR_Binary.create(PPC_ADDIS, R(reg), R(JTOC), I(valueHigh)));
       s = OPT_RVMIRTools.nonPEIGC(MIR_Load.create(operator, D(RT), 
@@ -713,7 +713,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   boolean boolean_cmp_imm(OPT_BURS burs, OPT_RegisterOperand def, 
 			  OPT_RegisterOperand one, 
 			  int value, OPT_ConditionOperand cmp) {
-    OPT_Register t1, t = burs.ir.regpool.getInteger(false);
+    OPT_Register t1, t = burs.ir.regpool.getInteger();
     OPT_Register zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
     boolean convert = true;
     switch (cmp.value) {
@@ -731,7 +731,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(t), one, I(-1)));
 	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t), one.copyRO()));
       } else {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Binary.create(PPC_SUBFIC, R(t1), one, I(value)));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(t), R(t1), I(-1)));
 	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t), R(t1)));
@@ -768,7 +768,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				      I(-value - 1)));
 	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
@@ -800,13 +800,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
 	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else if (value != 0xFFFF8000) {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
 	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       } else {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
 	burs.append(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
@@ -845,7 +845,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 		       OPT_RegisterOperand one, 
 		       OPT_RegisterOperand two, OPT_ConditionOperand cmp,
 		       OPT_Instruction inst) {
-    OPT_Register t1, zero, t = burs.ir.regpool.getInteger(false);
+    OPT_Register t1, zero, t = burs.ir.regpool.getInteger();
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       {
@@ -856,7 +856,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	burs.append(MIR_Binary.create(PPC_SUBF, R(t), one, two));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(t1), R(t), I(-1)));
 	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t1), R(t)));
@@ -864,7 +864,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
 	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), two, I(31)));
@@ -874,7 +874,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       {
-	t1 = burs.ir.regpool.getInteger(false);
+	t1 = burs.ir.regpool.getInteger();
 	zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
 	burs.append(MIR_Binary.create(PPC_SRWI, R(t), two, I(31)));
 	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), one, I(31)));
@@ -934,7 +934,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	       OPT_RegisterOperand def, 
 	       OPT_RegisterOperand left, 
 	       OPT_RegisterOperand right) {
-    OPT_Register temp = burs.ir.regpool.getInteger(false);
+    OPT_Register temp = burs.ir.regpool.getInteger();
     burs.append(MIR_Binary.mutate(s, PPC_DIVW, R(temp), left, right));
     burs.append(MIR_Binary.create(PPC_MULLW, R(temp), R(temp), 
 				  right.copyU2U()));
@@ -946,7 +946,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 		   OPT_RegisterOperand left, 
 		   OPT_RegisterOperand c, 
 		   OPT_IntConstantOperand right) {
-    OPT_Register temp = burs.ir.regpool.getInteger(false);
+    OPT_Register temp = burs.ir.regpool.getInteger();
     int power = PowerOf2(right.value);
     if (power != -1) {
       burs.append(MIR_Binary.mutate(s, PPC_SRAWI, R(temp), left, I(power)));
@@ -989,14 +989,14 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Store.create(PPC_STW, R(temp.register), R(FP), I(p), 
                                   new OPT_TrueGuardOperand())));
-    OPT_Register t1 = burs.ir.regpool.getInteger(false);
+    OPT_Register t1 = burs.ir.regpool.getInteger();
     burs.append(MIR_Binary.create(PPC_XORIS, R(t1), R(src), I(0x8000)));
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Store.create(PPC_STW, R(t1), R(FP), I(p + 4), 
                                   new OPT_TrueGuardOperand())));
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Load.create(PPC_LFD, D(res), R(FP), I(p))));
-    OPT_Register tempF = burs.ir.regpool.getDouble(false);
+    OPT_Register tempF = burs.ir.regpool.getDouble();
     emitLFtoc(burs, PPC_LFD, tempF, VM_Entrypoints.I2Dconstant);
     burs.append(MIR_Binary.create(PPC_FSUB, D(res), D(res), D(tempF)));
   }
@@ -1010,9 +1010,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register res = def.register;
     OPT_Register a = left.register;
     OPT_Register b = right.register;
-    OPT_Register tempF = burs.ir.regpool.getDouble(false);
-    OPT_Register temp1 = burs.ir.regpool.getDouble(false);
-    OPT_Register temp2 = burs.ir.regpool.getDouble(false);
+    OPT_Register tempF = burs.ir.regpool.getDouble();
+    OPT_Register temp1 = burs.ir.regpool.getDouble();
+    OPT_Register temp2 = burs.ir.regpool.getDouble();
     burs.append(MIR_Binary.create(PPC_FDIV, D(temp1), D(a), D(b)));
     emitLFtoc(burs, PPC_LFS, tempF, VM_Entrypoints.halfFloat);
     burs.append(MIR_Unary.create(PPC_FNEG, D(temp2), D(tempF)));
@@ -1138,8 +1138,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register leftLow = burs.ir.regpool.getSecondReg(leftHigh);
     OPT_Register shift = right.register;
     OPT_RegisterPool regpool = burs.ir.regpool;
-    OPT_Register t0 = regpool.getInteger(false);
-    OPT_Register t31 = regpool.getInteger(false);
+    OPT_Register t0 = regpool.getInteger();
+    OPT_Register t31 = regpool.getInteger();
     burs.append(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
     burs.append(MIR_Binary.create(PPC_SLW, R(defHigh), R(leftHigh), R(shift)));
     burs.append(MIR_Binary.create(PPC_SRW, R(t0), R(leftLow), R(t31)));
@@ -1188,8 +1188,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register leftLow = burs.ir.regpool.getSecondReg(leftHigh);
     OPT_Register shift = right.register;
     OPT_RegisterPool regpool = burs.ir.regpool;
-    OPT_Register t0 = regpool.getInteger(false);
-    OPT_Register t31 = regpool.getInteger(false);
+    OPT_Register t0 = regpool.getInteger();
+    OPT_Register t31 = regpool.getInteger();
     burs.append(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
     burs.append(MIR_Binary.create(PPC_SRW, R(defLow), R(leftLow), R(shift)));
     burs.append(MIR_Binary.create(PPC_SLW, R(t0), R(leftHigh), R(t31)));
@@ -1269,8 +1269,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register rH = right.register;
     OPT_Register rL = burs.ir.regpool.getSecondReg(rH);
     OPT_RegisterPool regpool = burs.ir.regpool;
-    OPT_Register tH = regpool.getInteger(false);
-    OPT_Register t = regpool.getInteger(false);
+    OPT_Register tH = regpool.getInteger();
+    OPT_Register t = regpool.getInteger();
     burs.append(MIR_Binary.create(PPC_MULHWU, R(tH), R(lL), R(rL)));
     burs.append(MIR_Binary.create(PPC_MULLW, R(t), R(lL), R(rH)));
     burs.append(MIR_Binary.create(PPC_ADD, R(tH), R(tH), R(t)));

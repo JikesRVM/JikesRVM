@@ -3087,7 +3087,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Store.getValue(P(p))));
 stm:	BYTE_STORE(load8, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
-OPT_Register tmp = burs.ir.regpool.getInteger(false); \
+OPT_Register tmp = burs.ir.regpool.getInteger(); \
 EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), R(tmp)));
 
@@ -3104,7 +3104,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), AStore.getValue(P(p)))
 stm:	BYTE_ASTORE(load8, OTHER_OPERAND(r, riv))
 25
 EMIT_INSTRUCTION
-OPT_Register tmp = burs.ir.regpool.getInteger(false); \
+OPT_Register tmp = burs.ir.regpool.getInteger(); \
 EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), R(tmp)));
 
@@ -3121,7 +3121,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Store.getValue(P(p))));
 stm:	SHORT_STORE(load16, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
-OPT_Register tmp = burs.ir.regpool.getInteger(false); \
+OPT_Register tmp = burs.ir.regpool.getInteger(); \
 EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), R(tmp)));
 
@@ -3138,7 +3138,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p)))
 stm:	SHORT_ASTORE(load16, OTHER_OPERAND(r, riv))
 25
 EMIT_INSTRUCTION
-OPT_Register tmp = burs.ir.regpool.getInteger(false); \
+OPT_Register tmp = burs.ir.regpool.getInteger(); \
 EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), R(tmp)));
 

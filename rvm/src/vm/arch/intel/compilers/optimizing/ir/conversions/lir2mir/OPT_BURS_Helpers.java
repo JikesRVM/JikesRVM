@@ -632,9 +632,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     // isPositive == 1 iff 0.0 < value
     // isNegative == 1 iff 0.0 > value
-    OPT_Register one        = burs.ir.regpool.getInteger(false);
-    OPT_Register isPositive = burs.ir.regpool.getInteger(false);
-    OPT_Register isNegative = burs.ir.regpool.getInteger(false);
+    OPT_Register one        = burs.ir.regpool.getInteger();
+    OPT_Register isPositive = burs.ir.regpool.getInteger();
+    OPT_Register isNegative = burs.ir.regpool.getInteger();
     burs.append(MIR_Move.create(IA32_MOV, R(one), I(1)));
     burs.append(MIR_Move.create(IA32_MOV, R(isPositive), I(0)));
     burs.append(MIR_Move.create(IA32_MOV, R(isNegative), I(0)));
@@ -652,8 +652,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     // addee      = 1 iff round(x) < x
     // subtractee = 1 iff round(x) > x
-    OPT_Register addee      = burs.ir.regpool.getInteger(false);
-    OPT_Register subtractee = burs.ir.regpool.getInteger(false);
+    OPT_Register addee      = burs.ir.regpool.getInteger();
+    OPT_Register subtractee = burs.ir.regpool.getInteger();
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1()));
     // FP Stack: myFP0 = value
     burs.append(MIR_Move.create(IA32_MOV, R(addee) , I(0)));
@@ -675,7 +675,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // Acquire the JTOC in a register
     OPT_Register jtoc = null;
     if (!burs.ir.options.FIXED_JTOC) {
-      jtoc = burs.ir.regpool.getInteger(false);
+      jtoc = burs.ir.regpool.getInteger();
       burs.append(MIR_Move.create(IA32_MOV, 
 				  R(jtoc), 
 				  MO_BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
@@ -694,7 +694,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1()));
     // FP Stack: myFP0 = value
     // If MAX_VALUE < value, then result := MAX_INT
-    OPT_Register maxInt = burs.ir.regpool.getInteger(false);
+    OPT_Register maxInt = burs.ir.regpool.getInteger();
     burs.append(MIR_Move.create(IA32_MOV, R(maxInt), I(Integer.MAX_VALUE)));
     burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(), R(maxInt), 
                                     OPT_IA32ConditionOperand.LLT()));
@@ -711,7 +711,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1()));
     // FP Stack: myFP0 = value
     // If MIN_VALUE > value, then result := MIN_INT
-    OPT_Register minInt = burs.ir.regpool.getInteger(false);
+    OPT_Register minInt = burs.ir.regpool.getInteger();
     burs.append(MIR_Move.create(IA32_MOV, R(minInt), I(Integer.MIN_VALUE)));
     burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(), R(minInt), 
                                     OPT_IA32ConditionOperand.LGT()));
@@ -720,7 +720,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP0()));
     // FP Stack: back to original level (all BURS managed slots freed)
     // If FP0 was classified as a NaN, then result := 0
-    OPT_Register zero = burs.ir.regpool.getInteger(false);
+    OPT_Register zero = burs.ir.regpool.getInteger();
     burs.append(MIR_Move.create(IA32_MOV, R(zero), I(0)));
     burs.append(MIR_CondMove.create(IA32_CMOV, result.copy(), R(zero),
 				    OPT_IA32ConditionOperand.PE()));
@@ -930,7 +930,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     if (value instanceof OPT_RegisterOperand) {
       OPT_Register rhsReg = ((OPT_RegisterOperand)value).register;
       OPT_Register lowrhsReg = burs.ir.regpool.getSecondReg(rhsReg);
-      OPT_Register tmp = burs.ir.regpool.getInteger(false);
+      OPT_Register tmp = burs.ir.regpool.getInteger();
       burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(lhsReg), R(lowrhsReg)));
       burs.append(MIR_Move.create(IA32_MOV, R(tmp), R(rhsReg)));
       burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(tmp), R(lowlhsReg)));
@@ -1037,7 +1037,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	if (low == -1) {
 	  // *, -1
 	  // CLAIM: (x,y) * (z,-1) = (-x+l(y imul z)+u(y mul -1), l(y mul -1))
-	  OPT_Register tmp = burs.ir.regpool.getInteger(false);
+	  OPT_Register tmp = burs.ir.regpool.getInteger();
 	  burs.append(MIR_UnaryAcc.create(IA32_NEG, R(lhsReg)));
 	  burs.append(MIR_Move.create(IA32_MOV, R(tmp), I(high)));
 	  burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(tmp), R(lowlhsReg)));
@@ -1055,13 +1055,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	} else if (low == 1) {
 	  // *, 1
 	  // CLAIM: (x,y) * (z,1) = (l(y imul z)+x,y)	
-	  OPT_Register tmp = burs.ir.regpool.getInteger(false);
+	  OPT_Register tmp = burs.ir.regpool.getInteger();
 	  burs.append(MIR_Move.create(IA32_MOV, R(tmp), R(lowlhsReg)));
 	  burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(tmp), I(high)));
 	  burs.append(MIR_Move.create(IA32_ADD, R(lhsReg), R(tmp)));
 	} else {
 	  // *, * (sigh, can't do anything interesting...)
-	  OPT_Register tmp = burs.ir.regpool.getInteger(false);
+	  OPT_Register tmp = burs.ir.regpool.getInteger();
 	  burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(lhsReg), I(low)));
 	  burs.append(MIR_Move.create(IA32_MOV, R(tmp), I(high)));
 	  burs.append(MIR_BinaryAcc.create(IA32_IMUL2, R(tmp), R(lowlhsReg)));

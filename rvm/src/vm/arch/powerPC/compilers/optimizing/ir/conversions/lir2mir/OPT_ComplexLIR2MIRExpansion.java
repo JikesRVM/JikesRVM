@@ -62,7 +62,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     OPT_Register src = ((OPT_RegisterOperand)Unary.getVal(s)).register;
     OPT_Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
     int p = ir.stackManager.allocateSpaceForConversion();
-    OPT_Register temp = ir.regpool.getDouble(false);
+    OPT_Register temp = ir.regpool.getDouble();
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB3 = BB1.splitNodeAt(s, ir);
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
@@ -261,9 +261,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     OPT_Register leftLow = ir.regpool.getSecondReg(leftHigh);
     OPT_RegisterOperand shiftOp = (OPT_RegisterOperand)Binary.getVal2(s);
     OPT_Register shift = shiftOp.register;
-    OPT_Register t31 = ir.regpool.getInteger(false);
-    OPT_Register t0 = ir.regpool.getInteger(false);
-    OPT_Register cr = ir.regpool.getCondition(false);
+    OPT_Register t31 = ir.regpool.getInteger();
+    OPT_Register t0 = ir.regpool.getInteger();
+    OPT_Register cr = ir.regpool.getCondition();
     defLow.setSpansBasicBlock();
     defHigh.setSpansBasicBlock();
     s.insertBack(MIR_Binary.create(PPC_SUBFIC, R(t31), R(shift), I(32)));
@@ -328,8 +328,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     OPT_BasicBlock BB2 = BB1.splitNodeAt(s, ir);
     OPT_Register defHigh = Nullary.getResult(s).register;
     OPT_Register defLow = ir.regpool.getSecondReg(defHigh);
-    OPT_Register t0 = ir.regpool.getInteger(false);
-    OPT_Register cr = ir.regpool.getCondition(false);
+    OPT_Register t0 = ir.regpool.getInteger();
+    OPT_Register cr = ir.regpool.getCondition();
     defLow.setSpansBasicBlock();
     defHigh.setSpansBasicBlock();
     // Try to get the base

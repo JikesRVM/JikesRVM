@@ -150,10 +150,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param context the context to generate HIR into
    */
   private OPT_BC2IR(OPT_GenerationContext context) {
-    gc = context;
-    bcInfo = new OPT_BytecodeInfo(context.method);
-    // initialize the local state from context.arguments
-    _localState = new OPT_Operand[context.method.getLocalWords()];
+    start(context);
     for (int argIdx = 0, localIdx = 0; argIdx < context.arguments.length;) {
       VM_Type argType = context.arguments[argIdx].getType();
       _localState[localIdx++] = context.arguments[argIdx++];
@@ -161,6 +158,19 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         _localState[localIdx++] = DUMMY;
       }
     }
+    finish(context);
+  }
+
+
+  private void start(OPT_GenerationContext context) {
+    VM_Magic.pragmaNoInline();
+    gc = context;
+    bcInfo = new OPT_BytecodeInfo(context.method);
+    // initialize the local state from context.arguments
+    _localState = new OPT_Operand[context.method.getLocalWords()];
+  }
+
+  private void finish(OPT_GenerationContext context) {
     // Initialize simulated stack.
     stack = new OperandStack(context.method.getOperandWords());
     // Initialize BBSet.
@@ -172,6 +182,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       db("Added CFG edge from "+gc.prologue+" to "+currentBBLE.block);
     runoff = currentBBLE.max;
   }
+
 
   /**
    * Main generation loop.

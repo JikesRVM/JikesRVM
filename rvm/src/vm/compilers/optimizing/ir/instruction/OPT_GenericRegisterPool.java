@@ -84,11 +84,10 @@ abstract class OPT_GenericRegisterPool {
     return currentNum - start;
   }
 
-  private OPT_Register makeNewReg(boolean spans) {
+  private OPT_Register makeNewReg() {
     OPT_Register reg = new OPT_Register(currentNum);
     currentNum++;
     registerListappend(reg);
-    reg.putSpansBasicBlock(spans);
     return reg;
   }
 
@@ -118,74 +117,62 @@ abstract class OPT_GenericRegisterPool {
 
   /**
    * Gets a new integer register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getInteger(boolean spanBasicBlock) {
-    OPT_Register reg = makeNewReg(spanBasicBlock);
+  public OPT_Register getInteger() {
+    OPT_Register reg = makeNewReg();
     reg.setInteger();
     return reg;
   }
 
   /**
    * Gets a new float register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getFloat(boolean spanBasicBlock) {
-    OPT_Register reg = makeNewReg(spanBasicBlock);
+  public OPT_Register getFloat() {
+    OPT_Register reg = makeNewReg();
     reg.setFloat();
     return reg;
   }
 
   /**
    * Gets a new double register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getDouble(boolean spanBasicBlock) {
+  public OPT_Register getDouble() {
     OPT_Register reg;
-    reg = makeNewReg(spanBasicBlock);
+    reg = makeNewReg();
     reg.setDouble();
     return reg;
   }
 
   /**
    * Gets a new condition register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getCondition(boolean spanBasicBlock) {
-    OPT_Register reg = makeNewReg(spanBasicBlock);
+  public OPT_Register getCondition() {
+    OPT_Register reg = makeNewReg();
     reg.setCondition();
     return reg;
   }
 
   /**
    * Gets a new long register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getLong(boolean spanBasicBlock) {
+  public OPT_Register getLong() {
     OPT_Register reg;
-    reg = makeNewReg(spanBasicBlock);
+    reg = makeNewReg();
     reg.setLong();
     return reg;
   }
 
   /**
    * Gets a new validation register.
-   *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
-  public OPT_Register getValidation(boolean spanBasicBlock) {
-    OPT_Register reg = makeNewReg(spanBasicBlock);
+  public OPT_Register getValidation() {
+    OPT_Register reg = makeNewReg();
     reg.setValidation();
     return reg;
   }
@@ -200,17 +187,17 @@ abstract class OPT_GenericRegisterPool {
   public OPT_Register getReg(OPT_Register template) {
     switch(template.getType()) {
     case OPT_Register.INTEGER_TYPE:
-      return getInteger(template.spansBasicBlock());
+      return getInteger();
     case OPT_Register.FLOAT_TYPE:
-      return getFloat(template.spansBasicBlock());
+      return getFloat();
     case OPT_Register.DOUBLE_TYPE:
-      return getDouble(template.spansBasicBlock());
+      return getDouble();
     case OPT_Register.CONDITION_TYPE:
-      return getCondition(template.spansBasicBlock());
+      return getCondition();
     case OPT_Register.LONG_TYPE:
-      return getLong(template.spansBasicBlock());
+      return getLong();
     case OPT_Register.VALIDATION_TYPE: 
-      return getValidation(template.spansBasicBlock());
+      return getValidation();
     }
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     return null;
@@ -231,21 +218,19 @@ abstract class OPT_GenericRegisterPool {
    * Get a new register of the appropriate type to hold values of 'type'
    * 
    * @param type the type of values that the register will hold
-   * @param spanBasicBlock does the registers live range span (cross)
-   *                       a basic block boundary?
    * @return the newly created register object 
    */
-  public OPT_Register getReg(VM_Type type, boolean spanBasicBlock) {
+  public OPT_Register getReg(VM_Type type) {
     if (type == VM_Type.LongType)
-      return getLong(spanBasicBlock);
+      return getLong();
     else if (type == VM_Type.DoubleType)
-      return getDouble(spanBasicBlock);
+      return getDouble();
     else if (type == VM_Type.FloatType)
-      return getFloat(spanBasicBlock);
+      return getFloat();
     else if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE)
-      return getValidation(spanBasicBlock);
+      return getValidation();
     else
-      return getInteger(spanBasicBlock);
+      return getInteger();
   }
 
   private java.util.HashMap _regPairs = new java.util.HashMap();
@@ -266,7 +251,6 @@ abstract class OPT_GenericRegisterPool {
       otherHalf = getReg(reg);
       _regPairs.put(reg, otherHalf);
       if (reg.isLocal()) otherHalf.setLocal();
-      if (reg.spansBasicBlock()) otherHalf.setSpansBasicBlock();
       if (reg.isSSA()) otherHalf.setSSA();
     }
     return otherHalf;
@@ -281,7 +265,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the new temp
    */
   public OPT_RegisterOperand makeTemp(VM_Type type) {
-    return new OPT_RegisterOperand(getReg(type, false), type);
+    return new OPT_RegisterOperand(getReg(type), type);
   }
 
   /**
@@ -351,7 +335,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempInt() {
-    return new OPT_RegisterOperand(getInteger(false), VM_Type.IntType);
+    return new OPT_RegisterOperand(getInteger(), VM_Type.IntType);
   }
 
   /**
@@ -360,7 +344,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempBoolean() {
-    return new OPT_RegisterOperand(getInteger(false), VM_Type.BooleanType);
+    return new OPT_RegisterOperand(getInteger(), VM_Type.BooleanType);
   }
 
   /**
@@ -369,7 +353,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempFloat() {
-    return new OPT_RegisterOperand(getFloat(false), VM_Type.FloatType);
+    return new OPT_RegisterOperand(getFloat(), VM_Type.FloatType);
   }
 
   /**
@@ -378,7 +362,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempDouble() {
-    return new OPT_RegisterOperand(getDouble(false), VM_Type.DoubleType);
+    return new OPT_RegisterOperand(getDouble(), VM_Type.DoubleType);
   }
 
   /**
@@ -387,7 +371,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempLong() {
-    return new OPT_RegisterOperand(getLong(false), VM_Type.LongType);
+    return new OPT_RegisterOperand(getLong(), VM_Type.LongType);
   }
 
   /**
@@ -396,7 +380,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempCondition() {
-    OPT_Register reg = getCondition(false);
+    OPT_Register reg = getCondition();
     return new OPT_RegisterOperand(reg, VM_Type.IntType);
   }
 
@@ -406,8 +390,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempValidation() {
-    OPT_Register reg = getValidation(false);
-    reg.setValidation();
+    OPT_Register reg = getValidation();
     return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.VALIDATION_TYPE);
   }
 

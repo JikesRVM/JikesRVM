@@ -501,7 +501,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   public OPT_Register localReg(int i, VM_Type type) {
     OPT_Register[] pool = getPool(type);
     if (pool[i] == null) {
-      pool[i] = temps.getReg(type, true);
+      pool[i] = temps.getReg(type);
       pool[i].setLocal();
     }
     return pool[i];
